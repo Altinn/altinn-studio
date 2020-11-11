@@ -25,6 +25,8 @@ namespace Altinn.Platform.Authentication.Repositories
 
         private readonly Uri _organisationListLocation;
 
+        private DateTime _lastHarvest;
+
         /// <summary>
         /// Instantiates the class.
         /// </summary>
@@ -42,19 +44,19 @@ namespace Altinn.Platform.Authentication.Repositories
             _cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.Normal)
                 .SetAbsoluteExpiration(new TimeSpan(1, 0, 0));
+
+            _lastHarvest = DateTime.MinValue;
         }
 
         /// <inheritdoc/>
         public async Task<Organisation> GetOrganisationByOrgNumber(string orgNumber)
         {
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
             string cacheKey = $"org-{orgNumber}";
             Organisation organisation;
 
-            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
-            {
-                await HarvestOrgs();
-                _memoryCache.TryGetValue(cacheKey, out organisation);
-            }
+            _memoryCache.TryGetValue(cacheKey, out organisation);
 
             return organisation;
         }
@@ -62,14 +64,12 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <inheritdoc/>
         public async Task<Organisation> GetOrganisationByOrg(string org)
         {
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
             string cacheKey = $"org-{org}";
             Organisation organisation;
 
-            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
-            {
-                await HarvestOrgs();
-                _memoryCache.TryGetValue(cacheKey, out organisation);
-            }
+            _memoryCache.TryGetValue(cacheKey, out organisation);
 
             return organisation;
         }
@@ -77,14 +77,12 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <inheritdoc/>
         public async Task<string> LookupOrg(string orgNumber)
         {
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
             string cacheKey = $"org-{orgNumber}";
             Organisation organisation;
 
-            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
-            {
-                await HarvestOrgs();
-                _memoryCache.TryGetValue(cacheKey, out organisation);
-            }
+            _memoryCache.TryGetValue(cacheKey, out organisation);
 
             return organisation?.Org;
         }
@@ -92,16 +90,22 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <inheritdoc/>
         public async Task<string> LookupOrgNumber(string org)
         {
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
             string cacheKey = $"org-{org}";
             Organisation organisation;
 
-            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
-            {
-                await HarvestOrgs();
-                _memoryCache.TryGetValue(cacheKey, out organisation);
-            }
+            _memoryCache.TryGetValue(cacheKey, out organisation);
 
             return organisation?.OrgNumber;
+        }
+
+        private async Task HarvestOrgsIfCacheIsMoreThanOneHourOld()
+        {
+            if (_lastHarvest < DateTime.UtcNow.AddHours(-1))
+            {
+                await HarvestOrgs();
+            }
         }
 
         private async Task HarvestOrgs()
@@ -149,6 +153,8 @@ namespace Altinn.Platform.Authentication.Repositories
                         _memoryCache.Set($"org-{orgNumber}", candidateOrganisation, _cacheEntryOptions);
                     }
                 }
+
+                _lastHarvest = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
