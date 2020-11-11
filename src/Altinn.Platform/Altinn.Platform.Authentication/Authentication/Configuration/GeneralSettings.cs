@@ -175,6 +175,6 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Gets or sets the initial organisation harvest date time.
         /// </summary>
-        public DateTime InitialHarvestDateTime { get; set; } = new DateTime(0);
+        public DateTime InitialHarvestDateTime { get; set; } = DateTime.MinValue;
     }
 }
