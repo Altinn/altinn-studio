@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Receipt
@@ -142,11 +143,16 @@ namespace Altinn.Platform.Receipt
 
             if (env.IsDevelopment() || env.IsStaging())
             {
+                _logger.LogInformation("IsDevelopment || IsStaging");
+
                 app.UseDeveloperExceptionPage();
+
+                // Enable higher level of detail in exceptions related to JWT validation
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/receipt/api/v1/error");
             }
 
             app.UseStaticFiles();

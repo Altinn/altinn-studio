@@ -1,9 +1,13 @@
+using System;
+
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Altinn.App.Api.Filters
 {
+    /// <summary>
+    /// This attribute is part of the anti request forgery system.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class AutoValidateAntiforgeryTokenIfAuthCookieAttribute : Attribute, IFilterFactory, IOrderedFilter
     {

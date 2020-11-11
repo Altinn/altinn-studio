@@ -222,6 +222,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     return Conflict($"Instance does not have valid info about currentTask");
                 }
+
                 List<string> nextElementIds = processHelper.Process.NextElements(currentTaskId);
 
                 if (nextElementIds.Count == 0)
@@ -329,6 +330,7 @@ namespace Altinn.App.Api.Controllers
                         return Ok(changedInstance.Process);
                     }
                 }
+
                 return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
             }
             catch (PlatformHttpException e)
@@ -515,6 +517,13 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
+        /// <summary>
+        /// Perform calls to the custom App logic.
+        /// </summary>
+        /// <param name="altinnApp">The application core logic.</param>
+        /// <param name="instance">The currently loaded instance.</param>
+        /// <param name="events">The events to trigger.</param>
+        /// <returns>A Task to enable async await.</returns>
         internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events)
         {
             foreach (InstanceEvent processEvent in events)
@@ -525,7 +534,7 @@ namespace Altinn.App.Api.Controllers
                     {
                         case InstanceEventType.process_StartEvent:
 
-                            break; ;
+                            break;
 
                         case InstanceEventType.process_StartTask:
                             await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
@@ -568,6 +577,7 @@ namespace Altinn.App.Api.Controllers
                 _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
                 return false;
             }
+
             bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
             return authorized;
         }

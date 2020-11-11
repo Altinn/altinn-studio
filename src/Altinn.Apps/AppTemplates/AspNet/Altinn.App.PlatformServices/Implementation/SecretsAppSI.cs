@@ -25,14 +25,14 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </param>
         public SecretsAppSI(IOptions<KeyVaultSettings> keyVaultSettings)
         {
-            string _connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
+            string connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
                                  $"TenantId={keyVaultSettings.Value.TenantId};" +
                                  $"AppKey={keyVaultSettings.Value.ClientSecret}";
             _vaultUri = keyVaultSettings.Value.SecretUri;
-            _azureServiceTokenProvider = new AzureServiceTokenProvider(_connectionString);
+            _azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString);
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public async Task<byte[]> GetCertificateAsync(string certificateId)
         {         
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
@@ -41,7 +41,7 @@ namespace Altinn.App.PlatformServices.Implementation
             return cert.Cer;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public async Task<JsonWebKey> GetKeyAsync(string keyId)
         {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
@@ -50,14 +50,14 @@ namespace Altinn.App.PlatformServices.Implementation
             return kb.Key;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public KeyVaultClient GetKeyVaultClient()
         {
             KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
             return client;
         }
 
-        /// </inheritdoc>
+        /// <inheritdoc />
         public async Task<string> GetSecretAsync(string secretId)
         {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
+
 using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Services.Interface
@@ -29,7 +29,7 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Looks up a party by person or organisation number.
         /// </summary>
-        /// <param name="partyLookup"></param>
+        /// <param name="partyLookup">A populated lookup object with information about what to look for.</param>
         /// <returns>The party lookup containing either SSN or organisation number.</returns>
         Task<Party> LookupParty(PartyLookup partyLookup);
     }

@@ -52,7 +52,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to get an instance for a party from storage: SBL and validate the response
-  res = sbl.getSblInstanceByParty(runtimeToken, partyId);
+  res = sbl.getSblInstanceByParty(runtimeToken, partyId, "active");
   success = check(res, {
     "GET SBL Instance by Party status is 200:": (r) => r.status === 200
   });

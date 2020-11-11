@@ -209,7 +209,7 @@ namespace Altinn.App.Api.Controllers
             {
                 InstanceOwner lookup = instanceTemplate.InstanceOwner;
 
-                if (lookup == null || lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+                if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
                 {
                     return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
                 }
@@ -382,6 +382,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to delete.</param>
+        /// <param name="hard">A value indicating whether the instance should be unrecoverable.</param>
         /// <returns>Returns the deleted instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]

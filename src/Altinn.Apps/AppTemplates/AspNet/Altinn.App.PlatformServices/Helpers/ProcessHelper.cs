@@ -1,40 +1,49 @@
-using Altinn.App.Common.Process;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Altinn.App.Common.Process;
+
 namespace Altinn.App.Services.Helpers
 {
+    /// <summary>
+    /// Helper class for handling the process for an instance.
+    /// </summary>
     public class ProcessHelper
     {
-        private readonly BpmnReader _process;
-
+        /// <summary>
+        /// Initialize a new instance of the <see cref="ProcessHelper"/> class with the given data stream.
+        /// </summary>
+        /// <param name="bpmnStream">A stream with access to a BPMN file.</param>
         public ProcessHelper(Stream bpmnStream)
         {
-            _process = BpmnReader.Create(bpmnStream);
+            Process = BpmnReader.Create(bpmnStream);
         }
 
-        public BpmnReader Process 
-        {
-            get
-            {
-                return _process;
-            }                
-        }
+        /// <summary>
+        /// Gets the internal <see cref="BpmnReader"/>.
+        /// </summary>
+        public BpmnReader Process { get; }
 
+        /// <summary>
+        /// Try to get the next valid step in the process.
+        /// </summary>
+        /// <param name="currentElement">The current element name.</param>
+        /// <param name="nextElementError">Any error preventing the logic to identify next element.</param>
+        /// <returns>The name of the next element.</returns>
         public string GetValidNextElementOrError(string currentElement, out ProcessError nextElementError)
         {
             nextElementError = null;
             string nextElementId = null;
 
-            List<string> nextElements = _process.NextElements(currentElement);
+            List<string> nextElements = Process.NextElements(currentElement);
 
             if (nextElements.Count > 1)
             {
                 nextElementError = new ProcessError
                 {
                     Code = "Conflict",
-                    Text = ($"There is more than one element reachable from element {currentElement}")
+                    Text = $"There is more than one element reachable from element {currentElement}"
                 };
             }
             else
@@ -45,12 +54,22 @@ namespace Altinn.App.Services.Helpers
             return nextElementId;
         }
 
+        /// <summary>
+        /// Checks whether the given element id is a task.
+        /// </summary>
+        /// <param name="nextElementId">The name of an element from the process.</param>
+        /// <returns>True if the element is a task.</returns>
         public bool IsTask(string nextElementId)
         {
             List<string> tasks = Process.Tasks();
             return tasks.Contains(nextElementId);
         }
 
+        /// <summary>
+        /// Checks whether the given element id is a start event.
+        /// </summary>
+        /// <param name="startEventId">The name of an element from the process.</param>
+        /// <returns>True if the element is a start event.</returns>
         public bool IsStartEvent(string startEventId)
         {
             List<string> startEvents = Process.StartEvents();
@@ -58,6 +77,11 @@ namespace Altinn.App.Services.Helpers
             return startEvents.Contains(startEventId);
         }
 
+        /// <summary>
+        /// Checks whether the given element id is an end event.
+        /// </summary>
+        /// <param name="nextElementId">The name of an element from the process.</param>
+        /// <returns>True if the element is an end event.</returns>
         public bool IsEndEvent(string nextElementId)
         {
             List<string> endEvents = Process.EndEvents();
@@ -65,11 +89,17 @@ namespace Altinn.App.Services.Helpers
             return endEvents.Contains(nextElementId);
         }
 
+        /// <summary>
+        /// Validates that the process can start from the given start event.
+        /// </summary>
+        /// <param name="proposedStartEvent">The name of the start event the process should start from.</param>
+        /// <param name="startEventError">Any error preventing the process from starting.</param>
+        /// <returns>The name of the start event or null if start event wasn't found.</returns>
         public string GetValidStartEventOrError(string proposedStartEvent, out ProcessError startEventError)
         {
             startEventError = null;
 
-            List<string> possibleStartEvents = _process.StartEvents();
+            List<string> possibleStartEvents = Process.StartEvents();
 
             if (!string.IsNullOrEmpty(proposedStartEvent))
             {
@@ -100,11 +130,18 @@ namespace Altinn.App.Services.Helpers
             }
         }
 
+        /// <summary>
+        /// Validates that the given element name is a valid next step in the process.
+        /// </summary>
+        /// <param name="currentElementId">The current element name.</param>
+        /// <param name="proposedElementId">The name of the proposed next element.</param>
+        /// <param name="nextElementError">Any error preventing the logic to identify next element.</param>
+        /// <returns>The name of the next element.</returns>
         public string GetValidNextElementOrError(string currentElementId, string proposedElementId, out ProcessError nextElementError)
         {
             nextElementError = null;
 
-            List<string> possibleNextElements = _process.NextElements(currentElementId);
+            List<string> possibleNextElements = Process.NextElements(currentElementId);
 
             if (!string.IsNullOrEmpty(proposedElementId))
             {

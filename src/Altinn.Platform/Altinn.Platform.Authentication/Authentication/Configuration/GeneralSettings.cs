@@ -165,5 +165,15 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Gets or sets the initial organisation harvest date time.
         /// </summary>
         public DateTime InitialHarvestDateTime { get; set; } = new DateTime(0);
+
+        /// Gets or sets the number of hours to wait before a new certificate is being used to
+        /// sign new JSON Web tokens.
+        /// </summary>
+        /// <remarks>
+        /// The logic use the NotBefore property of a certificate. This means that uploading a
+        /// certificate that has been valid for a few days might cause it to be used immediately.
+        /// Take care not to upload "old" certificates.
+        /// </remarks>
+        public int JwtSigningCertificateRolloverDelayHours { get; set; }
     }
 }

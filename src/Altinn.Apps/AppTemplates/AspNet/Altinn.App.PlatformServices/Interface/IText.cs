@@ -1,8 +1,12 @@
-using Altinn.Platform.Storage.Interface.Models;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
 {
+    /// <summary>
+    /// Describes the public methods of a text resources service
+    /// </summary>
     public interface IText
     {
         /// <summary>
