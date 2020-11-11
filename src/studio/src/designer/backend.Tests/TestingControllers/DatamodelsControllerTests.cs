@@ -60,7 +60,7 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
-        public async void Get_Updatemodel_Ok()
+        public async void Get_Datamodel_Ok()
         {
             HttpClient client = GetTestClient();
 
@@ -74,7 +74,71 @@ namespace Designer.Tests.TestingControllers
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responsestring = await response.Content.ReadAsStringAsync();
+            TextReader textReader = new StringReader(responsestring);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(5, jsonSchema.Count);
+        }
+
+        [Fact]
+        public async void Get_Datamodel_onlyXsd_Ok()
+        {
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=4106/35721/35721";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
+            TextReader textReader = new StringReader(responsestring);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(5, jsonSchema.Count);
+        }
+
+        /// <summary>
+        /// Scenario: Post a Json Schema
+        /// </summary>
+        [Fact]
+        public async void Get_Put_Updatemodel_Ok()
+        {
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=3478/32578/32578";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
+            TextReader textReader = new StringReader(responsestring);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=3478/32578/32578";
+
+            var serializer = new JsonSerializer();
+            JsonValue toar = serializer.Serialize(jsonSchema);
+
+            string requestBody = toar.ToString();
+            HttpRequestMessage httpRequestMessagePut = new HttpRequestMessage(HttpMethod.Put, dataPathWithData)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessagePut);
+            HttpResponseMessage responsePut = await client.SendAsync(httpRequestMessagePut);
+            Assert.Equal(HttpStatusCode.OK, responsePut.StatusCode);
         }
 
         private HttpClient GetTestClient()

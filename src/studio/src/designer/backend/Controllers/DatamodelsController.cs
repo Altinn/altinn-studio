@@ -101,7 +101,24 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
                 return Ok(jsonValue.ToString());
             }
-            catch (Exception ex)
+            catch 
+            {
+            }
+
+            try
+            {
+                Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.xsd");
+                XmlReader xsdReader = XmlReader.Create(dataStream);
+                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
+
+                // Act
+                JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
+                JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
+                return Ok(serializedConvertedSchema.ToString());
+            }
+            catch
             {
                 return NotFound();
             }

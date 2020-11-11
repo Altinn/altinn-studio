@@ -16,13 +16,18 @@ namespace Designer.Tests.Utils
             };
 
             HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
-            IEnumerable<string> cookies = loginResponse.Headers.GetValues("Set-Cookie");
 
             string xsrfUrl = $"/User/Current";
             HttpRequestMessage httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl)
             {
             };
-            SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+
+            IEnumerable<string> cookies = null;
+            if (loginResponse.Headers.Contains("Set-Cookie"))
+            {
+                cookies = loginResponse.Headers.GetValues("Set-Cookie");
+                SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+            }
 
             HttpResponseMessage xsrfResponse = await client.SendAsync(httpRequestMessageXsrf);
 
@@ -53,25 +58,36 @@ namespace Designer.Tests.Utils
 
         private static void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
         {
-            foreach (string singleCookieHeader in setCookieHeader)
+            if (setCookieHeader != null)
             {
-                string[] cookies = singleCookieHeader.Split(',');
-
-                foreach (string cookie in cookies)
+                foreach (string singleCookieHeader in setCookieHeader)
                 {
-                    string[] cookieSettings = cookie.Split(";");
+                    string[] cookies = singleCookieHeader.Split(',');
 
-                    if (cookieSettings[0].StartsWith(Altinn.Studio.Designer.Constants.General.DesignerCookieName))
+                    foreach (string cookie in cookies)
                     {
-                        AddAuthCookie(requestMessage, cookieSettings[0].Replace(Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=", string.Empty), xsrfToken);
+                        string[] cookieSettings = cookie.Split(";");
+
+                        if (cookieSettings[0].StartsWith(Altinn.Studio.Designer.Constants.General.DesignerCookieName))
+                        {
+                            AddAuthCookie(requestMessage, cookieSettings[0].Replace(Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=", string.Empty), xsrfToken);
+                        }
                     }
                 }
+            }
+            else
+            {
+                AddAuthCookie(requestMessage, null, xsrfToken);
             }
         }
 
         private static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
         {
-            requestMessage.Headers.Add("Cookie", Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=" + token);
+            if (token != null)
+            {
+                requestMessage.Headers.Add("Cookie", Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=" + token);
+            }
+
             if (xsrfToken != null)
             {
                 requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
