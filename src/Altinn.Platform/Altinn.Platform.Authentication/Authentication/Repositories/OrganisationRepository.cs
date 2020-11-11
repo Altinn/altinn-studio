@@ -102,7 +102,7 @@ namespace Altinn.Platform.Authentication.Repositories
 
         private async Task HarvestOrgsIfCacheIsMoreThanOneHourOld()
         {
-            if (_lastHarvest < DateTime.UtcNow.AddHours(-1))
+            if (_lastHarvest < DateTime.UtcNow.AddHours(-0.9))
             {
                 await HarvestOrgs();
             }
