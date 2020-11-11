@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -26,13 +27,13 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
     {
         private readonly IMemoryCache _memoryCache;
         private readonly Mock<ILogger<OrganisationRepository>> _loggerMock;
-        private readonly Mock<IOptions<GeneralSettings>> _optionsMock;
+        private readonly Mock<IOptions<GeneralSettings>> _generalSettingsMock;
 
         public OrganisationRepositoryTest()
         {
-            _optionsMock = new Mock<IOptions<GeneralSettings>>();
             GeneralSettings generalSettings = new GeneralSettings { OrganisationRepositoryLocation = "https://mock.com/altinn-orgs.json" };
-            _optionsMock.Setup(o => o.Value).Returns(generalSettings);
+            _generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
+            _generalSettingsMock.Setup(o => o.Value).Returns(generalSettings);
             _loggerMock = new Mock<ILogger<OrganisationRepository>>();
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
         }
@@ -48,7 +49,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             string expectedOrgNameKey = "org-dibk";
 
             HttpClient httpClient = GetTestHttpClient();
-            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _generalSettingsMock.Object);
 
             // Act 
             string org = await orgRepo.LookupOrg("974760223");
@@ -65,11 +66,9 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             // Arrange
             string expectedOrgNoKey = "org-974760673";
             string expectedOrgNameKey = "org-brg";
-            _memoryCache.Remove(expectedOrgNoKey);
-            _memoryCache.Remove(expectedOrgNameKey);
 
             HttpClient httpClient = GetTestHttpClient();
-            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _generalSettingsMock.Object);
 
             // Act
             Organisation actual = await orgRepo.GetOrganisationByOrgNumber("974760673");
@@ -96,10 +95,10 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
                 }
             };
 
-            _memoryCache.Remove(cacheKey);
             _memoryCache.Set(cacheKey, org);
+            _generalSettingsMock.Setup(o => o.Value).Returns(new GeneralSettings { OrganisationRepositoryLocation = "https://mock.com/altinn-orgs.json", InitialHarvestDateTime = DateTime.UtcNow });
 
-            OrganisationRepository orgRepo = new OrganisationRepository(null, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+            OrganisationRepository orgRepo = new OrganisationRepository(null, _memoryCache, _loggerMock.Object, _generalSettingsMock.Object);
 
             // Act
             Organisation organisation = await orgRepo.GetOrganisationByOrg("nbib");
@@ -115,10 +114,11 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             string cacheKey = "org-974760223";
             Organisation org = new Organisation { Org = "dibk", OrgNumber = "974760223" };
 
-            _memoryCache.Remove(cacheKey);
             _memoryCache.Set(cacheKey, org);
 
-            OrganisationRepository orgRepo = new OrganisationRepository(null, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+            _generalSettingsMock.Setup(o => o.Value).Returns(new GeneralSettings { OrganisationRepositoryLocation = "https://mock.com/altinn-orgs.json", InitialHarvestDateTime = DateTime.UtcNow });
+
+            OrganisationRepository orgRepo = new OrganisationRepository(null, _memoryCache, _loggerMock.Object, _generalSettingsMock.Object);
 
             // Act
             Organisation actual = await orgRepo.GetOrganisationByOrgNumber("974760223");
@@ -133,11 +133,9 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             // Arrange
             string expectedOrgNoKey = "org-976029100";
             string expectedOrgNameKey = "org-nbib";
-            _memoryCache.Remove(expectedOrgNoKey);
-            _memoryCache.Remove(expectedOrgNameKey);
 
             HttpClient httpClient = GetTestHttpClient();
-            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _generalSettingsMock.Object);
 
             // Act
             Organisation actual = await orgRepo.GetOrganisationByOrgNumber("976029100");

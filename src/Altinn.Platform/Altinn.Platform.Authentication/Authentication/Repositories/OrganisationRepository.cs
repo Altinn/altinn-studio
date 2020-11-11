@@ -45,7 +45,7 @@ namespace Altinn.Platform.Authentication.Repositories
                 .SetPriority(CacheItemPriority.Normal)
                 .SetAbsoluteExpiration(new TimeSpan(1, 0, 0));
 
-            _lastHarvest = DateTime.MinValue;
+            _lastHarvest = generalSettings.Value.InitialHarvestDateTime;
         }
 
         /// <inheritdoc/>

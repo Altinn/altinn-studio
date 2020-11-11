@@ -160,5 +160,10 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Gets or sets the URL of the Altinn Open ID Connect well-known configuration endpoint.
         /// </summary>
         public string OpenIdWellKnownEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the initial organisation harvest date time.
+        /// </summary>
+        public DateTime InitialHarvestDateTime { get; set; } = new DateTime(0);
     }
 }
