@@ -1,8 +1,12 @@
-using AltinnCore.Authentication.Constants;
 using System.Security.Claims;
+
+using AltinnCore.Authentication.Constants;
 
 namespace Altinn.App.PlatformServices.Extensions
 {
+    /// <summary>
+    /// This class holds a collection of extension methods for the <see cref="ClaimsPrincipal"/> class.
+    /// </summary>
     public static class ClaimsPrincipalExtensions
     {
         /// <summary>
@@ -27,7 +31,7 @@ namespace Altinn.App.PlatformServices.Extensions
 
         /// <summary>
         /// Get the org identifier string or null if it is not an org.
-        /// </summary>        
+        /// </summary>
         public static string GetOrg(this ClaimsPrincipal user)
         {
             if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))

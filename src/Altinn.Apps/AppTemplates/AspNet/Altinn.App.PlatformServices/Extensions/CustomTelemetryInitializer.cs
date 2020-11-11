@@ -9,6 +9,10 @@ namespace Altinn.App.PlatformServices.Extensions
     /// </summary>
     public class CustomTelemetryInitializer : ITelemetryInitializer
     {
+        /// <summary>
+        /// Initializes properties of the specified <see cref="ITelemetry"/> object.
+        /// </summary>
+        /// <param name="telemetry">The <see cref="ITelemetry"/> object to initialize.</param>
         public void Initialize(ITelemetry telemetry)
         {
             if (string.IsNullOrEmpty(telemetry.Context.Cloud.RoleName))

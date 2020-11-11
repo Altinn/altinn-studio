@@ -14,12 +14,13 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
+
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// service validation an complete instance or a specific data element
+    /// Represents a validation service for validating instances and their data elements
     /// </summary>
     public class ValidationAppSI : IValidation
     {
@@ -51,7 +52,13 @@ namespace Altinn.App.Services.Implementation
             _objectModelValidator = objectModelValidator;
             _httpContextAccessor = httpContextAccessor;
         }
-
+        
+        /// <summary>
+        /// Validate an instance for a specified process step.
+        /// </summary>
+        /// <param name="instance">The instance to validate</param>
+        /// <param name="taskId">The task to validate the instance for.</param>
+        /// <returns>A list of validation errors if any were found</returns>
         public async Task<List<ValidationIssue>> ValidateAndUpdateProcess(Instance instance, string taskId)
         {
             // Todo. Figure out where to get this from
@@ -118,6 +125,13 @@ namespace Altinn.App.Services.Implementation
             return messages;
         }
 
+        /// <summary>
+        /// Validate a specific data element.
+        /// </summary>
+        /// <param name="instance">The instance where the data element belong</param>
+        /// <param name="dataType">The datatype describing the data element requirements</param>
+        /// <param name="dataElement">The metadata of a data element to validate</param>
+        /// <returns>A list of validation errors if any were found</returns>
         public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataType dataType, DataElement dataElement)
         {
             _logger.LogInformation($"Validation of data element {dataElement.Id} of instance {instance.Id}");

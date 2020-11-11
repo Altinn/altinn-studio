@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Services.Implementation
 {
+    /// <summary>
+    /// Default implementation of the core Altinn App interface.
+    /// </summary>
     public abstract class AppBase : IAltinnApp
     {
         private readonly Application _appMetadata;
@@ -24,7 +27,16 @@ namespace Altinn.App.Services.Implementation
         private readonly IPDF _pdfService;
         private readonly IPrefill _prefillService;
 
-        public AppBase(
+        /// <summary>
+        /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
+        /// </summary>
+        /// <param name="resourceService">The service giving access to local resources.</param>
+        /// <param name="logger">A logging service.</param>
+        /// <param name="dataService">The service giving access to data.</param>
+        /// <param name="processService">The service giving access the App process.</param>
+        /// <param name="pdfService">The service giving access to the PDF generator.</param>
+        /// <param name="prefillService">The service giving access to prefill mechanisms.</param>
+        protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
             IData dataService,
@@ -41,24 +53,34 @@ namespace Altinn.App.Services.Implementation
             _prefillService = prefillService;
         }
 
+        /// <inheritdoc />
         public abstract Type GetAppModelType(string dataType);
 
+        /// <inheritdoc />
         public abstract object CreateNewAppModel(string dataType);
 
+        /// <inheritdoc />
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
+        /// <inheritdoc />
         public abstract Task RunDataValidation(object data, ModelStateDictionary validationResults);
 
+        /// <inheritdoc />
         public abstract Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
 
+        /// <inheritdoc />
         public abstract Task<bool> RunCalculation(object data);
 
+        /// <inheritdoc />
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
+        /// <inheritdoc />
         public abstract Task RunDataCreation(Instance instance, object data);
 
+        /// <inheritdoc />
         public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
 
+        /// <inheritdoc />
         public abstract Task RunProcessTaskEnd(string taskId, Instance instance);
 
         /// <inheritdoc />
@@ -98,6 +120,7 @@ namespace Altinn.App.Services.Implementation
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
+
                     // runs prefill from repo configuration if config exists
                     await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data);
                     await RunDataCreation(instance, data);

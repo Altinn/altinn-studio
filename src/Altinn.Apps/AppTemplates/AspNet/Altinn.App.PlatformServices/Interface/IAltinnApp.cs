@@ -6,6 +6,7 @@ using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Altinn.App.Services.Interface
@@ -26,7 +27,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Event that is triggered 
         /// </summary>
-        /// <param name="serviceEvent">The service event</param>
         /// <returns>Task to indicate when the event is completed</returns>
         Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
@@ -56,7 +56,7 @@ namespace Altinn.App.Services.Interface
 
         /// <summary>
         ///  Called before a process task is ended. App can do extra validation logic and add validation issues to collection which will be returned by the controller.
-        /// </summary>        
+        /// </summary>
         /// <returns>true task can be ended, false otherwise</returns>
         Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues);
 
@@ -67,6 +67,9 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">instance data</param>
         Task OnEndProcessTask(string taskId, Instance instance);
 
+        /// <summary>
+        /// Is called when the process for an instance is ended.
+        /// </summary>
         Task OnEndProcess(string endEvent, Instance instance);
 
         /// <summary>
@@ -80,8 +83,8 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Is called to run custom task validation events defined by app developer.
         /// </summary>
-        ///<param name="instance">Instance to be validated.</param>
-        ///<param name="taskId">Task id for the current process task.</param>
+        /// <param name="instance">Instance to be validated.</param>
+        /// <param name="taskId">Task id for the current process task.</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when validation is completed</returns>
         Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
@@ -101,7 +104,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
-        /// <param name="data">The data to perform data creation on</param>
         Task RunDataCreation(Instance instance, object data);
 
         /// <summary>

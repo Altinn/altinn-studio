@@ -28,7 +28,7 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
-        public string AppBasePath { get; set; } = "";
+        public string AppBasePath { get; set; } = string.Empty;
 
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
@@ -73,7 +73,7 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// Gets or sets the name of the layout setting file name
         /// </summary>
-        public string FormLayoutSettingsFileName {get; set; } = "Settings.json";
+        public string FormLayoutSettingsFileName { get; set; } = "Settings.json";
 
         /// <summary>
         /// Gets or sets The name of the rule configuration json file Name

@@ -1,14 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Interface;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
 {
+    /// <summary>
+    /// Represents the Options API.
+    /// </summary>
     [Route("{org}/{app}/api/options")]
     [ApiController]
     public class OptionsController : ControllerBase
@@ -16,7 +15,11 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IAppResources _appResourceService;
 
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OptionsController"/> class.
+        /// </summary>
+        /// <param name="altinnApp">The current App Core used to interface with custom logic</param>
+        /// <param name="appResourcesService">A service with access to local resources.</param>
         public OptionsController(IAltinnApp altinnApp, IAppResources appResourcesService)
         {
             _altinnApp = altinnApp;
@@ -31,7 +34,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="optionsId">The optionsId</param>
         /// <returns>The options list</returns>
         [HttpGet("{optionsId}")]
-        public async Task<IActionResult> Get([FromRoute] string org,
+        public async Task<IActionResult> Get(
+            [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] string optionsId)
         {
@@ -46,7 +50,7 @@ namespace Altinn.App.Api.Controllers
 
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
 
-            if(appOptions.Options == null || appOptions.Options.Count == 0)
+            if (appOptions.Options == null || appOptions.Options.Count == 0)
             {
                 return NotFound();
             }
