@@ -110,7 +110,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public render() {
     const { classes, repoStatus } = this.props;
     const { org, app } = window as Window as IAltinnWindow;
-    console.log('ROUTE: ', routes);
 
     return (
       <React.Fragment>
@@ -194,21 +193,18 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       </div>
                       :
                       <div className={classes.subApp}>
-                        {routes.map((route, index) => {
-                          return (
-                            <Route
-                              key={index}
-                              path={route.path}
-                              exact={route.exact}
-                              component={(props: any) => <route.subapp
-                                {...props}
-                                {...route.props}
-                                language={this.props.language}
-                              />}
-                            />
-                          );
-                        })
-                        }
+                        {routes.map((route, index) => (
+                          <Route
+                            key={index}
+                            path={route.path}
+                            exact={route.exact}
+                            render={(props) => <route.subapp
+                              {...props}
+                              {...route.props}
+                              language={this.props.language}
+                            />}
+                          />
+                        ))}
                       </div>
                   }
                 </Grid>
