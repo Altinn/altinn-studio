@@ -6,13 +6,14 @@ import { store } from './redux/store';
 
 export interface IAppProps {
   schema: any;
+  rootItemId?: string;
   onSaveSchema: (payload: any) => void;
 }
 
 function SchemaEditorApp(props: IAppProps) {
   return (
     <Provider store={store}>
-      <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} />
+      <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} rootItemId={props.rootItemId}/>
     </Provider>
   );
 }
