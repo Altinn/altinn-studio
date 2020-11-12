@@ -9,7 +9,7 @@ schedules:
   branches:
     include:
     - test/*
-  always: true
+  always: false
 
 steps:
 - task: DeleteFiles@1
