@@ -20,7 +20,7 @@
     "@types/react": "16.9.43"
   },
   "dependencies": {
-    "@altinn/schema-editor": "file:../schema-editor",
+    "@altinn/schema-editor": "file:./packages/schema-editor",
     "@babel/polyfill": "~7.12.1",
     "@material-ui/core": "~4.11.0",
     "@types/domhandler": "^2.4.1",
