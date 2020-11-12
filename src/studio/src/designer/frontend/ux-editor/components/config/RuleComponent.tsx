@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as uuid from 'uuid/v1'; // time
+import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface IRuleComponentProps {
@@ -47,7 +47,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
         },
       });
     } else {
-      this.setState({ connectionId: uuid() });
+      this.setState({ connectionId: uuidv1() });
     }
   }
 
