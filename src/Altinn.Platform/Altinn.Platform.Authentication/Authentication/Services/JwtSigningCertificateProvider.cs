@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authentication.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.Azure;
 
 namespace Altinn.Platform.Authentication.Services
 {
@@ -62,22 +65,60 @@ namespace Altinn.Platform.Authentication.Services
                 }
                 else
                 {
-                    KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
-                    CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
-                    SecretBundle secret = await client.GetSecretAsync(certificate.SecretIdentifier.Identifier);
-                    byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-                    _certificates.Add(new X509Certificate2(pfxBytes));
+                    List<X509Certificate2> certificates = await GetAllCertificateVersions(
+                        _keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
+                    _certificates.AddRange(certificates);
                 }
 
-                // Reuse the same list of certificates for 30 minutes.
-                _certificateUpdateTime = DateTime.Now.AddMinutes(30);
+                // Reuse the same list of certificates for 1 hour.
+                _certificateUpdateTime = DateTime.Now.AddHours(1);
 
+                _certificates = _certificates.OrderByDescending(cer => cer.NotBefore).ToList();
                 return _certificates;
             }
             finally
             {
                 _semaphore.Release();
             }
+        }
+
+        private async Task<List<X509Certificate2>> GetAllCertificateVersions(string keyVaultUrl, string certificateName)
+        {
+            List<X509Certificate2> certificates = new List<X509Certificate2>();
+            
+            KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
+
+            // Get the first page of certificates
+            IPage<CertificateItem> certificateItemsPage = await client.GetCertificateVersionsAsync(keyVaultUrl, certificateName);
+            while (true)
+            {
+                foreach (var certificateItem in certificateItemsPage)
+                {
+                    // Ignore disabled or expired certificates
+                    if (certificateItem.Attributes.Enabled == true &&
+                        (certificateItem.Attributes.Expires == null ||
+                         certificateItem.Attributes.Expires > DateTime.UtcNow))
+                    {
+                        CertificateBundle certificateVersionBundle =
+                            await client.GetCertificateAsync(certificateItem.Identifier.Identifier);
+                        SecretBundle certificatePrivateKeySecretBundle =
+                            await client.GetSecretAsync(certificateVersionBundle.SecretIdentifier.Identifier);
+                        byte[] privateKeyBytes = Convert.FromBase64String(certificatePrivateKeySecretBundle.Value);
+                        X509Certificate2 certificateWithPrivateKey = new X509Certificate2(privateKeyBytes);
+
+                        certificates.Add(certificateWithPrivateKey);
+                    }
+                }
+
+                if (certificateItemsPage.NextPageLink == null)
+                {
+                    break;
+                }
+
+                certificateItemsPage = await client.GetCertificateVersionsNextAsync(certificateItemsPage.NextPageLink);
+            }
+
+            return certificates;
         }
     }
 }

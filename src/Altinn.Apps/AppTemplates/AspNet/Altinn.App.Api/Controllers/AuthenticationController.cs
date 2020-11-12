@@ -37,7 +37,6 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{org}/{app}/api/[controller]/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
-
             string token = await _authentication.RefreshToken();
 
             CookieOptions runtimeCookieSetting = new CookieOptions

@@ -57,9 +57,9 @@ export default function (data) {
     };
     res = events.getEventsByparty(runtimeToken, eventsFilter);
     success = check(res, {
-        "GET Today's Events based on party status is 200:": (r) => r.status === 200,
-        "GET Today's Events based on party count greater than 0:": (r) => JSON.parse(r.body).length > 0,
-        "GET Today's Events lists only events for party": (r) => {
+        "GET Todays Events based on party status is 200:": (r) => r.status === 200,
+        "GET Todays Events based on party count greater than 0:": (r) => JSON.parse(r.body).length > 0,
+        "GET Todays Events lists only events for party:": (r) => {
             var events = r.json();
             return events.every(event => event.subject.includes(partyId));
         }
@@ -69,7 +69,7 @@ export default function (data) {
     //Test to get events api by org and app name and check that a person cannot use the api
     res = events.getEvents(runtimeToken, appOwner, appName, null);
     success = check(res, {
-        "GET Today's Events by org app name status is 401:": (r) => r.status === 401
+        "GET Todays Events by org app name status is 401:": (r) => r.status === 401
     });
     addErrorCount(success);
 };

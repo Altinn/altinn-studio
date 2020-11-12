@@ -2,16 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Runtime.RestControllers
+namespace Altinn.App.Api.Controllers
 {
     /// <summary>
     /// Represents all actions related to validation of data and instances
@@ -94,7 +92,6 @@ namespace AltinnCore.Runtime.RestControllers
 
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-
 
             if (instance.Process?.CurrentTask?.ElementId == null)
             {

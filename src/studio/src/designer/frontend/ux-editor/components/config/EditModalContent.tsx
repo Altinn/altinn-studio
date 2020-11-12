@@ -124,8 +124,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         updatedComponent.options = [];
       }
       updatedComponent.options.push({
-        label: this.props.language.general.label,
-        value: this.props.language.general.value,
+        label: '',
+        value: '',
       });
       return {
         component: {

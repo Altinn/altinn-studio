@@ -3,8 +3,16 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Altinn.App.PlatformServices.Extensions
 {
+    /// <summary>
+    /// This class holds a collection of extension methods for <see cref="IConfigurationBuilder"/>.
+    /// </summary>
     public static class ConfigurationBuilderExtensions
     {
+        /// <summary>
+        /// Load all known configuration sources known to be needed by an app.
+        /// </summary>
+        /// <param name="builder">The <see cref="IConfigurationBuilder"/></param>
+        /// <param name="args">The original command line arguments</param>
         public static void LoadAppConfig(this IConfigurationBuilder builder, string[] args = null)
         {
             builder.AddJsonFile(

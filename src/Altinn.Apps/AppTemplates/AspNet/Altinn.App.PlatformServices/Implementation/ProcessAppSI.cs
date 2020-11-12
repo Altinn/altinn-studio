@@ -35,6 +35,9 @@ namespace Altinn.App.Services.Implementation
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// Gets the internal ProcessHelper instance
+        /// </summary>
         public ProcessHelper ProcessHelper { get; }
 
         /// <summary>
@@ -173,7 +176,8 @@ namespace Altinn.App.Services.Implementation
 
             return null;
         }
-
+        
+        /// <inheritdoc />
         public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
@@ -191,7 +195,6 @@ namespace Altinn.App.Services.Implementation
 
             throw await PlatformHttpException.CreateAsync(response);
         }
-
 
         private string GetNextElement(string proposedStartEvent)
         {
@@ -239,6 +242,7 @@ namespace Altinn.App.Services.Implementation
             return validNextElementId;
         }
 
+        /// <inheritdoc />
         public async Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent> events)
         {
             string org = instance.Org;
@@ -289,9 +293,8 @@ namespace Altinn.App.Services.Implementation
                 // add submit event (to support Altinn2 SBL)
                 events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
             }
-            else if (ProcessHelper.IsTask(nextElementId)) // starting next task
+            else if (ProcessHelper.IsTask(nextElementId))
             {
-
                 currentState.CurrentTask = new ProcessElementInfo
                 {
                     Flow = currentState.CurrentTask.Flow + 1,
@@ -350,7 +353,6 @@ namespace Altinn.App.Services.Implementation
                 }
             };
         }
-
 
         private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
         {

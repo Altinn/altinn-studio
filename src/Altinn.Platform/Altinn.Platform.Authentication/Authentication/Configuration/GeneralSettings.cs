@@ -160,5 +160,16 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Gets or sets the URL of the Altinn Open ID Connect well-known configuration endpoint.
         /// </summary>
         public string OpenIdWellKnownEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of hours to wait before a new certificate is being used to
+        /// sign new JSON Web tokens.
+        /// </summary>
+        /// <remarks>
+        /// The logic use the NotBefore property of a certificate. This means that uploading a
+        /// certificate that has been valid for a few days might cause it to be used immediately.
+        /// Take care not to upload "old" certificates.
+        /// </remarks>
+        public int JwtSigningCertificateRolloverDelayHours { get; set; }
     }
 }

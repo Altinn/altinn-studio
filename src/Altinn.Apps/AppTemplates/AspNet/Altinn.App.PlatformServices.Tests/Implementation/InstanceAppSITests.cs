@@ -30,6 +30,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
         private readonly Mock<ILogger<InstanceAppSI>> logger;
+
         public InstanceAppSITests()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
@@ -153,7 +154,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Act
             Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
 
-
             // Assert
             Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);
             handlerMock.VerifyAll();
@@ -193,7 +193,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Label = "Substatus.Label",
                 Description = "Substatus.Description"
             });
-
 
             // Assert
             Assert.Equal(expected.Status.Substatus.Label, actual.Status.Substatus.Label);
@@ -263,7 +262,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Act
             Instance actual = await target.DeleteInstance(1337, Guid.NewGuid(), false);
 
-
             // Assert
             Assert.Equal("1337", actual.InstanceOwner.PartyId);
             handlerMock.VerifyAll();
@@ -316,7 +314,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
