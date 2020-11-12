@@ -18,7 +18,11 @@ function DataModelingContainer(props: any) {
   };
 
   return (
-    <SchemaEditorApp schema={jsonSchema} onSaveSchema={onSaveSchema} />
+    <SchemaEditorApp
+      schema={jsonSchema}
+      onSaveSchema={onSaveSchema}
+      rootItemId={'#/properties/melding'}
+    />
   );
 }
 
