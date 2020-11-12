@@ -10,8 +10,6 @@ export function* fetchDataModelSaga({
 }: IFetchDataModelAction): SagaIterator {
   try {
     const result = yield call(get, url);
-    console.log('result: ', result);
-
     yield call(DataModelingDispatchers.fetchDataModelFulfilled, result);
   } catch (err) {
     yield call(DataModelingDispatchers.fetchDataModelRejected, err);
