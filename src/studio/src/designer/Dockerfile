@@ -1,3 +1,17 @@
+# schema-editor package
+FROM node:14.15.0-alpine3.12 AS generate-schema-editor
+
+# Copy and install npm dependencies
+COPY ./src/designer/frontend/packages/schema-editor/package.json .
+COPY ./src/designer/frontend/packages/schema-editor/package-lock.json .
+RUN npm ci
+
+# Copy schema-editor package
+COPY ./src/designer/frontend/packages/schema-editor/ .
+
+# Build package
+RUN npm run build-rollup
+
 # studio frontend
 FROM node:14.15.0-alpine3.12 AS generate-studio-frontend
 
@@ -6,6 +20,10 @@ COPY ./src/designer/frontend/lerna.json .
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/package-lock.json .
 RUN npm ci
+
+# Copy schema-editor package
+COPY --from=generate-schema-editor /dist/ ./packages/schema-editor/dist/
+COPY --from=generate-schema-editor package.json ./packages/schema-editor/
 
 # Copy and install npm dependencies
 COPY ./src/designer/frontend/shared/package.json /shared/
