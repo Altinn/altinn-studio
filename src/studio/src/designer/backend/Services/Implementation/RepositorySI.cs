@@ -96,8 +96,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
 
             // CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
             return true;
         }
@@ -1804,6 +1806,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
             }
+        }
+
+        private void CopyFileToRoot(string org, string app, string fileName)
+        {
+            string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
         }
 
         private void CopyFileToApp(string org, string app, string fileName)
