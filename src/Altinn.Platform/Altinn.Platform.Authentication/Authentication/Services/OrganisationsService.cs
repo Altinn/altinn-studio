@@ -94,7 +94,6 @@ namespace Altinn.Platform.Authentication.Services
                     if (string.IsNullOrEmpty(orgNumber))
                     {
                         _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");
-                        throw new OrganisationHarvestException($"Unable to harvest org number for organisation {candidateOrganisation.Org}");
                     }
 
                     organisationDictionary.Add(orgNumber, candidateOrganisation);
