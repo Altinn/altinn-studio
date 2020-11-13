@@ -5,6 +5,8 @@ name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
 trigger: none
 
+pr: none
+
 schedules:
 - cron: "*/15 * * * *"
   displayName: Bruksmønster
