@@ -27,7 +27,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
             IPDF pdfService,
             IProfile profileService,
             IRegister registerService,
-            IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IPrefill prefillService,
+            IInstance instanceService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
         {
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();

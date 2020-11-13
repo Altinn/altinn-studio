@@ -23,6 +23,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IProcess _processService;
         private readonly IPDF _pdfService;
         private readonly IPrefill _prefillService;
+        private readonly IInstance _instanceService;
 
         public AppBase(
             IAppResources resourceService,
@@ -30,7 +31,8 @@ namespace Altinn.App.Services.Implementation
             IData dataService,
             IProcess processService,
             IPDF pdfService,
-            IPrefill prefillService)
+            IPrefill prefillService,
+            IInstance instanceService)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -39,6 +41,7 @@ namespace Altinn.App.Services.Implementation
             _processService = processService;
             _pdfService = pdfService;
             _prefillService = prefillService;
+            _instanceService = instanceService;
         }
 
         public abstract Type GetAppModelType(string dataType);
@@ -164,6 +167,14 @@ namespace Altinn.App.Services.Implementation
                         await updateData;
                     }
                 }
+            }
+            
+            if(_appMetadata.AutoDeleteOnProcessEnd) 
+            {
+                int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+                Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+                await _instanceService.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
             }
 
             await Task.CompletedTask;
