@@ -30,6 +30,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// </summary>
         /// <param name="keyVaultService">
         /// An instance of <see cref="KeyVaultService"/> with a principal with access to the application owner key vault(s).</param>
+        /// <param name="logger">The logger.</param>
         public SasTokenProvider(IKeyVaultService keyVaultService, ILogger<ISasTokenProvider> logger)
         {
             _environment = Environment.GetEnvironmentVariable("Environment");
@@ -70,7 +71,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception e)
             {
-                _logger.LogError($"SasTokenProvider // GetSasToken // Exeption: {e.Message}");
+                _logger.LogError($"SasTokenProvider // GetSasToken // Exeption: {e}");
                 return string.Empty;
             }
             finally
@@ -89,6 +90,5 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         {
             return created.AddHours(_allowedSasTokenAgeHours) > DateTime.UtcNow;
         }
-
     }
 }
