@@ -72,7 +72,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // DeleteDataElementDocuments // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // DeleteDataElementDocuments // Exeption: {ex.Message}");
                 return false;
             }
         }
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
                 return false;
             }
         }
@@ -129,7 +129,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // DeleteInstanceEventDocuments // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // DeleteInstanceEventDocuments // Exeption: {ex.Message}");
                 return false;
             }
         }
@@ -166,7 +166,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // GetAllInstancesOfApp ttd/{app} // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesOfApp ttd/{app} // Exeption: {ex.Message}");
             }
 
             // no post process requiered as the data is not exposed to the end user
@@ -202,19 +202,15 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 while (query.HasMoreResults)
                 {
                     FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
-                    applications.AddRange(feedResponse.ToList());
+                    applications.AddRange(feedResponse);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // GetApplications // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // GetApplications // Exeption: {ex.Message}");
             }
 
-            applications.Select(a =>
-            {
-                a.Id = CosmosIdToAppId(a.Id);
-                return a;
-            }).ToList();
+            applications.ForEach(a => a.Id = CosmosIdToAppId(a.Id));
 
             return applications;
         }
@@ -252,7 +248,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
             }
 
             // no post process requiered as the data is not exposed to the end user

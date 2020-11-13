@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception e)
             {
-                _logger.LogError($"SasTokenProvider // GetSasToken // Exeption: {e.Message}");
+                _logger.LogError($"SasTokenProvider // GetSasToken // Exeption: {e}");
                 return string.Empty;
             }
             finally
