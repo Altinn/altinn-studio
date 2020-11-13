@@ -332,7 +332,7 @@ export function validateComponentFormData(
 
   if (!valid) {
     validator.errors.forEach((error) => {
-      if (error.keyword === 'type' || error.keyword === 'format') {
+      if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
         validationResult.invalidDataTypes = true;
       }
       let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
