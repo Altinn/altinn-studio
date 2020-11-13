@@ -90,7 +90,6 @@ namespace Altinn.Platform.Authentication.Services
                     candidateOrganisation.Org = element.Key;
 
                     string orgNumber = candidateOrganisation.OrgNumber;
-                    string org = candidateOrganisation.Org;
 
                     if (string.IsNullOrEmpty(orgNumber))
                     {
