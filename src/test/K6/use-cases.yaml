@@ -1,15 +1,17 @@
 pool:
   name: Altinn Test Self Hosted VM
 
-name: $(environment)_Usecases_$(SourceBranchName)_$(Date:ddMMyyyy)_$(Date:HHmm)
+name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
+
+trigger: none
 
 schedules:
 - cron: "*/15 * * * *"
-  displayName: Every 15 minute
+  displayName: Bruksmønster
   branches:
     include:
     - test/*
-  always: false
+  always: true
 
 steps:
 - task: DeleteFiles@1
