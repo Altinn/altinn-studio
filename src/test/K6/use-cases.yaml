@@ -10,7 +10,7 @@ schedules:
   displayName: Bruksmønster
   branches:
     include:
-    - test/*
+    - master
   always: true
 
 steps:
