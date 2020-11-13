@@ -20,6 +20,5 @@
       },
       "taskId":  "Task_1"
     }
-  ],
-  "autoDeleteOnProcessEnd": false
+  ]
 }
