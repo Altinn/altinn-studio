@@ -4,7 +4,6 @@ using System.Reflection;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Health;
-using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -106,9 +105,9 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton(Configuration);
             services.AddHttpClient<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddHttpClient<IUserProfileService, UserProfileService>();
+            services.AddHttpClient<IOrganisationsService, OrganisationsService>();
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
-            services.AddTransient<IOrganisationRepository, OrganisationRepository>();
             services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
