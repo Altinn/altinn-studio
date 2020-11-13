@@ -1,12 +1,17 @@
 using System.Collections.Generic;
+
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Models
 {
-    class PDFContext
+    /// <summary>
+    /// Represents a collection of all data required to generate a PDF
+    /// </summary>
+    public class PDFContext
     {
         /// <summary>
         /// Gets or sets the instance
@@ -54,6 +59,6 @@ namespace Altinn.App.Services.Models
         /// Gets or sets the user profile
         /// </summary>
         [JsonProperty(PropertyName = "userProfile")]
-        public UserProfile UserProfile {get; set; }
+        public UserProfile UserProfile { get; set; }
     }
 }

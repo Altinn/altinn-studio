@@ -26,6 +26,15 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
         Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType);
 
+        /// <summary>
+        /// Stores the form
+        /// </summary>
+        /// <typeparam name="T">The model type</typeparam>
+        /// <param name="instance">The instance that the data element belongs to</param>
+        /// <param name="dataType">The data type with requirements</param>
+        /// <param name="dataToSerialize">The data element instance</param>
+        /// <param name="type">The class type describing the data</param>
+        /// <returns>The data element metadata</returns>
         Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type);
 
         /// <summary>
@@ -104,7 +113,6 @@ namespace Altinn.App.Services.Interface
         /// <param name="request">Http request containing the attachment to be saved</param>
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
 
-
         /// <summary>
         /// Updates a binary data element. 
         /// </summary>
@@ -115,8 +123,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="stream">the stream to stream</param>
         /// <returns></returns>
         Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
-
-
+        
         /// <summary>
         /// Updates the data element metadata object.
         /// </summary>
@@ -124,6 +131,5 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataElement">The data element with values to update</param>
         /// <returns>the updated data element</returns>
         Task<DataElement> Update(Instance instance, DataElement dataElement);
-
     }
 }

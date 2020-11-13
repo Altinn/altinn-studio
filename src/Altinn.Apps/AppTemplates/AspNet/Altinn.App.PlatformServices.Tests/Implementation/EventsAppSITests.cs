@@ -9,7 +9,6 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;

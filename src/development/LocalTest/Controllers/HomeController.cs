@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using AltinnCore.Authentication.Constants;
@@ -63,7 +62,7 @@ namespace LocalTest.Controllers
             model.TestApps = await GetAppsList();
             Application app = await _applicationRepository.FindOne("", "");
             model.TestUsers = await GetTestUsersForList();
-            model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
+            model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
 
             if (!model.TestApps.Any())
@@ -229,7 +228,7 @@ namespace LocalTest.Controllers
         {
             List<SelectListItem> apps = new List<SelectListItem>();
 
-            string path = this._localPlatformSettings.AppRepsitoryBasePath;
+            string path = this._localPlatformSettings.AppRepositoryBasePath;
 
             if (!Directory.Exists(path))
             {
@@ -246,7 +245,7 @@ namespace LocalTest.Controllers
                 }
             }
 
-           string[] directories =  Directory.GetDirectories(path);
+            string[] directories =  Directory.GetDirectories(path);
 
             foreach(string directory in directories)
             {

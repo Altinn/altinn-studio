@@ -1,6 +1,7 @@
+using System.Threading.Tasks;
+
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.WebKey;
-using System.Threading.Tasks;
 
 namespace Altinn.App.Services.Interface
 {

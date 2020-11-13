@@ -12,6 +12,7 @@ using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Authentication.Tests.Fakes;
+using Altinn.Platform.Authentication.Tests.Mocks;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private readonly WebApplicationFactory<Startup> _factory;
         private readonly Mock<IUserProfileService> _userProfileService;
+        private readonly Mock<IOrganisationsService> _organisationsService;
         private readonly Mock<ISblCookieDecryptionService> _cookieDecryptionService;
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             _factory = factory;
             _userProfileService = new Mock<IUserProfileService>();
+            _organisationsService = new Mock<IOrganisationsService>();
             _cookieDecryptionService = new Mock<ISblCookieDecryptionService>();
         }
 
@@ -514,6 +517,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                 {
                     services.AddSingleton(cookieDecryptionService);
                     services.AddSingleton(userProfileService);
+                    services.AddSingleton<IOrganisationsService, OrganisationsServiceMock>();
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

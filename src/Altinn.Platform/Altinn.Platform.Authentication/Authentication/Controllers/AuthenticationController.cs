@@ -11,7 +11,6 @@ using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
-using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
@@ -50,7 +49,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string AuthMethodClaimName = "amr";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
-        private readonly IOrganisationRepository _organisationRepository;
+        private readonly IOrganisationsService _organisationService;
         private readonly IJwtSigningCertificateProvider _certificateProvider;
         private readonly ISblCookieDecryptionService _cookieDecryptionService;
         private readonly ISigningKeysRetriever _signingKeysRetriever;
@@ -76,7 +75,7 @@ namespace Altinn.Platform.Authentication.Controllers
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
-            IOrganisationRepository organisationRepository,
+            IOrganisationsService organisationRepository,
             ISigningKeysResolver signingKeysResolver)
         {
             _logger = logger;
@@ -84,7 +83,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _signingKeysRetriever = signingKeysRetriever;
             _certificateProvider = certificateProvider;
             _cookieDecryptionService = cookieDecryptionService;
-            _organisationRepository = organisationRepository;
+            _organisationService = organisationRepository;
             _userProfileService = userProfileService;
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
@@ -309,7 +308,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = await _organisationRepository.LookupOrg(orgNumber);
+                string org = await _organisationService.LookupOrg(orgNumber);
                 if (org == "digdir" && test)
                 {
                     org = "ttd";
@@ -501,6 +500,9 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             List<X509Certificate2> certificates = await _certificateProvider.GetCertificates();
 
+            X509Certificate2 certificate = GetLatestCertificateWithRolloverDelay(
+                certificates, _generalSettings.JwtSigningCertificateRolloverDelayHours);
+
             TimeSpan tokenExpiry = new TimeSpan(0, _generalSettings.JwtValidityMinutes, 0);
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -508,13 +510,33 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
-                SigningCredentials = new X509SigningCredentials(certificates[0])
+                SigningCredentials = new X509SigningCredentials(certificate)
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             string serializedToken = tokenHandler.WriteToken(token);
 
             return serializedToken;
+        }
+        
+        private X509Certificate2 GetLatestCertificateWithRolloverDelay(
+            List<X509Certificate2> certificates, int rolloverDelayHours)
+        {
+            // First limit the search to just those certificates that have existed longer than the rollover delay.
+            var rolloverCutoff = DateTime.Now.AddHours(-rolloverDelayHours);
+            var potentialCerts =
+                certificates.Where(c => c.NotBefore < rolloverCutoff).ToList();
+
+            // If no certs could be found, then widen the search to any usable certificate.
+            if (!potentialCerts.Any())
+            {
+                potentialCerts = certificates.Where(c => c.NotBefore < DateTime.Now).ToList();
+            }
+
+            // Of the potential certs, return the newest one.
+            return potentialCerts
+                .OrderByDescending(c => c.NotBefore)
+                .FirstOrDefault();
         }
     }
 }

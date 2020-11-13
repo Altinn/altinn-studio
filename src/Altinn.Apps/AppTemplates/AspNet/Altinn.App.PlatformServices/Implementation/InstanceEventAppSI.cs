@@ -99,7 +99,6 @@ namespace Altinn.App.Services.Implementation
             string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            
             HttpResponseMessage response = await _client.PostAsync(token, apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)

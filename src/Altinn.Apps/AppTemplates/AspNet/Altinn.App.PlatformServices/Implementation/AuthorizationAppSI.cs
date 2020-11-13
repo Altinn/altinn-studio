@@ -29,15 +29,17 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
         /// </summary>
-        /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="httpClientAccessor">The Http client accessor</param>
+        /// <param name="platformSettings">The platform settings from configuration.</param>
+        /// <param name="httpContextAccessor">the http context accessor.</param>
+        /// <param name="httpClient">A Http client from the HttpClientFactory.</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="logger">the handler for logger service</param>
-        public AuthorizationAppSI(IOptions<PlatformSettings> platformSettings,
-                IHttpContextAccessor httpContextAccessor,
-                HttpClient httpClient,
-               IOptionsMonitor<AppSettings> settings,
-                ILogger<AuthorizationAppSI> logger)
+        public AuthorizationAppSI(
+            IOptions<PlatformSettings> platformSettings,
+            IHttpContextAccessor httpContextAccessor,
+            HttpClient httpClient,
+            IOptionsMonitor<AppSettings> settings,
+            ILogger<AuthorizationAppSI> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;

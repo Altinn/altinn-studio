@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
+
 using Altinn.App.Services.Helpers;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -33,6 +34,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="profile">The profile service</param>
         /// <param name="appResourcesService">The app's resource service</param>
+        /// <param name="registerService">A service with access to register data and register related logic.</param>
+        /// <param name="httpContextAccessor">A service with access to the http context.</param>
         public PrefillSI(
             ILogger<PrefillSI> logger,
             IProfile profile,
@@ -63,8 +66,7 @@ namespace Altinn.App.Services.Implementation
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
             }
 
-
-            Party party = await _registerService.GetParty(Int32.Parse(partyId));
+            Party party = await _registerService.GetParty(int.Parse(partyId));
             if (party == null)
             {
                 string errorMessage = $"Could find party for partyId: {partyId}";
@@ -153,9 +155,7 @@ namespace Altinn.App.Services.Implementation
             Type current = currentObject.GetType();
             PropertyInfo property = current.GetProperty(
                 key,
-                BindingFlags.IgnoreCase |
-                BindingFlags.Public |
-                BindingFlags.Instance); // BindingsFlags.Public & Instance is enabled by default.
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
             if (property == null)
             {
@@ -204,7 +204,7 @@ namespace Altinn.App.Services.Implementation
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {
                 string source = keyValuePair.Key;
-                string target = keyValuePair.Value.Replace("-", "");
+                string target = keyValuePair.Value.Replace("-", string.Empty);
                 if (source == null || source == string.Empty)
                 {
                     string errorMessage = $"Could not prefill, a source value was not set for target: {target}";

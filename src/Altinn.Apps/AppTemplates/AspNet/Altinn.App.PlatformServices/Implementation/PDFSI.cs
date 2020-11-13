@@ -1,25 +1,32 @@
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Constants;
-using Altinn.App.Services.Helpers;
-using Altinn.Platform.Profile.Models;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
+using Altinn.App.Services.Helpers;
+using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
+
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace Altinn.App.Services.Implementation
 {
+    /// <summary>
+    /// Represents a service that can initiate PDF generation.
+    /// </summary>
     public class PDFSI : IPDF
     {
         private readonly ILogger _logger;
@@ -47,7 +54,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="profileService">the profile service</param>
         /// <param name="settings">the general settings</param>
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
-        public PDFSI(IOptions<PlatformSettings> platformSettings,
+        public PDFSI(
+            IOptions<PlatformSettings> platformSettings,
             ILogger<PDFSI> logger,
             HttpClient httpClient,
             IData dataService,
@@ -56,8 +64,7 @@ namespace Altinn.App.Services.Implementation
             IText textService,
             IProfile profileService,
             IOptions<GeneralSettings> settings,
-            IHttpContextAccessor httpContextAccessor
-            )
+            IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _dataService = dataService;
@@ -97,7 +104,8 @@ namespace Altinn.App.Services.Implementation
             
             string formLayoutsString = _appResourcesService.GetLayouts();
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
-            if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb")) {
+            if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
+            {
                 // fallback to norwegian if texts does not exist
                 textResource = await _textService.GetText(org, app, "nb");
             }
@@ -160,11 +168,12 @@ namespace Altinn.App.Services.Implementation
 
             TextResourceElement titleText = textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
             
-            if (titleText != null && !String.IsNullOrEmpty(titleText.Value))
+            if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
             {
-                fileName = titleText.Value +  ".pdf";
+                fileName = titleText.Value + ".pdf";
             }
-            else {
+            else
+            {
                 fileName = app + ".pdf";
             }
 
@@ -184,6 +193,7 @@ namespace Altinn.App.Services.Implementation
             {
                 fileName = fileName.Replace(c, '_');
             }
+
             fileName = Uri.EscapeDataString(fileName);
             return fileName;
         }
