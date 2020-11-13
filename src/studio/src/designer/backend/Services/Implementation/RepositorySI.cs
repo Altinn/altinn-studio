@@ -1808,12 +1808,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private void CopyFileToRoot(string org, string app, string fileName)
-        {
-            string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
-        }
-
         private void CopyFileToApp(string org, string app, string fileName)
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
