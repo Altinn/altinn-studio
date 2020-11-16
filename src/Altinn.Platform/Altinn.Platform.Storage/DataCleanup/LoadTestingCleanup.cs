@@ -10,8 +10,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-using Newtonsoft.Json;
-
 namespace Altinn.Platform.Storage.DataCleanup
 {
     /// <summary>
@@ -68,7 +66,9 @@ namespace Altinn.Platform.Storage.DataCleanup
                         }
                     }
 
-                    if (instance.Data.Count == 0 || dataElementMetadataDeleted)
+                    bool instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
+
+                    if ((instance.Data.Count == 0 || dataElementMetadataDeleted) && instanceEventsDeleted)
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
                         log.LogInformation($"LoadTestingCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");

@@ -11,7 +11,6 @@ using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
-using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
@@ -50,7 +49,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string AuthMethodClaimName = "amr";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
-        private readonly IOrganisationRepository _organisationRepository;
+        private readonly IOrganisationsService _organisationService;
         private readonly IJwtSigningCertificateProvider _certificateProvider;
         private readonly ISblCookieDecryptionService _cookieDecryptionService;
         private readonly ISigningKeysRetriever _signingKeysRetriever;
@@ -76,7 +75,7 @@ namespace Altinn.Platform.Authentication.Controllers
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
-            IOrganisationRepository organisationRepository,
+            IOrganisationsService organisationRepository,
             ISigningKeysResolver signingKeysResolver)
         {
             _logger = logger;
@@ -84,7 +83,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _signingKeysRetriever = signingKeysRetriever;
             _certificateProvider = certificateProvider;
             _cookieDecryptionService = cookieDecryptionService;
-            _organisationRepository = organisationRepository;
+            _organisationService = organisationRepository;
             _userProfileService = userProfileService;
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
@@ -309,7 +308,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = await _organisationRepository.LookupOrg(orgNumber);
+                string org = await _organisationService.LookupOrg(orgNumber);
                 if (org == "digdir" && test)
                 {
                     org = "ttd";
