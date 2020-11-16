@@ -19,7 +19,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     {
         private readonly string databaseId = "Storage";
         private readonly string instanceCollectionId = "instances";
+        private readonly string instanceEventsCollectionId = "instanceEvents";
         private readonly string dataElementsCollectionId = "dataElements";
+        private readonly string applicationsCollectionId = "applications";
 
         private readonly DocumentClient _client;
         private readonly ILogger<ICosmosService> _logger;
@@ -70,7 +72,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // DeleteDataElementDocuments // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // DeleteDataElementDocuments // Exeption: {ex.Message}");
                 return false;
             }
         }
@@ -92,7 +94,42 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteInstanceEventDocuments(string instanceGuid, string instanceOwnerPartyId)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            string partitionKey = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceEventsCollectionId);
+            IDocumentQuery<Document> query = _client
+                .CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(partitionKey) })
+                .AsDocumentQuery();
+
+            try
+            {
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Document> res = await query.ExecuteNextAsync<Document>();
+                    foreach (Document item in res)
+                    {
+                        await _client.DeleteDocumentAsync(item.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // DeleteInstanceEventDocuments // Exeption: {ex.Message}");
                 return false;
             }
         }
@@ -129,11 +166,53 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // GetAllInstancesOfApp ttd/{app} // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesOfApp ttd/{app} // Exeption: {ex.Message}");
             }
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Application>> GetApplications(List<string> applicationIds)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            applicationIds = applicationIds.Select(id => id = AppIdToCosmosId(id)).ToList();
+
+            List<Application> applications = new List<Application>();
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<Application> filter;
+            Uri applicationsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, applicationsCollectionId);
+
+            filter = _client.CreateDocumentQuery<Application>(applicationsCollectionUri, feedOptions)
+                .Where(a => applicationIds.Contains(a.Id));
+
+            try
+            {
+                IDocumentQuery<Application> query = filter.AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
+                    applications.AddRange(feedResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetApplications // Exeption: {ex.Message}");
+            }
+
+            applications.ForEach(a => a.Id = CosmosIdToAppId(a.Id));
+
+            return applications;
         }
 
         /// <inheritdoc/>
@@ -169,11 +248,42 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
+                _logger.LogError(ex, $"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
             }
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
+        }
+
+        private string AppIdToCosmosId(string appId)
+        {
+            string cosmosId = appId;
+
+            if (appId != null && appId.Contains("/"))
+            {
+                string[] parts = appId.Split("/");
+
+                cosmosId = $"{parts[0]}-{parts[1]}";
+            }
+
+            return cosmosId;
+        }
+
+        private string CosmosIdToAppId(string cosmosId)
+        {
+            string appId = cosmosId;
+
+            int firstDash = cosmosId.IndexOf("-");
+
+            if (firstDash > 0)
+            {
+                string app = cosmosId.Substring(firstDash + 1);
+                string org = cosmosId.Split("-")[0];
+
+                appId = $"{org}/{app}";
+            }
+
+            return appId;
         }
 
         private async Task<bool> ConnectClient()

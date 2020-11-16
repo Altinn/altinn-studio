@@ -1,7 +1,6 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
-// tslint:disable-next-line:no-var-requires
-const uuid = require('uuid/v4');
+import { v4 as uuidv4 } from 'uuid';
 
 export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
   const convertedLayout: IFormLayout = {
@@ -10,7 +9,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
     order: {},
   };
 
-  const baseContainerId: string = uuid();
+  const baseContainerId: string = uuidv4();
   convertedLayout.order[baseContainerId] = [];
   convertedLayout.containers[baseContainerId] = {
     index: 0,

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.DataCleanup.Services;
@@ -38,10 +39,14 @@ namespace Altinn.Platform.Storage.DataCleanup
         public async Task Run([TimerTrigger("0 0 3 * * 1-5", RunOnStartup = false)] TimerInfo timer, ILogger log)
         {
             List<Instance> instances = await _cosmosService.GetHardDeletedInstances();
+            List<Application> applications = await _cosmosService.GetApplications(instances.Select(i => i.AppId).ToList());
+            List<string> autoDeleteAppIds = applications.Where(a => a.AutoDeleteOnProcessEnd == true) .Select(a => a.Id).ToList();
 
             foreach (Instance instance in instances)
             {
-                bool dataElementsDeleted, dataElementMetadataDeleted = false;
+                bool dataElementsDeleted = false;
+                bool instanceEventsDeleted = false;
+                bool dataElementMetadataDeleted = false;
 
                 try
                 {
@@ -54,7 +59,12 @@ namespace Altinn.Platform.Storage.DataCleanup
                         }
                     }
 
-                    if (instance.Data.Count == 0 || dataElementMetadataDeleted)
+                    if (autoDeleteAppIds.Contains(instance.AppId))
+                    {
+                        instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
+                    }
+
+                    if ((instance.Data.Count == 0 || dataElementMetadataDeleted) && (!autoDeleteAppIds.Contains(instance.AppId) || instanceEventsDeleted))
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
                         log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");

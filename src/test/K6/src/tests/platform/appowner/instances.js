@@ -81,8 +81,7 @@ export default function (data) {
     //Test to get an instance of an app in a specific task from storage and validate the response
     res = instances.getAllinstancesByCurrentTask(runtimeToken, appOwner, level2App, "Task_1");
     success = check(res, {
-        "GET Instance by Current task is 200:": (r) => r.status === 200,
-        "Instances based on current task are retrieved:": (r) => JSON.parse(r.body).totalHits > 0,
+        "GET Instance by Current task is 200:": (r) => r.status === 200,        
         "Instance current task is task_1:": (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === "Task_1"
     });
     addErrorCount(success);

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as uuid from 'uuid/v1'; // time
+import { v1 as uuidv1 } from 'uuid';
 import { makeGetAllLayoutComponents, makeGetALlLayoutContainers, makeGetFullOrder } from '../../selectors/getLayoutData';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
@@ -20,7 +20,7 @@ export interface IConditionalRenderingComponentProps {
 class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
   constructor(_props: any, _state: any) {
     super(_props, _state);
-    const id = uuid();
+    const id = uuidv1();
     this.state = {
       selectedFunctionNr: null,
       connectionId: null,
@@ -58,7 +58,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         },
       });
     } else {
-      this.setState({ connectionId: uuid() });
+      this.setState({ connectionId: uuidv1() });
     }
   }
 
@@ -161,7 +161,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
    * On init this field is empty and not mapped to a layout compoenent
    */
   public addNewField = () => {
-    const newId = uuid();
+    const newId = uuidv1();
     this.setState({
       ...this.state,
       conditionalRendering: {
