@@ -17,7 +17,7 @@ import '../../styles/FileUploadComponent.css';
 import { IRuntimeState } from '../../types';
 import { IComponentValidations } from '../../types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import uuid = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -129,7 +129,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File) => {
         if ((attachments.length + newFiles.length) < props.maxNumberOfAttachments) {
-          const tmpId: string = uuid();
+          const tmpId: string = uuidv4();
           newFiles.push({
             name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false,
           });
