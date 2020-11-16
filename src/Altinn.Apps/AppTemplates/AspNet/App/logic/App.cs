@@ -44,13 +44,15 @@ namespace Altinn.App.AppLogic
             IPDF pdfService,
             IProfile profileService,
             IRegister registerService,
-            IPrefill prefillService) : base(
+            IPrefill prefillService,
+            IInstance instanceService) : base(
                 appResourcesService,
                 logger,
                 dataService,
                 processService,
                 pdfService,
-                prefillService)
+                prefillService,
+                instanceService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();

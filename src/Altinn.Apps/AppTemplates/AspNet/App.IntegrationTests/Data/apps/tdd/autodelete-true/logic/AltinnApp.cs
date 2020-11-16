@@ -11,29 +11,20 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
-namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
+namespace App.IntegrationTests.Mocks.Apps.tdd.autodelete_true
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
-        private readonly ValidationHandler _validationHandler;
-        private readonly CalculationHandler _calculationHandler;
-        private readonly InstantiationHandler _instantiationHandler;
-
         public AltinnApp(
-            IAppResources appResourcesService,
-            ILogger<AltinnApp> logger,
-            IData dataService,
-            IProcess processService,
-            IPDF pdfService,
-            IProfile profileService,
-            IRegister registerService,
+            IAppResources appResourcesService, 
+            ILogger<AltinnApp> logger, 
+            IData dataService, 
+            IProcess processService, 
+            IPDF pdfService, 
             IPrefill prefillService,
             IInstance instanceService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
         {
-            _validationHandler = new ValidationHandler();
-            _calculationHandler = new CalculationHandler();
-            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -55,31 +46,27 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
-            _validationHandler.ValidateData(data, validationResults);
         }
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
-            _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
-        public override async Task<bool> RunCalculation(object data)
+        public override Task<bool> RunCalculation(object data)
         {
-            await Task.CompletedTask;
-            return _calculationHandler.Calculate(data);
+            return Task.FromResult(false);
         }
 
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             await Task.CompletedTask;
-            return _instantiationHandler.RunInstantiationValidation(instance);
+            return null;
         }
 
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await Task.CompletedTask;
-            _instantiationHandler.DataCreation(instance, data);
         }
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)

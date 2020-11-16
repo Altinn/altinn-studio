@@ -37,7 +37,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);

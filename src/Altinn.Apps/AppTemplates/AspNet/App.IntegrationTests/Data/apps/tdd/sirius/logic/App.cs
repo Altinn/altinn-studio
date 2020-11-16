@@ -43,7 +43,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             IPrefill prefillService,
             IInstance instanceService,
             ISiriusApi siriusService,
-            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);
