@@ -2,7 +2,7 @@ export enum ItemType {
   Property,
   Value,
   Ref,
-};
+}
 
 export interface ISchemaState {
   schema: any;
@@ -28,4 +28,4 @@ export type UiSchemaItem = {
   fields?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
-};
+}

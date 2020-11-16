@@ -156,11 +156,11 @@ function SchemaItem(props: StyledTreeItemProps) {
     dispatch(setKey({path, oldKey, newKey}))
   };
 
-  const RenderProperties = (properties: any[]) => {
-    if (properties && properties.length > 0)
+  const RenderProperties = (itemProperties: any[]) => {
+    if (itemProperties && itemProperties.length > 0)
     {
       return (
-        properties.map((property: any) => {
+        itemProperties.map((property: any) => {
           return (
             <SchemaItem
               item={property}
@@ -173,12 +173,12 @@ function SchemaItem(props: StyledTreeItemProps) {
     return null;
   };
 
-  const RenderFields = (fields: Field[], path: string) => {
+  const RenderFields = (itemFields: Field[], path: string) => {
 
-    if (fields && fields.length > 0) {
+    if (itemFields && itemFields.length > 0) {
       return (
         <div>
-          {fields.map((field) => {
+          {itemFields.map((field) => {
             if (field.key.startsWith('@xsd')) {
               return null;
             }

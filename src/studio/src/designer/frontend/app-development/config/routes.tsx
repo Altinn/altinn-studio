@@ -4,7 +4,7 @@ import { Administration } from '../features/administration/components/Administra
 import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
-import DataModelingContainer from '../features/dataModeling/components/DataModeling';
+import DataModelingContainer from '../features/dataModeling/containers/DataModelingContainer';
 
 export interface IRouteProps {
   headerTextKey?: string;
