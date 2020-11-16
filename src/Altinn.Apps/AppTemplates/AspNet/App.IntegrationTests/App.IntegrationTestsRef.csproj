@@ -59,6 +59,7 @@
     <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.json" />
     <None Remove="Data\apps\tdd\no-access\appsettings.json" />
+    <None Remove="Data\apps\tdd\autodelete-true\config\appsettings.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -128,6 +129,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Data\apps\tdd\no-access\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\autodelete-true\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
