@@ -46,3 +46,11 @@ export const getUpdateApplicationMetadataUrl = (): string => {
   /* tslint:disable-next-line:max-line-length */
   return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/UpdateMetadataForAttachment`;
 };
+
+export const getLayoutSettingsSchemaUrl = (): string => {
+  return 'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json';
+};
+
+export const getLayoutSchemaUrl = (): string => {
+  return 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
+};
