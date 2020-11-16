@@ -19,7 +19,7 @@ export interface ISetValueAction {
 
 export type Field = {
   key: string;
-  value: string;
+  value: any;
 }
 
 export type UiSchemaItem = {

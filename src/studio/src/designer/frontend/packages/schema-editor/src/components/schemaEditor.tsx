@@ -78,6 +78,7 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
         uiSchema.map((item) => {
           return (
             <SchemaItem
+              key={item.id}
               item={item}
               nodeId={item.id}
             />

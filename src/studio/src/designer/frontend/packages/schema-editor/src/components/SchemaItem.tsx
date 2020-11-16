@@ -163,6 +163,7 @@ function SchemaItem(props: StyledTreeItemProps) {
         itemProperties.map((property: any) => {
           return (
             <SchemaItem
+              key={property.id}
               item={property}
               nodeId={property.id}
             />
@@ -184,6 +185,7 @@ function SchemaItem(props: StyledTreeItemProps) {
             }
               return (
                 <InputField
+                  key={`field-${path}-${field.key}`}
                   value={field.value}
                   label={field.key}
                   fullPath={path}

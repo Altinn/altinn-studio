@@ -12,9 +12,11 @@ export interface IAppProps {
 
 function SchemaEditorApp(props: IAppProps) {
   return (
-    <Provider store={store}>
-      <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} rootItemId={props.rootItemId}/>
-    </Provider>
+    <div id='schema-editor-container'>
+      <Provider store={store}>
+        <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} rootItemId={props.rootItemId}/>
+      </Provider>
+    </div>
   );
 }
 
