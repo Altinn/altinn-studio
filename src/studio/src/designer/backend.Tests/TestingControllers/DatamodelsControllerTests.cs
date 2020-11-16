@@ -171,6 +171,53 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.OK, responsePut.StatusCode);
         }
 
+        /// <summary>
+        /// Scenario: Post a Json Schema
+        /// </summary>
+        [Fact]
+        public async void Get_Put_Updatemodel3_Ok()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.schema.json"))
+            {
+                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.schema.json");
+            }
+
+            File.Copy(unitTestFolder + "Model/Xsd/RA-0678_M.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.xsd", true);
+
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=ra/0678/0678";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
+            TextReader textReader = new StringReader(responsestring);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=ra/0678/0678";
+
+            var serializer = new JsonSerializer();
+            JsonValue toar = serializer.Serialize(jsonSchema);
+
+            string requestBody = toar.ToString();
+            HttpRequestMessage httpRequestMessagePut = new HttpRequestMessage(HttpMethod.Put, dataPathWithData)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessagePut);
+            HttpResponseMessage responsePut = await client.SendAsync(httpRequestMessagePut);
+            Assert.Equal(HttpStatusCode.OK, responsePut.StatusCode);
+        }
+
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
