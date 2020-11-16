@@ -18,8 +18,7 @@ import { deleteCall, get, post } from '../../utils/networking';
 import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl } from '../../utils/urlHelper';
 import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
 import { ComponentTypes } from '../../components';
-// tslint:disable-next-line:no-var-requires
-const uuid = require('uuid/v4');
+import { v4 as uuidv4 } from 'uuid';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectCurrentLayout = (state: IAppState): IFormLayout => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
@@ -50,7 +49,7 @@ function* addFormComponentSaga({
   callback,
 }: FormDesignerActions.IAddFormComponentAction): SagaIterator {
   try {
-    const id: string = uuid();
+    const id: string = uuidv4();
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
 
     if (!containerId) {
@@ -102,7 +101,7 @@ function* addFormContainerSaga({
   destinationIndex,
 }: FormDesignerActions.IAddFormContainerAction): SagaIterator {
   try {
-    const id = uuid();
+    const id = uuidv4();
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let baseContainerId;
     if (Object.keys(currentLayout.order)
