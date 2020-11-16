@@ -30,9 +30,8 @@ namespace Altinn.App.AppLogic
             IPDF pdfService,
             IProfile profileService,
             IRegister registerService,
-            IPrefill prefillService,
-            IInstance instanceService
-            ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
+            IPrefill prefillService
+            ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();
