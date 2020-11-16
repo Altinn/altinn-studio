@@ -106,7 +106,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       path,
       newKey: 'newProp',}));
     event.preventDefault();
-  }
+  };
 
   const onAddFieldClick = (event: any) => {
     const path = definitionItem?.id || id;
@@ -116,15 +116,15 @@ function SchemaItem(props: StyledTreeItemProps) {
       value: 'value'
     }));
     event.preventDefault();
-  }
+  };
 
   const onDeleteObjectClick = (event: any) => {
     dispatch(deleteProperty({path: id}));
-  }
+  };
 
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({path, key}));
-  }
+  };
 
   const onToggleEditLabel = (event: any) => {
     if (editLabel) {
@@ -132,16 +132,16 @@ function SchemaItem(props: StyledTreeItemProps) {
     }
     setEditLabel(!editLabel);
     event.stopPropagation();
-  }
+  };
 
   const onClickEditLabel = (event: any) => {
     event.stopPropagation();
-  }
+  };
 
   const onChangeLabel = (event: any) => {
     setLabel(event.target.value);
     event.stopPropagation();
-  }
+  };
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
@@ -150,11 +150,11 @@ function SchemaItem(props: StyledTreeItemProps) {
       key,
     }
     dispatch(setFieldValue(data));
-  }
+  };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
     dispatch(setKey({path, oldKey, newKey}))
-  }
+  };
 
   const RenderProperties = (properties: any[]) => {
     if (properties && properties.length > 0)
@@ -171,7 +171,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       );
     }
     return null;
-  }
+  };
 
   const RenderFields = (fields: Field[], path: string) => {
 
@@ -198,7 +198,7 @@ function SchemaItem(props: StyledTreeItemProps) {
         );
     }
     return null;
-  }
+  };
 
   const RenderRefItems = () => {
     if (refItems && refItems.length > 0) {
@@ -214,7 +214,7 @@ function SchemaItem(props: StyledTreeItemProps) {
         </>
       )
     }
-  }
+  };
 
   const RenderLabel = () => {
     return (
@@ -251,7 +251,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           </IconButton>
       </div>
     );
-  }
+  };
 
   if (constItem || item.value) {
     return (

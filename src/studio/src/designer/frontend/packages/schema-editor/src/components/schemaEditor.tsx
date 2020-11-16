@@ -43,25 +43,6 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
       setRootItem(item);
     }
   }, [rootItemId, uiSchema]);
-
-  // React.useEffect(() => {
-  //   const getRootItems = () => {
-  //     const result: UiSchemaItem[] = [];
-  //     const ids: string[] = Object.keys(jsonSchema);
-  //     ids.forEach((id) => {
-  //       const uiSchemaItem = uiSchema.find((item) => item.id === `#/${id}`);
-  //       if (uiSchemaItem) {
-  //         result.push(uiSchemaItem);
-  //       }
-  //     });
-  
-  //     return result;
-  //   }
-
-  //   if (jsonSchema && Object.keys(jsonSchema).length > 0 && uiSchema && Object.keys(uiSchema).length > 0) {
-  //     setRootItems(getRootItems())
-  //   }
-  // }, [jsonSchema, uiSchema]);
   
   React.useEffect(() => {
     if (jsonSchema && Object.keys(jsonSchema).length > 0) {
@@ -75,7 +56,7 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({onSaveSchema}));
-  }
+  };
 
   return (
     <>
@@ -108,4 +89,4 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
   )
 }
 
-export default SchemaEditor
+export default SchemaEditor;

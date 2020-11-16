@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
 import SchemaEditor from './components/schemaEditor';
-import { store } from './redux/store';
+import { store } from './store';
 
 export interface IAppProps {
   schema: any;
