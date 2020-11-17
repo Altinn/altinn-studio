@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
                 XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(jsonSchemas);
                 MemoryStream xsdStream = new MemoryStream();
-                XmlTextWriter xwriter = new XmlTextWriter(xsdStream, new UpperCaseUTF8Encoding());
+                XmlTextWriter xwriter = new XmlTextWriter(xsdStream, new UpperCaseUtf8Encoding());
                 xwriter.Formatting = Formatting.Indented;
                 xwriter.WriteStartDocument(false);
                 xmlschema.Write(xsdStream);
