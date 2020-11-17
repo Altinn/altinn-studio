@@ -11,7 +11,6 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers
 {
