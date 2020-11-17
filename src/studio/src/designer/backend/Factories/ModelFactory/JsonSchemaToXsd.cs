@@ -890,7 +890,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 foreach (KeyValuePair<string, JsonSchema> def in definitions)
                 {
                     JsonSchema jSchema = def.Value;
-                    string name = def.Key;
 
                     if (jSchema != JsonSchema.Empty && jSchema.Properties() != null)
                     {
@@ -916,7 +915,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private void AddUnhandledAttributes(JsonSchema jSchema, XmlSchemaAnnotated schemaAnnotated)
         {
             int i = 1;
-            List<XmlAttribute> list = list = new List<XmlAttribute>();
+            List<XmlAttribute> list = new List<XmlAttribute>();
             while (jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i) != null)
             {
                 string test = jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i);

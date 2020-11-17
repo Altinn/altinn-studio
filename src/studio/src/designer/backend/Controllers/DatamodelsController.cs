@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -26,16 +22,13 @@ namespace Altinn.Studio.Designer.Controllers
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
-        /// <param name="logger">The logger implementation</param>
         /// <param name="repository">The repository implementation</param>
-        public DatamodelsController(ILogger<DatamodelsController> logger, IRepository repository)
+        public DatamodelsController(IRepository repository)
         {
-            _logger = logger;
             _repository = repository;
         }
 
@@ -101,7 +94,7 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
                 return Ok(jsonValue.ToString());
             }
-            catch 
+            catch
             {
             }
 
