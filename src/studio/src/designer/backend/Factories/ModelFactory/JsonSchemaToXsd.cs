@@ -899,12 +899,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                             JsonSchema schemaProp = property.Value;
                             string nameProp = property.Key;
 
-                            if (nameProp.Equals("dataFormatProvider"))
+                            if (nameProp.Equals("dataFormatProvider") && schemaProp.Const().String.Equals("SERES"))
                             {
-                                if (schemaProp.Const().String.Equals("SERES"))
-                                {
-                                    xsdSchema.Namespaces.Add("seres", SERES_NS);
-                                }
+                                xsdSchema.Namespaces.Add("seres", SERES_NS);
                             }
                         }
                     }
