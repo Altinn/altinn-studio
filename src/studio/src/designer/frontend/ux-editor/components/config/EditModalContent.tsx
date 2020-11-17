@@ -14,7 +14,6 @@ import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 import { getTextResourceByAddressKey, AddressKeys } from '../../utils/component';
-import { ComponentTypes } from '..';
 
 export const customInput = {
   control: (base: any) => ({
@@ -210,7 +209,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public handlePreselectedOptionChange = (event: any): void => {
     const updatedComponent = { ...this.props.component as IFormCheckboxComponent | IFormRadioButtonComponent };
-    updatedComponent.preselectedOptionIndex = event.target.value as number;
+    updatedComponent.preselectedOptionIndex = Number(event.target.value);
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -293,10 +292,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       (component as any).showBackButton = true;
       component.textResourceBindings.next = 'next';
       component.textResourceBindings.back = 'back';
-      component.componentType = ComponentTypes.NavigationButtons;
     } else if (selected.value === 'Button') {
       component.type = 'Button';
-      component.componentType = ComponentTypes.Button;
       component.textResourceBindings.next = undefined;
       component.textResourceBindings.back = undefined;
       (component as any).showPrev = undefined;

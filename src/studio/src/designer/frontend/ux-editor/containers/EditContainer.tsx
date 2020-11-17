@@ -394,7 +394,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
                           getTextResource(this.state.component.textResourceBindings.title,
                             this.props.textResources), 80,
                         )
-                        : getComponentTitleByComponentType(this.state.component.componentType, this.props.language)}
+                        : getComponentTitleByComponentType(this.state.component.type, this.props.language)}
                     </div>
                   }
                 </ListItem>

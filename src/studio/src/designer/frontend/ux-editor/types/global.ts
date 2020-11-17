@@ -1,4 +1,3 @@
-import { ComponentTypes } from '../components';
 import { IAppDataState } from '../reducers/appDataReducer';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
@@ -59,7 +58,6 @@ declare global {
 
   export interface ICreateFormComponent {
     component?: string;
-    componentType: ComponentTypes;
     itemType?: string;
     type?: string;
     name?: string;
