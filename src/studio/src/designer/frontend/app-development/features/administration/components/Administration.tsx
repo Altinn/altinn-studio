@@ -159,7 +159,7 @@ export class AdministrationComponent extends
       });
     } else {
       const { org, app } = window as Window as IAltinnWindow;
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -176,7 +176,7 @@ export class AdministrationComponent extends
   public onBlurServiceDescription = () => {
     if (this.state.editServiceDescription) {
       const { org, app } = window as Window as IAltinnWindow;
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
         this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
@@ -192,7 +192,7 @@ export class AdministrationComponent extends
   public onBlurServiceId = () => {
     if (this.state.editServiceId) {
       const { org, app } = window as Window as IAltinnWindow;
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
         this.state.serviceDescription, this.state.serviceId, this.state.serviceName,

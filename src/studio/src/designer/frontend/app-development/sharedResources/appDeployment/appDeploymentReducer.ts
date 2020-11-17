@@ -24,7 +24,7 @@ const initialState: IAppDeploymentState = {
 };
 
 update.extend('$updateCreateAppDeploymentError', (params: any, original: any) => {
-  const newState = original.filter((elem: any) => elem.env !== params.env );
+  const newState = original.filter((elem: any) => elem.env !== params.env);
 
   const newAppDeploymentError: ICreateAppDeploymentErrors = {
     env: params.env,

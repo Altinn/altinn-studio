@@ -1,10 +1,8 @@
-import {
-  createStyles,
+import { createStyles,
   Grid,
   Typography,
   withStyles,
-  WithStyles,
-} from '@material-ui/core';
+  WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AltinnButton from 'app-shared/components/AltinnButton';
@@ -70,6 +68,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   }, [createReleaseErrorCode]);
 
   function versionNameValid(): boolean {
+    // eslint-disable-next-line no-restricted-syntax
     for (const release of releaseState.releases) {
       if (release.tagName.toLowerCase() === tagName.trim() &&
         (release.build.result === BuildResult.succeeded || release.build.status === BuildStatus.inProgress)
@@ -97,7 +96,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
     setBody(event.currentTarget.value);
   }
 
-  function handleBuildVersionClick(event: React.MouseEvent) {
+  function handleBuildVersionClick() {
     if (versionNameValid() && tagName !== '') {
       AppReleaseActions.createAppRelease(tagName, tagName, body, repoStatus.branch.master.commit.id);
       setTagName('');
@@ -118,17 +117,17 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
     <>
       <Grid
         container={true}
-        direction={'column'}
+        direction='column'
       >
         <Grid
           container={true}
-          direction={'column'}
+          direction='column'
           className={classes.createReleaseFormItem}
         >
           <Grid
             container={true}
-            direction={'column-reverse'}
-            justify={'flex-end'}
+            direction='column-reverse'
+            justify='flex-end'
           >
             {!versionNameValid() ?
               <Grid
@@ -154,7 +153,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         </Grid>
         <Grid
           container={true}
-          direction={'column'}
+          direction='column'
           className={classes.createReleaseFormItem}
         >
           <AltinnTextArea
@@ -166,7 +165,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         </Grid>
         <Grid
           container={true}
-          direction={'column'}
+          direction='column'
           className={classes.createReleaseFormItem}
         >
           <div>
@@ -193,7 +192,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
       >
         <Grid
           container={true}
-          direction={'row'}
+          direction='row'
           spacing={3}
         >
           <Grid
@@ -215,15 +214,14 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
             <Typography
               className={classes.popoverErrorText}
             >
-              {
-                <>
-                  {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
-                  &nbsp;
-                  <a href={'mailto:tjenesteeier@altinn.no'} target='_blank'>
-                    {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
-                  </a>
-                </>
-              }
+              <>
+                {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
+                &nbsp;
+                {/* eslint-disable-next-line react/jsx-max-props-per-line */}
+                <a href='mailto:tjenesteeier@altinn.no' target='_blank' rel='noreferrer'>
+                  {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
+                </a>
+              </>
             </Typography>
             <Typography
               className={classes.popoverTechnicalErrorText}

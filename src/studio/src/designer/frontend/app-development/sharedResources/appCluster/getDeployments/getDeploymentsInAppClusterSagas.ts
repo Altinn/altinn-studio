@@ -27,7 +27,7 @@ function* getDeploymentsIntervalSaga(): SagaIterator {
 function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaIterator {
   try {
     const result = yield call(get,
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`);
 
     yield call(AppClusterDispatcher.getDeploymentsFulfilled, result, env.name);

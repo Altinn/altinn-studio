@@ -22,9 +22,9 @@ export interface IHandleServiceInformationDispatchers extends ActionCreatorsMapO
   fetchServiceConfig: (url: string) => FetchServiceInformationActions.IFetchServiceConfigAction;
   fetchServiceConfigFulfilled: (description: string) => FetchServiceInformationActions.IFetchServiceConfigFulfilled;
   fetchServiceConfigRejected: (error: Error) => FetchServiceInformationActions.IFetchServiceConfigRejected;
-  // tslint:disable-next-line:max-line-length
+  // eslint-disable-next-line max-len
   saveServiceConfig: (url: string, newServiceDescription: string, newServiceId: string, newServiceName: string) => FetchServiceInformationActions.ISaveServiceConfigAction;
-  // tslint:disable-next-line:max-line-length
+  // eslint-disable-next-line max-len
   saveServiceConfigFulfilled: (newServiceDescription: string, newServiceId: string, newServiceName: string) => FetchServiceInformationActions.ISaveServiceConfigFulfilled;
   saveServiceConfigRejected: (error: Error) => FetchServiceInformationActions.ISaveServiceConfigRejected;
 }

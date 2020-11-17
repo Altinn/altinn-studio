@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+// eslint-disable-next-line import/no-cycle
 import { IRepository } from '../../types/global';
 import * as ActionTypes from './handleServiceInformationActionTypes';
 
@@ -186,8 +187,13 @@ export interface ISaveServiceConfigRejected extends Action {
   error: Error;
 }
 
-// tslint:disable-next-line:max-line-length
-export function saveServiceConfigAction(url: string, newServiceDescription: string, newServiceId: string, newServiceName: string): ISaveServiceConfigAction {
+// eslint-disable-next-line max-len
+export function saveServiceConfigAction(
+  url: string,
+  newServiceDescription: string,
+  newServiceId: string,
+  newServiceName: string,
+): ISaveServiceConfigAction {
   return {
     type: ActionTypes.SAVE_SERVICE_CONFIG,
     url,
@@ -197,8 +203,12 @@ export function saveServiceConfigAction(url: string, newServiceDescription: stri
   };
 }
 
-// tslint:disable-next-line:max-line-length
-export function saveServiceConfigFulfilledAction(newServiceDescription: string, newServiceId: string, newServiceName: string): ISaveServiceConfigFulfilled {
+// eslint-disable-next-line max-len
+export function saveServiceConfigFulfilledAction(
+  newServiceDescription: string,
+  newServiceId: string,
+  newServiceName: string,
+): ISaveServiceConfigFulfilled {
   return {
     type: ActionTypes.SAVE_SERVICE_CONFIG_FULFILLED,
     newServiceDescription,

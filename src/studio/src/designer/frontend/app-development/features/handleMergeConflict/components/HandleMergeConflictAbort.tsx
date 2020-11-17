@@ -1,3 +1,5 @@
+/* eslint-disable react/no-access-state-in-setstate */
+/* eslint-disable react/no-unused-state */
 import * as React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
@@ -29,7 +31,6 @@ const initialPopoverState = {
 
 export class HandleMergeConflictAbort extends
   React.Component<IHandleMergeConflictAbortProps, IHandleMergeConflictAbortState> {
-
   constructor(_props: IHandleMergeConflictAbortProps) {
     super(_props);
     this.state = {
@@ -87,7 +88,6 @@ export class HandleMergeConflictAbort extends
 
         window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
         this.handleClose();
-
       } else {
         this.setState({
           networkingRes: abortRes,
@@ -100,7 +100,6 @@ export class HandleMergeConflictAbort extends
         });
         console.error('Abort is unsuccessfull', abortRes);
       }
-
     } catch (err) {
       this.setState({
         errorObj: err,
@@ -112,7 +111,6 @@ export class HandleMergeConflictAbort extends
       });
       console.error('Merge abort error', err);
     }
-
   }
 
   public handleClose = () => {

@@ -5,11 +5,7 @@ import * as HandleMergeConflictActions from './handleMergeConflictActions';
 import * as HandleMergeConclictActionTypes from './handleMergeConflictActionTypes';
 import HandleMergeConflictDispatchers from './handleMergeConflictDispatcher';
 
-export function* handleMergeConflictSaga({
-  url,
-  org,
-  repo,
-}: HandleMergeConflictActions.IFetchRepoStatusAction): SagaIterator {
+export function* handleMergeConflictSaga({ url }: HandleMergeConflictActions.IFetchRepoStatusAction): SagaIterator {
   try {
     const result = yield call(get, url);
 
@@ -26,7 +22,7 @@ export function* watchHandleMergeConflictSaga(): SagaIterator {
   );
 }
 
-// tslint:disable-next-line:space-before-function-paren
+// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchHandleMergeConflictSaga);
 }

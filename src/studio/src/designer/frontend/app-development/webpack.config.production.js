@@ -1,7 +1,7 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
@@ -66,15 +66,34 @@ module.exports = {
       },
       {
         test: /\.tsx?/,
-        loader: "awesome-typescript-loader",
+        use: [
+          { loader: "ts-loader", options: { transpileOnly: true} }
+        ]
       }
     ],
   },
   plugins: [
-    new CheckerPlugin(),
+    new ForkTsCheckerWebpackPlugin({
+      async: false,
+      eslint: {
+        files: './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}'
+      },
+    }),
     new HtmlWebPackPlugin({
       template: './public/index.html',
-      filename: 'index.html'
+      filename: 'index.html',
+      minify: {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        removeEmptyAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        keepClosingSlash: true,
+        minifyJS: true,
+        minifyCSS: true,
+        minifyURLs: true,
+      },
     }),
     new MiniCssExtractPlugin({
       filename: "app-development.css",

@@ -33,6 +33,7 @@ export function* watchCreateAppDeploymentSaga(): SagaIterator {
   );
 }
 
-export default function*(): SagaIterator {
+// eslint-disable-next-line func-names
+export default function* (): SagaIterator {
   yield fork(watchCreateAppDeploymentSaga);
 }

@@ -5,12 +5,12 @@ import * as putApplicationMetadataActions from './put/putApplicationMetaDataActi
 
 export interface IApplicationMetadataDispatcher extends ActionCreatorsMapObject {
   getApplicationMetadata: () => Action;
-  // tslint:disable-next-line: max-line-length
+  // eslint-disable-next-line max-len
   getApplicationMetadataFulfilled: (applicationMetadata: any) => getApplicationMetadataActions.IGetApplicationMetadataFulfilled;
   getApplicationMetadataRejected: (error: Error) => getApplicationMetadataActions.IGetApplicationMetadataRejected;
   putApplicationMetadata: (applicationMetadata: any) => putApplicationMetadataActions.IPutApplicationMetadata;
-  // tslint:disable-next-line: max-line-length
-  putApplicationMetadataFulfilled: (applicationMetadata: any) => putApplicationMetadataActions.IPutApplicationMetadataFulfilled;
+  // eslint-disable-next-line max-len
+  putApplicationMetadataFulfilled:(applicationMetadata: any) => putApplicationMetadataActions.IPutApplicationMetadataFulfilled;
   putApplicationMetadataRejected: (error: Error) => putApplicationMetadataActions.IPutApplicationMetadataRejected;
 }
 

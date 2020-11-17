@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-max-props-per-line */
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as moment from 'moment';
 import * as React from 'react';
@@ -41,11 +42,10 @@ export const DeployContainer = (props: IDeployContainer) => {
 
   const appCluster: IAppClusterState = useSelector((state: IServiceDevelopmentState) => state.appCluster);
   const appDeployments: IAppDeploymentState = useSelector((state: IServiceDevelopmentState) => state.appDeployments);
-  const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) =>
-    state.appDeployments.createAppDeploymentErrors);
+  // eslint-disable-next-line max-len
+  const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) => state.appDeployments.createAppDeploymentErrors);
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
-  const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) =>
-    state.configuration);
+  const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
   const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
@@ -57,7 +57,6 @@ export const DeployContainer = (props: IDeployContainer) => {
       AppDeploymentActions.getAppDeploymentsStopInterval();
       AppClusterActions.getDeploymentsStopInterval();
     };
-
   }, []);
 
   React.useEffect(() => {
@@ -68,9 +67,8 @@ export const DeployContainer = (props: IDeployContainer) => {
       !!configuration.environments.result
     ) {
       setEnvironments(orgs.allOrgs[org].environments.map(
-        (envName: string) =>
-          configuration.environments.result.find((env: any) => env.name === envName))
-          .filter((element: any) => element != null));
+        (envName: string) => configuration.environments.result.find((env: any) => env.name === envName),
+      ).filter((element: any) => element != null));
     }
   }, [orgs, configuration]);
 
@@ -86,12 +84,12 @@ export const DeployContainer = (props: IDeployContainer) => {
     const tempImages = deployableImages.releases
       .filter((image) => image.build.result === BuildResult.succeeded)
       .map((image) => {
-      const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
-      return {
-        value: image.tagName,
-        label: `Version ${image.tagName} (${releaseTime})`,
-      };
-    });
+        const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
+        return {
+          value: image.tagName,
+          label: `Version ${image.tagName} (${releaseTime})`,
+        };
+      });
     setImageOptions(tempImages);
   }, [deployableImages]);
 
@@ -108,10 +106,10 @@ export const DeployContainer = (props: IDeployContainer) => {
     return (
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         className={classes.deployContainer}
       >
-        <AltinnContentLoader  width={900} height={320}>
+        <AltinnContentLoader width={900} height={320}>
           <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
           <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
           <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
@@ -124,12 +122,13 @@ export const DeployContainer = (props: IDeployContainer) => {
   return (
     <Grid
       container={true}
-      direction={'row'}
+      direction='row'
       className={classes.deployContainer}
     >
       {environments.map((env: any, index: number) => {
-        return(
+        return (
           <AppDeploymentComponent
+            // eslint-disable-next-line react/no-array-index-key
             key={index}
             envName={env.name}
             envObj={env}
@@ -142,7 +141,8 @@ export const DeployContainer = (props: IDeployContainer) => {
             releases={imageOptions}
             deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
             deployError={createAppDeploymentErrors.filter(
-                            (error: ICreateAppDeploymentErrors) => error.env === env.name)}
+              (error: ICreateAppDeploymentErrors) => error.env === env.name,
+            )}
             language={language}
           />
         );

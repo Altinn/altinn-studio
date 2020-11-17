@@ -2,6 +2,7 @@ import uieditorApp from '../../ux-editor/SubApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
+// eslint-disable-next-line import/no-named-as-default
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 
