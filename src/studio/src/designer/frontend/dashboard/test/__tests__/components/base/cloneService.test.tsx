@@ -191,7 +191,7 @@ describe('>>> components/base/cloneService.tsx', () => {
       // Resolving get in cloneAndEditService
       return Promise.resolve().then(() => {
         expect(secondGetSpy).toHaveBeenCalled();
-        // tslint:disable-next-line:max-line-length
+        // eslint-disable-next-line max-len
         expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
       });
     });
@@ -222,7 +222,7 @@ describe('>>> components/base/cloneService.tsx', () => {
       mountedComponent.find('button#editService').simulate('click');
       expect(cloneAndEditServiceSpy).toHaveBeenCalled();
       expect(instance.state.isLoading).toBe(true);
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
     });
   });
@@ -250,7 +250,7 @@ describe('>>> components/base/cloneService.tsx', () => {
       expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
       mountedComponent.find('button#seeSourceCode').simulate('click');
       expect(redirectToCodeSpy).toHaveBeenCalled();
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       expect(window.location.assign).toHaveBeenCalledWith(`/repos/${mockServices[0].full_name}`);
     });
   });
@@ -277,7 +277,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     expect(formatNameAndDate('', mockServices[0].created_at)).toBe(mockDate.format('DD.MM.YYYY HH:mm'));
     expect(formatNameAndDate('', mockServices[0].created_at) === `${mockDate}`).toBe(false);
     expect(formatNameAndDate('Kari', mockServices[0].created_at)).toBe(`Kari ${mockDate.format('DD.MM.YYYY HH:mm')}`);
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     expect(formatNameAndDate('Kari', mockServices[0].created_at) === `Kari ${mockDate}`).toBe(false);
   });
 });

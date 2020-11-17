@@ -45,7 +45,7 @@ const AltinnReceiptTheme = {
     },
   },
   altinnPalette: {
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     // These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
     primary: {
       blueDarker: '#022F51',

@@ -146,7 +146,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   public getLastPush() {
     if (!this.state.moreThanAnHourSinceLastPush) {
       const { org, app } = window as Window as IAltinnWindow;
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
       get(url).then((result: any) => {
         if (this.componentIsMounted && result) {
@@ -290,7 +290,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         anchorEl: currentTarget,
         modalState: {
           header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
-          // tslint:disable-next-line:max-line-length
+          // eslint-disable-next-line max-len
           descriptionText: [getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language)],
         },
       });
@@ -381,7 +381,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               mergeConflict: true,
               modalState: {
                 header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
-                // tslint:disable-next-line:max-line-length
+                // eslint-disable-next-line max-len
                 descriptionText: [getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
                 btnMethod: this.forceRepoStatusCheck,
