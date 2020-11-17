@@ -44,7 +44,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(actual);
             MemoryStream xmlStream = new MemoryStream();
-            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUTF8Encoding());
+            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUtf8Encoding());
             xwriter.Formatting = Formatting.Indented;
             xwriter.WriteStartDocument(false);
             xmlschema.Write(xmlStream);
@@ -85,7 +85,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(convertedSchema);
             MemoryStream xmlStream = new MemoryStream();
-            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUTF8Encoding());
+            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUtf8Encoding());
             xwriter.Formatting = Formatting.Indented;
             xwriter.WriteStartDocument(false);
             xmlschema.Write(xmlStream);
@@ -94,7 +94,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             XmlSchema xmlschemaFromFile = jsonSchemaToXsd.CreateXsd(jsonSchemaFromFile);
             MemoryStream xmlStreamFile = new MemoryStream();
-            XmlTextWriter xwriterFile = new XmlTextWriter(xmlStreamFile, new UpperCaseUTF8Encoding());
+            XmlTextWriter xwriterFile = new XmlTextWriter(xmlStreamFile, new UpperCaseUtf8Encoding());
             xwriterFile.Formatting = Formatting.Indented;
             xwriterFile.WriteStartDocument(false);
             xmlschemaFromFile.Write(xmlStreamFile);
