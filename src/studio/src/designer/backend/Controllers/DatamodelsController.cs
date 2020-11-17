@@ -95,6 +95,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch
             {
+                // Will fallback to checking for XSD. See below
             }
 
             try
