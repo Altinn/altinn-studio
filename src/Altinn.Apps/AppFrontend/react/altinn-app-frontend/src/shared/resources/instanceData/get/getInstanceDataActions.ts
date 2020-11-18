@@ -29,7 +29,7 @@ export function getInstanceDataFulfilled(instanceData: any): IGetInstanceDataFul
 
 export function getInstanceDataRejected(error: Error): IGetInstanceDataRejected {
   return {
-    type: ActionTypes. GET_INSTANCEDATA_REJECTED,
+    type: ActionTypes.GET_INSTANCEDATA_REJECTED,
     error,
   };
 }

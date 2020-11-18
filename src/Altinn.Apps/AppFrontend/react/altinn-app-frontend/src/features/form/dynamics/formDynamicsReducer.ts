@@ -1,10 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFormDynamicState } from './index';
-import {
-  IFetchServiceConfigFulfilled,
-  IFetchServiceConfigRejected,
-} from './fetch/fetchFormDynamicsActions';
+import { IFetchServiceConfigFulfilled, IFetchServiceConfigRejected } from './fetch/fetchFormDynamicsActions';
 import * as actionTypes from './formDynamicsActionTypes';
 
 const initialState: IFormDynamicState = {
@@ -24,7 +21,11 @@ const DynamicsReducer: Reducer<IFormDynamicState> = (
 
   switch (action.type) {
     case actionTypes.FETCH_SERVICE_CONFIG_FULFILLED: {
-      const { apis, ruleConnection, conditionalRendering } = action as IFetchServiceConfigFulfilled;
+      const {
+        apis,
+        ruleConnection,
+        conditionalRendering,
+      } = action as IFetchServiceConfigFulfilled;
       return update<IFormDynamicState>(state, {
         apis: {
           $set: apis,

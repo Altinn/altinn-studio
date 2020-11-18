@@ -3,6 +3,6 @@ import { fork } from 'redux-saga/effects';
 
 import { watchFetchProfileSaga } from './fetch/fetchProfileSagas';
 
-export default function*(): SagaIterator {
+export default function* profileSagas(): SagaIterator {
   yield fork(watchFetchProfileSaga);
 }

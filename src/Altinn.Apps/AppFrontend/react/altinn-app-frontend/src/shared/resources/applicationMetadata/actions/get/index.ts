@@ -15,10 +15,10 @@ export interface IGetApplicationMetadataFulfilled extends Action {
 export function getApplicationMetadataFulfilled(
   applicationMetadata: IApplicationMetadata,
 ): IGetApplicationMetadataFulfilled {
-    return {
-      type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_FULFILLED,
-      applicationMetadata,
-    };
+  return {
+    type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_FULFILLED,
+    applicationMetadata,
+  };
 }
 
 export interface IGetApplicationMetadataRejected extends Action {
@@ -28,8 +28,8 @@ export interface IGetApplicationMetadataRejected extends Action {
 export function getApplicationMetadataRejected(
   error: Error,
 ): IGetApplicationMetadataRejected {
-    return {
-      type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_REJECTED,
-      error,
-    };
+  return {
+    type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_REJECTED,
+    error,
+  };
 }

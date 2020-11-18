@@ -9,15 +9,11 @@ export interface IGetRequestResponse {
 }
 
 export async function get(url: string, options?: any): Promise<any> {
-  try {
-    const response: AxiosResponse = await axios.get(
-      url,
-      options ? options : null,
-    );
-    return response.data ? response.data : null;
-  } catch (err) {
-    throw err;
-  }
+  const response: AxiosResponse = await axios.get(
+    url,
+    options || null,
+  );
+  return response.data ? response.data : null;
 }
 
 export async function post(
@@ -25,12 +21,8 @@ export async function post(
   options?: AxiosRequestConfig,
   data?: any,
 ): Promise<AxiosResponse<any>> {
-  try {
-    const response: AxiosResponse = await axios.post(url, data, options ? options : null);
-    return response;
-  } catch (err) {
-    throw err;
-  }
+  const response: AxiosResponse = await axios.post(url, data, options || null);
+  return response;
 }
 
 export async function put(
@@ -39,24 +31,16 @@ export async function put(
   data: any,
   config?: AxiosRequestConfig,
 ): Promise<AxiosResponse<any>> {
-  try {
-    const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config ? config : null);
-    return response.data ? response.data : null;
-  } catch (err) {
-    throw err;
-  }
+  const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config || null);
+  return response.data ? response.data : null;
 }
 
 export async function httpDelete(
   url: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<any>> {
-  try {
-    const response: AxiosResponse = await axios.delete(url, options ? options : null);
-    return response;
-  } catch (err) {
-    throw err;
-  }
+  const response: AxiosResponse = await axios.delete(url, options || null);
+  return response;
 }
 
 export async function putWithoutConfig<ReturnType>(
@@ -66,7 +50,7 @@ export async function putWithoutConfig<ReturnType>(
     const response = await axios.put(url);
     return response.data ? response.data : null;
   } catch (err) {
-    throw new Error('HTTP Call failed: ' + err.message);
+    throw new Error(`HTTP Call failed: ${err.message}`);
   }
 }
 

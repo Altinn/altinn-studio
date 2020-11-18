@@ -10,22 +10,22 @@ export interface ITextAreaComponentProps {
 }
 
 export function TextAreaComponent(props: ITextAreaComponentProps) {
-  const [value, setValue] = React.useState(props.formData? props.formData : '');
+  const [value, setValue] = React.useState(props.formData ? props.formData : '');
 
   React.useEffect(() => {
     setValue(props.formData);
-  }, [props.formData])
+  }, [props.formData]);
 
   const onDataChanged = (e: any) => {
     setValue(e.target.value);
-  }
+  };
 
   const onDataChangeSubmit = () => {
     props.handleDataChange(value);
-  }
+  };
 
   return (
-    <div className={'a-form-group-items input-group p-0'} >
+    <div className='a-form-group-items input-group p-0' >
       <textarea
         id={props.id}
         onBlur={onDataChangeSubmit}

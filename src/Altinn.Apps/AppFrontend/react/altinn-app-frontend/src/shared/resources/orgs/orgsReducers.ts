@@ -26,7 +26,7 @@ const orgsReducer: Reducer<IOrgsState> = (state: IOrgsState = initialState, acti
         },
       });
     }
-    case OrgsActionTypes. FETCH_ORGS_REJECTED: {
+    case OrgsActionTypes.FETCH_ORGS_REJECTED: {
       const { error } = action as IFetchOrgsRejected;
       return update<IOrgsState>(state, {
         error: {

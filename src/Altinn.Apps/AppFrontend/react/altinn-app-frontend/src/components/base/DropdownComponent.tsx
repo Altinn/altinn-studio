@@ -56,6 +56,7 @@ function DropdownComponent(props: IDropdownProps) {
       <option style={{ display: 'none' }}/>
       {options?.map((option, index) => (
         <option
+          // eslint-disable-next-line react/no-array-index-key
           key={index}
           value={option.value}
         >

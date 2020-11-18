@@ -1,10 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IProfile } from 'altinn-shared/types';
-import {
-  IFetchProfileFulfilled,
-  IFetchProfileRejected,
-} from './fetch/fetchProfileActions';
+import { IFetchProfileFulfilled, IFetchProfileRejected } from './fetch/fetchProfileActions';
 import * as ActionTypes from './fetch/fetchProfileActionTypes';
 
 export interface IProfileState {

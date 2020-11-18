@@ -1,5 +1,7 @@
+/* eslint-disable no-undef */
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
+// eslint-disable-next-line import/no-named-as-default
 import MessageComponent from '../components/message/MessageComponent';
 
 export const styles = {
@@ -51,6 +53,7 @@ export function renderValidationMessages(messages: string[], id: string, message
       <ol>
         {messages.map((message: string, idx: number) => {
           return (
+            // eslint-disable-next-line react/no-array-index-key
             <li key={idx}><p role='alert'>{message}</p></li>
           );
         })}

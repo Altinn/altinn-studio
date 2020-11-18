@@ -3,6 +3,6 @@ import { fork } from 'redux-saga/effects';
 
 import { watchGetApplicationMetadataSaga } from './get';
 
-export default function*(): SagaIterator {
+export default function* applicationMetadataSagas(): SagaIterator {
   yield fork(watchGetApplicationMetadataSaga);
 }

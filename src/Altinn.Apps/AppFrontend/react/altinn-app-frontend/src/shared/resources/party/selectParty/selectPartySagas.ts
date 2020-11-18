@@ -7,7 +7,7 @@ import PartyActions from '../partyActions';
 import { ISelectParty } from './selectPartyActions';
 import * as SelectPartyActionTypes from './selectPartyActionTypes';
 
-function* selectPartySaga({party, redirect}: ISelectParty): SagaIterator {
+function* selectPartySaga({ party, redirect }: ISelectParty): SagaIterator {
   try {
     const url: string = updateCookieUrl(party.partyId);
     yield call(putWithoutConfig, url);

@@ -74,15 +74,16 @@ export function checkIfRuleShouldRun(
               return;
             }
             const layoutComponent = layoutElement as ILayoutComponent;
-            for (const dataBindingKey in layoutComponent.dataModelBindings) {
-              if (!dataBindingKey) {
-                continue;
-              }
-              if (layoutComponent.dataModelBindings[dataBindingKey] ===
-                connectionDef.outParams.outParam0) {
-                updatedComponent = layoutElement.id;
-                break;
-              }
+            let ruleDataBindingKey = null;
+            if (layoutComponent.dataModelBindings) {
+              ruleDataBindingKey = Object.keys(layoutComponent.dataModelBindings).find((dataBindingKey) => {
+                return layoutComponent.dataModelBindings[dataBindingKey] ===
+                connectionDef.outParams.outParam0;
+              });
+            }
+
+            if (ruleDataBindingKey) {
+              updatedComponent = layoutElement.id;
             }
           });
         });

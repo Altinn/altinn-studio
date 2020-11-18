@@ -14,7 +14,6 @@ export interface IErrorProps {
   formHasErrors: boolean;
 }
 
-
 const ErrorReport = (props: IErrorProps) => {
   const unmappedErrors = getUnmappedErrors(props.validations);
   const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
