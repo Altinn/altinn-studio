@@ -8,17 +8,15 @@ export interface IRedirectComponentProvidedProps {
 
 export class RedirectComponent extends
   React.Component<IRedirectComponentProvidedProps, any> {
-
   public openManualTesting = () => {
     const { org, app } = window as Window as IAltinnWindow;
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
     // tslint:disable-next-line:jsx-self-close
     window.open(url, '_newWindow');
   }
 
   public render() {
-
     return (
       <React.Fragment>
         <div style={{ paddingLeft: 80, paddingTop: 10 }}>

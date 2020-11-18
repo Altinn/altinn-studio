@@ -1,3 +1,6 @@
+/* eslint-disable consistent-return */
+/* eslint-disable array-callback-return */
+/* eslint-disable no-underscore-dangle */
 import { Grid } from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -79,6 +82,7 @@ const styles = createStyles({
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
   if (services) {
+    // eslint-disable-next-line array-callback-return
     services.map((service: any) => {
       const keyToLookFor = service.owner.full_name || service.owner.login;
       if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
@@ -107,16 +111,18 @@ const getCurrentUsersName = (user: any) => {
   return user ? user.full_name || user.login : '';
 };
 
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 export class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
-  // tslint:disable-next-line:max-line-length
-  public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps, _state: IServicesOverviewComponentState) {
+  // eslint-disable-next-line max-len
+  public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps) {
     return {
       selectedOwners: _props.selectedOwners,
     };
   }
+
   public _isMounted = false;
 
+  // eslint-disable-next-line react/state-in-constructor
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
     searchString: '',
@@ -155,6 +161,12 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     this._isMounted = false;
   }
 
+  public updateSearchString = (event: any) => {
+    this.setState({
+      searchString: event.target.value,
+    });
+  }
+
   public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
     const filteredServices = this.props.services
       .filter((service: any) => {
@@ -175,24 +187,26 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
       if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1) return service;
       if (service.description.toLowerCase().indexOf(searchFor) > -1) return service;
     });
-
-  }
-
-  public updateSearchString = (event: any) => {
-    this.setState({
-      searchString: event.target.value,
-    });
   }
 
   public render() {
-    const { classes, services, currentUserName } = this.props;
+    const {
+      classes, services, currentUserName,
+    } = this.props;
     // const altinnWindow: Window = window;
     // const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
-          <Grid item={true} xl={8} lg={8} md={8} sm={12} xs={12}>
-            <Typography component='h1' variant='h1' gutterBottom={true}>
+          <Grid
+            item={true} xl={8}
+            lg={8} md={8}
+            sm={12} xs={12}
+          >
+            <Typography
+              component='h1' variant='h1'
+              gutterBottom={true}
+            >
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
@@ -232,7 +246,10 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
         </Typography> */}
         {services &&
           <>
-            <Grid container={true} direction='row' className={classes.mar_top_13}>
+            <Grid
+              container={true} direction='row'
+              className={classes.mar_top_13}
+            >
               <Grid
                 item={true}
                 xl={12}
@@ -245,7 +262,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
                 })}
               >
                 <AltinnSearchInput
-                  id={'service-search'}
+                  id='service-search'
                   ariaLabel={getLanguageFromKey('dashboard.search_service', this.props.language)}
                   placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
                   onChangeFunction={this.updateSearchString}
@@ -280,7 +297,7 @@ const mapStateToProps = (
     width: props.width,
     language: state.language.language,
     services: getListOfServicesExcludingCodelist(state.dashboard.services),
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
     currentUserName: getCurrentUsersName(state.dashboard.user),

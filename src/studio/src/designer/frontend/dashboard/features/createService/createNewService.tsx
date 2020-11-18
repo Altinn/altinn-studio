@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -48,6 +49,8 @@ const styles = createStyles({
 
 export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
   public _isMounted = false;
+
+  // eslint-disable-next-line react/state-in-constructor
   public state: ICreateNewServiceState = {
     isOpen: false,
     serviceOwnerAnchorEl: null,
@@ -60,21 +63,22 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     isLoading: false,
   };
 
-  public handleModalOpen = () => {
-    this.setState({
-      isOpen: true,
-      // tslint:disable-next-line:max-line-length
-      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0].full_name ? this.props.selectableUser[0].full_name : this.props.selectableUser[0].name : '',
-      selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
-    });
-  }
-
   public componentDidMount() {
     this._isMounted = true;
   }
 
   public componentWillUnmount() {
     this._isMounted = false;
+  }
+
+  public handleModalOpen = () => {
+    this.setState({
+      isOpen: true,
+      // eslint-disable-next-line max-len
+      // eslint-disable-next-line no-nested-ternary
+      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0].full_name ? this.props.selectableUser[0].full_name : this.props.selectableUser[0].name : '',
+      selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
+    });
   }
 
   public handleModalClose = () => {
@@ -89,20 +93,22 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     });
   }
 
+  public getListOfUsers() {
+    return this.props.selectableUser.map((user: any) => user.full_name || user.name);
+  }
+
   public showServiceOwnerPopper = (message: string) => {
-    this.setState(
-      {
-        serviceOwnerAnchorEl: document.getElementById('service-owner'),
-        serviceOwnerPopperMessage: message,
-      });
+    this.setState({
+      serviceOwnerAnchorEl: document.getElementById('service-owner'),
+      serviceOwnerPopperMessage: message,
+    });
   }
 
   public showRepoNamePopper = (message: string) => {
-    this.setState(
-      {
-        repoNameAnchorEl: document.getElementById('service-saved-name'),
-        repoNamePopperMessage: message,
-      });
+    this.setState({
+      repoNameAnchorEl: document.getElementById('service-saved-name'),
+      repoNamePopperMessage: message,
+    });
   }
 
   public handleUpdateDropdown = (event: any) => {
@@ -120,6 +126,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   }
 
   public validateRepoName = (repoName: string) => {
+    // eslint-disable-next-line no-useless-escape
     return /^[a-z]+[a-z0-9\-]+[a-z0-9]$/.test(repoName);
   }
 
@@ -153,9 +160,9 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         isLoading: true,
       });
       const altinnWindow: Window = window;
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}`;
       post(url).then((result: any) => {
         if (result.repositoryCreatedStatus === 409) {
@@ -183,16 +190,12 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     }
   }
 
-  public getListOfUsers() {
-    return this.props.selectableUser.map((user: any) => user.full_name ? user.full_name : user.name);
-  }
-
   public render() {
     const { classes } = this.props;
     return (
       <div>
         <AltinnIconButton
-          id={'createService'}
+          id='createService'
           onclickFunction={this.handleModalOpen}
           btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
           iconClass='fa fa-circle-plus'
@@ -204,7 +207,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         >
           <div className={classes.marginBottom_24}>
             <AltinnDropdown
-              id={'service-owner'}
+              id='service-owner'
               inputHeader={getLanguageFromKey('general.service_owner', this.props.language)}
               inputDescription={getLanguageFromKey('dashboard.service_owner_description', this.props.language)}
               handleChange={this.handleUpdateDropdown}
@@ -220,7 +223,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           />
           <div className={classes.marginBottom_24}>
             <AltinnInputField
-              id={'service-saved-name'}
+              id='service-saved-name'
               inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
               inputDescription={getLanguageFromKey('dashboard.service_saved_name_description', this.props.language)}
               inputValue={this.state.repoName}
@@ -251,6 +254,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   }
 }
 const combineCurrentUserAndOrg = (organisations: any, user: any) => {
+  // eslint-disable-next-line camelcase
   const allUsers = organisations.map(({ username, full_name }: any) => ({ name: username, full_name }));
   const currentUserName = { name: user.login, full_name: user.full_name };
   allUsers.push(currentUserName);

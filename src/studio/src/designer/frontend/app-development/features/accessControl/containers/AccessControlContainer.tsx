@@ -79,6 +79,7 @@ export interface IPartyTypesAllowed {
   subUnit: boolean;
 }
 
+// eslint-disable-next-line no-shadow
 export enum PartyTypes {
   bankruptcyEstate = 'bankruptcyEstate',
   organisation = 'organisation',
@@ -88,11 +89,6 @@ export enum PartyTypes {
 
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
-
-  public componentDidMount(){
-    applicationMetadataDispatcher.getApplicationMetadata();
-  }
-
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
     const { partyTypesAllowed } = nextProps.applicationMetadata;
     if (!partyTypesAllowed) {
@@ -124,18 +120,26 @@ export class AccessControlContainerClass extends React.Component<
     };
   }
 
-  public render() {
-    return (
-      <AltinnColumnLayout
-        aboveColumnChildren={
-          <div className={this.props.classes.versionControlHeaderMargin}>
-            <VersionControlHeader language={this.props.language} />
-          </div>}
-        children={this.renderMainContent()}
-        sideMenuChildren={this.renderSideMenu()}
-        header={getLanguageFromKey('access_control.header', this.props.language)}
-      />
-    );
+  public componentDidMount() {
+    applicationMetadataDispatcher.getApplicationMetadata();
+  }
+
+  public handlePartyTypesAllowedChange(partyType: PartyTypes) {
+    const { partyTypesAllowed } = this.state;
+    partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+    this.setState({
+      partyTypesAllowed,
+    }, () => {
+      this.saveApplicationMetadata();
+    });
+  }
+
+  public saveApplicationMetadata() {
+    // tslint:disable-next-line: max-line-length
+    const newApplicationMetadata =
+      JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
+    newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
+    applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
 
   public renderMainContent = (): JSX.Element => {
@@ -157,7 +161,7 @@ export class AccessControlContainerClass extends React.Component<
           {getLanguageFromKey('access_control.party_type', this.props.language)}
         </Typography>
         <AltinnCheckBoxGroup row={true}>
-          {partyTypeKeys.map((partyTypeKey: string, index: number) => {
+          {partyTypeKeys.map((partyTypeKey: string) => {
             // value used for mapping internal state, key used for language reference
             const partyTypeValue = PartyTypes[partyTypeKey as PartyTypes] as keyof IPartyTypesAllowed;
             return (
@@ -165,31 +169,15 @@ export class AccessControlContainerClass extends React.Component<
                 key={partyTypeKey}
                 control={<AltinnCheckBox
                   checked={this.state.partyTypesAllowed[partyTypeValue]}
+                  // eslint-disable-next-line react/jsx-no-bind
                   onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, partyTypeValue)}
                 />}
-                label={getLanguageFromKey('access_control.' + partyTypeKey, this.props.language)}
+                label={getLanguageFromKey(`access_control.${partyTypeKey}`, this.props.language)}
               />);
           })}
         </AltinnCheckBoxGroup>
       </div>
     );
-  }
-
-  public handlePartyTypesAllowedChange(partyType: PartyTypes) {
-    const { partyTypesAllowed } = this.state;
-    partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
-    this.setState({
-      partyTypesAllowed,
-    }, () => {
-      this.saveApplicationMetadata();
-    });
-  }
-
-  public saveApplicationMetadata() {
-    // tslint:disable-next-line: max-line-length
-    const newApplicationMetadata = JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
-    newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
 
   public renderSideMenu = (): JSX.Element => {
@@ -215,6 +203,21 @@ export class AccessControlContainerClass extends React.Component<
           </Typography>
         </div>
       </>
+    );
+  }
+
+  public render() {
+    return (
+      <AltinnColumnLayout
+        aboveColumnChildren={
+          <div className={this.props.classes.versionControlHeaderMargin}>
+            <VersionControlHeader language={this.props.language} />
+          </div>}
+        sideMenuChildren={this.renderSideMenu()}
+        header={getLanguageFromKey('access_control.header', this.props.language)}
+      >
+        {this.renderMainContent()}
+      </AltinnColumnLayout>
     );
   }
 }

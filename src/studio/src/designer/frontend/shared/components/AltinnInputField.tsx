@@ -66,7 +66,7 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 export class AltinnInputField extends
   React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;

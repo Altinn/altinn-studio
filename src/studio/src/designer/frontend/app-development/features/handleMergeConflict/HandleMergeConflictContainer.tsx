@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable import/no-named-as-default */
 import { Hidden, Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
@@ -8,7 +10,7 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
-import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
+import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbort from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChanges from './components/HandleMergeConflictDiscardChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
@@ -63,7 +65,6 @@ export interface IHandleMergeConflictContainerState {
 
 export class HandleMergeConflictContainer extends
   React.Component<IHandleMergeConflictContainerProps, IHandleMergeConflictContainerState> {
-
   constructor(_props: IHandleMergeConflictContainerProps, _state: IHandleMergeConflictContainerState) {
     super(_props, _state);
     this.setEditorHeight = this.setEditorHeight.bind(this);
@@ -71,12 +72,6 @@ export class HandleMergeConflictContainer extends
       editorHeight: null,
       selectedFile: '>',
     };
-  }
-
-  public changeSelectedFile = (file: string) => {
-    this.setState({
-      selectedFile: file,
-    });
   }
 
   public componentDidMount() {
@@ -88,6 +83,12 @@ export class HandleMergeConflictContainer extends
     window.removeEventListener('resize', this.setEditorHeight);
   }
 
+  public changeSelectedFile = (file: string) => {
+    this.setState({
+      selectedFile: file,
+    });
+  }
+
   public setEditorHeight = () => {
     const height = document.getElementById('mergeConflictFileList').clientHeight;
     const editorHeight = height - 47 - 48;
@@ -97,7 +98,11 @@ export class HandleMergeConflictContainer extends
   }
 
   public render() {
-    const { classes, language, repoStatus } = this.props;
+    const {
+      classes,
+      language,
+      repoStatus,
+    } = this.props;
     const { selectedFile } = this.state;
 
     return (
@@ -124,14 +129,11 @@ export class HandleMergeConflictContainer extends
 
                 {
                   repoStatus.hasMergeConflict ?
-
                     <div className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
                       {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
                     </div>
                     :
-
                     repoStatus.contentStatus ?
-
                       repoStatus.contentStatus.length > 0 ?
                         <Grid
                           item={true}
@@ -148,11 +150,9 @@ export class HandleMergeConflictContainer extends
                           </Grid>
                         </Grid>
                         :
-
                         <div className={classNames(classes.containerMessage)}>
                           {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
                         </div>
-
                       :
                       null
 

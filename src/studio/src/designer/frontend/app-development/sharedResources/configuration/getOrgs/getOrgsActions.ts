@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ConfigurationActionTypes from './../configurationActionTypes';
+import * as ConfigurationActionTypes from '../configurationActionTypes';
 
 export interface IGetOrgs extends Action {
 

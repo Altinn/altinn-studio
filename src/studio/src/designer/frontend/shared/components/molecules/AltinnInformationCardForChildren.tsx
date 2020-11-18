@@ -4,7 +4,7 @@ import { createStyles } from '@material-ui/core/styles';
 import { makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import altinnTheme from './../../theme/altinnStudioTheme';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   headerText: string;

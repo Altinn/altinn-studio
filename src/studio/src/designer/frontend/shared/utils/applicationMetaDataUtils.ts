@@ -1,5 +1,5 @@
-import { IApplication } from './../types';
-import { IInstance } from './../types';
+import { IApplication } from '../types';
+import { IInstance } from '../types';
 
 export const getCurrentTaskDataTypeId = (appMetaData: IApplication, instance: IInstance) => {
   const defaultDatatype = appMetaData.dataTypes.find((element) => element.appLogic !== null);

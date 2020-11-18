@@ -7,7 +7,7 @@ import applicationMetadataReducer, { IApplicationMetadataState } from '../shared
 import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
-import repoStatusReducer, { IRepoStatusState } from './../sharedResources/repoStatus/repoStatusReducer';
+import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
 
 export interface IServiceDevelopmentReducers
   extends IServiceDevelopmentNameSpace<

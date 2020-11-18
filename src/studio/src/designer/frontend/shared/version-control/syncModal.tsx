@@ -145,7 +145,7 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
           {this.props.descriptionText &&
             <Typography className={classNames(classes.subHeader)}>
               {this.props.descriptionText.map((text: any, index: any) => {
-                // tslint:disable-next-line:max-line-length
+                // eslint-disable-next-line max-len
                 return this.props.descriptionText.length - 1 !== index ? (<span key={index}> {`${text}\n\n`} </span>) : <span key={index}>{text}</span>;
               })}
             </Typography>

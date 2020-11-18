@@ -23,7 +23,7 @@ import { watchAddActiveFormContainerSaga,
   watchFetchFormLayoutSettingSaga,
   watchSaveFormLayoutSettingSaga } from './formDesignerSagas';
 
-// tslint:disable-next-line:space-before-function-paren
+// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchAddFormComponentSaga);
   yield fork(watchAddFormContainerSaga);

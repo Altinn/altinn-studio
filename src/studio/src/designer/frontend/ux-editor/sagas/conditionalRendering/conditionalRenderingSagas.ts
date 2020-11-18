@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import * as ConditionalRenderingActions from '../../actions/conditionalRenderingActions/actions';
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 import ConditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 import * as ConditionalRenderingActionTypes from '../../actions/conditionalRenderingActions/conditionalRenderingActionTypes';
 import manageServiceConfigurationActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';

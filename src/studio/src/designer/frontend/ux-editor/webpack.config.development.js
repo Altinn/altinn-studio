@@ -1,6 +1,7 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin
+const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -72,7 +73,10 @@ module.exports = {
       },
       {
         test: /\.tsx?/,
-        loader: "awesome-typescript-loader",
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true,
+        },
       },
       {
         enforce: "pre",
@@ -82,6 +86,12 @@ module.exports = {
     ],
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      eslint: {
+        files: './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}'
+      }
+    }),
+    new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
     new HtmlWebPackPlugin({
       template: './public/index.html',
       filename: 'index.html'
@@ -89,7 +99,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "ui-editor.css",
     }),
-    new CheckerPlugin(),
   ],
   devServer: {
     historyApiFallback: true,

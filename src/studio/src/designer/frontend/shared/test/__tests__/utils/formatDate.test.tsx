@@ -1,5 +1,5 @@
 import 'jest';
-import { formatNameAndDate, returnDatestringFromDate } from './../../../utils/formatDate';
+import { formatNameAndDate, returnDatestringFromDate } from '../../../utils/formatDate';
 
 describe('formatNameAndDate', () => {
 

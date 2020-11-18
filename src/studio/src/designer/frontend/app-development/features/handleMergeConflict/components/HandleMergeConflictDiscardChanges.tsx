@@ -1,3 +1,5 @@
+/* eslint-disable react/no-access-state-in-setstate */
+/* eslint-disable react/no-unused-state */
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
@@ -5,8 +7,9 @@ import AltinnPopover from 'app-shared/components/AltinnPopover';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
-const theme = createMuiTheme(altinnTheme);
 import postMessages from 'app-shared/utils/postMessages';
+
+const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
   textDisabled: {
@@ -41,7 +44,6 @@ const initialPopoverState = {
 
 export class HandleMergeConflictDiscardChanges extends
   React.Component<IHandleMergeConflictDiscardChangesProps, IHandleMergeConflictDiscardChangesState> {
-
   constructor(_props: IHandleMergeConflictDiscardChangesProps) {
     super(_props);
     this.state = {
@@ -73,7 +75,6 @@ export class HandleMergeConflictDiscardChanges extends
     const { org, app } = window as Window as IAltinnWindow;
 
     try {
-
       this.setState({
         popoverState: {
           ...this.state.popoverState,
@@ -98,7 +99,6 @@ export class HandleMergeConflictDiscardChanges extends
         });
 
         window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
-
       } else {
         this.setState({
           networkingRes: discardRes,
@@ -110,9 +110,7 @@ export class HandleMergeConflictDiscardChanges extends
         });
 
         console.error('Discard merge error', discardRes);
-
       }
-
     } catch (err) {
       this.setState({
         errorObj: err,
@@ -124,9 +122,7 @@ export class HandleMergeConflictDiscardChanges extends
       });
 
       console.error('Discard merge error', err);
-
     }
-
   }
 
   public handleClose = () => {
