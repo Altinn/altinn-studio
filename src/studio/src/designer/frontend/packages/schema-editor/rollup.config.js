@@ -6,7 +6,6 @@ import css from 'rollup-plugin-css-only';
 import json from '@rollup/plugin-json';
 
 import pkg from './package.json';
-// const external = Object.keys(pkg.dependencies || {});
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {

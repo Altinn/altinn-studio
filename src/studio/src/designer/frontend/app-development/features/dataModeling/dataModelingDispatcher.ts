@@ -3,7 +3,7 @@ import { store } from '../../store';
 import * as DataModelingActions from './dataModelingActions';
 
 export interface IDataModelingDispatchers extends ActionCreatorsMapObject {
-  fetchDataModel: (url: string) => DataModelingActions.IFetchDataModelAction;
+  fetchDataModel: () => Action;
   fetchDataModelFulfilled: (result: any) => DataModelingActions.IFetchDataModelFulfilled;
   fetchDataModelRejected: (result: Error) => DataModelingActions.IFetchDataModelRejected;
   saveDataModel: (url: string, schema: any) => DataModelingActions.ISaveDataModelAction;
