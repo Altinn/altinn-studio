@@ -135,6 +135,12 @@ const LayoutReducer: Reducer<ILayoutState> = (
             }
             return settings.pages.order;
           },
+          currentView: (currentView) => {
+            if (!settings || !settings.pages || !settings.pages.order) {
+              return currentView;
+            }
+            return settings.pages.order[0];
+          },
         },
       });
     }
