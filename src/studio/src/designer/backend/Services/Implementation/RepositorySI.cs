@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
@@ -1762,6 +1763,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return UpdateApplication(org, app, appMetadata);
         }
 
+        /// <summary>
+        /// Create a new file in blob storage.
+        /// </summary>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="repo">The repository</param>
+        /// <param name="filepath">The filepath</param>
+        /// <param name="stream">Data to be written to blob storage.</param>
+        /// <returns>The size of the blob.</returns>
+        public async Task WriteData(string org, string repo, string filepath, Stream stream)
+        {
+            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            stream.Seek(0, SeekOrigin.Begin);
+            using (FileStream outputFileStream = new FileStream(repopath + filepath, FileMode.Create))
+            {
+                await stream.CopyToAsync(outputFileStream);
+                await outputFileStream.FlushAsync();
+            }
+        }
+
+        /// <summary>
+        /// Reads a data file from blob storage
+        /// </summary>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="repo">The repository</param>
+        /// <param name="path">Path to be file to read blob storage.</param>
+        /// <returns>The stream with the file</returns>
+        public async Task<Stream> ReadData(string org, string repo, string path)
+        {
+            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            Stream fs = File.OpenRead(repopath + path);
+            return await Task.FromResult(fs);
+        }
+
+        /// <summary>
+        /// Deletes the data element permanently
+        /// </summary>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="repo">The repository</param>
+        /// <param name="path">Path to the file to delete.</param>
+        public void DeleteData(string org, string repo, string path)
+        {
+            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.Delete(repopath + path);
+        }
+
         private static string ViewResourceKey(string viewName)
         {
             return $"view.{viewName}";
@@ -1841,6 +1888,87 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return filedata;
+        }
+
+        /// <inheritdoc/>
+        public List<FileSystemObject> GetContents(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> contents = new List<FileSystemObject>();
+            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string contentPath = Path.Combine(repositoryPath, path);
+
+            // repository was not found
+            if (!Directory.Exists(repositoryPath))
+            {
+                return null;
+            }
+
+            if (File.Exists(contentPath))
+            {
+                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
+                contents.Add(f);
+            }
+            else if (Directory.Exists(contentPath))
+            {
+                string[] dirs = Directory.GetDirectories(contentPath);
+                foreach (string directoryPath in dirs)
+                {
+                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
+                    contents.Add(d);
+                }
+
+                string[] files = Directory.GetFiles(contentPath);
+                foreach (string filePath in files)
+                {
+                    FileSystemObject f = GetFileSystemObjectForFile(filePath);
+                    contents.Add(f);
+                }
+            }
+
+            // setting all paths relative to repository
+            contents.All(c =>
+            {
+                c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/");
+                return true;
+            });
+
+            return contents;
+        }
+
+        private FileSystemObject GetFileSystemObjectForFile(string path)
+        {
+            FileInfo fi = new FileInfo(path);
+            string encoding;
+
+            using (StreamReader sr = new StreamReader(path))
+            {
+                encoding = sr.CurrentEncoding.EncodingName;
+            }
+
+            FileSystemObject fso = new FileSystemObject()
+            {
+                Type = FileSystemObjectType.File.ToString(),
+                Name = fi.Name,
+                Encoding = encoding,
+                Path = fi.FullName,
+            };
+
+            return fso;
+        }
+
+        private FileSystemObject GetFileSystemObjectForDirectory(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+            FileSystemObject fso = new FileSystemObject()
+            {
+                Type = FileSystemObjectType.Dir.ToString(),
+                Name = di.Name,
+                Path = path,
+                Content = null,
+                Encoding = null
+            };
+
+            return fso;
         }
 
         private string GetModelName(string org, string app)

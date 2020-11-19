@@ -1,3 +1,4 @@
+import { IRepository } from 'app-shared/types';
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as FetchDashboardActions from './fetchDashboardActions';
@@ -11,7 +12,7 @@ export interface IFetchDashboardDispatchers extends ActionCreatorsMapObject {
     url: string,
   ) => FetchDashboardActions.IFetchServicesAction;
   fetchServicesFulfilled: (
-    services: any,
+    services: IRepository[],
   ) => FetchDashboardActions.IFetchServicesFulfilled;
   fetchServicesRejected: (
     error: Error,

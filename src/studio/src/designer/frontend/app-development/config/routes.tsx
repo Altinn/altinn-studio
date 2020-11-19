@@ -5,8 +5,31 @@ import DeployPage from '../features/appPublish/pages/deployPage';
 // eslint-disable-next-line import/no-named-as-default
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
+import DataModelingContainer from '../features/dataModeling/containers/DataModelingContainer';
 
-export const routes = [
+export interface IRouteProps {
+  headerTextKey?: string;
+  subtext1TextKey?: string;
+  subtext2TextKey?: string;
+  linkTextKey?: string;
+  urlKey?: string;
+  imageSource?: string;
+  shadow?: boolean;
+  iframeEndingUrl?: string;
+  saveUrl?: string;
+}
+
+export interface IRoute {
+  path: string;
+  exact: boolean;
+  activeSubHeaderSelection: string;
+  menu: string;
+  subapp: any;
+  activeLeftMenuSelection?: string;
+  props?: IRouteProps;
+}
+
+const routes: IRoute[] = [
   {
     path: '/ui-editor',
     exact: true,
@@ -64,7 +87,16 @@ export const routes = [
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
       iframeEndingUrl: 'Model',
+      saveUrl: 'test',
     },
+  },
+  {
+    path: '/datamodelling',
+    exact: true,
+    activeSubHeaderSelection: 'Lage',
+    activeLeftMenuSelection: 'Datamodell',
+    menu: 'create',
+    subapp: DataModelingContainer,
   },
   {
     path: '/accesscontrol',
@@ -103,3 +135,5 @@ export const routes = [
     },
   },
 ];
+
+export default routes;

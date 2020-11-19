@@ -154,6 +154,9 @@ publish/
 *.nupkg
 **/packages/*
 
+# Allow frontend packages
+!**/frontend/packages/*
+
 # NuGet package restore lockfiles
 project.lock.json
 

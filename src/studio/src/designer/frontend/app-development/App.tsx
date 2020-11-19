@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* tslint:disable:jsx-no-lambda */
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
@@ -21,7 +22,7 @@ import postMessages from 'app-shared/utils/postMessages';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
-import { routes } from './config/routes';
+import routes from './config/routes';
 import handleServiceInformationActionDispatchers from './features/administration/handleServiceInformationDispatcher';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';

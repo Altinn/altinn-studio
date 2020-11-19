@@ -155,3 +155,15 @@ export interface ILayoutSettings {
 export interface IPagesSettings {
   order: [];
 }
+
+export interface IRepository {
+  name: string;
+  full_name: string;
+  owner: IUser
+}
+
+export interface IUser
+{
+  avatar_url: string;
+  login: string;
+}

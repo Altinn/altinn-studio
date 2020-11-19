@@ -8,6 +8,7 @@ import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelea
 import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
+import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingReducer';
 
 export interface IServiceDevelopmentReducers
   extends IServiceDevelopmentNameSpace<
@@ -19,7 +20,8 @@ export interface IServiceDevelopmentReducers
   Reducer<IRepoStatusState>,
   Reducer<IAppReleaseState>,
   Reducer<IAppDeploymentState>,
-  Reducer<IConfigurationState>
+  Reducer<IConfigurationState>,
+  Reducer<IDataModelingState>
   >,
   ReducersMapObject { }
 
@@ -33,6 +35,7 @@ const reducers: IServiceDevelopmentReducers = {
   appReleases: appReleaseReducer,
   appDeployments: appDeploymentReducer,
   configuration: configurationReducer,
+  dataModeling: dataModelingReducer,
 };
 
 export default combineReducers(reducers);

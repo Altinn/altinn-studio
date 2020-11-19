@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="filePath">Path to a file, may start with full commit sha</param>
         /// <param name="shortCommitId">The short hash of a commit id</param>
         /// <returns></returns>
-        Task<GiteaFileContent> GetFileAsync(string org, string app, string filePath, string shortCommitId);
+        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
 
         /// <summary>
         /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
@@ -105,6 +105,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="directoryPath">Path to a directort, may start with full commit sha</param>
         /// <param name="shortCommitId">The short hash of a commit id</param>
         /// <returns>a list of files in the given directory</returns>
-        Task<List<GiteaFileContent>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
+        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
     }
 }

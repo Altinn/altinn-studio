@@ -134,15 +134,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public ActionResult<HttpResponseMessage> ResetLocalRepository(string org, string repository)
         {
-          try 
-          {
-            _repository.ResetLocalRepository(org, repository);
-            return new HttpResponseMessage(HttpStatusCode.OK);
-          }
-          catch (Exception)
-          {
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError);
-          }
+            try
+            {
+                _repository.ResetLocalRepository(org, repository);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
-        public void CommitAndPushRepo([FromBody]CommitInfo commitInfo)
+        public void CommitAndPushRepo([FromBody] CommitInfo commitInfo)
         {
             _sourceControl.PushChangesForRepository(commitInfo);
         }
@@ -161,7 +161,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="commitInfo">Info about the commit</param>
         /// <returns>http response message as ok if commit is successfull</returns>
         [HttpPost]
-        public ActionResult<HttpResponseMessage> Commit([FromBody]CommitInfo commitInfo)
+        public ActionResult<HttpResponseMessage> Commit([FromBody] CommitInfo commitInfo)
         {
             try
             {
@@ -187,7 +187,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            else 
+            else
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -392,6 +392,23 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
+        }
+
+        /// <summary>
+        /// Gets the repository content
+        /// </summary>
+        [HttpGet]
+        [Route("/designer/api/v1/repositories/{org}/{repository}/contents")]
+        public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
+        {
+            List<FileSystemObject> contents = _repository.GetContents(org, repository, path);
+
+            if (contents == null)
+            {
+                return BadRequest("User does not have a local clone of the repository.");
+            }
+
+            return Ok(contents);
         }
     }
 }

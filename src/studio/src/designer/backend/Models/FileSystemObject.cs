@@ -1,42 +1,48 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// Represents the model Gitea returns when asking for contents and metadata for a file
     /// </summary>
-    public class GiteaFileContent
+    public class FileSystemObject
     {
         /// <summary>
         /// Name of the file with file extension
         /// </summary>
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Full SHA commit
         /// </summary>
-        [JsonProperty("sha")]
+        [JsonPropertyName("sha")]
         public string Sha { get; set; }
 
         /// <summary>
         /// Encoding contains the encoding used to encode this.Content
         /// Encoding is populated when type is file, otherwise null
         /// </summary>
-        [JsonProperty("encoding")]
+        [JsonPropertyName("encoding")]
         public string Encoding { get; set; }
 
         /// <summary>
         /// The file content encoded with this.Encoding
         /// Content is populated when type is file, otherwise null
         /// </summary>
-        [JsonProperty("content")]
+        [JsonPropertyName("content")]
         public string Content { get; set; }
 
         /// <summary>
         /// The file path
         /// </summary>
-        [JsonProperty("path")]
+        [JsonPropertyName("path")]
         public string Path { get; set; }
+
+        /// <summary>
+        /// The file path
+        /// </summary>
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
     }
 }
