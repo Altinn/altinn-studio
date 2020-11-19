@@ -13,7 +13,7 @@ Use the [documentation](https://docs.altinn.studio/teknologi/altinnstudio/) to g
 [![App deploy status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-studio-deploy-app-image?label=deploy)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=81)
 
 [![KubernetesWrapper build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-kuberneteswrapper-build-master?label=apps/kuberneteswrapper)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=88)
-[![Front-end build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-app-frontend-cdn-build-master?apps/frontend)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=74)
+[![Front-end build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-app-frontend-cdn-build-master?label=apps/frontend)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=74)
 
 ### Studio
 [![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
