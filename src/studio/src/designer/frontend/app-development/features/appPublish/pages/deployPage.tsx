@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-max-props-per-line */
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
@@ -6,6 +7,7 @@ import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLo
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
+// eslint-disable-next-line import/no-named-as-default
 import DeployContainer from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 
@@ -28,7 +30,6 @@ function DeployPage(props: IDeployPaperProps) {
 
   React.useEffect(() => {
     ConfigurationActions.getOrgs();
-
   }, []);
 
   const isLoading = (): boolean => {
@@ -47,8 +48,8 @@ function DeployPage(props: IDeployPaperProps) {
       >
         <Grid
           container={true}
-          direction={'row'}
-          justify={'space-between'}
+          direction='row'
+          justify='space-between'
         >
           <Grid
             item={true}
@@ -74,8 +75,8 @@ function DeployPage(props: IDeployPaperProps) {
       >
         <Grid
           container={true}
-          direction={'row'}
-          justify={'space-between'}
+          direction='row'
+          justify='space-between'
         >
           <Grid
             item={true}
@@ -108,8 +109,8 @@ function DeployPage(props: IDeployPaperProps) {
     >
       <Grid
         container={true}
-        direction={'row'}
-        justify={'space-between'}
+        direction='row'
+        justify='space-between'
       >
         <Grid
           item={true}

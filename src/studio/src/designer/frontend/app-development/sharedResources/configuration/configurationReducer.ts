@@ -38,7 +38,6 @@ const configurationReducer: Reducer<IConfigurationState> = (
     return state;
   }
   switch (action.type) {
-
     case ConfigurationActionTypes.GET_ENVIRONMENTS_FULFILLED: {
       const { result } = action as GetEnvironmentsActions.IGetEnvironmentsFulfilled;
       return update<IConfigurationState>(state, {
@@ -75,7 +74,7 @@ const configurationReducer: Reducer<IConfigurationState> = (
       });
     }
 
-    case ConfigurationActionTypes. GET_ORGS_REJECTED: {
+    case ConfigurationActionTypes.GET_ORGS_REJECTED: {
       const { error } = action as GetOrgsActions.IGetOrgsRejected;
       return update<IConfigurationState>(state, {
         orgs: {

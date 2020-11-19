@@ -21,7 +21,7 @@ const initialState: IAppReleaseState = {
 };
 
 update.extend<IRelease[]>('$addFirstIndex', (param: IRelease, old: IRelease[]) => {
-  return new Array().concat(param, ...old);
+  return [].concat(param, ...old);
 });
 
 const appReleaseReducer: Reducer<IAppReleaseState> = (

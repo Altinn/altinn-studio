@@ -2,13 +2,12 @@ import { createStyles, ListItem, ListItemIcon, ListItemText, Paper, withStyles }
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { ComponentTypes } from '..';
 // eslint-disable-next-line import/no-cycle
 import { getComponentTitleByComponentType } from '../../utils/language';
 
 export interface IToolbarItemProvidedProps {
   classes: any;
-  componentType: ComponentTypes;
+  componentType: string;
   onClick: any;
   thirdPartyLabel?: string;
   icon: string;

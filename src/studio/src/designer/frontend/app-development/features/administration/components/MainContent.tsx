@@ -40,7 +40,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
           textFieldId='administrationInputServicename_textField'
           onChangeFunction={props.onServiceNameChanged}
           inputHeader={getLanguageFromKey('general.service_name', props.language)}
-          // tslint:disable-next-line:max-line-length
+          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_name_administration_description', props.language)}
           inputValue={props.serviceName}
           onBlurFunction={props.onBlurServiceName}
@@ -63,7 +63,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
           textFieldId='administrationInputServiceid_textField'
           onChangeFunction={props.onServiceIdChanged}
           inputHeader={getLanguageFromKey('administration.service_id', props.language)}
-          // tslint:disable-next-line:max-line-length
+          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_id_description', props.language)}
           inputValue={props.serviceId}
           onBlurFunction={props.onBlurServiceId}
@@ -74,7 +74,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
         <AltinnInputField
           id='administrationInputReponame'
           inputHeader={getLanguageFromKey('general.service_saved_name', props.language)}
-          // tslint:disable-next-line:max-line-length
+          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', props.language)}
           inputValue={props.service ? props.service.name : ''}
           isDisabled={true}
@@ -87,7 +87,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
           textFieldId='administrationInputDescription_textField'
           onChangeFunction={props.onServiceDescriptionChanged}
           inputHeader={getLanguageFromKey('administration.service_comment', props.language)}
-          // tslint:disable-next-line:max-line-length
+          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_comment_description', props.language)}
           textAreaRows={7}
           inputValue={props.serviceDescription}

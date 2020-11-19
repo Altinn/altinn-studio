@@ -1,7 +1,6 @@
+/* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
-import DOMPurify = require('dompurify');
-import marked = require('marked');
 import * as React from 'react';
 import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
@@ -10,6 +9,8 @@ import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
+import DOMPurify = require('dompurify');
+import marked = require('marked');
 
 export interface IKnownIssuesComponentProvidedProps {
   classes: any;
@@ -53,6 +54,8 @@ const styles = createStyles({
 
 export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentProps, IKnownIssuesComponentState> {
   public _isMounted = false;
+
+  // eslint-disable-next-line react/state-in-constructor
   public state: IKnownIssuesComponentState = {
     knownIssues: null,
   };
@@ -70,8 +73,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
             {
               ALLOWED_TAGS: ['ul', 'li', 'a', 'p', 'h2'],
               ALLOWED_ATTR: ['href', 'target'],
-            },
-          );
+            });
           const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
           const knownIssues = ReactHtmlParser(doc.getElementsByTagName('body')[0].innerHTML);
 
@@ -79,7 +81,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
             knownIssues,
           });
         }
-    });
+      });
   }
 
   public componentWillUnmount() {
@@ -97,7 +99,10 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
           secondLinkTxt={getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
         />
         <div className={classes.mainStyle}>
-          <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
+          <Typography
+            component='h1' variant='h1'
+            gutterBottom={true} className={classes.serviceHeader}
+          >
             {getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
           </Typography>
           {this.state.knownIssues ?

@@ -1,5 +1,4 @@
-import {
-  CircularProgress,
+import { CircularProgress,
   createMuiTheme,
   createStyles,
   Grid,
@@ -9,8 +8,7 @@ import {
   Tabs,
   Typography,
   withStyles,
-  WithStyles,
-} from '@material-ui/core';
+  WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
@@ -40,11 +38,11 @@ const StyledTabs = withStyles(createStyles({
     maxHeight: '3.7rem',
   },
   indicator: {
-    'display': 'flex',
-    'justifyContent': 'center',
-    'backgroundColor': 'transparent',
-    'textTransform': 'none',
-    'minHeight': 0,
+    display: 'flex',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    textTransform: 'none',
+    minHeight: 0,
     '& > div': {
       width: '70%',
       borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
@@ -53,21 +51,22 @@ const StyledTabs = withStyles(createStyles({
   flexContainer: {
     borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
+// eslint-disable-next-line react/jsx-props-no-spreading
 }))((props: IStyledTabsProps) => <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />);
 
 const StyledTab = withStyles(createStyles({
   root: {
-    'minHeight': 0,
-    'textTransform': 'none',
-    'width': 'wrap',
+    minHeight: 0,
+    textTransform: 'none',
+    width: 'wrap',
     '&:focus': {
       outline: 0,
       color: theme.altinnPalette.primary.blue,
     },
-    'paddingBottom': 0,
-    'paddingLeft': '1.8rem',
-    'paddingRight': '1.8rem',
-    'minWidth': 0,
+    paddingBottom: 0,
+    paddingLeft: '1.8rem',
+    paddingRight: '1.8rem',
+    minWidth: 0,
   },
   wrapper: {
     fontSize: '1.6rem',
@@ -206,7 +205,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return (
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         className={classes.cannotCreateReleaseContainer}
         spacing={1}
       >
@@ -223,10 +222,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             />
           </Grid>
         </Hidden>
-        <Grid item={true} xs={12} md={10}>
+        <Grid
+          item={true}
+          xs={12}
+          md={10}
+        >
           <Grid
             container={true}
-            direction={'column'}
+            direction='column'
           >
             <Typography
               className={classes.cannotCreateReleaseTitle}
@@ -260,18 +263,18 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       return (
         <Grid
           container={true}
-          direction={'row'}
-          justify={'center'}
+          direction='row'
+          justify='center'
         >
           <Grid
             container={true}
-            direction={'row'}
-            justify={'center'}
+            direction='row'
+            justify='center'
           >
             <Grid
               container={true}
-              direction={'column'}
-              justify={'space-evenly'}
+              direction='column'
+              justify='space-evenly'
               style={{
                 padding: '2rem',
               }}
@@ -343,19 +346,17 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return (
         <i
-          className={'fa fa-circle-upload'}
+          className='fa fa-circle-upload'
         />
       );
-    } else {
-      return null;
     }
+    return null;
   }
 
   function renderStatusMessage() {
     if (
-      !!!repoStatus.branch.master ||
-      !!!appReleases.releases ||
-      !!!handleMergeConflict.repoStatus.contentStatus
+      // eslint-disable-next-line no-extra-boolean-cast
+      !!!repoStatus.branch.master || !!!appReleases.releases || !!!handleMergeConflict.repoStatus.contentStatus
     ) {
       return null;
     }
@@ -371,7 +372,9 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           {getLanguageFromKey('app_create_release.local_changes_cant_build', language)}
         </Typography>
       );
-    } else if (!!handleMergeConflict.repoStatus.contentStatus) {
+    }
+    // eslint-disable-next-line no-extra-boolean-cast
+    if (!!handleMergeConflict.repoStatus.contentStatus) {
       return (
         <Typography>
           {getLanguageFromKey('app_create_release.local_changes_can_build', language)}
@@ -389,25 +392,28 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return null;
     }
+    // eslint-disable-next-line no-extra-boolean-cast
     const latestRelease: IRelease = !!appReleases.releases[0] ? appReleases.releases[0] : null;
     if (
       !latestRelease ||
       (latestRelease.targetCommitish !== repoStatus.branch.master.commit.id) ||
+      // eslint-disable-next-line no-extra-boolean-cast
       !!!handleMergeConflict.repoStatus.contentStatus
     ) {
       return (
         <Typography>
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
-            {!!repoStatus.branch.master ?
-              <a
-                href={getGitCommitLink(repoStatus.branch.master.commit.id)}
-                target={'_blank'}
-                rel='noopener noreferrer'
-              >
-                {getLanguageFromKey('app_release.release_title_link', language)}
-              </a> :
-              null
-            }
+          { /* eslint-disable-next-line no-extra-boolean-cast */ }
+          {!!repoStatus.branch.master ?
+            <a
+              href={getGitCommitLink(repoStatus.branch.master.commit.id)}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              {getLanguageFromKey('app_release.release_title_link', language)}
+            </a> :
+            null
+          }
         </Typography>
       );
     }
@@ -433,12 +439,12 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     <>
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         className={classes.appReleaseWrapper}
       >
         <Grid
           container={true}
-          direction={'column'}
+          direction='column'
         >
           <Grid
             item={true}
@@ -452,22 +458,22 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
 
           <Grid
             container={true}
-            direction={'column'}
+            direction='column'
             className={classes.appCreateReleaseWrapper}
           >
             <Grid
               container={true}
-              direction={'row'}
-              justify={'space-between'}
+              direction='row'
+              justify='space-between'
             >
-                <Grid
-                  item={true}
-                  xs={10}
-                >
-                  <Typography className={classes.appCreateReleaseTitle}>
-                    {renderCreateReleaseTitle()}
-                  </Typography>
-                </Grid>
+              <Grid
+                item={true}
+                xs={10}
+              >
+                <Typography className={classes.appCreateReleaseTitle}>
+                  {renderCreateReleaseTitle()}
+                </Typography>
+              </Grid>
               <Grid
                 item={true}
                 className={classes.appCreateReleaseStatusIcon}
@@ -503,6 +509,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           >
             {!!appReleases.releases.length &&
               appReleases.releases.map((release: IRelease, index: number) => (
+                // eslint-disable-next-line react/no-array-index-key
                 <ReleaseComponent key={index} release={release} />
               ))}
           </Grid>

@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+// eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
@@ -5,8 +7,8 @@ import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploym
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
-import { IConfigurationState } from './../sharedResources/configuration/configurationReducer';
-import { IRepoStatusState } from './../sharedResources/repoStatus/repoStatusReducer';
+import { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
+import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
 import { IDataModelingState } from '../features/dataModeling/dataModelingReducer';
 
 declare global {

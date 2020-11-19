@@ -24,7 +24,7 @@ export function* watchLanguageSaga(): SagaIterator {
   );
 }
 
-// tslint:disable-next-line:space-before-function-paren
+// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchLanguageSaga);
 }

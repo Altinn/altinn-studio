@@ -1,11 +1,9 @@
-import {
-  CircularProgress,
+import { CircularProgress,
   createStyles,
   Grid,
   Typography,
   withStyles,
-  WithStyles,
-} from '@material-ui/core';
+  WithStyles } from '@material-ui/core';
 import * as Moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
@@ -73,7 +71,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           classes={{
             root: classes.spinnerRoot,
           }}
-          size={'2.4rem'}
+          size='2.4rem'
         />
       );
     }
@@ -96,13 +94,13 @@ function ReleaseComponent(props: IAppReleaseComponent) {
   return (
     <Grid
       container={true}
-      direction={'row'}
+      direction='row'
       className={classes.releaseWrapper}
     >
       <Grid
         container={true}
-        direction={'row'}
-        justify={'space-between'}
+        direction='row'
+        justify='space-between'
       >
         <Grid
           item={true}
@@ -127,8 +125,8 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       </Grid>
       <Grid
         container={true}
-        direction={'row'}
-        justify={'space-between'}
+        direction='row'
+        justify='space-between'
         className={classes.releaseRow}
       >
         <Grid
@@ -136,7 +134,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
         >
           <Grid
             container={true}
-            direction={'row'}
+            direction='row'
           >
             {renderStatusIcon(release.build)}
             <Typography
@@ -144,7 +142,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
             >
               <a
                 href={getReleaseBuildPipelineLink(release.build.id)}
-                target={'_blank'}
+                target='_blank'
                 rel='noopener noreferrer'
               >
                 {getLanguageFromKey('app_release.release_build_log', language)}
@@ -158,7 +156,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           >
             <a
               href={getGitCommitLink(release.targetCommitish)}
-              target={'_blank'}
+              target='_blank'
               rel='noopener noreferrer'
             >
               {getLanguageFromKey('app_release.release_see_commit', language)}
@@ -168,7 +166,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       </Grid>
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         className={classes.releaseRow}
       >
         <Grid item={true}>

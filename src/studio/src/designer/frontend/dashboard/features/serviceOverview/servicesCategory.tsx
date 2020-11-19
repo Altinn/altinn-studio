@@ -41,31 +41,39 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
       return (
         <Grid container={true} direction='row'>
           <Typography className={classNames(classes.width100, classes.mar_top_1em, classes.fontSize_16)} align='left'>
-            {this.props.noServicesMessage} <a href="/repos/explore/repos/">repos</a>.
+            {this.props.noServicesMessage} <a href='/repos/explore/repos/'>repos</a>.
           </Typography>
         </Grid>
       );
-    } else {
-      return (
-        <Grid container={true} spacing={3} >
-          {categoryRepos.map((service: any, index: number) => (
-            <Grid item={true} key={index} xl={3} lg={4} md={6} sm={12} xs={12} className={classNames(classes.width100)}>
-              <ServiceCard
-                service={service}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      );
     }
+    return (
+      <Grid container={true} spacing={3} >
+        {categoryRepos.map((service: any, index: number) => (
+          <Grid
+            // eslint-disable-next-line react/no-array-index-key
+            item={true} key={index}
+            xl={3} lg={4}
+            md={6} sm={12}
+            xs={12} className={classNames(classes.width100)}
+          >
+            <ServiceCard
+              service={service}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    );
   }
 
   public render() {
-    //const { classes } = this.props;
+    // const { classes } = this.props;
     return (
       <div className={classNames(this.props.className)}>
         <Grid container={true} direction='row'>
-          <Typography component='h2' variant='h2' gutterBottom={true}>
+          <Typography
+            component='h2' variant='h2'
+            gutterBottom={true}
+          >
             {this.props.header}
           </Typography>
         </Grid>

@@ -16,12 +16,10 @@ import { ToolbarItem } from './ToolbarItem';
 
 import '../styles/toolBar.css';
 
-const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
-
 export interface IToolbarElement {
   label: string;
   icon?: string;
-  componentType: ComponentTypes;
+  type: string;
   actionMethod: (containerId: string, index: number) => void;
 }
 
@@ -77,7 +75,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       selectedComp: {},
       selectedCompId: '',
       componentInformationPanelOpen: false,
-      componentSelectedForInformationPanel: -1,
+      componentSelectedForInformationPanel: null,
       anchorElement: null,
       componentListOpen: true,
       componentListCloseAnimationDone: false,
@@ -94,19 +92,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public mapComponentToToolbarElement = (c: IComponent): IToolbarElement => {
     const customProperties = c.customProperties ? c.customProperties : {};
     return {
-      componentType: c.Type,
       label: c.name,
       icon: c.Icon,
-      actionMethod: (c.Type === ComponentTypes.Group) ? this.addContainerToLayout :
+      type: c.name,
+      actionMethod: (c.name === ComponentTypes.Group) ? this.addContainerToLayout :
         (containerId: string, position: number) => {
           FormDesignerActionDispatchers.addFormComponent({
             type: c.name,
-            componentType: c.Type,
             itemType: LayoutItemType.Component,
             textResourceBindings: {
               title: c.name === 'Button' ?
                 getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
-                : getComponentTitleByComponentType(c.Type, this.props.language),
+                : getComponentTitleByComponentType(c.name, this.props.language),
             },
             dataModelBindings: {},
             ...JSON.parse(JSON.stringify(customProperties)),
@@ -116,38 +113,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           this.updateActiveListOrder();
         },
     } as IToolbarElement;
-  }
-
-  public getThirdPartyComponents = (): IToolbarElement[] => {
-    const { thirdPartyComponents } = this.props;
-    if (!thirdPartyComponents) {
-      return [];
-    }
-    const thirdPartyComponentArray: IToolbarElement[] = [];
-    for (const packageName in thirdPartyComponents) {
-      if (thirdPartyComponents.hasOwnProperty(packageName)) {
-        for (const componentName in thirdPartyComponents[packageName]) {
-          if (thirdPartyComponents[packageName].hasOwnProperty(componentName)) {
-            thirdPartyComponentArray.push({
-              label: `${packageName} - ${componentName}`,
-              componentType: null,
-              actionMethod: (containerId: string, position: number) => FormDesignerActionDispatchers.addFormComponent({
-                type: THIRD_PARTY_COMPONENT,
-                itemType: LayoutItemType.Component,
-                textResourceBindings: {
-                  title: `${packageName} - ${componentName}`,
-                },
-                dataModelBindings: {},
-                ...JSON.parse(JSON.stringify({})),
-              },
-              position,
-              containerId),
-            });
-          }
-        }
-      }
-    }
-    return thirdPartyComponentArray;
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
@@ -188,7 +153,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public handleComponentInformationClose = () => {
     this.setState({
       componentInformationPanelOpen: false,
-      componentSelectedForInformationPanel: -1,
+      componentSelectedForInformationPanel: null,
       anchorElement: null,
     });
   }
@@ -291,27 +256,16 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             >
               {this.components.map((component: IToolbarElement) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                  text={getComponentTitleByComponentType(component.type, this.props.language)
                     || component.label}
                   icon={component.icon}
-                  componentType={component.componentType}
+                  componentType={component.type}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
-                  key={component.componentType}
+                  key={component.type}
                 />
               ))
               }
-
-              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
-                <ToolbarItem
-                  text={component.label}
-                  icon={component.icon}
-                  componentType={component.componentType}
-                  onDropAction={component.actionMethod}
-                  onClick={this.handleComponentInformationOpen}
-                  key={`${component.componentType}-${component.label}`}
-                />
-              ))}
               {/*
 
               Commented out since we're disabling containers until design is done.
@@ -346,13 +300,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             >
               {this.textComponents.map((component: IToolbarElement) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                  text={getComponentTitleByComponentType(component.type, this.props.language)
                     || component.label}
                   icon={component.icon}
-                  componentType={component.componentType}
+                  componentType={component.type}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
-                  key={component.componentType}
+                  key={component.type}
                 />
               ))}
             </List>
@@ -378,13 +332,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             >
               {this.advancedComponents.map((component: IToolbarElement) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                  text={getComponentTitleByComponentType(component.type, this.props.language)
                     || component.label}
                   icon={component.icon}
-                  componentType={component.componentType}
+                  componentType={component.type}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
-                  key={component.componentType}
+                  key={component.type}
                 />
               ))}
             </List>

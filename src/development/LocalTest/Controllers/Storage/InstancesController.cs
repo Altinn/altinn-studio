@@ -331,24 +331,30 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
+            DateTime now = DateTime.UtcNow;
+            
             if (hard.HasValue && hard == true)
             {
+                instance.Status.HardDeleted = now;
+                instance.Status.SoftDeleted ??= now;
+
+                instance.LastChangedBy = GetUserId();
+                instance.LastChanged = now;
+
                 try
                 {
-                    await _instanceRepository.Delete(instance);
+                    Instance deletedInstance = await _instanceRepository.Update(instance);
 
-                    return NoContent();
+                    return Ok(deletedInstance);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Unexpected exception in delete: {e}");
-                    return StatusCode(500, $"Unexpected exception in delete: {e.Message}");
+                    _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                    return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
                 }
             }
             else
             {
-                DateTime now = DateTime.UtcNow;
-
                 instance.Status.SoftDeleted = now;
                 instance.LastChangedBy = GetUserId();
                 instance.LastChanged = now;

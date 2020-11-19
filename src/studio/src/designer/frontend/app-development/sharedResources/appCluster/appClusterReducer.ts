@@ -23,7 +23,7 @@ const initialState: IAppClusterState = {
 };
 
 update.extend('$updateEnvSuccess', (params: any, original: any) => {
-  const newState = original.filter((elem: any) => elem.env !== params.env );
+  const newState = original.filter((elem: any) => elem.env !== params.env);
 
   const newDeploymentListItem: IEnvironmentItem = {
     env: params.env,
@@ -40,7 +40,7 @@ update.extend('$updateEnvSuccess', (params: any, original: any) => {
 });
 
 update.extend('$updateEnvFailed', (params: any, original: any) => {
-  const newState = original.filter((elem: any) => elem.env !== params.env );
+  const newState = original.filter((elem: any) => elem.env !== params.env);
 
   const newDeploymentListItem: IEnvironmentItem = {
     env: params.env,
@@ -64,7 +64,6 @@ const appClusterReducer: Reducer<IAppClusterState> = (
     return state;
   }
   switch (action.type) {
-
     case AppClusterActionTypes.GET_DEPLOYMENTS_FULFILLED: {
       const { result, env } = action as AppClusterActions.IGetDeploymentsFulfilled;
       return update<IAppClusterState>(state, {

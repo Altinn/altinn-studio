@@ -14,7 +14,7 @@ function* getReleasesSaga(): SagaIterator {
     yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
   } catch (err) {
     if (checkIfAxiosError(err)) {
-      const {response: {status}} = err as AxiosError;
+      const { response: { status } } = err as AxiosError;
       yield call(AppReleaseActionDispatcher.getAppReleasesRejected, status);
     }
   }
@@ -48,7 +48,8 @@ function* watchGetReleasesIntervalSaga(): SagaIterator {
   }
 }
 
-export default function*(): SagaIterator {
+// eslint-disable-next-line func-names
+export default function* (): SagaIterator {
   yield fork(watchGetReleasesSaga);
   yield fork(watchGetReleasesIntervalSaga);
 }

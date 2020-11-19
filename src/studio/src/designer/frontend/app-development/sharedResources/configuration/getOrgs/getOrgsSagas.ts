@@ -2,10 +2,8 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import * as ConfigurationActionTypes from '../configurationActionTypes';
-
 import ConfigurationDispatcher from '../configurationDispatcher';
-
-import { getOrgsListUrl } from './../../../utils/urlHelper';
+import { getOrgsListUrl } from '../../../utils/urlHelper';
 
 function* getOrgsSaga(): SagaIterator {
   try {

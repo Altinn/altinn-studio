@@ -64,7 +64,7 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps, IAltinnFilterChipComponentState> {
   public render() {
     const { classes } = this.props;

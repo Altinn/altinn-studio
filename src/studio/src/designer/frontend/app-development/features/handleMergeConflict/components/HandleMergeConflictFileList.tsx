@@ -25,10 +25,10 @@ const styles = () => createStyles({
     marginRight: 6,
   },
   listItemButton: {
-    'transition': 'none',
-    'backgroundColor': theme.altinnPalette.primary.white,
+    transition: 'none',
+    backgroundColor: theme.altinnPalette.primary.white,
     '&:hover': {
-      'color': theme.altinnPalette.primary.blueDark,
+      color: theme.altinnPalette.primary.blueDark,
       // Reset on touch devices, it doesn't add specificity
       '@media (hover: none)': {
         backgroundColor: 'transparent',
@@ -66,7 +66,6 @@ export interface IHandleMergeConflictFileListState {
 
 export class HandleMergeConflictFileList extends
   React.Component<IHandleMergeConflictFileListProps, IHandleMergeConflictFileListState> {
-
   constructor(_props: IHandleMergeConflictFileListProps) {
     super(_props);
     this.state = {
@@ -99,6 +98,7 @@ export class HandleMergeConflictFileList extends
                   <ListItem
                     id={`handleMergeConflictFileListItem${index}`}
                     button={true}
+                    // eslint-disable-next-line react/no-array-index-key
                     key={index}
                     selected={selectedIndex === index}
                     onClick={this.handleListItemClick(index, item)}

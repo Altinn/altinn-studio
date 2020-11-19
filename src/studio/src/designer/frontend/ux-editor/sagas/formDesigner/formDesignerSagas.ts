@@ -15,7 +15,7 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../utils/formLayout';
 import { deleteCall, get, post } from '../../utils/networking';
-import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl } from '../../utils/urlHelper';
+import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl, getLayoutSettingsSchemaUrl, getLayoutSchemaUrl } from '../../utils/urlHelper';
 import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
 import { ComponentTypes } from '../../components';
 import { v4 as uuidv4 } from 'uuid';
@@ -228,6 +228,7 @@ function* saveFormLayoutSaga(): SagaIterator {
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const selectedLayout = yield select((state:IAppState) => state.formDesigner.layout.selectedLayout);
     const convertedLayout = {
+      $schema: getLayoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
       },
@@ -553,7 +554,9 @@ export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
 export function* saveFormLayoutSettingSaga(): SagaIterator {
   try {
     const layoutOrder = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
-    yield call(post, getSaveLayoutSettingsUrl(), { pages: { order: layoutOrder } });
+    yield call(post, getSaveLayoutSettingsUrl(),
+      { $schema: getLayoutSettingsSchemaUrl(),
+        pages: { order: layoutOrder } });
   } catch (err) {
     console.error(err);
   }

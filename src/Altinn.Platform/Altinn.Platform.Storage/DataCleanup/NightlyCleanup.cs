@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.DataCleanup
         {
             List<Instance> instances = await _cosmosService.GetHardDeletedInstances();
             List<Application> applications = await _cosmosService.GetApplications(instances.Select(i => i.AppId).ToList());
-            List<string> autoDeleteAppIds = applications.Where(a => a.AutoDeleteOnProcessEnd == true) .Select(a => a.Id).ToList();
+            List<string> autoDeleteAppIds = applications.Where(a => a.AutoDeleteOnProcessEnd == true).Select(a => a.Id).ToList();
 
             foreach (Instance instance in instances)
             {

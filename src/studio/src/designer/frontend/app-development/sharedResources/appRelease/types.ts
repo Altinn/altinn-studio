@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-shadow
 export enum BuildStatus {
   cancelling = 'cancelling',
   completed = 'completed',
@@ -7,6 +8,7 @@ export enum BuildStatus {
   postponed = 'postponed',
 }
 
+// eslint-disable-next-line no-shadow
 export enum BuildResult {
   canceled = 'canceled',
   failed = 'failed',

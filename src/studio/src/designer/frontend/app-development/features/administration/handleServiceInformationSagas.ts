@@ -105,7 +105,11 @@ export function* handleSaveServiceConfigSaga({
 }: HandleServiceInformationActions.ISaveServiceConfigAction): SagaIterator {
   try {
     yield call(post, url,
-      { serviceDescription: newServiceDescription, serviceId: newServiceId, serviceName: newServiceName });
+      {
+        serviceDescription: newServiceDescription,
+        serviceId: newServiceId,
+        serviceName: newServiceName,
+      });
     yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled,
       newServiceDescription, newServiceId, newServiceName);
     window.postMessage(postMessages.filesAreSaved, window.location.href);

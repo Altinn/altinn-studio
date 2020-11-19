@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { ICommit, IRepository, IServiceDescription, IServiceId, IServiceName } from '../../types/global';
@@ -113,6 +114,7 @@ const handleServiceInformationReducer: Reducer<IHandleServiceInformationState> =
           },
         });
       }
+      return state;
     }
     case handleServiceInformationActionTypes.SAVE_SERVICE_CONFIG: {
       return update<IHandleServiceInformationState>(state, {

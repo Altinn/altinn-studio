@@ -27,11 +27,11 @@ const styles = {
     width: '100%',
   },
   card: {
-    'background': '#EFEFEF',
-    'borderRadius': '0px',
-    'height': '154px',
-    'maxHeight': '154px',
-    'minHeight': '154px',
+    background: '#EFEFEF',
+    borderRadius: '0px',
+    height: '154px',
+    maxHeight: '154px',
+    minHeight: '154px',
     '&:hover': {
       background: '#e5e5e5',
       cursor: 'pointer',
@@ -62,18 +62,18 @@ const styles = {
 };
 
 export class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
-  public formatDate(date: any): any {
-    return moment(new Date(date)).format('DD.MM.YYYY');
-  }
-
   public openService = () => {
     if (this.props.service.is_cloned_to_local) {
       window.location.assign(`/designer/${this.props.service.full_name}`);
     } else {
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       window.location.assign(`/Home/Index#/clone-app/${this.props.service.owner.login}/${this.props.service.name}`);
     }
+  }
 
+  // eslint-disable-next-line class-methods-use-this
+  public formatDate(date: any): any {
+    return moment(new Date(date)).format('DD.MM.YYYY');
   }
 
   public render() {
@@ -98,17 +98,22 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                       classes.displayInlineBlock,
                       classes.width100,
                       classes.fontSize_16,
-                      classes.fontWeight_500)}
+                      classes.fontWeight_500,
+                    )}
                   noWrap={true}
                 >
                   {service.name}
                 </Typography>
               </Grid>
-              <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1} >
+              <Grid
+                item={true} xl={1}
+                lg={1} md={1}
+                sm={1} xs={1}
+              >
                 <i
                   className={classNames(classes.iconStyling,
-                    { ['fa fa-read']: service.permissions.push === false },
-                    { ['fa fa-write']: service.permissions.push === true })}
+                    { 'fa fa-read': service.permissions.push === false },
+                    { 'fa fa-write': service.permissions.push === true })}
                   aria-hidden='true'
                 />
               </Grid>
@@ -117,7 +122,8 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                 className={classNames(
                   classes.displayInlineBlock,
                   classes.width100,
-                  classes.height)}
+                  classes.height,
+                )}
               >
                 <Typography gutterBottom={true} className={classNames(classes.width100, classes.fontSize_14)}>
                   <TruncateMarkup lines={2}>
@@ -128,12 +134,20 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                 </Typography>
               </Grid>
             </Grid>
-            <Grid container={true} spacing={0} direction='row'>
-              <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
+            <Grid
+              container={true} spacing={0}
+              direction='row'
+            >
+              <Grid
+                item={true} xl={6}
+                lg={6} md={6}
+                sm={6} xs={6}
+              >
                 <Typography
                   className={
                     classNames(
-                      classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
+                      classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500,
+                    )}
                   noWrap={true}
                 >
                   <img
@@ -143,18 +157,24 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                   /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
                 </Typography>
               </Grid>
-              <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
+              <Grid
+                item={true} xl={6}
+                lg={6} md={6}
+                sm={6} xs={6}
+              >
                 <Typography
                   className={classNames(
                     classes.displayInlineBlock,
                     classes.width100,
                     classes.textToRight,
                     classes.fontSize_14,
-                    classes.fontWeight_500)}
+                    classes.fontWeight_500,
+                  )}
                   noWrap={true}
                 >
                   {getLanguageFromKey(
-                    'dashboard.last_changed_service', this.props.language)} {this.formatDate(service.updated_at)}
+                    'dashboard.last_changed_service', this.props.language,
+                  )} {this.formatDate(service.updated_at)}
                 </Typography>
               </Grid>
             </Grid>

@@ -177,7 +177,7 @@ export function GroupContainer({
       if (selectionComponent?.options) {
         label = selectionComponent.options.find((option: IOption) => option.value === formData[replaced])?.label;
       } else if (selectionComponent.optionsId) {
-        label = options[selectionComponent.optionsId].find((option: IOption) => option.value === formData[replaced])?.label;
+        label = options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formData[replaced])?.label;
       }
       return getTextResourceByKey(label, textResources);
     }

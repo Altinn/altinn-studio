@@ -4,7 +4,7 @@ import { get } from 'app-shared/utils/networking';
 import * as ConfigurationActionTypes from '../configurationActionTypes';
 import ConfigurationDispatcher from '../configurationDispatcher';
 
-import { getEnvironmentsConfigUrl } from './../../../utils/urlHelper';
+import { getEnvironmentsConfigUrl } from '../../../utils/urlHelper';
 
 // GET ENVIRONMENTS
 function* getEnvironmentsSaga(): SagaIterator {

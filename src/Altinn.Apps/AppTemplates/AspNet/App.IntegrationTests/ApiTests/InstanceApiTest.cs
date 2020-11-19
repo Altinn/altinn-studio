@@ -293,14 +293,13 @@ namespace App.IntegrationTests
             {
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
-
+                
                 Assert.NotNull(createdInstance);
                 Assert.Single(createdInstance.Data);
                 Assert.Equal("default", createdInstance.Data[0].DataType);
 
-                TestDataUtil.DeleteInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+                TestDataUtil.DeleteInstanceAndData("tdd", "custom-validation", 1337, new Guid(createdInstance.Id.Split('/')[1]));
             }
-
         }
 
         [Fact]

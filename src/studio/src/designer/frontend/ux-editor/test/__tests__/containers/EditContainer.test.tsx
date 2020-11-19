@@ -56,7 +56,6 @@ describe('>>> containers/EditContainer', () => {
               components: {
                 '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
                   id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-                  componentType: 2,
                   dataModelBindings: {},
                   readOnly: false,
                   required: false,
@@ -85,7 +84,6 @@ describe('>>> containers/EditContainer', () => {
     mockId = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88';
     mockComponent = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      componentType: 2,
       dataModelBindings: {},
       readOnly: false,
       required: false,
@@ -170,7 +168,6 @@ describe('>>> containers/EditContainer', () => {
     /* Click on checkBtn */
     instance.setState({component: {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      componentType: 2,
       dataModelBindings: {},
       readOnly: false,
       required: true,
@@ -207,7 +204,6 @@ describe('>>> containers/EditContainer', () => {
       isEditMode: true,
       component: {
         id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-        componentType: 2,
         dataModelBindings: {
           simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
         },

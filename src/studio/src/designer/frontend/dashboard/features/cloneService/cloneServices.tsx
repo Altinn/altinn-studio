@@ -1,8 +1,11 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnBreadcrumb from 'app-shared/components/AltinnBreadcrumb';
 import AltinnButton from 'app-shared/components/AltinnButton';
@@ -81,9 +84,11 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line max-len
 export class CloneServiceComponent extends React.Component<ICloneServiceComponentProps & RouteChildrenProps, ICloneServiceComponentState> {
   public _isMounted = false;
+
+  // eslint-disable-next-line react/state-in-constructor
   public state: ICloneServiceComponentState = {
     lastChangedBy: '',
     isLoading: false,
@@ -92,7 +97,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   public componentDidMount() {
     this._isMounted = true;
     const altinnWindow: any = window as any;
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
     get(url).then((result: any) => {
       if (result && this._isMounted) {
@@ -113,8 +118,9 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public getCurrentRepositoryInfo = () => {
+    // eslint-disable-next-line consistent-return
     const returnService = this.props.services.filter((service: any) => {
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       if (service.full_name === `${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`) {
         return service;
       }
@@ -127,18 +133,19 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     const altinnWindow: any = window as any;
     const repoInfo = this.getCurrentRepositoryInfo();
     if (repoInfo && repoInfo.is_cloned_to_local) {
-      // tslint:disable-next-line:max-line-length
+      // eslint-disable-next-line max-len
       window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
     }
 
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
     this.setState({
       isLoading: true,
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     get(url).then((result: any) => {
       if (this._isMounted) {
-        // tslint:disable-next-line:max-line-length
+        // eslint-disable-next-line max-len
         window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
       }
     });
@@ -146,7 +153,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
 
   public render() {
     const { classes } = this.props;
-    // tslint:disable-next-line:max-line-length
+    // eslint-disable-next-line max-len
     const repoInfo = this.getCurrentRepositoryInfo();
     return (
       <>
@@ -158,7 +165,10 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
         />
         {repoInfo &&
           <div className={classes.mainStyle}>
-            <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
+            <Typography
+              component='h1' variant='h1'
+              gutterBottom={true} className={classes.serviceHeader}
+            >
               {`${repoInfo.owner.login} / ${repoInfo.name}`}
             </Typography>
             <div>
@@ -197,13 +207,13 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
                 :
                 <>
                   <AltinnButton
-                    id={'editService'}
+                    id='editService'
                     btnText={getLanguageFromKey('dashboard.edit_service', this.props.language)}
                     className={classes.editService}
                     onClickFunction={this.cloneAndEditService}
                   />
                   <AltinnButton
-                    id={'seeSourceCode'}
+                    id='seeSourceCode'
                     btnText={getLanguageFromKey('dashboard.see_source_code', this.props.language)}
                     onClickFunction={this.redirectToCode}
                   />
@@ -229,5 +239,5 @@ const mapStateToProps = (
 };
 
 export const CloneService = withRouter(
-  withStyles(styles)
-    (connect(mapStateToProps)(CloneServiceComponent)));
+  withStyles(styles)(connect(mapStateToProps)(CloneServiceComponent)),
+);

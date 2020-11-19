@@ -3,7 +3,6 @@ import {
   DragSourceMonitor,
   DragSourceSpec,
 } from 'react-dnd';
-import { ComponentTypes } from '../components';
 import { ToolbarItemComponent } from '../components/toolbar/ToolbarItemComponent';
 import createDraggable, {
   IDraggableProps,
@@ -14,7 +13,7 @@ interface IToolbarItemProps {
   onDropAction: (...args: any) => void;
   notDraggable?: boolean;
   onClick: (...args: any) => void;
-  componentType: ComponentTypes;
+  componentType: string;
   icon: string;
 }
 
