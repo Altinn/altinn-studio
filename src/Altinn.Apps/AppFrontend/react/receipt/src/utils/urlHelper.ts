@@ -6,7 +6,7 @@ export const altinnUrl = 'http://altinn.no/';
 export const altinnOrganisationsUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 export const languageUrl = `${window.location.origin}/receipt/api/v1/language/GetLanguageAsJSON?languageCode=nb`;
 
-export function getExtendedInstanceUrl(): string{
+export function getExtendedInstanceUrl(): string {
   return `${getAltinnCloudUrl()}receipt/api/v1/instances/${getInstanceOwnerId()}/${getInstanceId()}?includeParty=true`;
 }
 
@@ -17,15 +17,15 @@ export function getAltinnCloudUrl(): string {
   ) {
     // if we are developing locally, point to test data in at21
     return altinnAt21PlatformUrl;
-  } else {
-    // Point to origin. Can be multiple environments.
-    return window.location.origin + '/';
   }
+
+  // Point to origin. Can be multiple environments.
+  return `${window.location.origin}/`;
 }
 
 export function getUrlQueryParameterByKey(key: string): string {
-    const match = RegExp('[?&]' + key + '=([^&]*)').exec(window.location.search);
-    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+  const match = RegExp(`[?&]${key}=([^&]*)`).exec(window.location.search);
+  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 }
 
 export function getApplicationMetadataUrl(org: string, app: string): string {
@@ -43,7 +43,6 @@ export function getTextResourceUrl(org: string, app: string, language: string): 
 export function getAltinnUrl(): string {
   if (window.location.hostname === 'localhost') {
     return altinnAt21Url;
-  } else {
-    return window.location.origin + '/';
   }
+  return `${window.location.origin}/`;
 }

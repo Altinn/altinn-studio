@@ -6,6 +6,7 @@ import Receipt from './features/receipt/containers/Receipt';
 
 const theme = createMuiTheme(AltinnReceiptTheme);
 
+// eslint-disable-next-line react/prefer-stateless-function
 class App extends React.Component {
   public render() {
     return (

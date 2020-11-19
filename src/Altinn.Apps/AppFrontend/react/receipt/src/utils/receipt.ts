@@ -9,7 +9,8 @@ export const getInstanceMetaDataObject = (
   party: IParty,
   language: any,
   organisations: any,
-  application: IApplication) => {
+  application: IApplication,
+) => {
   const obj = {} as any;
 
   if (!instance || !party || !language || !organisations) {
@@ -34,15 +35,13 @@ export const getInstanceMetaDataObject = (
   return obj;
 };
 
-export const getOrganisationDisplayName = (instance: IInstance, organisations: any ): string => {
+export const getOrganisationDisplayName = (instance: IInstance, organisations: any): string => {
   if (!organisations) {
     return instance.org.toUpperCase();
-  } else {
-    // TODO: fetch this language based on language cookie
-    if (organisations.orgs[instance.org]) {
-        return organisations.orgs[instance.org].name.nb.toUpperCase();
-    } else {
-      return instance.org.toUpperCase();
-    }
   }
+  // TODO: fetch this language based on language cookie
+  if (organisations.orgs[instance.org]) {
+    return organisations.orgs[instance.org].name.nb.toUpperCase();
+  }
+  return instance.org.toUpperCase();
 };
