@@ -68,7 +68,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return;
             }
 
-            await UpdateApplicationMetadata(application, applicationFromRepository);
+            await UpdateApplicationMetadata(applicationFromRepository);
         }
 
         private async Task<Application> GetApplicationMetadataFileFromRepository()
@@ -116,27 +116,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task CreateApplicationMetadata(Application applicationFromRepository)
         {
-            Application appMetadata = new Application
-            {
-                Id = $"{_org}/{_app}",
-                Org = applicationFromRepository.Org,
-                CreatedBy = applicationFromRepository.CreatedBy,
-                Created = applicationFromRepository.Created,
-                DataTypes = applicationFromRepository.DataTypes,
-                Title = applicationFromRepository.Title,
-                PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed,
-                VersionId = _shortCommitId
-            };
-            await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, appMetadata, _deploymentEnvironment);
+            applicationFromRepository.Id = $"{_org}/{_app}";
+            applicationFromRepository.VersionId = _shortCommitId;
+
+            await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, applicationFromRepository, _deploymentEnvironment);
         }
 
-        private async Task UpdateApplicationMetadata(Application application, Application applicationFromRepository)
+        private async Task UpdateApplicationMetadata(Application applicationFromRepository)
         {
-            application.Title = applicationFromRepository.Title;
-            application.VersionId = _shortCommitId;
-            application.DataTypes = applicationFromRepository.DataTypes;
-            application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
-            await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, application, _deploymentEnvironment);
+            applicationFromRepository.VersionId = _shortCommitId;
+
+            await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, applicationFromRepository, _deploymentEnvironment);
         }
     }
 }
