@@ -56,6 +56,7 @@ RUN npm run gulp build
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1.402-alpine3.12 AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
+COPY --from=generate-designer-js ./node_modules/altinn-designsystem/dist/css/style.dist.altinnett.min.css ./designer/wwwroot/designer/css/designsystem/v1/style.dist.altinnett.min.css
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
