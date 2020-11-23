@@ -17,8 +17,10 @@ function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
     const dataModel: any = yield call(get, url);
     const dataModelFields: any[] = [];
+    // eslint-disable-next-line no-restricted-syntax
     for (const dataModelField in dataModel.elements) {
       if (!dataModelField) {
+        // eslint-disable-next-line no-continue
         continue;
       }
       dataModelFields.push(dataModel.elements[dataModelField]);
@@ -26,7 +28,7 @@ function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
     yield call(DataModelActions.fetchDataModelFulfilled, dataModelFields);
   } catch (err) {
     yield call(DataModelActions.fetchDataModelRejected, err);
-    yield call(QueueActions.dataTaskQueueError, err)
+    yield call(QueueActions.dataTaskQueueError, err);
   }
 }
 

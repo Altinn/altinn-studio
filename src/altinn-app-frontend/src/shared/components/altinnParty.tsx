@@ -1,8 +1,10 @@
+/* eslint-disable react/jsx-no-bind */
+/* eslint-disable react/no-array-index-key */
 import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import {AltinnCollapsableList} from 'altinn-shared/components';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnCollapsableList } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { IRuntimeState } from '../../types';
 
@@ -15,15 +17,15 @@ const styles = createStyles({
     width: '100%',
   },
   partyWrapper: {
-    'paddingLeft': '2.4rem',
-    'paddingRight': '2.4rem',
+    paddingLeft: '2.4rem',
+    paddingRight: '2.4rem',
     '&:hover': {
       cursor: 'pointer',
     },
   },
   partyWrapperDisabled: {
-    'paddingLeft': '2.4rem',
-    'paddingRight': '2.4rem',
+    paddingLeft: '2.4rem',
+    paddingRight: '2.4rem',
     '&:hover': {
       cursor: 'not-allowed',
     },
@@ -58,22 +60,22 @@ const styles = createStyles({
     '&:hover': {
       cursor: 'pointer',
     },
-    'paddingTop': '1.2rem',
-    'paddingBottom': '1.2rem',
-    'borderTop': `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
+    paddingTop: '1.2rem',
+    paddingBottom: '1.2rem',
+    borderTop: `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
   },
   subUnit: {
-    'width': '100%',
-    'paddingLeft': '2.4rem',
-    'paddingRight': '2.4rem',
+    width: '100%',
+    paddingLeft: '2.4rem',
+    paddingRight: '2.4rem',
     '&:hover': {
       background: AltinnAppTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
   subUnitListHeader: {
-    'paddingLeft': '2.4rem',
-    'paddingRight': '2.4rem',
+    paddingLeft: '2.4rem',
+    paddingRight: '2.4rem',
     '&:hover': {
       background: AltinnAppTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
@@ -114,7 +116,9 @@ export interface IAltinnPartyProps extends WithStyles<typeof styles> {
 
 function AltinnParty(props: IAltinnPartyProps) {
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
-  const { classes, party, onSelectParty } = props;
+  const {
+    classes, party, onSelectParty,
+  } = props;
   const isOrg: boolean = party.orgNumber != null;
   const language = useSelector((state: IRuntimeState) => state.language.language);
 
@@ -150,19 +154,19 @@ function AltinnParty(props: IAltinnPartyProps) {
         listHeader={
           <Grid
             container={true}
-            direction={'row'}
+            direction='row'
             className={classes.subUnitListHeader}
           >
             <Grid
               container={true}
-              direction={'row'}
+              direction='row'
               className={classes.subUnitListHeaderWrapper}
             >
               <div
                 className={classes.subUnitListHeaderIcon}
               >
                 <i
-                  className={'ai ai-expand-circle'}
+                  className='ai ai-expand-circle'
                   style={{
                     WebkitTransition: '-webkit-transform 0.5s',
                     transition: 'transform 0.5s',
@@ -186,24 +190,26 @@ function AltinnParty(props: IAltinnPartyProps) {
           <Grid
             key={index}
             container={true}
-            direction={'column'}
+            direction='column'
             className={classes.subUnitWrapper}
           >
             <Grid
               key={index}
               className={classes.subUnit}
               container={true}
-              direction={'column'}
+              direction='column'
               onClick={onClickParty.bind(null, childParty)}
               onKeyPress={onKeyPress.bind(null, childParty)}
               tabIndex={subUnitsExpanded ? 0 : undefined}
             >
-              <Grid container={true} direction={'row'} className={classes.subUnitTextWrapper}>
+              <Grid
+                container={true} direction='row'
+                className={classes.subUnitTextWrapper}
+              >
                 <Typography className={`${classes.partyName}`}>
                   {childParty.name}
                 </Typography>
                 <Typography className={classes.partyInfo}>
-                  {/* tslint:disable-next-line:max-line-length*/}
                   &nbsp;{!language.party_selection ?
                     'party_selection.unit_org_number' :
                     language.party_selection.unit_org_number
@@ -225,7 +231,7 @@ function AltinnParty(props: IAltinnPartyProps) {
       <Grid
         id={`party-${party.partyId}`}
         container={true}
-        direction={'row'}
+        direction='row'
         className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
         onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
         onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
@@ -242,11 +248,11 @@ function AltinnParty(props: IAltinnPartyProps) {
               `${!language.party_selection ?
                 'party_selection.unit_org_number' :
                 language.party_selection.unit_org_number
-              } ` + party.orgNumber :
+              } ${party.orgNumber}` :
               `${!language.party_selection ?
                 'party_selection.unit_personal_number' :
                 language.party_selection.unit_personal_number
-              } ` + party.ssn
+              } ${party.ssn}`
           }
         </Typography>
       </Grid>

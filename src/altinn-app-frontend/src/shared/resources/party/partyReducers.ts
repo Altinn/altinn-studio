@@ -3,7 +3,7 @@ import { Action, Reducer } from 'redux';
 import { IParty } from 'altinn-shared/types';
 import { IGetPartiesFulfilled, IGetPartiesRejected } from './getParties/getPartiesActions';
 import * as GetPartyActionTypes from './getParties/getPartiesActionTypes';
-import { ISelectPartyFulfilled, ISelectPartyRejected} from './selectParty/selectPartyActions';
+import { ISelectPartyFulfilled, ISelectPartyRejected } from './selectParty/selectPartyActions';
 import * as SelectPartyActionTypes from './selectParty/selectPartyActionTypes';
 
 export interface IPartyState {

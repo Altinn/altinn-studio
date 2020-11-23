@@ -15,10 +15,11 @@ export function runConditionalRenderingRules(
     return componentsToHide;
   }
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const key in rules) {
-    if (!key) {
-      continue;
-    }
+    // eslint-disable-next-line no-continue
+    if (!key) continue;
+
     const connection: IConditionalRenderingRule = rules[key];
     const functionToRun = connection.selectedFunction;
     const objectToUpdate = (window as Window as IAltinnWindow).conditionalRuleHandlerHelper[functionToRun]();
@@ -31,8 +32,9 @@ export function runConditionalRenderingRules(
     const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
     const action = connection.selectedAction;
     const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
+    // eslint-disable-next-line no-restricted-syntax
     for (const elementToPerformActionOn in connection.selectedFields) {
-      // tslint:disable-next-line:curly
+      // eslint-disable-next-line no-continue
       if (!elementToPerformActionOn || !hide) continue;
 
       const elementId = connection.selectedFields[elementToPerformActionOn];

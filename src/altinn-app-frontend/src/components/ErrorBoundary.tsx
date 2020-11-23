@@ -14,6 +14,7 @@ class ErrorBoundary extends React.Component<any, IErrorBoundary> {
     };
   }
 
+  // eslint-disable-next-line react/state-in-constructor
   public state = {
     hasError: false,
     error: null,
@@ -28,12 +29,12 @@ class ErrorBoundary extends React.Component<any, IErrorBoundary> {
     if (hasError) {
       return (
         <AltinnError
-          statusCode={'400'}
-          title={'Error'}
+          statusCode='400'
+          title='Error'
           content={error}
           url={`${window.location.host}`}
-          urlText={'Altinn Runtime'}
-          urlTextSuffix={'Altinn Runtime'}
+          urlText='Altinn Runtime'
+          urlTextSuffix='Altinn Runtime'
         />
       );
     }

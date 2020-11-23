@@ -1,10 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IApplicationMetadata } from '..';
-import {
-  IGetApplicationMetadataFulfilled,
-  IGetApplicationMetadataRejected,
-} from '../actions/get';
+import { IGetApplicationMetadataFulfilled, IGetApplicationMetadataRejected } from '../actions/get';
 import * as ApplicationMetadataActionTypes from '../actions/types';
 
 export interface IApplicationMetadataState {

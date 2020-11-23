@@ -1,12 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
+import { orgsListUrl } from 'altinn-shared/utils';
 import { get } from '../../../../utils/networking';
-import OrgsActions from './../orgsActions';
+import OrgsActions from '../orgsActions';
 import * as OrgsActionTypes from './fetchOrgsActionTypes';
-
-import {
-  orgsListUrl,
-} from 'altinn-shared/utils';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {

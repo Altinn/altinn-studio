@@ -2,14 +2,14 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
 
 function NoValidPartiesError() {
   const language = useSelector((state: IRuntimeState) => state.language.language);
-  const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
-    state.applicationMetadata.applicationMetadata);
+  const appMetadata: IApplicationMetadata =
+    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
 
   if (!language) {
     return null;
@@ -51,21 +51,24 @@ function NoValidPartiesError() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
       language,
-      [language.general.customer_service_phone_number]);
+      [language.general.customer_service_phone_number],
+    );
   }
 
   function getNoAccessError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_second_part',
       language,
-      [appMetadata.title.nb]);
+      [appMetadata.title.nb],
+    );
   }
 
   function getAllowedPartiesError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_third_part',
       language,
-      [getAllowedParties()]);
+      [getAllowedParties()],
+    );
   }
 
   function createErrorTitle() {
@@ -73,7 +76,8 @@ function NoValidPartiesError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_first_part',
       language,
-      [getAllowedParties()]);
+      [getAllowedParties()],
+    );
   }
 
   function createErrorContent() {
