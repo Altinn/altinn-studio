@@ -22,6 +22,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
+    "altinn-designsystem": "2.7.10",
     "bootstrap": "4.5.3",
     "bootstrap-list-filter": "0.3.3",
     "jquery": "3.5.1",
