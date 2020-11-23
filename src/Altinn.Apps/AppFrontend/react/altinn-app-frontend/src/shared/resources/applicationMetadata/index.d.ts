@@ -1,4 +1,4 @@
-import { ITitle, IDataType } from "../../../../../shared/src/types";
+import { ITitle, IDataType } from '../../../../../shared/src/types';
 
 export interface IApplicationMetadata {
   createdBy: string;

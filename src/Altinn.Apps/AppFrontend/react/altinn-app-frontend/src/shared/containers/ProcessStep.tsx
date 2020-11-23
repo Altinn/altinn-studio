@@ -17,6 +17,7 @@ import NavBar from '../../components/process-step/NavBar';
 export interface IProcessStepProvidedProps {
   header: string;
   step: ProcessSteps;
+  // eslint-disable-next-line no-undef
   children: JSX.Element;
 }
 

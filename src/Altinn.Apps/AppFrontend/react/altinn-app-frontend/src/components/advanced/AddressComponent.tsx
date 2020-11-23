@@ -53,6 +53,7 @@ export function AddressComponent(props: IAddressComponentProps) {
   const [validations, setValidations] = React.useState({} as any);
 
   React.useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const zipCode = props.formData.zipCode;
     if (!zipCode || zipCode === '') {
       return;

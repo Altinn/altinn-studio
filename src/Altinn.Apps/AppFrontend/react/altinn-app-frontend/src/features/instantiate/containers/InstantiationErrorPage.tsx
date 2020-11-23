@@ -1,5 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteProps } from 'react-router';
 import AltinnError from '../../../shared/components/altinnError';
 import InstantiateContainer from './InstantiationContainer';
@@ -21,7 +22,7 @@ function InstantiationErrorPage(props: IInstantiationErrorPageProps) {
     <InstantiateContainer>
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         style={{
           display: 'flex',
           flexDirection: 'row',

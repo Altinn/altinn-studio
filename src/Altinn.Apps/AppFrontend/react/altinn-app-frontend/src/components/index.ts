@@ -34,6 +34,7 @@ export enum ComponentTypes {
   FileUpload,
   Button,
   Container,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
 }

@@ -28,7 +28,7 @@ export function* uploadAttachmentSaga(
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
 
-    const fileUploadLink = fileUploadUrl(attachmentType, file.name);
+    const fileUploadLink = fileUploadUrl(attachmentType);
     let contentType;
 
     if (!file.type) {
@@ -49,8 +49,13 @@ export function* uploadAttachmentSaga(
     const response: any = yield call(post, fileUploadLink, config, file);
 
     if (response.status === 201) {
-      const attachment: IAttachment
-        = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };
+      const attachment: IAttachment = {
+        name: file.name,
+        size: file.size,
+        uploaded: true,
+        id: response.data.id,
+        deleting: false,
+      };
       yield call(AttachmentDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {

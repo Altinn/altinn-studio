@@ -4,7 +4,7 @@ import { watchCheckIfApiShouldFetchSaga } from './api/apiSagas';
 import { waitForAppSetupBeforeRunningConditionalRulesSaga, watchCheckIfConditionalRulesShouldRunSaga } from './conditionalRendering/conditionalRenderingSagas';
 import { watchFetchDynamics } from './fetch/fetchFormDynamicsSagas';
 
-export default function*(): SagaIterator {
+export default function* formDynamicsSagas(): SagaIterator {
   yield fork(watchCheckIfApiShouldFetchSaga);
   yield fork(watchCheckIfConditionalRulesShouldRunSaga);
   yield fork(waitForAppSetupBeforeRunningConditionalRulesSaga);
