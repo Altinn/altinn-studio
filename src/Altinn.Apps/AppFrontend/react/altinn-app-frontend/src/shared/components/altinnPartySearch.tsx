@@ -1,14 +1,12 @@
-import {
-  createStyles,
+import { createStyles,
   Grid,
   WithStyles,
-  withStyles,
-} from '@material-ui/core';
+  withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
-import {AltinnInput} from 'altinn-shared/components';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnInput } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const styles = createStyles({
   partySearchContainer: {
@@ -24,7 +22,7 @@ export interface IAltinnPartySearchProps extends WithStyles<typeof styles> {
 function AltinnPartySearch(props: IAltinnPartySearchProps) {
   const language = useSelector((state: IRuntimeState) => state.language.language);
 
-  const [ searchString, setSearchString ] = React.useState('');
+  const [searchString, setSearchString] = React.useState('');
   const { classes, onSearchUpdated } = props;
 
   React.useEffect(() => {
@@ -50,7 +48,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
             'party_selection.search_placeholder' :
             language.party_selection.search_placeholder
         }
-        iconString={'fa fa-others'}
+        iconString='fa fa-others'
       />
     </Grid>
   );

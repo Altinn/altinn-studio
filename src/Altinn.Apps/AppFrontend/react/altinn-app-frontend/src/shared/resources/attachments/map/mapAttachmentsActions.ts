@@ -1,4 +1,3 @@
-
 import { Action } from 'redux';
 import { IAttachments } from '..';
 import * as ActionTypes from '../attachmentActionTypes';

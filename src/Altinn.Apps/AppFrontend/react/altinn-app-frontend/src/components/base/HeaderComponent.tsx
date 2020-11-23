@@ -7,7 +7,6 @@ export interface IHeaderProps {
 }
 
 export function HeaderComponent(props: IHeaderProps) {
-
   const h2style = {
     marginTop: '4.8rem',
     marginBottom: '0',

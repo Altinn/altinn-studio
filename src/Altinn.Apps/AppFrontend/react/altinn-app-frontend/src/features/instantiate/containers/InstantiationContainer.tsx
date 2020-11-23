@@ -1,9 +1,9 @@
-import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import { createStyles, Grid, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import {AltinnAppTheme} from 'altinn-shared/theme';
-import Header from '../../../shared/components/altinnAppHeader';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IProfile } from 'altinn-shared/types';
+import Header from '../../../shared/components/altinnAppHeader';
 import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 
@@ -33,13 +33,13 @@ function InstantiateContainer(props: IInstantiateContainerProps) {
   return (
     <Grid
       container={true}
-      direction={'column'}
-      className={'container ' + classes.instantiatePage}
+      direction='column'
+      className={`container ${classes.instantiatePage}`}
     >
       <Header
         language={language}
         profile={profile}
-        type={'normal'}
+        type='normal'
       />
       {children}
     </Grid>

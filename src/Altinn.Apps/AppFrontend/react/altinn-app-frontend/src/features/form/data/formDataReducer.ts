@@ -4,7 +4,7 @@ import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFo
 import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
-import * as ProcessActionTypes from './../../../shared/resources/process/processActionTypes';
+import * as ProcessActionTypes from '../../../shared/resources/process/processActionTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -31,6 +31,7 @@ const initialState: IFormDataState = {
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
+  // eslint-disable-next-line no-param-reassign
   original[params.field] = params.data;
   return original;
 });

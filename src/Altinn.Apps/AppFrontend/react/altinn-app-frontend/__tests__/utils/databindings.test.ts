@@ -100,6 +100,30 @@ describe('>>> utils/databindings.ts', () => {
     expect(result.aNumber).toBe('-32');
   });
 
+  it(' +++ should flatten object as expected', () => {
+    testObj = {
+      Group: [
+        {
+          prop1: 'value-0-1',
+          prop2: 'value-0-2',
+          prop3: 'value-0-3',
+        },
+        {
+          prop1: 'value-1-1',
+          prop2: 'value-1-2',
+          prop3: 'value-1-3',
+        },
+        {
+          prop1: 'value-2-1',
+          prop2: 'value-2-2',
+          prop3: 'value-2-3',
+        },
+      ],
+    };
+    const result = flattenObject(testObj);
+    expect(result).toEqual(testFormData);
+  });
+
   it('+++ should remove form data with the specified index, for the specified group id', () => {
     const result = removeGroupData(testFormData, 1, testLayout, testGroupId, 2);
     const expected = {

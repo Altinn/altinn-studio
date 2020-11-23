@@ -17,7 +17,7 @@ const theme = createMuiTheme(AltinnAppTheme);
 // 1 minute = 60.000ms
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
-export default function () {
+export default function setup() {
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
 

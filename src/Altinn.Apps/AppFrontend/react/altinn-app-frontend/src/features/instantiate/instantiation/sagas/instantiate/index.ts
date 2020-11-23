@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IParty } from 'altinn-shared/types';
+import { AxiosResponse } from 'axios';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
@@ -9,7 +10,6 @@ import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '.
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
-import { AxiosResponse } from 'axios';
 
 const InstantiatingSelector = ((state: IRuntimeState) => state.instantiation);
 const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
@@ -46,6 +46,6 @@ function* instantiationSaga(): SagaIterator {
   }
 }
 
-export function * watchInstantiationSaga(): SagaIterator {
+export function* watchInstantiationSaga(): SagaIterator {
   yield takeLatest(InstantiationActionTypes.INSTANTIATE, instantiationSaga);
 }

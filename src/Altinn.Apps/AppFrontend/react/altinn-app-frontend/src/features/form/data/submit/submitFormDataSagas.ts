@@ -21,6 +21,7 @@ import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
+// eslint-disable-next-line consistent-return
 function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
   try {
     const state: IRuntimeState = yield select();

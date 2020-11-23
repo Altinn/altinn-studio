@@ -15,29 +15,30 @@ const initialState: IInstanceDataState = {
 };
 
 const instanceDataReducer: Reducer<IInstanceDataState> = (
-  state: IInstanceDataState = initialState, action?: Action): IInstanceDataState => {
-    if (!action) {
-      return state;
+  state: IInstanceDataState = initialState, action?: Action,
+): IInstanceDataState => {
+  if (!action) {
+    return state;
+  }
+  switch (action.type) {
+    case InstanceDataActionTypes.GET_INSTANCEDATA_FULFILLED: {
+      const { instanceData } = action as IGetInstanceDataFulfilled;
+      return update<IInstanceDataState>(state, {
+        instance: {
+          $set: instanceData,
+        },
+      });
     }
-    switch (action.type) {
-      case InstanceDataActionTypes.GET_INSTANCEDATA_FULFILLED: {
-        const { instanceData } = action as IGetInstanceDataFulfilled;
-        return update<IInstanceDataState>(state, {
-          instance: {
-            $set: instanceData,
-          },
-        });
-      }
-      case InstanceDataActionTypes.GET_INSTANCEDATA_REJECTED: {
-        const { error } = action as IGetInstanceDataRejected;
-        return update<IInstanceDataState>(state, {
-          error: {
-            $set: error,
-          },
-        });
-      }
-      default: { return state; }
+    case InstanceDataActionTypes.GET_INSTANCEDATA_REJECTED: {
+      const { error } = action as IGetInstanceDataRejected;
+      return update<IInstanceDataState>(state, {
+        error: {
+          $set: error,
+        },
+      });
     }
+    default: { return state; }
+  }
 };
 
 export default instanceDataReducer;

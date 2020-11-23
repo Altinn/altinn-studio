@@ -1,10 +1,13 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable implicit-arrow-linebreak */
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteComponentProps, withRouter } from 'react-router';
-import {AltinnCheckBox} from 'altinn-shared/components';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnCheckBox } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
@@ -80,8 +83,8 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
-  const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
-    state.applicationMetadata.applicationMetadata);
+  const appMetadata: IApplicationMetadata =
+    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
@@ -115,28 +118,27 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     return (
       <>
         {parties.map((party: IParty, index: number) =>
-          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
+          (party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
             numberOfPartiesShown > numberOfPartiesRendered ?
               (() => {
                 numberOfPartiesRendered += 1;
                 if (party.isDeleted && !showDeleted) {
                   return null;
-                } else {
-                  return (
-                    <AltinnParty
-                      key={index}
-                      party={party}
-                      onSelectParty={onSelectParty}
-                      showSubUnits={showSubUnits}
-                    />
-                  );
                 }
+                return (
+                  <AltinnParty
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    party={party}
+                    onSelectParty={onSelectParty}
+                    showSubUnits={showSubUnits}
+                  />
+                );
               })()
               : null
-            : null,
-        )}
+            : null))}
         {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ?
-          <Grid container={true} direction={'row'}>
+          <Grid container={true} direction='row'>
             {renderShowMoreButton()}
           </Grid>
           : null
@@ -157,6 +159,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       return null;
     }
     const params = match.params as IRedirectParams;
+    // eslint-disable-next-line no-extra-boolean-cast
     if (!!params.errorCode) {
       try {
         const errorCode: number = parseInt(params.errorCode.toString(), 10);
@@ -178,9 +181,11 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
           }
         }
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.info('Could not parse number from params');
       }
     }
+    return null;
   }
 
   function templatePartyTypesString() {
@@ -242,11 +247,12 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       return null;
     }
     return (
+      // eslint-disable-next-line react/button-has-type
       <button
         className={classes.loadMoreButton}
         onClick={increaseNumberOfShownParties}
       >
-        <Grid container={true} direction={'row'}>
+        <Grid container={true} direction='row'>
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
             {!language.party_selection ?
@@ -275,7 +281,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     <InstantiationContainer>
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         style={{
           display: 'flex',
           flexDirection: 'row',
@@ -291,7 +297,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       </Grid>
       <Grid
         container={true}
-        direction={'column'}
+        direction='column'
         className={classes.partySearchFieldContainer}
       >
         <AltinnPartySearch
@@ -300,12 +306,12 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       </Grid>
       <Grid
         container={true}
-        direction={'column'}
+        direction='column'
       >
         <Grid
           container={true}
-          justify={'space-between'}
-          direction={'row'}
+          justify='space-between'
+          direction='row'
         >
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
@@ -317,9 +323,9 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
           </Grid>
 
           <Grid item={true}>
-            <Grid container={true} direction={'row'}>
+            <Grid container={true} direction='row'>
               <Grid item={true} className={classes.partySelectionCheckbox}>
-                <Grid container={true} direction={'row'}>
+                <Grid container={true} direction='row'>
                   <AltinnCheckBox
                     checked={showDeleted}
                     onChangeFunction={toggleShowDeleted}
@@ -339,7 +345,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                 item={true}
                 className={classes.partySelectionCheckbox}
               >
-                <Grid container={true} direction={'row'}>
+                <Grid container={true} direction='row'>
                   <AltinnCheckBox
                     checked={showSubUnits}
                     onChangeFunction={toggleShowSubUnits}
