@@ -229,8 +229,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
     }
-    case FormDesignerActionTypes.DELETE_FORM_COMPONENT_REJECTED: {
-      const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+    case FormDesignerActionTypes.DELETE_FORM_COMPONENTS_REJECTED: {
+      const { error } = action as FormDesignerActions.IDeleteComponentsActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,
@@ -282,7 +282,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.DELETE_FORM_CONTAINER_REJECTED: {
-      const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+      const { error } = action as FormDesignerActions.IDeleteComponentsActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,

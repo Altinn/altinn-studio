@@ -1,11 +1,9 @@
 import { SagaIterator } from 'redux-saga';
-import {
-  call,
+import { call,
   select,
   takeLatest,
   all,
-  take,
-} from 'redux-saga/effects';
+  take } from 'redux-saga/effects';
 import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';

@@ -293,8 +293,8 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.Title = application.Title;
             existingApplication.ProcessId = application.ProcessId;
             existingApplication.DataTypes = application.DataTypes;
-
             existingApplication.PartyTypesAllowed = application.PartyTypesAllowed ?? new PartyTypesAllowed();
+            existingApplication.AutoDeleteOnProcessEnd = application.AutoDeleteOnProcessEnd;
 
             try
             {

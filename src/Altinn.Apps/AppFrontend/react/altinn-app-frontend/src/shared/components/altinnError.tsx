@@ -1,7 +1,7 @@
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'altinn-shared/utils';
 
 interface IAltinnErrorClasses {
@@ -42,19 +42,20 @@ const styles = createStyles({
   },
 });
 
+// eslint-disable-next-line no-undef
 const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
   const { classes, styling } = props;
   return (
     <Grid container={true} className={`${classes.gridContainer} ${styling ? styling.root : null}`}>
       <Grid item={true} md={8}>
         <div className={classes.contentMargin}>
-          <Typography variant={'caption'}>
+          <Typography variant='caption'>
             {props.statusCode}
           </Typography>
         </div>
         <div className={classes.contentMargin}>
           <Typography
-            variant={'h1'}
+            variant='h1'
             className={classNames(classes.title, styling ? styling.title : null)}
           >
             {props.title}
@@ -66,12 +67,12 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
           </Typography>
         </div>
         <div>
-          <Typography variant={'body1'}>
+          <Typography variant='body1'>
             <a href={props.url}>{props.urlText}</a>
           </Typography>
         </div>
         <div>
-          <Typography variant={'body1'}>
+          <Typography variant='body1'>
             {props.urlTextSuffix}
           </Typography>
         </div>

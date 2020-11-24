@@ -1,11 +1,11 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import { put} from 'altinn-shared/utils';
+import { put } from 'altinn-shared/utils';
+import { IProcess } from 'altinn-shared/types';
 import { ProcessSteps } from '../../../../types';
 import { getCompleteProcessUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessDispatcher from '../processDispatcher';
-import { IProcess } from 'altinn-shared/types';
 
 export function* completeProcessSaga(): SagaIterator {
   try {

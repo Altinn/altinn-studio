@@ -4,8 +4,8 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import {AltinnAppHeader, AltinnModal} from 'altinn-shared/components';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnAppHeader, AltinnModal } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
@@ -74,8 +74,9 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
   };
 
+  // eslint-disable-next-line no-undef
   const renderModalAndLoader = (): JSX.Element => {
-    const {classes} = props;
+    const { classes } = props;
     return (
       <>
         <AltinnModal
@@ -84,22 +85,58 @@ function InstantiateContainer(props: IServiceInfoProps) {
           onClose={null}
           hideBackdrop={true}
           hideCloseIcon={true}
-          headerText={'Instansierer'}
+          headerText='Instansierer'
         >
           <ContentLoader
             height={200}
           >
-            <rect x='25' y='20' rx='0' ry='0' width='100' height='5' />
-            <rect x='25' y='30' rx='0' ry='0' width='350' height='5' />
-            <rect x='25' y='40' rx='0' ry='0' width='350' height='25' />
+            <rect
+              x='25' y='20'
+              rx='0' ry='0'
+              width='100' height='5'
+            />
+            <rect
+              x='25' y='30'
+              rx='0' ry='0'
+              width='350' height='5'
+            />
+            <rect
+              x='25' y='40'
+              rx='0' ry='0'
+              width='350' height='25'
+            />
 
-            <rect x='25' y='75' rx='0' ry='0' width='100' height='5' />
-            <rect x='25' y='85' rx='0' ry='0' width='350' height='5' />
-            <rect x='25' y='95' rx='0' ry='0' width='350' height='25' />
+            <rect
+              x='25' y='75'
+              rx='0' ry='0'
+              width='100' height='5'
+            />
+            <rect
+              x='25' y='85'
+              rx='0' ry='0'
+              width='350' height='5'
+            />
+            <rect
+              x='25' y='95'
+              rx='0' ry='0'
+              width='350' height='25'
+            />
 
-            <rect x='25' y='130' rx='0' ry='0' width='100' height='5' />
-            <rect x='25' y='140' rx='0' ry='0' width='350' height='5' />
-            <rect x='25' y='150' rx='0' ry='0' width='350' height='25' />
+            <rect
+              x='25' y='130'
+              rx='0' ry='0'
+              width='100' height='5'
+            />
+            <rect
+              x='25' y='140'
+              rx='0' ry='0'
+              width='350' height='5'
+            />
+            <rect
+              x='25' y='150'
+              rx='0' ry='0'
+              width='350' height='25'
+            />
           </ContentLoader>
         </AltinnModal>
       </>
@@ -132,12 +169,11 @@ function InstantiateContainer(props: IServiceInfoProps) {
     const message = axiosError.response.data?.message;
     if (axiosError.response.status === HttpStatusCodes.Forbidden) {
       if (message) {
-        return <InstantiateValidationError message={message} />
-      } else {
-        return (
-          <MissingRolesError />
-        );
+        return <InstantiateValidationError message={message} />;
       }
+      return (
+        <MissingRolesError />
+      );
     }
 
     return (
@@ -151,11 +187,10 @@ function InstantiateContainer(props: IServiceInfoProps) {
       return (
         <NoValidPartiesError />
       );
-    } else {
-      return (
-        <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
-      );
     }
+    return (
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
+    );
   }
 
   if (instantiation.instanceId !== null) {

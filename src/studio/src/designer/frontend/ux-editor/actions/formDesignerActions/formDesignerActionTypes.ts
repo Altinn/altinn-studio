@@ -5,10 +5,10 @@ export const ADD_FORM_COMPONENT: string = `${moduleName}.ADD_FORM_COMPONENT`;
 export const ADD_FORM_COMPONENT_FULFILLED: string = `${moduleName}.ADD_FORM_COMPONENT_FULFILLED`;
 export const ADD_FORM_COMPONENT_REJECTED: string = `${moduleName}.ADD_FORM_COMPONENT_REJECTED`;
 
-// Delete form component actions
-export const DELETE_FORM_COMPONENT: string = `${moduleName}.DELETE_FORM_COMPONENT`;
+// Delete form components actions
+export const DELETE_FORM_COMPONENTS: string = `${moduleName}.DELETE_FORM_COMPONENTS`;
 export const DELETE_FORM_COMPONENT_FULFILLED: string = `${moduleName}.DELETE_FORM_COMPONENT_FULFILLED`;
-export const DELETE_FORM_COMPONENT_REJECTED: string = `${moduleName}.DELETE_FORM_COMPONENT_REJECTED`;
+export const DELETE_FORM_COMPONENTS_REJECTED: string = `${moduleName}.DELETE_FORM_COMPONENTS_REJECTED`;
 
 // Update form component actions
 export const UPDATE_FORM_COMPONENT: string = `${moduleName}.UPDATE_FORM_ELEMENT`;

@@ -5,8 +5,8 @@ import * as Fetchorgs from './fetch/fetchOrgsActions';
 
 export interface IOrgsActions extends ActionCreatorsMapObject {
   fetchOrgs: () => Fetchorgs.IFetchOrgs;
-  fetchOrgsFulfilled: ( orgs: any ) => Fetchorgs.IFetchOrgsFulfilled;
-  fetchOrgsRejected: ( error: Error) => Fetchorgs.IFetchOrgsRejected;
+  fetchOrgsFulfilled: (orgs: any) => Fetchorgs.IFetchOrgsFulfilled;
+  fetchOrgsRejected: (error: Error) => Fetchorgs.IFetchOrgsRejected;
 }
 
 const actions: IOrgsActions = {

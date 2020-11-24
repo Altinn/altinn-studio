@@ -7,7 +7,8 @@ export function renderParty(profile: IProfile) {
       ' ',
       (party.person.middleName !== null ?
         (party.person.middleName.concat(' ')) : ''),
-      party.person.lastName);
+      party.person.lastName,
+    );
     return user.toUpperCase();
   }
   return null;

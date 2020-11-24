@@ -302,6 +302,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string GitIgnoreFileName { get; set; } = ".gitignore";
 
         /// <summary>
+        /// Gets or sets the filename for the docker ignore file
+        /// </summary>
+        public string DockerIgnoreFileName { get; set; } = ".dockerignore";
+
+        /// <summary>
         /// Gets or sets the filename for the authorization policy file (XACML)
         /// </summary>
         public string AuthorizationPolicyFileName { get; set; } = "policy.xml";

@@ -1,8 +1,10 @@
 /* eslint-disable max-len */
 import * as React from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { useSelector } from 'react-redux';
 import { createMuiTheme } from '@material-ui/core';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IInstance, IParty } from 'altinn-shared/types';

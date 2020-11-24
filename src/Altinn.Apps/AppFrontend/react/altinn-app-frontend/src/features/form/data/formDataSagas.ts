@@ -4,7 +4,7 @@ import { watchFormDataSaga, watchFetchFormDataInitialSaga } from './fetch/fetchF
 import { watchAutoSaveSaga, watchSaveFormDataSaga, watchSubmitFormSaga } from './submit/submitFormDataSagas';
 import { watchUpdateFormDataSaga } from './update/updateFormDataSagas';
 
-export default function* (): SagaIterator {
+export default function* formDataSagas(): SagaIterator {
   yield fork(watchFormDataSaga);
   yield fork(watchSaveFormDataSaga);
   yield fork(watchSubmitFormSaga);

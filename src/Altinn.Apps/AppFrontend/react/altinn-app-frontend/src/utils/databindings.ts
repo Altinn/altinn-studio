@@ -70,34 +70,25 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
 export function flattenObject(data: any, index: boolean = false): any {
   const toReturn: IData = {};
 
-  for (const i in data) {
-    if (!data.hasOwnProperty(i)) {
-      continue;
-    }
-    if (Array.isArray(data[i])) {
+  Object.keys(data).forEach((i) => {
+    if (!i || (!data[i] && data[i] !== 0)) return;
+    if (Array.isArray(data[i]) || typeof data[i] === 'object') {
       const flatObject = flattenObject(data[i], true);
-      for (const x in flatObject) {
-        if (!flatObject.hasOwnProperty(x)) {
-          continue;
-        }
-        toReturn[i + '[' + x] = flatObject[x];
-      }
-    } else if ((typeof data[i]) === 'object') {
-      const flatObject = flattenObject(data[i]);
-      for (const x in flatObject) {
-        if (!flatObject.hasOwnProperty(x)) {
-          continue;
-        }
-        if (index) {
-          toReturn[i + '].' + x] = flatObject[x];
+      Object.keys(flatObject).forEach((x) => {
+        if (!x || (!flatObject[x] && flatObject[x] !== 0)) return;
+        let key = '';
+        if (Array.isArray(data[i])) {
+          key = `${i}[${x}`;
         } else {
-          toReturn[i + '.' + x] = flatObject[x];
+          key = index ? `${i}].${x}` : `${i}.${x}`;
         }
-      }
+        toReturn[key] = flatObject[x];
+      });
     } else {
       toReturn[i] = data[i].toString();
     }
-  }
+  });
+
   return toReturn;
 }
 
