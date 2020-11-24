@@ -156,7 +156,7 @@ public class PDFGenerator {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey: order) {
-          if(includePageInPdf(layoutKey)) {
+          if(LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
             if(!firstPage) {
               createNewPage();
               yPoint = currentPage.getMediaBox().getHeight() - margin;
@@ -172,7 +172,7 @@ public class PDFGenerator {
       } else {
         for(Map.Entry<String, FormLayout> formLayoutKeyValuePair : formLayouts.entrySet()) {
           String layoutKey = formLayoutKeyValuePair.getKey();
-          if (includePageInPdf(layoutKey)) {
+          if (LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
             if(!firstPage) {
               createNewPage();
               yPoint = currentPage.getMediaBox().getHeight() - margin;
@@ -500,12 +500,6 @@ public class PDFGenerator {
 
   private String getUserLanguage() {
     return (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
-  }
-
-  private boolean includePageInPdf(String layoutKey) {
-    return layoutSettings == null || layoutSettings.getPages() == null ||
-      layoutSettings.getPages().getExcludeFromPdf() == null ||
-      !layoutSettings.getPages().getExcludeFromPdf().contains(layoutKey);
   }
 }
 
