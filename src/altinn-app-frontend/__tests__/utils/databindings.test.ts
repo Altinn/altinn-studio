@@ -124,6 +124,25 @@ describe('>>> utils/databindings.ts', () => {
     expect(result).toEqual(testFormData);
   });
 
+  it(' +++ should flatten nested object as expected', () => {
+    const testObject = {
+      person: {
+        name: {
+          firstName: 'Navn',
+          lastName: 'Navnesen',
+        },
+      },
+    };
+
+    const expected = {
+      'person.name.firstName': 'Navn',
+      'person.name.lastName': 'Navnesen',
+    };
+
+    const result = flattenObject(testObject);
+    expect(result).toEqual(expected);
+  });
+
   it('+++ should remove form data with the specified index, for the specified group id', () => {
     const result = removeGroupData(testFormData, 1, testLayout, testGroupId, 2);
     const expected = {
