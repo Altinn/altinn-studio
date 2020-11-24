@@ -155,27 +155,33 @@ public class PDFGenerator {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey: order) {
-          FormLayout layout = formLayouts.get(layoutKey);
-          originalFormLayout = layout;
-          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-          renderFormLayout(initializedLayout);
-          if (order.indexOf(layoutKey) < (order.size() - 1)) {
-            createNewPage();
-            yPoint = currentPage.getMediaBox().getHeight() - margin;
+          if(includePageInPdf(layoutKey)) {
+            FormLayout layout = formLayouts.get(layoutKey);
+            originalFormLayout = layout;
+            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+            renderFormLayout(initializedLayout);
+            if (order.indexOf(layoutKey) < (order.size() - 1)) {
+              createNewPage();
+              yPoint = currentPage.getMediaBox().getHeight() - margin;
+            }
           }
         }
       } else {
-        Iterator<FormLayout> iterator = formLayouts.values().iterator();
-        while (iterator.hasNext()) {
-          FormLayout layout = iterator.next();
-          originalFormLayout = layout;
-          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-          renderFormLayout(initializedLayout);
-          if (iterator.hasNext()) {
-            createNewPage();
-            yPoint = currentPage.getMediaBox().getHeight() - margin;
+        boolean firstPage = true;
+        for(Map.Entry<String, FormLayout> formLayoutKeyValuePair : formLayouts.entrySet()) {
+          String layoutKey = formLayoutKeyValuePair.getKey();
+          if (includePageInPdf(layoutKey)) {
+            if(!firstPage) {
+              createNewPage();
+              yPoint = currentPage.getMediaBox().getHeight() - margin;
+            }
+            FormLayout layout = formLayoutKeyValuePair.getValue();
+            originalFormLayout = layout;
+            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+            renderFormLayout(initializedLayout);
+            firstPage = false;
           }
         }
       }
@@ -493,6 +499,12 @@ public class PDFGenerator {
 
   private String getUserLanguage() {
     return (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
+  }
+
+  private boolean includePageInPdf(String layoutKey) {
+    return layoutSettings == null || layoutSettings.getPages() == null ||
+      layoutSettings.getPages().getExcludeFromPdf() == null ||
+      !layoutSettings.getPages().getExcludeFromPdf().contains(layoutKey);
   }
 }
 
