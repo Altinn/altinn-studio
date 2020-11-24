@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 import { Action } from 'redux';
 import * as ActionTypes from '../../formDesignerActionTypes';
 
-export interface IDeleteComponentAction extends Action {
-  id: string;
+export interface IDeleteComponentsAction extends Action {
+  components: string[];
 }
 
 export interface IDeleteComponentActionFulfilled extends Action {
@@ -10,14 +11,14 @@ export interface IDeleteComponentActionFulfilled extends Action {
   containerId: string;
 }
 
-export interface IDeleteComponentActionRejected extends Action {
+export interface IDeleteComponentsActionRejected extends Action {
   error: Error;
 }
 
-export function deleteComponentAction(id: string): IDeleteComponentAction {
+export function deleteComponentAction(components: string[]): IDeleteComponentsAction {
   return {
-    type: ActionTypes.DELETE_FORM_COMPONENT,
-    id,
+    type: ActionTypes.DELETE_FORM_COMPONENTS,
+    components,
   };
 }
 
@@ -29,9 +30,9 @@ export function deleteComponentActionFulfilled(id: string, containerId: string):
   };
 }
 
-export function deleteComponentActionRejected(error: Error): IDeleteComponentActionRejected {
+export function deleteComponentActionRejected(error: Error): IDeleteComponentsActionRejected {
   return {
-    type: ActionTypes.DELETE_FORM_COMPONENT_REJECTED,
+    type: ActionTypes.DELETE_FORM_COMPONENTS_REJECTED,
     error,
   };
 }

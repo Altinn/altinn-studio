@@ -4,11 +4,12 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { all, call, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
 import Axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
@@ -18,7 +19,6 @@ import { deleteCall, get, post } from '../../utils/networking';
 import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl, getLayoutSettingsSchemaUrl, getLayoutSchemaUrl } from '../../utils/urlHelper';
 import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
 import { ComponentTypes } from '../../components';
-import { v4 as uuidv4 } from 'uuid';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectCurrentLayout = (state: IAppState): IFormLayout => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
@@ -132,9 +132,7 @@ export function* watchAddFormContainerSaga(): SagaIterator {
   );
 }
 
-function* deleteFormComponentSaga({
-  id,
-}: FormDesignerActions.IDeleteComponentAction): SagaIterator {
+function* deleteFormComponentSaga(id: string): SagaIterator {
   try {
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let containerId = Object.keys(currentLayout.order)[0];
@@ -144,22 +142,33 @@ function* deleteFormComponentSaga({
       }
     });
     yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, id, containerId);
-    yield call(FormDesignerActionDispatchers.saveFormLayout);
     const component = currentLayout.components[id];
-
     if (component.type === 'FileUpload') {
       yield call(FormDesignerActionDispatchers.deleteApplicationMetadata,
         id);
     }
   } catch (err) {
-    yield call(FormDesignerActionDispatchers.deleteFormComponentRejected, err);
+    yield call(FormDesignerActionDispatchers.deleteFormComponentsRejected, err);
+  }
+}
+
+function* deleteFormComponentsSaga({
+  components,
+}: FormDesignerActions.IDeleteComponentsAction): SagaIterator {
+  try {
+    yield all(components.map((id: string) => {
+      return call(deleteFormComponentSaga, id);
+    }));
+    yield call(FormDesignerActionDispatchers.saveFormLayout);
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.deleteFormComponentsRejected, err);
   }
 }
 
 export function* watchDeleteFormComponentSaga(): SagaIterator {
-  yield takeLatest(
-    FormDesignerActionTypes.DELETE_FORM_COMPONENT,
-    deleteFormComponentSaga,
+  yield takeEvery(
+    FormDesignerActionTypes.DELETE_FORM_COMPONENTS,
+    deleteFormComponentsSaga,
   );
 }
 
@@ -448,7 +457,12 @@ export function* watchUpdateContainerIdSaga(): SagaIterator {
 }
 
 export function* updateSelectedLayoutSaga({ selectedLayout } : IUpdateSelectedLayoutAction) : SagaIterator {
-  yield call(FormDesignerActionDispatchers.updateSelectedLayoutFulfilled, selectedLayout);
+  try {
+    yield call(FormDesignerActionDispatchers.updateSelectedLayoutFulfilled, selectedLayout);
+    yield call(FormDesignerActionDispatchers.deleteActiveListAction);
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.updateSelectedLayoutRejected, error);
+  }
 }
 
 export function* watchUpdateSelectedLayoutSaga(): SagaIterator {
