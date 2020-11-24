@@ -143,6 +143,7 @@ public class PDFGenerator {
     // draws submitted by
     renderSubmittedBy();
 
+    boolean firstPage = true;
     // Loop through all pdfLayout elements and draws them
     if (originalFormLayout != null) {
       // Older versions of our PlatformService nuget package we supplied only one form layout. Have to be backwards compatible here.
@@ -156,19 +157,19 @@ public class PDFGenerator {
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey: order) {
           if(includePageInPdf(layoutKey)) {
+            if(!firstPage) {
+              createNewPage();
+              yPoint = currentPage.getMediaBox().getHeight() - margin;
+            }
             FormLayout layout = formLayouts.get(layoutKey);
             originalFormLayout = layout;
             List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
             List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
             renderFormLayout(initializedLayout);
-            if (order.indexOf(layoutKey) < (order.size() - 1)) {
-              createNewPage();
-              yPoint = currentPage.getMediaBox().getHeight() - margin;
-            }
+            firstPage = false;
           }
         }
       } else {
-        boolean firstPage = true;
         for(Map.Entry<String, FormLayout> formLayoutKeyValuePair : formLayouts.entrySet()) {
           String layoutKey = formLayoutKeyValuePair.getKey();
           if (includePageInPdf(layoutKey)) {
