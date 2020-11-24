@@ -143,6 +143,7 @@ public class PDFGenerator {
     // draws submitted by
     renderSubmittedBy();
 
+    boolean firstPage = true;
     // Loop through all pdfLayout elements and draws them
     if (originalFormLayout != null) {
       // Older versions of our PlatformService nuget package we supplied only one form layout. Have to be backwards compatible here.
@@ -155,27 +156,33 @@ public class PDFGenerator {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey: order) {
-          FormLayout layout = formLayouts.get(layoutKey);
-          originalFormLayout = layout;
-          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-          renderFormLayout(initializedLayout);
-          if (order.indexOf(layoutKey) < (order.size() - 1)) {
-            createNewPage();
-            yPoint = currentPage.getMediaBox().getHeight() - margin;
+          if(LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
+            if(!firstPage) {
+              createNewPage();
+              yPoint = currentPage.getMediaBox().getHeight() - margin;
+            }
+            FormLayout layout = formLayouts.get(layoutKey);
+            originalFormLayout = layout;
+            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+            renderFormLayout(initializedLayout);
+            firstPage = false;
           }
         }
       } else {
-        Iterator<FormLayout> iterator = formLayouts.values().iterator();
-        while (iterator.hasNext()) {
-          FormLayout layout = iterator.next();
-          originalFormLayout = layout;
-          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-          renderFormLayout(initializedLayout);
-          if (iterator.hasNext()) {
-            createNewPage();
-            yPoint = currentPage.getMediaBox().getHeight() - margin;
+        for(Map.Entry<String, FormLayout> formLayoutKeyValuePair : formLayouts.entrySet()) {
+          String layoutKey = formLayoutKeyValuePair.getKey();
+          if (LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
+            if(!firstPage) {
+              createNewPage();
+              yPoint = currentPage.getMediaBox().getHeight() - margin;
+            }
+            FormLayout layout = formLayoutKeyValuePair.getValue();
+            originalFormLayout = layout;
+            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+            renderFormLayout(initializedLayout);
+            firstPage = false;
           }
         }
       }
