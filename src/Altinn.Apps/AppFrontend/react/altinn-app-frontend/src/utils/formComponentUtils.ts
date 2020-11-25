@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
-import { IDataModelBindings, IComponentValidations, ITextResource } from 'src/types';
+import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
   const simpleBinding = dataModelBindings.simpleBinding;
@@ -57,7 +57,7 @@ export const getTextResource = (resourceKey: string, textResources: ITextResourc
   return textResource ? getParsedLanguageFromText(textResource.value) : resourceKey;
 };
 
-export function selectComponentTexts(textResources: ITextResource[], textResourceBindings: any) {
+export function selectComponentTexts(textResources: ITextResource[], textResourceBindings: ITextResourceBindings) {
   const result: any = {};
 
   Object.keys(textResourceBindings).forEach((key) => {
