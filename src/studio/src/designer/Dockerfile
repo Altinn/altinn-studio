@@ -77,10 +77,7 @@ COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/da
 
 ## Copying app template
 ## TODO: find out how to reference files outside docker context
-COPY /AppTemplates/AspNet/App ./Templates/AspNet/App
-COPY /AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
-COPY /AppTemplates/AspNet/.gitignore ./Templates/AspNet
-COPY /AppTemplates/AspNet/App.sln ./Templates/AspNet
+COPY /AppTemplates/AspNet ./Templates/AspNet
 
 COPY src/designer/backend/Languages/ini ./Languages
 
