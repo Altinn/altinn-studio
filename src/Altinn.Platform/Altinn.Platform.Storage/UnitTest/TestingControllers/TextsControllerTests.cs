@@ -112,7 +112,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         }
 
         /// <summary>
@@ -254,21 +253,22 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, responseDelete.StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden, responseCreate.StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden, responsePut.StatusCode);
-
         }
 
         private Mock<ITextRepository> CreateMockTextRepo()
         {
             Mock<ITextRepository> mockTextRepo = new Mock<ITextRepository>();
-            mockTextRepo.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string org, string app , string language) =>
-            {
-                if (org.Equals("testOrg") && app.Equals("testApp") && language.Equals("en"))
+            mockTextRepo
+                .Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync((string org, string app, string language) =>
                 {
-                    return new TextResource { Language = language};
-                }
+                    if (org.Equals("testOrg") && app.Equals("testApp") && language.Equals("en"))
+                    {
+                        return new TextResource { Language = language };
+                    }
 
-                return null;
-            });
+                    return null;
+                });
             mockTextRepo.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextResource>())).ReturnsAsync(new TextResource());
             mockTextRepo.Setup(s => s.Update(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextResource>())).ReturnsAsync(new TextResource());
             mockTextRepo.Setup(s => s.Delete(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);

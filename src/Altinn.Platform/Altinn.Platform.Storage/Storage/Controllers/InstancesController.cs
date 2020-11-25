@@ -37,9 +37,8 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
-        private readonly List<string> instanceReadScope = new List<string>()
+        private readonly List<string> _instanceReadScope = new List<string>()
         {
-            "altinn:instances.read",
             "altinn:serviceowner/instances.read"
         };
 
@@ -138,7 +137,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 isOrgQuerying = true;
 
-                if (!_authzHelper.ContainsRequiredScope(instanceReadScope, User))
+                if (!_authzHelper.ContainsRequiredScope(_instanceReadScope, User))
                 {
                     return Forbid();
                 }

@@ -1,8 +1,8 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks
@@ -16,24 +16,25 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         /// Generates a token with a self signed certificate included in the integration test project.
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
-        /// <param name="tokenExipry">How long the token should be valid for.</param>
+        /// <param name="tokenExpiry">How long the token should be valid for.</param>
+        /// <param name="issuer">The issuer identifier.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry, string issuer="UnitTest")
+        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExpiry, string issuer = "UnitTest")
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
                 SigningCredentials = GetSigningCredentials(),
                 Audience = "altinn.no",
                 Issuer = issuer
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-            string tokenstring = tokenHandler.WriteToken(token);
+            string serializedToken = tokenHandler.WriteToken(token);
 
-            return tokenstring;
+            return serializedToken;
         }
 
         private static SigningCredentials GetSigningCredentials()

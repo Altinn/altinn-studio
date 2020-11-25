@@ -30,7 +30,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             if (File.Exists(textResourcePath))
             {
                 string content = File.ReadAllText(textResourcePath);
-                TextResource textResource = JsonSerializer.Deserialize<TextResource>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
+                TextResource textResource = JsonSerializer.Deserialize<TextResource>(
+                    content,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 return Task.FromResult(textResource);
             }
 
@@ -102,6 +104,5 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\texts\" + id + ".json");
         }
-
     }
 }
