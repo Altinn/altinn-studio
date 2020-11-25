@@ -11,14 +11,24 @@
   },
   "dataTypes": [
     {
-      "id": "default",
+      "id": "nabovarsel",
       "allowedContentTypes": [ "application/xml" ],
       "maxCount": 1,
       "appLogic": {
-        "autoCreate": true,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Skjema"
+        "autoCreate": false,
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Melding"
       },
       "taskId": "Task_1"
+    },
+    {
+      "id": "skjema",
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate":false,
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Skjema"
+      },
+      "taskId": "Task_2"
     },
     {
       "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",

@@ -274,7 +274,7 @@ namespace App.IntegrationTests
         /// create a multipart request with instance and xml prefil.
         /// </summary>
         [Fact]
-        public async void Instance_Post_WithMultipartFormAndMessage()
+        public async void Instance_Post_NabovarselWithMessageAndForm ()
         {
             /* SETUP */
             string instanceOwnerPartyId = "1337";
@@ -289,15 +289,17 @@ namespace App.IntegrationTests
 
             string instance = JsonConvert.SerializeObject(instanceTemplate);
             string xml = File.ReadAllText("Data/Files/data-element.xml");
+            string xmlmelding = File.ReadAllText("Data/Files/melding.xml");
 
             string boundary = "abcdefgh";
             MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
             {
                 { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
-                { new StringContent(xml, Encoding.UTF8, "application/xml"), "default" }
+                { new StringContent(xml, Encoding.UTF8, "application/xml"), "skjema" },
+                { new StringContent(xmlmelding, Encoding.UTF8, "application/xml"), "melding" }
             };
 
-            Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
+            Uri uri = new Uri("/dibk/nabovarsel/instances", UriKind.Relative);
 
             /* TEST */
 
@@ -317,7 +319,7 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-            TestDataUtil.DeleteInstanceAndData("ttd", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]

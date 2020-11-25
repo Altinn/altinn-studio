@@ -9,17 +9,22 @@
   targetNamespace="http://bpmn.io/schema/bpmn" >
   <bpmn:process id="SingleDataTask" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:task id="Task_1" name="Utfylling" altinn:tasktype="data">
-      <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
+    <bpmn:task id="Task_1" name="Nabovarsel" altinn:tasktype="data">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Utfylling" altinn:tasktype="data">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
     </bpmn:task>
     <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="EndEvent_1" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
