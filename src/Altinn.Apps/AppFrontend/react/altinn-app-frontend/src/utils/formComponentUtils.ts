@@ -57,6 +57,16 @@ export const getTextResource = (resourceKey: string, textResources: ITextResourc
   return textResource ? getParsedLanguageFromText(textResource.value) : resourceKey;
 };
 
+export function selectComponentTexts(textResources: ITextResource[], textResourceBindings: any) {
+  const result: any = {};
+
+  Object.keys(textResourceBindings).forEach((key) => {
+    result[key] = getTextResource(textResourceBindings[key], textResources);
+  });
+
+  return result;
+}
+
 export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
   const componentValidations: any = {
     simpleBinding: {
