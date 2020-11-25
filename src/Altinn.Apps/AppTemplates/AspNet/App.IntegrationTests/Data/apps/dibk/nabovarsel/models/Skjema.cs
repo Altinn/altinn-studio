@@ -3,7 +3,7 @@ using System;
 using System.Xml.Serialization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-namespace App.IntegrationTests.Mocks.Apps.ttd.events
+namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
 {
     public class Skjema
     {

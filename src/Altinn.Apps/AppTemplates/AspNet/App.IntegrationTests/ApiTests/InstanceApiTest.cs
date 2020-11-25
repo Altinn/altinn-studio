@@ -301,8 +301,8 @@ namespace App.IntegrationTests
 
             /* TEST */
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
-            string token = PrincipalUtil.GetToken(1337);
+            HttpClient client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
+            string token = PrincipalUtil.GetOrgToken("dibk");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpResponseMessage response = await client.PostAsync(uri, formData);
@@ -317,7 +317,7 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("ttd", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]

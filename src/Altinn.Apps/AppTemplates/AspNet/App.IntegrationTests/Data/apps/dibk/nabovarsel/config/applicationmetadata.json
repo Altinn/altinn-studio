@@ -16,7 +16,7 @@
       "maxCount": 1,
       "appLogic": {
         "autoCreate": true,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.ttd.model_validation.Skjema"
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Skjema"
       },
       "taskId": "Task_1"
     },

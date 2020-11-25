@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
-namespace App.IntegrationTests.Mocks.Apps.ttd.events
+namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class AltinnApp : AppBase, IAltinnApp
