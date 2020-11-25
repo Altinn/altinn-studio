@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
@@ -216,6 +216,7 @@ function SchemaItem(props: StyledTreeItemProps) {
         </>
       )
     }
+    return null;
   };
 
   const RenderLabel = () => {
