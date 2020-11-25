@@ -269,6 +269,57 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
+
+        /// <summary>
+        /// create a multipart request with instance and xml prefil.
+        /// </summary>
+        [Fact]
+        public async void Instance_Post_WithMultipartFormAndMessage()
+        {
+            /* SETUP */
+            string instanceOwnerPartyId = "1337";
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId,
+                }
+            };
+
+            string instance = JsonConvert.SerializeObject(instanceTemplate);
+            string xml = File.ReadAllText("Data/Files/data-element.xml");
+
+            string boundary = "abcdefgh";
+            MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
+            {
+                { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
+                { new StringContent(xml, Encoding.UTF8, "application/xml"), "default" }
+            };
+
+            Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
+
+            /* TEST */
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await client.PostAsync(uri, formData);
+
+            response.EnsureSuccessStatusCode();
+
+            Assert.True(response.StatusCode == HttpStatusCode.Created);
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+            Assert.NotNull(createdInstance);
+            Assert.Single(createdInstance.Data);
+            Assert.Equal("default", createdInstance.Data[0].DataType);
+
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
         [Fact]
         public async Task Instance_Post_WithInstantiationValidationFail()
         {
