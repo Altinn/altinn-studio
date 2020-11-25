@@ -81,6 +81,8 @@ COPY /AppTemplates/AspNet/App ./Templates/AspNet/App
 COPY /AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
 COPY /AppTemplates/AspNet/.gitignore ./Templates/AspNet
 COPY /AppTemplates/AspNet/App.sln ./Templates/AspNet
+COPY /AppTemplates/AspNet/.dockerignore ./Templates/AspNet
+COPY /AppTemplates/AspNet/Dockerfile ./Templates/AspNet
 
 COPY src/designer/backend/Languages/ini ./Languages
 
