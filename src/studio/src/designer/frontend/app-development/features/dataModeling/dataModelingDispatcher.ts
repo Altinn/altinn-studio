@@ -6,7 +6,7 @@ export interface IDataModelingDispatchers extends ActionCreatorsMapObject {
   fetchDataModel: () => Action;
   fetchDataModelFulfilled: (result: any) => DataModelingActions.IFetchDataModelFulfilled;
   fetchDataModelRejected: (result: Error) => DataModelingActions.IFetchDataModelRejected;
-  saveDataModel: (url: string, schema: any) => DataModelingActions.ISaveDataModelAction;
+  saveDataModel: (schema: any) => DataModelingActions.ISaveDataModelAction;
   saveDataModelFulfilled: () => Action;
   saveDataModelRejected: (result: Error) => DataModelingActions.ISaveDataModelRejected;
   setDataModelFilePath: (filePath: string) => DataModelingActions.ISetDataModelFilePath;

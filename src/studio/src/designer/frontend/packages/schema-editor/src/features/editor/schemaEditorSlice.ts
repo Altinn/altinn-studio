@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { dataMock } from '../../mockData';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetValueAction, ItemType } from '../../types';
+import { ISchemaState, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
 const initialState: ISchemaState = {
   schema: dataMock,
@@ -25,22 +25,44 @@ const schemaEditorSlice = createSlice({
       }
     },
     addProperty(state, action) {
-      const {path, newKey} = action.payload;
-      const addToItem = state.uiSchema.find((item) => item.id === path);
-      const itemToAdd = {
+      const {path, newKey, content} = action.payload;
+
+      console.log('path: ', path);
+      let addToItem = state.uiSchema.find((item) => item.id === path);
+      const item = content[0];
+      let propertyItem = {
         id: `${path}/properties/${newKey}`,
         name: newKey,
-        $ref: `#/definitions/${newKey}`,
+        $ref: item.$ref,
       };
+      
       if (addToItem.properties) {
-        addToItem.properties.push(itemToAdd);
+        addToItem.properties.push(propertyItem);
       } else {
-        addToItem.properties = [itemToAdd];
+        addToItem.properties = [propertyItem];
       }
 
-      state.uiSchema.push({
-        id: `#/definitions/${newKey}`,
+      content.slice(1).forEach((uiSchemaItem: UiSchemaItem) => {
+        if (!state.uiSchema.find((item) => item.id === uiSchemaItem.id)) {
+          state.uiSchema.push(uiSchemaItem);
+        }
       });
+    },
+    addRootItem(state, action) {
+      const { itemsToAdd } = action.payload;
+      const rootItem = itemsToAdd[0];
+
+      const baseItem = {
+        id: '#/properties/melding',
+        $ref: rootItem.id,
+      };
+      state.uiSchema.push(baseItem);
+
+      itemsToAdd.forEach((item: UiSchemaItem) => {
+        state.uiSchema.push(item);
+      });
+
+      state.rootName = rootItem.id;
     },
     deleteField(state, action) {
       const {path, key} = action.payload;
@@ -95,11 +117,15 @@ const schemaEditorSlice = createSlice({
         propertyItem.id = `${rootPath}/properties/${name}`;
       }
     },
+    setRootName(state, action) {
+      const { rootName } = action.payload;
+      state.rootName = rootName;
+    },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
     },
     setUiSchema(state, action) {
-      const rootElementPath = state.schema.properties.melding.$ref;
+      const { rootElementPath } = action.payload; // state.schema.properties.melding.$ref;
       let uiSchema: any[] = [];
       Object.keys(state.schema).forEach((key) => {
         const uiSchemaPart = buildUISchema(state.schema[key], `#/${key}`);
@@ -122,12 +148,14 @@ const schemaEditorSlice = createSlice({
 export const {
   addField,
   addProperty,
+  addRootItem,
   deleteField,
   deleteProperty,
   setFieldValue,
   setKey,
   setJsonSchema,
   setPropertyName,
+  setRootName,
   setSaveSchemaUrl,
   setUiSchema,
   updateJsonSchema,

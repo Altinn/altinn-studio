@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, select } from 'redux-saga/effects';
+import { call, takeLatest, select, all, take } from 'redux-saga/effects';
 import { get, put } from 'app-shared/utils/networking';
 import { ISaveDataModelAction } from './dataModelingActions';
-import { FETCH_DATA_MODEL, SAVE_DATA_MODEL } from './dataModelingActionTypes';
+import { FETCH_DATA_MODEL, SAVE_DATA_MODEL, SET_DATA_MODEL_FILE_PATH } from './dataModelingActionTypes';
 import DataModelingDispatchers from './dataModelingDispatcher';
 import { getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
 
@@ -20,7 +20,11 @@ export function* fetchDataModelSaga(): SagaIterator {
 }
 
 export function* watchFetchDataModelSaga(): SagaIterator {
-  yield takeLatest(FETCH_DATA_MODEL, fetchDataModelSaga);
+  yield all([
+    take(FETCH_DATA_MODEL),
+    take(SET_DATA_MODEL_FILE_PATH),
+  ]);
+  yield call(fetchDataModelSaga);
 }
 
 export function* saveDatamodelSaga({ schema }: ISaveDataModelAction) {
