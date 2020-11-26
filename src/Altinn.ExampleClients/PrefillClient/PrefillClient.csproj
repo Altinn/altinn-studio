@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.6" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
