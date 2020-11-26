@@ -66,8 +66,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Created", User = new PlatformUser { UserId = 12 }, DataId = "33"},
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33"}
+                new InstanceEvent { EventType = "Created", User = new PlatformUser { UserId = 12 }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" }
             };
 
             // Act
@@ -86,8 +86,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" }
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" }
             };
 
             // Act
@@ -106,8 +106,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "1" },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "2" }
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "1" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "2" }
             };
 
             // Act
@@ -126,10 +126,10 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 14 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 14 } }
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 14 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 14 } }
             };
 
             // Act
@@ -151,10 +151,10 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 14 } },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 14 } }
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 14 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 14 } }
             };
 
             // Act
@@ -174,10 +174,10 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
             {
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { OrgId = "ttd" }, DataId = "33" },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { OrgId = "ttd" }, DataId = "33" },
-                new InstanceEvent{ EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" }
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { OrgId = "ttd" }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { OrgId = "ttd" }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" }
             };
 
             // Act
