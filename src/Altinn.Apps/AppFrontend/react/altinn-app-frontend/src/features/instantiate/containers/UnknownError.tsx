@@ -14,7 +14,8 @@ function UnknownError() {
     const customerSupport = getParsedLanguageFromKey(
       'instantiate.unknown_error_customer_support',
       language,
-      [language.general.customer_service_phone_number]);
+      [language.general.customer_service_phone_number],
+    );
 
     return (
       <>

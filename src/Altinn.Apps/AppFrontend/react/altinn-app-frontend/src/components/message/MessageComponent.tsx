@@ -9,11 +9,11 @@ export interface IMessageComponentProps {
   messageType: MessageType;
   message?: any;
   style?: any;
+  // eslint-disable-next-line no-undef
   children: JSX.Element;
 }
 
 export function MessageComponent(props: IMessageComponentProps) {
-
   return (
     <div
       id={props.id}

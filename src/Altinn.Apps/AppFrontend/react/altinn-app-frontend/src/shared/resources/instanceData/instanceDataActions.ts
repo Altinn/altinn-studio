@@ -4,9 +4,9 @@ import { store } from '../../../store';
 import * as GetInstanceData from './get/getInstanceDataActions';
 
 export interface IInstanceDataActions extends ActionCreatorsMapObject {
-  getInstanceData: ( instanceOwner: string, instanceId: string ) => GetInstanceData.IGetInstanceData;
-  getInstanceDataFulfilled: ( instanceData: any ) => GetInstanceData.IGetInstanceDataFulfilled;
-  getInstanceDataRejected: ( error: Error ) => GetInstanceData.IGetInstanceDataRejected;
+  getInstanceData: (instanceOwner: string, instanceId: string) => GetInstanceData.IGetInstanceData;
+  getInstanceDataFulfilled: (instanceData: any) => GetInstanceData.IGetInstanceDataFulfilled;
+  getInstanceDataRejected: (error: Error) => GetInstanceData.IGetInstanceDataRejected;
 }
 
 const actions: IInstanceDataActions = {

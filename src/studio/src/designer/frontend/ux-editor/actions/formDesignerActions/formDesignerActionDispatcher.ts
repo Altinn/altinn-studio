@@ -67,16 +67,16 @@ export interface IFormDesignerActionDispatchers
   deleteActiveListActionRejected: (
     error: Error,
   ) => FormDesignerActions.IDeleteActiveListActionRejected;
-  deleteFormComponent: (
-    id: string,
-  ) => FormDesignerActions.IDeleteComponentAction;
+  deleteFormComponents: (
+    components: string[],
+  ) => FormDesignerActions.IDeleteComponentsAction;
   deleteFormComponentFulfilled: (
     id: string,
     containerId: string,
   ) => FormDesignerActions.IDeleteComponentActionFulfilled;
-  deleteFormComponentRejected: (
+  deleteFormComponentsRejected: (
     error: Error,
-  ) => FormDesignerActions.IDeleteComponentActionRejected;
+  ) => FormDesignerActions.IDeleteComponentsActionRejected;
   deleteFormContainer: (
     id: string,
     index?: number,
@@ -297,10 +297,10 @@ const actions: IFormDesignerActionDispatchers = {
   deleteActiveListAction: FormDesignerActions.deleteActiveListAction,
   deleteActiveListActionFulfilled: FormDesignerActions.deleteActiveListActionFulfilled,
   deleteActiveListActionRejected: FormDesignerActions.deleteActiveListActionRejected,
-  deleteFormComponent: FormDesignerActions.deleteComponentAction,
+  deleteFormComponents: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
-  deleteFormComponentRejected:
+  deleteFormComponentsRejected:
     FormDesignerActions.deleteComponentActionRejected,
   deleteFormContainer: FormDesignerActions.deleteContainerAction,
   deleteFormContainerFulfilled: FormDesignerActions.deleteContainerActionFulfilled,

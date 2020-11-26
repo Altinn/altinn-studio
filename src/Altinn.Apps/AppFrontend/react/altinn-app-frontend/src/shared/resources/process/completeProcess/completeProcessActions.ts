@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import {ProcessSteps} from '../../../../types';
+import { ProcessSteps } from '../../../../types';
 import * as ActionTypes from '../processActionTypes';
 
 export interface ICompleteProcessFulfilled extends Action {

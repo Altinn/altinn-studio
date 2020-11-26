@@ -1,6 +1,6 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
 
@@ -63,12 +63,14 @@ module.exports = {
       },
       {
         test: /\.tsx?/,
-        loader: "awesome-typescript-loader",
+        use: [
+          { loader: "ts-loader", options: { transpileOnly: true }},
+        ]
       }
     ],
   },
   plugins: [
-    new CheckerPlugin(),
+    new ForkTsCheckerWebpackPlugin(),
     new HtmlWebPackPlugin({
       template: './public/index.html',
       filename: 'index.html'

@@ -23,9 +23,7 @@ export interface IResponse {
 }
 
 function* checkIfRuleShouldRunSaga({
-  lastUpdatedComponentId,
   lastUpdatedDataBinding,
-  lastUpdatedDataValue,
   repeatingContainerId,
 }: RuleActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
@@ -52,11 +50,10 @@ function* checkIfRuleShouldRunSaga({
           return;
         }
 
+        // eslint-disable-next-line consistent-return
         return call(FormDataActions.updateFormData, rule.dataBindingName, rule.result, rule.componentId);
-      }
-      ));
+      }));
     }
-
   } catch (err) {
     yield call(
       console.error,

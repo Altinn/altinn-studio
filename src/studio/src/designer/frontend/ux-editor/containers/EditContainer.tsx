@@ -215,11 +215,9 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
   public handleComponentDelete = (e: any): void => {
     const activeListLength = this.props.activeList.length;
     if (activeListLength > 1) {
-      this.props.activeList.forEach((component: any) => {
-        FormDesignerActionDispatchers.deleteFormComponent(component.id);
-      });
+      FormDesignerActionDispatchers.deleteFormComponents(this.props.activeList);
     } else {
-      FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
+      FormDesignerActionDispatchers.deleteFormComponents([this.props.id]);
     }
     FormDesignerActionDispatchers.deleteActiveListAction();
     e.stopPropagation();

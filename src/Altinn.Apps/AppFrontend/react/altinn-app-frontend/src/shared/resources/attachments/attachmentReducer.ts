@@ -23,9 +23,13 @@ const attachmentReducer: Reducer<IAttachmentState> = (
   }
   switch (action.type) {
     case (AttachmentActionsTypes.UPLOAD_ATTACHMENT): {
-      const { file, attachmentType, tmpAttachmentId }
-        = action as uploadActions.IUploadAttachmentAction;
+      const {
+        file,
+        attachmentType,
+        tmpAttachmentId,
+      } = action as uploadActions.IUploadAttachmentAction;
       if (!state.attachments[attachmentType]) {
+        // eslint-disable-next-line no-param-reassign
         state = update<IAttachmentState>(state, {
           attachments: {
             [attachmentType]: { $set: [] },
@@ -35,7 +39,13 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       return update<IAttachmentState>(state, {
         attachments: {
           [attachmentType]: {
-            $push: [{ name: file.name, size: file.size, uploaded: false, id: tmpAttachmentId, deleting: false }],
+            $push: [{
+              name: file.name,
+              size: file.size,
+              uploaded: false,
+              id: tmpAttachmentId,
+              deleting: false,
+            }],
           },
         },
       });
@@ -54,8 +64,11 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     }
 
     case (AttachmentActionsTypes.UPLOAD_ATTACHMENT_FULFILLED): {
-      const { attachment, attachmentType, tmpAttachmentId } =
-        action as uploadActions.IUploadAttachmentActionFulfilled;
+      const {
+        attachment,
+        attachmentType,
+        tmpAttachmentId,
+      } = action as uploadActions.IUploadAttachmentActionFulfilled;
       const index = state.attachments[attachmentType].findIndex((item) => item.id === tmpAttachmentId);
       if (index < 0) {
         return state;

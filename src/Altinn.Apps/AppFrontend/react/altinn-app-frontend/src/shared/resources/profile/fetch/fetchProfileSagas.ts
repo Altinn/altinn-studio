@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
+import { IProfile } from 'altinn-shared/types';
 import { get } from '../../../../utils/networking';
 import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
-import { IProfile } from 'altinn-shared/types';
 import QueueActions from '../../queue/queueActions';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {

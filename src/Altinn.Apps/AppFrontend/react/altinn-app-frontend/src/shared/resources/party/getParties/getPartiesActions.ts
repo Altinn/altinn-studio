@@ -19,7 +19,7 @@ export function getParties(): Action {
 export function getCurrentParty(): Action {
   return {
     type: ActionTypes.GET_CURRENT_PARTY,
-  }
+  };
 }
 
 export function getPartiesFulfilled(parties: IParty[]): IGetPartiesFulfilled {

@@ -22,7 +22,8 @@ import { getFormDataForComponent,
   isSimpleComponent,
   componentHasValidationMessages,
   getTextResource,
-  isComponentValid } from '../utils/formComponentUtils';
+  isComponentValid,
+  selectComponentTexts } from '../utils/formComponentUtils';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
 import Description from '../features/form/components/Description';
 
@@ -53,6 +54,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const texts: any = useSelector((state: IRuntimeState) => selectComponentTexts(state.textResources.resources, props.textResourceBindings));
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[props.id], shallowEqual);
@@ -113,14 +115,11 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderComponent = components.find((componentCandidate: any) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
-    const labelText = getTextResource(props?.textResourceBindings?.title, textResources);
-    const helpText = getTextResource(props?.textResourceBindings?.help, textResources);
     return (
       <Label
-        labelText={labelText}
-        helpText={helpText}
+        labelText={texts.title}
+        helpText={texts.help}
         language={language}
-        textResourceBindings={textResources}
         {...props}
         {...passThroughProps}
       />
@@ -131,10 +130,9 @@ export function GenericComponent(props: IGenericComponentProps) {
     if (!props.textResourceBindings.description) {
       return null;
     }
-    const descriptionText = getTextResource(props.textResourceBindings.description, textResources);
     return (
       <Description
-        description={descriptionText}
+        description={texts.description}
         id={id}
         {...passThroughProps}
       />
@@ -144,11 +142,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
-        labelText={getTextResource(props?.textResourceBindings?.title, textResources)}
-        descriptionText={getTextResource(props?.textResourceBindings?.description, textResources)}
-        helpText={getTextResource(props?.textResourceBindings?.help, textResources)}
+        labelText={texts.title}
+        descriptionText={texts.description}
+        helpText={texts.help}
         language={language}
-        textResourceBindings={textResources}
         {...props}
         {...passThroughProps}
       />
@@ -161,7 +158,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       return getTextResourceByKey(props.textResourceBindings.title, textResources);
     }
 
-    return getTextResource(props.textResourceBindings.title, textResources);
+    return texts.title;
   };
 
   const getTextResourceWrapper = (key: string) => {

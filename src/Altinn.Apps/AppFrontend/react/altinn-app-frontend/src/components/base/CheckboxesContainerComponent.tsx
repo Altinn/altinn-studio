@@ -1,5 +1,6 @@
 /* eslint-disable import/first */
 /* eslint-disable react/no-array-index-key */
+/* eslint-disable no-undef */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';

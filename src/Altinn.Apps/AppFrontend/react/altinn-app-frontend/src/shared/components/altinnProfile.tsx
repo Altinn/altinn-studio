@@ -1,4 +1,4 @@
-import {createStyles, Grid, Typography, WithStyles, withStyles} from '@material-ui/core';
+import { createStyles, Grid, Typography, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { IProfile } from 'altinn-shared/types';
 
@@ -33,7 +33,7 @@ function AltinnProfile(props: IAltinnProfileProps) {
   return (
     <Grid container={true}>
       <Grid item={true}>
-        <i className={classes.profileIcon + ' fa fa-private'}/>
+        <i className={`${classes.profileIcon} fa fa-private`}/>
       </Grid>
       <Grid item={true} className={classes.profileContent}>
         <Grid item={true}>

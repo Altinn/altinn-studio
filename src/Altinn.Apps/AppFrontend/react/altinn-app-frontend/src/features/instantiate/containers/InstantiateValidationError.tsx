@@ -15,7 +15,8 @@ function InstantiateValidationError(props: {message: string}) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_instantiate_validation_info_customer_service',
       language,
-      [language.general.customer_service_phone_number]);
+      [language.general.customer_service_phone_number],
+    );
   }
 
   function getCustomErrorMessage(message: string) {
@@ -29,7 +30,6 @@ function InstantiateValidationError(props: {message: string}) {
   }
 
   function createErrorContent() {
-
     const errorCustomerService = getCustomerService();
     const customErrorMessage = getCustomErrorMessage(props.message);
 
@@ -39,7 +39,6 @@ function InstantiateValidationError(props: {message: string}) {
         <br />
         <br />
         <span>{errorCustomerService}</span>
-        
       </>
     );
   }

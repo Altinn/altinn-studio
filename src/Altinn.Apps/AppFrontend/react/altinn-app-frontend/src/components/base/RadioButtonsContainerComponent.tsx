@@ -24,6 +24,7 @@ export interface IRadioButtonsContainerProps {
   preselectedOptionIndex: number;
   shouldFocus: boolean;
   title: string;
+  // eslint-disable-next-line no-undef
   legend: () => JSX.Element;
   getTextResource: (key: string) => string;
 }
