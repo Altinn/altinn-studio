@@ -122,6 +122,23 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal(2, instance.Data.Count);
             #endregion
 
+            #region end user gets application metadata
+
+            // Reset token and client to end user
+            client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
+            token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            httpRequestMessage =
+            new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/api/v1/applicationmetadata");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            Application application = (Application)JsonConvert.DeserializeObject(responseContent, typeof(Application));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            #endregion
+            
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
     }

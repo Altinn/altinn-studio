@@ -1,13 +1,13 @@
 {
-  "id": "ttd/events",
-  "org": "ttd",
+  "id": "dibk/nabovarsel",
+  "org": "dibk",
   "created": "2019-09-24T10:02:41.0839253Z",
   "createdBy": "Kritsi",
   "lastChanged": "2019-09-24T10:02:41.0839254Z",
   "lastChangedBy": "Kritsi",
   "title": {
-    "nb": "Endring av navn (RF-1453)",
-    "nb-NO": "Endring av navn (RF-1453)"
+    "nb": "Nabovarsel)",
+    "nb-NO": "Nabovarsel"
   },
   "dataTypes": [
     {
