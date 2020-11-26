@@ -11,12 +11,12 @@
   },
   "dataTypes": [
     {
-      "id": "nabovarsel",
+      "id": "melding",
       "allowedContentTypes": [ "application/xml" ],
       "maxCount": 1,
       "appLogic": {
         "autoCreate": false,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Melding"
+        "ClassRef": "App.IntegrationTestsRef.Data.apps.dibk.nabovarsel.Melding"
       },
       "taskId": "Task_1"
     },

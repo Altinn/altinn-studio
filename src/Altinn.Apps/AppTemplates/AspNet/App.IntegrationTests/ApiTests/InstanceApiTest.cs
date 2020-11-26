@@ -269,9 +269,8 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
-
         /// <summary>
-        /// create a multipart request with instance and xml prefil.
+        /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
         /// </summary>
         [Fact]
         public async void Instance_Post_NabovarselWithMessageAndForm ()
@@ -316,9 +315,9 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
 
             Assert.NotNull(createdInstance);
-            Assert.Single(createdInstance.Data);
-            Assert.Equal("default", createdInstance.Data[0].DataType);
-
+            Assert.Equal(2, createdInstance.Data.Count);
+            Assert.Equal("skjema", createdInstance.Data[1].DataType);
+            Assert.Equal("melding", createdInstance.Data[0].DataType);
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
