@@ -1,7 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit';
-import { IFetchDataModelFulfilled, IFetchDataModelRejected, ISaveDataModelAction, ISaveDataModelRejected } from './dataModelingActions';
+import { Action, createSlice } from '@reduxjs/toolkit';
+
+export interface IDataModelAction {
+  payload: IDataModelActionPayload;
+  type: string;
+}
+export interface IDataModelActionPayload {
+  schema: any;
+}
+
+export interface IDataModelErrorActionPayload extends Action {
+  error: Error;
+}
+
+export interface ISetDataModelFilePathActionPayload extends Action {
+  filePath: string;
+}
 
 export interface IDataModelingState {
   schema: any;
@@ -23,16 +38,16 @@ const dataModelingSlice = createSlice({
   reducers: {
     fetchDataModel(state, action) {},
     fetchDataModelFulfilled(state, action) {
-      const { schema }: IFetchDataModelFulfilled = action.payload;
+      const { schema } = action.payload;
       state.schema = schema;
       state.error = null;
     },
     fetchDataModelRejected(state, action) {
-      const { error }: IFetchDataModelRejected = action.payload;
+      const { error } = action.payload;
       state.error = error;
     },
     saveDataModel(state, action) {
-      const { schema }: ISaveDataModelAction = action.payload;
+      const { schema } = action.payload;
       state.schema = schema;
       state.saving = true;
     },
@@ -40,7 +55,7 @@ const dataModelingSlice = createSlice({
       state.saving = false;
     },
     saveDataModelRejected(state, action) {
-      const { error }: ISaveDataModelRejected = action.payload;
+      const { error } = action.payload;
       state.error = error;
       state.saving = false;
     },
@@ -58,6 +73,7 @@ export const {
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
+  setDataModelFilePath,
 } = dataModelingSlice.actions;
 
 export default dataModelingSlice.reducer;

@@ -1,10 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { dataMock } from '../../mockData';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
 import { ISchemaState, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
 const initialState: ISchemaState = {
-  schema: dataMock,
+  schema: {},
   uiSchema: [],
   rootName: '/',
   saveSchemaUrl: '',
@@ -33,7 +32,7 @@ const schemaEditorSlice = createSlice({
       let propertyItem = {
         id: `${path}/properties/${newKey}`,
         name: newKey,
-        $ref: item.$ref,
+        $ref: item.id,
       };
       
       if (addToItem.properties) {
@@ -42,7 +41,7 @@ const schemaEditorSlice = createSlice({
         addToItem.properties = [propertyItem];
       }
 
-      content.slice(1).forEach((uiSchemaItem: UiSchemaItem) => {
+      content.forEach((uiSchemaItem: UiSchemaItem) => {
         if (!state.uiSchema.find((item) => item.id === uiSchemaItem.id)) {
           state.uiSchema.push(uiSchemaItem);
         }
@@ -139,7 +138,7 @@ const schemaEditorSlice = createSlice({
       const updatedSchema = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
-        onSaveSchema(state.schema);
+        onSaveSchema(updatedSchema);
       }
     }
   }

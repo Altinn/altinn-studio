@@ -1,31 +1,31 @@
 import * as React from 'react';
-// import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
-import DataModelingActions from '../dataModelingDispatcher';
+import { fetchDataModel, saveDataModel, setDataModelFilePath } from '../dataModelingSlice';
 
-const filePath = 'App/models/RA-0678_M';
+// const filePath = 'App/models/RA-0678_M';
+export interface IDataModelingContainer {
+  filePath: string;
+}
 
-// TODO: Find out why using this component breaks the build, and uncomment the relevant code.
-
-function DataModelingContainer(): JSX.Element {
-  // const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
+function DataModelingContainer({ filePath }: IDataModelingContainer): JSX.Element {
+  const dispatch = useDispatch();
+  const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
 
   React.useEffect(() => {
-    DataModelingActions.setDataModelFilePath(filePath);
-    DataModelingActions.fetchDataModel();
-  }, []);
+    dispatch(setDataModelFilePath({ filePath }));
+    dispatch(fetchDataModel({}));
+  }, [dispatch]);
 
   const onSaveSchema = (schema: any) => {
-    DataModelingActions.saveDataModel(schema);
+    dispatch(saveDataModel({ schema }));
   };
 
   return (
     <SchemaEditorApp
-      schema={{
-        properties: {},
-      }}
+      schema={jsonSchema || {}}
       onSaveSchema={onSaveSchema}
-      rootItemId='#/'
+      rootItemId='#/definitions/RA-0678_M'
     />
   );
 }

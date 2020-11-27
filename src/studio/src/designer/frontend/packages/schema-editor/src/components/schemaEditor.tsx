@@ -36,7 +36,6 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
   const classes = useStyles();
   const dispatch = useDispatch();
   const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
-  console.log('shared items: ', sharedItems);
 
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
@@ -78,7 +77,6 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
   const onCloseAddPropertyModal = (property: any) => {
     if (property) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
-      console.log('ITEM tree. ', itemTree);
       const newProp = {
         path: addPropertyPath,
         newKey: property.name,

@@ -16,7 +16,7 @@ export interface IRouteProps {
   imageSource?: string;
   shadow?: boolean;
   iframeEndingUrl?: string;
-  saveUrl?: string;
+  filePath?: string;
 }
 
 export interface IRoute {
@@ -87,7 +87,6 @@ const routes: IRoute[] = [
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
       iframeEndingUrl: 'Model',
-      saveUrl: 'test',
     },
   },
   {
@@ -97,6 +96,9 @@ const routes: IRoute[] = [
     activeLeftMenuSelection: 'Datamodell',
     menu: 'create',
     subapp: DataModelingContainer,
+    props: {
+      filePath: 'App/models/RA-0678_M',
+    },
   },
   {
     path: '/accesscontrol',
