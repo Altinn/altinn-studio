@@ -336,7 +336,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"{BasePath}?appId=ttd/complete-test";
 
             HttpClient client = GetTestClient();
-            string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
+            string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             int expectedNoInstances = 4;
@@ -388,7 +388,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"{BasePath}?org=ttd";
 
             HttpClient client = GetTestClient();
-            string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
+            string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             int expectedNoInstances = 10;
@@ -490,7 +490,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"{BasePath}";
 
             HttpClient client = GetTestClient();
-            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.read");
+            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             string expected = "Org or AppId must be defined.";
 
@@ -514,7 +514,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"{BasePath}?org=testOrg";
 
             HttpClient client = GetTestClient();
-            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.write");
+            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:serviceowner/instances.write");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -535,7 +535,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"{BasePath}?org=paradiseHotelOrg";
 
             HttpClient client = GetTestClient();
-            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.read");
+            string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -654,7 +654,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Verify it is the stored instance that is returned
             Assert.Equal(6, updatedInstance.CompleteConfirmations[0].ConfirmedOn.Minute);
-
         }
 
         /// <summary>

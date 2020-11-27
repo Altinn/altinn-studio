@@ -25,7 +25,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
 
         public SasTokenProviderTests()
         {
-            _mockLogger= new Mock<ILogger<SasTokenProvider>>();
+            _mockLogger = new Mock<ILogger<SasTokenProvider>>();
 
             AzureStorageConfiguration storageSettings = new AzureStorageConfiguration
             {

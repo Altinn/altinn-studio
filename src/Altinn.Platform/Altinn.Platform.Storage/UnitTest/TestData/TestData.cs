@@ -31,21 +31,21 @@ namespace Altinn.Platform.Storage.UnitTest
 
         public static Dictionary<string, string> AppTitles_App1 { get; set; } = new Dictionary<string, string>()
         {
-            { "nb", "Test applikasjon 1 bokmål"},
-            { "en", "Test application 1 english"},
-            { "nn-NO", "Test applikasjon 1 nynorsk"}
+            { "nb", "Test applikasjon 1 bokmål" },
+            { "en", "Test application 1 english" },
+            { "nn-NO", "Test applikasjon 1 nynorsk" }
         };
 
         public static Dictionary<string, string> AppTitles_App2 { get; set; } = new Dictionary<string, string>()
         {
-             { "nb", "Test applikasjon 2 bokmål"},
-             { "en", "Test application 2 english"}
+            { "nb", "Test applikasjon 2 bokmål" },
+            { "en", "Test application 2 english" }
         };
 
         public static Dictionary<string, string> AppTitles_App3 { get; set; } = new Dictionary<string, string>()
         {
-            { "nb", "Test applikasjon 3 bokmål"},
-            { "nn-NO", "Test applikasjon 3 nynorsk"}
+            { "nb", "Test applikasjon 3 bokmål" },
+            { "nn-NO", "Test applikasjon 3 nynorsk" }
         };
 
         public static Application Application_1 { get; set; } = new Application()

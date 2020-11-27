@@ -36,7 +36,11 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         private static string GetInstancePath(int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances\", instanceOwnerId.ToString() ,instanceGuid.ToString() + @".json");
+            return Path.Combine(
+                unitTestFolder,
+                @"..\..\..\data\cosmoscollections\instances\",
+                instanceOwnerId.ToString(),
+                instanceGuid + @".json");
         }
 
         private static string GetDataPath()
