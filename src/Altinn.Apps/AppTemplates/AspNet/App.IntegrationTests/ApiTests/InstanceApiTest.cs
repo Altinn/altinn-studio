@@ -287,7 +287,7 @@ namespace App.IntegrationTests
             };
 
             string instance = JsonConvert.SerializeObject(instanceTemplate);
-            string xml = File.ReadAllText("Data/Files/data-element.xml");
+            string xml = File.ReadAllText("Data/Files/SvarPaaNabovarselType.xml");
             string xmlmelding = File.ReadAllText("Data/Files/melding.xml");
 
             string boundary = "abcdefgh";

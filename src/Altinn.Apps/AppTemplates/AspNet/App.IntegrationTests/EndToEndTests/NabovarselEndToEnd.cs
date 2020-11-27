@@ -73,6 +73,9 @@ namespace App.IntegrationTestsRef.EndToEndTests
             SvarPaaNabovarselType svar = new SvarPaaNabovarselType();
             svar.ansvarligSoeker = new PartType();
             svar.ansvarligSoeker.mobilnummer = "90912345";
+            svar.eiendomByggested = new EiendomListe();
+            svar.eiendomByggested.eiendom = new List<EiendomType>();
+            svar.eiendomByggested.eiendom.Add(new EiendomType() { adresse = new EiendommensAdresseType() { postnr = "8450" }, kommunenavn = "Hadsel" });
             string xml = string.Empty;
             using (var stringwriter = new System.IO.StringWriter())
             {
@@ -204,7 +207,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             #region Get Form DataElement
 
-            dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(instance.Process.CurrentTask.ElementId));
+            dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(processState.CurrentTask.ElementId));
 
             DataElement dataElementForm = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
 
