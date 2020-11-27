@@ -221,6 +221,38 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             #endregion
+            #region Update Form DataElement
+            string requestJson = JsonConvert.SerializeObject(skjema);
+            StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, instancePath + "/data/" + dataElementForm.Id)
+            {
+                Content = httpContent
+            };
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            #endregion
+            #region push to next step
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            #endregion
+
+            #region Get Status after next
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            #endregion
 
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
