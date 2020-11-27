@@ -22,6 +22,7 @@ using AltinnCore.Authentication.JwtCookie;
 
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
 using App.IntegrationTestsRef.Mocks.Services;
 using App.IntegrationTestsRef.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -138,7 +139,24 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             #endregion
-            
+
+            #region Get Message DataElement
+
+            DataType dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(instance.Process.CurrentTask.ElementId));
+
+            DataElement dataElementMessage = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/instances/" + instance.Id + "/data/" + dataElementMessage.Id)
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            Melding melding = (Melding)JsonConvert.DeserializeObject(responseContent, typeof(Melding));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Informasjon om tiltak", melding.MessageTitle);
+            #endregion
+
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
     }
