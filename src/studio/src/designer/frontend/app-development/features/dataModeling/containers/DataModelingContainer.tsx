@@ -25,9 +25,11 @@ function DataModelingContainer(): JSX.Element {
   );
 
   React.useEffect(() => {
-    dispatch(setDataModelFilePath({ filePath }));
-    dispatch(fetchDataModel({}));
-  }, [dispatch]);
+    if (filePath) {
+      dispatch(setDataModelFilePath({ filePath }));
+      dispatch(fetchDataModel({}));
+    }
+  }, [dispatch, filePath]);
 
   const onSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema }));
