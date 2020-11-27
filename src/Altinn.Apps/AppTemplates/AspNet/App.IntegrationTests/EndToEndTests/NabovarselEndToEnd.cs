@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
-
+using System.Xml.Serialization;
 using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
@@ -19,7 +19,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
-
+using App.IntegrationTests.Mocks.Apps.dibk.nabovarsel;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
@@ -70,9 +70,19 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 }
             };
 
+            SvarPaaNabovarselType svar = new SvarPaaNabovarselType();
+            svar.ansvarligSoeker = new PartType();
+            svar.ansvarligSoeker.mobilnummer = "90912345";
+            string xml = string.Empty;
+            using (var stringwriter = new System.IO.StringWriter())
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(SvarPaaNabovarselType));
+                serializer.Serialize(stringwriter, svar);
+                xml = stringwriter.ToString();
+            }
+
             #region Org instansiates form with message
             string instanceAsString = JsonConvert.SerializeObject(instanceTemplate);
-            string xml = File.ReadAllText("Data/Files/data-element.xml");
             string xmlmelding = File.ReadAllText("Data/Files/melding.xml");
 
             string boundary = "abcdefgh";
@@ -110,8 +120,10 @@ namespace App.IntegrationTestsRef.EndToEndTests
             token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            string instancePath = "/dibk/nabovarsel/instances/" + createdInstance.Id;
+
             HttpRequestMessage httpRequestMessage =
-            new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/instances/" + createdInstance.Id);
+            new HttpRequestMessage(HttpMethod.Get, instancePath);
 
             response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -146,7 +158,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             DataElement dataElementMessage = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
 
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/instances/" + instance.Id + "/data/" + dataElementMessage.Id)
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementMessage.Id)
             {
             };
 
@@ -155,6 +167,56 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Melding melding = (Melding)JsonConvert.DeserializeObject(responseContent, typeof(Melding));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Informasjon om tiltak", melding.MessageTitle);
+            #endregion
+
+            #region Get Status
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+
+            #endregion
+
+            // TODO. Add verification of not able to update message and check that statues is updated
+            #region push to next step
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            #endregion
+
+            #region Get Status after next
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+
+            #endregion
+
+            #region Get Form DataElement
+
+            dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(instance.Process.CurrentTask.ElementId));
+
+            DataElement dataElementForm = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementForm.Id)
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            SvarPaaNabovarselType skjema = (SvarPaaNabovarselType)JsonConvert.DeserializeObject(responseContent, typeof(SvarPaaNabovarselType));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
             #endregion
 
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));

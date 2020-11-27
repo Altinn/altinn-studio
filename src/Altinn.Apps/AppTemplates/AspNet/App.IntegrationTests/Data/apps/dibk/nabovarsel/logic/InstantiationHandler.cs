@@ -31,37 +31,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
 
         public async Task DataCreation(Instance instance, object data)
         {
-            if (data.GetType() == typeof(Skjema))
-            {
-                Skjema model = (Skjema)data;
-                string name = "Test Test 123";
-
-                if (model.Foretakgrp8820 == null)
-                {
-                    model.Foretakgrp8820 = new Foretakgrp8820()
-                    {
-                        EnhetNavnEndringdatadef31 = new EnhetNavnEndringdatadef31()
-                        {
-                            orid = 31,
-                            value = name
-                        }
-                    };
-                }
-                else if (model.Foretakgrp8820.EnhetNavnEndringdatadef31 == null)
-                {
-                    model.Foretakgrp8820.EnhetNavnEndringdatadef31 = new EnhetNavnEndringdatadef31()
-                    {
-                        orid = 31,
-                        value = name
-                    };
-                }
-                else
-                {
-                    model.Foretakgrp8820.EnhetNavnEndringdatadef31.value = name;
-                }
-            }
-
-            await Task.CompletedTask;
+           await Task.CompletedTask;
         }
     }
 }

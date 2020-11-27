@@ -25,8 +25,8 @@
       "allowedContentTypes": [ "application/xml" ],
       "maxCount": 1,
       "appLogic": {
-        "autoCreate":false,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.dibk.nabovarsel.Skjema"
+        "autoCreate": false,
+        "ClassRef": "App.IntegrationTestsRef.Data.apps.dibk.nabovarsel.SvarPaaNabovarselType"
       },
       "taskId": "Task_2"
     },
