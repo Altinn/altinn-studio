@@ -8,9 +8,21 @@ export interface IDataModelingContainer {
   filePath: string;
 }
 
-function DataModelingContainer({ filePath }: IDataModelingContainer): JSX.Element {
+function getDataModelFileType(applicationMetadata: any) {
+  if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
+  const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
+  if (dataTypeWithLogic) {
+    return `App/models/${dataTypeWithLogic.id}`;
+  }
+  return undefined;
+}
+
+function DataModelingContainer(): JSX.Element {
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
+  const filePath = useSelector(
+    (state: IServiceDevelopmentState) => getDataModelFileType(state.applicationMetadataState.applicationMetadata),
+  );
 
   React.useEffect(() => {
     dispatch(setDataModelFilePath({ filePath }));

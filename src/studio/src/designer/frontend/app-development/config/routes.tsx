@@ -96,9 +96,6 @@ const routes: IRoute[] = [
     activeLeftMenuSelection: 'Datamodell',
     menu: 'create',
     subapp: DataModelingContainer,
-    props: {
-      filePath: 'App/models/RA-0678_M',
-    },
   },
   {
     path: '/accesscontrol',
