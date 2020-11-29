@@ -240,6 +240,29 @@ namespace App.IntegrationTestsRef.EndToEndTests
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
 
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            #endregion
+            #region Update Form DataElement with missing value
+            skjema.nabo = new NaboGjenboerType();
+            skjema.nabo.epost = "ola.nordmann@online.no";
+            requestJson = JsonConvert.SerializeObject(skjema);
+            httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, instancePath + "/data/" + dataElementForm.Id)
+            {
+                Content = httpContent
+            };
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            #endregion
+            #region push to next step
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             #endregion
 

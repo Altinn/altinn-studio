@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -19,6 +19,15 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
 
         public async Task ValidateData(object instance, ModelStateDictionary validationResults)
         {
+            if (instance.GetType().Equals(typeof(SvarPaaNabovarselType)))
+            {
+                SvarPaaNabovarselType skjema = (SvarPaaNabovarselType) instance;
+                if (skjema.nabo == null)
+                {
+                    validationResults.AddModelError("nabo.epost",  "Error: Epost required");
+                }
+            }
+
             await Task.CompletedTask;
         }
 
