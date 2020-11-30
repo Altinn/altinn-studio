@@ -12,7 +12,7 @@ schedules:
   displayName: Bruksmønster
   branches:
     include:
-    - master
+    - test/change-trigger
   always: true
 
 steps:
