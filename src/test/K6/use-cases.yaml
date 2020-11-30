@@ -3,7 +3,8 @@ pool:
 
 name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
-trigger: none
+trigger:
+- test/change-trigger
 
 pr: none
 
