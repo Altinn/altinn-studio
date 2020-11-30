@@ -16,6 +16,8 @@ COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
 COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
 COPY ./src/designer/frontend/dashboard/package-lock.json ./dashboard/
+COPY ./src/designer/frontend/packages/schema-editor/package.json /packages/schema-editor/
+COPY ./src/designer/frontend/packages/schema-editor/package-lock.json /packages/schema-editor/
 
 RUN npm run install-deps
 
@@ -25,6 +27,7 @@ COPY ./src/designer/frontend/shared/ ./shared/
 COPY ./src/designer/frontend/app-development/ ./app-development/
 COPY ./src/designer/frontend/ux-editor ./ux-editor/
 COPY ./src/designer/frontend/dashboard/ ./dashboard/
+COPY ./src/designer/frontend/packages/schema-editor/ ./packages/schema-editor/
 
 # Build app-development
 RUN npm run build --prefix /app-development
