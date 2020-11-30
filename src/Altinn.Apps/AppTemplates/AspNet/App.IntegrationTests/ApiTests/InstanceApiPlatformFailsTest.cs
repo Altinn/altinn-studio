@@ -31,7 +31,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Fact]
