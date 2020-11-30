@@ -275,7 +275,7 @@ namespace App.IntegrationTests
         [Fact]
         public async void Instance_Post_NabovarselWithMessageAndForm ()
         {
-            /* SETUP */
+            // Arrange
             string instanceOwnerPartyId = "1337";
 
             Instance instanceTemplate = new Instance()
@@ -300,16 +300,15 @@ namespace App.IntegrationTests
 
             Uri uri = new Uri("/dibk/nabovarsel/instances", UriKind.Relative);
 
-            /* TEST */
-
+            // ACT
             HttpClient client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
             string token = PrincipalUtil.GetOrgToken("dibk");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpResponseMessage response = await client.PostAsync(uri, formData);
 
+            // Assert
             response.EnsureSuccessStatusCode();
-
             Assert.True(response.StatusCode == HttpStatusCode.Created);
 
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
