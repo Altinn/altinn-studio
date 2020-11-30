@@ -7,12 +7,27 @@ const useStyles = makeStyles({
   row: {
     paddingTop: '1.6em',
   },
+  select: {
+    fontSize: '1.2em',
+  },
+  customInput: {
+    border: 'none',
+    fontSize: '1.2em',
+    borderBottom: '1px solid #022F51',
+    marginBottom: '1.2em',
+    background: 'none',
+    cursor: 'pointer',
+  },
+  closeButton: {
+    marginTop: '1.6em',
+  }
 });
 
 export interface IAddPropertyModal {
   isOpen: boolean;
   path: string;
   sharedTypes: UiSchemaItem[];
+  title: string;
   onClose: (item: any) => void;
 }
 
@@ -22,6 +37,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
 
   const [property, setProperty] = React.useState<any>({ name: '' });
   const [typeList, setTypeList] = React.useState<any[]>([]);
+  const [showCustom, setShowCustom] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setTypeList(props.sharedTypes.map((item) => item.name));
@@ -37,26 +53,52 @@ function AddPropertyModal(props: IAddPropertyModal) {
     const item = props.sharedTypes.find((item) => item.name === name);
     setProperty(item);
   }
+
+  const onChangeCustomProperty = (event: any) => {
+    const property = {
+      name: event.target.value,
+      id: `#/definitions/${event.target.value}`
+    };
+    setProperty(property);
+  }
+
+  const onShowCustomClick = () => {
+    setShowCustom(true);
+  }
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onCloseModal}
       allowCloseOnBackdropClick={true}
+      closeButtonOutsideModal={true}
+      headerText={props.title}
     >
       <div className={classes.row}>
+        <h6>Velg fra listen</h6>
         <Select
           onChange={onChangeProperty}
           fullWidth={true}
+          className={classes.select}
         >
           {typeList.map((typeName) => <MenuItem value={typeName}>{typeName}</MenuItem>)}
         </Select>
       </div>
       <div className={classes.row}>
-        <TextField
-        value={property.name}
-        onChange={onChangeProperty}
-        fullWidth={true}
-        />
+        <span onClick={onShowCustomClick} className={classes.customInput}>Velg egendefinert property</span>
+        {showCustom && 
+          <div>
+            <h6>Skriv inn navn</h6>
+            <TextField
+            value={property.name}
+            onChange={onChangeCustomProperty}
+            fullWidth={true}
+            />
+          </div>
+        }
+      </div>
+      <div>
+        <button onClick={onCloseModal} className={classes.closeButton}>Ferdig</button>
       </div>
     </Modal>
   );

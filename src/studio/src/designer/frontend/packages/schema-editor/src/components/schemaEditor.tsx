@@ -111,6 +111,7 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
           path={addPropertyPath}
           onClose={onCloseAddPropertyModal}
           sharedTypes={sharedItems}
+          title={'Add property'}
         />
         <TreeView
           className={classes.root}
@@ -146,6 +147,7 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
           path={addPropertyPath}
           onClose={onCloseAddRootItemModal}
           sharedTypes={sharedItems}
+          title={'Add root item'}
         />
     </div>
     }
