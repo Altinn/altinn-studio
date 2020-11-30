@@ -17,14 +17,19 @@
     </bpmn:task>
     <bpmn:task id="Task_2" name="Utfylling" altinn:tasktype="data">
       <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_3" name="Bekreft" altinn:tasktype="confirm">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
     </bpmn:task>
     <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
     <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
-    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="EndEvent_1" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">

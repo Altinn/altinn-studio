@@ -6,31 +6,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Xml.Serialization;
 using Altinn.App;
 using Altinn.App.IntegrationTests;
-using Altinn.App.IntegrationTests.Mocks.Authentication;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Implementation;
-using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.JwtCookie;
-using App.IntegrationTests.Mocks.Apps.dibk.nabovarsel;
-using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
-using App.IntegrationTestsRef.Mocks.Services;
 using App.IntegrationTestsRef.Utils;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -40,14 +23,6 @@ namespace App.IntegrationTestsRef.EndToEndTests
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
-        private string org;
-        private string app;
-
-        private int instanceOwnerId;
-
-        private string instanceGuid;
-
-        private Instance instance;
         private readonly Dictionary<string, DataElement> dataElements = new Dictionary<string, DataElement>();
         private readonly Dictionary<string, object> dataBlobs = new Dictionary<string, object>();
 
@@ -56,6 +31,12 @@ namespace App.IntegrationTestsRef.EndToEndTests
             _factory = factory;
         }
 
+        /// <summary>
+        /// This test do the following
+        /// 1. Instansiates a app instance with a form and a message as an app
+        /// 2. End user calls instance API and get overview over the data in a instance
+        /// 3. End user calls application metadata to get an overview over 
+        /// </summary>
         [Fact]
         public async void NaboVarselEndToEndTest()
         {
@@ -183,6 +164,16 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             #endregion
 
+            #region Validate instance
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/validate");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            #endregion
+
             // TODO. Add verification of not able to update message and check that statues is updated
             #region push to next step
 
@@ -242,6 +233,15 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             #endregion
+
+            #region Validate data in Task_2 (the form)
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/validate");
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+            Assert.Single(messages);
+            #endregion
+
             #region Update Form DataElement with missing value
             skjema.nabo = new NaboGjenboerType();
             skjema.nabo.epost = "ola.nordmann@online.no";
@@ -256,10 +256,25 @@ namespace App.IntegrationTestsRef.EndToEndTests
             responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             #endregion
-            #region push to next step
 
+            #region push to confirm task
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            #endregion
 
+            #region Get Status after next
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process");
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Task_3", processState.CurrentTask.ElementId);
+            #endregion
+
+            #region push to end step
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
 
@@ -275,6 +290,8 @@ namespace App.IntegrationTestsRef.EndToEndTests
             responseContent = await response.Content.ReadAsStringAsync();
             processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Null(processState.CurrentTask);
+            Assert.Equal("EndEvent_1", processState.EndEvent);
             #endregion
 
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));

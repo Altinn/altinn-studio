@@ -316,8 +316,6 @@ namespace App.IntegrationTests
 
             Assert.NotNull(createdInstance);
             Assert.Equal(2, createdInstance.Data.Count);
-            Assert.Equal("skjema", createdInstance.Data[1].DataType);
-            Assert.Equal("melding", createdInstance.Data[0].DataType);
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
