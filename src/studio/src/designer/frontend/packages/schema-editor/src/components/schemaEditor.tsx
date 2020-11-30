@@ -104,14 +104,14 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
   return (
     <>
     {uiSchema && uiSchema.length > 0 &&
-      <div className={classes.root}>
+      <div id='schema-editor' className={classes.root}>
         <button className={classes.button} onClick={onClickSaveJsonSchema}>Save data model</button>
         <AddPropertyModal
           isOpen={addPropertyModalOpen}
           path={addPropertyPath}
           onClose={onCloseAddPropertyModal}
           sharedTypes={sharedItems}
-          title={'Add property'}
+          title='Add property'
         />
         <TreeView
           className={classes.root}
@@ -140,14 +140,14 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
       </div>
     }
     {uiSchema && uiSchema.length === 0 &&
-    <div className={classes.root}>
+    <div id='schema-editor' className={classes.root}>
       <button className={classes.button} onClick={onAddRootItemClick}>Add root item</button>
       <AddPropertyModal
           isOpen={addPropertyModalOpen}
           path={addPropertyPath}
           onClose={onCloseAddRootItemModal}
           sharedTypes={sharedItems}
-          title={'Add root item'}
+          title='Add root item'
         />
     </div>
     }
