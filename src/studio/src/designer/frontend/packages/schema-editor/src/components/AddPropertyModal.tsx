@@ -81,7 +81,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
           fullWidth={true}
           className={classes.select}
         >
-          {typeList.map((typeName) => <MenuItem value={typeName}>{typeName}</MenuItem>)}
+          {typeList.map((typeName) => <MenuItem value={typeName} key={typeName}>{typeName}</MenuItem>)}
         </Select>
       </div>
       <div className={classes.row}>
