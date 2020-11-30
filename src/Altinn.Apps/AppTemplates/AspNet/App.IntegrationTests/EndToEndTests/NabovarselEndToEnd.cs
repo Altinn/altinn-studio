@@ -35,7 +35,18 @@ namespace App.IntegrationTestsRef.EndToEndTests
         /// This test do the following
         /// 1. Instansiates a app instance with a form and a message as an app
         /// 2. End user calls instance API and get overview over the data in a instance
-        /// 3. End user calls application metadata to get an overview over 
+        /// 3. End user calls application metadata to get an overview over where data should be shown.
+        /// 4. Gets the data for Task_1
+        /// 5. Validate instance
+        /// 6. Push instance to Task_2
+        /// 7. Gets data for Task 2
+        /// 8. Tries to push to next task, but got error cause of validation error
+        /// 9. Validation data
+        /// 10. Updates data to correct it
+        /// 11. Push to next
+        /// 12. Verify Process state
+        /// 13. Push to next and end task
+        /// 14. Verify Process state
         /// </summary>
         [Fact]
         public async void NaboVarselEndToEndTest()
@@ -154,46 +165,35 @@ namespace App.IntegrationTestsRef.EndToEndTests
             #endregion
 
             #region Get Status
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
-            {
-            };
-
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
-
+            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
             #endregion
 
-            #region Validate instance
+            #region Validate instance (the message element)
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/validate");
-
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
-
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
-
+            Assert.Empty(messages);
             #endregion
 
             // TODO. Add verification of not able to update message and check that statues is updated
             #region push to next step
-
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
-
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             #endregion
 
             #region Get Status after next
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
-            {
-            };
-
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
-
+            Assert.Equal("Task_2", processState.CurrentTask.ElementId);
             #endregion
 
             #region Get Form DataElement
@@ -225,12 +225,9 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             #endregion
             #region push to next step
-
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
-
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
-
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             #endregion
 
@@ -247,7 +244,6 @@ namespace App.IntegrationTestsRef.EndToEndTests
             skjema.nabo.epost = "ola.nordmann@online.no";
             requestJson = JsonConvert.SerializeObject(skjema);
             httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, instancePath + "/data/" + dataElementForm.Id)
             {
                 Content = httpContent
@@ -277,15 +273,11 @@ namespace App.IntegrationTestsRef.EndToEndTests
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             #endregion
 
             #region Get Status after next
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process")
-            {
-            };
-
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
