@@ -16,9 +16,9 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string, itemType: 
   return schemaItem;
 }
 
-export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaItem, property?: boolean): UiSchemaItem[] {
+export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaItem, isProperty?: boolean): UiSchemaItem[] {
   let itemList: UiSchemaItem[] = [];
-  if (!property) {
+  if (!isProperty) {
     itemList.push(item);
   }
 

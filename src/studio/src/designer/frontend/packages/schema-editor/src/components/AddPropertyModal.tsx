@@ -50,16 +50,16 @@ function AddPropertyModal(props: IAddPropertyModal) {
 
   const onChangeProperty = (event: any) => {
     const name = event.target.value;
-    const item = props.sharedTypes.find((item) => item.name === name);
-    setProperty(item);
+    const propertyItem = props.sharedTypes.find((item) => item.name === name);
+    setProperty(propertyItem);
   }
 
   const onChangeCustomProperty = (event: any) => {
-    const property = {
+    const propertyItem = {
       name: event.target.value,
       id: `#/definitions/${event.target.value}`
     };
-    setProperty(property);
+    setProperty(propertyItem);
   }
 
   const onShowCustomClick = () => {

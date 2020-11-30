@@ -27,7 +27,7 @@ const schemaEditorSlice = createSlice({
       const {path, newKey, content} = action.payload;
 
       console.log('path: ', path);
-      let addToItem = state.uiSchema.find((item) => item.id === path);
+      let addToItem = state.uiSchema.find((i) => i.id === path);
       const item = content[0];
       let propertyItem = {
         id: `${path}/properties/${newKey}`,
@@ -42,7 +42,7 @@ const schemaEditorSlice = createSlice({
       }
 
       content.forEach((uiSchemaItem: UiSchemaItem) => {
-        if (!state.uiSchema.find((item) => item.id === uiSchemaItem.id)) {
+        if (!state.uiSchema.find((i) => i.id === uiSchemaItem.id)) {
           state.uiSchema.push(uiSchemaItem);
         }
       });
