@@ -8,11 +8,13 @@ trigger: none
 pr: none
 
 schedules:
-- cron: "0 */1 * * *"
+- cron: "0 * * * *"
   displayName: Bruksmønster
   branches:
     include:
     - test/change-trigger
+    exclude:
+    - master
   always: true
 
 steps:
