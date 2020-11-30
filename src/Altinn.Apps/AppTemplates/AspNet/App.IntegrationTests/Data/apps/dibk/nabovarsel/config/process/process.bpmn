@@ -7,7 +7,7 @@
   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
   targetNamespace="http://bpmn.io/schema/bpmn" >
-  <bpmn:process id="SingleDataTask" isExecutable="false">
+  <bpmn:process id="TwinDataTaskWithConfirm" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
     </bpmn:startEvent>
