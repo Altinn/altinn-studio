@@ -1,0 +1,69 @@
+pool:
+  name: Altinn Test Self Hosted VM
+
+name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
+
+trigger: none
+
+pr: none
+
+schedules:
+- cron: "0 * * * *"
+  displayName: Bruksmønster
+  branches:
+    include:
+    - master
+  always: true
+
+steps:
+- task: DeleteFiles@1
+  displayName: 'Delete test results'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '*.xml'
+  condition: succeededOrFailed()
+
+- script: |   
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey)
+   
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Authentication'
+  continueOnError: false
+  condition: succeededOrFailed()
+
+- script: |   
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit portal.xml
+
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit multipart.xml   
+   
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'App'
+  continueOnError: true
+  condition: succeeded()
+
+- script: |   
+
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit sbl.xml   
+   
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Platform'
+  continueOnError: true
+  condition: succeeded()
+
+- script: |   
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Cleanup'
+  continueOnError: true
+  condition: succeeded()
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFiles: '*.xml'
+    searchFolder: '$(Build.SourcesDirectory)'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: '$(environment)_use_cases'
+  condition: succeededOrFailed()
