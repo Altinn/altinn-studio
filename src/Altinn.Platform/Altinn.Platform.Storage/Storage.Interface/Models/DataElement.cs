@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.ComponentModel;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
@@ -71,6 +71,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "refs")]
         public List<Guid> Refs { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the element is read.
+        /// </summary>
+        [JsonProperty(PropertyName = "isRead")]
+        [DefaultValue(true)]
+        public bool? IsRead { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()
