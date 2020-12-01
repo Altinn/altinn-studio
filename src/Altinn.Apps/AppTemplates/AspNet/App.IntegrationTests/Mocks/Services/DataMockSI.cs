@@ -155,26 +155,20 @@ namespace App.IntegrationTests.Mocks.Services
 
             DataElement dataElement = instance.Data.FirstOrDefault(r => r.Id.Equals(dataId.ToString()));
 
-            try
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            using (Stream stream = File.Open(dataPath + @"blob\" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
             {
-                Directory.CreateDirectory(dataPath + @"blob");
-
-                using (Stream stream = File.Open(dataPath + @"blob\" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
-                {
-                    XmlSerializer serializer = new XmlSerializer(type);
-                    serializer.Serialize(stream, dataToSerialize);
-                }
-
-                dataElement.LastChanged = DateTime.Now;
-                string jsonData = JsonConvert.SerializeObject(dataElement);
-                using StreamWriter sw = new StreamWriter(dataPath + dataId.ToString() + @".json");
-
-                sw.Write(jsonData.ToString());
-                sw.Close();
+                XmlSerializer serializer = new XmlSerializer(type);
+                serializer.Serialize(stream, dataToSerialize);
             }
-            catch
-            {
-            }
+
+            dataElement.LastChanged = DateTime.Now;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataId.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
 
             return Task.FromResult(dataElement);
         }
