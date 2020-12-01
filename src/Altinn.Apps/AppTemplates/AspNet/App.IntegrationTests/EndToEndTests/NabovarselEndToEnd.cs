@@ -131,32 +131,19 @@ namespace App.IntegrationTestsRef.EndToEndTests
             #endregion
 
             #region end user gets application metadata
-
-            // Reset token and client to end user
-            client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
-            token = PrincipalUtil.GetToken(1337);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            httpRequestMessage =
-            new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/api/v1/applicationmetadata");
-
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/dibk/nabovarsel/api/v1/applicationmetadata");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             Application application = (Application)JsonConvert.DeserializeObject(responseContent, typeof(Application));
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             #endregion
 
             #region Get Message DataElement
 
+            // In this application the message element is connected to Task_1. Find the datatype for this task and retrive this from storage
             DataType dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(instance.Process.CurrentTask.ElementId));
-
             DataElement dataElementMessage = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
-
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementMessage.Id)
-            {
-            };
-
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementMessage.Id);
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             Melding melding = (Melding)JsonConvert.DeserializeObject(responseContent, typeof(Melding));
