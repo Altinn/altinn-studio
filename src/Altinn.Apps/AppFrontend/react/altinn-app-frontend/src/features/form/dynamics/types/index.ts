@@ -7,6 +7,12 @@ export interface IConditionalRenderingRule {
   selectedAction: string;
   selectedFields: ISelectedFields;
   inputParams: IParameters;
+  repeatingGroup?: IConditionalRenderingRepeatingGroup;
+}
+
+export interface IConditionalRenderingRepeatingGroup {
+  groupId: string;
+  dataModelBinding: string;
 }
 
 export interface IParameters {

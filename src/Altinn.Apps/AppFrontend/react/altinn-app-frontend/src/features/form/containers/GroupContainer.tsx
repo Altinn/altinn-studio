@@ -6,7 +6,7 @@ import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, Tab
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { useSelector } from 'react-redux';
-import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
+import { getLanguageFromKey, getTextResourceByKey, returnBaseUrlToAltinn } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
@@ -126,6 +126,18 @@ const useStyles = makeStyles({
   },
 });
 
+export function getHiddenFieldsForGroup(hiddenFields: string[], components: ILayoutComponent[]) {
+  const result = [];
+  hiddenFields.forEach((fieldKey) => {
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
+      result.push(fieldKey);
+    }
+  });
+
+  return result;
+}
+
 export function GroupContainer({
   id,
   container,
@@ -136,6 +148,7 @@ export function GroupContainer({
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
+  const hiddenFields: string[] = useSelector((state: IRuntimeState) => getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
@@ -215,14 +228,17 @@ export function GroupContainer({
           dataModelBindings,
           id: deepCopyId,
           baseComponentId: componentDeepCopy.id,
+          hidden: hiddenFields.includes(`${deepCopyId}[${i}]`),
         };
       });
       componentArray.push(childComponents);
     }
+    console.log('COMPONENT ARRAY: ', componentArray);
     return componentArray;
   };
 
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents();
+  console.log('HIDDEN FIELDS: ', hiddenFields);
 
   return (
     <>
