@@ -223,12 +223,13 @@ export function GroupContainer({
           dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
         });
         const deepCopyId = `${componentDeepCopy.id}-${i}`;
+        const hidden: boolean = !!hiddenFields.find((field) => field === `${deepCopyId}[${i}]`);
         return {
           ...componentDeepCopy,
           dataModelBindings,
           id: deepCopyId,
           baseComponentId: componentDeepCopy.id,
-          hidden: hiddenFields.includes(`${deepCopyId}[${i}]`),
+          hidden,
         };
       });
       componentArray.push(childComponents);
