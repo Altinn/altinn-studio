@@ -16,6 +16,10 @@ export function runConditionalRenderingRules(
     return componentsToHide;
   }
 
+  if (!rules || Object.keys(rules).length === 0) {
+    return componentsToHide;
+  }
+
   Object.keys(rules).forEach((key) => {
     if (!key) {
       return;
