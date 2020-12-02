@@ -215,6 +215,8 @@ namespace App.IntegrationTestsRef.EndToEndTests
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
+
+            // Expect conflict since the form contains validation errors that needs to be resolved before moving to next task in process.
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             #endregion
 
