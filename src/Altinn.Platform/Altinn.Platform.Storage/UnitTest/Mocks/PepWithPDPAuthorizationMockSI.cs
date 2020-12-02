@@ -125,7 +125,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         {
             decisionRequest = await Enrich(decisionRequest);
 
-             XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
+            XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);

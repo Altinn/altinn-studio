@@ -510,7 +510,8 @@ namespace Altinn.Platform.Storage.Repository
                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                        .Where(i => i.Status.Archived.HasValue)
                        .Where(i => !i.Status.SoftDeleted.HasValue)
-                       .Where(i => !i.Status.HardDeleted.HasValue);
+                       .Where(i => !i.Status.HardDeleted.HasValue)
+                       .OrderByDescending(i => i.Status.Archived);
             }
             else
             {

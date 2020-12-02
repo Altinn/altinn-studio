@@ -269,6 +269,55 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
+        /// <summary>
+        /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
+        /// </summary>
+        [Fact]
+        public async void Instance_Post_NabovarselWithMessageAndForm ()
+        {
+            // Arrange
+            string instanceOwnerPartyId = "1337";
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId,
+                }
+            };
+
+            string instance = JsonConvert.SerializeObject(instanceTemplate);
+            string xml = File.ReadAllText("Data/Files/SvarPaaNabovarselType.xml");
+            string xmlmelding = File.ReadAllText("Data/Files/melding.xml");
+
+            string boundary = "abcdefgh";
+            MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
+            {
+                { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
+                { new StringContent(xml, Encoding.UTF8, "application/xml"), "skjema" },
+                { new StringContent(xmlmelding, Encoding.UTF8, "application/xml"), "melding" }
+            };
+
+            Uri uri = new Uri("/dibk/nabovarsel/instances", UriKind.Relative);
+
+            // ACT
+            HttpClient client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
+            string token = PrincipalUtil.GetOrgToken("dibk");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await client.PostAsync(uri, formData);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.True(response.StatusCode == HttpStatusCode.Created);
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+            Assert.NotNull(createdInstance);
+            Assert.Equal(2, createdInstance.Data.Count);
+            TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
         [Fact]
         public async Task Instance_Post_WithInstantiationValidationFail()
         {

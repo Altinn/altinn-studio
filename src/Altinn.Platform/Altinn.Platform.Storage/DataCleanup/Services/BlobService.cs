@@ -60,7 +60,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             catch (Exception e)
             {
                 _sasTokenProvider.InvalidateSasToken(instance.Org);
-                _logger.LogError(e, $"BlobSerivce // DeleteDataBlobs // Exeption: {e.Message}");
+                _logger.LogError(e, $"BlobSerivce // DeleteDataBlobs // Org: {instance.Org} // Exeption: {e.Message}");
                 return false;
             }
 

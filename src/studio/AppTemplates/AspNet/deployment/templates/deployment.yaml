@@ -43,6 +43,10 @@ spec:
               value: "/mnt/keys"
           ports:
             - containerPort: {{ .Values.service.internalPort }}
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 3000
+            allowPrivilegeEscalation: false
           {{- if .Values.volumeMounts}}
           volumeMounts:
             {{- range $mount := .Values.volumeMounts}}

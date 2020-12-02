@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
@@ -6,7 +6,6 @@ import { InputField } from './InputField';
 import { setKey,
   setFieldValue,
   addField,
-  addProperty,
   deleteProperty,
   setPropertyName, 
   deleteField} from '../features/editor/schemaEditorSlice';
@@ -17,7 +16,8 @@ import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
-  item: any
+  item: any;
+  onAddPropertyClick: (property: any) => void;
 };
 
 const useStyles = makeStyles({
@@ -102,9 +102,9 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const onAddPropertyClick = (event: any) => {
     const path = definitionItem?.id || id;
-    dispatch(addProperty({
-      path,
-      newKey: 'newProp',}));
+
+    props.onAddPropertyClick(path);
+
     event.preventDefault();
   };
 
@@ -166,6 +166,7 @@ function SchemaItem(props: StyledTreeItemProps) {
               key={property.id}
               item={property}
               nodeId={property.id}
+              onAddPropertyClick={props.onAddPropertyClick}
             />
           )
         })
@@ -216,6 +217,7 @@ function SchemaItem(props: StyledTreeItemProps) {
         </>
       )
     }
+    return null;
   };
 
   const RenderLabel = () => {

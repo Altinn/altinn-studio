@@ -22,7 +22,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
     alias: {
       "app-shared": path.resolve(__dirname, "../shared/"),
-      "@altinn/schema-editor": path.resolve(__dirname, "../packages/schema-editor/"),
+      "@altinn/schema-editor": path.resolve(__dirname, "../packages/schema-editor/src/"),
       //"ux-editor": path.resolve(__dirname, "../ux-editor/")
     }
   },

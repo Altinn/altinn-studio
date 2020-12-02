@@ -9,7 +9,7 @@ import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReduce
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 import { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
-import { IDataModelingState } from '../features/dataModeling/dataModelingReducer';
+import { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 
 declare global {
   export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
