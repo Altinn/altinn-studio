@@ -99,7 +99,10 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "autodelete-true":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.autodelete_true.AltinnApp>();
-                            break;                            
+                            break;
+                        case "nabovarsel":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
