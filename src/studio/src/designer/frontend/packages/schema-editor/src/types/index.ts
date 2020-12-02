@@ -28,4 +28,5 @@ export type UiSchemaItem = {
   fields?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
+  name?: string;
 }

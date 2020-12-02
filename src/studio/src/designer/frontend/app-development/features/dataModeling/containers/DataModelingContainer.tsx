@@ -1,31 +1,42 @@
 import * as React from 'react';
-// import { useSelector } from 'react-redux';
-// import { SchemaEditorApp } from '@altinn/schema-editor';
-// import DataModelingActions from '../dataModelingDispatcher';
-// import { getDataModelUrl, saveDataModelUrl } from '../../../utils/urlHelper';
+import { useDispatch, useSelector } from 'react-redux';
+import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
+import { fetchDataModel, saveDataModel, setDataModelFilePath } from '../dataModelingSlice';
 
-// const filePath = 'App/models/RA-0678_M';
+export interface IDataModelingContainer {
+  filePath: string;
+}
 
-// TODO: Find out why using this component breaks the build, and uncomment the relevant code.
+function getDataModelTypeName(applicationMetadata: any) {
+  if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
+  const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
+  return dataTypeWithLogic.id;
+}
 
 function DataModelingContainer(): JSX.Element {
-  // const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
-  // React.useEffect(() => {
-  //   DataModelingActions.fetchDataModel(getDataModelUrl(filePath));
-  // }, []);
+  const dispatch = useDispatch();
+  const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
+  const dataModelName = useSelector(
+    (state: IServiceDevelopmentState) => getDataModelTypeName(state.applicationMetadataState.applicationMetadata),
+  );
 
-  // const onSaveSchema = (schema: any) => {
-  //   const url = saveDataModelUrl(filePath);
-  //   DataModelingActions.saveDataModel(url, schema);
-  // };
+  React.useEffect(() => {
+    if (dataModelName) {
+      dispatch(setDataModelFilePath({ filePath: `App/models/${dataModelName}` }));
+      dispatch(fetchDataModel({}));
+    }
+  }, [dispatch, dataModelName]);
+
+  const onSaveSchema = (schema: any) => {
+    dispatch(saveDataModel({ schema }));
+  };
 
   return (
-    // <SchemaEditorApp
-    //   schema={jsonSchema}
-    //   onSaveSchema={onSaveSchema}
-    //   rootItemId='#/properties/melding'
-    // />
-    <h4>Data modelling</h4>
+    <SchemaEditorApp
+      schema={jsonSchema || {}}
+      onSaveSchema={onSaveSchema}
+      rootItemId={`#/definitions/${dataModelName}`}
+    />
   );
 }
 

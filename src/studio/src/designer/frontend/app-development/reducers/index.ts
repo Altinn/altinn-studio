@@ -8,7 +8,7 @@ import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelea
 import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
-import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingReducer';
+import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 
 export interface IServiceDevelopmentReducers
   extends IServiceDevelopmentNameSpace<
