@@ -1,0 +1,10 @@
+{
+    "baseUrl": "http://altinn3.no",
+    "env": {
+        "userName": "testuser",
+        "userPwd": "Studio@123",
+        "testEmail": "test1@test.com",
+        "appOwner": "ttd"
+    },
+    "video": false
+}
