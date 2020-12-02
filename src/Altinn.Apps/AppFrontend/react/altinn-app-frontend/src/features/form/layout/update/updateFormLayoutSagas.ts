@@ -1,7 +1,8 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { ILayoutComponent } from '..';
+import { ILayoutComponent, ILayoutGroup } from '..';
 import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
 import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups } from './updateFormLayoutActions';
@@ -31,7 +32,7 @@ function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator 
   }
 }
 
-function* updateAutoSaveSaga({ autoSave } : IUpdateAutoSave): SagaIterator {
+function* updateAutoSaveSaga({ autoSave }: IUpdateAutoSave): SagaIterator {
   try {
     yield call(FormLayoutActions.updateAutoSaveFulfilled, autoSave);
   } catch (err) {
@@ -47,12 +48,28 @@ function* updateRepeatingGroupsSaga({
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
-    const updatedRepeatingGroups = {
+    const newCount = remove ? currentCount - 1 : currentCount + 1;
+    let updatedRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
       [layoutElementId]: {
-        count: remove ? currentCount - 1 : currentCount + 1,
+        count: newCount,
       },
     };
+
+    const childGroups: (ILayoutGroup | ILayoutComponent)[] = formLayoutState.layouts[formLayoutState.uiConfig.currentView].filter((
+      (element) => (element.type === 'Group') && element.id !== layoutElementId));
+
+    childGroups.forEach((group: ILayoutGroup) => {
+      [...Array(newCount + 1)].forEach((_x: any, childGroupIndex: number) => {
+        const groupId = `${group.id}-${childGroupIndex}`;
+        updatedRepeatingGroups = {
+          ...updatedRepeatingGroups,
+          [groupId]: {
+            count: Number.isInteger(updatedRepeatingGroups[groupId]?.count) ? updatedRepeatingGroups[groupId]?.count: -1,
+          },
+        };
+      });
+    });
 
     yield call(FormLayoutActions.updateRepeatingGroupsFulfilled, updatedRepeatingGroups);
 

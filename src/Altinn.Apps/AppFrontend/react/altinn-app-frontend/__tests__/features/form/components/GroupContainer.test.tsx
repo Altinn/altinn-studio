@@ -91,7 +91,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     ];
 
     mockLayout = {
-      layout: [
+      layouts: { FormLayout: [
         {
           id: 'mock-container-id',
           type: 'group',
@@ -105,7 +105,7 @@ describe('>>> features/form/components/Group.tsx', () => {
             'field4',
           ],
         },
-      ].concat(mockComponents),
+      ].concat(mockComponents)},
       uiConfig: {
         hiddenFields: [],
         repeatingGroups: {
@@ -114,6 +114,7 @@ describe('>>> features/form/components/Group.tsx', () => {
           },
         },
         autosave: false,
+        currentView: 'FormLayout'
       },
     };
 

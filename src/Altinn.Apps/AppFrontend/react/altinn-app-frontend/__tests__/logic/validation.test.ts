@@ -539,7 +539,7 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
-    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(validations, 2, children, {}, mockLayoutState.layouts.FormLayout)).toBeFalsy();
   });
 
   it('+++ repeatingGroupHasValidations should return false when no components in group has errors', () => {
@@ -554,10 +554,10 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
-    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(validations, 2, children, {}, mockLayoutState.layouts.FormLayout)).toBeFalsy();
   });
 
   it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
-    expect(validation.repeatingGroupHasValidations(null, null, null)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(null, null, null, null, null)).toBeFalsy();
   });
 });

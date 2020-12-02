@@ -59,8 +59,8 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
     return keyWithIndex;
   }
 
-  return keyWithIndex.substring(0, keyWithIndex.indexOf('['))
-    + keyWithIndex.substring(keyWithIndex.indexOf(']') + 1);
+  return getKeyWithoutIndex(keyWithIndex.substring(0, keyWithIndex.indexOf('['))
+    + keyWithIndex.substring(keyWithIndex.indexOf(']') + 1));
 }
 
 /**
@@ -73,7 +73,7 @@ export function flattenObject(data: any, index: boolean = false): any {
   Object.keys(data).forEach((i) => {
     if (!i || (!data[i] && data[i] !== 0)) return;
     if (Array.isArray(data[i]) || typeof data[i] === 'object') {
-      const flatObject = flattenObject(data[i], true);
+      const flatObject = flattenObject(data[i], Array.isArray(data[i]));
       Object.keys(flatObject).forEach((x) => {
         if (!x || (!flatObject[x] && flatObject[x] !== 0)) return;
         let key = '';

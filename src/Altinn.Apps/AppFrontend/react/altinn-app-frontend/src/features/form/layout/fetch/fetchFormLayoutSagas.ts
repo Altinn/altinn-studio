@@ -29,7 +29,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
       layouts.FormLayout = layoutResponse.data.layout;
       firstLayoutKey = 'FormLayout';
       autoSave = layoutResponse.data.autoSave;
-      repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey] as [ILayoutComponent|ILayoutGroup],
+      repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey],
         formDataState.formData);
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
@@ -41,7 +41,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
         autoSave = layoutResponse[key].data.autoSave;
         repeatingGroups = {
           ...repeatingGroups,
-          ...getRepeatingGroups(layouts[key] as [ILayoutComponent|ILayoutGroup], formDataState.formData),
+          ...getRepeatingGroups(layouts[key], formDataState.formData),
         };
       });
     }

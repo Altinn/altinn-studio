@@ -810,14 +810,25 @@ export function componentHasValidations(validations: IValidations, componentId: 
 export function repeatingGroupHasValidations(
   validations:IValidations,
   repeatingGroupCount: number,
-  children: ILayoutComponent[],
+  children: ILayout,
+  repeatingGroups: IRepeatingGroups,
+  layout: ILayout
 ): boolean {
   if (!validations || !repeatingGroupCount || !children) {
     return false;
   }
   return [...Array(repeatingGroupCount)].some((_x: any, index: number) => {
-    return children.some((component: ILayoutComponent) => {
-      return componentHasValidations(validations, `${component.id}-${index}`);
+    return children.some((component: ILayoutComponent | ILayoutGroup) => {
+      if (component.type === 'Group') {
+        const childGroup = component as ILayoutGroup;
+        if (!childGroup.maxCount || childGroup.maxCount < 0) {
+          return false;
+        }
+        const childGroupComponents = layout?.filter(element => childGroup.children?.indexOf(element.id) > -1);
+        return repeatingGroupHasValidations(validations, repeatingGroups[childGroup.id + '-' + index].count + 1, childGroupComponents, repeatingGroups, layout);
+      } else {
+        return componentHasValidations(validations, `${component.id}-${index}`);
+      }
     });
   });
 }
