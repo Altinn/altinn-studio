@@ -6,7 +6,7 @@ import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, Tab
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { useSelector } from 'react-redux';
-import { getLanguageFromKey, getTextResourceByKey, returnBaseUrlToAltinn } from 'altinn-shared/utils';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
@@ -233,12 +233,10 @@ export function GroupContainer({
       });
       componentArray.push(childComponents);
     }
-    console.log('COMPONENT ARRAY: ', componentArray);
     return componentArray;
   };
 
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents();
-  console.log('HIDDEN FIELDS: ', hiddenFields);
 
   return (
     <>

@@ -1,6 +1,6 @@
 import { IAltinnWindow, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 import { IFormData } from '../features/form/data/formDataReducer';
-import { IConditionalRenderingRule, IConditionalRenderingRules } from '../features/form/dynamics/types';
+import { IConditionalRenderingRule, IConditionalRenderingRules, IParameters, ISelectedFields } from '../features/form/dynamics/types';
 
 /*
 * Runs conditional rendering rules, returns array of affected layout elements
@@ -23,27 +23,38 @@ export function runConditionalRenderingRules(
 
     const connection: IConditionalRenderingRule = rules[key];
     if (connection.repeatingGroup) {
-      const repeatingGroup: IRepeatingGroup = repeatingGroups[connection.repeatingGroup.groupId];
-      for (let i = 0; i <= repeatingGroup.count; ++i) {
-        const repeatingGroupConnection: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
-        Object.keys(repeatingGroupConnection.inputParams).forEach((inputParamKey) => {
-          const field = repeatingGroupConnection.inputParams[inputParamKey];
-          if (field.startsWith(connection.repeatingGroup.dataModelBinding)) {
-            repeatingGroupConnection.inputParams[inputParamKey] =
-              field.replace(connection.repeatingGroup.dataModelBinding, `${connection.repeatingGroup.dataModelBinding}[${i}]`);
-          }
-        });
-        Object.keys(repeatingGroupConnection.selectedFields).forEach((fieldKey) => {
-          repeatingGroupConnection.selectedFields[fieldKey] += `-${i}`;
-        });
-        componentsToHide = componentsToHide.concat(runConditionalRenderingRule(repeatingGroupConnection, formData));
-      }
+      const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
+      mapRepeatingGroupIndex(repeatingGroups, connectionCopy.inputParams, connection.repeatingGroup?.groupId, true);
+      mapRepeatingGroupIndex(repeatingGroups, connectionCopy.selectedFields, connection.repeatingGroup?.groupId, false);
+      componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connectionCopy, formData));
     } else {
       componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connection, formData));
     }
   });
 
   return componentsToHide;
+}
+
+function mapRepeatingGroupIndex(
+  repeatingGroups: IRepeatingGroups,
+  ruleObject: IParameters | ISelectedFields,
+  repeatingGroupId: string,
+  dataModelField?: boolean,
+) {
+  if (!dataModelField && !repeatingGroupId) return;
+  let groupId;
+  Object.keys(ruleObject).forEach((key) => {
+    const field = ruleObject[key];
+    if (field.indexOf('{0}') > -1) {
+      groupId = repeatingGroupId || field.substr(0, field.indexOf('{'));
+      const repeatingGroup: IRepeatingGroup = repeatingGroups[groupId];
+      if (!repeatingGroup) return;
+      for (let i = 0; i <= repeatingGroup.count; ++i) {
+        // eslint-disable-next-line no-param-reassign
+        ruleObject[key] = field.replace('{0}', dataModelField ? `[${i}]` : `-${i}`);
+      }
+    }
+  });
 }
 
 function runConditionalRenderingRule(rule: IConditionalRenderingRule, formData: IFormData) {
