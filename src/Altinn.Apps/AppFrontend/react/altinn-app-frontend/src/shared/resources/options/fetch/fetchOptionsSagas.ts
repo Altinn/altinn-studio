@@ -19,7 +19,7 @@ export function* fetchOptionsSaga(): SagaIterator {
     for (const layoutId of Object.keys(layouts)) {
       for (const element of layouts[layoutId]) {
         const component = element as any;
-        if (component.optionsId && fetchedOptions.indexOf(component.optionsId) >= 0) {
+        if (component.optionsId && fetchedOptions.indexOf(component.optionsId) === -1) {
           yield fork(fetchSpecificOptionSaga, component.optionsId);
           fetchedOptions.push(component.optionsId);
         }
