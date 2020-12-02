@@ -31,10 +31,10 @@
       "taskId": "Task_2"
     },
     {
-      "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "id": "nabovarselvedlegg",
       "taskId": "Task_1",
       "maxSize": 1,
-      "maxCount": 1,
+      "maxCount": 100,
       "minCount": 0
     }
   ]
