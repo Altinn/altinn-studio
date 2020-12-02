@@ -812,7 +812,7 @@ export function repeatingGroupHasValidations(
   repeatingGroupCount: number,
   children: ILayout,
   repeatingGroups: IRepeatingGroups,
-  layout: ILayout
+  layout: ILayout,
 ): boolean {
   if (!validations || !repeatingGroupCount || !children) {
     return false;
@@ -824,11 +824,10 @@ export function repeatingGroupHasValidations(
         if (!childGroup.maxCount || childGroup.maxCount < 0) {
           return false;
         }
-        const childGroupComponents = layout?.filter(element => childGroup.children?.indexOf(element.id) > -1);
-        return repeatingGroupHasValidations(validations, repeatingGroups[childGroup.id + '-' + index].count + 1, childGroupComponents, repeatingGroups, layout);
-      } else {
-        return componentHasValidations(validations, `${component.id}-${index}`);
+        const childGroupComponents = layout?.filter((element) => childGroup.children?.indexOf(element.id) > -1);
+        return repeatingGroupHasValidations(validations, repeatingGroups[`${childGroup.id}-${index}`].count + 1, childGroupComponents, repeatingGroups, layout);
       }
+      return componentHasValidations(validations, `${component.id}-${index}`);
     });
   });
 }

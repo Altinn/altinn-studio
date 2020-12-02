@@ -255,11 +255,10 @@ export function GroupContainer({
                     if (!childGroup.maxCount || childGroup.maxCount < 0) {
                       return false;
                     }
-                    const childGroupComponents = layout?.filter(element => childGroup.children?.indexOf(element.id) > -1);
-                    return repeatingGroupHasValidations(validations, repeatingGroups[childGroup.id + '-' + repeatingGroupIndex].count + 1, childGroupComponents, repeatingGroups, layout);
-                  } else {
-                    return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
+                    const childGroupComponents = layout?.filter((element) => childGroup.children?.indexOf(element.id) > -1);
+                    return repeatingGroupHasValidations(validations, repeatingGroups[`${childGroup.id}-${repeatingGroupIndex}`].count + 1, childGroupComponents, repeatingGroups, layout);
                   }
+                  return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
                 return (
                   <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={repeatingGroupIndex}>
@@ -301,11 +300,10 @@ export function GroupContainer({
                 if (!childGroup.maxCount || childGroup.maxCount < 0) {
                   return false;
                 }
-                const childGroupComponents = layout?.filter(element => childGroup.children?.indexOf(element.id) > -1);
-                return repeatingGroupHasValidations(validations, repeatingGroups[childGroup.id + '-' + repeatingGroupIndex].count + 1, childGroupComponents, repeatingGroups, layout);
-              } else {
-                return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
+                const childGroupComponents = layout?.filter((element) => childGroup.children?.indexOf(element.id) > -1);
+                return repeatingGroupHasValidations(validations, repeatingGroups[`${childGroup.id}-${repeatingGroupIndex}`].count + 1, childGroupComponents, repeatingGroups, layout);
               }
+              return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
             return (
               <Grid

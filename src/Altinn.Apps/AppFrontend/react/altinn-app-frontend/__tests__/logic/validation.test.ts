@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';

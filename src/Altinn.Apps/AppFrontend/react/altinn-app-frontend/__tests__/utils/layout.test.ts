@@ -21,7 +21,7 @@ describe('>>> layout.ts', () => {
         id: 'Group2',
         type: 'Group',
         dataModelBindings: {
-          group: 'Group1.Group2'
+          group: 'Group1.Group2',
         },
         maxCount: 4,
         children: [
@@ -53,34 +53,34 @@ describe('>>> layout.ts', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent
+      } as ILayoutComponent,
     ];
     const formData = {
       'Group1[0].prop1': 'value-0-1',
-      "Group1[0].Group2[0].group2prop": 'group2-0-0-value',
+      'Group1[0].Group2[0].group2prop': 'group2-0-0-value',
       'Group1[1].prop1': 'value-1-1',
-      "Group1[1].Group2[0].group2prop": 'group2-1-0-value',
-      "Group1[1].Group2[1].group2prop": 'group2-1-1-value',
-      "Group1[1].Group2[2].group2prop": 'group2-1-2-value',
-      "Group1[1].Group2[3].group2prop": 'group2-1-3-value',
-      "Group1[1].Group2[4].group2prop": 'group2-1-3-value',
+      'Group1[1].Group2[0].group2prop': 'group2-1-0-value',
+      'Group1[1].Group2[1].group2prop': 'group2-1-1-value',
+      'Group1[1].Group2[2].group2prop': 'group2-1-2-value',
+      'Group1[1].Group2[3].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[4].group2prop': 'group2-1-3-value',
       'Group1[2].prop1': 'value-2-1',
-      "Group1[2].Group2[0].group2prop": 'group2-2-1-value',
-      "Group1[2].Group2[1].group2prop": 'group2-2-2-value',
-    }
+      'Group1[2].Group2[0].group2prop': 'group2-2-1-value',
+      'Group1[2].Group2[1].group2prop': 'group2-2-2-value',
+    };
     const expected = {
-      'Group1': {
+      Group1: {
         count: 2,
       },
       'Group2-0': {
-        count: 0
+        count: 0,
       },
       'Group2-1': {
-        count: 4
+        count: 4,
       },
       'Group2-2': {
-        count: 1
-      }
+        count: 1,
+      },
     };
     const result = getRepeatingGroups(testLayout, formData);
     expect(result).toEqual(expected);
@@ -135,7 +135,7 @@ describe('>>> layout.ts', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent
+      } as ILayoutComponent,
     ];
     const formData = {
       'Group1[0].prop1': 'value-0-1',
@@ -145,16 +145,16 @@ describe('>>> layout.ts', () => {
       'Group2[0].prop1': 'value-0-1',
       'Group2[1].prop1': 'value-1-1',
       'Group2[2].prop1': 'value-2-1',
-    }
+    };
     const expected = {
-      'Group1': {
+      Group1: {
         count: 3,
       },
-      'Group2': {
+      Group2: {
         count: 2,
-      }
+      },
     };
     const result = getRepeatingGroups(testLayout, formData);
     expect(result).toEqual(expected);
   });
-})
+});
