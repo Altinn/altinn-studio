@@ -36,7 +36,6 @@
   },
   "plugins": [
     "react",
-    "jest/recommended",
     "@typescript-eslint"
   ],
   "ignorePatterns": [
