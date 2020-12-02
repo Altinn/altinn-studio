@@ -1,4 +1,5 @@
 import 'jest';
+import { IConditionalRenderingRules } from '../../src/features/form/dynamics/types';
 import { runConditionalRenderingRules } from '../../src/utils/conditionalRendering';
 
 describe('>>> utils/conditionalRendering.ts', () => {
@@ -131,4 +132,34 @@ describe('>>> utils/conditionalRendering.ts', () => {
     expect(result.length).toBe(0);
   });
 
+  it('+++ conditional rendering rules should run as expected for repeating groups', () => {
+    const showRules: IConditionalRenderingRules = {
+      ruleId: {
+        selectedFunction: 'biggerThan10',
+        inputParams: {
+          number: 'mockGroup{0}.mockField',
+        },
+        selectedFields: {
+          selectedField_1: 'layoutElement_2{0}',
+          selectedField_2: 'layoutElement_3{0}',
+        },
+        selectedAction: 'Show',
+        repeatingGroup: {
+          groupId: 'group_1',
+        },
+      },
+    };
+    const repeatingGroups = {
+      group_1: {
+        count: 0,
+      },
+    };
+
+    const formData = {
+      'mockGroup[0].mockField': 8,
+    };
+
+    const result = runConditionalRenderingRules(showRules, formData, repeatingGroups);
+    expect(result).toEqual(['layoutElement_2-0', 'layoutElement_3-0']);
+  });
 });

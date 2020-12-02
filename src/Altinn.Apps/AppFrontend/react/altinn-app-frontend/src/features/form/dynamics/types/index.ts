@@ -12,7 +12,6 @@ export interface IConditionalRenderingRule {
 
 export interface IConditionalRenderingRepeatingGroup {
   groupId: string;
-  dataModelBinding: string;
 }
 
 export interface IParameters {
