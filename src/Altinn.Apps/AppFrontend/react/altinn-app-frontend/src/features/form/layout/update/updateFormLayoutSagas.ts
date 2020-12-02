@@ -65,7 +65,7 @@ function* updateRepeatingGroupsSaga({
         updatedRepeatingGroups = {
           ...updatedRepeatingGroups,
           [groupId]: {
-            count: Number.isInteger(updatedRepeatingGroups[groupId]?.count) ? updatedRepeatingGroups[groupId]?.count: -1,
+            count: Number.isInteger(updatedRepeatingGroups[groupId]?.count) ? updatedRepeatingGroups[groupId]?.count : -1,
           },
         };
       });

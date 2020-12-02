@@ -11,7 +11,7 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
-import { ILayoutComponent, ILayoutGroup, ILayouts } from '../index';
+import { ILayouts } from '../index';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
