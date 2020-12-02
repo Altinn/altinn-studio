@@ -37,6 +37,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="processService">The service giving access the App process.</param>
         /// <param name="pdfService">The service giving access to the PDF generator.</param>
         /// <param name="prefillService">The service giving access to prefill mechanisms.</param>
+        /// <param name="instanceService">A service giving access to data about an instance.</param>
         protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
@@ -89,7 +90,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
-            _logger.LogInformation($"OnInstantiate: GetStartEvent");
+            _logger.LogInformation("OnInstantiate: GetStartEvent");
 
             // return start event
             return Task.FromResult("StartEvent_1");
@@ -116,7 +117,7 @@ namespace Altinn.App.Services.Implementation
 
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
-                _logger.LogInformation($"autocreate data element: {dataType.Id}");
+                _logger.LogInformation($"Auto create data element: {dataType.Id}");
 
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
@@ -132,7 +133,7 @@ namespace Altinn.App.Services.Implementation
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
-                    _logger.LogInformation($"created data element: {createdDataElement.Id}");
+                    _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
             }
         }
@@ -192,7 +193,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
             
-            if(_appMetadata.AutoDeleteOnProcessEnd) 
+            if (_appMetadata.AutoDeleteOnProcessEnd) 
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
