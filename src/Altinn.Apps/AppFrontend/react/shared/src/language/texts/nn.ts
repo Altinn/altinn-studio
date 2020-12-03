@@ -130,6 +130,7 @@ export function nn() {
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finn du meir informasjon om roller og rettar</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukarservice {0}.',
       authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukarservice {0}.',
+      starting: 'Hald på hatten, no startar vi!',
     },
     party_selection: {
       error_caption_prefix: 'Feil',

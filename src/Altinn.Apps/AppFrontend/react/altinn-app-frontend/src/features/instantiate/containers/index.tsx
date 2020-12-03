@@ -8,6 +8,7 @@ import { AltinnAppHeader, AltinnModal } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -29,6 +30,8 @@ const styles = () => createStyles({
   },
 });
 
+const titleKey = 'instantiate.starting';
+
 export interface IPartyValidation {
   valid: boolean;
   message: string;
@@ -49,6 +52,10 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
+  const titleText: any = useSelector((state: IRuntimeState) => {
+    const text = getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
+    return text === titleKey ? '' : text;
+  });
 
   const createNewInstance = () => {
     if (!selectedParty) {
@@ -85,7 +92,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           onClose={null}
           hideBackdrop={true}
           hideCloseIcon={true}
-          headerText='Hold deg fast, nå starter vi!'
+          headerText={titleText}
         >
           <ContentLoader
             height={200}

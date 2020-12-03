@@ -132,6 +132,7 @@ export function en() {
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Learn more about roles and rights</a>.',
       authorization_error_info_customer_service: 'You can also contact customer service at {0}.',
       authorization_error_instantiate_validation_info_customer_service: 'If you need help, contact customer service at {0}.',
+      starting: 'Seatbelts on, it\'s time to launch!',
     },
     party_selection: {
       caption_prefix: 'Feil',
