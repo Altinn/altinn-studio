@@ -12,16 +12,34 @@ namespace Altinn.Platform.Storage.Interface.Models
     public class InstanceStatus
     {
         /// <summary>
+        /// Gets or sets if the instance is archived.
+        /// </summary>
+        [JsonProperty(PropertyName = "isArchived")]
+        public bool IsArchived { get; set; }
+
+        /// <summary>
         /// Gets or sets the date the instance was archived.
         /// </summary>
         [JsonProperty(PropertyName = "archived")]
         public DateTime? Archived { get; set; }
 
         /// <summary>
+        /// Gets or sets if the instance is soft deleted.
+        /// </summary>
+        [JsonProperty(PropertyName = "isSoftDeleted")]
+        public bool IsSoftDeleted { get; set; }
+
+        /// <summary>
         /// Gets or sets the date the instance was deleted.
         /// </summary>
         [JsonProperty(PropertyName = "softDeleted")]
         public DateTime? SoftDeleted { get; set; }
+
+        /// <summary>
+        /// Gets or sets if the instance is hard deleted.
+        /// </summary>
+        [JsonProperty(PropertyName = "isHardDeleted")]
+        public bool IsHardDeleted { get; set; }
 
         /// <summary>
         /// Gets or sets the date the instance was marked for hard delete by user.
