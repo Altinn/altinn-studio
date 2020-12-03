@@ -4,7 +4,7 @@ import { call,
   takeLatest,
   all,
   take } from 'redux-saga/effects';
-import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
+import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormActions from '../formDataActions';
@@ -46,7 +46,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
 
-    const currentTaskDataId = getCurrentTaskDataTypeId(applicationMetadata, instance);
+    const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
     const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}/data/${currentTaskDataId}`;
     const fetchedData: any = yield call(get, url);
 
