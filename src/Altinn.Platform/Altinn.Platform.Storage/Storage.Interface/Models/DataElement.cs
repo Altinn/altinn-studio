@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
@@ -76,8 +75,18 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets a value indicating whether the element is read.
         /// </summary>
         [JsonProperty(PropertyName = "isRead")]
-        [DefaultValue(true)]
-        public bool? IsRead { get; set; }
+        public bool? IsRead 
+        { 
+            get 
+            { 
+                return IsRead.HasValue ? IsRead : true;
+            } 
+
+            set 
+            { 
+                IsRead = value; 
+            } 
+        }
 
         /// <inheritdoc/>
         public override string ToString()
