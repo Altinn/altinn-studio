@@ -15,7 +15,10 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
-    "softDeleted": "2020-04-29T13:53:06.117891Z"
+    "softDeleted": "2020-04-29T13:53:06.117891Z",
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": true
   },
   "appOwner": {},
   "data": [

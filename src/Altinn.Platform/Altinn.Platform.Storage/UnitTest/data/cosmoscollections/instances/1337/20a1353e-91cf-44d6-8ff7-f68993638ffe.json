@@ -18,7 +18,10 @@
     "startEvent": "StartEvent_1"
   },
   "status": {
-    "archived": "2020-04-29T13:53:06.117891Z"
+    "archived": "2020-04-29T13:53:06.117891Z",
+    "isArchived": true,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
   },
   "appOwner": {},
   "data": [
