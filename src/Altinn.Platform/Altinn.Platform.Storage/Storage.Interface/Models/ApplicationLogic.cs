@@ -26,11 +26,5 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "schemaRef")]
         public string SchemaRef { get; set; }
-
-        /// <summary>
-        /// Gets or sets the property that identifies if readstatus should be handled
-        /// </summary>
-        [JsonProperty(PropertyName = "monitorReadStatus")]
-        public bool MonitorReadStatus { get; set; }
     }
 }
