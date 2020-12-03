@@ -1,6 +1,7 @@
 import 'jest';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
-import { getRepeatingGroups } from '../../src/utils/formLayout';
+import { IRepeatingGroups } from '../../src/types';
+import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from '../../src/utils/formLayout';
 
 describe('>>> layout.ts', () => {
   it('+++ getRepeatingGroups should handle nested groups', () => {
@@ -155,6 +156,54 @@ describe('>>> layout.ts', () => {
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
+    expect(result).toEqual(expected);
+  });
+
+  it('+++ removeRepeatingGroupFromUIConfig should delete given index', () => {
+    const repeatingGroups: IRepeatingGroups = {
+      Group: {
+        count: 1,
+      },
+      'Group2-0': {
+        count: 2,
+      },
+      'Group2-1': {
+        count: 3,
+      },
+    };
+    const result = removeRepeatingGroupFromUIConfig(repeatingGroups, 'Group2', 1, false);
+    const expected: IRepeatingGroups = {
+      Group: {
+        count: 1,
+      },
+      'Group2-0': {
+        count: 2,
+      },
+    };
+    expect(result).toEqual(expected);
+  });
+
+  it('+++ removeRepeatingGroupFromUIConfig should shift successfully', () => {
+    const repeatingGroups: IRepeatingGroups = {
+      Group: {
+        count: 1,
+      },
+      'Group2-0': {
+        count: 2,
+      },
+      'Group2-1': {
+        count: 3,
+      },
+    };
+    const result = removeRepeatingGroupFromUIConfig(repeatingGroups, 'Group2', 0, true);
+    const expected: IRepeatingGroups = {
+      Group: {
+        count: 1,
+      },
+      'Group2-0': {
+        count: 3,
+      },
+    };
     expect(result).toEqual(expected);
   });
 });

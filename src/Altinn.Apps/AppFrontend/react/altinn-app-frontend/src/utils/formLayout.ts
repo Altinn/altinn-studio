@@ -109,3 +109,21 @@ export function getNextView(navOptions: ILayoutNavigation, layouts: ILayouts, cu
 
   return result;
 }
+
+export function removeRepeatingGroupFromUIConfig(repeatingGroups: IRepeatingGroups, repeatingGroupId: string, index: number, shiftData?: boolean): IRepeatingGroups {
+  const newRepGroups = { ...repeatingGroups };
+  delete newRepGroups[`${repeatingGroupId}-${index}`];
+  if (shiftData) {
+    const groupKeys = Object.keys(repeatingGroups)
+      .filter((key: string) => key.startsWith(repeatingGroupId));
+
+    groupKeys.forEach((shiftFrom: string, keyIndex: number) => {
+      if (keyIndex > index) {
+        const shiftTo = groupKeys[keyIndex - 1];
+        newRepGroups[shiftTo] = repeatingGroups[shiftFrom];
+        delete newRepGroups[shiftFrom];
+      }
+    });
+  }
+  return newRepGroups;
+}
