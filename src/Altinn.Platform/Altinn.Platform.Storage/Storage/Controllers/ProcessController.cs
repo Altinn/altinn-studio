@@ -123,6 +123,7 @@ namespace Altinn.Platform.Storage.Controllers
             if (existingInstance.Process.Ended == null && processState.Ended != null)
             {
                 existingInstance.Status ??= new InstanceStatus();
+                existingInstance.Status.IsArchived = true;
                 existingInstance.Status.Archived = processState.Ended;
             }
 

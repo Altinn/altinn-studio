@@ -15,6 +15,9 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted":  false,
   },
   "appOwner": {},
   "data": [

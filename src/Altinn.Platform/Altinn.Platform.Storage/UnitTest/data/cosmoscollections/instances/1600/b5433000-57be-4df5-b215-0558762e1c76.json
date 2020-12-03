@@ -19,6 +19,11 @@
       "altinnTaskType": "data"
     }
   },
+  "status": {
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
+  },
   "appOwner": {},
   "data": [],
   "created": "2020-02-27T12:52:38.0517187Z",

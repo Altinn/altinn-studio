@@ -16,6 +16,9 @@
     "endEvent": "EndEvent_1"
   },
   "status": {
+    "isArchived": true,
+    "isHardDeleted": false,
+    "isSoftDeleted": true,
     "archived": "2020-04-29T13:53:06.117891Z",
     "softDeleted": "2020-04-29T13:53:06.117891Z"
   },

@@ -233,8 +233,8 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
 
             filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
-                .Where(i => i.Status.HardDeleted.HasValue && i.Status.HardDeleted.Value <= DateTime.UtcNow.AddDays(-7))
-                .Where(i => i.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(i.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)) || !i.Status.Archived.IsDefined());
+                .Where(i => i.Status.IsHardDeleted && i.Status.HardDeleted.Value <= DateTime.UtcNow.AddDays(-7))
+                .Where(i => i.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(i.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)) || !i.Status.IsArchived);
 
             try
             {
