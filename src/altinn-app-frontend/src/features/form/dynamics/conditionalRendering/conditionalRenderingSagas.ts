@@ -27,6 +27,7 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     const componentsToHide: string[] = runConditionalRenderingRules(
       conditionalRenderingState,
       formData,
+      uiConfig.repeatingGroups,
     );
 
     if (shouldHidddenFieldsUpdate(uiConfig.hiddenFields, componentsToHide)) {
