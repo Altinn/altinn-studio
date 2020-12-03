@@ -15,11 +15,13 @@ const formLayoutSelector = (state: IRuntimeState): ILayouts => state.formLayout.
 export function* fetchOptionsSaga(): SagaIterator {
   try {
     const layouts: ILayouts = yield select(formLayoutSelector);
+    const fetchedOptions:string[] = [];
     for (const layoutId of Object.keys(layouts)) {
       for (const element of layouts[layoutId]) {
         const component = element as any;
-        if (component.optionsId) {
+        if (component.optionsId && fetchedOptions.indexOf(component.optionsId) === -1) {
           yield fork(fetchSpecificOptionSaga, component.optionsId);
+          fetchedOptions.push(component.optionsId);
         }
       }
     }

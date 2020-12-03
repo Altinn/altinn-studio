@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { makeStyles,
   FormControl,
   Input,
@@ -69,9 +69,11 @@ export function InputField(props: IInputFieldProps) {
   };
 
   const onChangeKey = (e: any) => {
-    const oldLabel = label;
     setLabel(e.target.value);
-    props.onChangeKey(props.fullPath, oldLabel, e.target.value);
+  };
+
+  const onBlurKey = (e: any) => {
+    props.onChangeKey(props.fullPath, props.label, e.target.value);
   };
 
   const onClickDelete = () => {
@@ -90,6 +92,7 @@ export function InputField(props: IInputFieldProps) {
               id={`input-${props.fullPath}-key-${label}`}
               value={label}
               onChange={onChangeKey}
+              onBlur={onBlurKey}
               disabled={!editLabel}
               className={classes.rootKey}
               endAdornment={

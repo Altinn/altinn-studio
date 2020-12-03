@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -148,7 +149,28 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+
+            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+
+            DataElement dataElement = instance.Data.FirstOrDefault(r => r.Id.Equals(dataId.ToString()));
+
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            using (Stream stream = File.Open(dataPath + @"blob\" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
+            {
+                XmlSerializer serializer = new XmlSerializer(type);
+                serializer.Serialize(stream, dataToSerialize);
+            }
+
+            dataElement.LastChanged = DateTime.Now;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataId.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return Task.FromResult(dataElement);
         }
 
         private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -170,6 +192,7 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 string content = File.ReadAllText(instancePath);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
                 return instance;
             }
 
@@ -186,6 +209,11 @@ namespace App.IntegrationTests.Mocks.Services
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
+
+            if (!Directory.Exists(path))
+            {
+                return null;
+            }
 
             string[] files = Directory.GetFiles(path);
 

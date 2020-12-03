@@ -22,6 +22,7 @@
   "dependencies": {
     "@babel/polyfill": "~7.12.1",
     "@material-ui/core": "~4.11.1",
+    "@reduxjs/toolkit": "~1.4.0",
     "@types/domhandler": "^2.4.1",
     "axios": "~0.21.0",
     "classnames": "~2.2.6",
