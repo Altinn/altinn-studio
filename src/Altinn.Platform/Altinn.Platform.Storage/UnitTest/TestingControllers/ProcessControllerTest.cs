@@ -186,8 +186,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             string requestUri = $"storage/api/v1/instances/1337/377efa97-80ee-4cc6-8d48-09de12cc273d/process/";
-            Instance testInstance = TestDataUtil.GetInstance(1337, new System.Guid("377efa97-80ee-4cc6-8d48-09de12cc273d"));
-
+            Instance testInstance = TestDataUtil.GetInstance(1337, new Guid("377efa97-80ee-4cc6-8d48-09de12cc273d"));
+            testInstance.Id = $"{testInstance.InstanceOwner.PartyId}/{testInstance.Id}";
             ProcessState state = new ProcessState
             {
                 Started = DateTime.Parse("2020-04-29T13:53:01.7020218Z"),
