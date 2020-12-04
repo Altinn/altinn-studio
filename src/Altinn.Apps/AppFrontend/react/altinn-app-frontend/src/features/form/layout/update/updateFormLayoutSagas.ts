@@ -4,6 +4,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { ILayoutComponent, ILayoutGroup } from '..';
+import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
 import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups } from './updateFormLayoutActions';
@@ -84,6 +85,8 @@ function* updateRepeatingGroupsSaga({
       yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
       yield call(FormDataActions.saveFormData);
     }
+
+    yield call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun);
   } catch (err) {
     yield call(FormLayoutActions.updateRepeatingGroupsRejected, err);
   }

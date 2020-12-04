@@ -145,6 +145,11 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public string GetJsonFormLayouts(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
+
         public string GetJsonThirdPartyComponents(string org, string app)
         {
             throw new NotImplementedException();
@@ -181,6 +186,31 @@ namespace Designer.Tests.Mocks
         }
 
         public string GetRuleHandler(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SaveFormLayout(string org, string app, string formLayout, string content)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool UpdateFormLayoutName(string org, string app, string currentName, string newName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool DeleteFormLayout(string org, string app, string formLayout)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SaveLayoutSettings(string org, string app, string setting)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetLayoutSettings(string org, string app)
         {
             throw new NotImplementedException();
         }
