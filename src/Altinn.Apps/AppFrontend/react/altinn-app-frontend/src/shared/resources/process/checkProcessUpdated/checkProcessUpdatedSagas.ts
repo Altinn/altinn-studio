@@ -20,11 +20,17 @@ export function* getUpdatedProcess(): SagaIterator {
     }
 
     if (result.ended) {
-      return ProcessSteps.Archived;
+      return {
+        state: ProcessSteps.Archived,
+        taskId: null,
+      };
     }
 
     if (result.currentTask.altinnTaskType !== currentProcessState.state) {
-      return currentProcessState.state;
+      return {
+        state: currentProcessState.state,
+        taskId: currentProcessState.taskId,
+      };
     }
 
     if (i < 10) {
@@ -35,13 +41,16 @@ export function* getUpdatedProcess(): SagaIterator {
     }
   }
 
-  return currentProcessState.state;
+  return {
+    state: currentProcessState.state,
+    taskId: currentProcessState.taskId,
+  };
 }
 
 export function* checkProcessUpdated(): SagaIterator {
   try {
     const process = yield call(getUpdatedProcess);
-    yield call(ProcessDispatcher.getProcessStateFulfilled, process);
+    yield call(ProcessDispatcher.getProcessStateFulfilled, process.state, process.taskId);
   } catch (err) {
     yield call(ProcessDispatcher.getProcessStateRejected, err);
   }

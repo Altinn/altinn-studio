@@ -11,13 +11,14 @@ export function* getProcessStateSaga(): SagaIterator {
   try {
     const processState: IProcess = yield call(get, getProcessStateUrl());
     if (!processState) {
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown);
+      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown, null);
     } else if (processState.ended) {
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived);
+      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived, null);
     } else {
       yield call(
         ProcessStateDispatchers.getProcessStateFulfilled,
         processState.currentTask.altinnTaskType as ProcessSteps,
+        processState.currentTask.elementId,
       );
     }
   } catch (err) {

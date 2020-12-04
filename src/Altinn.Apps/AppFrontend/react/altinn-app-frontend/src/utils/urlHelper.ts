@@ -118,9 +118,21 @@ export const getOptionsUrl = (optionsId: string) => {
 };
 
 export function getJsonSchemaUrl() {
-  return `${window.location.origin}/${org}/${app}/api/jsonschema/`;
+  return `${appPath}/api/jsonschema/`;
 }
 
 export function getLayoutSettingsUrl() {
-  return `${window.location.origin}/${org}/${app}/api/layoutsettings`;
+  return `${appPath}/api/layoutsettings`;
+}
+
+export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
+}
+
+export function getFetchRuleModelUrl() {
+  return `${appPath}/api/resource/RuleHandler.js`;
+}
+
+export function getFetchFormDynamicsUrl() {
+  return `${appPath}/api/resource/RuleConfiguration.json`;
 }

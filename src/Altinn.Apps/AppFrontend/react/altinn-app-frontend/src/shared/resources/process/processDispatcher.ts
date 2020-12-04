@@ -12,10 +12,12 @@ import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessU
  */
 export interface IProcessDispatchers extends ActionCreatorsMapObject {
   getProcessState: () => Action;
-  getProcessStateFulfilled: (processStep: ProcessSteps) => GetProcessStateActions.IGetProcessStateFulfilled;
+  getProcessStateFulfilled:
+    (processStep: ProcessSteps, taskId: string) => GetProcessStateActions.IGetProcessStateFulfilled;
   getProcessStateRejected: (result: Error) => GetProcessStateActions.IGetProcessStateRejected;
   completeProcess: () => Action;
-  completeProcessFulfilled: (processStep: ProcessSteps) => CompleteProcessActions.ICompleteProcessFulfilled;
+  completeProcessFulfilled:
+    (processStep: ProcessSteps, taskId: string) => CompleteProcessActions.ICompleteProcessFulfilled;
   completeProcessRejected: (error: Error) => CompleteProcessActions.ICompleteProcessRejected;
   checkProcessUpdated: () => Action;
 }

@@ -8,11 +8,13 @@ import * as ProcessActionTypes from './processActionTypes';
 export interface IProcessState {
   state: ProcessSteps;
   error: Error;
+  taskId: string;
 }
 
 const initialState: IProcessState = {
   state: null,
   error: null,
+  taskId: undefined,
 };
 
 const processReducer: Reducer<IProcessState> = (
@@ -24,10 +26,11 @@ const processReducer: Reducer<IProcessState> = (
   }
   switch (action.type) {
     case ProcessActionTypes.GET_PROCESS_STATE_FULFILLED: {
-      const processStep = (action as GetProcessStateActions.IGetProcessStateFulfilled).processStep;
+      const { processStep, taskId } = action as GetProcessStateActions.IGetProcessStateFulfilled;
       return update<IProcessState>(state, {
         $set: {
           state: processStep,
+          taskId,
           error: null,
         },
       });
