@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 /* eslint-disable max-len */
 import { IRepeatingGroups, ILayoutNavigation } from 'src/types';
 import { ILayout, ILayoutComponent, ILayoutGroup, ILayouts } from '../features/form/layout';
@@ -60,6 +61,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
               const groupId = `${childGroup.id}-${index}`;
               repeatingGroups[groupId] = {
                 count: getCountForRepeatingGroup(formData, childGroup.dataModelBindings?.group, groupElement.dataModelBindings.group, index),
+                baseGroupId: childGroup.id,
               };
             });
           });
@@ -126,4 +128,30 @@ export function removeRepeatingGroupFromUIConfig(repeatingGroups: IRepeatingGrou
     });
   }
   return newRepGroups;
+}
+
+export function createRepeatingGroupComponents(container: ILayoutGroup, renderComponents: (ILayoutComponent | ILayoutGroup)[], repeatingGroupIndex: number, hiddenFields?: string[]) {
+  const componentArray = [];
+  for (let i = 0; i <= repeatingGroupIndex; i++) {
+    const childComponents = renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
+      const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(JSON.stringify(component));
+      const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
+      const groupDataModelBinding = container.dataModelBindings.group;
+      Object.keys(dataModelBindings).forEach((key) => {
+        // eslint-disable-next-line no-param-reassign
+        dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
+      });
+      const deepCopyId = `${componentDeepCopy.id}-${i}`;
+      const hidden: boolean = !!hiddenFields?.find((field) => field === `${deepCopyId}[${i}]`);
+      return {
+        ...componentDeepCopy,
+        dataModelBindings,
+        id: deepCopyId,
+        baseComponentId: componentDeepCopy.id,
+        hidden,
+      };
+    });
+    componentArray.push(childComponents);
+  }
+  return componentArray;
 }

@@ -78,7 +78,7 @@ export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout, in
   );
 }
 
-export function setupGroupComponents(components: ILayoutComponent[], groupDataModelBinding: string, index: number): ILayoutComponent[] {
+export function setupGroupComponents(components: (ILayoutComponent | ILayoutGroup)[], groupDataModelBinding: string, index: number): (ILayoutGroup | ILayoutComponent)[] {
   const childComponents = components.map((component: ILayoutComponent) => {
     const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
     const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
@@ -87,9 +87,12 @@ export function setupGroupComponents(components: ILayoutComponent[], groupDataMo
       const originalGroupBinding = groupDataModelBinding.replace(`[${index}]`, '');
       dataModelBindings[key] = dataModelBindings[key].replace(originalGroupBinding, groupDataModelBinding);
     });
+    const deepCopyId = `${componentDeepCopy.id}-${index}`;
+
     return {
       ...componentDeepCopy,
       dataModelBindings,
+      id: deepCopyId,
       baseComponentId: componentDeepCopy.id,
     };
   });

@@ -75,12 +75,15 @@ describe('>>> layout.ts', () => {
       },
       'Group2-0': {
         count: 0,
+        baseGroupId: 'Group2',
       },
       'Group2-1': {
         count: 4,
+        baseGroupId: 'Group2',
       },
       'Group2-2': {
         count: 1,
+        baseGroupId: 'Group2',
       },
     };
     const result = getRepeatingGroups(testLayout, formData);

@@ -54,6 +54,7 @@ function* updateRepeatingGroupsSaga({
     let updatedRepeatingGroups: IRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
       [layoutElementId]: {
+        ...formLayoutState.uiConfig.repeatingGroups[layoutElementId],
         count: newCount,
       },
     };
@@ -69,6 +70,7 @@ function* updateRepeatingGroupsSaga({
         const groupId = `${group.id}-${newCount}`;
         updatedRepeatingGroups[groupId] = {
           count: -1,
+          baseGroupId: group.id,
         };
       }
     });
@@ -80,7 +82,7 @@ function* updateRepeatingGroupsSaga({
       const formDataState: IFormDataState = yield select(selectFormData);
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const updatedFormData = removeGroupData(formDataState.formData, index,
-        layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId].count);
+        layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
 
       yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
       yield call(FormDataActions.saveFormData);

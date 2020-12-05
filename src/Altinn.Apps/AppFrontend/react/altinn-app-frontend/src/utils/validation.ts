@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
@@ -10,7 +11,8 @@ import { getFormDataForComponent } from './formComponentUtils';
 import { getTextResourceByKey } from './textResource';
 import { getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
-import { matchLayoutComponent } from './layout';
+import { matchLayoutComponent, setupGroupComponents } from './layout';
+import { createRepeatingGroupComponents } from './formLayout';
 
 const JsonPointer = require('jsonpointer');
 
@@ -125,9 +127,9 @@ export function validateEmptyFieldsForLayout(
   const fieldsToCheck = formLayout.filter((component) => {
     return (
       component.type.toLowerCase() !== 'group'
-        && !hiddenFields.includes(component.id)
-        && (component as ILayoutComponent).required
-        && !fieldsInGroup.includes(component.id)
+      && !hiddenFields.includes(component.id)
+      && (component as ILayoutComponent).required
+      && !fieldsInGroup.includes(component.id)
     );
   });
   fieldsToCheck.forEach((component: any) => {
@@ -136,18 +138,42 @@ export function validateEmptyFieldsForLayout(
 
   groupsToCheck.forEach((group: ILayoutGroup) => {
     const componentsToCheck = formLayout.filter((component) => {
-      return (component as ILayoutComponent).required && group.children.includes(component.id);
+      return (component as ILayoutComponent).required && group.children?.indexOf(component.id) > -1;
     });
 
     componentsToCheck.forEach((component) => {
       if (group.maxCount > 1) {
-        const groupDataModelBinding = group.dataModelBindings.group;
-        for (let i = 0; i <= repeatingGroups[group.id].count; i++) {
-          const componentToCheck = {
-            ...component,
-            id: `${component.id}-${i}`,
-          };
-          validateEmptyField(formData, componentToCheck, validations, language, groupDataModelBinding, i);
+        const parentGroup = getParentGroup(group, formLayout);
+        if (parentGroup) {
+          // If we have a parent group there can exist several instances of the child group.
+          Object.keys(repeatingGroups).filter((key) => key.startsWith(group.id)).forEach((repeatingGroupId) => {
+            const parentIndex = Number.parseInt(repeatingGroupId.charAt(repeatingGroupId.length - 1), 10);
+            const parentDataBinding = parentGroup.dataModelBindings?.group;
+            const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
+            const indexedGroupDataBinding = group.dataModelBindings?.group.replace(parentDataBinding, indexedParentDataBinding);
+            const dataModelBindings = {};
+            Object.keys(component.dataModelBindings).forEach((key) => {
+              // eslint-disable-next-line no-param-reassign
+              dataModelBindings[key] = component.dataModelBindings[key].replace(parentDataBinding, `${indexedParentDataBinding}`);
+            });
+            for (let i = 0; i <= repeatingGroups[repeatingGroupId]?.count; i++) {
+              const componentToCheck = {
+                ...component,
+                id: `${component.id}-${parentIndex}-${i}`,
+                dataModelBindings,
+              };
+              validateEmptyField(formData, componentToCheck, validations, language, indexedGroupDataBinding, i);
+            }
+          });
+        } else {
+          const groupDataModelBinding = group.dataModelBindings.group;
+          for (let i = 0; i <= repeatingGroups[group.id]?.count; i++) {
+            const componentToCheck = {
+              ...component,
+              id: `${component.id}-${i}`,
+            };
+            validateEmptyField(formData, componentToCheck, validations, language, groupDataModelBinding, i);
+          }
         }
       } else {
         validateEmptyField(formData, component, validations, language);
@@ -156,6 +182,21 @@ export function validateEmptyFieldsForLayout(
   });
 
   return validations;
+}
+
+export function getParentGroup(group: ILayoutGroup, layout: ILayout): ILayoutGroup {
+  if (!group || !layout) {
+    return null;
+  }
+  return layout.find((element) => {
+    if (element.id !== group.id && element.type === 'Group') {
+      const parentGroupCandidate = element as ILayoutGroup;
+      if (parentGroupCandidate.children?.indexOf(group.id) > -1) {
+        return true;
+      }
+    }
+    return false;
+  }) as ILayoutGroup;
 }
 
 export function validateEmptyField(
@@ -233,9 +274,7 @@ export function validateFormComponentsForLayout(
             },
           };
           componentValidations[fieldKey].errors.push(
-            `${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language)} ${
-              component.minNumberOfAttachments} ${
-              getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language)}`,
+            `${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language)} ${component.minNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language)}`,
           );
           validations[component.id] = componentValidations;
         }
@@ -808,26 +847,28 @@ export function componentHasValidations(validations: IValidations, componentId: 
   Checks if a given repeating group has any child components with errors.
 */
 export function repeatingGroupHasValidations(
-  validations:IValidations,
-  repeatingGroupCount: number,
-  children: ILayout,
+  group: ILayoutGroup,
+  repeatingGroupComponents: Array<Array<ILayoutGroup | ILayoutComponent>>,
+  validations: IValidations,
   repeatingGroups: IRepeatingGroups,
   layout: ILayout,
+  hiddenFields?: string[],
 ): boolean {
-  if (!validations || !repeatingGroupCount || !children) {
+  if (!group || !validations || !validations || !layout) {
     return false;
   }
-  return [...Array(repeatingGroupCount)].some((_x: any, index: number) => {
-    return children.some((component: ILayoutComponent | ILayoutGroup) => {
-      if (component.type === 'Group') {
-        const childGroup = component as ILayoutGroup;
-        if (!childGroup.maxCount || childGroup.maxCount < 0) {
-          return false;
-        }
-        const childGroupComponents = layout?.filter((element) => childGroup.children?.indexOf(element.id) > -1);
-        return repeatingGroupHasValidations(validations, repeatingGroups[`${childGroup.id}-${index}`].count + 1, childGroupComponents, repeatingGroups, layout);
+
+  return repeatingGroupComponents.some((groupIndexArray: Array<ILayoutGroup | ILayoutComponent>, index: number) => {
+    return groupIndexArray.some((element) => {
+      if (element.type !== 'Group') {
+        return componentHasValidations(validations, element.id);
       }
-      return componentHasValidations(validations, `${component.id}-${index}`);
+      const childGroup = element as ILayoutGroup;
+      const childGroupCount = repeatingGroups[childGroup.id]?.count;
+      const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
+      const renderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
+      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, hiddenFields);
+      return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, repeatingGroups, layout, hiddenFields);
     });
   });
 }
