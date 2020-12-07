@@ -16,6 +16,7 @@ import QueueActions from '../resources/queue/queueActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 import { IProcessState } from '../resources/process/processReducer';
+import IsLoadingActions from '../resources/isLoading/isLoadingActions';
 
 export default (props) => {
   const {
@@ -78,7 +79,7 @@ export default (props) => {
       case (ProcessTaskType.Confirm):
       case (ProcessTaskType.Feedback):
       case (ProcessTaskType.Archived): {
-        // QueueActions.startInitialDataTaskQueue();
+        IsLoadingActions.finishDataTaskIsloading();
         break;
       }
       default:

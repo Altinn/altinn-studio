@@ -7,9 +7,9 @@ import { createMuiTheme } from '@material-ui/core';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import { IInstance, IParty } from 'altinn-shared/types';
+import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
+import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
@@ -75,10 +75,11 @@ export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
 
-  const [attachments, setAttachments] = React.useState([]);
+  const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+
   const applicationMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
@@ -120,15 +121,10 @@ const Confirm = (props: IConfirmProps) => {
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
-      const defaultElement = getCurrentTaskData(applicationMetadata, instance);
-
-      const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
+      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
+      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id));
       setAttachments(attachmentsResult);
-
-      const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
-      if (defaultDataElementLastChangedDateTime) {
-        setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
-      }
+      setLastChangedDateTime(moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'));
     }
   }, [instance, applicationMetadata]);
 

@@ -1,20 +1,26 @@
 import { IAttachment, IData, ITextResource, IAttachmentGrouping, IDataType, IApplication } from '../types/index';
 import { getTextResourceByKey } from './language';
 
-export const mapInstanceAttachments = (data: IData[], defaultElementId: string, platform?: boolean): IAttachment[] => {
+export const mapInstanceAttachments = (
+  data: IData[],
+  defaultElementIds: string[],
+  platform?: boolean,
+): IAttachment[] => {
   if (!data) {
     return [];
   }
   const tempAttachments: IAttachment[] = [];
   data.forEach((dataElement: IData) => {
-    if (dataElement.id !== defaultElementId && dataElement.dataType !== 'ref-data-as-pdf') {
-      tempAttachments.push({
-        name: dataElement.filename,
-        url: platform ? dataElement.selfLinks.platform : dataElement.selfLinks.apps,
-        iconClass: 'reg reg-attachment',
-        dataType: dataElement.dataType,
-      });
+    if (defaultElementIds.indexOf(dataElement.dataType) > -1 || dataElement.dataType === 'ref-data-as-pdf') {
+      return;
     }
+
+    tempAttachments.push({
+      name: dataElement.filename,
+      url: platform ? dataElement.selfLinks.platform : dataElement.selfLinks.apps,
+      iconClass: 'reg reg-attachment',
+      dataType: dataElement.dataType,
+    });
   });
   return tempAttachments;
 };
