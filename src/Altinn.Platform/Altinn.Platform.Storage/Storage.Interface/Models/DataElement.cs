@@ -72,6 +72,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "refs")]
         public List<Guid> Refs { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the element has been read.
+        /// </summary>
+        public bool IsRead{ get; set; } 
+
         /// <inheritdoc/>
         public override string ToString()
         {
