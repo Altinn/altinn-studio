@@ -32,6 +32,7 @@ export default (props) => {
 
   const instantiating = useSelector((state: IRuntimeState) => state.instantiation.instantiating);
   const instanceId = useSelector((state: IRuntimeState) => state.instantiation.instanceId);
+  const instanceData = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
   const textResources: any[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -67,6 +68,10 @@ export default (props) => {
   }, [textResources, applicationMetadata]);
 
   React.useEffect(() => {
+    if (!applicationMetadata || !instanceData) {
+      return;
+    }
+
     if (!process || !process.taskType) {
       ProcessDispatcher.getProcessState();
     }
@@ -85,7 +90,7 @@ export default (props) => {
       default:
         break;
     }
-  }, [process]);
+  }, [process, applicationMetadata, instanceData]);
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
@@ -97,14 +102,14 @@ export default (props) => {
     return <UnknownError />;
   }
 
-  if (!process) {
+  if (!process || !process.taskType) {
     return null;
   }
 
   return (
     <ProcessStep
       header={appHeader}
-      step={process}
+      step={process.taskType}
     >
       <div>
         {isLoading === false ? (

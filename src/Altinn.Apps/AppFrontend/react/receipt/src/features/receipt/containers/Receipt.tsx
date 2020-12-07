@@ -5,7 +5,6 @@ import * as React from 'react';
 import { getLanguageFromCode } from 'altinn-shared/language';
 import { AltinnContentLoader, AltinnModal, AltinnAppHeader, AltinnReceipt, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource } from 'altinn-shared/types';
-import { getCurrentTaskData } from 'altinn-shared/utils/applicationMetaDataUtils';
 import { mapInstanceAttachments, getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils/language';
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
@@ -44,6 +43,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
   const [textResources, setTextResources] = React.useState<ITextResource[]>(null);
   const [pdf, setPdf] = React.useState<IAttachment[]>(null);
+
   const isPrint = useMediaQuery('print');
 
   const fetchInstanceAndParty = async () => {
@@ -119,8 +119,10 @@ function Receipt(props: WithStyles<typeof styles>) {
 
   React.useEffect(() => {
     if (instance && application) {
-      const defaultElement = getCurrentTaskData(application, instance);
-      setAttachments(mapInstanceAttachments(instance.data, defaultElement.id, true));
+      const appLogicDataTypes = application.dataTypes.filter((dataType) => !!dataType.appLogic);
+
+      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id));
+      setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {

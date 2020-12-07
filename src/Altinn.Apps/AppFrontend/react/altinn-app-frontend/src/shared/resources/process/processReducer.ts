@@ -46,10 +46,11 @@ const processReducer: Reducer<IProcessState> = (
     }
 
     case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED: {
-      const processStep = (action as CompleteProcessActions.ICompleteProcessFulfilled).processStep;
+      const { processStep, taskId } = action as CompleteProcessActions.ICompleteProcessFulfilled;
       return update<IProcessState>(state, {
         $set: {
           taskType: processStep,
+          taskId,
           error: null,
         },
       });
