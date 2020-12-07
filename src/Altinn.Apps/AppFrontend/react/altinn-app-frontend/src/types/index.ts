@@ -252,7 +252,7 @@ export interface IVariable {
   key: string;
 }
 
-export enum ProcessSteps {
+export enum ProcessTaskType {
   Unknown = 'unknown',
   FormFilling = 'data',
   Archived = 'ended',

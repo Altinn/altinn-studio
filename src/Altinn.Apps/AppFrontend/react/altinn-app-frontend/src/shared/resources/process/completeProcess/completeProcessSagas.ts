@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, select, takeLatest } from 'redux-saga/effects';
 import { put } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
-import { IRuntimeState, ProcessSteps } from '../../../../types';
+import { IRuntimeState, ProcessTaskType } from '../../../../types';
 import { getCompleteProcessUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessDispatcher from '../processDispatcher';
@@ -20,12 +20,12 @@ export function* completeProcessSaga(): SagaIterator {
       throw new Error('Error: no process returned.');
     }
     if (result.ended) {
-      yield call(ProcessDispatcher.completeProcessFulfilled, ProcessSteps.Archived, null);
+      yield call(ProcessDispatcher.completeProcessFulfilled, ProcessTaskType.Archived, null);
     } else {
       yield call(ProcessDispatcher.completeProcessFulfilled,
-        result.currentTask.altinnTaskType as ProcessSteps,
+        result.currentTask.altinnTaskType as ProcessTaskType,
         result.currentTask.elementId);
-      if ((result.currentTask.altinnTaskType as ProcessSteps) === ProcessSteps.FormFilling) {
+      if ((result.currentTask.altinnTaskType as ProcessTaskType) === ProcessTaskType.FormFilling) {
         yield call(IsLoadingActions.startDataTaskIsloading);
         yield call(QueueActions.startInitialDataTaskQueue);
         const instanceData: IInstanceDataState = yield select(instanceDataSelector);

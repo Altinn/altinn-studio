@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, delay, takeLatest, select } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
-import { ProcessSteps, IRuntimeState } from '../../../../types';
+import { ProcessTaskType, IRuntimeState } from '../../../../types';
 import { getProcessStateUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessDispatcher from '../processDispatcher';
@@ -21,14 +21,14 @@ export function* getUpdatedProcess(): SagaIterator {
 
     if (result.ended) {
       return {
-        state: ProcessSteps.Archived,
+        state: ProcessTaskType.Archived,
         taskId: null,
       };
     }
 
-    if (result.currentTask.altinnTaskType !== currentProcessState.state) {
+    if (result.currentTask.altinnTaskType !== currentProcessState.taskType) {
       return {
-        state: currentProcessState.state,
+        state: currentProcessState.taskType,
         taskId: currentProcessState.taskId,
       };
     }
@@ -42,7 +42,7 @@ export function* getUpdatedProcess(): SagaIterator {
   }
 
   return {
-    state: currentProcessState.state,
+    state: currentProcessState.taskType,
     taskId: currentProcessState.taskId,
   };
 }

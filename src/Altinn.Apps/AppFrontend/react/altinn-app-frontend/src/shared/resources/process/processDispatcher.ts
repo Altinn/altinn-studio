@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
-import { ProcessSteps } from '../../../types';
+import { ProcessTaskType } from '../../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
 import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessUpdatedActions';
@@ -13,11 +13,11 @@ import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessU
 export interface IProcessDispatchers extends ActionCreatorsMapObject {
   getProcessState: () => Action;
   getProcessStateFulfilled:
-    (processStep: ProcessSteps, taskId: string) => GetProcessStateActions.IGetProcessStateFulfilled;
+    (processStep: ProcessTaskType, taskId: string) => GetProcessStateActions.IGetProcessStateFulfilled;
   getProcessStateRejected: (result: Error) => GetProcessStateActions.IGetProcessStateRejected;
   completeProcess: () => Action;
   completeProcessFulfilled:
-    (processStep: ProcessSteps, taskId: string) => CompleteProcessActions.ICompleteProcessFulfilled;
+    (processStep: ProcessTaskType, taskId: string) => CompleteProcessActions.ICompleteProcessFulfilled;
   completeProcessRejected: (error: Error) => CompleteProcessActions.ICompleteProcessRejected;
   checkProcessUpdated: () => Action;
 }

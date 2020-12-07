@@ -3,7 +3,7 @@ import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import classNames = require('classnames');
 import { useMediaQuery } from '@material-ui/core';
-import { ProcessSteps } from '../../types';
+import { ProcessTaskType } from '../../types';
 
 const Header = (props: any) => {
   const mobileView = useMediaQuery('(max-width:767px)');
@@ -13,7 +13,7 @@ const Header = (props: any) => {
       className={classNames(
         'modal-header',
         'a-modal-header',
-        { 'a-modal-background-success': props.step === ProcessSteps.Archived },
+        { 'a-modal-background-success': props.step === ProcessTaskType.Archived },
       )}
     >
       <div className='a-iconText a-iconText-background a-iconText-large'>
@@ -25,7 +25,7 @@ const Header = (props: any) => {
           />
         </div>
         <h1 className='a-iconText-text mb-0'>
-          <span className='a-iconText-text-large'>{props.step === ProcessSteps.Archived ? (
+          <span className='a-iconText-text-large'>{props.step === ProcessTaskType.Archived ? (
             <span>{getLanguageFromKey('receipt.receipt', props.language)}</span>
           ) : (props.header)}
           </span>
