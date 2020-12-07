@@ -72,7 +72,7 @@ export default (props) => {
     }
 
     switch (process.taskType) {
-      case (ProcessTaskType.FormFilling): {
+      case (ProcessTaskType.Data): {
         QueueActions.startInitialDataTaskQueue();
         break;
       }
@@ -109,7 +109,7 @@ export default (props) => {
       <div>
         {isLoading === false ? (
           <>
-            {process.taskType === ProcessTaskType.FormFilling &&
+            {process.taskType === ProcessTaskType.Data &&
               <Form />
             }
             {process.taskType === ProcessTaskType.Archived &&

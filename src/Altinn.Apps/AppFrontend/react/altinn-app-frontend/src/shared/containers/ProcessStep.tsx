@@ -43,7 +43,7 @@ const ProcessStepComponent = (props) => {
   );
 
   const handleBackArrowButton = () => {
-    if (props.step === ProcessTaskType.FormFilling) {
+    if (props.step === ProcessTaskType.Data) {
       FormLayoutActions.updateCurrentView(previousFormPage);
     }
   };
@@ -88,7 +88,7 @@ const ProcessStepComponent = (props) => {
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
               language={language}
-              showBackArrow={!!previousFormPage && props.step === ProcessTaskType.FormFilling}
+              showBackArrow={!!previousFormPage && props.step === ProcessTaskType.Data}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>

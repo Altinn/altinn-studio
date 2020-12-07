@@ -24,7 +24,7 @@ export function* completeProcessSaga(): SagaIterator {
       yield call(ProcessDispatcher.completeProcessFulfilled,
         result.currentTask.altinnTaskType as ProcessTaskType,
         result.currentTask.elementId);
-      if ((result.currentTask.altinnTaskType as ProcessTaskType) === ProcessTaskType.FormFilling) {
+      if ((result.currentTask.altinnTaskType as ProcessTaskType) === ProcessTaskType.Data) {
         yield call(IsLoadingActions.startDataTaskIsloading);
         const instanceData: IInstanceDataState = yield select(instanceDataSelector);
         const [instanceOwner, instanceId] = instanceData.instance.id.split('/');

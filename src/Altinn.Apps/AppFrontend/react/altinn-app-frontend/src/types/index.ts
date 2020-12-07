@@ -254,7 +254,7 @@ export interface IVariable {
 
 export enum ProcessTaskType {
   Unknown = 'unknown',
-  FormFilling = 'data',
+  Data = 'data',
   Archived = 'ended',
   Confirm = 'confirmation',
   Feedback = 'feedback',
