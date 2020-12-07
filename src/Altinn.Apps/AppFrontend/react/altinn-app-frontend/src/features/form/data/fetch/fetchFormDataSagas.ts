@@ -9,7 +9,7 @@ import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
-import { IRuntimeState, IAltinnWindow } from '../../../../types';
+import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { FETCH_DATA_MODEL_FULFILLED, FETCH_JSON_SCHEMA_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/rulesActions';
@@ -26,18 +26,12 @@ const processStateSelector = (state: IRuntimeState): IProcessState => state.proc
 
 function* fetchFormDataSaga(): SagaIterator {
   try {
-    const {
-      org,
-      app,
-      instanceId,
-    } = window as Window as IAltinnWindow;
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
 
     const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance);
-    const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}/data/${currentTaskDataElementId}`;
-    const fetchedData: any = yield call(get, url);
+    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
     const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
   } catch (err) {
@@ -51,13 +45,12 @@ export function* watchFormDataSaga(): SagaIterator {
 
 function* fetchFormDataInitialSaga(): SagaIterator {
   try {
-    const { instanceId } = window as Window as IAltinnWindow;
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
 
     const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
-    const fetchedData: any = yield call(get, getFetchFormDataUrl(instanceId, currentTaskDataId));
+    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
 
     const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
