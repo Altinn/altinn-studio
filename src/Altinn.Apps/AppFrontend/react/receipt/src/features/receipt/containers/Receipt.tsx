@@ -43,7 +43,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [language, setLanguage] = React.useState(null);
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
   const [textResources, setTextResources] = React.useState<ITextResource[]>(null);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
+  const [pdf, setPdf] = React.useState<IAttachment[]>(null);
   const isPrint = useMediaQuery('print');
 
   const fetchInstanceAndParty = async () => {
@@ -190,7 +190,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             attachmentGroupings={getAttachmentGroupings(attachments, application, textResources)}
             instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations, application)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
-            pdf={pdf ? [pdf] : null}
+            pdf={pdf || null}
           />
         }
       </AltinnModal>

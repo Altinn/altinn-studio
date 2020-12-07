@@ -9,7 +9,6 @@ import ProcessDispatcher from '../processDispatcher';
 import InstanceDataActions from '../../instanceData/instanceDataActions';
 import { IInstanceDataState } from '../../instanceData/instanceDataReducers';
 import IsLoadingActions from '../../isLoading/isLoadingActions';
-import QueueActions from '../../queue/queueActions';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
@@ -27,7 +26,6 @@ export function* completeProcessSaga(): SagaIterator {
         result.currentTask.elementId);
       if ((result.currentTask.altinnTaskType as ProcessTaskType) === ProcessTaskType.FormFilling) {
         yield call(IsLoadingActions.startDataTaskIsloading);
-        yield call(QueueActions.startInitialDataTaskQueue);
         const instanceData: IInstanceDataState = yield select(instanceDataSelector);
         const [instanceOwner, instanceId] = instanceData.instance.id.split('/');
         yield call(

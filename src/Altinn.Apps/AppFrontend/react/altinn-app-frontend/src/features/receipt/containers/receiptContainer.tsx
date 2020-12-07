@@ -54,7 +54,7 @@ export const returnInstanceMetaDataObject = (
 
 const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [attachments, setAttachments] = useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
+  const [pdf, setPdf] = React.useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
@@ -142,7 +142,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
-          pdf={pdf ? [pdf] : null}
+          pdf={pdf || null}
         />
       }
     </>

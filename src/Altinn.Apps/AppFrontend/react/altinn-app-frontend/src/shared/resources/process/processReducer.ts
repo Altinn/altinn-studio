@@ -29,7 +29,7 @@ const processReducer: Reducer<IProcessState> = (
       const { processStep, taskId } = action as GetProcessStateActions.IGetProcessStateFulfilled;
       return update<IProcessState>(state, {
         $set: {
-          state: processStep,
+          taskType: processStep,
           taskId,
           error: null,
         },
@@ -49,7 +49,7 @@ const processReducer: Reducer<IProcessState> = (
       const processStep = (action as CompleteProcessActions.ICompleteProcessFulfilled).processStep;
       return update<IProcessState>(state, {
         $set: {
-          state: processStep,
+          taskType: processStep,
           error: null,
         },
       });

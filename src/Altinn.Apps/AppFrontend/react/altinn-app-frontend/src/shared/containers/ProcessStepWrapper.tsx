@@ -66,7 +66,7 @@ export default (props) => {
   }, [textResources, applicationMetadata]);
 
   React.useEffect(() => {
-    if (!process) {
+    if (!process || !process.taskType) {
       ProcessDispatcher.getProcessState();
     }
 

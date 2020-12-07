@@ -19,25 +19,27 @@ export const mapInstanceAttachments = (data: IData[], defaultElementId: string, 
   return tempAttachments;
 };
 
-export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment => {
+export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment[] => {
   if (!data) {
     return null;
   }
 
-  const pdfElement = data.find((element) => element.dataType === 'ref-data-as-pdf');
+  const pdfElements = data.filter((element) => element.dataType === 'ref-data-as-pdf');
 
-  if (!pdfElement) {
+  if (!pdfElements) {
     return null;
   }
 
-  const pdfUrl = platform ? pdfElement.selfLinks.platform : pdfElement.selfLinks.apps;
-
-  return {
-    name: pdfElement.filename,
-    url: pdfUrl,
-    iconClass: 'reg reg-attachment',
-    dataType: pdfElement.dataType,
-  };
+  const result = pdfElements.map((element) => {
+    const pdfUrl = platform ? element.selfLinks.platform : element.selfLinks.apps;
+    return {
+      name: element.filename,
+      url: pdfUrl,
+      iconClass: 'reg reg-attachment',
+      dataType: element.dataType,
+    };
+  });
+  return result;
 };
 
 /**
