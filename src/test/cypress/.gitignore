@@ -6,3 +6,7 @@ cypress/integration/examples
 
 # Environment settings
 cypress.env.json
+
+# Screenshots and videos
+screenshots/
+videos/

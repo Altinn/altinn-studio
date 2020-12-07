@@ -6,8 +6,7 @@ import { repos } from "../../fixtures/repo"
 
 context("Dashboard", () => {
   beforeEach(() => {
-    cy.visit("/");
-    cy.viewport(1536, 768);
+    cy.visit("/");    
   });
 
   it("Create an app and exit creation", () => {

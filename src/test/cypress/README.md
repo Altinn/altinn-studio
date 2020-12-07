@@ -8,13 +8,13 @@ These instructions will get you run the integration tests on local studio.
 
 ### Starting the solution for test
 
-The [Prerequisites](https://github.com/Altinn/altinn-studio/tree/test/cypress-studio-tests/src/studio#prerequisites) defined here must be satisifed to start the solution.
+The [Prerequisites](https://github.com/Altinn/altinn-studio/tree/master/src/studio#prerequisites) defined here must be satisifed to start the solution.
 
 The tests require that the solution has to be started with captcha settings disabled.
 
 Remove the mounted volume of studio gitea using `docker-compose down -v` (only needed first time)
 
-Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/src/studio/src/repositories/gitea-data/gitea/conf/app.ini#L80)
+Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/src/studio/src/repositories/gitea-data/gitea/conf/app.ini#L80).
 
 Start the solution by following the procedure [here](https://github.com/Altinn/altinn-studio/tree/master/src/studio#running-solutions-locally).
 

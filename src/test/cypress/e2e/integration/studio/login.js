@@ -4,8 +4,7 @@ import * as loginPage from "../../pageobjects/loginandreg";
 
 context("Login", () => {
   beforeEach(() => {
-    cy.visit("/");
-    cy.viewport(1536, 768);
+    cy.visit("/");    
   });
 
   it("Login with valid user credentials", () => {
