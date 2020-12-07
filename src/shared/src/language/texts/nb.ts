@@ -132,6 +132,7 @@ export function nb() {
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {0}.',
       authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.',
+      starting: 'Hold deg fast, nå starter vi!',
     },
     party_selection: {
       error_caption_prefix: 'Feil',
