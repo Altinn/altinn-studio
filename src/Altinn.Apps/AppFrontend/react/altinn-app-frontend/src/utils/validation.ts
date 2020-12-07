@@ -759,10 +759,22 @@ export function mapDataElementValidationToRedux(
   return validationResult;
 }
 
+/**
+ * Returns index of a datamodelbinding. If it is part of a repeating group we return it on the form {group1-index}-{group2-index}-{groupN-index}
+ * @param dataModelBinding the data model binding
+ */
 export function getIndex(dataModelBinding: string) {
-  const start = dataModelBinding.indexOf('[');
+  let start = dataModelBinding.indexOf('[');
   if (start > -1) {
-    return dataModelBinding.substring(dataModelBinding.indexOf('[') + 1, dataModelBinding.indexOf(']'));
+    let index: string = '';
+    while (start > -1) {
+      index += dataModelBinding.substring(start + 1, start + 2);
+      start = dataModelBinding.indexOf('[', start + 1);
+      if (start > -1) {
+        index += '-';
+      }
+    }
+    return index;
   }
   return null;
 }

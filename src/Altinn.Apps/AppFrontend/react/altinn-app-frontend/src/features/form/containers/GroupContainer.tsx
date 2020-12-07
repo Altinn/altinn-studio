@@ -36,10 +36,9 @@ const useStyles = makeStyles({
       borderStyle: 'solid',
     },
     '&:focus': {
-      outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-      border: `none`,
+      outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
+      border: `2px solid ${theme.altinnPalette.primary.blueDark}`,
       outlineOffset: 0,
-      outlineColor: theme.altinnPalette.primary.blueMedium,
     },
   },
   addButtonText: {
@@ -180,7 +179,7 @@ export function GroupContainer({
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
       onClickAdd();
     }
   };

@@ -5,8 +5,9 @@ import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity, IValidations, IRepeatingGroups } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
+import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
 import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
+import { mapToComponentValidations } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -92,7 +93,7 @@ describe('>>> utils/validations.ts', () => {
           type: 'group',
           id: 'group1',
           dataModelBindings: {
-            simpleBinding: 'group_1',
+            group: 'group_1',
           },
           maxCount: 3,
           children: [
@@ -104,7 +105,7 @@ describe('>>> utils/validations.ts', () => {
           type: 'group',
           id: 'group2',
           dataModelBindings: {
-            simpleBinding: 'group_1.group_2',
+            group: 'group_1.group_2',
           },
           maxCount: 3,
           children: [
@@ -183,7 +184,7 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_3: '',
       random_key: 'some third value',
       group_1: [
-        { dataModelField_4: 'Hello...', group_2: [{ dataModelField_5: 'Short this should actually trigger validation' }, { dataModelField_5: 'Shorter' }] },
+        { dataModelField_4: 'Hello...', group_2: [{ dataModelField_5: 'This does not trigger validation' }, { dataModelField_5: 'Does.' }] },
       ],
     };
 
@@ -192,8 +193,8 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_2: 'Really quite long...',
       dataModelField_3: 'Test 123',
       group_1: [
-        { dataModelField_4: 'Hello, World!', group_2: [{ dataModelField_5: 'This is too long' }, { dataModelField_5: 'This is also too long' }] },
-        { dataModelField_4: 'Not now!', group_2: [{ dataModelField_5: 'This is way to long' }, { dataModelField_5: 'Something else that is way to long' }] },
+        { dataModelField_4: 'Hello, World!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'This is also long' }] },
+        { dataModelField_4: 'Not now!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'Something else that is long' }] },
       ],
     };
 
@@ -283,7 +284,7 @@ describe('>>> utils/validations.ts', () => {
             ],
           },
         },
-        'componentId_5-0': {
+        'componentId_5-0-1': {
           simpleBinding: {
             errors: [
               getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
@@ -715,5 +716,44 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
     expect(validation.repeatingGroupHasValidations(null, null, null, null, null)).toBeFalsy();
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
+    const expectedResult = {
+      componentId_2: {
+        customBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component for component in a repeating group', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
+    const expectedResult = {
+      'componentId_4-0': {
+        simpleBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component for component in a nested repeating group', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
+    const expectedResult = {
+      'componentId_5-0-0': {
+        simpleBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
   });
 });
