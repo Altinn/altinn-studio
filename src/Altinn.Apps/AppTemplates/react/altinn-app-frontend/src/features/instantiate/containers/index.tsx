@@ -84,7 +84,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           onClose={null}
           hideBackdrop={true}
           hideCloseIcon={true}
-          headerText={'Instansierer'}
+          headerText={'Hold deg fast, nå starter vi!'}
         >
           <ContentLoader
             height={200}

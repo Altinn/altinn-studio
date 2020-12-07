@@ -126,6 +126,18 @@ const useStyles = makeStyles({
   },
 });
 
+export function getHiddenFieldsForGroup(hiddenFields: string[], components: ILayoutComponent[]) {
+  const result = [];
+  hiddenFields.forEach((fieldKey) => {
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
+      result.push(fieldKey);
+    }
+  });
+
+  return result;
+}
+
 export function GroupContainer({
   id,
   container,
@@ -136,6 +148,7 @@ export function GroupContainer({
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
+  const hiddenFields: string[] = useSelector((state: IRuntimeState) => getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
@@ -210,11 +223,13 @@ export function GroupContainer({
           dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
         });
         const deepCopyId = `${componentDeepCopy.id}-${i}`;
+        const hidden: boolean = !!hiddenFields.find((field) => field === `${deepCopyId}[${i}]`);
         return {
           ...componentDeepCopy,
           dataModelBindings,
           id: deepCopyId,
           baseComponentId: componentDeepCopy.id,
+          hidden,
         };
       });
       componentArray.push(childComponents);

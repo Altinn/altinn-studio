@@ -36,6 +36,7 @@ export interface IGenericComponentProps {
   readOnly: boolean;
   required: boolean;
   triggers?: Triggers[];
+  hidden?: boolean;
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -55,7 +56,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const texts: any = useSelector((state: IRuntimeState) => selectComponentTexts(state.textResources.resources, props.textResourceBindings));
-  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
+  const hidden: boolean = useSelector((state: IRuntimeState) => props.hidden || GetHiddenSelector(state, props));
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[props.id], shallowEqual);
 
