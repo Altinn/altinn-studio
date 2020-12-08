@@ -10,7 +10,7 @@
     "test": "cypress run --headless -b chrome -s 'cypress/integration/studio/*.js'"
   },
   "devDependencies": {
-    "cypress": "^6.0.1",
+    "cypress": "^6.1.0",
     "faker": "^5.1.0"
   }
 }
