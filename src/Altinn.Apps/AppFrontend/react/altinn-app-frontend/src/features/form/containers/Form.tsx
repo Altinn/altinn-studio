@@ -39,7 +39,7 @@ export function Form() {
   }, [layout, hiddenComponents]);
 
   function RenderGenericComponent(component: ILayoutComponent) {
-    return renderGenericComponent(component);
+    return renderGenericComponent(component, layout);
   }
 
   function RenderLayoutGroup(layoutGroup: ILayoutGroup): JSX.Element {
