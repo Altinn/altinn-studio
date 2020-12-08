@@ -488,7 +488,7 @@ namespace Altinn.Platform.Storage.Repository
 
             IQueryable<Instance> filter;
 
-            if (instanceState.Equals("active"))
+           if (instanceState.Equals("active"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
@@ -575,6 +575,7 @@ namespace Altinn.Platform.Storage.Repository
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
+            SetReadStatus(instance);
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
             instance.LastChanged = lastChanged;
@@ -610,6 +611,18 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             return cosmosId;
+        }
+
+        private void SetReadStatus(Instance instance)
+        {
+            if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => d.IsRead == false))
+            {
+                instance.Status.ReadStatus = ReadStatus.UpdatedSinceLastReview;
+            }
+            else if (instance.Status.ReadStatus == ReadStatus.Read && !instance.Data.Any(d => d.IsRead == true))
+            {
+                instance.Status.ReadStatus = ReadStatus.Unread;
+            }         
         }
     }
 }
