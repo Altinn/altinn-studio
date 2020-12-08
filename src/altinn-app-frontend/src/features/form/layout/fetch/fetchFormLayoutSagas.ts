@@ -11,7 +11,7 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
-import { ILayoutComponent, ILayoutGroup, ILayouts } from '../index';
+import { ILayouts } from '../index';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
@@ -29,7 +29,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
       layouts.FormLayout = layoutResponse.data.layout;
       firstLayoutKey = 'FormLayout';
       autoSave = layoutResponse.data.autoSave;
-      repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey] as [ILayoutComponent|ILayoutGroup],
+      repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey],
         formDataState.formData);
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
@@ -41,7 +41,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
         autoSave = layoutResponse[key].data.autoSave;
         repeatingGroups = {
           ...repeatingGroups,
-          ...getRepeatingGroups(layouts[key] as [ILayoutComponent|ILayoutGroup], formDataState.formData),
+          ...getRepeatingGroups(layouts[key], formDataState.formData),
         };
       });
     }

@@ -1,6 +1,8 @@
+/* eslint-disable max-len */
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
-import { ILayouts, ILayoutComponent } from '../../features/form/layout';
+import { GroupContainer } from 'src/features/form/containers/GroupContainer';
+import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
 // eslint-disable-next-line import/no-cycle
 import { GenericComponent } from '../../components/GenericComponent';
 
@@ -31,7 +33,10 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
   return providedId.match(`${componentId}(-[0-9]*)*$`);
 }
 
-export function renderGenericComponent(component: ILayoutComponent) {
+export function renderGenericComponent(component: ILayoutComponent, layout: ILayout, index: number = -1) {
+  if (component.type.toLowerCase() === 'group') {
+    return renderLayoutGroup(component as unknown as ILayoutGroup, layout, index);
+  }
   return (
     <Grid
       item={true}
@@ -46,4 +51,50 @@ export function renderGenericComponent(component: ILayoutComponent) {
       </div>
     </Grid>
   );
+}
+
+export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout, index?: number) {
+  const groupComponents = layoutGroup.children.map((child) => {
+    return layout.find((c) => c.id === child) as ILayoutComponent;
+  });
+  const deepCopyComponents = setupGroupComponents(groupComponents, layoutGroup.dataModelBindings.group, index);
+  const repeating = layoutGroup.maxCount > 1;
+  if (!repeating) {
+    // If not repeating, treat as regular components
+    return (
+      <>
+        {deepCopyComponents.map((component: ILayoutComponent) => { return renderGenericComponent(component, layout); })}
+      </>
+    );
+  }
+
+  return (
+    <GroupContainer
+      container={layoutGroup}
+      id={layoutGroup.id}
+      key={layoutGroup.id}
+      components={deepCopyComponents}
+    />
+  );
+}
+
+export function setupGroupComponents(components: (ILayoutComponent | ILayoutGroup)[], groupDataModelBinding: string, index: number): (ILayoutGroup | ILayoutComponent)[] {
+  const childComponents = components.map((component: ILayoutComponent) => {
+    const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
+    const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
+    Object.keys(dataModelBindings).forEach((key) => {
+      // eslint-disable-next-line no-param-reassign
+      const originalGroupBinding = groupDataModelBinding.replace(`[${index}]`, '');
+      dataModelBindings[key] = dataModelBindings[key].replace(originalGroupBinding, groupDataModelBinding);
+    });
+    const deepCopyId = `${componentDeepCopy.id}-${index}`;
+
+    return {
+      ...componentDeepCopy,
+      dataModelBindings,
+      id: deepCopyId,
+      baseComponentId: componentDeepCopy.id,
+    };
+  });
+  return childComponents;
 }

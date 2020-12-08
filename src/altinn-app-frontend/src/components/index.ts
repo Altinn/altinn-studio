@@ -33,7 +33,7 @@ export enum ComponentTypes {
   TextArea,
   FileUpload,
   Button,
-  Container,
+  Group,
   // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,

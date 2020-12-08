@@ -30,8 +30,8 @@
 }
 
 .file-upload:focus {
-  border-color: #0062ba;
-  border-style: solid;
+  border-color: #0062ba !important;
+  border-style: solid !important;
   outline: 2px solid #0062ba;
   outline-offset: 0px;
 }
