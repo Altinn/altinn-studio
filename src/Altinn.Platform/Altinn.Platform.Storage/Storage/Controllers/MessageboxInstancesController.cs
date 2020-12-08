@@ -217,7 +217,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Status.IsHardDeleted)
             {
-                return BadRequest("Instance was permanently deleted and cannot be restored.");
+                return NotFound("Instance was permanently deleted and cannot be restored.");
             }
             else if (instance.Status.IsSoftDeleted)
             {
