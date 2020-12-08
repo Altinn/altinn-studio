@@ -45,7 +45,7 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
   } = JSON.parse(JSON.stringify(internalFormat)) as IFormLayout;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
-  const formLayout = [];
+  const formLayout: any[] = [];
   let groupChildren: string[] = [];
   Object.keys(order).forEach((groupKey: string) => {
     if (groupKey !== baseContainerId) {
@@ -70,15 +70,47 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
         ...restOfGroup,
       });
       order[id].forEach((componentId: string) => {
-        delete components[componentId].itemType;
-        formLayout.push({
-          id: componentId,
-          ...components[componentId],
-        });
+        if (components[componentId]) {
+          delete components[componentId].itemType;
+          formLayout.push({
+            id: componentId,
+            ...components[componentId],
+          });
+        } else {
+          extractChildrenFromGroupInternal(components, containers, order, formLayout, componentId);
+        }
       });
     }
   }
   return formLayout;
+}
+
+function extractChildrenFromGroupInternal(
+  components: IFormDesignerComponent,
+  containers: IFormDesignerContainer,
+  order: IFormLayoutOrder,
+  formLayout: any[],
+  groupId: string,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { itemType, ...restOfGroup } = containers[groupId];
+  formLayout.push({
+    id: groupId,
+    type: 'Group',
+    children: order[groupId],
+    ...restOfGroup,
+  });
+  order[groupId].forEach((childId: string) => {
+    if (components[childId]) {
+      delete components[childId].itemType;
+      formLayout.push({
+        id: childId,
+        ...components[childId],
+      });
+    } else {
+      extractChildrenFromGroupInternal(components, containers, order, formLayout, childId);
+    }
+  });
 }
 
 export function extractChildrenFromGroup(group: any, components: any, convertedLayout: any) {
@@ -86,14 +118,21 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
     id, children, ...restOfGroup
   } = group;
   restOfGroup.itemType = 'CONTAINER';
+  delete restOfGroup.type;
   convertedLayout.containers[id] = restOfGroup;
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
     const component = components.find((candidate: any) => candidate.id === componentId);
     const location = components.findIndex((candidate: any) => candidate.id === componentId);
-    component.itemType = 'COMPONENT';
-    delete component.id;
-    convertedLayout.components[componentId] = component;
-    components.splice(location, 1);
+    if (component.type === 'Group') {
+      component.itemType = 'CONTAINER';
+      components.splice(location, 1);
+      extractChildrenFromGroup(component, components, convertedLayout);
+    } else {
+      component.itemType = 'COMPONENT';
+      delete component.id;
+      convertedLayout.components[componentId] = component;
+      components.splice(location, 1);
+    }
   });
 }

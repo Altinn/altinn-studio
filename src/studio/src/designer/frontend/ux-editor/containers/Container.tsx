@@ -675,6 +675,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           index={index}
           items={this.props.layoutOrder[id]}
           baseContainer={false}
+          layoutOrder={this.props.layoutOrder}
           onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}
           onDropContainer={this.props.onDropContainer}

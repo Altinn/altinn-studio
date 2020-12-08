@@ -135,6 +135,27 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
+      if (addToId && (!destinationIndex === false || destinationIndex === 0)) {
+        return update<IFormLayoutState>(state, {
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+                [addToId]: {
+                  $splice: [[destinationIndex, 0, id]],
+                },
+              },
+            },
+          },
+        });
+      }
       if (addToId) {
         return update<IFormLayoutState>(state, {
           layouts: {
