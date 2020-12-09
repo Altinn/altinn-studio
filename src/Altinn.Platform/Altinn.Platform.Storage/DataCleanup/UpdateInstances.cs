@@ -53,7 +53,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                             instance.Status = new InstanceStatus();
                         }
 
-                        instance.Status.IsArchived = instance.Status.Archived != null ? true : false;
+                        instance.Status.IsArchived = instance.Status.Archived.HasValue;
                         instance.Status.IsHardDeleted = instance.Status.HardDeleted != null ? true : false;
                         instance.Status.IsSoftDeleted = instance.Status.SoftDeleted != null ? true : false;
                         if (instance.VisibleAfter == null)
