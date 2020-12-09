@@ -6,13 +6,13 @@ import * as header from "../../pageobjects/header";
 import * as common from "../../pageobjects/common";
 
 context("Designer", () => {
-  before(() => {
-    cy.visit("/");    
-    cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
-    cy.createapp(Cypress.env("appOwner"), "designer");
-    cy.get(header.profileButton).click();
-    cy.contains(header.menuItem, "Logout").click();
-  });
+    before(() => {
+      cy.visit("/");    
+      cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
+      cy.createapp(Cypress.env("appOwner"), "designer");
+      cy.get(header.profileButton).click();
+      cy.contains(header.menuItem, "Logout").click();
+    });
   beforeEach(() => {
     cy.visit("/");
     cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
@@ -36,8 +36,7 @@ context("Designer", () => {
     cy.get(common.leftDrawer).trigger("mouseout");
     cy.get(designer.shortAnswer).parents(designer.draggable).trigger("dragstart");
     cy.get(designer.dragToArea).parents(designer.draggable).trigger("drop");
-    cy.get(designer.dragToArea).parent().siblings().find(designer.draggable).first().click();
-    cy.get(designer.deleteComponent).parents("button").click();
+    cy.deletecomponents();
   });
 
 });

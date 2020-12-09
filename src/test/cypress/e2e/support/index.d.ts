@@ -45,5 +45,11 @@ declare namespace Cypress {
      * @example cy.createapp(ttd, testapp)
      */
     createapp(orgname: string, appname: string): Chainable<Element>;
+
+    /**
+     * Select and delete all the added ui components in an app's ui editor
+     * @example cy.deletecomponents()
+     */
+    deletecomponents(): Chainable<Element>;
   }
 }

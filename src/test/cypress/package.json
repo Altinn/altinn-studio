@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "cypress:open": "cypress open",
-    "before:all": "cypress run --headless -b chrome -s 'cypress/integration/setup/before.js'",
-    "after:all": "cypress run --headless -b chrome -s 'cypress/integration/setup/after.js'",
-    "test": "cypress run --headless -b chrome -s 'cypress/integration/studio/*.js'"
+    "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
+    "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
+    "test": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'"
   },
   "devDependencies": {
     "cypress": "^6.1.0",
