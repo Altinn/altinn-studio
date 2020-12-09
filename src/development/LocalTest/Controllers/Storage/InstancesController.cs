@@ -542,7 +542,7 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChanged = creationTime,
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
-                VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
+                VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter) ?? creationTime,
                 Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
