@@ -10,7 +10,7 @@ import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
-  let mockApiResponse: any;
+  let mockApiResponse: IValidations;
   let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
@@ -755,5 +755,15 @@ describe('>>> utils/validations.ts', () => {
       },
     };
     expect(validations).toEqual(expectedResult);
+  });
+
+  it('+++ getNumberOfComponentsWithErrors should return correct number of components with error', () => {
+    const componentsWithErrors = validation.getNumberOfComponentsWithErrors(mockApiResponse);
+    expect(componentsWithErrors).toEqual(1);
+  });
+
+  it('+++ getNumberOfComponentsWithEWarnings should return correct number of components with warnings', () => {
+    const componentsWithWarnings = validation.getNumberOfComponentsWithWarnings(mockApiResponse);
+    expect(componentsWithWarnings).toEqual(1);
   });
 });
