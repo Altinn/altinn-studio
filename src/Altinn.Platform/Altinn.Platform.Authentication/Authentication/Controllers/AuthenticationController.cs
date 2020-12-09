@@ -327,6 +327,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Remove(audClaim);
                 }
 
+                claims.Add(new Claim("iss", issuer, ClaimValueTypes.String, issuer));
+
                 ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
 
                 identity.AddClaims(claims);
@@ -403,6 +405,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     Claim claim = claims.Find(c => c.Type == claimType);
                     claims.Remove(claim);
                 }
+
+                claims.Add(new Claim("iss", issuer, ClaimValueTypes.String, issuer));
 
                 ClaimsIdentity identity = new ClaimsIdentity(EndUserSystemIdentity);
                 identity.AddClaims(claims);

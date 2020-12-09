@@ -299,10 +299,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected result:
         ///   It should not be possible to restore a hard deleted instance
         /// Success criteria:
-        ///   Response status is BadRequest and the body contains correct reason.
+        ///   Response status is NotFound and the body contains correct reason.
         /// </summary>
         [Fact]
-        public async void Undelete_AttemptToRestoreHardDeletedInstance_ReturnsBadRequest()
+        public async void Undelete_AttemptToRestoreHardDeletedInstance_ReturnsNotFound()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -312,7 +312,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/1337/f888c42b-8749-41d6-8048-8fc28c70beaa/undelete", null);
 
             // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
 
