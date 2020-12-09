@@ -112,8 +112,9 @@ namespace Altinn.App.Services.Implementation
 
             instance.Process.CurrentTask.Validated = new ValidationStatus
             {
-                // The condition for completion is met wWith zero messages
-                CanCompleteTask = messages.Count == 0,
+                // The condition for completion is met if there are no errors (or other weirdnesses).
+                CanCompleteTask = messages.Count == 0 ||
+                    messages.All(m => m.Severity != ValidationIssueSeverity.Error && m.Severity != ValidationIssueSeverity.Unspecified),
                 Timestamp = DateTime.Now
             };
 

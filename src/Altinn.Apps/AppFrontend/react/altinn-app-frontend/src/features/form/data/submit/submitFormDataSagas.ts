@@ -7,6 +7,8 @@ import { convertDataBindingToModel, filterOutInvalidData } from '../../../../uti
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
   createValidator,
+  getNumberOfComponentsWithErrors,
+  getNumberOfComponentsWithWarnings,
   mapDataElementValidationToRedux,
   validateEmptyFields,
   validateFormComponents,
@@ -22,7 +24,7 @@ const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeS
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 // eslint-disable-next-line consistent-return
-function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
+function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const currentDataTaskDataTypeId = getDataTaskDataTypeId(
@@ -75,8 +77,10 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
         const mappedValidations =
           mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
         FormValidationActions.updateValidations(mappedValidations);
-        if (serverValidation && serverValidation.length > 0) {
-          // we have validation errors, should not be able to submit
+        const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
+        const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
+        if (hasErrors || (stopWithWarnings && hasWarnings)) {
+          // we have validation errors or warnings that should be shown, do not submit
           return yield call(FormDataActions.submitFormDataRejected, null);
         }
         // data has no validation errors, we complete the current step
