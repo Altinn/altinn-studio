@@ -325,6 +325,7 @@ namespace Altinn.Platform.Storage.Controllers
                 string userId = GetUserId();
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
+
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
@@ -394,11 +395,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (hard)
             {
+                instance.Status.IsHardDeleted = true;
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.HardDeleted = now;
                 instance.Status.SoftDeleted ??= now;
             }
             else
             {
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.SoftDeleted = now;
             }
 
@@ -588,7 +592,7 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
-                Status = instanceTemplate.Status,
+                Status = instanceTemplate.Status ?? new InstanceStatus(),
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
                 Process = instanceTemplate.Process,

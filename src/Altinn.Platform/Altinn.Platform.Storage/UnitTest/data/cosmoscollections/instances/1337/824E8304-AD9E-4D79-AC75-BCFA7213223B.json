@@ -15,6 +15,9 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
   },
   "appOwner": {},
   "data": [
@@ -35,6 +38,7 @@
       "lastChangedBy": "4228869"
     }
   ],
+  "¨visibleAfter": "2020-04-29T13:53:02.2836971Z",
   "created": "2020-04-29T13:53:02.2836971Z",
   "createdBy": "1337",
   "lastChanged": "2020-04-29T13:53:02.2836971Z",

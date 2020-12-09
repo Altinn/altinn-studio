@@ -16,9 +16,13 @@
     "endEvent": "EndEvent_1"
   },
   "status": {
-    "archived": "2020-01-23T15:38:44.1504337Z"
+    "archived": "2020-01-23T15:38:44.1504337Z",
+    "isArchived": true,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
   },
   "appOwner": {},
+  "visibleAfter": "2020-01-23T15:38:32.0832414Z",
   "created": "2020-01-23T15:38:32.0832414Z",
   "createdBy": "20000013",
   "lastChanged": "2020-01-23T15:38:44.9036392Z",

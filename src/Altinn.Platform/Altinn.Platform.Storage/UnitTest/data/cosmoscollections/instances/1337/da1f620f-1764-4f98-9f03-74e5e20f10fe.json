@@ -16,6 +16,9 @@
     "endEvent": "EndEvent_1"
   },
   "status": {
+    "isArchived": true,
+    "isHardDeleted": false,
+    "isSoftDeleted": true,
     "archived": "2020-04-29T13:53:06.117891Z",
     "softDeleted": "2020-04-29T13:53:06.117891Z"
   },
@@ -51,6 +54,7 @@
       "lastChanged": "2020-04-29T13:53:09.0214218Z"
     }
   ],
+  "visibleAfter": "2020-04-29T13:53:02.2836971Z",
   "created": "2020-04-29T13:53:02.2836971Z",
   "createdBy": "1337",
   "lastChanged": "2020-04-29T13:53:09.1122622Z",
