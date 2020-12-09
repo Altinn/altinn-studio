@@ -4,8 +4,13 @@
   "appId": "tdd/endring-av-navn",
   "org": "tdd",
   "data": [],
+  "visibleAfter": "2020-04-28T13:53:06.117891Z",
+  "created": "2020-04-28T13:53:06.117891Z",
   "status": {
     "softDeleted": "2020-04-29T13:53:06.117891Z",
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": true,
     "substatus": {
       "label": "substatus.Initial.Label",
       "description": "substatus.Initial.Description"

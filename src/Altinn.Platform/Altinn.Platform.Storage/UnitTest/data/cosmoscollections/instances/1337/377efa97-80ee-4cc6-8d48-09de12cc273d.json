@@ -5,14 +5,22 @@
   },
   "appId": "tdd/endring-av-navn",
   "org": "tdd",
+  "visibleAfter": "2019-07-31T09:57:23.4729995Z",
   "created": "2019-07-31T09:57:23.4729995Z",
   "lastChanged": "2019-07-31T09:57:23.4729995Z",
   "lastChangedBy": "1337",
   "dueBefore": "2019-07-05T00:00:00Z",
-  "visibleAfter": "2019-06-05T00:00:00Z",
   "process": {
-    "currentTask": { "elementId": "Task_1" }
+    "started": "2020-04-29T13:53:01.7020218Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "elementId": "Task_1",
+      "altinnTaskType": "data"
+    }
   },
   "status": {
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
   }
 }

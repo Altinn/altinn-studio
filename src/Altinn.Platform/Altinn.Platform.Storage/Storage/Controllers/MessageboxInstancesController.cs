@@ -215,14 +215,15 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown database exception in restore: {dce}");
             }
 
-            if (instance.Status.HardDeleted.HasValue)
+            if (instance.Status.IsHardDeleted)
             {
-                return BadRequest("Instance was permanently deleted and cannot be restored.");
+                return NotFound("Instance was permanently deleted and cannot be restored.");
             }
-            else if (instance.Status.SoftDeleted.HasValue)
+            else if (instance.Status.IsSoftDeleted)
             {
                 instance.LastChangedBy = User.GetUserOrOrgId();
                 instance.LastChanged = DateTime.UtcNow;
+                instance.Status.IsSoftDeleted = false;
                 instance.Status.SoftDeleted = null;
 
                 InstanceEvent instanceEvent = new InstanceEvent
@@ -293,11 +294,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (hard)
             {
+                instance.Status.IsHardDeleted = true;
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.HardDeleted = now;
                 instance.Status.SoftDeleted ??= now;
             }
             else
             {
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.SoftDeleted = now;
             }
 
