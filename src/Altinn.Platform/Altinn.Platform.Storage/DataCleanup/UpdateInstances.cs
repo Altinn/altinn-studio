@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.DataCleanup.Data;
@@ -68,7 +67,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                             + $"\r Exception {e}");
                     }
                 }
-                
+
                 stopWatch.Stop();
                 log.LogInformation($"Update of {instanceList.Instances.Count} instances, time used " + stopWatch.Elapsed.ToString());
             }
