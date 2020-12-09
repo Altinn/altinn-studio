@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using Altinn.App.Services.Interface;
@@ -7,7 +8,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 {
     public class PDFMockSI : IPDF
     {
-        public Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement)
+        public Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
         {
             return Task.CompletedTask;
         }

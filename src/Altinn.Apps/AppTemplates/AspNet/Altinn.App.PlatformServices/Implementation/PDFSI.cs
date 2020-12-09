@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Xml.Serialization;
+using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
@@ -36,6 +39,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IAppResources _appResourcesService;
         private readonly IText _textService;
         private readonly IProfile _profileService;
+        private readonly IPdfHandler _pdfHandler;
         private readonly UserHelper _userHelper;
         private readonly JsonSerializer _camelCaseSerializer;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -52,8 +56,10 @@ namespace Altinn.App.Services.Implementation
         /// <param name="appResourcesService">The app resource service</param>
         /// <param name="textService">The text service</param>
         /// <param name="profileService">the profile service</param>
+        /// <param name="pdfHandler">the pdfHandler service</param>
         /// <param name="settings">the general settings</param>
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
+        /// <param name="altinnApp">The Altinn app</param>
         public PDFSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<PDFSI> logger,
@@ -63,6 +69,7 @@ namespace Altinn.App.Services.Implementation
             IAppResources appResourcesService,
             IText textService,
             IProfile profileService,
+            IPdfHandler pdfHandler,
             IOptions<GeneralSettings> settings,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -81,12 +88,13 @@ namespace Altinn.App.Services.Implementation
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             _pdfClient = httpClient;
             _profileService = profileService;
+            _pdfHandler = pdfHandler;
             _userHelper = new UserHelper(profileService, registerService, settings);
             _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
-        public async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement)
+        public async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
@@ -94,9 +102,20 @@ namespace Altinn.App.Services.Implementation
             Application application = _appResourcesService.GetApplication();
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, new Guid(dataElement.Id));
-            byte[] dataAsBytes = new byte[dataStream.Length];
-            await dataStream.ReadAsync(dataAsBytes);
+            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_appResourcesService.GetLayoutSettings());
+
+            object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId,  new Guid(dataElement.Id));
+
+            layoutSettings = await _pdfHandler.FormatPdf(layoutSettings, data);
+
+            XmlSerializer serializer = new XmlSerializer(dataElementModelType);
+            using MemoryStream stream = new MemoryStream();
+
+            serializer.Serialize(stream, data);
+            stream.Position = 0;
+
+            byte[] dataAsBytes = new byte[stream.Length];
+            await stream.ReadAsync(dataAsBytes);
             string encodedXml = Convert.ToBase64String(dataAsBytes);
 
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
@@ -112,13 +131,11 @@ namespace Altinn.App.Services.Implementation
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
 
-            string layoutSettings = _appResourcesService.GetLayoutSettings();
-
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
                 FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
-                LayoutSettings = (layoutSettings != null) ? JsonConvert.DeserializeObject<object>(layoutSettings): null,
+                LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,

@@ -65,7 +65,8 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
                     services.AddTransient<IRegister, RegisterMockSI>();
-                    services.AddTransient<IPDF, PDFMockSI>();
+
+                    // services.AddTransient<IPDF, PDFMockSI>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddTransient<IText, TextMockSI>();
 
@@ -102,6 +103,7 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "nabovarsel":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
+                            services.AddSingleton<IPdfHandler, IntegrationTests.Mocks.Apps.dibk.nabovarsel.PdfHandler>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
