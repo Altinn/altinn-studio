@@ -37,6 +37,8 @@ namespace Altinn.Platform.Storage.DataCleanup
         {
             Stopwatch stopWatch = new Stopwatch();
             InstanceList instanceList = new InstanceList();
+            int failed = 0;
+            int total = 0;
             do
             {
                 stopWatch.Restart();
@@ -65,13 +67,16 @@ namespace Altinn.Platform.Storage.DataCleanup
                     {
                         log.LogError($"UpdateInstances // Run // Error occured when updating instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
                             + $"\r Exception {e}");
+                        failed++;
                     }
                 }
 
                 stopWatch.Stop();
                 log.LogInformation($"Update of {instanceList.Instances.Count} instances, time used " + stopWatch.Elapsed.ToString());
+                total += instanceList.Instances.Count;
             }
             while (instanceList.ContinuationToken != null);
+            log.LogInformation($"Total instances updated: {total}, count of failed updates: {failed}");
         }
     }
 }
