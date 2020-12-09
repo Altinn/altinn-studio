@@ -76,7 +76,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                 total += instanceList.Instances.Count;
             }
             while (instanceList.ContinuationToken != null);
-            log.LogInformation($"Total instances updated: {total}, count of failed updates: {failed}");
+            log.LogInformation($"Update complete. Total instances updated: {total}, count of failed updates: {failed}");
         }
     }
 }
