@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Altinn.Platform.Storage.DataCleanup.Data;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
@@ -39,5 +39,15 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// Deletes the instance event documents for the the given instance.
         /// </summary>
         public Task<bool> DeleteInstanceEventDocuments(string instanceGuid, string instanceOwnerPartyId);
+
+        /// <summary>
+        /// Retrieves all instances.
+        /// </summary>
+        public Task<InstanceList> GetAllInstances(string continuationToken);
+
+        /// <summary>
+        /// Update existing instance
+        /// </summary>
+        public Task<Instance> UpdateInstance(Instance item);
     }
 }

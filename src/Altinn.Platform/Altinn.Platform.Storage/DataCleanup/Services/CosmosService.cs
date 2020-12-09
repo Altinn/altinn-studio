@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Altinn.Platform.Storage.DataCleanup.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Azure.Documents.SystemFunctions;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
 {
@@ -253,6 +254,51 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<InstanceList> GetAllInstances(string continuationToken)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true,
+                RequestContinuation = continuationToken
+            };
+
+            IQueryable<Instance> filter;
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions);
+            InstanceList documentList = new InstanceList();
+            try
+            {
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+
+                FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+                documentList.Instances = feedResponse.ToList();
+                documentList.ContinuationToken = feedResponse.ResponseContinuation;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesToken // Exeption: {ex.Message}");
+            }
+
+            return documentList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> UpdateInstance(Instance item)
+        {
+            ResourceResponse<Document> createDocumentResponse = await _client
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, item.Id), item);
+            Document document = createDocumentResponse.Resource;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            return instance;
         }
 
         private string AppIdToCosmosId(string appId)
