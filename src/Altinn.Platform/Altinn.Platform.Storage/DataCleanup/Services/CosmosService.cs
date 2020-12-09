@@ -158,7 +158,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             {
                 IDocumentQuery<Instance> query = filter.AsDocumentQuery();
 
-                while (query.HasMoreResults)
+                while (query.HasMoreResults && instances.Count < 10000)
                 {
                     FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
                     instances.AddRange(feedResponse.ToList());
