@@ -5,13 +5,15 @@ using Altinn.App.AppLogic.Calculation;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.AppLogic
 {
@@ -36,6 +38,10 @@ namespace Altinn.App.AppLogic
         /// <param name="profileService">A service with access to profile information.</param>
         /// <param name="registerService">A service with access to register information.</param>
         /// <param name="prefillService">A service with access to prefill mechanisms.</param>
+        /// <param name="instanceService">A service with access to instances</param>
+        /// <param name="settings">General settings</param>
+        /// <param name="textService">A service with access to text</param>
+        /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
@@ -45,14 +51,10 @@ namespace Altinn.App.AppLogic
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
-            IInstance instanceService) : base(
-                appResourcesService,
-                logger,
-                dataService,
-                processService,
-                pdfService,
-                prefillService,
-                instanceService)
+            IInstance instanceService,
+            IOptions<GeneralSettings> settings,
+            IText textService,
+            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();

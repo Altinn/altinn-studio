@@ -59,7 +59,6 @@ namespace Altinn.App.Services.Implementation
         /// <param name="pdfHandler">the pdfHandler service</param>
         /// <param name="settings">the general settings</param>
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
-        /// <param name="altinnApp">The Altinn app</param>
         public PDFSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<PDFSI> logger,
@@ -169,7 +168,8 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<Stream> GeneratePDF(PDFContext pdfContext)
+        /// <inheritdoc/>
+        public async Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
             using HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
