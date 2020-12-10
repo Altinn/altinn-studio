@@ -107,7 +107,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedContainer.id === props.id || draggedContainer.index === -1) {
+          if (
+            draggedContainer.id === props.id ||
+            draggedContainer.index === props.index ||
+            draggedContainer.containerId === props.id
+          ) {
             return;
           }
 
@@ -118,7 +122,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             }
           }
 
-          if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
+          if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
             if (hoverOverIndex === draggedContainer.index) {
               return;
@@ -158,6 +162,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
+          } else {
+            hoverOverIndex -= 1;
+            if (hoverOverIndex < 0) {
+              hoverOverIndex = 0;
+            }
           }
 
           props.onMoveComponent(

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,6 +42,10 @@ namespace Altinn.Platform.Storage.DataCleanup
             List<Instance> instances = await _cosmosService.GetHardDeletedInstances();
             List<Application> applications = await _cosmosService.GetApplications(instances.Select(i => i.AppId).ToList());
             List<string> autoDeleteAppIds = applications.Where(a => a.AutoDeleteOnProcessEnd == true).Select(a => a.Id).ToList();
+            int successfullyDeleted = 0;
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             foreach (Instance instance in instances)
             {
@@ -50,13 +55,11 @@ namespace Altinn.Platform.Storage.DataCleanup
 
                 try
                 {
-                    if (instance.Data.Count > 0)
+                    dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
+
+                    if (dataElementsDeleted)
                     {
-                        dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
-                        if (dataElementsDeleted)
-                        {
-                            dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
-                        }
+                        dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
                     }
 
                     if (autoDeleteAppIds.Contains(instance.AppId))
@@ -64,18 +67,33 @@ namespace Altinn.Platform.Storage.DataCleanup
                         instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
                     }
 
-                    if ((instance.Data.Count == 0 || dataElementMetadataDeleted) && (!autoDeleteAppIds.Contains(instance.AppId) || instanceEventsDeleted))
+                    if (dataElementMetadataDeleted && (!autoDeleteAppIds.Contains(instance.AppId) || instanceEventsDeleted))
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
-                        log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                        successfullyDeleted += 1;
+                        log.LogInformation(
+                            "NightlyCleanup // Run // Instance deleted: {AppId}/{InstanceId}",
+                            instance.AppId,
+                            $"{instance.InstanceOwner.PartyId}/{instance.Id}");
                     }
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"NightlyCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
-                        + $"\r Exception {e}");
+                    log.LogError(
+                        "NightlyCleanup // Run // Error occured when deleting instance: {AppId}/{InstanceId} \r Exception {Exception}",
+                        instance.AppId,
+                        $"{instance.InstanceOwner.PartyId}/{instance.Id}",
+                        e);
                 }
             }
+
+            stopwatch.Stop();
+
+            log.LogInformation(
+                "NightlyCleanup // Run // {DeleteCount} of {OriginalCount} instances deleted in {Duration} s",
+                successfullyDeleted,
+                instances.Count,
+                stopwatch.Elapsed.TotalSeconds);
         }
     }
 }

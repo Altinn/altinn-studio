@@ -135,6 +135,27 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
+      if (addToId && (!destinationIndex === false || destinationIndex === 0)) {
+        return update<IFormLayoutState>(state, {
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+                [addToId]: {
+                  $splice: [[destinationIndex, 0, id]],
+                },
+              },
+            },
+          },
+        });
+      }
       if (addToId) {
         return update<IFormLayoutState>(state, {
           layouts: {
@@ -504,12 +525,14 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
               return updatedContainers;
             },
             order: (currentOrder) => {
-              // update the container id in our base container
+              // update id in parent container order
               const updatedOrder = Object.assign({}, currentOrder);
-              const baseContainerId = Object.keys(updatedOrder)[0];
-              const baseContainerOrder = updatedOrder[baseContainerId];
-              const containerIndex = baseContainerOrder.indexOf(currentId);
-              baseContainerOrder[containerIndex] = newId;
+              const parentContainer = Object.keys(updatedOrder).find((containerId: string) => {
+                return (updatedOrder[containerId].indexOf(currentId) > -1);
+              });
+              const parentContainerOrder = updatedOrder[parentContainer];
+              const containerIndex = parentContainerOrder.indexOf(currentId);
+              parentContainerOrder[containerIndex] = newId;
 
               // update id of the containers order array
               updatedOrder[newId] = updatedOrder[currentId];

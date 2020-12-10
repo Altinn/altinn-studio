@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -33,13 +34,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
     /// </summary>
     public class ProcessControllerTest : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly Mock<IInstanceEventRepository> _repositoryMock;
         private readonly WebApplicationFactory<Startup> _factory;
 
         public ProcessControllerTest(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
-            _repositoryMock = new Mock<IInstanceEventRepository>();
         }
 
         /// <summary>
@@ -51,9 +50,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
-            _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 1);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -73,7 +71,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         { // Arrange
             string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(-1, 1);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -94,7 +92,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Arrange 
             string requestUri = $"storage/api/v1/instances/1337/17ad1851-f6cb-4573-bfcb-a17d145307b3/process/history";
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 2);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -121,7 +119,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             ProcessState state = new ProcessState();
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 1);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -145,7 +143,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             ProcessState state = new ProcessState();
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(-1, 1);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -168,7 +166,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             ProcessState state = new ProcessState();
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
-            HttpClient client = GetTestClient(_repositoryMock.Object);
+            HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 3);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -179,7 +177,45 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
+        /// <summary>
+        /// Test case: User is Authorized
+        /// Expected: Returns status ok. 
+        /// </summary>
+        [Fact]
+        public async void PutProcess_EndProcess_EnsureArchivedStateIsSet()
+        {
+            // Arrange
+            string requestUri = $"storage/api/v1/instances/1337/377efa97-80ee-4cc6-8d48-09de12cc273d/process/";
+            Instance testInstance = TestDataUtil.GetInstance(1337, new Guid("377efa97-80ee-4cc6-8d48-09de12cc273d"));
+            testInstance.Id = $"{testInstance.InstanceOwner.PartyId}/{testInstance.Id}";
+            ProcessState state = new ProcessState
+            {
+                Started = DateTime.Parse("2020-04-29T13:53:01.7020218Z"),
+                StartEvent = "StartEvent_1",
+                Ended = DateTime.UtcNow,
+                EndEvent = "EndEvent_1"
+            };
+
+            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+
+            Mock<IInstanceRepository> repositoryMock = new Mock<IInstanceRepository>();
+            repositoryMock.Setup(ir => ir.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(testInstance);
+            repositoryMock.Setup(ir => ir.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
+
+            HttpClient client = GetTestClient(repositoryMock.Object);
+            string token = PrincipalUtil.GetToken(3, 1337, 3);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Instance actual = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+     
+            // Assert
+            Assert.True(actual.Status.IsArchived);
+        }
+
+        private HttpClient GetTestClient(IInstanceRepository instanceRepository = null)
         {
             // No setup required for these services. They are not in use by the ApplicationController
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -196,12 +232,20 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     services.AddSingleton(applicationRepository.Object);
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
-                    services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);
                     services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+
+                    if (instanceRepository != null)
+                    {
+                        services.AddSingleton(instanceRepository);
+                    }
+                    else
+                    {
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
+                    }
                 });
             }).CreateClient();
 

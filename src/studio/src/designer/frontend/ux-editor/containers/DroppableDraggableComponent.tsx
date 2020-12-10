@@ -196,12 +196,19 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedContainer.id === props.id) {
+          if (
+            draggedContainer.id === props.id ||
+            draggedContainer.index === props.index ||
+            draggedContainer.containerId === props.id
+          ) {
             return;
           }
 
-          if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
+          if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
+            if (hoverOverIndex === draggedContainer.index) {
+              return;
+            }
           }
 
           props.onMoveContainer(
