@@ -86,3 +86,6 @@ area/events:
 
 area/ui-editor:
   - 'src/studio/src/designer/frontend/ux-editor/**/*'
+
+area/test:
+  - 'src/studio/src/test/**/*'
