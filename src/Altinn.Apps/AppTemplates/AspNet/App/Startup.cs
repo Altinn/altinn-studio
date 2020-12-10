@@ -98,7 +98,6 @@ namespace Altinn.App
             services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
             services.AddHttpClient<IEvents, EventsAppSI>();
             services.AddHttpClient<IPDF, PDFSI>();
-            services.AddHttpClient<IPdfHandler, DefaultPdfHandler>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
             services.AddHttpClient<IProfile, ProfileAppSI>();
             services.AddHttpClient<IRegister, RegisterAppSI>();

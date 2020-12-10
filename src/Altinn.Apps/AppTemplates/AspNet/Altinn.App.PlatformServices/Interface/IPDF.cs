@@ -14,11 +14,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Generates a pdf receipt for a given dataElement
         /// </summary>
-        Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType);
-
-        /// <summary>
-        /// Generates a pdf receipt for a given dataElement
-        /// </summary>
         Task<Stream> GeneratePDF(PDFContext pdfContext);
     }
 }

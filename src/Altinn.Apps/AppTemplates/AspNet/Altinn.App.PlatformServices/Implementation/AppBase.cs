@@ -212,7 +212,7 @@ namespace Altinn.App.Services.Implementation
                     if (generatePdf)
                     {
                         Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
-                        Task createPdf = _pdfService.GenerateAndStoreReceiptPDF(instance, dataElement, dataElementType);
+                        Task createPdf = GenerateAndStoreReceiptPDF(instance, dataElement, dataElementType);
                         await Task.WhenAll(updateData, createPdf);
                     }
                     else

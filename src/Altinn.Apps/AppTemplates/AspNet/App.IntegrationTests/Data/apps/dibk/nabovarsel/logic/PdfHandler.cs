@@ -12,7 +12,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
     /// <summary>
     /// Handler for formatting PDF. Dow
     /// </summary>
-    public class PdfHandler : IPdfHandler
+    public class PdfHandler
     {
         /// <summary>
         /// Method to format PDF
