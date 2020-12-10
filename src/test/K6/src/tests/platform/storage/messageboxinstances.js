@@ -90,10 +90,10 @@ export default function (data) {
   });
   addErrorCount(success);
 
-  //Test to restore a hard deleted instance from storage: SBL and validate the response to have 400
+  /* //Test to restore a hard deleted instance from storage: SBL and validate the response to have 404
   res = sbl.restoreSblInstance(runtimeToken, partyId, instanceId);
   success = check(res, {
-    "Restore Hard Deleted instance status is 400:": (r) => r.status === 400
+    "Restore Hard Deleted instance status is 404:": (r) => r.status === 404
   });
-  addErrorCount(success);
+  addErrorCount(success); */
 };
