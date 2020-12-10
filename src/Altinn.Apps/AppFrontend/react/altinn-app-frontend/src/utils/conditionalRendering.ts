@@ -27,10 +27,17 @@ export function runConditionalRenderingRules(
 
     const connection: IConditionalRenderingRule = rules[key];
     if (connection.repeatingGroup) {
-      const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
-      mapRepeatingGroupIndex(repeatingGroups, connectionCopy.inputParams, connection.repeatingGroup?.groupId, true);
-      mapRepeatingGroupIndex(repeatingGroups, connectionCopy.selectedFields, connection.repeatingGroup?.groupId, false);
-      componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connectionCopy, formData));
+      const repeatingGroup: IRepeatingGroup = repeatingGroups[connection.repeatingGroup.groupId];
+      if (!repeatingGroup) {
+        return;
+      }
+
+      for (let i = 0; i <= repeatingGroup.count; ++i) {
+        const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
+        connectionCopy.inputParams = mapRepeatingGroupIndex(connectionCopy.inputParams, i, true);
+        connectionCopy.selectedFields = mapRepeatingGroupIndex(connectionCopy.selectedFields, i, false);
+        componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connectionCopy, formData));
+      }
     } else {
       componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connection, formData));
     }
@@ -40,25 +47,16 @@ export function runConditionalRenderingRules(
 }
 
 function mapRepeatingGroupIndex(
-  repeatingGroups: IRepeatingGroups,
   ruleObject: IParameters | ISelectedFields,
-  repeatingGroupId: string,
+  index: number,
   dataModelField?: boolean,
 ) {
-  if (!dataModelField && !repeatingGroupId) return;
-  let groupId;
+  const result: any = {};
   Object.keys(ruleObject).forEach((key) => {
     const field = ruleObject[key];
-    if (field.indexOf('{0}') > -1) {
-      groupId = repeatingGroupId || field.substr(0, field.indexOf('{'));
-      const repeatingGroup: IRepeatingGroup = repeatingGroups[groupId];
-      if (!repeatingGroup) return;
-      for (let i = 0; i <= repeatingGroup.count; ++i) {
-        // eslint-disable-next-line no-param-reassign
-        ruleObject[key] = field.replace('{0}', dataModelField ? `[${i}]` : `-${i}`);
-      }
-    }
+    result[key] = field.replace('{0}', dataModelField ? `[${index}]` : `-${index}`);
   });
+  return result;
 }
 
 function runConditionalRenderingRule(rule: IConditionalRenderingRule, formData: IFormData) {
