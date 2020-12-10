@@ -150,13 +150,10 @@ public class FormUtils {
       if (formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME)) {
         String parentGroupBinding = formLayoutElement.getDataModelBindings().get(GROUP_NAME);
         formLayoutElement.setCount(getGroupCount(parentGroupBinding, formData));
-        System.out.println("CHECKING GROUP " + formLayoutElement.getId() + " HAS COUNT " + formLayoutElement.getCount());
         List<FormLayoutElement> groupChildren = getChildGroups(formLayoutElement, layout);
-        groupChildren.stream().forEach(child -> System.out.println("CHILD : " + child.getId()));
         initiated.add(formLayoutElement);
         if (groupChildren.size() > 0) {
           groupChildren.forEach(groupChild -> {
-            System.out.println("GROUP CHILD: " + groupChild.getId());
             for (int i = 0; i < formLayoutElement.getCount(); i ++) {
               FormLayoutElement copy = new FormLayoutElement();
               copy.setType(GROUP_NAME);
@@ -165,11 +162,9 @@ public class FormUtils {
               HashMap<String, String> copyDataModelBindings = new HashMap<>();
               String childGroupBinding = groupChild.getDataModelBindings().get(GROUP_NAME);
               String indexedChildGroupBinding = childGroupBinding.replace(parentGroupBinding, parentGroupBinding + "[" + i + "]");
-              System.out.println("indexedChildGroupBinding : " + indexedChildGroupBinding);
               copyDataModelBindings.put(GROUP_NAME, indexedChildGroupBinding);
               copy.setDataModelBindings(copyDataModelBindings);
               copy.setCount(getGroupCount(indexedChildGroupBinding, formData));
-              System.out.println("getCount : " + copy.getCount());
               if (copy.getCount() > 0) {
                 initiated.add(copy);
               }
