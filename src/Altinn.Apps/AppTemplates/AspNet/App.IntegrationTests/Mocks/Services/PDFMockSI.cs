@@ -10,14 +10,18 @@ namespace App.IntegrationTestsRef.Mocks.Services
 {
     public class PDFMockSI : IPDF
     {
-        public Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
-        {
-            return Task.CompletedTask;
-        }
-
         public Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
-            throw new NotImplementedException();
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDFMockSI).Assembly.CodeBase).LocalPath);
+            string dataPath = Path.Combine(unitTestFolder, @"..\..\..\Data\Files\print.pdf");
+
+            Stream ms = new MemoryStream();
+            using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
+            {
+                file.CopyTo(ms);
+            }
+
+            return Task.FromResult(ms);
         }
     }
 }

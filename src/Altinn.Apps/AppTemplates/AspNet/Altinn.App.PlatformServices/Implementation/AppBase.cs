@@ -247,7 +247,13 @@ namespace Altinn.App.Services.Implementation
             Application application = _resourceService.GetApplication();
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_resourceService.GetLayoutSettings());
+            string layoutSettingsString = _resourceService.GetLayoutSettings();
+
+            LayoutSettings layoutSettings = null;
+            if (!string.IsNullOrEmpty(layoutSettingsString))
+            {
+                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_resourceService.GetLayoutSettings());
+            }
 
             object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
