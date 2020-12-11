@@ -34,15 +34,22 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
-            string dataPath = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataId);
+            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
 
-            Stream ms = new MemoryStream();
-            using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
+            try
             {
-                file.CopyTo(ms);
-            }
+                Stream ms = new MemoryStream();
+                using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
+                {
+                    file.CopyTo(ms);
+                }
 
-            return Task.FromResult(ms);
+                return Task.FromResult(ms);
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
