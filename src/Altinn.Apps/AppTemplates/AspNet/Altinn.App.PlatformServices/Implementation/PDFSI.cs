@@ -1,24 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
-using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
-using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Storage.Interface.Models;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
@@ -34,7 +22,6 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly HttpClient _pdfClient;
         private readonly JsonSerializer _camelCaseSerializer;
-        private readonly string pdfElementType = "ref-data-as-pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
