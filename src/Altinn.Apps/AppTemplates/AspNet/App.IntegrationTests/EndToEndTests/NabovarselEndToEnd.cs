@@ -188,8 +188,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
-            IEnumerable<DataElement> lockedDataElements = instance.Data.Where(r => r.Locked = true);
-            Assert.Equal(3, instance.Data.Count);
+            IEnumerable<DataElement> lockedDataElements = instance.Data.Where(r => r.Locked == true);
             Assert.Single(lockedDataElements);
             #endregion
 
