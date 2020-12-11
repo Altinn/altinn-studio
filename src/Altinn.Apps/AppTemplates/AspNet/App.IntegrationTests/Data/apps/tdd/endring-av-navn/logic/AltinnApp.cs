@@ -129,5 +129,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         {
             return;
         }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return layoutSettings;
+        }
     }
 }

@@ -115,5 +115,10 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         {
             return;
         }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return layoutSettings;
+        }
     }
 }

@@ -100,5 +100,10 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         {
             await Task.CompletedTask;
         }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return layoutSettings;
+        }
     }
 }

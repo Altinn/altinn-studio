@@ -96,5 +96,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
         {
             return;
         }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return layoutSettings;
+        }
     }
 }

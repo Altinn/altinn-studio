@@ -161,5 +161,14 @@ namespace Altinn.App.AppLogic
         {
             await Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Format PDF
+        /// </summary>
+        /// <returns></returns>
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return layoutSettings;
+        }
     }
 }

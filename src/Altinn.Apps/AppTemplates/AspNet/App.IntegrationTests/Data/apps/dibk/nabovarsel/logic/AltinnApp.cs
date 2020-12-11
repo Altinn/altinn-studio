@@ -22,6 +22,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
+        private readonly PdfHandler _pdfHandler;
 
         public AltinnApp(
             IAppResources appResourcesService,
@@ -40,6 +41,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _pdfHandler = new PdfHandler();
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -99,6 +101,11 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             await Task.CompletedTask;
+        }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }

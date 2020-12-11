@@ -116,6 +116,9 @@ namespace Altinn.App.Services.Implementation
         public abstract Task RunProcessTaskEnd(string taskId, Instance instance);
 
         /// <inheritdoc />
+        public abstract Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
+
+        /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
             _logger.LogInformation($"OnInstantiate: GetStartEvent");
@@ -231,12 +234,6 @@ namespace Altinn.App.Services.Implementation
             }
 
             await Task.CompletedTask;
-        }
-
-        /// <inheritdoc />
-        public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return Task.FromResult(layoutSettings);
         }
 
         private async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
