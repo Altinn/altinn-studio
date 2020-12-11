@@ -241,7 +241,6 @@ namespace Altinn.App.Services.Implementation
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
             int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
-            Application application = _resourceService.GetApplication();
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             string layoutSettingsString = _resourceService.GetLayoutSettings();
