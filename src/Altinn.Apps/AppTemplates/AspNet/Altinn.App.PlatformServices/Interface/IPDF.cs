@@ -1,8 +1,6 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
 {
