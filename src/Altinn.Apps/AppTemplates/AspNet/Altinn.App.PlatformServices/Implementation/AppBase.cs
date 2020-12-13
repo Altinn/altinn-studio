@@ -253,7 +253,7 @@ namespace Altinn.App.Services.Implementation
 
             object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
-            // layoutSettings = await _pdfHandler.FormatPdf(layoutSettings, data);
+            layoutSettings = await FormatPdf(layoutSettings, data);
             XmlSerializer serializer = new XmlSerializer(dataElementModelType);
             using MemoryStream stream = new MemoryStream();
 

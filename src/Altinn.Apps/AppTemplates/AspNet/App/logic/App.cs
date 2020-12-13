@@ -57,7 +57,7 @@ namespace Altinn.App.AppLogic
             IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
             _logger = logger;
-            _validationHandler = new ValidationHandler();
+            _validationHandler = new ValidationHandler(httpContextAccessor);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
