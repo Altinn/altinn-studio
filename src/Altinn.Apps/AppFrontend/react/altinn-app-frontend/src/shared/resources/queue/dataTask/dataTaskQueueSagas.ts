@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, take } from 'redux-saga/effects';
+import { call, takeEvery } from 'redux-saga/effects';
 import { IAltinnWindow } from 'src/types';
 import FormDataActions from '../../../../features/form/data/formDataActions';
 import FormLayoutActions from '../../../../features/form/layout/formLayoutActions';
@@ -25,8 +25,5 @@ export function* startInitialDataTaskQueue(): SagaIterator {
 }
 
 export function* watchStartInitialDataTaskQueueSaga(): SagaIterator {
-  while (true) {
-    yield take(START_INITIAL_DATA_TASK_QUEUE);
-    yield call(startInitialDataTaskQueue);
-  }
+  yield takeEvery(START_INITIAL_DATA_TASK_QUEUE, startInitialDataTaskQueue);
 }
