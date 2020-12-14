@@ -154,6 +154,12 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (dataElement != null && string.Equals(dataElement.BlobStoragePath, storageFileName))
             {
+                if (!dataElement.IsRead && User.GetOrg() != instance.Org)
+                {
+                    dataElement.IsRead = true;
+                    await _dataRepository.Update(dataElement);
+                }
+
                 try
                 {
                     Stream dataStream = await _dataRepository.ReadDataFromStorage(instance.Org, storageFileName);
@@ -271,6 +277,11 @@ namespace Altinn.Platform.Storage.Controllers
                 newData.Filename = HttpUtility.UrlDecode(newData.Filename);
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
+                if (User.GetOrg() != instance.Org)
+                {
+                    newData.IsRead = true;
+                }
+
                 DataElement dataElement = await _dataRepository.Create(newData);
                 dataElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
 
@@ -301,7 +312,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [Produces("application/json")]
-        public async Task<ActionResult<DataElement>> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, [FromQuery(Name = "refs")]List<Guid> refs = null)
+        public async Task<ActionResult<DataElement>> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, [FromQuery(Name = "refs")] List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -354,6 +365,11 @@ namespace Altinn.Platform.Storage.Controllers
                 dataElement.Refs = updatedData.Refs;
 
                 dataElement.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, blobStoragePathName);
+
+                if (User.GetOrg() != instance.Org)
+                {
+                    dataElement.IsRead = true;
+                }
 
                 if (dataElement.Size > 0)
                 {

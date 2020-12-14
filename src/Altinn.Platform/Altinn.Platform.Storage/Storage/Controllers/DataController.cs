@@ -345,7 +345,6 @@ namespace Altinn.Platform.Storage.Controllers
                 if (User.GetOrg() != instance.Org)
                 {
                     dataElement.IsRead = true;
-                    await _dataRepository.Update(dataElement);
                 }
 
                 if (dataElement.Size > 0)
