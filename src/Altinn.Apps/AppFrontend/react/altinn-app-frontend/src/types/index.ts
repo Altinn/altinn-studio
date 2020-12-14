@@ -160,6 +160,7 @@ export interface IOptions {
 
 export interface IRepeatingGroup {
   count: number;
+  baseGroupId?: string;
 }
 
 export interface IRepeatingGroups {

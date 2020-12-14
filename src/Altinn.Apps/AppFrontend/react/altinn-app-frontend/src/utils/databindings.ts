@@ -1,5 +1,8 @@
+/* eslint-disable max-len */
 import { object } from 'dot-object';
 import { ILayout, ILayoutGroup } from 'src/features/form/layout';
+import { IRepeatingGroup } from 'src/types';
+import { getParentGroup } from './validation';
 
 const JsonPointer = require('jsonpointer');
 
@@ -59,8 +62,8 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
     return keyWithIndex;
   }
 
-  return keyWithIndex.substring(0, keyWithIndex.indexOf('['))
-    + keyWithIndex.substring(keyWithIndex.indexOf(']') + 1);
+  return getKeyWithoutIndex(keyWithIndex.substring(0, keyWithIndex.indexOf('['))
+    + keyWithIndex.substring(keyWithIndex.indexOf(']') + 1));
 }
 
 /**
@@ -97,17 +100,29 @@ export function removeGroupData(
   index: any,
   layout: ILayout,
   groupId: string,
-  repeatingGroupCount: number,
+  repeatingGroup: IRepeatingGroup,
 ): any {
   const result = { ...formData };
+  const groupElementId = repeatingGroup.baseGroupId || groupId;
   const groupElement: ILayoutGroup = layout.find((element) => {
-    return element.id === groupId;
+    return element.id === groupElementId;
   }) as ILayoutGroup;
-  const groupDataModelBinding = groupElement.dataModelBindings.group;
+  const parentGroup = getParentGroup(groupElement, layout);
+
+  let groupDataModelBinding;
+  if (parentGroup) {
+    const parentIndex = Number.parseInt(groupId.charAt(groupId.length - 1), 10);
+    const parentDataBinding = parentGroup.dataModelBindings?.group;
+    const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
+    groupDataModelBinding = groupElement.dataModelBindings?.group.replace(parentDataBinding, indexedParentDataBinding);
+  } else {
+    groupDataModelBinding = groupElement.dataModelBindings.group;
+  }
+
   deleteGroupData(result, groupDataModelBinding, index);
 
-  if (index < repeatingGroupCount + 1) {
-    for (let i = index + 1; i <= repeatingGroupCount + 1; i++) {
+  if (index < repeatingGroup.count + 1) {
+    for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
       deleteGroupData(result, groupDataModelBinding, i, true);
     }
   }

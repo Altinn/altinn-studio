@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.DataCleanup.Services;
 using Altinn.Platform.Storage.Interface.Models;
@@ -48,7 +50,11 @@ namespace Altinn.Platform.Storage.DataCleanup
                 return new BadRequestObjectResult("Pass an app name in the query string to clean up load testing data.");
             }
 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             List<Instance> instances = await _cosmosService.GetAllInstancesOfApp(app.ToLower().Trim());
+
+            int successfullyDeleted = 0;
 
             foreach (Instance instance in instances)
             {
@@ -56,32 +62,44 @@ namespace Altinn.Platform.Storage.DataCleanup
 
                 try
                 {
-                    if (instance.Data.Count > 0)
-                    {
-                        dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
+                    dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
 
-                        if (dataElementsDeleted)
-                        {
-                            dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
-                        }
+                    if (dataElementsDeleted)
+                    {
+                        dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
                     }
 
                     bool instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
 
-                    if ((instance.Data.Count == 0 || dataElementMetadataDeleted) && instanceEventsDeleted)
+                    if (dataElementMetadataDeleted && instanceEventsDeleted)
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
-                        log.LogInformation($"LoadTestingCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                        successfullyDeleted += 1;
+                        log.LogInformation(
+                            "LoadTestingCleanup // Run // Instance deleted: {AppId}/{InstanceId}",
+                            instance.AppId,
+                            $"{instance.InstanceOwner.PartyId}/{instance.Id}");
                     }
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"LoadTestingCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
-                        + $"\r Exception {e}");
+                    log.LogError(
+                        "LoadTestingCleanup // Run // Error occured when deleting instance: {AppId}/{InstanceId} \r Exception {Exception}",
+                        instance.AppId,
+                        $"{instance.InstanceOwner.PartyId}/{instance.Id}",
+                        e);
                 }
             }
 
-            return new OkObjectResult($"{instances.Count} instances and all related data has been successfully deleted.");
+            stopwatch.Stop();
+
+            log.LogInformation(
+                "LoadTestingCleanup // Run // {DeleteCount} of {OriginalCount} instances deleted in {Duration} s",
+                successfullyDeleted,
+                instances.Count,
+                stopwatch.Elapsed.TotalSeconds);
+
+            return new OkObjectResult($"{successfullyDeleted}/{instances.Count} instances and all related data has been successfully deleted.");
         }
     }
 }

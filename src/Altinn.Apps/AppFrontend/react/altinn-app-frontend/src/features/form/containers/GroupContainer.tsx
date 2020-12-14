@@ -9,8 +9,9 @@ import { useSelector } from 'react-redux';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
-import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
-import { renderGenericComponent } from '../../../utils/layout';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
+import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
 import FormLayoutActions from '../layout/formLayoutActions';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
@@ -18,7 +19,7 @@ import { IFormData } from '../data/formDataReducer';
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
-  components: ILayoutComponent[]
+  components: (ILayoutComponent | ILayoutGroup)[]
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -35,10 +36,9 @@ const useStyles = makeStyles({
       borderStyle: 'solid',
     },
     '&:focus': {
-      outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-      border: `none`,
+      outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
+      border: `2px solid ${theme.altinnPalette.primary.blueDark}`,
       outlineOffset: 0,
-      outlineColor: theme.altinnPalette.primary.blueMedium,
     },
   },
   addButtonText: {
@@ -126,7 +126,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function getHiddenFieldsForGroup(hiddenFields: string[], components: ILayoutComponent[]) {
+export function getHiddenFieldsForGroup(hiddenFields: string[], components: (ILayoutGroup | ILayoutComponent)[]) {
   const result = [];
   hiddenFields.forEach((fieldKey) => {
     const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
@@ -150,6 +150,7 @@ export function GroupContainer({
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenFields: string[] = useSelector((state: IRuntimeState) => getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
+  const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -162,13 +163,15 @@ export function GroupContainer({
   const repeatinGroupIndex = getRepeatingGroupIndex(id);
   const tableHeaderComponents = container.tableHeaders || container.children || [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const tableHasErrors = repeatingGroupHasValidations(validations, repeatinGroupIndex + 1, components);
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
-    if (tableHeaderComponents.includes(component.id)) {
-      componentTitles.push(component.textResourceBindings.title);
+    const childId = (component as any).baseComponentId || component.id;
+    if (tableHeaderComponents.includes(childId)) {
+      componentTitles.push(component.textResourceBindings?.title || '');
     }
   });
+  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(container, renderComponents, repeatinGroupIndex, hiddenFields);
+  const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, repeatingGroups, layout);
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
@@ -176,12 +179,15 @@ export function GroupContainer({
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
       onClickAdd();
     }
   };
 
-  const getFormDataForComponent = (component: ILayoutComponent, index: number): string => {
+  const getFormDataForComponent = (component: ILayoutComponent | ILayoutGroup, index: number): string => {
+    if (component.type === 'Group' || component.type === 'Header' || component.type === 'Paragraph') {
+      return '';
+    }
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
     if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
@@ -192,7 +198,7 @@ export function GroupContainer({
       } else if (selectionComponent.optionsId) {
         label = options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formData[replaced])?.label;
       }
-      return getTextResourceByKey(label, textResources);
+      return getTextResourceByKey(label, textResources) || '';
     }
     return formData[replaced] || '';
   };
@@ -210,34 +216,20 @@ export function GroupContainer({
     }
   };
 
-  const createRepeatingGroupComponents = () => {
-    const componentArray = [];
-    for (let i = 0; i <= repeatinGroupIndex; i++) {
-      const childComponents = renderComponents.map((component: ILayoutComponent) => {
-        const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
-        const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
-
-        const groupDataModelBinding = container.dataModelBindings.group;
-        Object.keys(dataModelBindings).forEach((key) => {
-          // eslint-disable-next-line no-param-reassign
-          dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
-        });
-        const deepCopyId = `${componentDeepCopy.id}-${i}`;
-        const hidden: boolean = !!hiddenFields.find((field) => field === `${deepCopyId}[${i}]`);
-        return {
-          ...componentDeepCopy,
-          dataModelBindings,
-          id: deepCopyId,
-          baseComponentId: componentDeepCopy.id,
-          hidden,
-        };
-      });
-      componentArray.push(childComponents);
+  const childElementHasErrors = (element: ILayoutGroup | ILayoutComponent, index: number) => {
+    if (element.type === 'Group') {
+      return childGroupHasErrors(element as ILayoutGroup, index);
     }
-    return componentArray;
+    return componentHasValidations(validations, `${element.id}`);
   };
 
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents();
+  const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
+    const childGroupCount = repeatingGroups[childGroup.id]?.count;
+    const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
+    const childRenderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
+    const deepCopyComponents = createRepeatingGroupComponents(childGroup, childRenderComponents, childGroupCount, hiddenFields);
+    return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, repeatingGroups, layout, hiddenFields);
+  };
 
   return (
     <>
@@ -261,13 +253,14 @@ export function GroupContainer({
             </TableHead>
             <TableBody className={classes.tableBody}>
               {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-                const rowHasErrors = components.some((component: ILayoutComponent) => {
-                  return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
+                const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
+                  return childElementHasErrors(component, repeatingGroupIndex);
                 });
                 return (
                   <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={repeatingGroupIndex}>
                     {components.map((component: ILayoutComponent) => {
-                      if (!tableHeaderComponents.includes(component.id)) {
+                      const childId = (component as any).baseComponentId || component.id;
+                      if (!tableHeaderComponents.includes(childId)) {
                         return null;
                       }
                       return (
@@ -298,8 +291,8 @@ export function GroupContainer({
           className={classes.mobileContainer}
         >
           {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-            const rowHasErrors = components.some((component: ILayoutComponent) => {
-              return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
+            const rowHasErrors = components.some((component: ILayoutComponent | ILayoutGroup) => {
+              return childElementHasErrors(component, repeatingGroupIndex);
             });
             return (
               <Grid
@@ -370,7 +363,7 @@ export function GroupContainer({
           </Grid>
           <Grid item={true}>
             <span className={classes.addButtonText}>
-              {`${getLanguageFromKey('general.add_new', language)} 
+              {`${getLanguageFromKey('general.add_new', language)}
               ${container.textResourceBindings?.add_button ? getTextResourceByKey(container.textResourceBindings.add_button, textResources) : ''}`}
             </span>
           </Grid>
@@ -400,7 +393,7 @@ export function GroupContainer({
             </Grid>
           </Grid>
           <Grid item={true} xs={12}>
-            { repeatingGroupDeepCopyComponents[editIndex].map(renderGenericComponent) }
+            { repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => { return renderGenericComponent(component, layout, editIndex); }) }
           </Grid>
           <Grid item={true} xs={12}>
             <AltinnButton

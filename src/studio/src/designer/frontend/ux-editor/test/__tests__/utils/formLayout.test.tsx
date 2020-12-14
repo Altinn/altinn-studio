@@ -35,6 +35,14 @@ describe('>>> utils/formLayout', () => {
           },
           dataModelBindings: {},
         },
+        'group-child-paragraph': {
+          type: 'Paragraph',
+          itemType: 'COMPONENT',
+          textResourceBindings: {
+            title: 'ServiceName',
+          },
+          dataModelBindings: {},
+        },
       },
       containers: {
         'f35e6f67-7d3a-4e20-a538-90d94e6c29a1': {
@@ -45,9 +53,10 @@ describe('>>> utils/formLayout', () => {
         'group-container': {
           dataModelBindings: {},
           repeating: false,
-          children: [
-            'group-paragraph',
-          ],
+        },
+        'group-child-container': {
+          dataModelBindings: {},
+          repeating: true,
         },
       },
       order: {
@@ -58,6 +67,10 @@ describe('>>> utils/formLayout', () => {
         ],
         'group-container': [
           'group-paragraph',
+          'group-child-container',
+        ],
+        'group-child-container': [
+          'group-child-paragraph',
         ],
       },
     };
@@ -141,10 +154,26 @@ describe('>>> utils/formLayout', () => {
       repeating: false,
       children: [
         'group-paragraph',
+        'group-child-container',
       ],
     },
     {
       id: 'group-paragraph',
+      type: 'Paragraph',
+      textResourceBindings: { title: 'ServiceName' },
+      dataModelBindings: {},
+    },
+    {
+      id: 'group-child-container',
+      type: 'Group',
+      dataModelBindings: {},
+      repeating: true,
+      children: [
+        'group-child-paragraph',
+      ],
+    },
+    {
+      id: 'group-child-paragraph',
       type: 'Paragraph',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
@@ -196,7 +225,7 @@ describe('>>> utils/formLayout', () => {
         id: 'mockChildID_1', type: 'Group', children: ['mockChildID_2'],
       },
       {
-        id: 'mockChildID_3', type: 'Group', children: ['mockChildID_4'],
+        id: 'mockChildID_3', type: 'Group', children: ['mockChildID_4', 'mockChildID_6'],
       },
       {
         id: 'mockChildID_2', type: 'Header', someProp: '2',
@@ -207,11 +236,18 @@ describe('>>> utils/formLayout', () => {
       {
         id: 'mockChildID_5', type: 'Dropdown', someProp: '5',
       },
+      {
+        id: 'mockChildID_6', type: 'Group', children: ['mockChildID_7'],
+      },
+      {
+        id: 'mockChildID_7', type: 'Input', someProp: '7',
+      },
     ];
-    const mockResult = {
+    const expectedComponentResult = {
       containers: {
         mockChildID_1: { itemType: 'CONTAINER' },
         mockChildID_3: { itemType: 'CONTAINER' },
+        mockChildID_6: { itemType: 'CONTAINER' },
       },
       components: {
         mockChildID_2: {
@@ -223,9 +259,14 @@ describe('>>> utils/formLayout', () => {
         mockChildID_5: {
           someProp: '5', type: 'Dropdown', itemType: 'COMPONENT',
         },
+        mockChildID_7: {
+          someProp: '7', type: 'Input', itemType: 'COMPONENT',
+        },
       },
     };
+
     const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-    expect(convertedLayout.components).toEqual(mockResult.components);
+    expect(convertedLayout.components).toEqual(expectedComponentResult.components);
+    expect(Object.keys(convertedLayout.order).length).toEqual(4);
   });
 });

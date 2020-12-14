@@ -18,6 +18,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -133,15 +134,66 @@ public class FormUtils {
    * @return a form layout list where the group counts have been initialized
    */
   public static List<FormLayoutElement> setupRepeatingGroups(List<FormLayoutElement> layout, Document formData) {
+    List<FormLayoutElement> initiated = new ArrayList<>();
     if (layout == null || formData == null) {
-      return Collections.emptyList();
+      return initiated;
     }
-    return layout.stream().map(formLayoutElement -> {
+
+    List<FormLayoutElement> groups = layout.stream().filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME)).collect(Collectors.toList());
+    // filter away groups that should be rendered as child groups
+    List<FormLayoutElement> filtered = layout
+      .stream()
+      .filter(formLayoutElement -> !(formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME) && groups.stream().anyMatch(group -> (group.getChildren() != null && group.getChildren().contains(formLayoutElement.getId())))))
+      .collect(Collectors.toList());
+
+    filtered.forEach(formLayoutElement -> {
       if (formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME)) {
-        formLayoutElement.setCount(getGroupCount(formLayoutElement.getDataModelBindings().get(GROUP_NAME), formData));
+        String parentGroupBinding = formLayoutElement.getDataModelBindings().get(GROUP_NAME);
+        formLayoutElement.setCount(getGroupCount(parentGroupBinding, formData));
+        List<FormLayoutElement> groupChildren = getChildGroups(formLayoutElement, layout);
+        initiated.add(formLayoutElement);
+        if (!groupChildren.isEmpty()) {
+          groupChildren.forEach(groupChild -> {
+            for (int i = 0; i < formLayoutElement.getCount(); i ++) {
+              FormLayoutElement copy = new FormLayoutElement();
+              copy.setType(GROUP_NAME);
+              copy.setId(groupChild.getId() + "-" + i);
+              copy.setChildren(groupChild.getChildren());
+              HashMap<String, String> copyDataModelBindings = new HashMap<>();
+              String childGroupBinding = groupChild.getDataModelBindings().get(GROUP_NAME);
+              String indexedChildGroupBinding = childGroupBinding.replace(parentGroupBinding, parentGroupBinding + "[" + i + "]");
+              copyDataModelBindings.put(GROUP_NAME, indexedChildGroupBinding);
+              copy.setDataModelBindings(copyDataModelBindings);
+              copy.setCount(getGroupCount(indexedChildGroupBinding, formData));
+              if (copy.getCount() > 0) {
+                initiated.add(copy);
+              }
+            }
+          });
+        }
       }
-      return formLayoutElement;
-    }).collect(Collectors.toList());
+    });
+    return initiated;
+  }
+
+  /**
+   * finds child groups of a given group
+   * @param group the group
+   * @param layout the form layout
+   * @return a list of child groups, empty if no child is a group
+   */
+  public static List<FormLayoutElement> getChildGroups(FormLayoutElement group, List<FormLayoutElement> layout) {
+    List<FormLayoutElement> childGroups = new ArrayList<>();
+    if (group == null || group.getChildren() == null || layout == null) {
+      return childGroups;
+    }
+    List<String> children = group.getChildren();
+    layout.forEach(layoutElement -> {
+      if (layoutElement.getType().equalsIgnoreCase(GROUP_NAME) && children.contains(layoutElement.getId())) {
+        childGroups.add(layoutElement);
+      }
+    });
+    return childGroups;
   }
 
   /**
@@ -154,8 +206,32 @@ public class FormUtils {
     if (group == null || formData == null) {
       return 0;
     }
-    String[] split = group.split(Pattern.quote("."));
-    return formData.getElementsByTagName(split[split.length - 1]).getLength();
+
+    int bracketIndex = group.indexOf("[");
+    if (bracketIndex > -1) {
+      int parentGroupIndex = Integer.parseInt(group.substring(bracketIndex + 1 , bracketIndex + 2));
+      String[] split = group.split(Pattern.quote("."));
+      String groupName = split[split.length -1];
+      String parentGroup = "";
+      for (String s: split) {
+        if (s.contains("[")) {
+          parentGroup = s.replace("[" + parentGroupIndex + "]", "");
+        }
+      }
+      NodeList groups = formData.getElementsByTagName(parentGroup);
+      NodeList children = groups.item(parentGroupIndex).getChildNodes();
+      int count = 0;
+      for (int i = 0; i < children.getLength(); i++) {
+        if (children.item(i).getNodeName().equals(groupName)) {
+          count ++;
+        }
+      }
+      return count;
+    }
+    else {
+      String[] split = group.split(Pattern.quote("."));
+      return formData.getElementsByTagName(split[split.length - 1]).getLength();
+    }
   }
 
   /**

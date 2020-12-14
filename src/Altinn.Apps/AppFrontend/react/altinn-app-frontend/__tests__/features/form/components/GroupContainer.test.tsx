@@ -91,21 +91,23 @@ describe('>>> features/form/components/Group.tsx', () => {
     ];
 
     mockLayout = {
-      layout: [
-        {
-          id: 'mock-container-id',
-          type: 'group',
-          dataModelBindings: {
-            group: 'Group',
+      layouts: {
+        FormLayout: [
+          {
+            id: 'mock-container-id',
+            type: 'group',
+            dataModelBindings: {
+              group: 'Group',
+            },
+            children: [
+              'field1',
+              'field2',
+              'field3',
+              'field4',
+            ],
           },
-          children: [
-            'field1',
-            'field2',
-            'field3',
-            'field4',
-          ],
-        },
-      ].concat(mockComponents),
+        ].concat(mockComponents),
+      },
       uiConfig: {
         hiddenFields: [],
         repeatingGroups: {
@@ -114,6 +116,7 @@ describe('>>> features/form/components/Group.tsx', () => {
           },
         },
         autosave: false,
+        currentView: 'FormLayout',
       },
     };
 

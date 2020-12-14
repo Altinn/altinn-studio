@@ -1,0 +1,16 @@
+{
+  "name": "cypress-studio",
+  "version": "1.0.0",
+  "description": "studio tests",
+  "main": "index.js",
+  "scripts": {
+    "cypress:open": "cypress open",
+    "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
+    "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
+    "test": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'"
+  },
+  "devDependencies": {
+    "cypress": "^6.1.0",
+    "faker": "^5.1.0"
+  }
+}

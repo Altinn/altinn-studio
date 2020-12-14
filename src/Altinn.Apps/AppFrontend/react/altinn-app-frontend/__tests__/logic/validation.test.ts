@@ -1,10 +1,13 @@
+/* eslint-disable max-len */
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { IValidationIssue, Severity, IValidations } from '../../src/types';
+import { IValidationIssue, Severity, IValidations, IRepeatingGroups } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
-import { ILayoutComponent } from '../../src/features/form/layout';
+import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
+import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
+import { mapToComponentValidations } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -90,11 +93,23 @@ describe('>>> utils/validations.ts', () => {
           type: 'group',
           id: 'group1',
           dataModelBindings: {
-            simpleBinding: 'group_1',
+            group: 'group_1',
           },
           maxCount: 3,
           children: [
             'componentId_4',
+            'group2',
+          ],
+        },
+        {
+          type: 'group',
+          id: 'group2',
+          dataModelBindings: {
+            group: 'group_1.group_2',
+          },
+          maxCount: 3,
+          children: [
+            'componentId_5',
           ],
         },
         {
@@ -113,6 +128,16 @@ describe('>>> utils/validations.ts', () => {
           dataModelBindings: {},
           maxNumberOfAttachments: '3',
           minNumberOfAttachments: '2',
+        },
+        {
+          type: 'Input',
+          id: 'componentId_5',
+          dataModelBindings: {
+            simpleBinding: 'group_1.group_2.dataModelField_5',
+          },
+          required: false,
+          readOnly: false,
+          textResourceBindings: {},
         },
       ],
     };
@@ -159,7 +184,7 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_3: '',
       random_key: 'some third value',
       group_1: [
-        { dataModelField_4: 'Hello...' },
+        { dataModelField_4: 'Hello...', group_2: [{ dataModelField_5: 'This does not trigger validation' }, { dataModelField_5: 'Does.' }] },
       ],
     };
 
@@ -168,8 +193,8 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_2: 'Really quite long...',
       dataModelField_3: 'Test 123',
       group_1: [
-        { dataModelField_4: 'Hello, World!' },
-        { dataModelField_4: 'Not now!' },
+        { dataModelField_4: 'Hello, World!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'This is also long' }] },
+        { dataModelField_4: 'Not now!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'Something else that is long' }] },
       ],
     };
 
@@ -215,6 +240,22 @@ describe('>>> utils/validations.ts', () => {
               type: 'string',
               pattern: '^Hello, World!|Cool stuff...|Not now!$',
             },
+            group_2: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 3,
+              items: {
+                $ref: '#/definitions/Group2',
+              },
+            },
+          },
+        },
+        Group2: {
+          properties: {
+            dataModelField_5: {
+              type: 'string',
+              minLength: 10,
+            },
           },
         },
       },
@@ -240,6 +281,13 @@ describe('>>> utils/validations.ts', () => {
           simpleBinding: {
             errors: [
               getParsedLanguageFromKey('validation_errors.pattern', mockLanguage.language),
+            ],
+          },
+        },
+        'componentId_5-0-1': {
+          simpleBinding: {
+            errors: [
+              getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
             ],
           },
         },
@@ -312,7 +360,7 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ should count total number of errors correctly', () => {
     const result = validation.getErrorCount(mockFormValidationResult.validations);
-    expect(result).toEqual(3);
+    expect(result).toEqual(4);
   });
 
   it('+++ canFormBeSaved should validate correctly', () => {
@@ -528,36 +576,184 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ repeatingGroupHasValidations should return true when components in group has errors', () => {
-    const children: ILayoutComponent[] = [
-      { id: 'some-id' } as ILayoutComponent,
-      { id: 'some-other-id' } as ILayoutComponent,
-    ];
+    const group = {
+      id: 'group',
+      type: 'Group',
+      dataModelBindings: { group: 'group' },
+      children: ['child1', 'child2'],
+    } as unknown as ILayoutGroup;
+
     const validations: IValidations = {
-      'some-id-2': {
+      'child1-0': {
         simpleBinding: {
-          errors: ['Some error'],
+          errors: ['some error'],
         },
       },
     };
-    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+
+    const repeatingGroups: IRepeatingGroups = {
+      group: {
+        count: 0,
+      },
+    };
+
+    const layout = [
+      {
+        id: 'group',
+        type: 'Group',
+        dataModelBindings: { group: 'group' },
+        children: ['child1', 'child2'],
+      } as unknown as ILayoutGroup,
+      {
+        id: 'child1',
+        type: 'Input',
+        dataModelBindings: { simpleBinding: 'group.child1' },
+      } as unknown as ILayoutComponent,
+      {
+        id: 'child2',
+        type: 'Input',
+        dataModelBindings: { simpleBinding: 'group.child2' },
+      } as unknown as ILayoutComponent,
+    ];
+
+    // this parsing is handled internally in GroupContainer. Is done manually here to test util function
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeTruthy();
   });
 
-  it('+++ repeatingGroupHasValidations should return false when no components in group has errors', () => {
-    const children: ILayoutComponent[] = [
-      { id: 'some-id' } as ILayoutComponent,
-      { id: 'some-other-id' } as ILayoutComponent,
-    ];
+  it ('+++ repeatingGroupHasValidations should return true when a child group has validations', () => {
+    const group = {
+      id: 'group',
+      type: 'Group',
+      dataModelBindings: { group: 'group' },
+      children: ['child1', 'group2'],
+    } as unknown as ILayoutGroup;
+
     const validations: IValidations = {
-      differentId: {
+      'child2-0-0': {
         simpleBinding: {
-          errors: ['Some error'],
+          errors: ['some error'],
         },
       },
     };
-    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+
+    const repeatingGroups: IRepeatingGroups = {
+      group: {
+        count: 0,
+      },
+      'group2-0': {
+        count: 0,
+      },
+    };
+
+    const layout = [
+      {
+        id: 'group',
+        type: 'Group',
+        dataModelBindings: { group: 'group' },
+        children: ['child1', 'group2'],
+      } as unknown as ILayoutGroup,
+      {
+        id: 'child1',
+        type: 'Input',
+        dataModelBindings: { simpleBinding: 'group.child1' },
+      } as unknown as ILayoutComponent,
+      {
+        id: 'group2',
+        type: 'Group',
+        dataModelBindings: { group: 'group.group2' },
+        children: ['child2'],
+      } as unknown as ILayoutComponent,
+      {
+        id: 'child2',
+        type: 'Input',
+        dataModelBindings: { simpleBinding: 'group.group2.child2' },
+      } as unknown as ILayoutComponent,
+    ];
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeTruthy();
+  });
+
+  it ('+++ repeatingGroupHasValidations should return false when no children has validations', () => {
+    const group = {
+      id: 'group',
+      type: 'Group',
+      dataModelBindings: { group: 'group' },
+      children: ['child1'],
+    } as unknown as ILayoutGroup;
+
+    const validations: IValidations = {
+      'some-random-field': {
+        simpleBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+
+    const repeatingGroups: IRepeatingGroups = {
+      group: {
+        count: 0,
+      },
+    };
+
+    const layout = [
+      {
+        id: 'group',
+        type: 'Group',
+        dataModelBindings: { group: 'group' },
+        children: ['child1', 'child2'],
+      } as unknown as ILayoutGroup,
+      {
+        id: 'child1',
+        type: 'Input',
+        dataModelBindings: { simpleBinding: 'group.child1' },
+      } as unknown as ILayoutComponent,
+    ];
+
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeFalsy();
   });
 
   it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
-    expect(validation.repeatingGroupHasValidations(null, null, null)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(null, null, null, null, null)).toBeFalsy();
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
+    const expectedResult = {
+      componentId_2: {
+        customBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component for component in a repeating group', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
+    const expectedResult = {
+      'componentId_4-0': {
+        simpleBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
+  });
+
+  it('+++ mapToComponentValidations should map validation to correct component for component in a nested repeating group', () => {
+    const validations = {};
+    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
+    const expectedResult = {
+      'componentId_5-0-0': {
+        simpleBinding: {
+          errors: ['some error'],
+        },
+      },
+    };
+    expect(validations).toEqual(expectedResult);
   });
 });
