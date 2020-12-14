@@ -39,7 +39,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
                 }
             }
 
-            return layoutSettings;
+            return await Task.FromResult(layoutSettings);
         }
     }
 }

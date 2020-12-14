@@ -125,7 +125,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
 
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
-            return layoutSettings;
+            return await Task.FromResult(layoutSettings);
         }
     }
 }
