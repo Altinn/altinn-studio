@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer
         /// <param name="env">Hosting environment</param>
         public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 appBuilder.UseExceptionHandler("/error-local-development");
             }
@@ -157,8 +157,12 @@ namespace Altinn.Studio.Designer
 
             appBuilder.UseRouting();
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
+            if (!env.IsDevelopment())
+            {
+                // appBuilder.UseHsts();
+                appBuilder.UseHttpsRedirection();
+            }
+
             appBuilder.UseAuthentication();
             appBuilder.UseAuthorization();
 
