@@ -12,11 +12,11 @@ namespace Altinn.App.AppLogic.Print
         /// Method to format PDF dynamic
         /// </summary>
         /// <example>
-        /// if (data.GetType() == typeof(Skjema)
-        /// {
-        ///     layoutSettings.Components = new Components() { ExcludeFromPdf = new List<string>() };
+        ///     if (data.GetType() == typeof(Skjema)
+        ///     {
+        ///     // need to create object if not there
         ///     layoutSettings.Components.ExcludeFromPdf.Add("a23234234");
-        /// }
+        ///     }
         /// </example>
         /// <param name="layoutSettings">the layoutsettings</param>
         /// <param name="data">data object</param>
