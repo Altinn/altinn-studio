@@ -162,7 +162,7 @@ export function nb() {
       show_sub_unit: 'Vis underenheter',
     },
     popover: {
-      popover_button_helptext: 'Klikk her for hjelpetekst popover',
+      popover_button_helptext: 'Hjelp',
       popover_open: 'Popover åpen',
     },
     receipt: {
