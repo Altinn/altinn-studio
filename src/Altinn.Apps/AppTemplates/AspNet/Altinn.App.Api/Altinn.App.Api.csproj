@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>2.1.1-alpha</Version>
+    <Version>2.1.1</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.37-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.3.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>

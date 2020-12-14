@@ -49,6 +49,7 @@ public class PDFGenerator {
   private FormLayout originalFormLayout;
   private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
+  private List<FormLayoutElement> repeatingGroups;
   private Party party;
   private Party userParty;
   private UserProfile userProfile;
@@ -147,9 +148,9 @@ public class PDFGenerator {
     // Loop through all pdfLayout elements and draws them
     if (originalFormLayout != null) {
       // Older versions of our PlatformService nuget package we supplied only one form layout. Have to be backwards compatible here.
+      this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
       List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(this.originalFormLayout.getData().getLayout());
-      List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-      renderFormLayout(initializedLayout);
+      renderFormLayout(filteredLayout);
     } else if (formLayouts != null) {
       // contains a map of form layouts. Render each page and separate by a new page
       if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null) {
@@ -163,9 +164,9 @@ public class PDFGenerator {
             }
             FormLayout layout = formLayouts.get(layoutKey);
             originalFormLayout = layout;
+            this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
             List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-            renderFormLayout(initializedLayout);
+            renderFormLayout(filteredLayout);
             firstPage = false;
           }
         }
@@ -179,9 +180,9 @@ public class PDFGenerator {
             }
             FormLayout layout = formLayoutKeyValuePair.getValue();
             originalFormLayout = layout;
+            this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
             List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-            List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-            renderFormLayout(initializedLayout);
+            renderFormLayout(filteredLayout);
             firstPage = false;
           }
         }
@@ -199,49 +200,52 @@ public class PDFGenerator {
   private void renderFormLayout(List<FormLayoutElement> formLayout) throws IOException {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
-      if (componentType.equals("Button") || componentType.equalsIgnoreCase("NavigationButtons") ) {
-        continue;
-      }
       if (componentType.equalsIgnoreCase("group")) {
-        // We have a group. Render child components.
-        if (element.getMaxCount() > 0) {
-          // repeating group => update data binding based on group count
-          String groupBinding = element.getDataModelBindings().get("group");
-          for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
-            for (String childId: element.getChildren()) {
-              FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
-              if (childElement == null) {
-                continue;
-              }
-              if (childElement.getDataModelBindings() != null) {
-                Map<String, String> dataBindings = childElement.getDataModelBindings();
-                for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
-                  String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
-                  if (groupIndex > 0) {
-                    replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
-                  }
-                  dataBinding.setValue(replacedBinding);
-                }
-              }
-              renderLayoutElement(childElement);
-            }
-          }
-        } else {
-          // not repeating => treat children as regular components
-          for (String childId : element.getChildren()) {
-            FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
-            if (childElement != null ) {
-              renderLayoutElement(childElement);
-            }
-          }
-        }
+        renderGroup(element);
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
+  private void renderGroup(FormLayoutElement element) throws IOException {
+    String groupBinding = element.getDataModelBindings().get("group");
+    for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
+        for (String childId : element.getChildren()) {
+          FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+          if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
+            int finalGroupIndex = groupIndex;
+            childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId + "-" + finalGroupIndex)).findFirst().orElse(null);
+          }
+
+          if (childElement == null) {
+            continue;
+          }
+          if (childElement.getDataModelBindings() != null) {
+            Map<String, String> dataBindings = childElement.getDataModelBindings();
+            for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
+              String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+              if (groupIndex > 0) {
+                replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
+              }
+              dataBinding.setValue(replacedBinding);
+            }
+          }
+          if (childElement.getType().equalsIgnoreCase("group")) {
+            renderGroup(childElement);
+          } else {
+            renderLayoutElement(childElement);
+          }
+        }
+      }
+  }
+
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
+    String componentType = element.getType();
+    if (componentType.equals("Button") || componentType.equalsIgnoreCase("NavigationButtons") ) {
+      return;
+    }
     // Render title
     float elementHeight = LayoutUtils.getElementHeight(element, font, fontSize, width, leading, textFieldMargin, textResources, formData, instance);
     if ((yPoint - elementHeight) < (0 + margin)) {

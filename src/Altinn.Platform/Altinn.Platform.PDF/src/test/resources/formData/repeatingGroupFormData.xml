@@ -5,11 +5,31 @@
       <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group1</SkattemeldingEndringEtterFristPost-datadef-37130>
       <SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131 orid="37131">1</SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131>
       <SkattemeldingEndringEtterFristNyttBelop-datadef-37132 orid="37132">10</SkattemeldingEndringEtterFristNyttBelop-datadef-37132>
+      <nested-grp-1234 gruppeid="1234">
+        <NestedString orid="37131">string 1</NestedString>
+        <NestedInt orid="37131">1</NestedInt>
+      </nested-grp-1234>
+      <nested-grp-1234 gruppeid="1234">
+        <NestedString orid="37131">string 2</NestedString>
+        <NestedInt orid="37131">2</NestedInt>
+      </nested-grp-1234>
+      <nested-grp-1234 gruppeid="1234">
+        <NestedString orid="37131">string 3</NestedString>
+        <NestedInt orid="37131">3</NestedInt>
+      </nested-grp-1234>
     </OversiktOverEndringene-grp-9788>
     <OversiktOverEndringene-grp-9788 gruppeid="9788">
       <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group2</SkattemeldingEndringEtterFristPost-datadef-37130>
       <SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131 orid="37131">2</SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131>
       <SkattemeldingEndringEtterFristNyttBelop-datadef-37132 orid="37132">20</SkattemeldingEndringEtterFristNyttBelop-datadef-37132>
+      <nested-grp-1234 gruppeid="1234">
+        <NestedString orid="37131">string 1</NestedString>
+        <NestedInt orid="37131">1</NestedInt>
+      </nested-grp-1234>
+      <nested-grp-1234 gruppeid="1234">
+        <NestedString orid="37131">string 2</NestedString>
+        <NestedInt orid="37131">2</NestedInt>
+      </nested-grp-1234>
     </OversiktOverEndringene-grp-9788>
     <OversiktOverEndringene-grp-9788 gruppeid="9788">
       <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group3</SkattemeldingEndringEtterFristPost-datadef-37130>

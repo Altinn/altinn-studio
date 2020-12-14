@@ -161,7 +161,7 @@ The script wil also listen to changes in the receipt react app, rebuild and copy
 
 ### End to end tests
 
-Automated end to end tests are currently being developed.
+[Integration tests](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress) for local studio.
 
 ### Coding style tests
 
