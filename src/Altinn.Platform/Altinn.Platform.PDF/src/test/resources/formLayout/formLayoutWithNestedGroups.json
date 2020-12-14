@@ -1,0 +1,132 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "group-1",
+        "type": "group",
+        "children": [
+          "group-2",
+          "a1495e7d-d3ac-4e55-a459-1bc9d27fa792",
+          "77970ec9-bd12-4ca6-891a-2d0dc55f02ec",
+          "8f3a1688-efd9-41cd-9e31-0b7015f3d135",
+          "1f8cf9c2-62bd-425d-a61d-40db4e15ceed"
+        ],
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "maxCount": 999,
+        "tableHeaders": [
+          "a1495e7d-d3ac-4e55-a459-1bc9d27fa792",
+          "77970ec9-bd12-4ca6-891a-2d0dc55f02ec",
+          "8f3a1688-efd9-41cd-9e31-0b7015f3d135"
+        ]
+      },
+      {
+        "id": "group-2",
+        "type": "group",
+        "children": [
+          "group2-child"
+        ],
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
+        },
+        "maxCount": 999,
+        "tableHeaders": [
+          "a1495e7d-d3ac-4e55-a459-1bc9d27fa792",
+          "77970ec9-bd12-4ca6-891a-2d0dc55f02ec",
+          "8f3a1688-efd9-41cd-9e31-0b7015f3d135"
+        ]
+      },
+      {
+        "id": "group2-child",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.NestedString.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "a1495e7d-d3ac-4e55-a459-1bc9d27fa792",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristPost-datadef-37130.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "77970ec9-bd12-4ca6-891a-2d0dc55f02ec",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "8f3a1688-efd9-41cd-9e31-0b7015f3d135",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "1f8cf9c2-62bd-425d-a61d-40db4e15ceed",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "294325da-e204-44c5-97b2-8bcbb1fe89f6",
+        "type": "FileUpload",
+        "componentType": 8,
+        "textResourceBindings": {
+          "title": "Vedlegg"
+        },
+        "dataModelBindings": {},
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1,
+        "displayMode": "simple",
+        "required": true
+      },
+      {
+        "id": "03530a18-d89b-4a91-93d9-397ecb587991",
+        "type": "Button",
+        "componentType": 9,
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}
