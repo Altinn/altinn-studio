@@ -152,14 +152,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
-            if (!dataElement.IsRead && User.GetOrg() != instance.Org)
-            {
-                dataElement.IsRead = true;
-                await _dataRepository.Update(dataElement);
-            }
-
             if (dataElement != null && string.Equals(dataElement.BlobStoragePath, storageFileName))
             {
+                if (!dataElement.IsRead && User.GetOrg() != instance.Org)
+                {
+                    dataElement.IsRead = true;
+                    await _dataRepository.Update(dataElement);
+                }
+
                 try
                 {
                     Stream dataStream = await _dataRepository.ReadDataFromStorage(instance.Org, storageFileName);
