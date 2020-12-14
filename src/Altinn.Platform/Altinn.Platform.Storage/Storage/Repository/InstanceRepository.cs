@@ -493,24 +493,24 @@ namespace Altinn.Platform.Storage.Repository
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue)
-                        .Where(i => !i.Status.Archived.HasValue);
+                        .Where(i => !i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted)
+                        .Where(i => !i.Status.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue);
+                        .Where(i => i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                       .Where(i => i.Status.Archived.HasValue)
-                       .Where(i => !i.Status.SoftDeleted.HasValue)
-                       .Where(i => !i.Status.HardDeleted.HasValue)
+                       .Where(i => i.Status.IsArchived)
+                       .Where(i => !i.Status.IsSoftDeleted)
+                       .Where(i => !i.Status.IsHardDeleted)
                        .OrderByDescending(i => i.Status.Archived);
             }
             else
