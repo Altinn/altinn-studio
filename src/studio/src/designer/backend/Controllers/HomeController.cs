@@ -60,7 +60,11 @@ namespace Altinn.Studio.Designer.Controllers
                 return View("StartPage");
             }
 
-            return this.RedirectToAction("Index", "Home");
+            bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
+            string schema = isDevelopment ? "http://" : "https://";
+            string url = $"{schema}{_settings.ApiEndPointHost}/Home/Index";
+            return Redirect(url);
         }
 
         /// <summary>
