@@ -9,7 +9,7 @@ import { getTextFromAppOrDefault } from '../../utils/textResource';
 const theme = createMuiTheme(AltinnAppTheme);
 
 export default function Feedback() {
-  const processState = useSelector((state: IRuntimeState) => state.process.state);
+  const processState = useSelector((state: IRuntimeState) => state.process.taskType);
   const textResouces = useSelector((state: IRuntimeState) => state.textResources.resources);
   const language = useSelector((state: IRuntimeState) => state.language.language);
 

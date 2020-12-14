@@ -6,8 +6,7 @@ import moment from 'moment';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource, IProfile, IAttachment } from 'altinn-shared/types';
-import { getCurrentTaskData,
-  mapInstanceAttachments,
+import { mapInstanceAttachments,
   getLanguageFromKey,
   returnUrlToMessagebox,
   getTextResourceByKey } from 'altinn-shared/utils';
@@ -15,6 +14,7 @@ import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/atta
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
+import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -54,13 +54,14 @@ export const returnInstanceMetaDataObject = (
 
 const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [attachments, setAttachments] = useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
+  const [pdf, setPdf] = React.useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
   const allOrgs: any = useSelector((state: IRuntimeState) => state.organisationMetaData.allOrgs);
-  const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+  const applicationMetadata: IApplicationMetadata =
+    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
@@ -112,16 +113,12 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
-      const defaultElement = getCurrentTaskData(applicationMetadata, instance);
+      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
 
-      const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
+      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id));
       setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data));
-
-      const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
-      if (defaultDataElementLastChangedDateTime) {
-        setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
-      }
+      setLastChangedDateTime(moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'));
     }
   }, [instance, applicationMetadata]);
 
@@ -142,7 +139,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
-          pdf={pdf ? [pdf] : null}
+          pdf={pdf || null}
         />
       }
     </>
