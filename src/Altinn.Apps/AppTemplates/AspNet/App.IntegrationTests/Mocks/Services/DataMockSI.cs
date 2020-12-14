@@ -36,20 +36,13 @@ namespace App.IntegrationTests.Mocks.Services
         {
             string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
 
-            try
+            Stream ms = new MemoryStream();
+            using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
             {
-                Stream ms = new MemoryStream();
-                using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
-                {
-                    file.CopyTo(ms);
-                }
+                file.CopyTo(ms);
+            }
 
-                return Task.FromResult(ms);
-            }
-            catch(Exception ex)
-            {
-                throw;
-            }
+            return Task.FromResult(ms);
         }
 
         public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
