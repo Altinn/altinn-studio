@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.Calculation;
+using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
@@ -26,6 +27,7 @@ namespace Altinn.App.AppLogic
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
+        private readonly PdfHandler _pdfHandler;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -60,6 +62,7 @@ namespace Altinn.App.AppLogic
             _validationHandler = new ValidationHandler(httpContextAccessor);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _pdfHandler = new PdfHandler();
         }
 
         /// <inheritdoc />
@@ -168,7 +171,7 @@ namespace Altinn.App.AppLogic
         /// <returns></returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
-            return layoutSettings;
+            return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }
