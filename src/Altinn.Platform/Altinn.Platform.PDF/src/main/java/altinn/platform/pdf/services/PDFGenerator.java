@@ -214,7 +214,7 @@ public class PDFGenerator {
         for (String childId : element.getChildren()) {
           FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
 
-          if (childElement.getType().equalsIgnoreCase("group")) {
+          if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
             int finalGroupIndex = groupIndex;
             childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId + "-" + finalGroupIndex)).findFirst().orElse(null);
           }

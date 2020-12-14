@@ -152,7 +152,7 @@ public class FormUtils {
         formLayoutElement.setCount(getGroupCount(parentGroupBinding, formData));
         List<FormLayoutElement> groupChildren = getChildGroups(formLayoutElement, layout);
         initiated.add(formLayoutElement);
-        if (groupChildren.size() > 0) {
+        if (!groupChildren.isEmpty()) {
           groupChildren.forEach(groupChild -> {
             for (int i = 0; i < formLayoutElement.getCount(); i ++) {
               FormLayoutElement copy = new FormLayoutElement();
