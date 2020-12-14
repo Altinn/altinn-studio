@@ -10,6 +10,7 @@ export interface IApplicationMetadata {
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
+  autoDeleteOnProcessEnd: boolean;
 }
 
 interface IPartyTypesAllowed {

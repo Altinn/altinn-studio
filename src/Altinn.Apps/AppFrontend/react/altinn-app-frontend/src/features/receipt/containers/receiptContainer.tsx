@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
+import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt, AltinnReceiptSimple } from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource, IProfile, IAttachment } from 'altinn-shared/types';
 import { mapInstanceAttachments,
   getLanguageFromKey,
@@ -129,8 +129,8 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           <AltinnContentIconReceipt/>
         </AltinnContentLoader>
       }
-      {!isLoading() &&
-        <ReceiptComponent
+      {!isLoading() && !applicationMetadata.autoDeleteOnProcessEnd &&
+        <AltinnReceipt
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
           body={getLanguageFromKey('receipt.body', language)}
           collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
@@ -140,6 +140,12 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
           pdf={pdf || null}
+        />
+      }
+      {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd &&
+        <AltinnReceiptSimple
+          body={getLanguageFromKey('receipt.body_simple', language)}
+          title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
         />
       }
     </>
