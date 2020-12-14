@@ -162,7 +162,7 @@ export function en() {
       show_sub_unit: 'Show sub units',
     },
     popover: {
-      popover_button_helptext: 'Click here for help text popover',
+      popover_button_helptext: 'Help',
       popover_open: 'Popover open',
     },
     receipt: {
@@ -195,7 +195,7 @@ export function en() {
       maxLength: 'Use {0} or fewer characters',
       length: 'Number of characters allowed is {0}',
       pattern: 'Wrong format or value',
-      required: 'field is required',
+      required: 'Field is required',
       enum: 'Only the values {0} are permitted',
     },
   };

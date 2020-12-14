@@ -160,7 +160,7 @@ export function nn() {
       show_sub_unit: 'Vis undereiningar',
     },
     popover: {
-      popover_button_helptext: 'Klikk her for hjelpetekst popover',
+      popover_button_helptext: 'Hjelp',
       popover_open: 'Popover open',
     },
     receipt: {
