@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
+import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
@@ -52,7 +52,7 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
 
     if (canFormBeSaved(validationResult, apiMode)) {
       // updates the default data element
-      const defaultDataElementGuid = getCurrentTaskDataTypeId(
+      const defaultDataElementGuid = getCurrentTaskDataElementId(
         state.applicationMetadata.applicationMetadata,
         state.instanceData.instance,
       );
@@ -98,7 +98,7 @@ function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
-    const defaultDataElementGuid = getCurrentTaskDataTypeId(
+    const defaultDataElementGuid = getCurrentTaskDataElementId(
       state.applicationMetadata.applicationMetadata,
       state.instanceData.instance,
     );

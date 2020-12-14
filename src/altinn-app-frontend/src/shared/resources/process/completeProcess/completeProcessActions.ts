@@ -1,9 +1,10 @@
 import { Action } from 'redux';
-import { ProcessSteps } from '../../../../types';
+import { ProcessTaskType } from '../../../../types';
 import * as ActionTypes from '../processActionTypes';
 
 export interface ICompleteProcessFulfilled extends Action {
-  processStep: ProcessSteps;
+  processStep: ProcessTaskType;
+  taskId: string;
 }
 export interface ICompleteProcessRejected extends Action {
   error: Error;
@@ -14,10 +15,14 @@ export function completeProcess(): Action {
     type: ActionTypes.COMPLETE_PROCESS,
   };
 }
-export function getProcessStateFulfilledAction(processStep: ProcessSteps): ICompleteProcessFulfilled {
+export function getProcessStateFulfilledAction(
+  processStep: ProcessTaskType,
+  taskId: string,
+): ICompleteProcessFulfilled {
   return {
     type: ActionTypes.COMPLETE_PROCESS_FULFILLED,
     processStep,
+    taskId,
   };
 }
 export function getProcessStateRejectedAction(error: Error): ICompleteProcessRejected {

@@ -1,18 +1,20 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ProcessSteps } from '../../../types';
+import { ProcessTaskType } from '../../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
 import * as ProcessActionTypes from './processActionTypes';
 
 export interface IProcessState {
-  state: ProcessSteps;
+  taskType: ProcessTaskType;
   error: Error;
+  taskId: string;
 }
 
 const initialState: IProcessState = {
-  state: null,
+  taskType: null,
   error: null,
+  taskId: undefined,
 };
 
 const processReducer: Reducer<IProcessState> = (
@@ -24,10 +26,11 @@ const processReducer: Reducer<IProcessState> = (
   }
   switch (action.type) {
     case ProcessActionTypes.GET_PROCESS_STATE_FULFILLED: {
-      const processStep = (action as GetProcessStateActions.IGetProcessStateFulfilled).processStep;
+      const { processStep, taskId } = action as GetProcessStateActions.IGetProcessStateFulfilled;
       return update<IProcessState>(state, {
         $set: {
-          state: processStep,
+          taskType: processStep,
+          taskId,
           error: null,
         },
       });
@@ -43,10 +46,11 @@ const processReducer: Reducer<IProcessState> = (
     }
 
     case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED: {
-      const processStep = (action as CompleteProcessActions.ICompleteProcessFulfilled).processStep;
+      const { processStep, taskId } = action as CompleteProcessActions.ICompleteProcessFulfilled;
       return update<IProcessState>(state, {
         $set: {
-          state: processStep,
+          taskType: processStep,
+          taskId,
           error: null,
         },
       });

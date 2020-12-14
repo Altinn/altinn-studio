@@ -29,6 +29,9 @@ export function checkIfRuleShouldRun(
   /* const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
   const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`; */
   const rules: any[] = [];
+  if (!ruleConnectionState) {
+    return rules;
+  }
   Object.keys(ruleConnectionState).forEach((connection) => {
     if (!connection) {
       return;

@@ -1,4 +1,4 @@
-export { getCurrentTaskData, getCurrentTaskDataTypeId } from './applicationMetaDataUtils';
+export { getCurrentTaskData, getCurrentTaskDataElementId } from './applicationMetaDataUtils';
 export { getInstancePdf, mapInstanceAttachments } from './attachmentsUtils';
 export { formatNameAndDate, returnDatestringFromDate } from './formatDate';
 

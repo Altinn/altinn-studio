@@ -7,7 +7,7 @@ import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components'
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
 import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
-import { IRuntimeState, ProcessSteps, IValidations, ITextResource } from 'src/types';
+import { IRuntimeState, ProcessTaskType, IValidations, ITextResource } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
 import ErrorReport from '../../components/message/ErrorReport';
@@ -16,7 +16,7 @@ import NavBar from '../../components/process-step/NavBar';
 
 export interface IProcessStepProvidedProps {
   header: string;
-  step: ProcessSteps;
+  step: ProcessTaskType;
   // eslint-disable-next-line no-undef
   children: JSX.Element;
 }
@@ -43,7 +43,7 @@ const ProcessStepComponent = (props) => {
   );
 
   const handleBackArrowButton = () => {
-    if (props.step === ProcessSteps.FormFilling) {
+    if (props.step === ProcessTaskType.Data) {
       FormLayoutActions.updateCurrentView(previousFormPage);
     }
   };
@@ -56,7 +56,7 @@ const ProcessStepComponent = (props) => {
     return true;
   };
 
-  const isProcessStepsArchived = Boolean(props.step === ProcessSteps.Archived);
+  const isProcessStepsArchived = Boolean(props.step === ProcessTaskType.Archived);
   const backgroundColor = isProcessStepsArchived ?
     AltinnAppTheme.altinnPalette.primary.greenLight
     : AltinnAppTheme.altinnPalette.primary.blue;
@@ -88,7 +88,7 @@ const ProcessStepComponent = (props) => {
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
               language={language}
-              showBackArrow={!!previousFormPage && props.step === ProcessSteps.FormFilling}
+              showBackArrow={!!previousFormPage && props.step === ProcessTaskType.Data}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>

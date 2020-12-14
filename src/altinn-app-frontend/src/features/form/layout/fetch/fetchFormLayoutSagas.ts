@@ -57,14 +57,16 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSaga(): SagaIterator {
-  yield all([
-    take(ActionTypes.FETCH_FORM_LAYOUT),
-    take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
-    take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
-  ]);
-  const { org, app } = window as Window as IAltinnWindow;
-  const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
-  yield call(fetchFormLayoutSaga, { url } as IFetchFormLayout);
+  while (true) {
+    yield all([
+      take(ActionTypes.FETCH_FORM_LAYOUT),
+      take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
+      take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
+    ]);
+    const { org, app } = window as Window as IAltinnWindow;
+    const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
+    yield call(fetchFormLayoutSaga, { url } as IFetchFormLayout);
+  }
 }
 
 export function* fetchFormLayoutSettingsSaga(): SagaIterator {
