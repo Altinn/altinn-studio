@@ -238,7 +238,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            SetReadStatus(instance);
+            if (instance.Data.Any())
+            {
+                SetReadStatus(instance);
+            }
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
             instance.LastChanged = lastChanged;
