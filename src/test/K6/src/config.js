@@ -157,7 +157,9 @@ export var appResources = {
     "formlayout": "/api/resource/FormLayout.json",
     "rulehandler": "/api/resource/RuleHandler.js",
     "ruleconfiguration": "/api/resource/RuleConfiguration.json",
-    "texts": "/api/v1/texts/"
+    "texts": "/api/v1/texts/",
+    "jsonschema": "/api/jsonschema/",
+    "layoutsettings": "/api/layoutsettings"
 };
 
 //App Authorization

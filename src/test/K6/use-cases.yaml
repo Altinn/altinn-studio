@@ -35,8 +35,6 @@ steps:
    k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit portal.xml
 
    k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit multipart.xml
-
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/end2end.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit e2e.xml
    
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'App'
