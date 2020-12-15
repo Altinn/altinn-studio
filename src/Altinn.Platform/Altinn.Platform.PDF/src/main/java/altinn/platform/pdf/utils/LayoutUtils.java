@@ -66,12 +66,13 @@ public class LayoutUtils {
    * Check if page should be included in the pdf
    * @param layoutKey key the page
    * @param layoutSettings layoutSettings for the document
+   * @param formLayoutElements list of formLayoutElements
    * @return boolean
    */
-  public static boolean includePageInPdf(String layoutKey, LayoutSettings layoutSettings) {
-    return layoutSettings == null || layoutSettings.getPages() == null ||
+  public static boolean includePageInPdf(String layoutKey, LayoutSettings layoutSettings, List<FormLayoutElement> formLayoutElements) {
+    return (layoutSettings == null || layoutSettings.getPages() == null ||
       layoutSettings.getPages().getExcludeFromPdf() == null ||
-      !layoutSettings.getPages().getExcludeFromPdf().contains(layoutKey);
+      !layoutSettings.getPages().getExcludeFromPdf().contains(layoutKey)) && checkVisibleFieldInPage(layoutSettings, formLayoutElements) ;
   }
 
   /**
@@ -84,5 +85,21 @@ public class LayoutUtils {
     return layoutSettings == null || layoutSettings.getComponents() == null ||
       layoutSettings.getComponents().getExcludeFromPdf() == null ||
       !layoutSettings.getComponents().getExcludeFromPdf().contains(componentId);
+  }
+
+  /**
+   * Check if page has any visible components
+   * @param layoutSettings layoutSettings for the document
+   * @param formLayoutElements list of formLayoutElements
+   * @return boolean
+   */
+  private static boolean checkVisibleFieldInPage(LayoutSettings layoutSettings, List<FormLayoutElement> formLayoutElements) {
+    for(FormLayoutElement element : formLayoutElements) {
+      String elementId = element.getId();
+      if(includeComponentInPdf(elementId, layoutSettings)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
