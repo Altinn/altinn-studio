@@ -222,19 +222,20 @@ public class PDFGenerator {
           if (childElement == null) {
             continue;
           }
-          if (childElement.getDataModelBindings() != null) {
-            Map<String, String> dataBindings = childElement.getDataModelBindings();
-            for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
-              String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
-              if (groupIndex > 0) {
-                replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
-              }
-              dataBinding.setValue(replacedBinding);
-            }
-          }
+
           if (childElement.getType().equalsIgnoreCase("group")) {
             renderGroup(childElement);
           } else {
+            if (childElement.getDataModelBindings() != null) {
+              Map<String, String> dataBindings = childElement.getDataModelBindings();
+              for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
+                String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+                if (groupIndex > 0) {
+                  replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
+                }
+                dataBinding.setValue(replacedBinding);
+              }
+            }
             renderLayoutElement(childElement);
           }
         }
