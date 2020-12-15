@@ -21,12 +21,12 @@ const level2App = __ENV.level2app;
 
 let instanceFormDataXml = open("../../data/" + level2App + ".xml");
 let pdfAttachment = open("../../data/test_file_pdf.pdf", "b");
+let bigAttachment = open("../../data/test_file_morethan_1mb.txt", "b");
 
 export const options = {
     thresholds: {
         "errors": ["count<1"]
-    },
-    setupTimeout: '1m'
+    }
 };
 
 //Function to setup data and return AltinnstudioRuntime Token
@@ -43,7 +43,7 @@ export function setup() {
 export default function (data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
-    var instanceId, dataId, res, success, attachmentDataType;
+    var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
 
     //Batch api calls before creating an app instance
     res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId, appOwner, level2App);
@@ -55,7 +55,7 @@ export default function (data) {
         printResponseToConsole("Batch request before app Instantiation:", success, res[i]);
     };
 
-    attachmentDataType = platformApps.findAttachmentDataType(res[2].body);
+    attachmentDataType = platformApps.findAttachmentDataType(res[1].body);
 
     //Test to create an instance with App api and validate the response
     res = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
@@ -98,14 +98,35 @@ export default function (data) {
         printResponseToConsole("Batch request to get app resources:", success, res[i]);
     };
 
-    //Test to edit a form data in an instance with App APi and validate the response
+    //Test to get validate instance and verify response code to have error "TooFewDataElementsOfType"
+    res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App, appOwner, level2App);
+    success = check(res, {
+        "E2E App GET Validate Instance response has TooFewDataElementsOfType:": (r) => (JSON.parse(r.body))[0].code === "TooFewDataElementsOfType"
+    });
+    addErrorCount(success);
 
+    //Test to edit a form data in an instance with App APi and validate the response
     res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
+
+    //upload a big attachment to an instance with App API
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment, appOwner, level2App);
+
+    dataId = (JSON.parse(res.body)).id;
+
+    //Test to get validate instance attachment data and verify response code to have error "DataElementTooLarge"
+    res = appData.getValidateInstanceData(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
+    success = check(res, {
+        "E2E App GET Validate InstanceData response has DataElementTooLarge:": (r) => (JSON.parse(r.body))[0].code === "DataElementTooLarge"
+    });
+    addErrorCount(success);
+
+    //delete the big attachment from an instance with App API
+    appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
 
     //upload a valid attachment to an instance with App API
     res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
@@ -133,8 +154,10 @@ export default function (data) {
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
+    isReceiptPdfGenerated = appInstances.isReceiptPdfGenerated(res.body);
     success = check(res, {
-        "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
+        "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null,
+        "E2E Receipt pdf is generated:": (r) => isReceiptPdfGenerated === true
     });
     addErrorCount(success);
     printResponseToConsole("E2E App Instance is not archived:", success, res);

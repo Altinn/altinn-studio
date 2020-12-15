@@ -1,5 +1,5 @@
 /* 
-    Test script to platform events api with user token
+    Negative test script to platform events api with user token
     Command: docker-compose run k6 run src/tests/platform/events/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 import { check } from "k6";
@@ -31,30 +31,22 @@ export function setup() {
     return data;
 };
 
-//Test for platform events and validate response
-export default function (data) {
-    const partyId = data["partyId"];
+//Negative Test for platform events
+export default function (data) {    
     const runtimeToken = data["RuntimeToken"];
-    var res, success, eventsFilter;
+    var res, success;    
 
-    //Find today's date to be passed a filter to get events
-    var from = new Date();
-    from.setHours(0, 0, 0);
-    from = from.toISOString();
-
-    //Test to get events from today based on party id, app and org
-    eventsFilter = {
-        "party": partyId,
-        "from": from
-    };
-    res = events.getEventsByparty(runtimeToken, eventsFilter);
+    //Test to post events and assert that response is 403
+    res = events.postEvents(runtimeToken);
     success = check(res, {
-        "GET Todays Events based on party status is 200:": (r) => r.status === 200,
-        "GET Todays Events based on party count greater than 0:": (r) => JSON.parse(r.body).length > 0,
-        "GET Todays Events lists only events for party:": (r) => {
-            var events = r.json();
-            return events.every(event => event.subject.includes(partyId));
-        }
+        "POST Events status is 403:": (r) => r.status === 403
+    });
+    addErrorCount(success);    
+
+    //Test to get events api by org and app name and check that a person cannot use the api
+    res = events.getEvents(runtimeToken, appOwner, appName, null);
+    success = check(res, {
+        "GET Todays Events by org app name status is 401:": (r) => r.status === 401
     });
     addErrorCount(success);
 };

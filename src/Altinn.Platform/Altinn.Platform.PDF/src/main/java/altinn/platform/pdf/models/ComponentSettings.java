@@ -9,7 +9,6 @@ import java.util.List;
 @ApiModel(description = "Pages settings")
 @Getter
 @Setter
-public class PagesSettings {
-  private List<String> order;
+public class ComponentSettings {
   private List<String> excludeFromPdf;
 }

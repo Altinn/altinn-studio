@@ -1,12 +1,13 @@
 package altinn.platform.pdf.models;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Getter;
+import lombok.Setter;
 
 @ApiModel(description = "Layout settings")
+@Getter
+@Setter
 public class LayoutSettings {
   private PagesSettings pages;
-
-  public PagesSettings getPages() { return pages; }
-
-  public void setPages(PagesSettings pages) { this.pages = pages; }
+  private ComponentSettings components;
 }
