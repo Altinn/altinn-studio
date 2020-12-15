@@ -277,9 +277,9 @@ namespace Altinn.Platform.Storage.Controllers
                 newData.Filename = HttpUtility.UrlDecode(newData.Filename);
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
-                if (User.GetOrg() != instance.Org)
+                if (User.GetOrg() == instance.Org)
                 {
-                    newData.IsRead = true;
+                    newData.IsRead = false;
                 }
 
                 DataElement dataElement = await _dataRepository.Create(newData);
@@ -366,9 +366,9 @@ namespace Altinn.Platform.Storage.Controllers
 
                 dataElement.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, blobStoragePathName);
 
-                if (User.GetOrg() != instance.Org)
+                if (User.GetOrg() == instance.Org)
                 {
-                    dataElement.IsRead = true;
+                    dataElement.IsRead = false;
                 }
 
                 if (dataElement.Size > 0)
