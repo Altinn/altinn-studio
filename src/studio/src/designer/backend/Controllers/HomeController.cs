@@ -27,6 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -34,14 +35,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
-        /// <param name="httpContextAccessor">the httpcontext accessor</param>
         /// <param name="sourceControl">the source control</param>
-        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
+        /// <param name="generalSettings">the general settings</param>
+        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, ISourceControl sourceControl, IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace Altinn.Studio.Designer.Controllers
             bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
             string schema = isDevelopment ? "http://" : "https://";
-            string url = $"{schema}{_settings.ApiEndPointHost}/Home/Index";
+            string url = $"{schema}{_generalSettings.HostName}/Home/Index";
             return Redirect(url);
         }
 
