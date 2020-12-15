@@ -870,5 +870,5 @@ const mapStateToProps = (
     ...props,
   };
 };
-
+// @ts-ignore
 export const EditModalContent = withStyles(styles)(connect(mapStateToProps)(EditModalContentComponent));

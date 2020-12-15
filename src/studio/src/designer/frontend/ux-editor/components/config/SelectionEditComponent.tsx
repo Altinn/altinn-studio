@@ -304,4 +304,5 @@ const mapStateToProps = (
   };
 };
 
+// @ts-ignore
 export const SelectionEdit = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(SelectionEditComponent));
