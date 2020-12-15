@@ -73,4 +73,16 @@ public class LayoutUtils {
       layoutSettings.getPages().getExcludeFromPdf() == null ||
       !layoutSettings.getPages().getExcludeFromPdf().contains(layoutKey);
   }
+
+  /**
+   * Check if component should be included in the pdf
+   * @param componentId id for the component
+   * @param layoutSettings layoutSettings for the document
+   * @return boolean
+   */
+  public static boolean includeComponentInPdf(String componentId, LayoutSettings layoutSettings) {
+    return layoutSettings == null || layoutSettings.getComponents() == null ||
+      layoutSettings.getComponents().getExcludeFromPdf() == null ||
+      !layoutSettings.getComponents().getExcludeFromPdf().contains(componentId);
+  }
 }

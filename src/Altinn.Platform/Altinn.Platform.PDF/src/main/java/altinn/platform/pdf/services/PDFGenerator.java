@@ -209,6 +209,10 @@ public class PDFGenerator {
   }
 
   private void renderGroup(FormLayoutElement element) throws IOException {
+    String componentId = element.getId();
+    if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
+      return;
+    }
     String groupBinding = element.getDataModelBindings().get("group");
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
         for (String childId : element.getChildren()) {
@@ -243,7 +247,10 @@ public class PDFGenerator {
 
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     String componentType = element.getType();
-    if (componentType.equals("Button") || componentType.equalsIgnoreCase("NavigationButtons") ) {
+    String componentId = element.getId();
+    if (componentType.equals("Button")
+      || componentType.equalsIgnoreCase("NavigationButtons")
+      || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
     // Render title
