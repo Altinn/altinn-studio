@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer
         /// <param name="configuration">The configuration for designer</param>
         /// <param name="loggerFactory">The logger factory</param>
         /// <param name="env">The environment</param>
-        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory, IHostingEnvironment env)
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory, IWebHostEnvironment env)
         {
             Configuration = configuration;
             CurrentEnvironment = env;
