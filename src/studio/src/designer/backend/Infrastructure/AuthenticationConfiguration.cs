@@ -2,8 +2,10 @@ using System;
 using Altinn.Studio.Designer.Authorization;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Studio.Designer.Infrastructure
 {
@@ -16,11 +18,13 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// Extension method that configures authentication
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
-        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration config)
+        /// <param name="config">The configuration</param>
+        /// <param name="env">The web hosting environment</param>
+        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             GeneralSettings generalSettings = config.GetSection("GeneralSettings").Get<GeneralSettings>();
 
-            bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            bool isDevelopment = env.IsDevelopment();
 
             string schema = isDevelopment ? "http://" : "https://";
             string loginUrl = $"{schema}{generalSettings.HostName}/Home/Index";

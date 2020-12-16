@@ -55,7 +55,8 @@ namespace Altinn.Studio.Designer
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
         /// </summary>
         /// <param name="services">The services available for asp.net Core</param>
-        public void ConfigureServices(IServiceCollection services)
+        /// <param name="environment">The web host environment</param>
+        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment environment)
         {
             Console.WriteLine($"// Program.cs // ConfigureServices // Attempting to configure services.");
 
@@ -79,7 +80,7 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
-            services.ConfigureAuthentication(Configuration);
+            services.ConfigureAuthentication(Configuration.GetSection environment);
 
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
