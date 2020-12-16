@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
-            services.ConfigureAuthentication();
+            services.ConfigureAuthentication(Configuration);
 
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
@@ -159,7 +159,7 @@ namespace Altinn.Studio.Designer
 
             if (!env.IsDevelopment())
             {
-                // appBuilder.UseHsts();
+                appBuilder.UseHsts();
                 appBuilder.UseHttpsRedirection();
             }
 
