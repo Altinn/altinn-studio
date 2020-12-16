@@ -1,40 +1,8 @@
 // tslint:disable: max-line-length
 import 'jest';
-import * as React from 'react';
-import { mount } from 'enzyme';
-import configureStore from 'redux-mock-store';
-import { getInitialStateMock } from '../../__mocks__/mocks';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router';
-import ReceiptContainer, { returnInstanceMetaDataObject } from '../../src/features/receipt/containers/receiptContainer';
-import { IData } from '../../../shared/src';
-
-function mockDataElements() : IData[] {
-  return [
-    {
-      id: '1C75319C-DBA2-485D-9EF7-BE3D0F4F0B5B',
-      contentType: 'application/pdf',
-      dataType: 'ref-data-as-pdf',
-      filename: 'data-as.pdf',
-      locked: true,
-      refs: [],
-      selfLinks: {
-        apps: 'applink',
-        platform: "platformlink",
-      },
-      blobStoragePath: 'blobpath',
-      size: 23,
-      created: new Date('2020-01-01'),
-      createdBy: 'me',
-      lastChanged: new Date('2020-01-01'),
-      lastChangedBy: 'me'
-    }
-  ]
-}
+import { returnInstanceMetaDataObject } from '../../src/features/receipt/containers/receiptContainer';
 
 describe('Testing functions in ReceiptContainer', () => {
-  let mockStore: any;
-
   test('returnInstanceMetaDataObject() returns correct object', () => {
     const testData = {
       orgsData: {
