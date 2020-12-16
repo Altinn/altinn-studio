@@ -36,16 +36,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
-        /// <param name="generalSettings">the general settings</param>
-        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, ISourceControl sourceControl, IOptions<GeneralSettings> generalSettings)
+        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, ISourceControl sourceControl)
         {
             _logger = logger;
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
-            _generalSettings = generalSettings.Value;
         }
-
+ 
         /// <summary>
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>
@@ -62,11 +60,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return View("StartPage");
             }
 
-            bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-
-            string schema = isDevelopment ? "http://" : "https://";
-            string url = $"{schema}{_generalSettings.HostName}/Home/Index";
-            return Redirect(url);
+            return this.RedirectToAction("Index", "Home");
         }
 
         /// <summary>
