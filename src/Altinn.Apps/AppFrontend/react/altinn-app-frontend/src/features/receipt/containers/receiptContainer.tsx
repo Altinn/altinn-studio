@@ -15,6 +15,7 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
+import { getTextFromAppOrDefault } from '../../../utils/textResource';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -123,12 +124,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
   return (
     <>
-      <div>attachments is {!!attachments}</div>
-      <div>instanceMetaObject is {!!instanceMetaObject}</div>
-      <div>lastChangedDateTime is {!!lastChangedDateTime}</div>
-      <div>allOrgs is {!!allOrgs}</div>
-      <div>instance is {!!instance}</div>
-      <div>parties is {!!parties}</div>
       {isLoading() &&
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt/>
@@ -149,7 +144,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       }
       {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd &&
         <AltinnReceiptSimple
-          body={getLanguageFromKey('receipt.body_simple', language)}
+          body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, null, true)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
         />
       }
