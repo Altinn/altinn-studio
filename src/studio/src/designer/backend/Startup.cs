@@ -80,7 +80,7 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
-            services.ConfigureAuthentication(Configuration.GetSection environment);
+            services.ConfigureAuthentication(Configuration, environment);
 
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
