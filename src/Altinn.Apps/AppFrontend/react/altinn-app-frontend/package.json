@@ -123,7 +123,6 @@
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
-    ],
-    "testURL": "http://altinn3local.no/mockOrg/mockApp/#/instance/12345/91cefc5e-c47b-40ff-a8a4-05971205f783"
+    ]
   }
 }

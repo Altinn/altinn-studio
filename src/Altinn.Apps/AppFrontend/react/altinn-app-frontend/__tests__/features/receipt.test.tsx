@@ -132,22 +132,4 @@ describe('Testing functions in ReceiptContainer', () => {
     )).toEqual(expected);
   });
 
-  it('+++ KAJSDLAS ASD ASD ASD ASD ASD ASD ASD ', () => {
-    const createStore = configureStore();
-
-    const newState = getInitialStateMock();
-    newState.applicationMetadata.applicationMetadata.autoDeleteOnProcessEnd = true;
-    newState.instanceData.instance.data = mockDataElements();
-
-    mockStore = createStore(newState);
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <ReceiptContainer />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
 });
