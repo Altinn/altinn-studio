@@ -197,14 +197,14 @@ public class PDFGenerator {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
-        renderGroup(element);
+        renderGroup(element, false);
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
-  private void renderGroup(FormLayoutElement element) throws IOException {
+  private void renderGroup(FormLayoutElement element, boolean childGroup) throws IOException {
     String componentId = element.getId();
     if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
@@ -213,6 +213,10 @@ public class PDFGenerator {
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
         for (String childId : element.getChildren()) {
           FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+          HashMap<String, String> originalDataModelBindings = new HashMap<>();
+          if (childElement != null && childElement.getDataModelBindings() != null) {
+            childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue()));
+          }
 
           if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
             int finalGroupIndex = groupIndex;
@@ -222,20 +226,25 @@ public class PDFGenerator {
           if (childElement == null) {
             continue;
           }
-          if (childElement.getDataModelBindings() != null) {
+          if (childElement.getDataModelBindings() != null && !childElement.getType().equalsIgnoreCase("group")) {
             Map<String, String> dataBindings = childElement.getDataModelBindings();
             for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
-              String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
-              if (groupIndex > 0) {
-                replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
+              String currentBinding = dataBinding.getValue();
+              if (childGroup) {
+                int indexStart = groupBinding.indexOf("[");
+                int indexEnd = groupBinding.indexOf("]");
+                String nonIndexedGroupBinding = groupBinding.replace(groupBinding.substring(indexStart, indexEnd + 1), "");
+                currentBinding = currentBinding.replace(nonIndexedGroupBinding, groupBinding);
               }
+              String replacedBinding = currentBinding.replace(groupBinding, groupBinding + '[' + groupIndex + ']');
               dataBinding.setValue(replacedBinding);
             }
           }
           if (childElement.getType().equalsIgnoreCase("group")) {
-            renderGroup(childElement);
+            renderGroup(childElement, true);
           } else {
             renderLayoutElement(childElement);
+            childElement.setDataModelBindings(originalDataModelBindings);
           }
         }
       }

@@ -575,7 +575,7 @@ namespace Altinn.Platform.Storage.Repository
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
-            if (instance.Data.Any())
+            if (instance.Data != null && instance.Data.Any())
             {
                 SetReadStatus(instance);
             }
