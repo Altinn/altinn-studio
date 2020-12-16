@@ -22,7 +22,6 @@ const styles = createStyles({
 });
 
 export function ReceiptComponentSimple(props: IReceiptComponentProps) {
-
   return (
     <div className={props.classes.wordBreak}>
       <MuiThemeProvider theme={theme}>

@@ -77,7 +77,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !lastChangedDateTime ||
     !allOrgs ||
     !instance ||
-    !lastChangedDateTime ||
     !parties
   );
 
@@ -124,6 +123,12 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
   return (
     <>
+      <div>attachments is {!!attachments}</div>
+      <div>instanceMetaObject is {!!instanceMetaObject}</div>
+      <div>lastChangedDateTime is {!!lastChangedDateTime}</div>
+      <div>allOrgs is {!!allOrgs}</div>
+      <div>instance is {!!instance}</div>
+      <div>parties is {!!parties}</div>
       {isLoading() &&
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt/>

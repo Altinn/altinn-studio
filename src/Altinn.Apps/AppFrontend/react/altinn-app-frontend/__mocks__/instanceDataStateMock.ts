@@ -12,7 +12,7 @@ export function getInstanceDataStateMock(customStates?: Partial<IInstanceDataSta
       appId: 'mockOrg/mockApp',
       created: new Date('2020-01-01'),
       data: [],
-      id: 'mockInstanceId',
+      id: '91cefc5e-c47b-40ff-a8a4-05971205f783',
       instanceState: null,
       lastChanged: new Date('2020-01-01'),
       org: 'mockOrg',
