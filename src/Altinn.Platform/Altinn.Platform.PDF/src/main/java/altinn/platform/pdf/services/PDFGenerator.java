@@ -214,10 +214,8 @@ public class PDFGenerator {
         for (String childId : element.getChildren()) {
           FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
           HashMap<String, String> originalDataModelBindings = new HashMap<>();
-          if (childElement.getDataModelBindings() != null) {
-            childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> {
-              originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue());
-            });
+          if (childElement != null && childElement.getDataModelBindings() != null) {
+            childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue()));
           }
 
           if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
