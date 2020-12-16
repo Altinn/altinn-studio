@@ -1,4 +1,3 @@
-using System;
 using Altinn.Studio.Designer.Authorization;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;

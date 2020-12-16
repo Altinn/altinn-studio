@@ -27,6 +27,8 @@ namespace Altinn.Studio.Designer
     /// </summary>
     public class Startup
     {
+        private IWebHostEnvironment CurrentEnvironment { get; set; }
+
         /// <summary>
         /// Gets the application configuration
         /// </summary>
@@ -44,9 +46,11 @@ namespace Altinn.Studio.Designer
         /// </summary>
         /// <param name="configuration">The configuration for designer</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        /// <param name="env">The environment</param>
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory, IHostingEnvironment env)
         {
             Configuration = configuration;
+            CurrentEnvironment = env;
             _logger = loggerFactory.CreateLogger<Startup>();
         }
 
@@ -55,8 +59,7 @@ namespace Altinn.Studio.Designer
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
         /// </summary>
         /// <param name="services">The services available for asp.net Core</param>
-        /// <param name="environment">The web host environment</param>
-        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment environment)
+        public void ConfigureServices(IServiceCollection services)
         {
             Console.WriteLine($"// Program.cs // ConfigureServices // Attempting to configure services.");
 
@@ -80,7 +83,7 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
-            services.ConfigureAuthentication(Configuration, environment);
+            services.ConfigureAuthentication(Configuration, CurrentEnvironment);
 
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
