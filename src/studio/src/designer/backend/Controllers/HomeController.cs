@@ -27,7 +27,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
-        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
