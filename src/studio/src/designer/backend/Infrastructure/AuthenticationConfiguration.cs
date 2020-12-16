@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             bool isDevelopment = env.IsDevelopment();
 
             string schema = isDevelopment ? "http://" : "https://";
-            string loginUrl = $"{schema}{generalSettings.HostName}/Home/Index";
+            string loginUrl = $"{schema}{generalSettings.HostName}/Home/Login/";
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
@@ -34,13 +34,16 @@ namespace Altinn.Studio.Designer.Infrastructure
                 .AddCookie(options =>
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
-                    options.LoginPath = loginUrl;
                     options.LogoutPath = "/Home/Logout/";
                     options.Cookie.Name = Altinn.Studio.Designer.Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
                         OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
+                        OnRedirectToLogin = async (context) =>
+                        {
+                            context.HttpContext.Response.Redirect(loginUrl);
+                        }
                     };
                 });
 
