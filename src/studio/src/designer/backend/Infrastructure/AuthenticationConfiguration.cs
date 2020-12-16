@@ -23,9 +23,7 @@ namespace Altinn.Studio.Designer.Infrastructure
         {
             GeneralSettings generalSettings = config.GetSection("GeneralSettings").Get<GeneralSettings>();
 
-            bool isDevelopment = env.IsDevelopment();
-
-            string schema = isDevelopment ? "http://" : "https://";
+            string schema = env.IsDevelopment() ? "http://" : "https://";
             string loginUrl = $"{schema}{generalSettings.HostName}/Home/Login/";
 
             // Configure Authentication
