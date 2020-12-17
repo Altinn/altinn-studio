@@ -5,6 +5,7 @@ import { getLayoutSettingsUrl, getValidationUrl } from 'src/utils/urlHelper';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved } from 'src/utils/validation';
+import { AxiosRequestConfig } from 'axios';
 import { get } from '../../../../utils/networking';
 import Actions from '../formLayoutActions';
 import { IFetchFormLayout } from './fetchFormLayoutActions';
@@ -18,7 +19,6 @@ import { ILayouts } from '../index';
 import { IUpdateCurrentView } from '../update/updateFormLayoutActions';
 import FormValidationActions from '../../validation/validationActions';
 import { ILayoutState } from '../formLayoutReducer';
-import { AxiosRequestConfig } from 'axios';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 

@@ -102,7 +102,6 @@ export function validateEmptyFields(
     const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
     validations[id] = result;
   });
-  console.log('validations', validations);
   return validations;
 }
 

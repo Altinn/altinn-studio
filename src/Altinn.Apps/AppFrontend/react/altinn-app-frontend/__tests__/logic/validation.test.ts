@@ -10,7 +10,6 @@ import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
-  let mockApiResponse: any;
   let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
@@ -24,23 +23,6 @@ describe('>>> utils/validations.ts', () => {
   let mockDataElementValidations: IValidationIssue[];
 
   beforeEach(() => {
-    mockApiResponse = {
-      messages: {
-        dataModelField_1: {
-          errors: ['Error message 1', 'Error message 2'],
-          warnings: [],
-        },
-        dataModelField_2: {
-          errors: [],
-          warnings: ['Warning message 1', 'Warning message 2'],
-        },
-        random_key: {
-          errors: ['test error'],
-          warnings: ['test warning'],
-        },
-      },
-    };
-
     mockLanguage = {
       language: {
         form_filler: {
