@@ -11,8 +11,10 @@ using Altinn.Platform.Storage.Repository;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -56,7 +58,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="state">the instance state; active, archived or deleted</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
-        [Authorize]
+        //[Authorize]
         [HttpGet("{instanceOwnerPartyId:int}")]
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
@@ -72,7 +74,7 @@ namespace Altinn.Platform.Storage.Controllers
             state = state.ToLower();
             if (!allowedStates.Contains(state))
             {
-                return BadRequest($"Invalid instance state. Please provide on of: {string.Join(", ", allowedStates)}");
+                return BadRequest($"Invalid instance state. Please provide one of: {string.Join(", ", allowedStates)}");
             }
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))
@@ -95,6 +97,61 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<MessageBoxInstance> authorizedInstances =
                 await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
+
+            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
+            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
+
+            return Ok(authorizedInstances);
+        }
+
+        /// <summary>
+        /// Search through instances to find match pased on query params.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The instance owner party id</param>
+        /// <param name="appId">The application id</param>  
+        /// <param name="language"> language nb, en, nn-NO</param>
+        /// <returns>list of instances</returns>
+        [Authorize]
+        [HttpGet("search")]
+        public async Task<ActionResult> SearchMessageBoxInstances(
+            [FromQuery(Name = "instanceOwner.partyId")] int instanceOwnerPartyId,
+            [FromQuery] string appId,
+            [FromQuery] string language)
+        {
+            string[] acceptedLanguages = { "en", "nb", "nn" };
+
+            string languageId = "nb";
+
+            if (language != null && acceptedLanguages.Contains(language.ToLower()))
+            {
+                languageId = language;
+            }
+
+            Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
+
+            if (queryResponse != null & queryResponse.Count > 0)
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            List<Instance> allInstances = queryResponse.Instances;
+
+            // removing properties only used for active messageBoxInstances
+            allInstances.ForEach(i =>
+            {
+                if (i.Status.IsArchived || i.Status.IsSoftDeleted)
+                {
+                    i.DueBefore = null;
+                } 
+            });
+
+            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
+
+            List<MessageBoxInstance> authorizedInstances =
+                       await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
