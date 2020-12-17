@@ -79,7 +79,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))
             {
-                languageId = language;
+                languageId = language.ToLower();
             }
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
@@ -125,12 +125,22 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))
             {
-                languageId = language;
+                languageId = language.ToLower();
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
+
+            if (queryResponse?.Exception != null)
+            {
+                if (queryResponse.Exception.StartsWith("Unknown query parameter"))
+                {
+                    return BadRequest(queryResponse.Exception);
+                }
+
+                return StatusCode(500, queryResponse.Exception);
+            }
 
             if (queryResponse == null || queryResponse.Count <= 0)
             {
@@ -139,7 +149,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = queryResponse.Instances;
 
-            // Filtering instances
             allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow || i.Status.IsHardDeleted);
 
             allInstances.ForEach(i =>
@@ -147,7 +156,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (i.Status.IsArchived || i.Status.IsSoftDeleted)
                 {
                     i.DueBefore = null;
-                } 
+                }
             });
 
             List<MessageBoxInstance> authorizedInstances =

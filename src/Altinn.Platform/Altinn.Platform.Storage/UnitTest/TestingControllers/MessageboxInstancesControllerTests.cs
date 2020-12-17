@@ -619,27 +619,23 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Scenario:
         ///  Search instances based on unknown search parameter
         /// Expected:
-        ///  No matches are found
+        ///  Query response contains an exception.
         /// Success:
-        ///  Empty list is returned
+        ///  Bad request is returned
         /// </summary>
         [Fact]
-        public async void Search_FilterOnUnknownParameter_EmptyListIsReturned()
+        public async void Search_FilterOnUnknownParameter_BadRequestIsReturned()
         {
             // Arrange
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
 
-            int expectedCount = 0;
-
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?stephanie=kul");
             string content = await responseMessage.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-            Assert.Equal(expectedCount, actualResult.Count);
+            Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
         }
 
         private HttpClient GetTestClient()

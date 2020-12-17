@@ -237,6 +237,8 @@ namespace Altinn.Platform.Storage.Repository
                         case "excludeConfirmedBy":
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
+                        case "language":
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }

@@ -411,7 +411,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void GetMany_PartyRequestsOwnInstances_Ok()
         {
             // Arrange
-            string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(10016, 1600, 4);
@@ -437,7 +437,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void GetMany_UserRequestsAnotherPartiesInstances_Ok()
         {
             // Arrange
-            string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337);
