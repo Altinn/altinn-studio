@@ -1,0 +1,255 @@
+import { Grid, makeStyles, Typography } from '@material-ui/core';
+import * as React from 'react';
+import { useSelector } from 'react-redux';
+import appTheme from 'altinn-shared/theme/altinnAppTheme';
+import { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import { IRepeatingGroups, IRuntimeState } from 'src/types';
+import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
+// import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import GroupInputSummary from './GroupInputSummary';
+
+export interface ISummaryGroupComponent {
+  id: string;
+  pageRef?: string;
+  componentRef?: string;
+  largeGroup?: boolean;
+  index?: number;
+  parentGroup?: string;
+  onChangeClick: () => void;
+}
+
+export function getComponentForSummaryGroup(layout: ILayout, groupId: string): ILayoutGroup {
+  return layout.find((component) => component.id === groupId) as ILayoutGroup;
+}
+
+export function getHiddenFieldsForSummaryGroup(hiddenFields: string[], componentIds: string[]) {
+  const result = [];
+  hiddenFields.forEach((fieldKey) => {
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    if (componentIds.find((id) => id === fieldKeyWithoutIndex)) {
+      result.push(fieldKey);
+    }
+  });
+
+  return result;
+}
+
+const useStyles = makeStyles({
+  label: {
+    fontWeight: 500,
+    fontSize: '1.8rem',
+  },
+  labelWithError: {
+    color: appTheme.altinnPalette.primary.red,
+  },
+  editIcon: {
+    paddingLeft: '6px',
+    fontSize: '1.8rem !important',
+  },
+  change: {
+    fontSize: '1.8rem',
+    cursor: 'pointer',
+  },
+});
+
+function SummaryGroupComponent(props: ISummaryGroupComponent) {
+  const classes = useStyles();
+  const { pageRef, componentRef } = props;
+
+  const [title, setTitle] = React.useState<string>('');
+
+  const groupComponent = useSelector(
+    (state: IRuntimeState) => getComponentForSummaryGroup(state.formLayout.layouts[pageRef], componentRef),
+  );
+  const repeatingGroups: IRepeatingGroups =
+    useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
+  const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[pageRef]);
+  const formData: any = useSelector((state: IRuntimeState) => state.formData.formData);
+  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options);
+  const hiddenFields = useSelector((state: IRuntimeState) => getHiddenFieldsForSummaryGroup(
+    state.formLayout.uiConfig.hiddenFields, groupComponent.children,
+  ));
+
+  React.useEffect(() => {
+    if (textResources && groupComponent) {
+      const titleKey = groupComponent.textResourceBindings?.title;
+      setTitle(getTextFromAppOrDefault(titleKey, textResources, null, [], true));
+    }
+  }, [textResources, groupComponent]);
+
+  const getRepeatingGroup = (containerId: string) => {
+    const id = props.index >= 0 ? `${containerId}-${props.index}` : containerId;
+    if (repeatingGroups && repeatingGroups[id]) {
+      return repeatingGroups[id];
+    }
+
+    return undefined;
+  };
+
+  const getRepeatingGroupMaxIndex = (containerId: string) => {
+    return getRepeatingGroup(containerId).count || -1;
+  };
+  const repeatingGroupMaxIndex = getRepeatingGroupMaxIndex(componentRef);
+
+  const createRepeatingGroupComponents = () => {
+    const componentArray = [];
+    for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
+      const childComponents = groupComponent.children.map((componentId: string) => {
+        const component: ILayoutComponent =
+          layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
+        const componentDeepCopy = JSON.parse(JSON.stringify(component));
+
+        Object.keys(component.dataModelBindings).forEach((key) => {
+          let binding = component.dataModelBindings[key].replace(
+            groupComponent.dataModelBindings.group,
+            `${groupComponent.dataModelBindings.group}[${i}]`,
+          );
+          if (props.parentGroup) {
+            const parentGroup = layout.find((c) => c.id === props.parentGroup);
+            binding = binding.replace(
+              parentGroup.dataModelBindings.group,
+              `${parentGroup.dataModelBindings.group}[${props.index}]`,
+            );
+          }
+          componentDeepCopy.dataModelBindings[key] = binding;
+        });
+
+        const formDataForComponent = getDisplayFormDataForComponent(
+          formData,
+          componentDeepCopy,
+          textResources,
+          options,
+        );
+
+        if (hiddenFields.find((field) => field === `${componentId}-${i}`)) {
+          return null;
+        }
+
+        return (
+          <GroupInputSummary
+            formData={formDataForComponent}
+            label={getTextFromAppOrDefault(
+              component.textResourceBindings?.title,
+              textResources,
+              null,
+              [],
+              true,
+            )}
+          />
+        );
+      });
+      componentArray.push(<div>{childComponents}</div>);
+    }
+    return componentArray;
+  };
+
+  const createRepeatingGroupSummaryForLargeGroups = () => {
+    const componentArray = [];
+    for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
+      const groupContainer: ILayoutGroup = {
+        id: `${groupComponent.id}-${i}-summary`,
+        children: [],
+        maxCount: 0,
+        textResourceBindings: {
+          title: groupComponent.textResourceBindings?.title,
+        },
+      };
+      const childComponents = [];
+      groupComponent.children.forEach((componentId: string) => {
+        const component = layout.find((c: ILayoutComponent) => c.id === componentId);
+        const isGroupComponent = component.type.toLowerCase() === 'group';
+        const summaryType = 'Summary';
+        const summaryId = `${component.id}-summary${isGroupComponent ? '-group' : ''}`;
+        const dataModelBinding: any = {};
+        Object.keys(component.dataModelBindings).forEach((key) => {
+          dataModelBinding[key] = component.dataModelBindings[key].replace(
+            groupComponent.dataModelBindings.group, `${groupComponent.dataModelBindings.group}[${i}]`,
+          );
+        });
+        let formDataForComponent: any;
+        if (!isGroupComponent) {
+          formDataForComponent = getFormDataForComponentInRepeatingGroup(
+            formData, component as ILayoutComponent, i, groupComponent.dataModelBindings.group,
+            textResources, options,
+          );
+        }
+        groupContainer.children.push(summaryId);
+
+        const summaryComponent = {
+          id: summaryId,
+          type: summaryType,
+          componentRef: component.id,
+          pageRef: props.pageRef,
+          dataModelBindings: {},
+          textResourceBindings: {},
+          readOnly: false,
+          required: false,
+          formData: formDataForComponent,
+          index: isGroupComponent ? i : undefined,
+          parentGroup: isGroupComponent ? groupComponent.id : undefined,
+        };
+
+        if (!hiddenFields.find((field) => field === `${componentId}-${i}`)) {
+          childComponents.push(summaryComponent);
+        }
+      });
+
+      componentArray.push(
+        <DisplayGroupContainer
+          key={`${groupContainer.id}-summary`}
+          components={childComponents}
+          container={groupContainer}
+          renderLayoutComponent={renderLayoutComponent}
+        />,
+      );
+    }
+    return componentArray;
+  };
+
+  const renderComponents = props.largeGroup
+    ? createRepeatingGroupSummaryForLargeGroups() : createRepeatingGroupComponents();
+
+  if (props.largeGroup && layout) {
+    return (
+      <>
+        {renderComponents}
+      </>
+    );
+  }
+
+  return (
+    <Grid container={true}>
+      <Grid item={true} xs={10}>
+        <Typography
+          variant='body1'
+          className={`${classes.label}`} // ${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+          component='span'
+        >
+          {title}
+        </Typography>
+      </Grid>
+      <Grid item xs={2}>
+        <Typography
+          variant='body1'
+          onClick={props.onChangeClick}
+          className={classes.change}
+        >
+          <span>Endre</span>
+          <i className={`fa fa-editing-file ${classes.editIcon}`} />
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        {renderComponents}
+      </Grid>
+      {/* {hasValidationMessages &&
+            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+      } */}
+    </Grid>
+  );
+}
+
+export default SummaryGroupComponent;

@@ -60,6 +60,7 @@ export interface IUpdateAutoSaveRejected extends Action {
 
 export interface IUpdateCurrentView extends Action {
   newView: string;
+  returnToView?: string;
 }
 
 export function updateHiddenComponents(componentsToHide: string[]): IUpdateHiddenComponents {
@@ -141,9 +142,10 @@ export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
   });
 }
 
-export function updateCurrentView(newView: string): IUpdateCurrentView {
+export function updateCurrentView(newView: string, returnToView?: string): IUpdateCurrentView {
   return ({
     type: UPDATE_CURRENT_VIEW,
     newView,
+    returnToView,
   });
 }

@@ -26,7 +26,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   updateAutoSave: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSave;
   updateAutoSaveFulfilled: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSaveFulfilled;
   updateAutoSaveRejected: (error: Error) => UpdateFormLayout.IUpdateAutoSaveRejected;
-  updateCurrentView: (newView: string) => UpdateFormLayout.IUpdateCurrentView;
+  updateCurrentView: (newView: string, returnToView?: string) => UpdateFormLayout.IUpdateCurrentView;
 }
 
 const actions: IFormLayoutActions = {
