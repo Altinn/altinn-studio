@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="state">the instance state; active, archived or deleted</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
-        //[Authorize]
+        [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}")]
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
 
-            if (queryResponse != null & queryResponse.Count > 0)
+            if (queryResponse != null && queryResponse.Count > 0)
             {
                 return Ok(new List<MessageBoxInstance>());
             }
