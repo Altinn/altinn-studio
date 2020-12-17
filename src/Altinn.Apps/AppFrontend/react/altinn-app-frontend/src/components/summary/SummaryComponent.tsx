@@ -69,7 +69,8 @@ export function SummaryComponent(props: ISummaryComponent) {
 
   React.useEffect(() => {
     if (formComponent && formComponent.type.toLowerCase() !== 'group') {
-      const validations = getComponentValidations(formValidations, props.id, props.componentRef, layout);
+      const componentId = props.index >= 0 ? `${props.componentRef}-${props.index}` : props.componentRef;
+      const validations = getComponentValidations(formValidations, componentId);
       setComponentValidations(validations);
       setHasValidationMessages(componentHasValidationMessages(validations));
     }

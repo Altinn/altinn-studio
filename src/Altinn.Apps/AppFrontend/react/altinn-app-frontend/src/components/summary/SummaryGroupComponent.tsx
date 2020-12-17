@@ -82,7 +82,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   }, [textResources, groupComponent]);
 
   const getRepeatingGroup = (containerId: string) => {
-    const id = props.index >= 0 ? `${containerId}-${props.index}` : containerId;
+    const id = props.index >= 0 && props.parentGroup ? `${containerId}-${props.index}` : containerId;
     if (repeatingGroups && repeatingGroups[id]) {
       return repeatingGroups[id];
     }
@@ -189,7 +189,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           readOnly: false,
           required: false,
           formData: formDataForComponent,
-          index: isGroupComponent ? i : undefined,
+          index: i,
           parentGroup: isGroupComponent ? groupComponent.id : undefined,
         };
 

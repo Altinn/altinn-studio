@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'altinn-shared/utils';
-import { ILayout, ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
+import { ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
 import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings, IOption, IOptions, IValidations } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
@@ -24,18 +24,8 @@ export const componentHasValidationMessages = (componentValidations) => {
 export const getComponentValidations = (
   validations: IValidations,
   componentId: string,
-  componentRef?: string,
-  layout?: ILayout,
 ) => {
-  let id = componentId;
-  if (componentRef && layout) {
-    const component = layout.find((c) => c.id === componentRef);
-    if (component) {
-      id = component.id;
-    }
-  }
-
-  return validations[id];
+  return validations[componentId];
 };
 
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
