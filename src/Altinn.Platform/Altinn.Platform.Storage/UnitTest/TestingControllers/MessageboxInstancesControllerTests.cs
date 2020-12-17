@@ -240,7 +240,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             string content = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
@@ -538,6 +538,54 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, actualStatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Search instances for an instance owner without token
+        /// Expected:
+        ///  User is not able to query instances.
+        /// Success:
+        ///   Unauthorized is returned.
+        /// </summary>
+        [Fact]
+        public async void Search_MissingToken_ReturnsForbidden()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1337");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, responseMessage.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There is a match for active, archived and soft deleted instances
+        /// Success:
+        ///  List of instances is returned
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnAppId_ReturnsActiveArchivedAndDeletedInstances()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=ttd/steffens-2020-v2");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(1, actualResult.Count(i => i.DeleteStatus == DeleteStatusType.SoftDeleted));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "FormFilling"));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "Archived" && i.DeleteStatus == DeleteStatusType.Default));
         }
 
         private HttpClient GetTestClient()

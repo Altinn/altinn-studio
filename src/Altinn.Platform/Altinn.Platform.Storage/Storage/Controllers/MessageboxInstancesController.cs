@@ -132,14 +132,16 @@ namespace Altinn.Platform.Storage.Controllers
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
 
-            if (queryResponse != null && queryResponse.Count > 0)
+            if (queryResponse == null || queryResponse.Count <= 0)
             {
                 return Ok(new List<MessageBoxInstance>());
             }
 
             List<Instance> allInstances = queryResponse.Instances;
 
-            // removing properties only used for active messageBoxInstances
+            // Filtering instances
+            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow || i.Status.IsHardDeleted);
+
             allInstances.ForEach(i =>
             {
                 if (i.Status.IsArchived || i.Status.IsSoftDeleted)
@@ -147,8 +149,6 @@ namespace Altinn.Platform.Storage.Controllers
                     i.DueBefore = null;
                 } 
             });
-
-            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
 
             List<MessageBoxInstance> authorizedInstances =
                        await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);

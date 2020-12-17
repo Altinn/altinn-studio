@@ -22,7 +22,7 @@
   },
   "status": {
     "isArchived": false,
-    "isHardDeleted": false,
+    "isHardDeleted": true,
     "isSoftDeleted": false
   }
 }
