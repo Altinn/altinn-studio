@@ -289,30 +289,9 @@ namespace Altinn.App.Services.Implementation
                 UserParty = userProfile.Party
             };
 
-            Stream pdfContent;
-            try
-            {
-                pdfContent = await _pdfService.GeneratePDF(pdfContext);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError($"Could not generate pdf for {instance.Id}, failed with message {exception.Message}");
-                return;
-            }
-
-            try
-            {
-                await StorePDF(pdfContent, instance, textResource);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError($"Could not store pdf for {instance.Id}, failed with message {exception.Message}");
-                return;
-            }
-            finally
-            {
-                pdfContent.Dispose();
-            }
+            Stream pdfContent = await _pdfService.GeneratePDF(pdfContext);
+            await StorePDF(pdfContent, instance, textResource);
+            pdfContent.Dispose();
         }
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource)

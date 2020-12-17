@@ -56,7 +56,19 @@ namespace Altinn.App.AppLogic
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
             IText textService,
-            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(
+                appResourcesService,
+                logger,
+                dataService,
+                processService,
+                pdfService,
+                prefillService,
+                instanceService,
+                registerService,
+                settings,
+                profileService,
+                textService,
+                httpContextAccessor)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);
