@@ -1,5 +1,5 @@
 {
-  "id": "045ea5db-6dd4-4476-b774-bdb2a09da7ea",
+  "id": "045ea5db-6dd4-4476-b774-bdb2a09da7dd",
   "instanceOwner": {
     "partyId": "1600",
     "personNumber": "01044091042"
@@ -12,15 +12,18 @@
   "process": {
     "started": "2020-01-23T13:00:30.0913327Z",
     "startEvent": "StartEvent_1",
-    "ended": "2020-01-23T13:00:47.414903Z",
-    "endEvent": "EndEvent_1"
+    "currentTask": {
+      "flow": 2,
+      "started": "2020-03-02T16:41:30.2727355Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
   },
   "status": {
-    "isArchived": true,
-    "archived": "2020-01-23T13:00:47.414903Z",
+    "isArchived": false,
     "isHardDeleted": false,
-    "isSoftDeleted": true,
-    "softDeleted": "2020-01-23T13:00:47.414903Z"
+    "isSoftDeleted": false
   },
   "appOwner": {},
   "visibleAfter": "2020-01-23T13:00:38.7425926Z",

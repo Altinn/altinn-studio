@@ -110,7 +110,33 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
+            List<string> validQueryParams = new List<string>
+            {
+                "org",
+                "appId",
+                "process.currentTask",
+                "process.isComplete" ,
+                "process.endEvent",
+                "process.ended",
+                "instanceOwner.partyId",
+                "lastChanged",
+                "created",
+                "visibleAfter",
+                "dueBefore",
+                "excludeConfirmedBy",
+                "size",
+                "language"
+            };
+
             InstanceQueryResponse response = new InstanceQueryResponse();
+
+            string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
+            if (!string.IsNullOrEmpty(invalidKey))
+            {
+                response.Exception = $"Unknown query parameter: {invalidKey}";
+                return Task.FromResult(response);
+            }
+
             List<Instance> instances = new List<Instance>();
 
             string instancesPath = GetInstancesPath();
@@ -135,9 +161,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                     }
                 }
             }
-            else if (queryParams.ContainsKey("instanceOwner.PartyId"))
+            else if (queryParams.ContainsKey("instanceOwner.partyId"))
             {
-                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.PartyId")}";
+                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.partyId")}";
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
