@@ -237,6 +237,15 @@ namespace Altinn.Platform.Storage.Repository
                         case "excludeConfirmedBy":
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
+                        case "isArchived":
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsArchived == bool.Parse(queryValue));
+                            break;
+                        case "isSoftDeleted":
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == bool.Parse(queryValue));
+                            break;
+                        case "isHardDeleted":
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsHardDeleted == bool.Parse(queryValue));
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
