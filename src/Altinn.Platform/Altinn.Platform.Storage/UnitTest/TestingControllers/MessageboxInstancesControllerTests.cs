@@ -606,7 +606,34 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int expectedCount = 1;
 
             // Act
-            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=tdd/test-applikasjon-1");
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=tdd/test-applikasjon-1&language=en");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actualResult.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on unknown search parameter
+        /// Expected:
+        ///  No matches are found
+        /// Success:
+        ///  Empty list is returned
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnUnknownParameter_EmptyListIsReturned()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            int expectedCount = 0;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?stephanie=kul");
             string content = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
