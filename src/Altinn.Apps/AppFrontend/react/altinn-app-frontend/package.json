@@ -123,6 +123,7 @@
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
-    ]
+    ],
+    "snapshotSerializers": ["enzyme-to-json/serializer"]
   }
 }
