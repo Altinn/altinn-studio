@@ -588,6 +588,33 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "Archived" && i.DeleteStatus == DeleteStatusType.Default));
         }
 
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There are two matches, but one is a hard deleted instance
+        /// Success:
+        ///  Hard deleted instances are not included in the response.
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnAppId_HardDeletedInstancesAreExcludedFromResult()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            int expectedCount = 1;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=tdd/test-applikasjon-1");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actualResult.Count);
+        }
+
         private HttpClient GetTestClient()
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
