@@ -146,6 +146,7 @@ export function GroupContainer({
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
+  const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenFields: string[] = useSelector((state: IRuntimeState) => getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components));
@@ -171,7 +172,7 @@ export function GroupContainer({
     }
   });
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(container, renderComponents, repeatinGroupIndex, hiddenFields);
-  const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, repeatingGroups, layout);
+  const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
@@ -220,7 +221,7 @@ export function GroupContainer({
     if (element.type === 'Group') {
       return childGroupHasErrors(element as ILayoutGroup, index);
     }
-    return componentHasValidations(validations, `${element.id}`);
+    return componentHasValidations(validations, currentView, `${element.id}`);
   };
 
   const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
@@ -228,7 +229,7 @@ export function GroupContainer({
     const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
     const childRenderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
     const deepCopyComponents = createRepeatingGroupComponents(childGroup, childRenderComponents, childGroupCount, hiddenFields);
-    return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, repeatingGroups, layout, hiddenFields);
+    return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
   };
 
   return (

@@ -21,6 +21,7 @@ export interface INavigationButtons {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
+  triggers?: string[];
 }
 
 export function NavigationButtons(props: INavigationButtons) {
@@ -56,8 +57,9 @@ export function NavigationButtons(props: INavigationButtons) {
 
   const OnClickNext = () => {
     const goToView = next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+    const runValidations = props.triggers && (props.triggers.indexOf('validations') > -1);
     if (goToView) {
-      FormLayoutActions.updateCurrentView(goToView);
+      FormLayoutActions.updateCurrentView(goToView, runValidations);
     }
   };
 

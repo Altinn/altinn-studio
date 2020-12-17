@@ -245,6 +245,10 @@ export interface IValidationResult {
 }
 
 export interface IValidations {
+  [id: string]: ILayoutValidations;
+}
+
+export interface ILayoutValidations {
   [id: string]: IComponentValidations;
 }
 
