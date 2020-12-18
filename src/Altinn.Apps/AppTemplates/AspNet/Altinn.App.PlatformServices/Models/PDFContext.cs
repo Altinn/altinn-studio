@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-
+using Altinn.App.Common.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -29,7 +29,7 @@ namespace Altinn.App.Services.Models
         /// Gets or sets the layout settings
         /// </summary>
         [JsonProperty(PropertyName = "layoutSettings")]
-        public object LayoutSettings { get; set; } 
+        public LayoutSettings LayoutSettings { get; set; } 
 
         /// <summary>
         /// Gets or sets the text resources

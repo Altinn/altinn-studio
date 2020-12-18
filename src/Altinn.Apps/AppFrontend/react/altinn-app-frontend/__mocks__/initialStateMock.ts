@@ -67,7 +67,22 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       error: null,
     },
     organisationMetaData: {
-      allOrgs: null,
+      allOrgs: {
+        "mockOrg": {
+            "name": {
+                "en": "Mock Ministry",
+                "nb": "Mockdepartementet",
+                "nn": "Mockdepartementet"
+            },
+            "logo": "",
+            "orgnr": "",
+            "homepage": "",
+            "environments": [
+                "tt02",
+                "production"
+            ]
+        }
+      },
       error: null,
     },
     party: {

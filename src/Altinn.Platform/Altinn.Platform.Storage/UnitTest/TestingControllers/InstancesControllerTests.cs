@@ -391,7 +391,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 10;
+            int expectedNoInstances = 11;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -411,13 +411,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void GetMany_PartyRequestsOwnInstances_Ok()
         {
             // Arrange
-            string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(10016, 1600, 4);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 8;
+            int expectedNoInstances = 9;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -437,13 +437,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void GetMany_UserRequestsAnotherPartiesInstances_Ok()
         {
             // Arrange
-            string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 2;
+            int expectedNoInstances = 3;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
