@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -123,6 +123,7 @@
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
-    ]
+    ],
+    "snapshotSerializers": ["enzyme-to-json/serializer"]
   }
 }
