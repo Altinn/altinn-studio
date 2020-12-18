@@ -21,12 +21,13 @@ export function* uploadAttachmentSaga(
   }: uploadActions.IUploadAttachmentAction,
 ): SagaIterator {
   const state: IRuntimeState = yield select();
+  const currentView = state.formLayout.uiConfig.currentView;
   const language = state.language.language;
 
   try {
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
-    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
+    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, newValidations, componentId);
 
     const fileUploadLink = fileUploadUrl(attachmentType);
     let contentType;
@@ -60,13 +61,13 @@ export function* uploadAttachmentSaga(
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {
       const validations = getFileUploadComponentValidations('upload', language);
-      yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
+      yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
       yield call(AttachmentDispatcher.uploadAttachmentRejected,
         tmpAttachmentId, attachmentType, componentId);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('upload', language);
-    yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
+    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
     yield call(AttachmentDispatcher.uploadAttachmentRejected,
       tmpAttachmentId, attachmentType, componentId);
   }

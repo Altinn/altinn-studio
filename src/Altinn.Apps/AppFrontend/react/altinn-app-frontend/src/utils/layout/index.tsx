@@ -21,6 +21,23 @@ export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutCo
   return component;
 }
 
+export function getLayoutIdForComponent(id: string, layouts: ILayouts): string {
+  let foundLayout: string;
+  Object.keys(layouts).forEach((layoutId) => {
+    if (!foundLayout) {
+      const component = layouts[layoutId].find((element) => {
+        // Check against provided id, with potential -{index} postfix.
+        const match = matchLayoutComponent(id, element.id);
+        return match && match.length > 0;
+      }) as ILayoutComponent;
+      if (component) {
+        foundLayout = layoutId;
+      }
+    }
+  });
+  return foundLayout;
+}
+
 /*
   Check if provided id matches component id.
   For repeating groups, component id from formLayout is postfixed with -{index}

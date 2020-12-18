@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable max-len */
 import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
@@ -21,6 +22,7 @@ export interface INavigationButtons {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
+  triggers?: string[];
 }
 
 export function NavigationButtons(props: INavigationButtons) {
@@ -56,8 +58,11 @@ export function NavigationButtons(props: INavigationButtons) {
 
   const OnClickNext = () => {
     const goToView = next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+    const runPageValidations = props.triggers && (props.triggers.indexOf('validatePage') > -1);
+    const runAllValidations = props.triggers && (props.triggers.indexOf('validateAllPages') > -1);
+    const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
     if (goToView) {
-      FormLayoutActions.updateCurrentView(goToView);
+      FormLayoutActions.updateCurrentView(goToView, validations);
     }
   };
 

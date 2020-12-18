@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { actionChannel, call, select, take } from 'redux-saga/effects';
 import { IRuntimeState, IValidationResult } from 'src/types';
-import { getLayoutComponentById } from '../../../../utils/layout';
+import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
 import { createValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import FormValidationActions from '../../validation/validationActions';
@@ -26,10 +26,12 @@ function* updateFormDataSaga({
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const component = getLayoutComponentById(componentId, state.formLayout.layouts);
+    const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
     const fieldWithoutIndex = getKeyWithoutIndex(field);
 
     const focus = state.formLayout.uiConfig.focus;
     const validationResult: IValidationResult = validateComponentFormData(
+      layoutId,
       data,
       fieldWithoutIndex,
       component,
@@ -39,7 +41,7 @@ function* updateFormDataSaga({
       componentId !== component.id ? componentId : null,
     );
 
-    const componentValidations = validationResult?.validations[componentId];
+    const componentValidations = validationResult?.validations[layoutId][componentId];
     const invalidDataComponents = state.formValidations.invalidDataTypes || [];
     const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
     if (validationResult?.invalidDataTypes) {
@@ -50,14 +52,13 @@ function* updateFormDataSaga({
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
 
-    if (componentValidations) {
-      yield call(
-        FormValidationActions.updateComponentValidations,
-        componentValidations,
-        componentId,
-        updatedInvalidDataComponents,
-      );
-    }
+    yield call(
+      FormValidationActions.updateComponentValidations,
+      layoutId,
+      componentValidations,
+      componentId,
+      updatedInvalidDataComponents,
+    );
     if (state.formDynamics.conditionalRendering) {
       yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
     }
