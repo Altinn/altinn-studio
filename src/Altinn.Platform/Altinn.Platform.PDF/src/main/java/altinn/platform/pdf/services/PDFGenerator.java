@@ -157,34 +157,14 @@ public class PDFGenerator {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey: order) {
-          if(LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
-            if(!firstPage) {
-              createNewPage();
-              yPoint = currentPage.getMediaBox().getHeight() - margin;
-            }
-            FormLayout layout = formLayouts.get(layoutKey);
-            originalFormLayout = layout;
-            this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
-            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-            renderFormLayout(filteredLayout);
-            firstPage = false;
-          }
+          FormLayout layout = formLayouts.get(layoutKey);
+          firstPage = checkLayoutAndRenderPage(firstPage, layoutKey, layout);
         }
       } else {
         for(Map.Entry<String, FormLayout> formLayoutKeyValuePair : formLayouts.entrySet()) {
           String layoutKey = formLayoutKeyValuePair.getKey();
-          if (LayoutUtils.includePageInPdf(layoutKey, layoutSettings)) {
-            if(!firstPage) {
-              createNewPage();
-              yPoint = currentPage.getMediaBox().getHeight() - margin;
-            }
-            FormLayout layout = formLayoutKeyValuePair.getValue();
-            originalFormLayout = layout;
-            this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
-            List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-            renderFormLayout(filteredLayout);
-            firstPage = false;
-          }
+          FormLayout layout = formLayoutKeyValuePair.getValue();
+          firstPage = checkLayoutAndRenderPage(firstPage, layoutKey, layout);
         }
       }
     }
@@ -197,22 +177,46 @@ public class PDFGenerator {
     return output;
   }
 
+  private boolean checkLayoutAndRenderPage(boolean firstPage, String layoutKey, FormLayout layout) throws IOException {
+    if (LayoutUtils.includePageInPdf(layoutKey, layoutSettings, layout.getData().getLayout())) {
+      if (!firstPage) {
+        createNewPage();
+        yPoint = currentPage.getMediaBox().getHeight() - margin;
+      }
+
+      originalFormLayout = layout;
+      this.repeatingGroups = FormUtils.setupRepeatingGroups(this.originalFormLayout.getData().getLayout(), this.formData);
+      List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+      renderFormLayout(filteredLayout);
+      firstPage = false;
+    }
+    return firstPage;
+  }
+
   private void renderFormLayout(List<FormLayoutElement> formLayout) throws IOException {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
-        renderGroup(element);
+        renderGroup(element, false);
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
-  private void renderGroup(FormLayoutElement element) throws IOException {
+  private void renderGroup(FormLayoutElement element, boolean childGroup) throws IOException {
+    String componentId = element.getId();
+    if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
+      return;
+    }
     String groupBinding = element.getDataModelBindings().get("group");
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
         for (String childId : element.getChildren()) {
           FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+          HashMap<String, String> originalDataModelBindings = new HashMap<>();
+          if (childElement != null && childElement.getDataModelBindings() != null) {
+            childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue()));
+          }
 
           if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
             int finalGroupIndex = groupIndex;
@@ -222,20 +226,25 @@ public class PDFGenerator {
           if (childElement == null) {
             continue;
           }
-          if (childElement.getDataModelBindings() != null) {
+          if (childElement.getDataModelBindings() != null && !childElement.getType().equalsIgnoreCase("group")) {
             Map<String, String> dataBindings = childElement.getDataModelBindings();
             for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
-              String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
-              if (groupIndex > 0) {
-                replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
+              String currentBinding = dataBinding.getValue();
+              if (childGroup) {
+                int indexStart = groupBinding.indexOf("[");
+                int indexEnd = groupBinding.indexOf("]");
+                String nonIndexedGroupBinding = groupBinding.replace(groupBinding.substring(indexStart, indexEnd + 1), "");
+                currentBinding = currentBinding.replace(nonIndexedGroupBinding, groupBinding);
               }
+              String replacedBinding = currentBinding.replace(groupBinding, groupBinding + '[' + groupIndex + ']');
               dataBinding.setValue(replacedBinding);
             }
           }
           if (childElement.getType().equalsIgnoreCase("group")) {
-            renderGroup(childElement);
+            renderGroup(childElement, true);
           } else {
             renderLayoutElement(childElement);
+            childElement.setDataModelBindings(originalDataModelBindings);
           }
         }
       }
@@ -243,7 +252,10 @@ public class PDFGenerator {
 
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     String componentType = element.getType();
-    if (componentType.equals("Button") || componentType.equalsIgnoreCase("NavigationButtons") ) {
+    String componentId = element.getId();
+    if (componentType.equals("Button")
+      || componentType.equalsIgnoreCase("NavigationButtons")
+      || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
     // Render title
