@@ -762,7 +762,7 @@ function addValidation(
  */
 export function getUnmappedErrors(validations: IValidations): string[] {
   const messages: string[] = [];
-  if (!validations || !validations.unmapped) {
+  if (!validations) {
     return messages;
   }
   Object.keys(validations).forEach((layout: string) => {
