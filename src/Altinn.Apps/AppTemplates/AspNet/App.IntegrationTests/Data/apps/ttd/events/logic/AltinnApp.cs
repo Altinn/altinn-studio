@@ -3,13 +3,15 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 
 using Altinn.Platform.Storage.Interface.Models;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.events
@@ -30,7 +32,10 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
-            IInstance instanceService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
+            IInstance instanceService,
+            IOptions<GeneralSettings> settings,
+            IText textService,
+            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();
@@ -94,6 +99,11 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             await Task.CompletedTask;
+        }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return await Task.FromResult(layoutSettings);
         }
     }
 }

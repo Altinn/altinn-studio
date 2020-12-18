@@ -34,16 +34,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
-        /// <param name="httpContextAccessor">the httpcontext accessor</param>
         /// <param name="sourceControl">the source control</param>
-        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
+        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, ISourceControl sourceControl)
         {
             _logger = logger;
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
         }
-
+ 
         /// <summary>
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>

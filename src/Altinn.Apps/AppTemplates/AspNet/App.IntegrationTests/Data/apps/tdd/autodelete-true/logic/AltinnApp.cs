@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.autodelete_true
@@ -23,7 +25,12 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.autodelete_true
             IProcess processService, 
             IPDF pdfService, 
             IPrefill prefillService,
-            IInstance instanceService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
+            IInstance instanceService,
+            IRegister registerService,
+            IOptions<GeneralSettings> settings,
+            IProfile profileService,
+            IText textService,
+            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
         }
 
@@ -77,6 +84,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.autodelete_true
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             return;
+        }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return await Task.FromResult(layoutSettings);
         }
     }
 }

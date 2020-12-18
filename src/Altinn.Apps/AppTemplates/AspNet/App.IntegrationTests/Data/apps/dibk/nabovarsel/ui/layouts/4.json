@@ -1,0 +1,44 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "749cfa90-a3d2-4a7c-9a09-77e43aab94d2",
+        "type": "FileUpload",
+        "componentType": 8,
+        "textResourceBindings": {
+          "title": "attachment.titletext"
+        },
+        "dataModelBindings": {},
+        "maxFileSizeInMB": 1,
+        "maxNumberOfAttachments": 3,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "required": false,
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".pdf, .jpeg, .jpg, .png"
+      },
+      {
+        "id": "nav-page4",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next",
+          "back": "back"
+        },
+        "dataModelBindings": {},
+        "componentType": 13,
+        "showBackButton": true
+      },
+      {
+        "id": "89fd9689-1edf-4ea7-b310-3f915a7030a2",
+        "type": "Button",
+        "componentType": 9,
+        "textResourceBindings": {
+          "title": "sendinn"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}

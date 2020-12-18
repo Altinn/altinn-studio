@@ -237,6 +237,8 @@ namespace Altinn.Platform.Storage.Repository
                         case "excludeConfirmedBy":
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
+                        case "language":
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
@@ -575,7 +577,10 @@ namespace Altinn.Platform.Storage.Repository
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
-            SetReadStatus(instance);
+            if (instance.Data != null && instance.Data.Any())
+            {
+                SetReadStatus(instance);
+            }
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
             instance.LastChanged = lastChanged;

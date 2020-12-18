@@ -1,0 +1,12 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": [
+      "1",
+      "3",
+      "2",
+      "4"
+    ],
+    "excludeFromPdf": [ "4", "" ]
+  }
+}

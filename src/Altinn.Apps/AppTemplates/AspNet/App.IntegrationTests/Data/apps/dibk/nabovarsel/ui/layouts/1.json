@@ -1,0 +1,36 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "9f4224c4-ec21-4547-836c-8349cb92acf7",
+        "type": "Header",
+        "componentType": 0,
+        "textResourceBindings": {
+          "title": "ServiceName"
+        },
+        "dataModelBindings": {},
+        "size": "S"
+      },
+      {
+        "id": "d6cd758d-2d98-4232-a15f-cb89717625ec",
+        "type": "Paragraph",
+        "componentType": 1,
+        "textResourceBindings": {
+          "title": "33316.Journalnummerdatadef33316.Label"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "nav-page1",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next",
+          "back": "back"
+        },
+        "dataModelBindings": {},
+        "componentType": 13,
+        "showBackButton": true
+      }
+    ]
+  }
+}
