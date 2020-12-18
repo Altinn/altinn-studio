@@ -183,6 +183,15 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal("Task_2", processState.CurrentTask.ElementId);
             #endregion
 
+            #region GetUpdated instance to check pdf
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath);
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+            IEnumerable<DataElement> lockedDataElements = instance.Data.Where(r => r.Locked == true);
+            Assert.Single(lockedDataElements);
+            #endregion
+
             #region Get Form DataElement
 
             dataType = application.DataTypes.FirstOrDefault(r => r.TaskId != null && r.TaskId.Equals(processState.CurrentTask.ElementId));

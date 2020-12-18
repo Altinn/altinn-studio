@@ -227,7 +227,7 @@ namespace App.IntegrationTests.ApiTests
 
             Instance resultInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
-            Assert.Equal(1, resultInstance.Data.Count);
+            Assert.Equal(2, resultInstance.Data.Count);
 
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }

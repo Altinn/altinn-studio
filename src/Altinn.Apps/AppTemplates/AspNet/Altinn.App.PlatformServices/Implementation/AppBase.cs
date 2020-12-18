@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Xml.Serialization;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -27,6 +34,12 @@ namespace Altinn.App.Services.Implementation
         private readonly IPDF _pdfService;
         private readonly IPrefill _prefillService;
         private readonly IInstance _instanceService;
+        private readonly IRegister _registerService;
+        private readonly string pdfElementType = "ref-data-as-pdf";
+        private readonly UserHelper _userHelper;
+        private readonly IProfile _profileService;
+        private readonly IText _textService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
@@ -37,6 +50,12 @@ namespace Altinn.App.Services.Implementation
         /// <param name="processService">The service giving access the App process.</param>
         /// <param name="pdfService">The service giving access to the PDF generator.</param>
         /// <param name="prefillService">The service giving access to prefill mechanisms.</param>
+        /// <param name="instanceService">The service giving access to instance data</param>
+        /// <param name="registerService">The service giving access to register data</param>
+        /// <param name="settings">the general settings</param>
+        /// <param name="profileService">the profile service</param>
+        /// <param name="textService">The text service</param>
+        /// <param name="httpContextAccessor">the httpContextAccessor</param>
         protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
@@ -44,7 +63,12 @@ namespace Altinn.App.Services.Implementation
             IProcess processService,
             IPDF pdfService,
             IPrefill prefillService,
-            IInstance instanceService)
+            IInstance instanceService,
+            IRegister registerService,
+            IOptions<GeneralSettings> settings,
+            IProfile profileService,
+            IText textService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -54,6 +78,11 @@ namespace Altinn.App.Services.Implementation
             _pdfService = pdfService;
             _prefillService = prefillService;
             _instanceService = instanceService;
+            _registerService = registerService;
+            _userHelper = new UserHelper(profileService, registerService, settings);
+            _profileService = profileService;
+            _textService = textService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc />
@@ -85,6 +114,9 @@ namespace Altinn.App.Services.Implementation
 
         /// <inheritdoc />
         public abstract Task RunProcessTaskEnd(string taskId, Instance instance);
+
+        /// <inheritdoc />
+        public abstract Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
@@ -182,7 +214,8 @@ namespace Altinn.App.Services.Implementation
 
                     if (generatePdf)
                     {
-                        Task createPdf = _pdfService.GenerateAndStoreReceiptPDF(instance, dataElement);
+                        Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
+                        Task createPdf = GenerateAndStoreReceiptPDF(instance, dataElement, dataElementType);
                         await Task.WhenAll(updateData, createPdf);
                     }
                     else
@@ -192,7 +225,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
             
-            if(_appMetadata.AutoDeleteOnProcessEnd) 
+            if (_appMetadata.AutoDeleteOnProcessEnd) 
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -201,6 +234,101 @@ namespace Altinn.App.Services.Implementation
             }
 
             await Task.CompletedTask;
+        }
+
+        private async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
+        {
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            string layoutSettingsString = _resourceService.GetLayoutSettings();
+
+            LayoutSettings layoutSettings = null;
+            if (!string.IsNullOrEmpty(layoutSettingsString))
+            {
+                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_resourceService.GetLayoutSettings());
+            }
+
+            object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
+
+            layoutSettings = await FormatPdf(layoutSettings, data);
+            XmlSerializer serializer = new XmlSerializer(dataElementModelType);
+            using MemoryStream stream = new MemoryStream();
+
+            serializer.Serialize(stream, data);
+            stream.Position = 0;
+
+            byte[] dataAsBytes = new byte[stream.Length];
+            await stream.ReadAsync(dataAsBytes);
+            string encodedXml = Convert.ToBase64String(dataAsBytes);
+
+            UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
+            UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
+
+            string formLayoutsString = _resourceService.GetLayouts();
+            TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
+            if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
+            {
+                // fallback to norwegian if texts does not exist
+                textResource = await _textService.GetText(org, app, "nb");
+            }
+
+            string textResourcesString = JsonConvert.SerializeObject(textResource);
+
+            PDFContext pdfContext = new PDFContext
+            {
+                Data = encodedXml,
+                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
+                LayoutSettings = layoutSettings,
+                TextResources = JsonConvert.DeserializeObject(textResourcesString),
+                Party = await _registerService.GetParty(instanceOwnerId),
+                Instance = instance,
+                UserProfile = userProfile,
+                UserParty = userProfile.Party
+            };
+
+            Stream pdfContent = await _pdfService.GeneratePDF(pdfContext);
+            await StorePDF(pdfContent, instance, textResource);
+            pdfContent.Dispose();
+        }
+
+        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource)
+        {
+            string fileName = null;
+            string app = instance.AppId.Split("/")[1];
+
+            TextResourceElement titleText = textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
+
+            if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
+            {
+                fileName = titleText.Value + ".pdf";
+            }
+            else
+            {
+                fileName = app + ".pdf";
+            }
+
+            fileName = GetValidFileName(fileName);
+
+            return await _dataService.InsertBinaryData(
+                instance.Id,
+                pdfElementType,
+                "application/pdf",
+                fileName,
+                pdfStream);
+        }
+
+        private string GetValidFileName(string fileName)
+        {
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+
+            fileName = Uri.EscapeDataString(fileName);
+            return fileName;
         }
     }
 }

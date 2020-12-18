@@ -1,0 +1,121 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "d323f51d-03ef-423a-9449-086fd1638360",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "9ac139f9-23c7-4b2d-b318-2bf98472dc90",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "33290.Merknaddatadef33290.Label",
+          "description": "33290.Merknaddatadef33290.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Foretak-grp-8820.Merknad-datadef-33290.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "ed41d928-6784-46d3-a992-73d978a388f1",
+        "type": "Datepicker",
+        "componentType": 3,
+        "textResourceBindings": {
+          "title": "33282.AnsattSoknadAFPDatodatadef33282.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattSoknadAFPDato-datadef-33282.value"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": "1900-01-01T12:00:00Z",
+        "maxDate": "2100-01-01T12:00:00Z",
+        "required": true,
+        "timeStamp": true
+      },
+      {
+        "id": "d34e047b-4de5-4f0f-a7a2-5033fa2b2c36",
+        "type": "Checkboxes",
+        "componentType": 5,
+        "textResourceBindings": {
+          "title": "33281.AnsattPermisjonTypedatadef33281.Label",
+          "description": "checkbox.desc"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Permisjonsopplysninger-grp-8822.AnsattPermisjonType-datadef-33281.value"
+        },
+        "required": true,
+        "optionsId": "checkbox"
+      },
+      {
+        "id": "8c0f817b-afe0-440c-b860-3c03ea9f6c1c",
+        "type": "RadioButtons",
+        "componentType": 6,
+        "textResourceBindings": {
+          "title": "33269.AnsattArbeidsforholdOpphortdatadef33269.Label",
+          "description": "radio.desc"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattArbeidsforholdOpphort-datadef-33269.value"
+        },
+        "required": true,
+        "optionsId": "radiobutton"
+      },
+      {
+        "id": "15f82eba-c364-4cf4-9ce1-452cff866334",
+        "type": "Dropdown",
+        "componentType": 4,
+        "textResourceBindings": {
+          "title": "33271.AnsattArbeidsforholdOpphortArsakdatadef33271.Label",
+          "description": "33271.AnsattArbeidsforholdOpphortArsakdatadef33271.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattArbeidsforholdOpphortArsak-datadef-33271.value"
+        },
+        "optionsId": "list",
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "d817ef98-00da-4ec5-8d3b-1d38d9972f3e",
+        "type": "Datepicker",
+        "componentType": 3,
+        "textResourceBindings": {
+          "title": "1387.AnsattTiltredelseDatodatadef1387.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattTiltredelseDato-datadef-1387.value"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": "1900-01-01T12:00:00Z",
+        "maxDate": "2100-01-01T12:00:00Z",
+        "required": true,
+        "timeStamp": true
+      },
+      {
+        "id": "nav-page3",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next",
+          "back": "back"
+        },
+        "dataModelBindings": {},
+        "componentType": 13,
+        "showBackButton": true
+      }
+    ]
+  }
+}
