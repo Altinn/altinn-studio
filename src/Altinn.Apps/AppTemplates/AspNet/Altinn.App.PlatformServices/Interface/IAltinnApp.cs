@@ -121,5 +121,10 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">The instance</param>
         /// <returns></returns>
         Task RunProcessTaskEnd(string taskId, Instance instance);
+
+        /// <summary>
+        /// Format layoutsettings
+        /// </summary>
+        Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
     }
 }
