@@ -351,7 +351,6 @@ export function validateComponentFormData(
   const dataModelPaths = dataModelField.split('.');
   const fieldSchema = getSchemaPart(dataModelPaths || [dataModelField], rootElement, schema);
   const valid = (!formData || formData === '') || validator.validate(fieldSchema, formData);
-
   const validationResult: IValidationResult = {
     validations: {
       [layoutId]: {
@@ -381,6 +380,7 @@ export function validateComponentFormData(
         [errorParams],
       );
       mapToComponentValidations(
+        layoutId,
         null,
         dataModelField,
         errorMessage,
@@ -389,7 +389,6 @@ export function validateComponentFormData(
       );
     });
   }
-
   if (component.required) {
     if (!formData || formData === '') {
       validationResult.validations[layoutId][componentIdWithIndex || component.id][fieldKey].errors.push(
@@ -446,12 +445,12 @@ export function validateFormData(
   schemaValidator: ISchemaValidator,
   language: any,
 ): IValidationResult {
-  const validations: any = {};
+  let validations: any = {};
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
-    const result = validateFormDataForLayout(formData, layouts[id], schemaValidator, language);
-    validations[id] = result.validations;
+    const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
+    validations = result.validations;
     if (!invalidDataTypes) {
       invalidDataTypes = result.invalidDataTypes;
     }
@@ -466,6 +465,7 @@ export function validateFormData(
 export function validateFormDataForLayout(
   formData: any,
   layout: ILayout,
+  layoutKey: string,
   schemaValidator: ISchemaValidator,
   language: any,
 ): IValidationResult {
@@ -494,7 +494,7 @@ export function validateFormDataForLayout(
         );
 
         const dataBindingName = processDataPath(error.dataPath);
-        mapToComponentValidations(layout, dataBindingName, errorMessage, result.validations);
+        mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
       }
     });
   }
@@ -509,6 +509,7 @@ export function processDataPath(path: string): string {
 }
 
 export function mapToComponentValidations(
+  layoutId: string,
   layout: ILayout,
   dataBindingName: string,
   errorMessage: string,
@@ -539,21 +540,24 @@ export function mapToComponentValidations(
   if (layoutComponent) {
     const index = getIndex(dataBindingName);
     const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
-    if (validations[componentId]) {
-      if (validations[componentId][dataModelFieldKey]) {
-        if (validations[componentId][dataModelFieldKey].errors.includes(errorMessage)) {
+    if (!validations[layoutId]) {
+      validations[layoutId] = {};
+    }
+    if (validations[layoutId][componentId]) {
+      if (validations[layoutId][componentId][dataModelFieldKey]) {
+        if (validations[layoutId][componentId][dataModelFieldKey].errors.includes(errorMessage)) {
           return;
         }
-        validations[componentId][dataModelFieldKey].errors.push(errorMessage);
+        validations[layoutId][componentId][dataModelFieldKey].errors.push(errorMessage);
       } else {
         // eslint-disable-next-line no-param-reassign
-        validations[componentId][dataModelFieldKey] = {
+        validations[layoutId][componentId][dataModelFieldKey] = {
           errors: [errorMessage],
         };
       }
     } else {
       // eslint-disable-next-line no-param-reassign
-      validations[componentId] = {
+      validations[layoutId][componentId] = {
         [dataModelFieldKey]: {
           errors: [errorMessage],
         },

@@ -518,7 +518,7 @@ describe('>>> utils/validations.ts', () => {
       mockValidator,
       mockLanguage,
     );
-    expect(mockResult.validations).toEqual({ FormLayout: {} });
+    expect(mockResult.validations).toEqual({});
   });
 
   it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
@@ -721,11 +721,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ mapToComponentValidations should map validation to correct component', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
     const expectedResult = {
-      componentId_2: {
-        customBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        componentId_2: {
+          customBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -734,11 +736,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ mapToComponentValidations should map validation to correct component for component in a repeating group', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
     const expectedResult = {
-      'componentId_4-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'componentId_4-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -747,11 +751,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ mapToComponentValidations should map validation to correct component for component in a nested repeating group', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
     const expectedResult = {
-      'componentId_5-0-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'componentId_5-0-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
