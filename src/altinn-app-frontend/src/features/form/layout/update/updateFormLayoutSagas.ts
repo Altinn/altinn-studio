@@ -1,17 +1,23 @@
 /* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
+import { AxiosRequestConfig } from 'axios';
+import { get } from 'altinn-shared/utils';
+import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
+import { getValidationUrl } from 'src/utils/urlHelper';
+import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved } from 'src/utils/validation';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
-import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups } from './updateFormLayoutActions';
+import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups, IUpdateCurrentView } from './updateFormLayoutActions';
 import { ILayoutState } from '../formLayoutReducer';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
-import { removeGroupData } from '../../../../utils/databindings';
+import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
+import FormValidationActions from '../../validation/validationActions';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
@@ -92,6 +98,67 @@ function* updateRepeatingGroupsSaga({
   } catch (err) {
     yield call(FormLayoutActions.updateRepeatingGroupsRejected, err);
   }
+}
+
+export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurrentView): SagaIterator {
+  try {
+    if (!runValidations) {
+      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+    } else {
+      const state: IRuntimeState = yield select();
+      const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+        state.instanceData.instance.process.currentTask.elementId,
+        state.applicationMetadata.applicationMetadata.dataTypes,
+      );
+      const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+      const validator = createValidator(schema);
+      const model = convertDataBindingToModel(state.formData.formData);
+      const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
+      let validations = validationResult.validations;
+      const componentSpecificValidations =
+        validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
+          state.language.language, state.formLayout.uiConfig.hiddenFields);
+      const emptyFieldsValidations = validateEmptyFields(
+        state.formData.formData,
+        state.formLayout.layouts,
+        state.language.language,
+        state.formLayout.uiConfig.hiddenFields,
+        state.formLayout.uiConfig.repeatingGroups,
+      );
+      validations = Object.assign(validations, componentSpecificValidations);
+      validations = Object.assign(validations, emptyFieldsValidations);
+      const instanceId = state.instanceData.instance.id;
+      const currentView = state.formLayout.uiConfig.currentView;
+      const options: AxiosRequestConfig = {
+        headers: {
+          LayoutId: currentView,
+        },
+      };
+      const serverValidation: any = yield call(get, getValidationUrl(instanceId), runValidations === 'page' ? options : null);
+      // update validation state
+      const layoutState: ILayoutState = state.formLayout;
+      const mappedValidations =
+        mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
+      validations = Object.assign(validations, mappedValidations);
+      validationResult.validations = validations;
+      if (runValidations === 'page') {
+        // only store validations for the specific page
+        validations = { [currentView]: validations[currentView] };
+      }
+      yield call(FormValidationActions.updateValidations, validations);
+      if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
+        yield call(FormLayoutActions.updateCurrentViewRejected, null);
+      } else {
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      }
+    }
+  } catch (err) {
+    yield call(FormLayoutActions.updateCurrentViewRejected, err);
+  }
+}
+
+export function* watchUpdateCurrentViewSaga(): SagaIterator {
+  yield takeEvery(ActionTypes.UPDATE_CURRENT_VIEW, updateCurrentViewSaga);
 }
 
 export function* watchUpdateFocusSaga(): SagaIterator {
