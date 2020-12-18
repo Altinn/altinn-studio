@@ -31,6 +31,7 @@ export default function ErrorPaper(props: IErrorPaperProps) {
         direction='row'
         justify='flex-start'
         className={classes.grid}
+        spacing={2}
       >
         <Grid
           item={true}

@@ -39,6 +39,7 @@ export function nb() {
       body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.',
     },
     form_filler: {
+      back_to_summary: 'Tilbake til oppsummering',
       error_report_header: 'Det er feil i skjema',
       error_report_description: 'Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.',
       error_required: 'Feltet er påkrevd',

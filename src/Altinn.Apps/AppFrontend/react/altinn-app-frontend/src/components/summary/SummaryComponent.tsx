@@ -4,7 +4,6 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { componentHasValidationMessages,
   getComponentValidations,
   getDisplayFormDataForComponent } from 'src/utils/formComponentUtils';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { shallowEqual, useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { ILayoutComponent } from 'src/features/form/layout';
@@ -12,6 +11,8 @@ import FormLayoutActions from '../../features/form/layout/formLayoutActions';
 import { IComponentValidations, IRuntimeState } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
+import ErrorPaper from '../message/ErrorPaper';
+import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
 
 export interface ISummaryComponent {
   id: string;
@@ -76,24 +77,61 @@ export function SummaryComponent(props: ISummaryComponent) {
     }
   }, [formValidations, layout]);
 
+  const renderSummaryComponent = () => {
+    if (!formComponent) {
+      return null;
+    }
+
+    switch (formComponent.type) {
+      case 'Group':
+      case 'group': {
+        return (
+          <SummaryGroupComponent
+            onChangeClick={onChangeClick}
+            {...props}
+          />
+        );
+      }
+      case 'FileUpload': {
+        return (
+          <AttachmentSummaryComponent
+            onChangeClick={onChangeClick}
+            label={title}
+            hasValidationMessages={hasValidationMessages}
+            componentRef={props.componentRef}
+          />
+        );
+      }
+      default:
+        return (
+          <SingleInputSummary
+            onChangeClick={onChangeClick}
+            label={title}
+            hasValidationMessages={hasValidationMessages}
+            {...props}
+            formData={formData}
+          />
+        );
+    }
+  };
+
   return (
     <Grid container={true} className={classes.row}>
-      {formComponent && formComponent.type.toLowerCase() === 'group' ?
-        <SummaryGroupComponent
-          onChangeClick={onChangeClick}
-          {...props}
-        />
-        :
-        <SingleInputSummary
-          onChangeClick={onChangeClick}
-          label={title}
-          hasValidationMessages={hasValidationMessages}
-          {...props}
-          formData={formData}
-        />
-      }
+      {renderSummaryComponent()}
       {hasValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        <Grid
+          container={true}
+          style={{ paddingTop: '12px' }}
+          spacing={2}
+        >
+          {componentValidations?.simpleBinding?.errors.map((validationText) => {
+            return (
+              <ErrorPaper
+                message={validationText}
+              />
+            );
+          })}
+        </Grid>
       }
     </Grid>
   );

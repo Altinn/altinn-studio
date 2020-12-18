@@ -866,7 +866,7 @@ export function repeatingGroupHasValidations(
   layout: ILayout,
   hiddenFields?: string[],
 ): boolean {
-  if (!group || !validations || !validations || !layout) {
+  if (!group || !validations || !layout) {
     return false;
   }
 

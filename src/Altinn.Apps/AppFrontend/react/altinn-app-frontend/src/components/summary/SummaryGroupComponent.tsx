@@ -1,15 +1,17 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 import { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
-import { IRepeatingGroups, IRuntimeState } from 'src/types';
+import { IRepeatingGroups, IRuntimeState, IValidations } from 'src/types';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 // import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import GroupInputSummary from './GroupInputSummary';
+import ErrorPaper from '../message/ErrorPaper';
 
 export interface ISummaryGroupComponent {
   id: string;
@@ -60,16 +62,20 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   const { pageRef, componentRef } = props;
 
   const [title, setTitle] = React.useState<string>('');
+  const [groupHasErrors, setGroupHasErrors] = React.useState<boolean>(false);
 
   const groupComponent = useSelector(
     (state: IRuntimeState) => getComponentForSummaryGroup(state.formLayout.layouts[pageRef], componentRef),
+    shallowEqual,
   );
   const repeatingGroups: IRepeatingGroups =
     useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[pageRef]);
   const formData: any = useSelector((state: IRuntimeState) => state.formData.formData);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
+  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const hiddenFields = useSelector((state: IRuntimeState) => getHiddenFieldsForSummaryGroup(
     state.formLayout.uiConfig.hiddenFields, groupComponent.children,
   ));
@@ -95,13 +101,36 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   };
   const repeatingGroupMaxIndex = getRepeatingGroupMaxIndex(componentRef);
 
-  const createRepeatingGroupComponents = () => {
+  React.useEffect(() => {
+    let groupErrors: boolean = false;
+    if (!props.largeGroup) {
+      for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
+        if (groupErrors) {
+          break;
+        }
+        // eslint-disable-next-line no-loop-func
+        groupComponent.children.forEach((componentId: string) => {
+          const component: ILayoutComponent =
+            layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
+          const componentIdWithIndex = `${component.id}${props.index >= 0 ? `-${props.index}` : ''}-${i}`;
+
+          if (validations[componentIdWithIndex]) {
+            groupErrors = true;
+          }
+        });
+      }
+      setGroupHasErrors(groupErrors);
+    }
+  }, [validations, props.largeGroup, groupComponent, repeatingGroupMaxIndex, layout, props.index]);
+
+  const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];
     for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
-      const childComponents = groupComponent.children.map((componentId: string) => {
+      const childSummaryComponents = groupComponent.children.map((componentId: string) => {
         const component: ILayoutComponent =
           layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
         const componentDeepCopy = JSON.parse(JSON.stringify(component));
+        componentDeepCopy.id = `${componentDeepCopy.id}${props.index >= 0 ? `-${props.index}` : ''}-${i}`;
 
         Object.keys(component.dataModelBindings).forEach((key) => {
           let binding = component.dataModelBindings[key].replace(
@@ -142,8 +171,9 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           />
         );
       });
-      componentArray.push(<div>{childComponents}</div>);
+      componentArray.push(<div style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>);
     }
+
     return componentArray;
   };
 
@@ -158,7 +188,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           title: groupComponent.textResourceBindings?.title,
         },
       };
-      const childComponents = [];
+      const childSummaryComponents = [];
       groupComponent.children.forEach((componentId: string) => {
         const component = layout.find((c: ILayoutComponent) => c.id === componentId);
         const isGroupComponent = component.type.toLowerCase() === 'group';
@@ -194,14 +224,14 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         };
 
         if (!hiddenFields.find((field) => field === `${componentId}-${i}`)) {
-          childComponents.push(summaryComponent);
+          childSummaryComponents.push(summaryComponent);
         }
       });
 
       componentArray.push(
         <DisplayGroupContainer
           key={`${groupContainer.id}-summary`}
-          components={childComponents}
+          components={childSummaryComponents}
           container={groupContainer}
           renderLayoutComponent={renderLayoutComponent}
         />,
@@ -210,8 +240,8 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
     return componentArray;
   };
 
-  const renderComponents = props.largeGroup
-    ? createRepeatingGroupSummaryForLargeGroups() : createRepeatingGroupComponents();
+  const renderComponents: any = props.largeGroup
+    ? createRepeatingGroupSummaryForLargeGroups() : createRepeatingGroupSummaryComponents();
 
   if (props.largeGroup && layout) {
     return (
@@ -222,33 +252,42 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   }
 
   return (
-    <Grid container={true}>
-      <Grid item={true} xs={10}>
-        <Typography
-          variant='body1'
-          className={`${classes.label}`} // ${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
-          component='span'
-        >
-          {title}
-        </Typography>
+    <>
+      <Grid container={true}>
+        <Grid item={true} xs={10}>
+          <Typography
+            variant='body1'
+            className={`${classes.label}`} // ${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+            component='span'
+          >
+            {title}
+          </Typography>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography
+            variant='body1'
+            onClick={props.onChangeClick}
+            className={classes.change}
+          >
+            <span>Endre</span>
+            <i className={`fa fa-editing-file ${classes.editIcon}`} />
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          {renderComponents}
+        </Grid>
+        {/* {hasValidationMessages &&
+              renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        } */}
       </Grid>
-      <Grid item xs={2}>
-        <Typography
-          variant='body1'
-          onClick={props.onChangeClick}
-          className={classes.change}
-        >
-          <span>Endre</span>
-          <i className={`fa fa-editing-file ${classes.editIcon}`} />
-        </Typography>
+      {groupHasErrors &&
+      <Grid container={true} style={{ paddingTop: '12px' }}>
+        <ErrorPaper
+          message={getLanguageFromKey('group.row_error', language)}
+        />
       </Grid>
-      <Grid item xs={12}>
-        {renderComponents}
-      </Grid>
-      {/* {hasValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-      } */}
-    </Grid>
+      }
+    </>
   );
 }
 

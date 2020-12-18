@@ -39,6 +39,7 @@ export function en() {
       body: 'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
     },
     form_filler: {
+      back_to_summary: 'Return to summary',
       error_report_header: 'There is a problem',
       error_report_description: 'The form contains errors that prevent it from being submitted. Try submitting again once the errors are corrected.',
       error_required: 'Field is required',
