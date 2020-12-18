@@ -1,4 +1,4 @@
-# Altinn Studio
+# Altinn 3
 
 Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn Platform, it makes a complete application development and hosting platform.
 
