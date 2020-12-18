@@ -144,7 +144,11 @@ describe('>>> features/form/components/Group.tsx', () => {
       resources: [{ id: 'option.label', value: 'Value to be shown' }],
     };
 
-    const initialState = getInitialStateMock({ formLayout: mockLayout, formData: mockData, textResources: mockTextResources });
+    const initialState = getInitialStateMock({
+      formLayout: mockLayout,
+      formData: mockData,
+      textResources: mockTextResources,
+    });
     mockStore = createStore(initialState);
   });
 

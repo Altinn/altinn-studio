@@ -27,6 +27,8 @@ namespace Altinn.Studio.Designer
     /// </summary>
     public class Startup
     {
+        private IWebHostEnvironment CurrentEnvironment { get; set; }
+
         /// <summary>
         /// Gets the application configuration
         /// </summary>
@@ -44,9 +46,11 @@ namespace Altinn.Studio.Designer
         /// </summary>
         /// <param name="configuration">The configuration for designer</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        /// <param name="env">The environment</param>
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            CurrentEnvironment = env;
             _logger = loggerFactory.CreateLogger<Startup>();
         }
 
@@ -79,7 +83,7 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
-            services.ConfigureAuthentication();
+            services.ConfigureAuthentication(Configuration, CurrentEnvironment);
 
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
@@ -118,7 +122,7 @@ namespace Altinn.Studio.Designer
         /// <param name="env">Hosting environment</param>
         public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 appBuilder.UseExceptionHandler("/error-local-development");
             }
@@ -157,8 +161,12 @@ namespace Altinn.Studio.Designer
 
             appBuilder.UseRouting();
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
+            if (!env.IsDevelopment())
+            {
+                appBuilder.UseHsts();
+                appBuilder.UseHttpsRedirection();
+            }
+
             appBuilder.UseAuthentication();
             appBuilder.UseAuthorization();
 

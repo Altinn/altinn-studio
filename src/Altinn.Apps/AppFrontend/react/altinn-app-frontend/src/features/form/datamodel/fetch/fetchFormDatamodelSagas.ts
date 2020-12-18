@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, select, all, take } from 'redux-saga/effects';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { getJsonSchemaUrl } from 'src/utils/urlHelper';
+import { IInstance } from 'altinn-shared/types';
 import DataModelActions from '../formDatamodelActions';
 import { IFetchDataModel } from './fetchFormDatamodelActions';
 import * as ActionTypes from './fetchFormDatamodelActionTypes';
@@ -9,9 +9,11 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { get } from '../../../../utils/networking';
 import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
+import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata =
   (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
@@ -39,8 +41,10 @@ export function* watchFetchFormDataModelSaga(): SagaIterator {
 function* fetchJsonSchemaSaga(): SagaIterator {
   try {
     const url = getJsonSchemaUrl();
-    const appMetadata = yield select(AppMetadataSelector);
-    const dataType = appMetadata.dataTypes.find((type) => !!type.appLogic);
+    const appMetadata: IApplicationMetadata = yield select(AppMetadataSelector);
+    const instance: IInstance = yield select(InstanceDataSelector);
+    const dataType =
+      appMetadata.dataTypes.find((type) => !!type.appLogic && type.taskId === instance.process.currentTask.elementId);
     const id: string = dataType?.id;
 
     if (id) {
@@ -54,9 +58,11 @@ function* fetchJsonSchemaSaga(): SagaIterator {
 }
 
 export function* watchFetchJsonSchemaSaga(): SagaIterator {
-  yield all([
-    take(ActionTypes.FETCH_JSON_SCHEMA),
-    take(FETCH_APPLICATION_METADATA_FULFILLED),
-  ]);
-  yield call(fetchJsonSchemaSaga);
+  while (true) {
+    yield all([
+      take(GET_INSTANCEDATA_FULFILLED),
+      take(ActionTypes.FETCH_JSON_SCHEMA),
+    ]);
+    yield call(fetchJsonSchemaSaga);
+  }
 }

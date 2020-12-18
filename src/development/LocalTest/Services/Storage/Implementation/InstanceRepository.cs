@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LocalTest.Services.Storage.Implementation
@@ -102,6 +103,11 @@ namespace LocalTest.Services.Storage.Implementation
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
 
+            if (instance.Data != null && instance.Data.Any())
+            {
+                SetReadStatus(instance);
+            }
+
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
             instance.LastChanged = lastChanged;
             instance.LastChangedBy = lastChangedBy;
@@ -124,6 +130,18 @@ namespace LocalTest.Services.Storage.Implementation
             }
 
             return cosmosId;
+        }
+
+        private void SetReadStatus(Instance instance)
+        {
+            if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.UpdatedSinceLastReview;
+            }
+            else if (instance.Status.ReadStatus == ReadStatus.Read && !instance.Data.Any(d => d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.Unread;
+            }
         }
     }
 }

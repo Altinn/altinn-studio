@@ -5,7 +5,7 @@ import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/co
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
-import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
+import { IRuntimeState, ProcessTaskType, IAltinnWindow } from '../../types';
 import ProcessStep from './ProcessStep';
 // eslint-disable-next-line import/no-named-as-default
 import Form from '../../features/form/containers/Form';
@@ -15,6 +15,8 @@ import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
+import { IProcessState } from '../resources/process/processReducer';
+import IsLoadingActions from '../resources/isLoading/isLoadingActions';
 
 export default (props) => {
   const {
@@ -30,10 +32,11 @@ export default (props) => {
 
   const instantiating = useSelector((state: IRuntimeState) => state.instantiation.instantiating);
   const instanceId = useSelector((state: IRuntimeState) => state.instantiation.instanceId);
+  const instanceData = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
   const textResources: any[] = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const processStep: ProcessSteps = useSelector((state: IRuntimeState) => state.process.state);
+  const process: IProcessState = useSelector((state: IRuntimeState) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
@@ -65,25 +68,29 @@ export default (props) => {
   }, [textResources, applicationMetadata]);
 
   React.useEffect(() => {
-    if (!processStep) {
+    if (!applicationMetadata || !instanceData) {
+      return;
+    }
+
+    if (!process || !process.taskType) {
       ProcessDispatcher.getProcessState();
     }
 
-    switch (processStep) {
-      case (ProcessSteps.FormFilling): {
+    switch (process.taskType) {
+      case (ProcessTaskType.Data): {
         QueueActions.startInitialDataTaskQueue();
         break;
       }
-      case (ProcessSteps.Confirm):
-      case (ProcessSteps.Feedback):
-      case (ProcessSteps.Archived): {
-        QueueActions.startInitialDataTaskQueue();
+      case (ProcessTaskType.Confirm):
+      case (ProcessTaskType.Feedback):
+      case (ProcessTaskType.Archived): {
+        IsLoadingActions.finishDataTaskIsloading();
         break;
       }
       default:
         break;
     }
-  }, [processStep]);
+  }, [process, applicationMetadata, instanceData]);
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
@@ -95,32 +102,32 @@ export default (props) => {
     return <UnknownError />;
   }
 
-  if (!processStep) {
+  if (!process || !process.taskType) {
     return null;
   }
 
   return (
     <ProcessStep
       header={appHeader}
-      step={processStep}
+      step={process.taskType}
     >
       <div>
         {isLoading === false ? (
           <>
-            {processStep === ProcessSteps.FormFilling &&
+            {process.taskType === ProcessTaskType.Data &&
               <Form />
             }
-            {processStep === ProcessSteps.Archived &&
+            {process.taskType === ProcessTaskType.Archived &&
               <div id='ReceiptContainer'>
                 <ReceiptContainer/>
               </div>
             }
-            {processStep === ProcessSteps.Confirm &&
+            {process.taskType === ProcessTaskType.Confirm &&
               <div id='ConfirmContainer'>
                 <Confirm />
               </div>
             }
-            {processStep === ProcessSteps.Feedback &&
+            {process.taskType === ProcessTaskType.Feedback &&
               <div id='FeedbackContainer'>
                 <Feedback />
               </div>

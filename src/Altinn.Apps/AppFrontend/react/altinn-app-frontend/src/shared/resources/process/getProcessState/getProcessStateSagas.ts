@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
-import { ProcessSteps } from '../../../../types';
+import { ProcessTaskType } from '../../../../types';
 import { getProcessStateUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessStateDispatchers from '../processDispatcher';
@@ -11,13 +11,14 @@ export function* getProcessStateSaga(): SagaIterator {
   try {
     const processState: IProcess = yield call(get, getProcessStateUrl());
     if (!processState) {
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown);
+      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessTaskType.Unknown, null);
     } else if (processState.ended) {
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived);
+      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessTaskType.Archived, null);
     } else {
       yield call(
         ProcessStateDispatchers.getProcessStateFulfilled,
-        processState.currentTask.altinnTaskType as ProcessSteps,
+        processState.currentTask.altinnTaskType as ProcessTaskType,
+        processState.currentTask.elementId,
       );
     }
   } catch (err) {

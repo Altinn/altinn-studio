@@ -10,6 +10,6 @@ import java.util.List;
 @Getter
 @Setter
 public class PagesSettings {
-  List<String> order;
-  List<String> excludeFromPdf;
+  private List<String> order;
+  private List<String> excludeFromPdf;
 }

@@ -237,6 +237,8 @@ namespace Altinn.Platform.Storage.Repository
                         case "excludeConfirmedBy":
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
+                        case "language":
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
@@ -493,24 +495,24 @@ namespace Altinn.Platform.Storage.Repository
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue)
-                        .Where(i => !i.Status.Archived.HasValue);
+                        .Where(i => !i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted)
+                        .Where(i => !i.Status.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue);
+                        .Where(i => i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                       .Where(i => i.Status.Archived.HasValue)
-                       .Where(i => !i.Status.SoftDeleted.HasValue)
-                       .Where(i => !i.Status.HardDeleted.HasValue)
+                       .Where(i => i.Status.IsArchived)
+                       .Where(i => !i.Status.IsSoftDeleted)
+                       .Where(i => !i.Status.IsHardDeleted)
                        .OrderByDescending(i => i.Status.Archived);
             }
             else
@@ -575,6 +577,10 @@ namespace Altinn.Platform.Storage.Repository
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
+            if (instance.Data != null && instance.Data.Any())
+            {
+                SetReadStatus(instance);
+            }
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
             instance.LastChanged = lastChanged;
@@ -610,6 +616,18 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             return cosmosId;
+        }
+
+        private void SetReadStatus(Instance instance)
+        {
+            if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.UpdatedSinceLastReview;
+            }
+            else if (instance.Status.ReadStatus == ReadStatus.Read && !instance.Data.Any(d => d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.Unread;
+            }
         }
     }
 }

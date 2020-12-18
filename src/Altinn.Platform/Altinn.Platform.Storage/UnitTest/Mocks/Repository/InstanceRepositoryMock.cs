@@ -80,23 +80,23 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             {
                 filter = unfilteredInstances
                         .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue)
-                        .Where(i => !i.Status.Archived.HasValue);
+                        .Where(i => !i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted)
+                        .Where(i => !i.Status.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = unfilteredInstances
-                        .Where(i => i.Status.SoftDeleted.HasValue)
-                        .Where(i => !i.Status.HardDeleted.HasValue);
+                        .Where(i => i.Status.IsSoftDeleted)
+                        .Where(i => !i.Status.IsHardDeleted);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter =
                        unfilteredInstances
-                       .Where(i => i.Status.Archived.HasValue)
-                       .Where(i => !i.Status.SoftDeleted.HasValue)
-                       .Where(i => !i.Status.HardDeleted.HasValue)
+                       .Where(i => i.Status.IsArchived)
+                       .Where(i => !i.Status.IsSoftDeleted)
+                       .Where(i => !i.Status.IsHardDeleted)
                        .OrderByDescending(i => i.Status.Archived);
             }
             else
@@ -110,7 +110,33 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
+            List<string> validQueryParams = new List<string>
+            {
+                "org",
+                "appId",
+                "process.currentTask",
+                "process.isComplete" ,
+                "process.endEvent",
+                "process.ended",
+                "instanceOwner.partyId",
+                "lastChanged",
+                "created",
+                "visibleAfter",
+                "dueBefore",
+                "excludeConfirmedBy",
+                "size",
+                "language"
+            };
+
             InstanceQueryResponse response = new InstanceQueryResponse();
+
+            string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
+            if (!string.IsNullOrEmpty(invalidKey))
+            {
+                response.Exception = $"Unknown query parameter: {invalidKey}";
+                return Task.FromResult(response);
+            }
+
             List<Instance> instances = new List<Instance>();
 
             string instancesPath = GetInstancesPath();
@@ -135,9 +161,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                     }
                 }
             }
-            else if (queryParams.ContainsKey("instanceOwner.PartyId"))
+            else if (queryParams.ContainsKey("instanceOwner.partyId"))
             {
-                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.PartyId")}";
+                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.partyId")}";
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
@@ -234,14 +260,30 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
+            Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
+            if (instance.Data != null && instance.Data.Any())
+            {
+                SetReadStatus(instance);
+            }
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
-
             instance.LastChanged = lastChanged;
             instance.LastChangedBy = lastChangedBy;
+        }
+
+        private void SetReadStatus(Instance instance)
+        {
+            if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.UpdatedSinceLastReview;
+            }
+            else if (instance.Status.ReadStatus == ReadStatus.Read && !instance.Data.Any(d => d.IsRead))
+            {
+                instance.Status.ReadStatus = ReadStatus.Unread;
+            }
         }
     }
 }

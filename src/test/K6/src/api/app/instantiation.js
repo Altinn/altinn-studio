@@ -10,10 +10,6 @@ export function beforeInstanceCreation(altinnStudioRuntimeCookie, partyId, appOw
     req = [
         {
             "method": "get",
-            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["texts"] + "nb",
-            "params": requestParams
-        }, {
-            "method": "get",
             "url": config.appApiBaseUrl(appOwner, appName) + config.appProfile["user"],
             "params": requestParams
         }, {

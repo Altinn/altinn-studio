@@ -79,7 +79,8 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     process: {
       error: null,
-      state: null,
+      taskType: null,
+      taskId: null,
     },
     profile: getProfileStateMock(),
     queue: {

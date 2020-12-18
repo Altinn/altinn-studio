@@ -24,6 +24,14 @@ export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appNam
             "method": "get",
             "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["ruleconfiguration"],
             "params": requestParams
+        }, {
+            "method": "get",
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["texts"] + "nb",
+            "params": requestParams
+        }, {
+            "method": "get",
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["jsonschema"] + "default",
+            "params": requestParams
         }];
     res = http.batch(req);
     return res;

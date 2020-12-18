@@ -543,7 +543,7 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter) ?? creationTime,
-                Status = instanceTemplate.Status,
+                Status = instanceTemplate.Status ?? new InstanceStatus(),
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
                 Process = instanceTemplate.Process

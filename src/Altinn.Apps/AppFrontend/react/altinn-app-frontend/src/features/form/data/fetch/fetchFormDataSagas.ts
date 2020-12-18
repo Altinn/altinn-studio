@@ -4,26 +4,34 @@ import { call,
   takeLatest,
   all,
   take } from 'redux-saga/effects';
-import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
+import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormActions from '../formDataActions';
-import { IFetchFormData } from './fetchFormDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
-import { IRuntimeState, IAltinnWindow } from '../../../../types';
+import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { FETCH_DATA_MODEL_FULFILLED, FETCH_JSON_SCHEMA_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
+import { IProcessState } from '../../../../shared/resources/process/processReducer';
+import { getFetchFormDataUrl, getFetchFormDynamicsUrl, getFetchRuleModelUrl } from '../../../../utils/urlHelper';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
 const instanceDataSelector = (state: IRuntimeState): IInstance => state.instanceData.instance;
+const processStateSelector = (state: IRuntimeState): IProcessState => state.process;
 
-function* fetchFormDataSaga({ url }: IFetchFormData): SagaIterator {
+function* fetchFormDataSaga(): SagaIterator {
   try {
-    const fetchedData: any = yield call(get, url);
+    // This is a temporary solution for the "one task - one datamodel - process"
+    const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
+    const instance: IInstance = yield select(instanceDataSelector);
+
+    const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance);
+    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
     const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
   } catch (err) {
@@ -37,30 +45,24 @@ export function* watchFormDataSaga(): SagaIterator {
 
 function* fetchFormDataInitialSaga(): SagaIterator {
   try {
-    const {
-      org,
-      app,
-      instanceId,
-    } = window as Window as IAltinnWindow;
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
 
-    const currentTaskDataId = getCurrentTaskDataTypeId(applicationMetadata, instance);
-    const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}/data/${currentTaskDataId}`;
-    const fetchedData: any = yield call(get, url);
+    const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
+    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
 
     const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
 
     yield call(
       FormRulesActions.fetchRuleModel,
-      `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,
+      getFetchRuleModelUrl(),
     );
 
     yield call(
       FormDynamicsActions.fetchFormDynamics,
-      `${window.location.origin}/${org}/${app}/api/resource/RuleConfiguration.json`,
+      getFetchFormDynamicsUrl(),
     );
   } catch (err) {
     yield call(FormActions.fetchFormDataRejected, err);
@@ -69,11 +71,22 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 }
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
-  yield all([
-    take(FETCH_DATA_MODEL_FULFILLED),
-    take(FETCH_JSON_SCHEMA_FULFILLED),
-    take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
-  ]);
-
-  yield call(fetchFormDataInitialSaga);
+  while (true) {
+    yield take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL);
+    const processState: IProcessState = yield select(processStateSelector);
+    const instance: IInstance = yield select(instanceDataSelector);
+    if (!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {
+      yield all([
+        take(GET_INSTANCEDATA_FULFILLED),
+        take(FETCH_DATA_MODEL_FULFILLED),
+        take(FETCH_JSON_SCHEMA_FULFILLED),
+      ]);
+    } else {
+      yield all([
+        take(FETCH_DATA_MODEL_FULFILLED),
+        take(FETCH_JSON_SCHEMA_FULFILLED),
+      ]);
+    }
+    yield call(fetchFormDataInitialSaga);
+  }
 }
