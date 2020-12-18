@@ -766,7 +766,7 @@ export function getUnmappedErrors(validations: IValidations): string[] {
     return messages;
   }
   Object.keys(validations).forEach((layout: string) => {
-    Object.keys(validations[layout].unmapped).forEach((key: string) => {
+    Object.keys(validations[layout]?.unmapped || {}).forEach((key: string) => {
       // eslint-disable-next-line no-unused-expressions
       validations[layout].unmapped[key]?.errors?.forEach((message: string) => {
         messages.push(message);
