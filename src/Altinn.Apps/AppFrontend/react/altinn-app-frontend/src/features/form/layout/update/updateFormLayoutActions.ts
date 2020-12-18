@@ -62,7 +62,7 @@ export interface IUpdateAutoSaveRejected extends Action {
 
 export interface IUpdateCurrentView extends Action {
   newView: string;
-  runValidations?: boolean;
+  runValidations?: 'allPages' | 'page';
 }
 
 export interface IUpdateCurrentViewFulfilled extends Action {
@@ -152,7 +152,7 @@ export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
   });
 }
 
-export function updateCurrentView(newView: string, runValidations?: boolean): IUpdateCurrentView {
+export function updateCurrentView(newView: string, runValidations?: 'allPages' | 'page'): IUpdateCurrentView {
   return ({
     type: UPDATE_CURRENT_VIEW,
     newView,

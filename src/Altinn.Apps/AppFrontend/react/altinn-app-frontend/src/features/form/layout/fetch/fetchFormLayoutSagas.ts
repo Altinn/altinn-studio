@@ -132,13 +132,17 @@ export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurre
           LayoutId: currentView,
         },
       };
-      const serverValidation: any = yield call(get, getValidationUrl(instanceId), options);
+      const serverValidation: any = yield call(get, getValidationUrl(instanceId), runValidations === 'page' ? options : null);
       // update validation state
       const layoutState: ILayoutState = state.formLayout;
       const mappedValidations =
         mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
       validations = Object.assign(validations, mappedValidations);
       validationResult.validations = validations;
+      if (runValidations === 'page') {
+        // only store validations for the specific page
+        validations = { [currentView]: validations[currentView] };
+      }
       FormValidationActions.updateValidations(validations);
       if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield call(Actions.updateCurrentViewRejected, null);
