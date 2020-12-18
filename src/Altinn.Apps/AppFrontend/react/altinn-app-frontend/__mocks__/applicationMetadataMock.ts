@@ -1,6 +1,6 @@
 const applicationMetadataJSON = `{
-  "id": "ttd/test-app",
-  "org": "ttd",
+  "id": "mockOrg/test-app",
+  "org": "mockOrg",
   "title": {
     "nb": "Test App"
   },
