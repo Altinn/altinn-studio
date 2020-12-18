@@ -10,8 +10,10 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
 }
 
 export const getTextFromAppOrDefault = (
-  key: string, textResources: ITextResource[],
-  language: any, params?: string[],
+  key: string,
+  textResources: ITextResource[],
+  language: any,
+  params?: string[],
   stringOutput?: boolean,
 ) => {
   const textResource: string = getTextResourceByKey(key, textResources);

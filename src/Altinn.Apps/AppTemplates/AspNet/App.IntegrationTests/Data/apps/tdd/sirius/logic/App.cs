@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -18,6 +19,7 @@ using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
@@ -43,7 +45,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             IPrefill prefillService,
             IInstance instanceService,
             ISiriusApi siriusService,
-            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService)
+            IOptions<GeneralSettings> settings,
+            IText textService,
+            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);
@@ -150,6 +154,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             }
 
             return;
+        }
+
+        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        {
+            return await Task.FromResult(layoutSettings);
         }
     }
 }

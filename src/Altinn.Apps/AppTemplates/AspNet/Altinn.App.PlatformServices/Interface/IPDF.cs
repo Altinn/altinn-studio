@@ -1,6 +1,6 @@
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
 {
@@ -12,6 +12,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Generates a pdf receipt for a given dataElement
         /// </summary>
-        Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement);
+        Task<Stream> GeneratePDF(PDFContext pdfContext);
     }
 }

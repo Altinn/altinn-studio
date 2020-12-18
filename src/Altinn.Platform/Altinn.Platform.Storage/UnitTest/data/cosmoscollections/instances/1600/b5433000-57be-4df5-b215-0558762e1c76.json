@@ -8,6 +8,7 @@
   "title": {
     "nb": "dato-eksempel"
   },
+  "visibleAfter": "2199-02-27T12:52:37.9398651Z",
   "process": {
     "started": "2020-02-27T12:52:37.9211181Z",
     "startEvent": "StartEvent_1",
@@ -26,7 +27,6 @@
   },
   "appOwner": {},
   "data": [],
-  "visibleAfter": "2020-02-27T12:52:38.0517187Z",
   "created": "2020-02-27T12:52:38.0517187Z",
   "createdBy": "20000013",
   "lastChanged": "2020-02-27T12:52:38.0517187Z",
