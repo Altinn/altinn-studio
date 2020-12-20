@@ -251,9 +251,11 @@ namespace App.IntegrationTests.Mocks.Services
 
                 if (hard)
                 {
+                    storedInstance.Status.IsHardDeleted = true;
                     storedInstance.Status.HardDeleted = DateTime.UtcNow;
                 }
 
+                storedInstance.Status.IsSoftDeleted = true;
                 storedInstance.Status.SoftDeleted = DateTime.UtcNow;
 
                 // mock does not set last changed by, but this is set by the platform.
