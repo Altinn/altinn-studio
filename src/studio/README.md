@@ -89,18 +89,18 @@ npm run gulp-install-deps
 ```
 
 On MacOS you need two extra steps:
- 1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
+  1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
 
-```cmd
-  "ServiceRepositorySettings": {
-    "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
-````
+      ```cmd
+      "ServiceRepositorySettings": {
+        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
+      ````
 
- 2. Change location where the application stores the DataProtectionKeys
+  2. Change location where the application stores the DataProtectionKeys
 
- ```cmd
- export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
- ```
+      ```cmd
+      export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
+      ```
 
 Build and run the code.
 
