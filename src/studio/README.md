@@ -88,6 +88,13 @@ npm ci
 npm run gulp-install-deps
 ```
 
+If you are using mac change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
+
+```cmd
+  "ServiceRepositorySettings": {
+    "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
+````
+
 Build and run the code.
 
 ```cmd
