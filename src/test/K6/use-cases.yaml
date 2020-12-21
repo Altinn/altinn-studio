@@ -20,8 +20,22 @@ steps:
   displayName: 'Delete test results'
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)'
-    Contents: '*.xml'
+    Contents: |
+      *.csv
+      result.txt
   condition: succeededOrFailed()
+
+- script: |   
+   
+   k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/src/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
+   
+   type result.txt
+   
+   set /p result= < result.txt
+   
+   echo ##vso[task.setvariable variable=availability;]%result%
+   
+  displayName: 'Check availability'
 
 - script: |   
    k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey)
@@ -29,7 +43,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Authentication'
   continueOnError: false
-  condition: succeededOrFailed()
+  condition: and(succeeded(), eq(variables['availability'], 'down'))
 
 - script: |   
    k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e subskey=$(subsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit portal.xml
