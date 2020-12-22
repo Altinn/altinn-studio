@@ -29,12 +29,12 @@ localhost altinn3.no
 
 7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
    On MacOS: Change docker-compose.yml (both)
-    ```cmd
+    ```json
       volumes:
         - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     ```
     to:
-    ```cmd
+    ```yaml
       volumes:
         - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
     ```
