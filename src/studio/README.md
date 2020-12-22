@@ -29,7 +29,7 @@ localhost altinn3.no
 
 7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
    On MacOS: Change docker-compose.yml (both)
-    ```json
+    ```yaml
       volumes:
         - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     ```
@@ -91,7 +91,7 @@ npm run gulp-install-deps
 On MacOS you need two extra steps:
   1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
 
-      ```cmd
+      ```json
       "ServiceRepositorySettings": {
         "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
       ````
