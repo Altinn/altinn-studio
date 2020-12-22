@@ -27,7 +27,8 @@ localhost altinn3.no
 127.0.0.1 altinn3.no
 ```
 
-7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
+7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives
+
    On MacOS: Change docker-compose.yml (both)
     ```yaml
       volumes:
