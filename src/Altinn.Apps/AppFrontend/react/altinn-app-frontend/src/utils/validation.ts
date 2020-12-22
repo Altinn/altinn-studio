@@ -805,16 +805,16 @@ export function getNumberOfComponentsWithValidationMessages(validations: IValida
   Object.keys(validations).forEach((layout) => {
     Object.keys(validations[layout]).forEach((componentKey: string) => {
       if (componentKey !== 'unmapped') {
-          const componentHasMessages = Object.keys(validations[componentKey] || {}).some((bindingKey: string) => {
-              if (severity === Severity.Error && validations[layout][componentKey][bindingKey].errors?.length > 0) {
+        const componentHasMessages = Object.keys(validations[layout][componentKey] || {}).some((bindingKey: string) => {
+          if (severity === Severity.Error && validations[layout][componentKey][bindingKey].errors?.length > 0) {
             return true;
-            }
-        if (severity === Severity.Warning && validations[componentKey][bindingKey].warnings?.length > 0) {
+          }
+          if (severity === Severity.Warning && validations[layout][componentKey][bindingKey].warnings?.length > 0) {
             return true;
-        }
+          }
           return false;
         });
-          if (componentHasMessages) {
+        if (componentHasMessages) {
           numberOfComponents += 1;
         }
       }
