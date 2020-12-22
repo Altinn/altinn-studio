@@ -19,24 +19,25 @@ export function* deleteAttachmentSaga({
   componentId,
 }: deleteActions.IDeleteAttachmentAction): SagaIterator {
   const state: IRuntimeState = yield select();
+  const currentView = state.formLayout.uiConfig.currentView;
   const language = state.language.language;
   try {
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
-    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
+    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, newValidations, componentId);
 
     const response: any = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
       yield call(AttachmentDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {
       const validations = getFileUploadComponentValidations('delete', language);
-      yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
+      yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
       yield call(AttachmentDispatcher.deleteAttachmentRejected,
         attachment, attachmentType, componentId);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('delete', language);
-    yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
+    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
     yield call(AttachmentDispatcher.deleteAttachmentRejected,
       attachment, attachmentType, componentId);
     console.error(err);
