@@ -509,7 +509,6 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 instance.Status.ReadStatus = newStatus;
-                instance.Data = new List<DataElement>();
 
                 updatedInstance = await _instanceRepository.Update(instance);
                 updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
@@ -567,7 +566,6 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.Status.Substatus = substatus;
                 instance.LastChanged = creationTime;
                 instance.LastChangedBy = User.GetOrgNumber().ToString();
-                instance.Data = new List<DataElement>();
 
                 updatedInstance = await _instanceRepository.Update(instance);
                 updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);

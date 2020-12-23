@@ -553,12 +553,13 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.        
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
+            instance.Data = new List<DataElement>();
         }
 
         /// <summary>
