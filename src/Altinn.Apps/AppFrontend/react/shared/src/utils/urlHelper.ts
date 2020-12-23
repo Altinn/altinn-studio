@@ -21,6 +21,7 @@ export const baseHostnameAltinnProd = 'altinn.no';
 export const baseHostnameAltinnTest = 'altinn.cloud';
 export const baseHostnameAltinnLocal = 'altinn3local.no';
 export const pathToMessageBox = 'ui/messagebox';
+export const pathToArchive = 'ui/messagebox/archive';
 export const pathToProfile = 'ui/profile';
 export const pathToAllSchemas = 'skjemaoversikt';
 const prodRegex = new RegExp(baseHostnameAltinnProd);
@@ -38,6 +39,15 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
   }
 
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
+};
+
+export const returnUrlToArchive = (url: string) : string => {
+  const baseUrl = returnBaseUrlToAltinn(url);
+  if (!baseUrl) {
+    return null;
+  }
+
+    return baseUrl + pathToArchive;
 };
 
 export const returnUrlToProfile = (url: string, partyId?: string | undefined): string => {
