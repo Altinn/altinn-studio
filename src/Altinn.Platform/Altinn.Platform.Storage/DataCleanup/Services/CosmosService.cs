@@ -22,6 +22,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly string instanceEventsCollectionId = "instanceEvents";
         private readonly string dataElementsCollectionId = "dataElements";
         private readonly string applicationsCollectionId = "applications";
+        private readonly string textsCollectionId = "texts";
 
         private readonly DocumentClient _client;
         private readonly ILogger<ICosmosService> _logger;
@@ -255,6 +256,216 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             return instances;
         }
 
+        /// <inheritdoc/>
+        public async Task<InstanceList> GetAllInstances(string continuationToken)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true,
+                RequestContinuation = continuationToken
+            };
+
+            IQueryable<Instance> filter;
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+            .Where(i => !i.Status.IsArchived.IsDefined());
+            InstanceList documentList = new InstanceList();
+            try
+            {
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+
+                FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+                documentList.Instances = feedResponse.ToList();
+                documentList.ContinuationToken = feedResponse.ResponseContinuation;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesToken // Exeption: {ex.Message}");
+            }
+
+            return documentList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesForPartyId(int partyId)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<Instance> instances = new List<Instance>();
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<Instance> filter;
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+
+            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+                      .Where(i => i.InstanceOwner.PartyId == partyId.ToString());
+
+            try
+            {
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+                    instances.AddRange(feedResponse.ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
+            }
+
+            return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> UpdateInstance(Instance item)
+        {
+            ResourceResponse<Document> createDocumentResponse = await _client
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, item.Id), item);
+            Document document = createDocumentResponse.Resource;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<string>> SearchTextResources(string searchString)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<string> cosmosIds = new List<string>();
+            List<string> appIds = new List<string>();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<TextResource> filter;
+            Uri textsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, textsCollectionId);
+            filter = _client.CreateDocumentQuery<TextResource>(textsCollectionUri, feedOptions)
+            .Where(t => t.Resources.Any(r => r.Value.Contains(searchString)));
+
+            try
+            {
+                IDocumentQuery<TextResource> query = filter.AsDocumentQuery();
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<TextResource> feedResponse = await query.ExecuteNextAsync<TextResource>();
+                    cosmosIds.AddRange(feedResponse.Select(t => t.Id).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesToken // Exeption: {ex}");
+            }
+
+            cosmosIds.ForEach(a =>
+            {
+                appIds.Add(CosmosIdToAppId(a.Substring(0, a.LastIndexOf('-'))));
+            });
+
+            return appIds;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<string>> SearchTextResources(string searchString, string language)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<string> cosmosIds = new List<string>();
+            List<string> appIds = new List<string>();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<TextResource> filter;
+            Uri textsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, textsCollectionId);
+            filter = _client.CreateDocumentQuery<TextResource>(textsCollectionUri, feedOptions)
+            .Where(t => t.Language.ToLower() == language.ToLower())
+            .Where(t => t.Resources.Any(r => r.Value.Contains(searchString)));
+
+            try
+            {
+                IDocumentQuery<TextResource> query = filter.AsDocumentQuery();
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<TextResource> feedResponse = await query.ExecuteNextAsync<TextResource>();
+                    cosmosIds.AddRange(feedResponse?.Select(t => t.Id).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesToken // Exeption: {ex}");
+            }
+
+            cosmosIds.ForEach(a =>
+            {
+                appIds.Add(CosmosIdToAppId(a.Substring(0, a.LastIndexOf('-'))));
+            });
+
+            return appIds;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<string>> SearchTextResources(List<string> appIds, string searchString, string language)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<string> cosmosIds = appIds.Select(a => AppIdToCosmosId(a, language)).ToList();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<TextResource> filter;
+            Uri textsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, textsCollectionId);
+            filter = _client.CreateDocumentQuery<TextResource>(textsCollectionUri, feedOptions)
+                    .Where(t => t.Resources.Any(r => r.Value.Contains(searchString)))
+                    .Where(t => cosmosIds.Contains(t.Id));
+
+            List<string> matchingApps = new List<string>();
+            try
+            {
+                IDocumentQuery<TextResource> query = filter.AsDocumentQuery();
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<TextResource> feedResponse = await query.ExecuteNextAsync<TextResource>();
+                    matchingApps.AddRange(feedResponse.Select(t => t.Id).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetAllInstancesToken // Exeption: {ex.Message}");
+            }
+
+            return matchingApps.Select(i => CosmosIdToAppId(i.Substring(0, i.LastIndexOf('-')))).ToList();
+        }
+
         private string AppIdToCosmosId(string appId)
         {
             string cosmosId = appId;
@@ -264,6 +475,20 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 string[] parts = appId.Split("/");
 
                 cosmosId = $"{parts[0]}-{parts[1]}";
+            }
+
+            return cosmosId;
+        }
+
+        private string AppIdToCosmosId(string appId, string language)
+        {
+            string cosmosId = appId;
+
+            if (appId != null && appId.Contains("/"))
+            {
+                string[] parts = appId.Split("/");
+
+                cosmosId = $"{parts[0]}-{parts[1]}-{language}";
             }
 
             return cosmosId;
@@ -290,6 +515,45 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         {
             await _client.OpenAsync();
             return true;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesForPartyAndAppIds(int partyId, List<string> appIds)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<Instance> instances = new List<Instance>();
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<Instance> filter;
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+
+            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+                      .Where(i => i.InstanceOwner.PartyId == partyId.ToString())
+                      .Where(i => appIds.Contains(i.AppId));
+
+            try
+            {
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+                    instances.AddRange(feedResponse.ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
+            }
+
+            return instances;
         }
     }
 }

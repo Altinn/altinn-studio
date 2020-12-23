@@ -39,5 +39,41 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// Deletes the instance event documents for the the given instance.
         /// </summary>
         public Task<bool> DeleteInstanceEventDocuments(string instanceGuid, string instanceOwnerPartyId);
+
+        /// <summary>
+        /// Retrieves all instances.
+        /// </summary>
+        public Task<InstanceList> GetAllInstances(string continuationToken);
+
+        /// <summary>
+        /// Gets all instances.
+        /// </summary>     
+        public Task<List<Instance>> GetInstancesForPartyId(int partyId);
+
+        /// <summary>
+        /// Gets all instances.
+        /// </summary>     
+        public Task<List<Instance>> GetInstancesForPartyAndAppIds(int partyId, List<string> appIds);
+
+        /// <summary>
+        /// Search all 
+        /// </summary>
+        /// <returns></returns>
+        public Task<List<string>> SearchTextResources(string searchString);
+
+        /// <summary>
+        /// Search all 
+        /// </summary>
+        public Task<List<string>> SearchTextResources(string searchString, string language);
+
+        /// <summary>
+        /// Search subset
+        /// </summary>
+        public Task<List<string>> SearchTextResources(List<string> appIds, string searchString, string language);
+
+        /// <summary>
+        /// Update existing instance
+        /// </summary>
+        public Task<Instance> UpdateInstance(Instance item);
     }
 }
