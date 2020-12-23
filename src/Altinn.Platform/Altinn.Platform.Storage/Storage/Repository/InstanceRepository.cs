@@ -133,9 +133,9 @@ namespace Altinn.Platform.Storage.Repository
                 try
                 {
                     IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
-
+                    
                     FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                    if (feedResponse.Count == 0)
+                    if (feedResponse.Count == 0 && !documentQuery.HasMoreResults)
                     {
                         queryResponse.ContinuationToken = string.Empty;
                         break;
