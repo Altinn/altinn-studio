@@ -9,6 +9,7 @@ export interface IAttachmentSummaryComponent {
   componentRef: string;
   label: any;
   hasValidationMessages: boolean;
+  changeText: any;
   onChangeClick: () => void;
 }
 
@@ -57,7 +58,7 @@ export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
           onClick={props.onChangeClick}
           className={classes.change}
         >
-          <span>Endre</span>
+          <span>{props.changeText}</span>
           <i className={`fa fa-editing-file ${classes.editIcon}`} />
         </Typography>
       </Grid>

@@ -70,6 +70,7 @@ export function nb() {
       file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
+      summary_item_change: 'Endre',
     },
     general: {
       action: 'Handling',

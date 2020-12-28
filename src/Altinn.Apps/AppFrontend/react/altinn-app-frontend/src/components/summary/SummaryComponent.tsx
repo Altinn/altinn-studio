@@ -42,6 +42,13 @@ export function SummaryComponent(props: ISummaryComponent) {
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
 
   const summaryPageName = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+  const changeText = useSelector((state: IRuntimeState) => getTextFromAppOrDefault(
+    'form_filling.summary_change',
+    state.textResources.resources,
+    state.language.language,
+    null,
+    true,
+  ));
   const formValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[props.pageRef]);
   const formComponent = useSelector((state: IRuntimeState) => {
@@ -88,6 +95,7 @@ export function SummaryComponent(props: ISummaryComponent) {
         return (
           <SummaryGroupComponent
             onChangeClick={onChangeClick}
+            changeText={changeText}
             {...props}
           />
         );
@@ -99,6 +107,7 @@ export function SummaryComponent(props: ISummaryComponent) {
             label={title}
             hasValidationMessages={hasValidationMessages}
             componentRef={props.componentRef}
+            changeText={changeText}
           />
         );
       }

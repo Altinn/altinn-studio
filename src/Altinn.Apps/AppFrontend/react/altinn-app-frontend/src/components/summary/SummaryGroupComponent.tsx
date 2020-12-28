@@ -5,7 +5,6 @@ import appTheme from 'altinn-shared/theme/altinnAppTheme';
 import { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import { IRepeatingGroups, IRuntimeState, IValidations } from 'src/types';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
-// import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
@@ -20,6 +19,7 @@ export interface ISummaryGroupComponent {
   largeGroup?: boolean;
   index?: number;
   parentGroup?: string;
+  changeText: string;
   onChangeClick: () => void;
 }
 
@@ -257,7 +257,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         <Grid item={true} xs={10}>
           <Typography
             variant='body1'
-            className={`${classes.label}`} // ${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+            className={`${classes.label} ${groupHasErrors ? ` ${classes.labelWithError}` : ''}`}
             component='span'
           >
             {title}
@@ -269,16 +269,13 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
             onClick={props.onChangeClick}
             className={classes.change}
           >
-            <span>Endre</span>
+            <span>{props.changeText}</span>
             <i className={`fa fa-editing-file ${classes.editIcon}`} />
           </Typography>
         </Grid>
         <Grid item xs={12}>
           {renderComponents}
         </Grid>
-        {/* {hasValidationMessages &&
-              renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-        } */}
       </Grid>
       {groupHasErrors &&
       <Grid container={true} style={{ paddingTop: '12px' }}>

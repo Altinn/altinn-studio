@@ -6,6 +6,7 @@ export interface ISingleInputSumary {
   formData: any;
   label: any;
   hasValidationMessages: boolean;
+  changeText: any;
   onChangeClick: () => void;
 }
 
@@ -36,6 +37,7 @@ function SingleInputSummary({
   formData,
   label,
   hasValidationMessages,
+  changeText,
   onChangeClick,
 }: ISingleInputSumary) {
   const classes = useStyles();
@@ -69,7 +71,7 @@ function SingleInputSummary({
           onClick={onChangeClick}
           className={classes.change}
         >
-          <span>Endre</span>
+          <span>{changeText}</span>
           <i className={`fa fa-editing-file ${classes.editIcon}`} />
         </Typography>
       </Grid>

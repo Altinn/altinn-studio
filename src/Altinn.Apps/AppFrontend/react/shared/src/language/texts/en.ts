@@ -70,6 +70,7 @@ export function en() {
       file_uploader_validation_error_upload: 'Something went wrong trying to upload the file, please try again.',
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
+      summary_item_change: 'Change',
     },
     general: {
       action: 'Action',
