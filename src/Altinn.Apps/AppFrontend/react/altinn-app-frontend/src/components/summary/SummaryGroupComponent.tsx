@@ -97,8 +97,13 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   };
 
   const getRepeatingGroupMaxIndex = (containerId: string) => {
-    return getRepeatingGroup(containerId).count || -1;
+    const repeatingGroup = getRepeatingGroup(containerId);
+    if (repeatingGroup && repeatingGroup.count >= 0) {
+      return repeatingGroup.count;
+    }
+    return -1;
   };
+
   const repeatingGroupMaxIndex = getRepeatingGroupMaxIndex(componentRef);
 
   React.useEffect(() => {
@@ -114,7 +119,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
             layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
           const componentIdWithIndex = `${component.id}${props.index >= 0 ? `-${props.index}` : ''}-${i}`;
 
-          if (validations[props.pageRef][componentIdWithIndex]) {
+          if (validations[props.pageRef] && validations[props.pageRef][componentIdWithIndex]) {
             groupErrors = true;
           }
         });
@@ -125,7 +130,8 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];
-    for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
+    console.log('repeatingGroupMaxIndex: ', repeatingGroupMaxIndex);
+    for (let i = 0; i <= repeatingGroupMaxIndex; ++i) {
       const childSummaryComponents = groupComponent.children.map((componentId: string) => {
         const component: ILayoutComponent =
           layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;

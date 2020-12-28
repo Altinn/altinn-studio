@@ -26,7 +26,11 @@ export const getComponentValidations = (
   componentId: string,
   pageId: string,
 ) => {
-  return validations[pageId][componentId];
+  if (validations[pageId]) {
+    return validations[pageId][componentId];
+  }
+
+  return undefined;
 };
 
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {

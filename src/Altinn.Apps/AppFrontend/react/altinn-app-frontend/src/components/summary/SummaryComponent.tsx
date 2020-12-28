@@ -43,7 +43,7 @@ export function SummaryComponent(props: ISummaryComponent) {
 
   const summaryPageName = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const changeText = useSelector((state: IRuntimeState) => getTextFromAppOrDefault(
-    'form_filling.summary_change',
+    'form_filler.summary_item_change',
     state.textResources.resources,
     state.language.language,
     null,
@@ -78,7 +78,7 @@ export function SummaryComponent(props: ISummaryComponent) {
   React.useEffect(() => {
     if (formComponent && formComponent.type.toLowerCase() !== 'group') {
       const componentId = props.index >= 0 ? `${props.componentRef}-${props.index}` : props.componentRef;
-      const validations = getComponentValidations(formValidations, componentId);
+      const validations = getComponentValidations(formValidations, componentId, pageRef);
       setComponentValidations(validations);
       setHasValidationMessages(componentHasValidationMessages(validations));
     }
