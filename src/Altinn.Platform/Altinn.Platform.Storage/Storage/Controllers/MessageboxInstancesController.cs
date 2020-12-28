@@ -106,7 +106,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Search through instances to find match pased on query params.
+        /// Search through instances to find match based on query params.
         /// </summary>
         /// <param name="instanceOwnerPartyId">The instance owner party id</param>
         /// <param name="appId">The application id</param>  

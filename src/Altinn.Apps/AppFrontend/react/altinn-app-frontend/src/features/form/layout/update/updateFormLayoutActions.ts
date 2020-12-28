@@ -9,7 +9,9 @@ import { UPDATE_FOCUS,
   UPDATE_AUTO_SAVE,
   UPDATE_AUTO_SAVE_FULFILLED,
   UPDATE_AUTO_SAVE_REJECTED,
-  UPDATE_CURRENT_VIEW } from '../formLayoutActionTypes';
+  UPDATE_CURRENT_VIEW,
+  UPDATE_CURRENT_VIEW_FULFILLED,
+  UPDATE_CURRENT_VIEW_REJECTED } from '../formLayoutActionTypes';
 
 export interface IUpdateFocus extends Action {
   currentComponentId: string;
@@ -61,6 +63,15 @@ export interface IUpdateAutoSaveRejected extends Action {
 export interface IUpdateCurrentView extends Action {
   newView: string;
   returnToView?: string;
+  runValidations?: 'allPages' | 'page';
+}
+
+export interface IUpdateCurrentViewFulfilled extends Action {
+  newView: string;
+}
+
+export interface IUpdateCurrentViewRejected extends Action {
+  error: Error;
 }
 
 export function updateHiddenComponents(componentsToHide: string[]): IUpdateHiddenComponents {
@@ -142,10 +153,29 @@ export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
   });
 }
 
-export function updateCurrentView(newView: string, returnToView?: string): IUpdateCurrentView {
+export function updateCurrentView(
+  newView: string,
+  runValidations?: 'allPages' | 'page',
+  returnToView?: string,
+): IUpdateCurrentView {
   return ({
     type: UPDATE_CURRENT_VIEW,
     newView,
+    runValidations,
     returnToView,
+  });
+}
+
+export function updateCurrentViewFulfilled(newView: string): IUpdateCurrentViewFulfilled {
+  return ({
+    type: UPDATE_CURRENT_VIEW_FULFILLED,
+    newView,
+  });
+}
+
+export function updateCurrentViewRejected(error: Error): IUpdateCurrentViewRejected {
+  return ({
+    type: UPDATE_CURRENT_VIEW_REJECTED,
+    error,
   });
 }

@@ -80,10 +80,10 @@ const ProcessStepComponent = (props) => {
               textResources={textResources}
             />
             {isProcessStepsArchived && instance?.status?.substatus &&
-            <AltinnSubstatusPaper
-              label={getTextResourceByKey(instance.status.substatus.label, textResources)}
-              description={getTextResourceByKey(instance.status.substatus.description, textResources)}
-            />}
+              <AltinnSubstatusPaper
+                label={getTextResourceByKey(instance.status.substatus.label, textResources)}
+                description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+              />}
             <NavBar
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
@@ -94,7 +94,7 @@ const ProcessStepComponent = (props) => {
               <div className='a-page a-current-page'>
                 <div className='modalPage'>
                   <div className='modal-content'>
-                    <Header {...props} language={language}/>
+                    <Header {...props} language={language} />
                     <div className='modal-body a-modal-body'>
                       {props.children}
                     </div>
@@ -111,20 +111,24 @@ const ProcessStepComponent = (props) => {
 
 const getFormHasErrors = (validations: IValidations): boolean => {
   let hasErrors = false;
-  for (const key in validations) {
-    if (validations.hasOwnProperty(key)) {
-      const validationObject = validations[key];
-      for (const fieldKey in validationObject) {
-        if (validationObject.hasOwnProperty(fieldKey)) {
-          const fieldValidationErrors = validationObject[fieldKey].errors;
-          if (fieldValidationErrors && fieldValidationErrors.length > 0) {
-            hasErrors = true;
+  for (const layout in validations) {
+    if (validations.hasOwnProperty(layout)) {
+      for (const key in validations[layout]) {
+        if (validations[layout].hasOwnProperty(key)) {
+          const validationObject = validations[layout][key];
+          for (const fieldKey in validationObject) {
+            if (validationObject.hasOwnProperty(fieldKey)) {
+              const fieldValidationErrors = validationObject[fieldKey].errors;
+              if (fieldValidationErrors && fieldValidationErrors.length > 0) {
+                hasErrors = true;
+                break;
+              }
+            }
+          }
+          if (hasErrors) {
             break;
           }
         }
-      }
-      if (hasErrors) {
-        break;
       }
     }
   }

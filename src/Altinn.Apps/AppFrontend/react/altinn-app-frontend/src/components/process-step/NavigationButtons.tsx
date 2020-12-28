@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable max-len */
 import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
@@ -6,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
 import classNames from 'classnames';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import FormLayoutActions from '../../features/form/layout/formLayoutActions';
+import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
 
 const useStyles = makeStyles({
   root: {
@@ -21,6 +22,7 @@ export interface INavigationButtons {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
+  triggers?: string[];
 }
 
 export function NavigationButtons(props: INavigationButtons) {
@@ -57,8 +59,11 @@ export function NavigationButtons(props: INavigationButtons) {
 
   const OnClickNext = () => {
     const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+    const runPageValidations = !returnToView && props.triggers && (props.triggers.indexOf('validatePage') > -1);
+    const runAllValidations = returnToView || (props.triggers && (props.triggers.indexOf('validateAllPages') > -1));
+    const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
     if (goToView) {
-      FormLayoutActions.updateCurrentView(goToView);
+      FormLayoutActions.updateCurrentView(goToView, validations);
     }
   };
 

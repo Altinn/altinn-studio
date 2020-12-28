@@ -8,7 +8,8 @@ import { IUpdateFocusFulfilled,
   IUpdateHiddenComponents,
   IUpdateAutoSave,
   IUpdateRepeatingGroupsFulfilled,
-  IUpdateCurrentView } from './update/updateFormLayoutActions';
+  IUpdateCurrentViewFulfilled,
+  IUpdateCurrentViewRejected } from './update/updateFormLayoutActions';
 
 export interface ILayoutState {
   layouts: ILayouts;
@@ -114,8 +115,8 @@ const LayoutReducer: Reducer<ILayoutState> = (
       });
     }
 
-    case ActionTypes.UPDATE_CURRENT_VIEW: {
-      const { newView, returnToView } = action as IUpdateCurrentView;
+    case ActionTypes.UPDATE_CURRENT_VIEW_FULFILLED: {
+      const { newView, returnToView } = action as IUpdateCurrentViewFulfilled;
       return update<ILayoutState>(state, {
         uiConfig: {
           currentView: {
@@ -124,6 +125,15 @@ const LayoutReducer: Reducer<ILayoutState> = (
           returnToView: {
             $set: returnToView,
           },
+        },
+      });
+    }
+
+    case ActionTypes.UPDATE_CURRENT_VIEW_REJECTED: {
+      const { error } = action as IUpdateCurrentViewRejected;
+      return update<ILayoutState>(state, {
+        error: {
+          $set: error,
         },
       });
     }
