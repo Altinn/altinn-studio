@@ -114,14 +114,14 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
             layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
           const componentIdWithIndex = `${component.id}${props.index >= 0 ? `-${props.index}` : ''}-${i}`;
 
-          if (validations[componentIdWithIndex]) {
+          if (validations[props.pageRef][componentIdWithIndex]) {
             groupErrors = true;
           }
         });
       }
       setGroupHasErrors(groupErrors);
     }
-  }, [validations, props.largeGroup, groupComponent, repeatingGroupMaxIndex, layout, props.index]);
+  }, [validations, props.largeGroup, props.pageRef, groupComponent, repeatingGroupMaxIndex, layout, props.index]);
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];

@@ -24,8 +24,9 @@ export const componentHasValidationMessages = (componentValidations) => {
 export const getComponentValidations = (
   validations: IValidations,
   componentId: string,
+  pageId: string,
 ) => {
-  return validations[componentId];
+  return validations[pageId][componentId];
 };
 
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {

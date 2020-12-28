@@ -72,7 +72,7 @@ export function SummaryComponent(props: ISummaryComponent) {
   });
 
   const onChangeClick = () => {
-    FormLayoutActions.updateCurrentView(pageRef, summaryPageName);
+    FormLayoutActions.updateCurrentView(pageRef, null, summaryPageName);
   };
 
   React.useEffect(() => {
@@ -117,6 +117,7 @@ export function SummaryComponent(props: ISummaryComponent) {
             onChangeClick={onChangeClick}
             label={title}
             hasValidationMessages={hasValidationMessages}
+            changeText={changeText}
             {...props}
             formData={formData}
           />
