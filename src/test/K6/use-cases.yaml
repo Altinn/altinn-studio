@@ -21,21 +21,20 @@ steps:
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)'
     Contents: |
-      *.csv
+      *.xml
       result.txt
   condition: succeededOrFailed()
 
 - script: |
-   > $(Build.SourcesDirectory)/src/result.txt
-
-   k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/src/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
+   k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
    type result.txt
    
    set /p result= < result.txt
    
    echo ##vso[task.setvariable variable=availability;]%result%
-   
+  
+  workingDirectory: '$(Build.SourcesDirectory)'   
   displayName: 'Check availability'
 
 - script: |   
