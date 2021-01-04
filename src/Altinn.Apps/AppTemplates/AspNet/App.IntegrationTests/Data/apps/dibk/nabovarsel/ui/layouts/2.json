@@ -1,0 +1,61 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "f7806a6a-f261-4b60-bb5f-bfa7a36a79b6",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "33316.Journalnummerdatadef33316.Label",
+          "description": "33316.Journalnummerdatadef33316.Label",
+          "help": "33316.Journalnummerdatadef33316.helptext"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "4f0fbab6-0a9c-40bb-95de-ae11e8402713",
+        "type": "AddressComponent",
+        "componentType": 11,
+        "textResourceBindings": {
+          "title": "3445.InnsenderAdressedatadef3445.Label"
+        },
+        "dataModelBindings": {
+          "address": "Foretak-grp-8820.InnsenderAdresse-datadef-3445.value",
+          "zipCode": "Foretak-grp-8820.InnsenderPostnummer-datadef-11339.value",
+          "postPlace": "Foretak-grp-8820.InnsenderPoststed-datadef-11340.value"
+        },
+        "simplified": true,
+        "readOnly": false,
+        "required": true
+      },
+      {
+        "id": "1caa8889-6c30-4256-b952-96c2b863326d",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "nav-page2",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next",
+          "back": "back"
+        },
+        "dataModelBindings": {},
+        "componentType": 13,
+        "showBackButton": true
+      }
+    ]
+  }
+}

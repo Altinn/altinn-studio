@@ -168,6 +168,7 @@ export function en() {
     receipt: {
       attachments: 'Attachments',
       body: 'A mechanical check has been completed while filling in, but we reserve the right to detect errors during the processing of the case and that other documentation may be necessary. Please provide the reference number in case of any inquiries to the agency.',
+      body_simple: 'For security reasons, neither the content of the service nor this message will be visible in Altinn after you exit this page.',
       date_sent: 'Date sent',
       receiver: 'Receiver',
       receipt: 'Receipt',

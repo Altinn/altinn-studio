@@ -243,7 +243,9 @@ public class PDFGenerator {
           if (childElement.getType().equalsIgnoreCase("group")) {
             renderGroup(childElement, true);
           } else {
-            renderLayoutElement(childElement);
+            if(LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
+              renderLayoutElement(childElement);
+            }
             childElement.setDataModelBindings(originalDataModelBindings);
           }
         }

@@ -168,6 +168,7 @@ export function nb() {
     receipt: {
       attachments: 'Vedlegg',
       body: 'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.',
+      body_simple: 'Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden.',
       date_sent: 'Dato sendt',
       receiver: 'Mottaker',
       receipt: 'Kvittering',

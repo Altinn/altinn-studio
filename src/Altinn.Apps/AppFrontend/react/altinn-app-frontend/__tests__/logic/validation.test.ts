@@ -10,7 +10,6 @@ import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
-  let mockApiResponse: any;
   let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
@@ -24,23 +23,6 @@ describe('>>> utils/validations.ts', () => {
   let mockDataElementValidations: IValidationIssue[];
 
   beforeEach(() => {
-    mockApiResponse = {
-      messages: {
-        dataModelField_1: {
-          errors: ['Error message 1', 'Error message 2'],
-          warnings: [],
-        },
-        dataModelField_2: {
-          errors: [],
-          warnings: ['Warning message 1', 'Warning message 2'],
-        },
-        random_key: {
-          errors: ['test error'],
-          warnings: ['test warning'],
-        },
-      },
-    };
-
     mockLanguage = {
       language: {
         form_filler: {
@@ -158,22 +140,26 @@ describe('>>> utils/validations.ts', () => {
     };
 
     mockReduxFormat = {
-      componentId_1: {
-        simpleBinding: {
-          errors: ['Error message 1', 'Error message 2'],
-          warnings: [],
+      FormLayout: {
+        componentId_1: {
+          simpleBinding: {
+            errors: ['Error message 1', 'Error message 2'],
+            warnings: [],
+          },
         },
-      },
-      componentId_2: {
-        customBinding: {
-          errors: [],
-          warnings: ['Warning message 1', 'Warning message 2'],
+        componentId_2: {
+          customBinding: {
+            errors: [],
+            warnings: ['Warning message 1', 'Warning message 2'],
+          },
         },
       },
       unmapped: {
-        random_key: {
-          errors: ['test error'],
-          warnings: ['test warning'],
+        unmapped: {
+          random_key: {
+            errors: ['test error'],
+            warnings: ['test warning'],
+          },
         },
       },
     };
@@ -263,32 +249,34 @@ describe('>>> utils/validations.ts', () => {
 
     mockFormValidationResult = {
       validations: {
-        componentId_1: {
-          simpleBinding: {
-            errors: [
-              getParsedLanguageFromKey('validation_errors.min', mockLanguage.language, [0]),
-            ],
+        FormLayout: {
+          componentId_1: {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey('validation_errors.min', mockLanguage.language, [0]),
+              ],
+            },
           },
-        },
-        componentId_2: {
-          customBinding: {
-            errors: [
-              getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
-            ],
+          componentId_2: {
+            customBinding: {
+              errors: [
+                getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
+              ],
+            },
           },
-        },
-        'componentId_4-0': {
-          simpleBinding: {
-            errors: [
-              getParsedLanguageFromKey('validation_errors.pattern', mockLanguage.language),
-            ],
+          'componentId_4-0': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey('validation_errors.pattern', mockLanguage.language),
+              ],
+            },
           },
-        },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: [
-              getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
-            ],
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
+              ],
+            },
           },
         },
       },
@@ -353,11 +341,6 @@ describe('>>> utils/validations.ts', () => {
     ];
   });
 
-  it('+++ should map api response to redux format', () => {
-    const result = validation.mapApiValidationsToRedux(mockApiResponse.messages, mockLayoutState.layouts.FormLayout);
-    expect(result).toEqual(mockReduxFormat);
-  });
-
   it('+++ should count total number of errors correctly', () => {
     const result = validation.getErrorCount(mockFormValidationResult.validations);
     expect(result).toEqual(4);
@@ -386,10 +369,12 @@ describe('>>> utils/validations.ts', () => {
       );
 
     const mockResult = {
-      componentId_4: {
-        simpleBinding: {
-          errors: ['For å fortsette må du laste opp 2 vedlegg'],
-          warnings: [],
+      FormLayout: {
+        componentId_4: {
+          simpleBinding: {
+            errors: ['For å fortsette må du laste opp 2 vedlegg'],
+            warnings: [],
+          },
         },
       },
     };
@@ -410,10 +395,12 @@ describe('>>> utils/validations.ts', () => {
     );
 
     const mockResult = {
-      componentId_4: {
-        simpleBinding: {
-          errors: ['For å fortsette må du laste opp 2 vedlegg'],
-          warnings: [],
+      FormLayout: {
+        componentId_4: {
+          simpleBinding: {
+            errors: ['For å fortsette må du laste opp 2 vedlegg'],
+            warnings: [],
+          },
         },
       },
     };
@@ -442,7 +429,9 @@ describe('>>> utils/validations.ts', () => {
         [],
       );
 
-    const mockResult = {};
+    const mockResult = {
+      FormLayout: {},
+    };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
@@ -462,7 +451,9 @@ describe('>>> utils/validations.ts', () => {
     const componentSpesificValidations =
       validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, ['componentId_4']);
 
-    const mockResult = {};
+    const mockResult = {
+      FormLayout: {},
+    };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
@@ -482,7 +473,7 @@ describe('>>> utils/validations.ts', () => {
         repeatingGroups,
       );
 
-    const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
+    const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } } };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
@@ -551,28 +542,32 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ componentHasValidations should return true if component has validations', () => {
     const validations: IValidations = {
-      dummyId: {
-        simpleBinding: {
-          errors: ['Some error'],
+      FormLayout: {
+        dummyId: {
+          simpleBinding: {
+            errors: ['Some error'],
+          },
         },
       },
     };
-    expect(validation.componentHasValidations(validations, 'dummyId')).toBeTruthy();
+    expect(validation.componentHasValidations(validations, 'FormLayout', 'dummyId')).toBeTruthy();
   });
 
   it('+++ componentHasValidations should return false if component has no validations', () => {
     const validations: IValidations = {
-      dummyId: {
-        simpleBinding: {
-          errors: ['Some error'],
+      FormLayout: {
+        dummyId: {
+          simpleBinding: {
+            errors: ['Some error'],
+          },
         },
       },
     };
-    expect(validation.componentHasValidations(validations, 'someOtherId')).toBeFalsy();
+    expect(validation.componentHasValidations(validations, 'FormLayout', 'someOtherId')).toBeFalsy();
   });
 
   it('+++ componentHasValidations should return false when supplied with null values', () => {
-    expect(validation.componentHasValidations(null, null)).toBeFalsy();
+    expect(validation.componentHasValidations(null, null, null)).toBeFalsy();
   });
 
   it('+++ repeatingGroupHasValidations should return true when components in group has errors', () => {
@@ -584,9 +579,11 @@ describe('>>> utils/validations.ts', () => {
     } as unknown as ILayoutGroup;
 
     const validations: IValidations = {
-      'child1-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'child1-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -618,10 +615,10 @@ describe('>>> utils/validations.ts', () => {
 
     // this parsing is handled internally in GroupContainer. Is done manually here to test util function
     const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
-    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeTruthy();
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeTruthy();
   });
 
-  it ('+++ repeatingGroupHasValidations should return true when a child group has validations', () => {
+  it('+++ repeatingGroupHasValidations should return true when a child group has validations', () => {
     const group = {
       id: 'group',
       type: 'Group',
@@ -630,9 +627,11 @@ describe('>>> utils/validations.ts', () => {
     } as unknown as ILayoutGroup;
 
     const validations: IValidations = {
-      'child2-0-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'child2-0-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -671,10 +670,10 @@ describe('>>> utils/validations.ts', () => {
       } as unknown as ILayoutComponent,
     ];
     const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
-    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeTruthy();
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeTruthy();
   });
 
-  it ('+++ repeatingGroupHasValidations should return false when no children has validations', () => {
+  it('+++ repeatingGroupHasValidations should return false when no children has validations', () => {
     const group = {
       id: 'group',
       type: 'Group',
@@ -683,9 +682,11 @@ describe('>>> utils/validations.ts', () => {
     } as unknown as ILayoutGroup;
 
     const validations: IValidations = {
-      'some-random-field': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'some-random-field': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -711,20 +712,22 @@ describe('>>> utils/validations.ts', () => {
     ];
 
     const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
-    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, repeatingGroups, layout)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeFalsy();
   });
 
   it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
-    expect(validation.repeatingGroupHasValidations(null, null, null, null, null)).toBeFalsy();
+    expect(validation.repeatingGroupHasValidations(null, null, null, null, null, null)).toBeFalsy();
   });
 
   it('+++ mapToComponentValidations should map validation to correct component', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'dataModelField_2', 'some error', validations);
     const expectedResult = {
-      componentId_2: {
-        customBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        componentId_2: {
+          customBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -733,11 +736,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ mapToComponentValidations should map validation to correct component for component in a repeating group', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'group_1[0].dataModelField_4', 'some error', validations);
     const expectedResult = {
-      'componentId_4-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'componentId_4-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };
@@ -746,11 +751,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ mapToComponentValidations should map validation to correct component for component in a nested repeating group', () => {
     const validations = {};
-    mapToComponentValidations(mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
+    mapToComponentValidations('FormLayout', mockLayout.FormLayout, 'group_1[0].group_2[0].dataModelField_5', 'some error', validations);
     const expectedResult = {
-      'componentId_5-0-0': {
-        simpleBinding: {
-          errors: ['some error'],
+      FormLayout: {
+        'componentId_5-0-0': {
+          simpleBinding: {
+            errors: ['some error'],
+          },
         },
       },
     };

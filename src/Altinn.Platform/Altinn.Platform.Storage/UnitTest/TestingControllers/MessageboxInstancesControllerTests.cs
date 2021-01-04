@@ -240,7 +240,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             string content = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
@@ -538,6 +538,104 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, actualStatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Search instances for an instance owner without token
+        /// Expected:
+        ///  User is not able to query instances.
+        /// Success:
+        ///   Unauthorized is returned.
+        /// </summary>
+        [Fact]
+        public async void Search_MissingToken_ReturnsForbidden()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1337");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, responseMessage.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There is a match for active, archived and soft deleted instances
+        /// Success:
+        ///  List of instances is returned
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnAppId_ReturnsActiveArchivedAndDeletedInstances()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=ttd/steffens-2020-v2");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(1, actualResult.Count(i => i.DeleteStatus == DeleteStatusType.SoftDeleted));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "FormFilling"));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "Archived" && i.DeleteStatus == DeleteStatusType.Default));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There are two matches, but one is a hard deleted instance
+        /// Success:
+        ///  Hard deleted instances are not included in the response.
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnAppId_HardDeletedInstancesAreExcludedFromResult()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            int expectedCount = 1;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=tdd/test-applikasjon-1&language=en");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actualResult.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on unknown search parameter
+        /// Expected:
+        ///  Query response contains an exception.
+        /// Success:
+        ///  Bad request is returned
+        /// </summary>
+        [Fact]
+        public async void Search_FilterOnUnknownParameter_BadRequestIsReturned()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?stephanie=kul");
+            string content = await responseMessage.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
         }
 
         private HttpClient GetTestClient()

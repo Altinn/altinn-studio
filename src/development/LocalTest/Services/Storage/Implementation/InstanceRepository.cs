@@ -93,6 +93,7 @@ namespace LocalTest.Services.Storage.Implementation
         private void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
+            instance.Data = new List<DataElement>();
         }
 
         private async Task PostProcess(Instance instance)

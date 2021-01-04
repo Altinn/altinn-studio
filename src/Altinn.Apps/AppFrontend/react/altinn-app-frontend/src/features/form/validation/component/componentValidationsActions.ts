@@ -3,6 +3,7 @@ import { IComponentValidations } from 'src/types';
 import * as ActionTypes from '../validationActionTypes';
 
 export interface IUpdateComponentValidations extends Action {
+  layoutId: string;
   validations: IComponentValidations;
   componentId: string;
   invalidDataTypes?: string[];
@@ -13,12 +14,14 @@ export interface IUpdateComponentValidationsRejected extends Action {
 }
 
 export function updateComponentValidations(
+  layoutId: string,
   validations: IComponentValidations,
   componentId: string,
   invalidDataTypes?: string[],
 ): IUpdateComponentValidations {
   return {
     type: ActionTypes.UPDATE_COMPONENT_VALIDATIONS,
+    layoutId,
     validations,
     componentId,
     invalidDataTypes,
