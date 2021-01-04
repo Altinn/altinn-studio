@@ -239,6 +239,21 @@ namespace Altinn.Platform.Storage.Repository
                             break;
                         case "language":
                             break;
+                        case "status.isHardDeleted":
+                            bool isHardDeleted = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsHardDeleted == isHardDeleted);
+
+                            break;
+                        case "status.isArchived":
+                            bool isArchived = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsArchived == isArchived);
+
+                            break;
+                        case "status.isSoftDeleted":
+                            bool isSoftDeleted = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
+
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }

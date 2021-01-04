@@ -196,17 +196,17 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
             bool match;
 
-            if (queryParams.ContainsKey("isArchived") && bool.TryParse(queryParams.GetValueOrDefault("isArchived"), out match))
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("isArchived"), out match))
             {
                 instances.RemoveAll(i => i.Status.IsArchived != match);
             }
 
-            if (queryParams.ContainsKey("isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isSoftDeleted"), out match))
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isSoftDeleted"), out match))
             {
                 instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
             }
 
-            if (queryParams.ContainsKey("isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isHardDeleted"), out match))
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isHardDeleted"), out match))
             {
                 instances.RemoveAll(i => i.Status.IsHardDeleted != match);
             }
