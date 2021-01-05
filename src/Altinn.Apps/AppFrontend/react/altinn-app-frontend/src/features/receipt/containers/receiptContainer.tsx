@@ -8,8 +8,8 @@ import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt, AltinnRec
 import { IInstance, IParty, ITextResource, IProfile, IAttachment } from 'altinn-shared/types';
 import { mapInstanceAttachments,
   getLanguageFromKey,
-  returnUrlToMessagebox,
-  getTextResourceByKey } from 'altinn-shared/utils';
+  getTextResourceByKey,
+  returnUrlToArchive } from 'altinn-shared/utils';
 import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
@@ -136,7 +136,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={getLanguageFromKey('receipt.subtitle', language)}
-          subtitleurl={returnUrlToMessagebox(origin)}
+          subtitleurl={returnUrlToArchive(origin)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
           pdf={pdf || null}

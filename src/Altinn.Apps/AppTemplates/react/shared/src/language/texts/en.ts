@@ -165,7 +165,7 @@ export function en() {
       receipt: 'Receipt',
       ref_num: 'Reference number',
       sender: 'Sender',
-      subtitle: 'A copy of your receipt has been sent to your inbox',
+      subtitle: 'A copy of your receipt has been sent to your archive',
       title_part_is_submitted: 'is submitted',
       title_submitted: 'The following is submitted:',
     },
