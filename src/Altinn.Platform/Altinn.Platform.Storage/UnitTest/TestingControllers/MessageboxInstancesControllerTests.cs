@@ -725,7 +725,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  No new parameters are included, and the "includeX" parameters are removed.
         /// </summary>
         [Fact]
-        public async void Search_IncludeAll_OriginalQuerySuccesfullyConverted()
+        public async void Search_IncludeAllStates_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
