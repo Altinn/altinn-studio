@@ -109,7 +109,10 @@ namespace Altinn.Platform.Storage.Controllers
         /// Search through instances to find match based on query params.
         /// </summary>
         /// <param name="instanceOwnerPartyId">The instance owner party id</param>
-        /// <param name="appId">The application id</param>  
+        /// <param name="appId">The application id</param>
+        /// <param name="includeActive">Boolean indicating whether to include active instances.</param>
+        /// <param name="includeArchived">Boolean indicating whether to include archived instances.</param>
+        /// <param name="includeDeleted">Boolean indicating whether to include deleted instances.</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
         [Authorize]
@@ -117,6 +120,9 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> SearchMessageBoxInstances(
             [FromQuery(Name = "instanceOwner.partyId")] int instanceOwnerPartyId,
             [FromQuery] string appId,
+            [FromQuery] bool includeActive,
+            [FromQuery] bool includeArchived,
+            [FromQuery] bool includeDeleted,
             [FromQuery] string language)
         {
             string[] acceptedLanguages = { "en", "nb", "nn" };
@@ -129,6 +135,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
 
@@ -399,6 +407,50 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return Ok(true);
+        }
+
+        private void GetStatusFromQueryParams(
+           bool includeActive,
+           bool includeArchived,
+           bool includeDeleted,
+           Dictionary<string, StringValues> queryParams)
+        {
+            if (
+                (!includeActive && !includeArchived && !includeDeleted) ||
+                (includeActive && includeArchived && includeDeleted))
+            {
+                // no filter required
+            }
+            else if (includeActive && !includeArchived && !includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "false");
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (!includeActive && includeArchived && !includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "true");
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (!includeActive && !includeArchived && includeDeleted)
+            {
+                queryParams.Add("status.isSoftDeleted", "true");
+            }
+            else if (includeActive && includeArchived && !includeDeleted)
+            {
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (!includeActive && includeArchived && includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "true");
+            }
+            else if (includeActive && !includeArchived && includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "false");
+            }
+
+            queryParams.Remove(nameof(includeActive));
+            queryParams.Remove(nameof(includeArchived));
+            queryParams.Remove(nameof(includeDeleted));
         }
     }
 }
