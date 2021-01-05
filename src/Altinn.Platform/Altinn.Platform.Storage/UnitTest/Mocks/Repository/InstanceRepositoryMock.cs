@@ -128,7 +128,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "language",
                 "status.isHardDeleted",
                 "status.isSoftDeleted",
-                "status.isArchived"
+                "status.isArchived",
+                "status.isArchivedOrSoftDeleted",
+                "status.isActiveorSoftDeleted"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();

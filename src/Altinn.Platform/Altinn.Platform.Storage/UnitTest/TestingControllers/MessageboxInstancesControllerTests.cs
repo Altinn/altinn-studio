@@ -713,7 +713,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             actual.TryGetValue("status.isArchived", out StringValues actualIsArchived);
             Assert.Equal(expectedIsArchived, actualIsArchived.First());
             Assert.Equal(expectedParamCount, actual.Keys.Count);
-
         }
 
         /// <summary>
@@ -745,6 +744,41 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to include archived and deleted instances.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isArchivedOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Search_IncludeArchivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedParamCount = 2;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?includeArchived=true&includeDeleted=true&instanceOwner.partyId=1606");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
             Assert.Equal(expectedParamCount, actual.Keys.Count);
         }
 

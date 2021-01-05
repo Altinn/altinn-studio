@@ -254,6 +254,20 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
 
                             break;
+                        case "status.isArchivedOrSoftDeleted":
+                            if (bool.Parse(queryValue))
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Status.IsArchived || i.Status.IsSoftDeleted);
+                            }
+
+                            break;
+                        case "status.isActiveorSoftDeleted":
+                            if (bool.Parse(queryValue))
+                            {
+                                queryBuilder = queryBuilder.Where(i => !i.Status.IsArchived || i.Status.IsSoftDeleted);
+                            }
+
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }

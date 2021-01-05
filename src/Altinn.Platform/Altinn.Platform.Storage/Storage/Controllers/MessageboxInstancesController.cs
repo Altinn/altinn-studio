@@ -415,37 +415,35 @@ namespace Altinn.Platform.Storage.Controllers
            bool includeDeleted,
            Dictionary<string, StringValues> queryParams)
         {
-            if (
-                (!includeActive && !includeArchived && !includeDeleted) ||
-                (includeActive && includeArchived && includeDeleted))
+            if ((includeActive == includeArchived) && (includeActive == includeDeleted))
             {
                 // no filter required
             }
-            else if (includeActive && !includeArchived && !includeDeleted)
+            else if (!includeArchived && !includeDeleted)
             {
                 queryParams.Add("status.isArchived", "false");
                 queryParams.Add("status.isSoftDeleted", "false");
             }
-            else if (!includeActive && includeArchived && !includeDeleted)
+            else if (!includeActive && !includeDeleted)
             {
                 queryParams.Add("status.isArchived", "true");
                 queryParams.Add("status.isSoftDeleted", "false");
             }
-            else if (!includeActive && !includeArchived && includeDeleted)
+            else if (!includeActive && !includeArchived)
             {
                 queryParams.Add("status.isSoftDeleted", "true");
             }
-            else if (includeActive && includeArchived && !includeDeleted)
+            else if (includeActive && includeArchived)
             {
                 queryParams.Add("status.isSoftDeleted", "false");
             }
-            else if (!includeActive && includeArchived && includeDeleted)
+            else if (includeArchived && includeDeleted)
             {
-                queryParams.Add("status.isArchived", "true");
+                queryParams.Add("status.isArchivedOrSoftDeleted", "true");
             }
-            else if (includeActive && !includeArchived && includeDeleted)
+            else if (includeActive && includeDeleted)
             {
-                queryParams.Add("status.isArchived", "false");
+                queryParams.Add("status.isActiveorSoftDeleted", "true");
             }
 
             queryParams.Remove(nameof(includeActive));
