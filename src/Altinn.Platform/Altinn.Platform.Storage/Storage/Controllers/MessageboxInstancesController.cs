@@ -437,11 +437,11 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 queryParams.Add("status.isSoftDeleted", "false");
             }
-            else if (includeArchived && includeDeleted)
+            else if (includeArchived)
             {
                 queryParams.Add("status.isArchivedOrSoftDeleted", "true");
             }
-            else if (includeActive && includeDeleted)
+            else
             {
                 queryParams.Add("status.isActiveorSoftDeleted", "true");
             }

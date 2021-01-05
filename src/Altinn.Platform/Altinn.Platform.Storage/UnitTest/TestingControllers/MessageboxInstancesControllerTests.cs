@@ -782,6 +782,41 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(expectedParamCount, actual.Keys.Count);
         }
 
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to include active and deleted instances.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isActiveOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Search_IncludeActivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedParamCount = 2;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?includeActive=true&includeDeleted=true&instanceOwner.partyId=1606");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isActiveOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
