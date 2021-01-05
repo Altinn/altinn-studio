@@ -130,7 +130,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];
-    console.log('repeatingGroupMaxIndex: ', repeatingGroupMaxIndex);
     for (let i = 0; i <= repeatingGroupMaxIndex; ++i) {
       const childSummaryComponents = groupComponent.children.map((componentId: string) => {
         const component: ILayoutComponent =
