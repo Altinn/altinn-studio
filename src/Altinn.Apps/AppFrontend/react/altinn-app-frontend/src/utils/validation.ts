@@ -778,9 +778,25 @@ export function getUnmappedErrors(validations: IValidations): string[] {
 
 /**
  * gets total number of components with mapped errors
- * @param validations the validaitons
+ * @param validations the validations
  */
 export function getNumberOfComponentsWithErrors(validations: IValidations): number {
+  return getNumberOfComponentsWithValidationMessages(validations, Severity.Error);
+}
+
+/**
+ * gets total number of components with mapped warnings
+ * @param validations the validations
+ */
+export function getNumberOfComponentsWithWarnings(validations: IValidations): number {
+  return getNumberOfComponentsWithValidationMessages(validations, Severity.Warning);
+}
+
+/**
+ * gets total number of components with mapped validation message of the given type
+ * @param validations the validations
+ */
+export function getNumberOfComponentsWithValidationMessages(validations: IValidations, severity: Severity): number {
   let numberOfComponents = 0;
   if (!validations) {
     return numberOfComponents;
@@ -789,13 +805,16 @@ export function getNumberOfComponentsWithErrors(validations: IValidations): numb
   Object.keys(validations).forEach((layout) => {
     Object.keys(validations[layout]).forEach((componentKey: string) => {
       if (componentKey !== 'unmapped') {
-        const componentHasErrors = Object.keys(validations[componentKey] || {}).some((bindingKey: string) => {
-          if (validations[layout][componentKey][bindingKey].errors?.length > 0) {
+        const componentHasMessages = Object.keys(validations[layout][componentKey] || {}).some((bindingKey: string) => {
+          if (severity === Severity.Error && validations[layout][componentKey][bindingKey].errors?.length > 0) {
+            return true;
+          }
+          if (severity === Severity.Warning && validations[layout][componentKey][bindingKey].warnings?.length > 0) {
             return true;
           }
           return false;
         });
-        if (componentHasErrors) {
+        if (componentHasMessages) {
           numberOfComponents += 1;
         }
       }

@@ -1,7 +1,5 @@
 import * as DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { DomElement } from 'htmlparser2';
 import * as React from 'react';
 import { ITextResource, IDataSources } from '../types';
 
@@ -49,13 +47,13 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
 };
 
 // eslint-disable-next-line consistent-return
-const removeStyling = (node: DomElement): React.ReactElement | void | null => {
+const removeStyling = (node: any): React.ReactElement | void | null => {
   // all this does is remove the default styling of the <p> element, which is causing styling issues
   if (node.name === 'p') {
     return React.createElement(
       'p',
       { style: { marginBottom: '0px', display: 'inline' } },
-      node.children?.map((child: DomElement, index: number) => convertNodeToElement(child, index, removeStyling)),
+      node.children?.map((child: any, index: number) => convertNodeToElement(child, index, removeStyling)),
     );
   }
 };

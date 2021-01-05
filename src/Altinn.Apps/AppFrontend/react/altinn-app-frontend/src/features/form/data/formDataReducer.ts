@@ -18,6 +18,7 @@ export interface IFormDataState {
   isSubmitting: boolean;
   isSaving: boolean;
   hasSubmitted: boolean;
+  ignoreWarnings: boolean;
 }
 
 const initialState: IFormDataState = {
@@ -28,6 +29,7 @@ const initialState: IFormDataState = {
   isSubmitting: false,
   isSaving: false,
   hasSubmitted: false,
+  ignoreWarnings: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -64,6 +66,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
     case actionTypes.UPDATE_FORM_DATA: {
       return Immutable<IFormDataState>(state, {
         hasSubmitted: {
+          $set: false,
+        },
+        ignoreWarnings: {
           $set: false,
         },
       });
@@ -109,6 +114,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
         isSaving: {
           $set: false,
+        },
+        ignoreWarnings: {
+          $set: true,
         },
       });
     }
