@@ -19,6 +19,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   const autoSave = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.autoSave);
   const isSubmitting = useSelector((state: IRuntimeState) => state.formData.isSubmitting);
   const isSaving = useSelector((state: IRuntimeState) => state.formData.isSaving);
+  const ignoreWarnings = useSelector((state: IRuntimeState) => state.formData.ignoreWarnings);
 
   const renderSubmitButton = () => {
     return (
@@ -87,6 +88,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
       'Complete',
+      !ignoreWarnings,
     );
   };
 

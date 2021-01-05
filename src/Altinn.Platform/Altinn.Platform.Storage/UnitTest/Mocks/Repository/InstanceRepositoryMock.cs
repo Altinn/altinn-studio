@@ -222,6 +222,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
             }
 
+            instance.Data = new List<DataElement>();
+
             return Task.FromResult(instance);
         }
 
