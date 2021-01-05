@@ -85,10 +85,11 @@ export function replaceTextResourceParams(
   let replaceValues: string[];
   const resourcesWithVariables = textResources.filter((resource) => resource.variables);
   resourcesWithVariables.forEach((resource) => {
-    const repeatingGroupInVariable = resource.variables.find((variable) => variable.repeatingGroup).repeatingGroup;
-    if (repeatingGroupInVariable) {
+    const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
+    if (variableForRepeatingGroup) {
       const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
-        return repeatingGroups[groupId].dataModelBinding === repeatingGroupInVariable;
+        const id = variableForRepeatingGroup.key.split('[{0}]')[0];
+        return repeatingGroups[groupId].dataModelBinding === id;
       });
       const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
 
@@ -97,8 +98,8 @@ export function replaceTextResourceParams(
         // eslint-disable-next-line no-loop-func
         resource.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
-            if (variable.repeatingGroup) {
-              const keyWithIndex = variable.key.replace(variable.repeatingGroup, `${variable.repeatingGroup}[${i}]`);
+            if (variable.key.indexOf('[{0}]') > -1) {
+              const keyWithIndex = variable.key.replace('{0}', `${i}`);
               replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
             } else {
               replaceValues.push(dataSources.dataModel[variable.key] || variable.key);

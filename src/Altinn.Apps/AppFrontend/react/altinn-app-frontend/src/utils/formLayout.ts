@@ -175,7 +175,7 @@ export function setVariableTextKeysForRepeatingGroupComponent(
   const bindingsWithVariablesForRepeatingGroups = Object.keys(textResourceBindings).filter((key) => {
     const textKey = textResourceBindings[key];
     const textResource = textResources.find((text) => text.id === textKey);
-    return textResource && textResource.variables && textResource.variables.find((v) => v.repeatingGroup);
+    return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
   });
 
   bindingsWithVariablesForRepeatingGroups.forEach((key) => {

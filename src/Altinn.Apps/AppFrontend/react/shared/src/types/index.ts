@@ -211,7 +211,6 @@ export interface ITextResource {
 export interface IVariable {
   key: string;
   dataSource: string;
-  repeatingGroup?: string;
 }
 
 export interface IAttachmentGrouping {
