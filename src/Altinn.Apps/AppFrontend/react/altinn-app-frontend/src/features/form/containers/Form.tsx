@@ -14,7 +14,6 @@ export function Form() {
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const layout: ILayout =
     useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
   React.useEffect(() => {
     setCurrentLayout(currentView);
@@ -30,13 +29,13 @@ export function Form() {
       });
     }
 
-    if (layout && hiddenComponents) {
+    if (layout) {
       componentsToRender = layout.filter((component) => {
-        return !hiddenComponents.includes(component.id) && !renderedInGroup.includes(component.id);
+        return !renderedInGroup.includes(component.id);
       });
     }
     setFilteredLayout(componentsToRender);
-  }, [layout, hiddenComponents]);
+  }, [layout]);
 
   function RenderGenericComponent(component: ILayoutComponent) {
     return renderGenericComponent(component, layout);
@@ -78,7 +77,7 @@ export function Form() {
   }
 
   return (
-    <Grid container={true}>
+    <Grid container={true} key='form-grid'>
       {currentView === currentLayout && filteredLayout && filteredLayout.map(renderLayoutComponent)}
     </Grid>
   );
