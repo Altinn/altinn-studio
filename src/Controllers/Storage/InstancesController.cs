@@ -100,6 +100,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
+            [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
         {
@@ -127,6 +129,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+            queryParams.Add("status.isHardDeleted", "false");
 
             string host = $"https://{_generalSettings.GetHostName}";
             string url = Request.Path;
