@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "org",
                 "appId",
                 "process.currentTask",
-                "process.isComplete" ,
+                "process.isComplete",
                 "process.endEvent",
                 "process.ended",
                 "instanceOwner.partyId",
@@ -125,7 +125,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "dueBefore",
                 "excludeConfirmedBy",
                 "size",
-                "language"
+                "language",
+                "status.isHardDeleted",
+                "status.isSoftDeleted",
+                "status.isArchived"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();
@@ -192,6 +195,23 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                         }
                     }
                 }
+            }
+
+            bool match;
+
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("isArchived"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsArchived != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isSoftDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
+            }
+
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isHardDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
             }
 
             response.Instances = instances;
