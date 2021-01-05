@@ -204,12 +204,14 @@ export interface ITextResource {
   id: string;
   value: string;
   unparsedValue: string;
-  variables:IVariable[];
+  variables: IVariable[];
+  repeating?: boolean;
 }
 
 export interface IVariable {
   key: string;
   dataSource: string;
+  repeatingGroup?: string;
 }
 
 export interface IAttachmentGrouping {

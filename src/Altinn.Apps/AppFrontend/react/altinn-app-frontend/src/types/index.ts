@@ -161,6 +161,7 @@ export interface IOptions {
 export interface IRepeatingGroup {
   count: number;
   baseGroupId?: string;
+  dataModelBinding?: string;
 }
 
 export interface IRepeatingGroups {

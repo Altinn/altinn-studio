@@ -1,7 +1,5 @@
 import * as DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { DomElement } from 'htmlparser2';
 import * as React from 'react';
 import { ITextResource, IDataSources } from '../types';
 
@@ -49,13 +47,13 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
 };
 
 // eslint-disable-next-line consistent-return
-const removeStyling = (node: DomElement): React.ReactElement | void | null => {
+const removeStyling = (node: any): React.ReactElement | void | null => {
   // all this does is remove the default styling of the <p> element, which is causing styling issues
   if (node.name === 'p') {
     return React.createElement(
       'p',
       { style: { marginBottom: '0px', display: 'inline' } },
-      node.children?.map((child: DomElement, index: number) => convertNodeToElement(child, index, removeStyling)),
+      node.children?.map((child: any, index: number) => convertNodeToElement(child, index, removeStyling)),
     );
   }
 };
@@ -79,15 +77,54 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
   return textResource ? textResource.value : key;
 }
 
-export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): ITextResource[] {
+export function replaceTextResourceParams(
+  textResources: ITextResource[],
+  dataSources: IDataSources,
+  repeatingGroups?: any,
+): ITextResource[] {
   let replaceValues: string[];
+  const resourcesWithVariables = textResources.filter((resource) => resource.variables);
+  resourcesWithVariables.forEach((resource) => {
+    const repeatingGroupInVariable = resource.variables.find((variable) => variable.repeatingGroup).repeatingGroup;
+    if (repeatingGroupInVariable) {
+      const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
+        return repeatingGroups[groupId].dataModelBinding === repeatingGroupInVariable;
+      });
+      const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
 
-  textResources.forEach((resource) => {
-    if (resource.variables) {
+      for (let i = 0; i <= repeatingGroupCount; ++i) {
+        replaceValues = [];
+        // eslint-disable-next-line no-loop-func
+        resource.variables.forEach((variable) => {
+          if (variable.dataSource.startsWith('dataModel')) {
+            if (variable.repeatingGroup) {
+              const keyWithIndex = variable.key.replace(variable.repeatingGroup, `${variable.repeatingGroup}[${i}]`);
+              replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
+            } else {
+              replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+            }
+          }
+        });
+        const newValue = replaceParameters(resource.unparsedValue, replaceValues);
+
+        if (resource.repeating && resource.id.endsWith(`-${i}`)) {
+          // eslint-disable-next-line no-param-reassign
+          resource.value = newValue;
+        } else if (!resource.repeating && textResources.findIndex((r) => r.id === `${resource.id}-${i}`) === -1) {
+          const newId = `${resource.id}-${i}`;
+          textResources.push({
+            ...resource,
+            id: newId,
+            value: newValue,
+            repeating: true,
+          });
+        }
+      }
+    } else {
       replaceValues = [];
       resource.variables.forEach((variable) => {
         if (variable.dataSource.startsWith('dataModel')) {
-          replaceValues.push(dataSources.dataModel[variable.key] ? dataSources.dataModel[variable.key] : variable.key);
+          replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
         }
       });
 
