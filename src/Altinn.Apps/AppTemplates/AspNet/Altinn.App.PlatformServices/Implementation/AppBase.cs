@@ -121,7 +121,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
-            _logger.LogInformation($"OnInstantiate: GetStartEvent");
+            _logger.LogInformation("OnInstantiate: GetStartEvent");
 
             // return start event
             return Task.FromResult("StartEvent_1");
@@ -148,7 +148,7 @@ namespace Altinn.App.Services.Implementation
 
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
-                _logger.LogInformation($"autocreate data element: {dataType.Id}");
+                _logger.LogInformation($"Auto create data element: {dataType.Id}");
 
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
@@ -164,7 +164,7 @@ namespace Altinn.App.Services.Implementation
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
-                    _logger.LogInformation($"created data element: {createdDataElement.Id}");
+                    _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
             }
         }
