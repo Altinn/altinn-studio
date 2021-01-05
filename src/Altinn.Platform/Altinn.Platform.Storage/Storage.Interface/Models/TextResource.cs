@@ -75,5 +75,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "dataSource")]
         public string DataSource { get; set; }
+
+        /// <summary>
+        /// Gets or sets the repeating group specification
+        /// </summary>
+        [JsonProperty(PropertyName = "repeatingGroup")]
+        public string RepeatingGroup { get; set; }
     }
 }
