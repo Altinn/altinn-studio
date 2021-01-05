@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "org",
                 "appId",
                 "process.currentTask",
-                "process.isComplete" ,
+                "process.isComplete",
                 "process.endEvent",
                 "process.ended",
                 "instanceOwner.partyId",
@@ -125,7 +125,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "dueBefore",
                 "excludeConfirmedBy",
                 "size",
-                "language"
+                "language",
+                "status.isHardDeleted",
+                "status.isSoftDeleted",
+                "status.isArchived"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();
