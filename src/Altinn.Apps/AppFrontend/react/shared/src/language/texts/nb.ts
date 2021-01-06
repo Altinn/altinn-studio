@@ -71,6 +71,7 @@ export function nb() {
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
       summary_item_change: 'Endre',
+      summary_go_to_correct_page: 'Gå til riktig side i skjema',
     },
     general: {
       action: 'Handling',

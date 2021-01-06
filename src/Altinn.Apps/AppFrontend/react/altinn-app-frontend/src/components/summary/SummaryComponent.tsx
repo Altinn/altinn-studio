@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 // import appTheme from 'altinn-shared/theme/altinnAppTheme';
@@ -30,6 +31,13 @@ const useStyles = makeStyles({
     marginBottom: 10,
     paddingBottom: 10,
   },
+  link: {
+    background: 'none',
+    border: 'none',
+    borderBottom: '2px solid #008FD6',
+    cursor: 'pointer',
+    paddingLeft: 0,
+  },
 });
 
 export function SummaryComponent(props: ISummaryComponent) {
@@ -53,6 +61,10 @@ export function SummaryComponent(props: ISummaryComponent) {
   const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[props.pageRef]);
   const formComponent = useSelector((state: IRuntimeState) => {
     return state.formLayout.layouts[props.pageRef].find(((c) => c.id === props.componentRef));
+  });
+  const goToCorrectPageLinkText = useSelector((state: IRuntimeState) => {
+    return getTextFromAppOrDefault('form_filler.summary_go_to_correct_page',
+      state.textResources.resources, state.language.language, [], true);
   });
   const formData = useSelector((state: IRuntimeState) => {
     if (formComponent.type.toLowerCase() === 'group') return undefined;
@@ -82,7 +94,7 @@ export function SummaryComponent(props: ISummaryComponent) {
       setComponentValidations(validations);
       setHasValidationMessages(componentHasValidationMessages(validations));
     }
-  }, [formValidations, layout]);
+  }, [formValidations, layout, pageRef, formComponent, props.componentRef, props.index]);
 
   const renderSummaryComponent = () => {
     if (!formComponent) {
@@ -141,6 +153,15 @@ export function SummaryComponent(props: ISummaryComponent) {
               />
             );
           })}
+          <Grid item={true} xs={12}>
+            <button
+              className={classes.link}
+              onClick={onChangeClick}
+              type='button'
+            >
+              {goToCorrectPageLinkText}
+            </button>
+          </Grid>
         </Grid>
       }
     </Grid>

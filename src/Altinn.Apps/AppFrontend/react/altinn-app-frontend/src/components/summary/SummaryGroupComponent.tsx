@@ -55,6 +55,13 @@ const useStyles = makeStyles({
     fontSize: '1.8rem',
     cursor: 'pointer',
   },
+  link: {
+    background: 'none',
+    border: 'none',
+    borderBottom: '2px solid #008FD6',
+    cursor: 'pointer',
+    paddingLeft: 0,
+  },
 });
 
 function SummaryGroupComponent(props: ISummaryGroupComponent) {
@@ -287,6 +294,15 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         <ErrorPaper
           message={getLanguageFromKey('group.row_error', language)}
         />
+        <Grid item={true} xs={12}>
+          <button
+            className={classes.link}
+            onClick={props.onChangeClick}
+            type='button'
+          >
+            {getTextFromAppOrDefault('form_filler.summary_go_to_correct_page', textResources, language, [], true)}
+          </button>
+        </Grid>
       </Grid>
       }
     </>

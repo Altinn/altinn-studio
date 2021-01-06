@@ -71,6 +71,7 @@ export function en() {
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
       summary_item_change: 'Change',
+      summary_go_to_correct_page: 'Go to the correct page in the form',
     },
     general: {
       action: 'Action',
