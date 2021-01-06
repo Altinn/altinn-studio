@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.Repository
                 try
                 {
                     queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
-                    queryBuilder.Where(i => i.Status.IsHardDeleted == false);
+                    queryBuilder.Where(i => !i.Status.IsHardDeleted);
                 }
                 catch (Exception e)
                 {
