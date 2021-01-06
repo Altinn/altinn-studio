@@ -109,7 +109,9 @@ namespace Altinn.Platform.Storage.Controllers
         /// Search through instances to find match based on query params.
         /// </summary>
         /// <param name="instanceOwnerPartyId">The instance owner party id</param>
-        /// <param name="appId">The application id</param>  
+        /// <param name="appId">The application id</param>
+        /// <param name="lastChanged">Last changed date.</param>
+        /// <param name="created">Created time.</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
         [Authorize]
@@ -117,6 +119,8 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> SearchMessageBoxInstances(
             [FromQuery(Name = "instanceOwner.partyId")] int instanceOwnerPartyId,
             [FromQuery] string appId,
+            [FromQuery] string lastChanged,
+            [FromQuery] string created,
             [FromQuery] string language)
         {
             string[] acceptedLanguages = { "en", "nb", "nn" };
