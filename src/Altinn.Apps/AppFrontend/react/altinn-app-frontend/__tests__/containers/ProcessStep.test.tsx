@@ -34,10 +34,12 @@ describe('>>> containers/ProcessStep.tsx', () => {
     mockInitialState = getInitialStateMock({
       formValidations: {
         validations: {
-          'mock-component-id': {
-            simpleBinding: {
-              errors: ['mock-error-message'],
-              warnings: ['mock-warning-message'],
+          FormLayout: {
+            'mock-component-id': {
+              simpleBinding: {
+                errors: ['mock-error-message'],
+                warnings: ['mock-warning-message'],
+              },
             },
           },
         },
@@ -128,9 +130,11 @@ describe('>>> containers/ProcessStep.tsx', () => {
       },
       formValidations: {
         validations: {
-          unmapped: {
-            'mock-component-id': {
-              errors: ['mock-error-message', 'another-mock-error-message'],
+          FormLayout: {
+            unmapped: {
+              'mock-component-id': {
+                errors: ['mock-error-message', 'another-mock-error-message'],
+              },
             },
           },
         },

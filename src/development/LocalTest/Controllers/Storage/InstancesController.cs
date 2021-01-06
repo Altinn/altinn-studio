@@ -100,6 +100,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
+            [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
         {
@@ -332,9 +334,14 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             DateTime now = DateTime.UtcNow;
-            
+
+            instance.Status ??= new InstanceStatus();
+
+
             if (hard.HasValue && hard == true)
             {
+                instance.Status.IsHardDeleted = true;
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.HardDeleted = now;
                 instance.Status.SoftDeleted ??= now;
 
@@ -355,6 +362,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
+                instance.Status.IsSoftDeleted = true;
                 instance.Status.SoftDeleted = now;
                 instance.LastChangedBy = GetUserId();
                 instance.LastChanged = now;

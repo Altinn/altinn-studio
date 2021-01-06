@@ -42,3 +42,4 @@ export { default as AltinnSubstatusPaper } from './molecules/AltinnSubstatusPape
 // organisms
 export { default as AltinnAppHeader } from './organisms/AltinnAppHeader';
 export { default as AltinnReceipt } from './organisms/AltinnReceipt';
+export { default as AltinnReceiptSimple } from './organisms/AltinnReceiptSimple';

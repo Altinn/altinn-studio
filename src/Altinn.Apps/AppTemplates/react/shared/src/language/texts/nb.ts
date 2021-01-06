@@ -165,7 +165,7 @@ export function nb() {
       receipt: 'Kvittering',
       ref_num: 'Referansenummer',
       sender: 'Avsender',
-      subtitle: 'Kopi av din kvittering er sendt til din innboks',
+      subtitle: 'Kopi av din kvittering er sendt til ditt arkiv',
       title_part_is_submitted: 'er sendt inn',
       title_submitted: 'Følgende er sendt inn:',
     },

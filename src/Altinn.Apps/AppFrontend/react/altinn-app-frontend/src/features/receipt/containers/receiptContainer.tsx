@@ -4,17 +4,18 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
+import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt, AltinnReceiptSimple } from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource, IProfile, IAttachment } from 'altinn-shared/types';
 import { mapInstanceAttachments,
   getLanguageFromKey,
-  returnUrlToMessagebox,
-  getTextResourceByKey } from 'altinn-shared/utils';
+  getTextResourceByKey,
+  returnUrlToArchive } from 'altinn-shared/utils';
 import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
+import { getTextFromAppOrDefault } from '../../../utils/textResource';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -77,7 +78,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !lastChangedDateTime ||
     !allOrgs ||
     !instance ||
-    !lastChangedDateTime ||
     !parties
   );
 
@@ -129,17 +129,23 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           <AltinnContentIconReceipt/>
         </AltinnContentLoader>
       }
-      {!isLoading() &&
-        <ReceiptComponent
+      {!isLoading() && !applicationMetadata.autoDeleteOnProcessEnd &&
+        <AltinnReceipt
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
           body={getLanguageFromKey('receipt.body', language)}
           collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={getLanguageFromKey('receipt.subtitle', language)}
-          subtitleurl={returnUrlToMessagebox(origin)}
+          subtitleurl={returnUrlToArchive(origin)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
           pdf={pdf || null}
+        />
+      }
+      {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd &&
+        <AltinnReceiptSimple
+          body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, null, true)}
+          title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
         />
       }
     </>

@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "org",
                 "appId",
                 "process.currentTask",
-                "process.isComplete" ,
+                "process.isComplete",
                 "process.endEvent",
                 "process.ended",
                 "instanceOwner.partyId",
@@ -125,7 +125,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "dueBefore",
                 "excludeConfirmedBy",
                 "size",
-                "language"
+                "language",
+                "status.isSoftDeleted",
+                "status.isArchived"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();
@@ -194,6 +196,20 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
+            bool match;
+
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("isArchived"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsArchived != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isSoftDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
+            }
+
+            instances.RemoveAll(i => i.Status.IsHardDeleted == true);
+
             response.Instances = instances;
             response.Count = instances.Count;
             response.TotalHits = instances.Count;
@@ -221,6 +237,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             {
                 throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
             }
+
+            instance.Data = new List<DataElement>();
 
             return Task.FromResult(instance);
         }

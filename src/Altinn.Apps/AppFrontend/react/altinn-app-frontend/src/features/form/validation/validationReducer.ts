@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IValidations } from 'src/types';
@@ -30,14 +31,28 @@ const ValidationReducer: Reducer<IValidationState> = (
   switch (action.type) {
     case ActionTypes.UPDATE_COMPONENT_VALIDATIONS: {
       const {
+        layoutId,
         validations,
         componentId,
         invalidDataTypes,
       } = action as IUpdateComponentValidations;
+
+      if (!state.validations[layoutId]) {
+        state = update<IValidationState>(state, {
+          validations: {
+            [layoutId]: {
+              $set: {},
+            },
+          },
+        });
+      }
+
       return update<IValidationState>(state, {
         validations: {
-          [componentId]: {
-            $set: validations,
+          [layoutId]: {
+            [componentId]: {
+              $set: validations,
+            },
           },
         },
         invalidDataTypes: {

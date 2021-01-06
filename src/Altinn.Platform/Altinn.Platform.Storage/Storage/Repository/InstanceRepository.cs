@@ -122,7 +122,8 @@ namespace Altinn.Platform.Storage.Repository
 
                 try
                 {
-                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder)
+                    .Where(i => !i.Status.IsHardDeleted);
                 }
                 catch (Exception e)
                 {
@@ -135,7 +136,7 @@ namespace Altinn.Platform.Storage.Repository
                     IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                     FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                    if (feedResponse.Count == 0)
+                    if (feedResponse.Count == 0 && !documentQuery.HasMoreResults)
                     {
                         queryResponse.ContinuationToken = string.Empty;
                         break;
@@ -238,6 +239,16 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
                         case "language":
+                            break;
+                        case "status.isArchived":
+                            bool isArchived = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsArchived == isArchived);
+
+                            break;
+                        case "status.isSoftDeleted":
+                            bool isSoftDeleted = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
+
                             break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
@@ -554,11 +565,13 @@ namespace Altinn.Platform.Storage.Repository
 
         /// <summary>
         /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// Ensures dataElements are not included in the document. 
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
+            instance.Data = new List<DataElement>();
         }
 
         /// <summary>
