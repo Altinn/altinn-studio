@@ -126,7 +126,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "excludeConfirmedBy",
                 "size",
                 "language",
-                "status.isHardDeleted",
                 "status.isSoftDeleted",
                 "status.isArchived"
             };
@@ -209,10 +208,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
             }
 
-            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isHardDeleted"), out match))
-            {
-                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
-            }
+            instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
             response.Instances = instances;
             response.Count = instances.Count;
