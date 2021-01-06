@@ -72,6 +72,7 @@ describe('>>> layout.ts', () => {
     const expected = {
       Group1: {
         count: 2,
+        dataModelBinding: 'Group1',
       },
       'Group2-0': {
         count: 0,
@@ -153,9 +154,11 @@ describe('>>> layout.ts', () => {
     const expected = {
       Group1: {
         count: 3,
+        dataModelBinding: 'Group1',
       },
       Group2: {
         count: 2,
+        dataModelBinding: 'Group2',
       },
     };
     const result = getRepeatingGroups(testLayout, formData);

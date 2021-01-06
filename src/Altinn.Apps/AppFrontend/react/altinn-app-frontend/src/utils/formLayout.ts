@@ -172,14 +172,16 @@ export function setVariableTextKeysForRepeatingGroupComponent(
   textResourceBindings: ITextResourceBindings,
   index: number,
 ) {
-  const bindingsWithVariablesForRepeatingGroups = Object.keys(textResourceBindings).filter((key) => {
-    const textKey = textResourceBindings[key];
-    const textResource = textResources.find((text) => text.id === textKey);
-    return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
-  });
+  if (textResources && textResourceBindings) {
+    const bindingsWithVariablesForRepeatingGroups = Object.keys(textResourceBindings).filter((key) => {
+      const textKey = textResourceBindings[key];
+      const textResource = textResources.find((text) => text.id === textKey);
+      return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
+    });
 
-  bindingsWithVariablesForRepeatingGroups.forEach((key) => {
-    // eslint-disable-next-line no-param-reassign
-    textResourceBindings[key] = `${textResourceBindings[key]}-${index}`;
-  });
+    bindingsWithVariablesForRepeatingGroups.forEach((key) => {
+      // eslint-disable-next-line no-param-reassign
+      textResourceBindings[key] = `${textResourceBindings[key]}-${index}`;
+    });
+  }
 }

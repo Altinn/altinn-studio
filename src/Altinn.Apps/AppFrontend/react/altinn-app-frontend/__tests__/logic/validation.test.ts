@@ -634,7 +634,7 @@ describe('>>> utils/validations.ts', () => {
     ];
 
     // this parsing is handled internally in GroupContainer. Is done manually here to test util function
-    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0, []);
     expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeTruthy();
   });
 
@@ -689,7 +689,7 @@ describe('>>> utils/validations.ts', () => {
         dataModelBindings: { simpleBinding: 'group.group2.child2' },
       } as unknown as ILayoutComponent,
     ];
-    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0, []);
     expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeTruthy();
   });
 
@@ -731,7 +731,7 @@ describe('>>> utils/validations.ts', () => {
       } as unknown as ILayoutComponent,
     ];
 
-    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0);
+    const groupChildren = createRepeatingGroupComponents(group, layout.filter((element) => group.children.includes(element.id)), 0, []);
     expect(validation.repeatingGroupHasValidations(group, groupChildren, validations, 'FormLayout', repeatingGroups, layout)).toBeFalsy();
   });
 
