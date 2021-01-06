@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Altinn.App.Services.Helpers;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.Extensions.Logging;
 
-using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -31,6 +31,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IAppResources _appResourcesService;
         private readonly IObjectModelValidator _objectModelValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidationAppSI"/> class.
@@ -42,7 +43,8 @@ namespace Altinn.App.Services.Implementation
             IAltinnApp altinnApp,
             IAppResources appResourcesService,
             IObjectModelValidator objectModelValidator,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _dataService = dataService;
@@ -51,6 +53,7 @@ namespace Altinn.App.Services.Implementation
             _appResourcesService = appResourcesService;
             _objectModelValidator = objectModelValidator;
             _httpContextAccessor = httpContextAccessor;
+            _generalSettings = generalSettings.Value;
         }
         
         /// <summary>
@@ -61,16 +64,13 @@ namespace Altinn.App.Services.Implementation
         /// <returns>A list of validation errors if any were found</returns>
         public async Task<List<ValidationIssue>> ValidateAndUpdateProcess(Instance instance, string taskId)
         {
-            // Todo. Figure out where to get this from
-            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-
             _logger.LogInformation($"Validation of {instance.Id}");
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
             ModelStateDictionary validationResults = new ModelStateDictionary();
             await _altinnApp.RunTaskValidation(instance, taskId, validationResults);
-            messages.AddRange(MapModelStateToIssueList(validationResults, instance, serviceText));
+            messages.AddRange(MapModelStateToIssueList(validationResults, instance));
 
             Application application = _appResourcesService.GetApplication();
 
@@ -85,8 +85,7 @@ namespace Altinn.App.Services.Implementation
                         InstanceId = instance.Id,
                         Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb"),
+                        Description = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
                         Field = dataType.Id
                     };
                     messages.Add(message);
@@ -99,8 +98,7 @@ namespace Altinn.App.Services.Implementation
                         InstanceId = instance.Id,
                         Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb"),
+                        Description = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                         Field = dataType.Id
                     };
                     messages.Add(message);
@@ -112,16 +110,15 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            if (messages.Count == 0)
+            instance.Process.CurrentTask.Validated = new ValidationStatus
             {
-                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now };
-            }
-            else
-            {
-                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = false, Timestamp = DateTime.Now };
-            }
+                // The condition for completion is met if there are no errors (or other weirdnesses).
+                CanCompleteTask = messages.Count == 0 ||
+                    messages.All(m => m.Severity != ValidationIssueSeverity.Error && m.Severity != ValidationIssueSeverity.Unspecified),
+                Timestamp = DateTime.Now
+            };
 
-            instance = await _instanceService.UpdateProcess(instance);
+            await _instanceService.UpdateProcess(instance);
             return messages;
         }
 
@@ -136,9 +133,6 @@ namespace Altinn.App.Services.Implementation
         {
             _logger.LogInformation($"Validation of data element {dataElement.Id} of instance {instance.Id}");
 
-            // Todo. Figure out where to get this from
-            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
             if (dataElement.ContentType == null)
@@ -149,8 +143,7 @@ namespace Altinn.App.Services.Implementation
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                     DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = AppTextHelper.GetAppText(
-                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb")
+                    Description = ValidationIssueCodes.DataElementCodes.MissingContentType
                 };
                 messages.Add(message);
             }
@@ -166,8 +159,7 @@ namespace Altinn.App.Services.Implementation
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb"),
+                        Description = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Field = dataType.Id
                     };
                     messages.Add(message);
@@ -182,8 +174,7 @@ namespace Altinn.App.Services.Implementation
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = AppTextHelper.GetAppText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb"),
+                    Description = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Field = dataType.Id
                 };
                 messages.Add(message);
@@ -195,7 +186,8 @@ namespace Altinn.App.Services.Implementation
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[1];
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-                dynamic data = await _dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
+                dynamic data = await _dataService.GetFormData(
+                    instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
 
                 ModelStateDictionary validationResults = new ModelStateDictionary();
                 var actionContext = new ActionContext(
@@ -210,7 +202,7 @@ namespace Altinn.App.Services.Implementation
 
                 if (!validationResults.IsValid)
                 {
-                    messages.AddRange(MapModelStateToIssueList(actionContext.ModelState, instance, dataElement.Id, serviceText));
+                    messages.AddRange(MapModelStateToIssueList(actionContext.ModelState, instance, dataElement.Id));
                 }
             }
 
@@ -220,8 +212,7 @@ namespace Altinn.App.Services.Implementation
         private List<ValidationIssue> MapModelStateToIssueList(
             ModelStateDictionary modelState,
             Instance instance,
-            string dataElementId,
-            Dictionary<string, Dictionary<string, string>> serviceText)
+            string dataElementId)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
@@ -233,14 +224,15 @@ namespace Altinn.App.Services.Implementation
                 {
                     foreach (ModelError error in entry.Errors)
                     {
-                        validationIssues.Add(new ValidationIssue()
+                        var severityAndMessage = GetSeverityFromMessage(error.ErrorMessage);
+                        validationIssues.Add(new ValidationIssue
                         {
                             InstanceId = instance.Id,
                             DataElementId = dataElementId,
-                            Code = error.ErrorMessage,
+                            Code = severityAndMessage.message,
                             Field = modelKey,
-                            Severity = ValidationIssueSeverity.Error,
-                            Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")
+                            Severity = severityAndMessage.severity,
+                            Description = severityAndMessage.message
                         });
                     }
                 }
@@ -249,10 +241,7 @@ namespace Altinn.App.Services.Implementation
             return validationIssues;
         }
 
-        private List<ValidationIssue> MapModelStateToIssueList(
-        ModelStateDictionary modelState,
-        Instance instance,
-        Dictionary<string, Dictionary<string, string>> serviceText)
+        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, Instance instance)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
@@ -264,18 +253,30 @@ namespace Altinn.App.Services.Implementation
                 {
                     foreach (ModelError error in entry.Errors)
                     {
-                        validationIssues.Add(new ValidationIssue()
+                        var severityAndMessage = GetSeverityFromMessage(error.ErrorMessage);
+                        validationIssues.Add(new ValidationIssue
                         {
                             InstanceId = instance.Id,
-                            Code = error.ErrorMessage,
-                            Severity = ValidationIssueSeverity.Error,
-                            Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")
+                            Code = severityAndMessage.message,
+                            Severity = severityAndMessage.severity,
+                            Description = severityAndMessage.message
                         });
                     }
                 }
             }
 
             return validationIssues;
+        }
+
+        private (ValidationIssueSeverity severity, string message) GetSeverityFromMessage(string originalMessage)
+        {
+            if (originalMessage.StartsWith(_generalSettings.SoftValidationPrefix))
+            {
+                return (ValidationIssueSeverity.Warning,
+                    originalMessage.Remove(0, _generalSettings.SoftValidationPrefix.Length));
+            }
+
+            return (ValidationIssueSeverity.Error, originalMessage);
         }
     }
 }

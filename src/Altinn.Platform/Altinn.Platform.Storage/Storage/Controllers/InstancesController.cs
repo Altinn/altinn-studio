@@ -99,6 +99,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="visibleAfter">The visible after date time.</param>
         /// <param name="dueBefore">The due before date time.</param>
         /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
+        /// <param name="isSoftDeleted">Is the instance soft deleted.</param>
+        /// <param name="isArchived">Is the instance archived.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
         /// <returns>List of all instances for given instance owner.</returns>
@@ -121,6 +123,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
             [FromQuery] string excludeConfirmedBy,
+            [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
         {
@@ -173,6 +177,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+            queryParams.Add("status.isHardDeleted", "false");
 
             string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
