@@ -114,7 +114,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
-  const RenderComponent = components.find((componentCandidate: any) => componentCandidate.name === props.type).Tag;
+  const RenderComponent = components.find((componentCandidate) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
     return (

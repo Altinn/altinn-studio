@@ -122,7 +122,8 @@ namespace Altinn.Platform.Storage.Repository
 
                 try
                 {
-                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder)
+                    .Where(i => !i.Status.IsHardDeleted);
                 }
                 catch (Exception e)
                 {
@@ -238,6 +239,16 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
                             break;
                         case "language":
+                            break;
+                        case "status.isArchived":
+                            bool isArchived = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsArchived == isArchived);
+
+                            break;
+                        case "status.isSoftDeleted":
+                            bool isSoftDeleted = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
+
                             break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
