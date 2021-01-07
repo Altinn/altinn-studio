@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.6" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.1" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
@@ -32,7 +32,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.10" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.13.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.13.1" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
