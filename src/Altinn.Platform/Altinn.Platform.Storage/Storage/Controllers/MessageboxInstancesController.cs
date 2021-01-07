@@ -173,8 +173,7 @@ namespace Altinn.Platform.Storage.Controllers
             });
 
             List<MessageBoxInstance> authorizedInstances =
-
-                         await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
