@@ -88,5 +88,23 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <returns>The layout settings</returns>
         string GetLayoutSettings();
+
+        /// <summary>
+        /// Gets the the layouts settings
+        /// </summary>
+        /// <returns>The layout settings</returns>
+        string GetLayoutSets();
+
+        /// <summary>
+        /// Gets the layouts for av given layoutset
+        /// </summary>
+        /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
+        string GetLayoutsForSet(string id);
+
+        /// <summary>
+        /// Gets the the layouts settings for a layoutset
+        /// </summary>
+        /// <returns>The layout settings</returns>
+        string GetLayoutSettingsForSet(string id);
     }
 }

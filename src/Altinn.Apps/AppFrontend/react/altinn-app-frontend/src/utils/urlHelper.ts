@@ -125,6 +125,10 @@ export function getLayoutSettingsUrl() {
   return `${appPath}/api/layoutsettings`;
 }
 
+export function getLayoutSetsUrl() {
+  return `${appPath}/api/layoutsets`;
+}
+
 export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }

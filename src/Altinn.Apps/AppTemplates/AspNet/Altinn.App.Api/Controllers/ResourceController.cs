@@ -149,5 +149,50 @@ namespace Altinn.App.Api.Controllers
             string settings = _appResourceService.GetLayoutSettings();
             return Ok(settings);
         }
+
+        /// <summary>
+        /// Get the layout settings.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsets")]
+        public ActionResult LayoutSets(string org, string app)
+        {
+            string settings = _appResourceService.GetLayoutSets();
+            return Ok(settings);
+        }
+
+        /// <summary>
+        /// Get the form layout
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>A collection of FormLayout objects in JSON format.</returns>
+        /// </summary>
+        [HttpGet]
+        [Route("{org}/{app}/api/layouts/{id}")]
+        public ActionResult Layouts(string org, string app, string id)
+        {
+            string layouts = _appResourceService.GetLayoutsForSet(id);
+            return Ok(layouts);
+        }
+
+        /// <summary>
+        /// Get the layout settings.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsettings/{id}")]
+        public ActionResult LayoutSettings(string org, string app, string id)
+        {
+            string settings = _appResourceService.GetLayoutSettingsForSet(id);
+            return Ok(settings);
+        }
+
     }
 }

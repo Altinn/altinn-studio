@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { ILayoutSettings, INavigationConfig } from 'src/types';
+import { ILayoutSettings, INavigationConfig, ILayoutSets } from 'src/types';
 import { ILayouts } from '..';
 import * as actionTypes from '../formLayoutActionTypes';
 
@@ -65,6 +65,34 @@ export function fetchFormLayoutSettingsFulfilled(settings: ILayoutSettings): IFe
 export function fetchFormLayoutSettingsRejected(error: Error): IFetchFormLayoutSettingsRejected {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_SETTINGS_REJECTED,
+    error,
+  };
+}
+
+export interface IFetchFormLayoutSetsFulfilled extends Action {
+  settings: ILayoutSets;
+}
+
+export interface IFetchFormLayoutSetsRejected extends Action {
+  error: Error;
+}
+
+export function fetchFormLayoutSets(): Action {
+  return {
+    type: actionTypes.FETCH_FORM_LAYOUTSETS,
+  };
+}
+
+export function fetchFormLayoutSetsFulfilled(settings: ILayoutSets): IFetchFormLayoutSetsFulfilled {
+  return {
+    type: actionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED,
+    settings,
+  };
+}
+
+export function fetchFormLayoutSetsRejected(error: Error): IFetchFormLayoutSetsRejected {
+  return {
+    type: actionTypes.FETCH_FORM_LAYOUTSETS_REJECTED,
     error,
   };
 }

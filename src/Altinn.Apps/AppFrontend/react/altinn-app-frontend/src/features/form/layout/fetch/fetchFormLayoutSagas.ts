@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, all, take, select } from 'redux-saga/effects';
 import { IAltinnWindow } from 'altinn-shared/types';
-import { getLayoutSettingsUrl } from 'src/utils/urlHelper';
+import { getLayoutSettingsUrl, getLayoutSetsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
 import Actions from '../formLayoutActions';
 import { IFetchFormLayout } from './fetchFormLayoutActions';
@@ -9,7 +9,7 @@ import * as ActionTypes from '../formLayoutActionTypes';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
-import { ILayoutSettings, IRuntimeState } from '../../../../types';
+import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
 import { ILayouts } from '../index';
 
@@ -89,4 +89,25 @@ export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
     take(ActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
   ]);
   yield call(fetchFormLayoutSettingsSaga);
+}
+
+export function* fetchFormLayoutSetsSaga(): SagaIterator {
+  try {
+    const settings: ILayoutSets = yield call(get, getLayoutSetsUrl());
+    yield call(Actions.fetchFormLayoutSetsFulfilled, settings);
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      // We accept that the app does not have a settings.json as this is not default
+      yield call(Actions.fetchFormLayoutSetsFulfilled, null);
+    } else {
+      yield call(Actions.fetchFormLayoutSetsRejected, error);
+    }
+  }
+}
+
+export function* watchFetchFormLayoutSetsSaga(): SagaIterator {
+  yield all([
+    take(ActionTypes.FETCH_FORM_LAYOUTSETS),
+  ]);
+  yield call(fetchFormLayoutSetsSaga);
 }
