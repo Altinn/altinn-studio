@@ -148,7 +148,9 @@ export function* updateCurrentViewSaga({
         validations = { [currentView]: validations[currentView] };
       }
       yield call(FormValidationActions.updateValidations, validations);
-      if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
+      if (state.formLayout.uiConfig.returnToView) {
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield call(FormLayoutActions.updateCurrentViewRejected, null);
       } else {
         yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
