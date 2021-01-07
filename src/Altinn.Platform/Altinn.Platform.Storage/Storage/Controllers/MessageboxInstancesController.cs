@@ -113,7 +113,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="includeActive">Boolean indicating whether to include active instances.</param>
         /// <param name="includeArchived">Boolean indicating whether to include archived instances.</param>
         /// <param name="includeDeleted">Boolean indicating whether to include deleted instances.</param>
-        /// <param name="appId">The application id</param>
         /// <param name="lastChanged">Last changed date.</param>
         /// <param name="created">Created time.</param>
         /// <param name="language"> language nb, en, nn-NO</param>
@@ -142,6 +141,7 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
+            queryParams.Add("sortBy", "desc:lastChanged");
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
 
@@ -173,7 +173,8 @@ namespace Altinn.Platform.Storage.Controllers
             });
 
             List<MessageBoxInstance> authorizedInstances =
-                       await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+
+                         await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
