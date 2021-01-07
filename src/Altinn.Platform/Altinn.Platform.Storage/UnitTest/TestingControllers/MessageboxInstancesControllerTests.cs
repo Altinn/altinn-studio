@@ -659,7 +659,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string expectedIsSoftDeleted = "false";
             string expectedIsArchived = "false";
-            int expectedParamCount = 3;
+            int expectedParamCount = 4;
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
 
@@ -669,6 +669,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            Assert.True(actual.ContainsKey("sortBy"));
             actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsSoftDeleted);
             Assert.Equal(expectedIsSoftDeleted, actualIsSoftDeleted.First());
             actual.TryGetValue("status.isArchived", out StringValues actualIsArchived);
@@ -697,7 +698,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string expectedIsSoftDeleted = "false";
             string expectedIsArchived = "true";
-            int expectedParamCount = 3;
+            int expectedParamCount = 4;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
@@ -733,7 +734,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
-            int expectedParamCount = 1;
+            int expectedParamCount = 2;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
@@ -766,7 +767,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
 
-            int expectedParamCount = 2;
+            int expectedParamCount = 3;
+            string expectedSortBy = "desc:lastChanged";
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
@@ -779,6 +781,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
             actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
             Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+            actual.TryGetValue("sortBy", out StringValues actualSortBy);
+            Assert.Equal(expectedSortBy, actualSortBy.First());
             Assert.Equal(expectedParamCount, actual.Keys.Count);
         }
 
@@ -801,7 +805,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
 
-            int expectedParamCount = 2;
+            int expectedParamCount = 3;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));

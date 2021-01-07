@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = queryResponse.Instances;
 
-            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow || i.Status.IsHardDeleted);
+            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
 
             allInstances.ForEach(i =>
             {
