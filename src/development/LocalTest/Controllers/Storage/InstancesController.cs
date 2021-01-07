@@ -100,6 +100,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
+            [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
         {
