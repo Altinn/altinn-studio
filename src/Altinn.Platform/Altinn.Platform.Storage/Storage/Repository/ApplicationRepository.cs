@@ -223,7 +223,6 @@ namespace Altinn.Platform.Storage.Repository
         {
             Dictionary<string, string> appTitles;
 
-            // noe røbbel her med null
             if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
             {
                 appTitles = new Dictionary<string, string>();
