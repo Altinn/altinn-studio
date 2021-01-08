@@ -143,8 +143,7 @@ namespace Altinn.Platform.Storage.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 StringValues applicationIds = await MatchStringToAppTitle(searchString);
-
-                if (!string.IsNullOrEmpty(appId) && !applicationIds.Contains(appId))
+                if (!applicationIds.Any() || (!string.IsNullOrEmpty(appId) && !applicationIds.Contains(appId)))
                 {
                     return Ok(new List<MessageBoxInstance>());
                 }
@@ -435,7 +434,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             foreach (KeyValuePair<string, string> entry in appTitles)
             {
-                if (entry.Value.Contains(searchString))
+                if (entry.Value.Contains(searchString.Trim(), StringComparison.OrdinalIgnoreCase))
                 {
                     appIds.Add(entry.Key);
                 }

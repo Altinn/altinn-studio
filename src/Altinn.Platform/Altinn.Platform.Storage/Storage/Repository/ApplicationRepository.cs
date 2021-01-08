@@ -3,6 +3,7 @@ namespace Altinn.Platform.Storage.Repository
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Interface.Models;
@@ -233,13 +234,13 @@ namespace Altinn.Platform.Storage.Repository
                     FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
                     foreach (Application item in result)
                     {
-                        string titles = string.Empty;
+                        StringBuilder titles = new StringBuilder();
                         foreach (string title in item.Title.Values)
                         {
-                            titles += title + ";";
+                            titles.Append(title + ";");
                         }
 
-                        appTitles.Add(CosmosIdToAppId(item.Id), titles);
+                        appTitles.Add(CosmosIdToAppId(item.Id), titles.ToString());
                     }
                 }
 
