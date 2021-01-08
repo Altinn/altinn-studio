@@ -11,10 +11,25 @@ exports[`>>> components/message/MessageComponent.tsx +++ should match snapshot 1
     }
   }
 >
-  <ol>
-    <li>
-      this is a message
-    </li>
-  </ol>
+  <div
+    className="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"
+  >
+    <div
+      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
+    >
+      <i
+        className=""
+      />
+    </div>
+    <div
+      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
+    >
+      <ol>
+        <li>
+          this is a message
+        </li>
+      </ol>
+    </div>
+  </div>
 </div>
 `;
