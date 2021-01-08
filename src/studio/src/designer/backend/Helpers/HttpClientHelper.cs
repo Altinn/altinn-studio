@@ -17,6 +17,10 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="platformSettings">the platform settings</param>
         public static void AddSubscriptionKeys(HttpClient httpClient, Uri uri, PlatformSettings platformSettings)
         {
+            if (uri.Host.Contains("at21", StringComparison.InvariantCultureIgnoreCase))
+            {
+                httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT21);
+            }
             if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
                 httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyTT02);
