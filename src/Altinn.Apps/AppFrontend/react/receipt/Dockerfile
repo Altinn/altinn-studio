@@ -1,5 +1,5 @@
 # base image
-FROM node:14.15.2-alpine3.12  AS generate-receipt-app
+FROM node:14.15.4-alpine3.12  AS generate-receipt-app
 
 # Copy and install Lerna
 # Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
