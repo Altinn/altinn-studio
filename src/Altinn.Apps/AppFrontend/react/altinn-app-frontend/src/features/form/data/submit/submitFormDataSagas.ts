@@ -35,7 +35,7 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
     const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
-    let validations = validationResult.validations;
+    const validations = validationResult.validations;
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
@@ -47,9 +47,19 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
       state.formLayout.uiConfig.repeatingGroups,
     );
 
-    validations = Object.assign(validations, componentSpecificValidations);
+    Object.keys(componentSpecificValidations || {}).forEach((layout: string) => {
+      if (!validations[layout]) {
+        validations[layout] = {};
+      }
+      Object.assign(validations[layout], componentSpecificValidations[layout]);
+    });
     if (apiMode === 'Complete') {
-      validations = Object.assign(validations, emptyFieldsValidations);
+      Object.keys(emptyFieldsValidations || {}).forEach((layout: string) => {
+        if (!validations[layout]) {
+          validations[layout] = {};
+        }
+        Object.assign(validations[layout], emptyFieldsValidations[layout]);
+      });
     }
 
     if (canFormBeSaved(validationResult, apiMode)) {

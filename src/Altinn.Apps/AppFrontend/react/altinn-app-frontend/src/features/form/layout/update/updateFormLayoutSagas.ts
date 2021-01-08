@@ -125,8 +125,18 @@ export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurre
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
       );
-      validations = Object.assign(validations, componentSpecificValidations);
-      validations = Object.assign(validations, emptyFieldsValidations);
+      Object.keys(componentSpecificValidations || {}).forEach((layout: string) => {
+        if (!validations[layout]) {
+          validations[layout] = {};
+        }
+        Object.assign(validations[layout], componentSpecificValidations[layout]);
+      });
+      Object.keys(emptyFieldsValidations || {}).forEach((layout: string) => {
+        if (!validations[layout]) {
+          validations[layout] = {};
+        }
+        Object.assign(validations[layout], emptyFieldsValidations[layout]);
+      });
       const instanceId = state.instanceData.instance.id;
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
