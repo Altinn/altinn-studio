@@ -767,7 +767,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
 
             // Act
-            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?searchString=test");
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?searchString=TEST");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
