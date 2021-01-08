@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
+import { CollapsableMenus } from 'containers/Toolbar';
 import { ComponentTypes } from '../components';
-import { CollapsableMenus } from '../containers/Toolbar';
 
 export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {
