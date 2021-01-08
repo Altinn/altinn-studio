@@ -22,7 +22,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "altinn-designsystem": "2.7.10",
+    "altinn-designsystem": "2.7.12",
     "bootstrap": "4.5.3",
     "bootstrap-list-filter": "0.3.3",
     "jquery": "3.5.1",
@@ -38,6 +38,6 @@
     "rivets": "0.9.6",
     "select2": "4.0.13",
     "sightglass": "0.2.6",
-    "underscore": "1.11.0"
+    "underscore": "1.12.0"
   }
 }
