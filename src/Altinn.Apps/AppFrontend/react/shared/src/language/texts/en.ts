@@ -39,6 +39,7 @@ export function en() {
       body: 'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
     },
     form_filler: {
+      back_to_summary: 'Return to summary',
       error_report_header: 'There is a problem',
       error_report_description: 'The form contains errors that prevent it from being submitted. Try submitting again once the errors are corrected.',
       error_required: 'Field is required',
@@ -69,6 +70,8 @@ export function en() {
       file_uploader_validation_error_upload: 'Something went wrong trying to upload the file, please try again.',
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
+      summary_item_change: 'Change',
+      summary_go_to_correct_page: 'Go to the correct page in the form',
     },
     general: {
       action: 'Action',

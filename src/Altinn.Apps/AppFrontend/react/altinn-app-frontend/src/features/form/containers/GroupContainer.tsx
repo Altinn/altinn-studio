@@ -171,7 +171,13 @@ export function GroupContainer({
       componentTitles.push(component.textResourceBindings?.title || '');
     }
   });
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(container, renderComponents, repeatinGroupIndex, hiddenFields);
+  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
+    container,
+    renderComponents,
+    repeatinGroupIndex,
+    textResources,
+    hiddenFields,
+  );
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
 
   const onClickAdd = () => {
@@ -228,7 +234,13 @@ export function GroupContainer({
     const childGroupCount = repeatingGroups[childGroup.id]?.count;
     const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
     const childRenderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
-    const deepCopyComponents = createRepeatingGroupComponents(childGroup, childRenderComponents, childGroupCount, hiddenFields);
+    const deepCopyComponents = createRepeatingGroupComponents(
+      childGroup,
+      childRenderComponents,
+      childGroupCount,
+      textResources,
+      hiddenFields,
+    );
     return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
   };
 

@@ -2,10 +2,59 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { GroupContainer } from './GroupContainer';
 import { renderGenericComponent } from '../../../utils/layout';
+import { DisplayGroupContainer } from './DisplayGroupContainer';
+
+export function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup, layout: ILayout) {
+  switch (layoutComponent.type) {
+    case 'group':
+    case 'Group': {
+      return RenderLayoutGroup(layoutComponent as ILayoutGroup, layout);
+    }
+    case 'Summary': {
+      return <SummaryComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />;
+    }
+    default: {
+      return (
+        <RenderGenericComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />
+      );
+    }
+  }
+}
+
+function RenderGenericComponent(component: ILayoutComponent, layout: ILayout) {
+  return renderGenericComponent(component, layout);
+}
+
+function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout): JSX.Element {
+  const groupComponents = layoutGroup.children.map((child) => {
+    return layout.find((c) => c.id === child) as ILayoutComponent;
+  });
+  const repeating = layoutGroup.maxCount > 1;
+  if (!repeating) {
+    // If not repeating, treat as regular components
+    return (
+      <DisplayGroupContainer
+        container={layoutGroup}
+        components={groupComponents}
+        renderLayoutComponent={renderLayoutComponent}
+      />
+    );
+  }
+
+  return (
+    <GroupContainer
+      container={layoutGroup}
+      id={layoutGroup.id}
+      key={layoutGroup.id}
+      components={groupComponents}
+    />
+  );
+}
 
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
@@ -38,48 +87,11 @@ export function Form() {
     setFilteredLayout(componentsToRender);
   }, [layout, hiddenComponents]);
 
-  function RenderGenericComponent(component: ILayoutComponent) {
-    return renderGenericComponent(component, layout);
-  }
-
-  function RenderLayoutGroup(layoutGroup: ILayoutGroup): JSX.Element {
-    const groupComponents = layoutGroup.children.map((child) => {
-      return layout.find((c) => c.id === child) as ILayoutComponent;
-    });
-    const repeating = layoutGroup.maxCount > 1;
-    if (!repeating) {
-      // If not repeating, treat as regular components
-      return (
-        <>
-          {groupComponents.map(renderLayoutComponent)}
-        </>
-      );
-    }
-
-    return (
-      <GroupContainer
-        container={layoutGroup}
-        id={layoutGroup.id}
-        key={layoutGroup.id}
-        components={groupComponents}
-      />
-    );
-  }
-
-  function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup) {
-    if (layoutComponent.type && layoutComponent.type.toLowerCase() === 'group') {
-      return RenderLayoutGroup(layoutComponent as ILayoutGroup);
-    }
-
-    const component: ILayoutComponent = layout.find((c) => c.id === layoutComponent.id) as ILayoutComponent;
-    return (
-      <RenderGenericComponent key={layoutComponent.id} {...component} />
-    );
-  }
-
   return (
     <Grid container={true}>
-      {currentView === currentLayout && filteredLayout && filteredLayout.map(renderLayoutComponent)}
+      {currentView === currentLayout && filteredLayout && filteredLayout.map((component) => {
+        return renderLayoutComponent(component, layout);
+      })}
     </Grid>
   );
 }

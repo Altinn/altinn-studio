@@ -636,8 +636,13 @@ export function mapDataElementValidationToRedux(
     let component;
     let componentId;
     let layoutId = Object.keys(layouts).find((id) => {
-      const foundInLayout = layouts[id].find((c: ILayoutComponent) => Object.values(c.dataModelBindings)
-        .includes(validation.field));
+      const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
+        // Special handling for FileUpload component
+        if (c.type === 'FileUpload') {
+          return c.id === validation.field;
+        }
+        return Object.values(c.dataModelBindings).includes(validation.field);
+      });
       return !!foundInLayout;
     });
     if (layoutId && layouts[layoutId]) {
@@ -848,7 +853,7 @@ export function repeatingGroupHasValidations(
   layout: ILayout,
   hiddenFields?: string[],
 ): boolean {
-  if (!group || !validations || !validations || !layout) {
+  if (!group || !validations || !layout) {
     return false;
   }
 
@@ -861,7 +866,7 @@ export function repeatingGroupHasValidations(
       const childGroupCount = repeatingGroups[childGroup.id]?.count;
       const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
       const renderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
-      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, hiddenFields);
+      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, [], hiddenFields);
       return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
     });
   });

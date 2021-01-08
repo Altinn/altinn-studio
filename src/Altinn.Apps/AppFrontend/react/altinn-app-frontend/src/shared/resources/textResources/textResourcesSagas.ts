@@ -2,10 +2,9 @@ import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 
 import { watchFetchTextResourcesSaga } from './fetch/fetchTextResourcesSagas';
-import { parseText, watchFetchFormDataFulfilled } from './replace/replaceTextResourcesSagas';
+import { watchReplaceTextResourcesSaga } from './replace/replaceTextResourcesSagas';
 
 export default function* textResourceSagas(): SagaIterator {
   yield fork(watchFetchTextResourcesSaga);
-  yield fork(watchFetchFormDataFulfilled);
-  yield fork(parseText);
+  yield fork(watchReplaceTextResourcesSaga);
 }
