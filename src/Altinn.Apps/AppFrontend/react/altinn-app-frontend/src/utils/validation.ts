@@ -866,7 +866,7 @@ export function repeatingGroupHasValidations(
       const childGroupCount = repeatingGroups[childGroup.id]?.count;
       const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
       const renderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
-      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, hiddenFields);
+      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, [], hiddenFields);
       return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
     });
   });
