@@ -1,6 +1,7 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable max-len */
-import { IRepeatingGroups, ILayoutNavigation } from 'src/types';
+import { ITextResource } from 'altinn-shared/types';
+import { IRepeatingGroups, ILayoutNavigation, ITextResourceBindings } from 'src/types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 
 /*
@@ -53,7 +54,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         const match = lastItem.match(regex);
         if (match && match[1]) {
           const count = parseInt(match[1], 10);
-          repeatingGroups[groupElement.id] = { count };
+          repeatingGroups[groupElement.id] = { count, dataModelBinding: groupElement.dataModelBindings?.group };
           const groupElementChildGroups = groupElement.children?.filter((id) => childGroups.includes(id));
           groupElementChildGroups.forEach((childGroupId: string) => {
             const childGroup = groups.find((element) => element.id === childGroupId);
@@ -67,7 +68,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
           });
         }
       } else {
-        repeatingGroups[groupElement.id] = { count: -1 };
+        repeatingGroups[groupElement.id] = { count: -1, dataModelBinding: groupElement.dataModelBindings?.group };
       }
     }
   });
@@ -129,7 +130,13 @@ export function removeRepeatingGroupFromUIConfig(repeatingGroups: IRepeatingGrou
   return newRepGroups;
 }
 
-export function createRepeatingGroupComponents(container: ILayoutGroup, renderComponents: (ILayoutComponent | ILayoutGroup)[], repeatingGroupIndex: number, hiddenFields?: string[]) {
+export function createRepeatingGroupComponents(
+  container: ILayoutGroup,
+  renderComponents: (ILayoutComponent | ILayoutGroup)[],
+  repeatingGroupIndex: number,
+  textResources: ITextResource[],
+  hiddenFields?: string[],
+) {
   const componentArray = [];
   for (let i = 0; i <= repeatingGroupIndex; i++) {
     const childComponents = renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
@@ -141,9 +148,13 @@ export function createRepeatingGroupComponents(container: ILayoutGroup, renderCo
         dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
       });
       const deepCopyId = `${componentDeepCopy.id}-${i}`;
+      setVariableTextKeysForRepeatingGroupComponent(
+        textResources, componentDeepCopy.textResourceBindings, i,
+      );
       const hidden: boolean = !!hiddenFields?.find((field) => field === `${deepCopyId}[${i}]`);
       return {
         ...componentDeepCopy,
+        textResourceBindings: componentDeepCopy.textResourceBindings,
         dataModelBindings,
         id: deepCopyId,
         baseComponentId: componentDeepCopy.id,
@@ -153,4 +164,23 @@ export function createRepeatingGroupComponents(container: ILayoutGroup, renderCo
     componentArray.push(childComponents);
   }
   return componentArray;
+}
+
+export function setVariableTextKeysForRepeatingGroupComponent(
+  textResources: ITextResource[],
+  textResourceBindings: ITextResourceBindings,
+  index: number,
+) {
+  if (textResources && textResourceBindings) {
+    const bindingsWithVariablesForRepeatingGroups = Object.keys(textResourceBindings).filter((key) => {
+      const textKey = textResourceBindings[key];
+      const textResource = textResources.find((text) => text.id === textKey);
+      return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
+    });
+
+    bindingsWithVariablesForRepeatingGroups.forEach((key) => {
+      // eslint-disable-next-line no-param-reassign
+      textResourceBindings[key] = `${textResourceBindings[key]}-${index}`;
+    });
+  }
 }
