@@ -1,5 +1,6 @@
-import { getLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
-import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings } from 'src/types';
+import { getLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'altinn-shared/utils';
+import { ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
+import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings, IOption, IOptions, IValidations } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
   const simpleBinding = dataModelBindings.simpleBinding;
@@ -20,6 +21,18 @@ export const componentHasValidationMessages = (componentValidations) => {
   return hasMessages;
 };
 
+export const getComponentValidations = (
+  validations: IValidations,
+  componentId: string,
+  pageId: string,
+) => {
+  if (validations[pageId]) {
+    return validations[pageId][componentId];
+  }
+
+  return undefined;
+};
+
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
   if (dataModelBindings.simpleBinding) {
     const formDataVal = formData[dataModelBindings.simpleBinding];
@@ -36,6 +49,67 @@ export const getFormDataForComponent = (formData: any, dataModelBindings: IDataM
     }
   });
   return formDataObj;
+};
+
+export const getDisplayFormDataForComponent = (
+  formData: any,
+  component: ILayoutComponent,
+  textResources: ITextResource[],
+  options: IOptions,
+) => {
+  if (component.dataModelBindings.simpleBinding) {
+    return getDisplayFormData(
+      component.dataModelBindings.simpleBinding,
+      component,
+      formData,
+      options,
+      textResources,
+    );
+  }
+
+  const formDataObj = {};
+  Object.keys(component.dataModelBindings).forEach((key: any) => {
+    const binding = component.dataModelBindings[key];
+    formDataObj[key] = getDisplayFormData(binding, component, formData, options, textResources);
+  });
+  return formDataObj;
+};
+
+export const getDisplayFormData = (
+  dataModelBinding: string,
+  component: ILayoutComponent,
+  formData: any,
+  options: IOptions,
+  textResources: ITextResource[],
+) => {
+  const formDataValue = formData[dataModelBinding] || '';
+  if (formDataValue) {
+    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string;
+      if (selectionComponent?.options) {
+        label = selectionComponent.options.find((option: IOption) => option.value === formDataValue)?.label;
+      } else if (selectionComponent.optionsId) {
+        label =
+          options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formDataValue)?.label;
+      }
+      return getTextResourceByKey(label, textResources) || '';
+    }
+  }
+  return formDataValue;
+};
+
+export const getFormDataForComponentInRepeatingGroup = (
+  formData: any,
+  component: ILayoutComponent,
+  index: number,
+  groupDataModelBinding: string,
+  textResources: ITextResource[],
+  options: IOptions,
+) => {
+  const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
+  const replaced = dataModelBinding.replace(groupDataModelBinding, `${groupDataModelBinding}[${index}]`);
+  return getDisplayFormData(replaced, component, formData, options, textResources);
 };
 
 export const isComponentValid = (validations: IComponentValidations): boolean => {

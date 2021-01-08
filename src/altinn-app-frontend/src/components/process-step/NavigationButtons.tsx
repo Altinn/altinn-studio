@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
 import classNames from 'classnames';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import FormLayoutActions from '../../features/form/layout/formLayoutActions';
+import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
 
 const useStyles = makeStyles({
   root: {
@@ -31,6 +31,7 @@ export function NavigationButtons(props: INavigationButtons) {
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const orderedLayoutKeys = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
+  const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const { next, previous } = useSelector(
@@ -40,13 +41,13 @@ export function NavigationButtons(props: INavigationButtons) {
     ),
   );
 
-  const nextTextKey = props.textResourceBindings?.next || 'next';
+  const nextTextKey = returnToView ? 'form_filler.back_to_summary' : props.textResourceBindings?.next || 'next';
   const backTextKey = props.textResourceBindings?.back || 'back';
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
-    setDisableBack(!previous && currentViewIndex === 0);
-    setDisableNext(!next && currentViewIndex === orderedLayoutKeys.length - 1);
+    setDisableBack(!!returnToView || (!previous && currentViewIndex === 0));
+    setDisableNext(!returnToView && !next && currentViewIndex === orderedLayoutKeys.length - 1);
   }, [currentView, orderedLayoutKeys]);
 
   const onClickPrevious = () => {
@@ -57,9 +58,9 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const goToView = next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
-    const runPageValidations = props.triggers && (props.triggers.indexOf('validatePage') > -1);
-    const runAllValidations = props.triggers && (props.triggers.indexOf('validateAllPages') > -1);
+    const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+    const runPageValidations = !returnToView && props.triggers && (props.triggers.indexOf('validatePage') > -1);
+    const runAllValidations = returnToView || (props.triggers && (props.triggers.indexOf('validateAllPages') > -1));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
     if (goToView) {
       FormLayoutActions.updateCurrentView(goToView, validations);

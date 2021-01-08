@@ -116,11 +116,14 @@ const LayoutReducer: Reducer<ILayoutState> = (
     }
 
     case ActionTypes.UPDATE_CURRENT_VIEW_FULFILLED: {
-      const { newView } = action as IUpdateCurrentViewFulfilled;
+      const { newView, returnToView } = action as IUpdateCurrentViewFulfilled;
       return update<ILayoutState>(state, {
         uiConfig: {
           currentView: {
             $set: newView,
+          },
+          returnToView: {
+            $set: returnToView,
           },
         },
       });

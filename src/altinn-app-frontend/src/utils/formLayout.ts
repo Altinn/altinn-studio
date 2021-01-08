@@ -1,7 +1,7 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable max-len */
 import { IRepeatingGroups, ILayoutNavigation } from 'src/types';
-import { ILayout, ILayoutComponent, ILayoutGroup, ILayouts } from '../features/form/layout';
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 
 /*
 * Returns the layout element with the given id, or undefined if no such element exists
@@ -90,7 +90,7 @@ function getCountForRepeatingGroup(formData: any, groupBinding: string, parentGr
   return -1;
 }
 
-export function getNextView(navOptions: ILayoutNavigation, layouts: ILayouts, currentView: string, goBack?: boolean) {
+export function getNextView(navOptions: ILayoutNavigation, layoutOrder: string[], currentView: string, goBack?: boolean) {
   let result;
   if (navOptions) {
     if (goBack && navOptions.previous) {
@@ -102,11 +102,10 @@ export function getNextView(navOptions: ILayoutNavigation, layouts: ILayouts, cu
     }
   }
 
-  if (layouts) {
-    const layoutIds = Object.keys(layouts);
-    const currentViewIndex = layoutIds.indexOf(currentView);
+  if (layoutOrder) {
+    const currentViewIndex = layoutOrder.indexOf(currentView);
     const newViewIndex = goBack ? currentViewIndex - 1 : currentViewIndex + 1;
-    result = layoutIds[newViewIndex];
+    result = layoutOrder[newViewIndex];
   }
 
   return result;
