@@ -1,15 +1,14 @@
-using System;
 using System.Threading.Tasks;
-//using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
+
+//// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic.Calculation
 {
+    /// <summary>
+    /// Represents a business logic class responsible for running calculations on an instance.
+    /// </summary>
     public class CalculationHandler
     {
-        public CalculationHandler()
-        {
-        }
-
         /// <summary>
         /// Perform calculations and update data model
         /// </summary>

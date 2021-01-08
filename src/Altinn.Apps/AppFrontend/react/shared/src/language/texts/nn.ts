@@ -37,6 +37,7 @@ export function nn() {
       body: 'Vi venter på verifikasjon, når den er på plass blir du vidaresendt.',
     },
     form_filler: {
+      back_to_summary: 'Attende til samandrag',
       error_report_header: 'Det er feil i skjema',
       error_report_description: 'Skjemaet inneheld feil eller manglar som hindrar oss frå å sende det inn. Når du har retta feila, kan du sende inn skjemaet på nytt.',
       error_required: 'Feltet er påkravd',
@@ -67,6 +68,8 @@ export function nn() {
       file_uploader_validation_error_upload: 'Noko gjekk galt under opplastinga av fila, prøv igjen seinare.',
       placeholder_receipt_header: 'Skjemaet er no fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
+      summary_item_change: 'Endre',
+      summary_go_to_correct_page: 'Gå til riktig side i skjema',
     },
     general: {
       action: 'Handling',

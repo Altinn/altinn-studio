@@ -129,7 +129,6 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
-            queryParams.Add("status.isHardDeleted", "false");
 
             string host = $"https://{_generalSettings.GetHostName}";
             string url = Request.Path;

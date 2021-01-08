@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Grid } from '@material-ui/core';
 
 import classNames = require('classnames');
 
@@ -29,7 +30,17 @@ export function MessageComponent(props: IMessageComponentProps) {
       )}
       style={props.style}
     >
-      {props.message ? props.message : props.children}
+      <Grid container spacing={2}>
+        <Grid item xs={2}>
+          <i className={classNames({
+            'fa fa-circle-exclamation': props.messageType === 'error',
+          })}
+          />
+        </Grid>
+        <Grid item xs={10}>
+          {props.message ? props.message : props.children}
+        </Grid>
+      </Grid>
     </div>
   );
 }
