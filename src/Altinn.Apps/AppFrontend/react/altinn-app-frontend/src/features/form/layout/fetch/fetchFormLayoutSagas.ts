@@ -17,7 +17,7 @@ import { getLayouytsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
-const layoutSetsSelector = (state: IRuntimeState)=> state.formLayout.layoutset;
+const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutset;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
 const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
@@ -30,8 +30,8 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
     const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId, aplicationMetadataState.dataTypes);
     if (layoutSets != null) {
-      let layoutSetId: string = getLayouytsetForDataElement(instance, dataType, layoutSets);
-      url = `${window.location.origin}/${org}/${app}/api/layouts/` + layoutSetId;
+      const layoutSetId: string = getLayouytsetForDataElement(instance, dataType, layoutSets);
+      url = `${window.location.origin}/${org}/${app}/api/layouts/${layoutSetId}`;
     }
     const layoutResponse: any = yield call(get, url);
     const layouts: ILayouts = {};
@@ -86,7 +86,15 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 
 export function* fetchFormLayoutSettingsSaga(): SagaIterator {
   try {
-    const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
+    const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
+    const instance: IInstance = yield select(instanceSelector);
+    const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
+    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId, aplicationMetadataState.dataTypes);
+    let layoutSetId: string = null;
+    if (layoutSets != null) {
+      layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
+    }
+    const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
     yield call(Actions.fetchFormLayoutSettingsFulfilled, settings);
   } catch (error) {
     if (error?.response?.status === 404) {

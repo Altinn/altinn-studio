@@ -121,8 +121,13 @@ export function getJsonSchemaUrl() {
   return `${appPath}/api/jsonschema/`;
 }
 
-export function getLayoutSettingsUrl() {
-  return `${appPath}/api/layoutsettings`;
+export function getLayoutSettingsUrl(layoutset: string) {
+  if (layoutset === null){
+    return `${appPath}/api/layoutsettings`;
+  }
+  else {
+    return `${appPath}/api/layoutsettings/${layoutset}`;
+  }
 }
 
 export function getLayoutSetsUrl() {
