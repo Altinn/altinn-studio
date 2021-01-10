@@ -10,6 +10,7 @@ import { canFormBeSaved,
   getNumberOfComponentsWithErrors,
   getNumberOfComponentsWithWarnings,
   mapDataElementValidationToRedux,
+  mergeValidationObjects,
   validateEmptyFields,
   validateFormComponents,
   validateFormData } from '../../../../utils/validation';
@@ -35,7 +36,7 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
     const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
-    const validations = validationResult.validations;
+    let validations = validationResult.validations;
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
@@ -47,19 +48,10 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
       state.formLayout.uiConfig.repeatingGroups,
     );
 
-    Object.keys(componentSpecificValidations || {}).forEach((layout: string) => {
-      if (!validations[layout]) {
-        validations[layout] = {};
-      }
-      Object.assign(validations[layout], componentSpecificValidations[layout]);
-    });
+    validations = mergeValidationObjects(validations, componentSpecificValidations);
+
     if (apiMode === 'Complete') {
-      Object.keys(emptyFieldsValidations || {}).forEach((layout: string) => {
-        if (!validations[layout]) {
-          validations[layout] = {};
-        }
-        Object.assign(validations[layout], emptyFieldsValidations[layout]);
-      });
+      validations = mergeValidationObjects(validations, emptyFieldsValidations);
     }
 
     if (canFormBeSaved(validationResult, apiMode)) {
