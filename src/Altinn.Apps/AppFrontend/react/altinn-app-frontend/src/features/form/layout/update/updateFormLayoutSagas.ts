@@ -7,7 +7,7 @@ import { AxiosRequestConfig } from 'axios';
 import { get } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved } from 'src/utils/validation';
+import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import FormLayoutActions from '../formLayoutActions';
@@ -127,18 +127,8 @@ export function* updateCurrentViewSaga({
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
       );
-      Object.keys(componentSpecificValidations || {}).forEach((layout: string) => {
-        if (!validations[layout]) {
-          validations[layout] = {};
-        }
-        Object.assign(validations[layout], componentSpecificValidations[layout]);
-      });
-      Object.keys(emptyFieldsValidations || {}).forEach((layout: string) => {
-        if (!validations[layout]) {
-          validations[layout] = {};
-        }
-        Object.assign(validations[layout], emptyFieldsValidations[layout]);
-      });
+      validations = mergeValidationObjects(validations, componentSpecificValidations);
+      validations = mergeValidationObjects(validations, emptyFieldsValidations);
       const instanceId = state.instanceData.instance.id;
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
@@ -151,7 +141,7 @@ export function* updateCurrentViewSaga({
       const layoutState: ILayoutState = state.formLayout;
       const mappedValidations =
         mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
-      validations = Object.assign(validations, mappedValidations);
+      validations = mergeValidationObjects(validations, mappedValidations);
       validationResult.validations = validations;
       if (runValidations === 'page') {
         // only store validations for the specific page

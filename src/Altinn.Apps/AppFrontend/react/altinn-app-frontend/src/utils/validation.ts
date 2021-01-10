@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-param-reassign */
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
@@ -870,4 +871,33 @@ export function repeatingGroupHasValidations(
       return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
     });
   });
+}
+
+export function mergeValidationObjects(...sources: IValidations[]): IValidations {
+  const validations: IValidations = {};
+  if (!sources || !sources.length) {
+    return validations;
+  }
+
+  sources.forEach((source: IValidations) => {
+    Object.keys(source).forEach((layout: string) => {
+      if (!validations[layout]) {
+        validations[layout] = {};
+      }
+      Object.keys(source[layout] || {}).forEach((component: string) => {
+        if (!validations[layout][component]) {
+          validations[layout][component] = {};
+        }
+        Object.keys(source[layout][component] || {}).forEach((binding: string) => {
+          if (!validations[layout][component][binding]) {
+            validations[layout][component][binding] = { errors: [], warnings: [] };
+          }
+          validations[layout][component][binding].errors = validations[layout][component][binding].errors.concat(source[layout][component][binding]?.errors);
+          validations[layout][component][binding].warnings = validations[layout][component][binding].warnings.concat(source[layout][component][binding]?.warnings);
+        });
+      });
+    });
+  });
+
+  return validations;
 }
