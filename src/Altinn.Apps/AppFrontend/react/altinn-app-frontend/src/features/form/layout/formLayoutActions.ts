@@ -15,7 +15,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   fetchFormLayoutSettingsRejected: (error: Error) => FetchForm.IFetchFormLayoutSettingsRejected;
   fetchFormLayoutSets: () => Action;
   fetchFormLayoutSetsFulfilled: (settings: ILayoutSets) => FetchForm.IFetchFormLayoutSetsFulfilled;
-  fetchFormLayoutSetsRejected: (error: Error) => FetchForm.IFetchFormLayoutSettingsRejected;
+  fetchFormLayoutSetsRejected: (error: Error) => FetchForm.IFetchFormLayoutSetsRejected;
   updateFocus: (currentComponentId: string, step?: number) => UpdateFormLayout.IUpdateFocus;
   updateFocusFulfilled: (focusComponentId: string) => UpdateFormLayout.IUpdateFocusFulfilled;
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;

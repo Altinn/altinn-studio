@@ -2,9 +2,11 @@
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
+import { IInstance } from 'altinn-shared/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
 // eslint-disable-next-line import/no-cycle
 import { GenericComponent } from '../../components/GenericComponent';
+import { ILayoutSets, ILayoutSet } from '../../types';
 
 export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutComponent {
   let component: ILayoutComponent;
@@ -114,4 +116,19 @@ export function setupGroupComponents(components: (ILayoutComponent | ILayoutGrou
     };
   });
   return childComponents;
+}
+
+export function getLayouytsetForDataElement(instance: IInstance, datatype: string, layoutsets: ILayoutSets) {
+  let foundLayout: string;
+  const currentTaskId = instance.process.currentTask.elementId;
+  layoutsets.sets.forEach((layoutset: ILayoutSet) => {
+    if (layoutset.dataType === datatype) {
+      layoutset.task.forEach((taskfound: string) => {
+        if (taskfound === currentTaskId) {
+          foundLayout = layoutset.id;
+        }
+      });
+    }
+  });
+  return foundLayout;
 }

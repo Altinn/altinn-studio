@@ -1,5 +1,5 @@
 import { IApplication } from '../types';
-import { IInstance } from '../types';
+import { IInstance  } from '../types';
 
 export const getCurrentTaskDataElementId = (appMetaData: IApplication, instance: IInstance) => {
   const currentTaskId = instance.process.currentTask.elementId;

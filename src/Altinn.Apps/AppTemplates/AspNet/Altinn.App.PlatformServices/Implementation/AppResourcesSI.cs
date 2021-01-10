@@ -290,7 +290,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public string GetLayoutSets()
         {
-            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
             string filedata = null;
             if (File.Exists(filename))
             {
@@ -305,7 +305,7 @@ namespace Altinn.App.Services.Implementation
         {
             Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-            string layoutsPath = _settings.AppBasePath + _settings.UiFolder + id;
+            string layoutsPath = _settings.AppBasePath + _settings.UiFolder + id + "/layouts/";
             if (Directory.Exists(layoutsPath))
             {
                 foreach (string file in Directory.GetFiles(layoutsPath))
