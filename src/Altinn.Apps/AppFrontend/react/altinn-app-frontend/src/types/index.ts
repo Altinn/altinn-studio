@@ -134,10 +134,15 @@ export interface IFormTextAreaComponent extends IFormComponent { }
 
 export interface ILayoutSettings {
   pages: IPagesSettings;
+  components: IComponents;
 }
 
 export interface IPagesSettings {
   order: string[];
+}
+
+export interface IComponents {
+  excludeFromPdf: string[];
 }
 
 export interface ILayoutNavigation {
