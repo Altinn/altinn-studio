@@ -188,7 +188,7 @@ export function en() {
       is_sent: 'is submitted',
       receipt: 'Receipt',
       receiver: 'Receiver',
-      reference_number: 'Reference number:',
+      reference_number: 'Reference number',
       sender: 'Sender',
       sent_content: 'The following is submitted:',
     },

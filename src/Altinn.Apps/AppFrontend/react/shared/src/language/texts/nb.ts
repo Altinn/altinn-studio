@@ -188,7 +188,7 @@ export function nb() {
       is_sent: 'er sendt inn',
       receipt: 'Kvittering',
       receiver: 'Mottaker',
-      reference_number: 'Referansenummer:',
+      reference_number: 'Referansenummer',
       sender: 'Avsender',
       sent_content: 'Følgende er sendt inn:',
     },
