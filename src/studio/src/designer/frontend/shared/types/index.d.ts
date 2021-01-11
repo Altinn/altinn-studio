@@ -150,14 +150,14 @@ export interface IParty {
 
 export interface ILayoutSettings {
   pages: IPagesSettings;
-  components: IComponents;
+  components: IComponentsSettings;
 }
 
 export interface IPagesSettings {
   order: [];
 }
 
-export interface IComponents {
+export interface IComponentsSettings {
   excludeFromPdf: string[];
 }
 
