@@ -4,6 +4,9 @@ const moduleName: string = 'FORM_DESIGNER';
 export const ADD_FORM_COMPONENT: string = `${moduleName}.ADD_FORM_COMPONENT`;
 export const ADD_FORM_COMPONENT_FULFILLED: string = `${moduleName}.ADD_FORM_COMPONENT_FULFILLED`;
 export const ADD_FORM_COMPONENT_REJECTED: string = `${moduleName}.ADD_FORM_COMPONENT_REJECTED`;
+export const ADD_FORM_COMPONENTS: string = `${moduleName}.ADD_FORM_COMPONENTS`;
+export const ADD_FORM_COMPONENTS_FULFILLED: string = `${moduleName}.ADD_FORM_COMPONENTS_FULFILLED`;
+export const ADD_FORM_COMPONENTS_REJECTED: string = `${moduleName}.ADD_FORM_COMPONENTS_REJECTED`;
 
 // Delete form components actions
 export const DELETE_FORM_COMPONENTS: string = `${moduleName}.DELETE_FORM_COMPONENTS`;
