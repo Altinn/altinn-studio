@@ -1,28 +1,19 @@
 /* eslint-disable import/no-cycle */
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { put, select, takeLatest } from 'redux-saga/effects';
 import { v4 as uuidv4 } from 'uuid';
 import { SagaIterator } from 'redux-saga';
-import { addWidget, addWidgetFulfilled, addWidgetRejected, IAddWidgetAction, IAddWidgetActionFulfilled } from './addWidgetActions';
+import { FormLayoutActions } from '../formLayout/formLayoutSlice';
+import { IAddWidgetAction } from '../formDesignerTypes';
 import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
-import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
 import { addTextResources } from '../../appData/textResources/textResourcesSlice';
-
-export interface IAddWidget {
-  payload: IAddWidgetAction;
-  type: string;
-}
-
-export interface IAddWidgetFulfilled {
-  payload: IAddWidgetActionFulfilled;
-  type: string;
-}
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const selectCurrentLayoutId = (state: IAppState): string => state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) => {
   return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 };
 
-function* addWidgetSaga(action: IAddWidget): SagaIterator {
+function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
   try {
     const {
       widget,
@@ -43,7 +34,7 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
     });
     containerOrder.splice(position, 0, ...ids);
 
-    yield put(addWidgetFulfilled({
+    yield put(FormLayoutActions.addWidgetFulfilled({
       components,
       position,
       containerId,
@@ -51,16 +42,16 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
       containerOrder,
     }));
 
-    yield call(FormDesignerActionDispatchers.saveFormLayout);
+    yield put(FormLayoutActions.saveFormLayout());
 
     if (widget.texts && Object.keys(widget.texts).length > 0) {
       yield put(addTextResources({ textResources: widget.texts }));
     }
   } catch (error) {
-    yield put(addWidgetRejected({ error }));
+    yield put(FormLayoutActions.addWidgetRejected({ error }));
   }
 }
 
 export function* watchAddWidgetSaga(): SagaIterator {
-  yield takeLatest(addWidget.type, addWidgetSaga);
+  yield takeLatest(FormLayoutActions.addWidget, addWidgetSaga);
 }

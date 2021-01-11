@@ -2,18 +2,25 @@
 import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
-interface IDesignerPreviewProps {
+interface IDesignerPreviewProvidedProps {
+  dispatch: any;
+}
+
+interface IDesignerPreviewProps extends IDesignerPreviewProvidedProps {
   layoutOrder: IFormLayoutOrder;
   order: IFormLayoutOrder;
   activeList: any[];
 }
 
-interface IDesignerPreviewState extends IDesignerPreviewProps {
+interface IDesignerPreviewState {
+  layoutOrder: IFormLayoutOrder;
+  order: IFormLayoutOrder;
+  activeList: any[];
   isDragging: boolean;
 }
 
@@ -182,25 +189,31 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropContainer = () => {
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      this.state.layoutOrder,
-    );
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.updateFormComponentOrder({ updatedOrder: this.state.layoutOrder }));
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
+    dispatch(FormLayoutActions.updateActiveListOrder({
+      containerList: this.props.activeList,
+      orderList: this.props.order as any,
+    }));
   }
 
   public dropComponent = () => {
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.updateFormComponentOrder({ updatedOrder: this.state.layoutOrder }));
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
+    dispatch(FormLayoutActions.updateActiveListOrder({
+      containerList: this.props.activeList,
+      orderList: this.props.order as any,
+    }));
   }
 
   public render(): JSX.Element {
@@ -239,6 +252,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
 }
 const mapsStateToProps = (
   state: IAppState,
+  props: IDesignerPreviewProvidedProps,
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const selectedLayout = state.formDesigner.layout.selectedLayout;
@@ -246,6 +260,7 @@ const mapsStateToProps = (
     layoutOrder: JSON.parse(JSON.stringify(state.formDesigner.layout.layouts[selectedLayout]?.order || {})),
     order: GetLayoutOrderSelector(state),
     activeList: state.formDesigner.layout.activeList,
+    dispatch: props.dispatch,
   };
 };
 

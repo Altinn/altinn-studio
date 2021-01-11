@@ -9,11 +9,11 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
@@ -149,13 +149,7 @@ function FormDesigner() {
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
   React.useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-
-    FormDesignerActionDispatchers.fetchFormLayout(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
-    );
-
+    dispatch(FormLayoutActions.fetchFormLayout());
     dispatch(fetchServiceConfiguration());
   }, []);
 
@@ -227,7 +221,7 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView />
+              <DesignView dispatch={null} />
               {codeEditorOpen ?
                 renderLogicEditor()
                 : null}

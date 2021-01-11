@@ -1,20 +1,21 @@
 import { SagaIterator } from 'redux-saga';
 import { put, select, takeLatest } from 'redux-saga/effects';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { IConditionalRenderingState } from '../serviceConfigurationTypes';
-import * as FormDesignerActionType from '../../../actions/formDesignerActions/formDesignerActionTypes';
-import * as FormDesignerActions from '../../../actions/formDesignerActions/actions';
 import { setConditionalRenderingConnections } from '../serviceConfigurationSlice';
 import { saveServiceConfiguration } from '../serviceConfigurationSlice';
+import { IUpdateFormComponentIdAction } from '../../formDesigner/formDesignerTypes';
+import { FormLayoutActions } from '../../formDesigner/formLayout/formLayoutSlice';
 
 const selectConditionalRuleConnection = (state: IAppState): any => state.serviceConfigurations.conditionalRendering;
 
-export function* updateConditionalRenderingConnectedIdsSaga({ currentId, newId }:
-  FormDesignerActions.IUpdateFormComponentIdFulfilledAction | FormDesignerActions.IUpdateContainerIdFulfilled)
-  : SagaIterator {
+export function* updateConditionalRenderingConnectedIdsSaga({ payload }:
+  PayloadAction<IUpdateFormComponentIdAction>): SagaIterator {
   try {
     /*
       If a component/container has updated the id this change should be reflected in the conditional rendering rules
     */
+    const { currentId, newId } = payload;
     const conditionalRenderingState: IConditionalRenderingState = yield select(selectConditionalRuleConnection);
     let updated: boolean = false;
     Object.keys(conditionalRenderingState).forEach((id: string) => {
@@ -37,7 +38,7 @@ export function* updateConditionalRenderingConnectedIdsSaga({ currentId, newId }
 
 export function* watchUpdateConditionalRenderingConnectedIdsSaga(): SagaIterator {
   yield takeLatest([
-    FormDesignerActionType.UPDATE_FORM_COMPONENT_ID_FULFILLED,
-    FormDesignerActionType.UPDATE_CONTAINER_ID_FULFILLED,
+    FormLayoutActions.updateFormComponentId,
+    FormLayoutActions.updateContainerId,
   ], updateConditionalRenderingConnectedIdsSaga);
 }

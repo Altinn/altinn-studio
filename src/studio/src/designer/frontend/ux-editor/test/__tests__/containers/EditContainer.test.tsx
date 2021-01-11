@@ -2,20 +2,22 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
 import { Edit, EditContainer } from '../../../containers/EditContainer';
+import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 
 describe('>>> containers/EditContainer', () => {
   let mockId: string;
   let mockComponent: any;
   let mockHandleActiveListChange: (obj: any) => any;
   let mockStore: any;
+  let dispatch: any;
 
   beforeEach(() => {
     const createStore = configureStore();
+    dispatch = useDispatch();
     const initialState = {
       appData: {
         language: {
@@ -94,9 +96,9 @@ describe('>>> containers/EditContainer', () => {
     };
     mockHandleActiveListChange = (obj: any) => {
       if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-        FormDesignerActionDispatchers.deleteActiveListAction();
+        dispatch(FormLayoutActions.deleteActiveList());
       } else {
-        FormDesignerActionDispatchers.updateActiveList(obj, []);
+        dispatch(FormLayoutActions.updateActiveList({ listItem: obj, containerList: [] }));
       }
     };
     mockStore = createStore(initialState);
@@ -111,6 +113,7 @@ describe('>>> containers/EditContainer', () => {
           lastInActiveList={false}
           sendItemToParent={mockHandleActiveListChange}
           singleSelected={false}
+          dispatch={dispatch}
         >
           <div />
         </EditContainer>
@@ -128,6 +131,7 @@ describe('>>> containers/EditContainer', () => {
           lastInActiveList={false}
           sendItemToParent={mockHandleActiveListChange}
           singleSelected={false}
+          dispatch={dispatch}
         >
           <div />
         </EditContainer>
@@ -152,13 +156,14 @@ describe('>>> containers/EditContainer', () => {
           lastInActiveList={false}
           sendItemToParent={mockHandleActiveListChange}
           singleSelected={false}
+          dispatch={dispatch}
         >
           <div />
         </EditContainer>
       </Provider>,
     );
     const instance = mountedEditContainer.find('Edit').instance() as Edit;
-    instance.setState({isEditMode: true});
+    instance.setState({ isEditMode: true });
     instance.forceUpdate();
     mountedEditContainer.update();
     /* Check if html has updated */
@@ -166,7 +171,7 @@ describe('>>> containers/EditContainer', () => {
     expect(mountedEditContainer.find('Edit').find('i').last().hasClass('fa-circlecheck')).toEqual(true);
 
     /* Click on checkBtn */
-    instance.setState({component: {
+    instance.setState({ component: {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       dataModelBindings: {},
       readOnly: false,
@@ -175,7 +180,7 @@ describe('>>> containers/EditContainer', () => {
         title: 'Input',
       },
       type: 'Input',
-    }});
+    } });
     instance.forceUpdate();
     mountedEditContainer.update();
     const checkBtn = mountedEditContainer.find('Edit').find('button').last();
@@ -193,6 +198,7 @@ describe('>>> containers/EditContainer', () => {
           lastInActiveList={false}
           sendItemToParent={mockHandleActiveListChange}
           singleSelected={false}
+          dispatch={dispatch}
         >
           <div />
         </EditContainer>
@@ -213,7 +219,7 @@ describe('>>> containers/EditContainer', () => {
           title: 'Input',
         },
         type: 'Input',
-      }
+      },
     });
     instance.forceUpdate();
     mountedEditContainer.update();

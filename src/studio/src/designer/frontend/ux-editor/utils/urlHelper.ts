@@ -1,6 +1,10 @@
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
 const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
 
+export const getFetchFormLayoutUrl = (): string => {
+  return `${basePath}/UIEditor/GetFormLayout`;
+};
+
 export const getSaveFormLayoutUrl = (layoutName: string): string => {
   return `${basePath}/UIEditor/SaveFormLayout/${layoutName}`;
 };

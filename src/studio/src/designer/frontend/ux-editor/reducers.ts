@@ -1,12 +1,12 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import appDataReducer, { IAppDataState } from '../features/appData/appDataReducers';
-import errorReducer, { IErrorState } from '../features/error/errorSlice';
+import appDataReducer, { IAppDataState } from './features/appData/appDataReducers';
+import errorReducer, { IErrorState } from './features/error/errorSlice';
 // eslint-disable-next-line import/no-cycle
-import formDesignerReducer, { IFormDesignerState } from './formDesignerReducer';
-import serviceConfigurationReducer from '../features/serviceConfigurations/serviceConfigurationSlice';
-import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
-import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from '../features/thirdPartyComponents/thirdPartyComponentSlice';
-import widgetsReducer, { IWidgetState } from '../features/widgets/widgetsSlice';
+import formDesignerReducer, { IFormDesignerState } from './features/formDesigner/formDesignerReducer';
+import serviceConfigurationReducer from './features/serviceConfigurations/serviceConfigurationSlice';
+import { IServiceConfigurationState } from './features/serviceConfigurations/serviceConfigurationTypes';
+import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from './features/thirdPartyComponents/thirdPartyComponentSlice';
+import widgetsReducer, { IWidgetState } from './features/widgets/widgetsSlice';
 
 export interface IReducers
   extends IFormDesignerNameSpace<

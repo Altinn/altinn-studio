@@ -3,9 +3,9 @@ import { hot } from 'react-hot-loader';
 import postMessages from 'app-shared/utils/postMessages';
 import { Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
+import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { loadTextResources } from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { getLoadTextResourcesUrl } from './utils/urlHelper';
@@ -30,23 +30,14 @@ export function App() {
   const fetchFiles = () => {
     const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
-
-    // ALTINN STUDIO
-    // Editor
-
-    // Fetch data model
     dispatch(fetchDataModel());
-    // Fetch form layout
-    formDesignerActionDispatchers.fetchFormLayout(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
-    );
+    dispatch(FormLayoutActions.fetchFormLayout());
 
     const languageCode = 'nb';
     dispatch(loadTextResources({ url: getLoadTextResourcesUrl(languageCode) }));
     dispatch(fetchServiceConfiguration());
     dispatch(fetchRuleModel());
 
-    // Fetch thirdParty Components
     const location = `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`;
     dispatch(fetchThirdPartyComponents({ location }));
     dispatch(fetchLanguage({ languageCode }));

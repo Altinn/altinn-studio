@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 import { createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { connect, useDispatch } from 'react-redux';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
@@ -46,12 +46,9 @@ export interface IFormElementState {
   wrapperRef: any;
 }
 
-/**
- * The component constructur
- */
-
 const FormComponent = (props: IFormElementProps) => {
   const [wrapperRef, setWrapperRef] = React.useState(null);
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
     window.addEventListener('mousedown', handleClick);
@@ -72,7 +69,7 @@ const FormComponent = (props: IFormElementProps) => {
         const key: any = Object.keys(props.order)[0];
         const order = props.order[key].indexOf(props.id);
 
-        if (wrapperRef && !wrapperRef.contains(event.target) &&
+        if (wrapperRef && !wrapperRef.contains(e.target) &&
           order === 0) {
           handleActiveListChange({});
         }
@@ -126,9 +123,9 @@ const FormComponent = (props: IFormElementProps) => {
 
   const handleActiveListChange = (obj: any) => {
     if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-      FormDesignerActionDispatchers.deleteActiveListAction();
+      dispatch(FormLayoutActions.deleteActiveList());
     } else {
-      FormDesignerActionDispatchers.updateActiveList(obj, props.activeList);
+      dispatch(FormLayoutActions.updateActiveList({ listItem: obj, containerList: props.activeList }));
     }
     props.sendListToParent(props.activeList);
   };
@@ -151,6 +148,7 @@ const FormComponent = (props: IFormElementProps) => {
         sendItemToParent={handleActiveListChange}
         singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
+        dispatch={dispatch}
       >
         <div onClick={disableEditOnClickForAddedComponent}>
           {renderLabel()}

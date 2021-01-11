@@ -4,12 +4,12 @@ import { createStyles, Grid, IconButton, ListItem, withStyles } from '@material-
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons } from '../components';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 const styles = createStyles({
   active: {
@@ -152,17 +152,15 @@ export interface IEditContainerProvidedProps {
   lastInActiveList: boolean;
   sendItemToParent: any;
   classes: any;
+  dispatch: any;
   singleSelected: boolean;
   partOfGroup?: boolean;
 }
 export interface IEditContainerProps extends IEditContainerProvidedProps {
-  id: string;
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
   language: any;
   components: any;
-  firstInActiveList: boolean;
-  lastInActiveList: boolean;
   activeList: any;
   orderList: any[];
 }
@@ -215,12 +213,13 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
 
   public handleComponentDelete = (e: any): void => {
     const activeListLength = this.props.activeList.length;
+    const { dispatch } = this.props;
     if (activeListLength > 1) {
-      FormDesignerActionDispatchers.deleteFormComponents(this.props.activeList);
+      dispatch(FormLayoutActions.deleteFormComponents({ components: this.props.activeList }));
     } else {
-      FormDesignerActionDispatchers.deleteFormComponents([this.props.id]);
+      dispatch(FormLayoutActions.deleteFormComponents({ components: [this.props.id] }));
     }
-    FormDesignerActionDispatchers.deleteActiveListAction();
+    dispatch(FormLayoutActions.deleteActiveList());
     e.stopPropagation();
   }
 
@@ -260,6 +259,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
   }
 
   public handleSave = (): void => {
+    const { dispatch } = this.props;
     this.setState({
       isEditMode: false,
       listItem: {
@@ -273,27 +273,26 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
         this.handleSaveChange(this.state.component);
       }
       if (this.props.id !== this.state.component.id) {
-        FormDesignerActionDispatchers.updateFormComponentId(this.props.id, this.state.component.id);
+        dispatch(FormLayoutActions.updateFormComponentId({ currentId: this.props.id, newId: this.state.component.id }));
       }
       this.props.sendItemToParent(this.state.listItem);
-      FormDesignerActionDispatchers.deleteActiveListAction();
+      dispatch(FormLayoutActions.deleteActiveList());
     });
   }
 
   public handleDiscard = (): void => {
+    const { dispatch } = this.props;
     this.setState({
       component: { ...this.props.component },
       isEditMode: false,
     });
-    FormDesignerActionDispatchers.deleteActiveListAction();
+    dispatch(FormLayoutActions.deleteActiveList());
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
     const { id, ...rest } = callbackComponent;
-    FormDesignerActionDispatchers.updateFormComponent(
-      rest,
-      this.props.id,
-    );
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.updateFormComponent({ id: this.props.id, updatedComponent: rest }));
   }
 
   public handleTitleChange = (e: any): void => {
@@ -483,6 +482,7 @@ const makeMapStateToProps = () => {
       component: props.component,
       components: GetLayoutComponentsSelector(state),
       dataModel: state.appData.dataModel.model,
+      dispatch: props.dispatch,
       firstInActiveList: props.firstInActiveList,
       sendItemToParent: props.sendItemToParent,
       id: props.id,
@@ -496,4 +496,7 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export const EditContainer = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(Edit));
+const connected = connect(makeMapStateToProps)(Edit);
+const styled = withStyles(styles, { withTheme: true })(connected);
+
+export const EditContainer = styled;

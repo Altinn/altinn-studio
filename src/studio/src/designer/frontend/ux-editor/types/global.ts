@@ -1,7 +1,7 @@
 import { IWidgetState } from '../features/widgets/widgetsSlice';
 import { IAppDataState } from '../features/appData/appDataReducers';
 import { IErrorState } from '../features/error/errorSlice';
-import { IFormDesignerState } from '../reducers/formDesignerReducer';
+import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { IThirdPartyComponentsState } from '../features/thirdPartyComponents/thirdPartyComponentSlice';
 

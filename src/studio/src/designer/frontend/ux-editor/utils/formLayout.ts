@@ -5,10 +5,16 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
 import { useDispatch } from 'react-redux';
 import { IToolbarElement, LayoutItemType } from '../containers/Toolbar';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { addWidget } from '../features/formLayout/widgets/addWidgetActions';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { IComponent, ComponentTypes } from '../components';
 import { getComponentTitleByComponentType } from './language';
+
+const {
+  addFormComponent,
+  addFormContainer,
+  addWidget,
+  updateActiveListOrder,
+} = FormLayoutActions;
 
 export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
   const convertedLayout: IFormLayout = {
@@ -162,7 +168,7 @@ export const mapWidgetToToolbarElement = (
         position,
         containerId,
       }));
-      FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
+      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
     },
   };
 };
@@ -174,42 +180,46 @@ export const mapComponentToToolbarElement = (
   order: any[],
 ): IToolbarElement => {
   const customProperties = c.customProperties ? c.customProperties : {};
+  const dispatch = useDispatch();
   return {
     label: c.name,
     icon: c.Icon,
     type: c.name,
     actionMethod: (c.name === ComponentTypes.Group) ? addContainerToLayout :
       (containerId: string, position: number) => {
-        FormDesignerActionDispatchers.addFormComponent({
-          type: c.name,
-          itemType: LayoutItemType.Component,
-          textResourceBindings: {
-            title: c.name === 'Button' ?
-              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
-              : getComponentTitleByComponentType(c.name, language),
+        dispatch(addFormComponent({
+          component: {
+            type: c.name,
+            itemType: LayoutItemType.Component,
+            textResourceBindings: {
+              title: c.name === 'Button' ?
+                getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
+                : getComponentTitleByComponentType(c.name, language),
+            },
+            dataModelBindings: {},
+            ...JSON.parse(JSON.stringify(customProperties)),
           },
-          dataModelBindings: {},
-          ...JSON.parse(JSON.stringify(customProperties)),
-        },
-        position,
-        containerId);
-        FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
+          position,
+          containerId,
+        }));
+        dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
       },
   } as IToolbarElement;
 };
 
 export const addContainerToLayout = (containerId: string, index: number) => {
-  FormDesignerActionDispatchers.addFormContainer(
-    {
+  const dispatch = useDispatch();
+  dispatch(addFormContainer({
+    container: {
       maxCount: 0,
       dataModelBindings: {},
       itemType: 'CONTAINER',
     } as ICreateFormContainer,
-    null,
-    containerId,
-    null,
-    index,
-  );
+    positionAfterId: null,
+    addToId: containerId,
+    callback: null,
+    destinationIndex: index,
+  }));
 };
 
 export function idExists(

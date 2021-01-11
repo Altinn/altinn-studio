@@ -8,7 +8,7 @@ import {
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 // eslint-disable-next-line import/no-cycle
-import reducers from '../reducers';
+import reducers from './reducers';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 export const store: Store<IAppState> = configureStore();
