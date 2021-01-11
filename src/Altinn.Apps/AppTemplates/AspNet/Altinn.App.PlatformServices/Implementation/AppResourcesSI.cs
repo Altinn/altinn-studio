@@ -331,5 +331,31 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
+
+        /// <inheritdoc />
+        public byte[] GetRuleConfigurationForSet(string id)
+        {
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleConfigurationJSONFileName);
+            byte[] filedata = new byte[0];
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllBytes(filename);
+            }
+
+            return filedata;
+        }
+
+        /// <inheritdoc />
+        public byte[] GetRuleHandlerForSet(string id)
+        {
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleHandlerFileName);
+            byte[] filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllBytes(filename);
+            }
+
+            return filedata;
+        }
     }
 }

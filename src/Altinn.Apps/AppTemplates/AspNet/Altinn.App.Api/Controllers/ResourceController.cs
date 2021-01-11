@@ -194,5 +194,45 @@ namespace Altinn.App.Api.Controllers
             return Ok(settings);
         }
 
+        /// <summary>
+        /// Get the rule settings
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>A collection of FormLayout objects in JSON format.</returns>
+        /// </summary>
+        [HttpGet]
+        [Route("{org}/{app}/api/rulehandler/{id}")]
+        public ActionResult Rulehandler(string org, string app, string id)
+        {
+            byte[] fileContent = _appResourceService.GetRuleHandlerForSet(id);
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".ts"));
+            }
+
+            return StatusCode(404);
+        }
+
+        /// <summary>
+        /// Get the ruleconfiguration.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/ruleconfiguration/{id}")]
+        public ActionResult RuleConfiguration(string org, string app, string id)
+        {
+            byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
+
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
+            }
+
+            return StatusCode(404);
+        }
     }
 }

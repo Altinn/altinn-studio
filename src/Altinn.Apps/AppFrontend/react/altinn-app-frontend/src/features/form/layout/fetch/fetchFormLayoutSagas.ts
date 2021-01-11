@@ -28,12 +28,14 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     const instance: IInstance = yield select(instanceSelector);
     const formDataState: IFormDataState = yield select(formDataSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId, aplicationMetadataState.dataTypes);
+    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
+      aplicationMetadataState.dataTypes);
+    let apiUrl: string = url;
     if (layoutSets != null) {
       const layoutSetId: string = getLayouytsetForDataElement(instance, dataType, layoutSets);
-      url = `${window.location.origin}/${org}/${app}/api/layouts/${layoutSetId}`;
+      apiUrl = `${window.location.origin}/${org}/${app}/api/layouts/${layoutSetId}`;
     }
-    const layoutResponse: any = yield call(get, url);
+    const layoutResponse: any = yield call(get, apiUrl);
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
     let autoSave: boolean;
@@ -89,7 +91,8 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId, aplicationMetadataState.dataTypes);
+    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
+      aplicationMetadataState.dataTypes);
     let layoutSetId: string = null;
     if (layoutSets != null) {
       layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);

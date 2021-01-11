@@ -122,12 +122,10 @@ export function getJsonSchemaUrl() {
 }
 
 export function getLayoutSettingsUrl(layoutset: string) {
-  if (layoutset === null){
+  if (layoutset === null) {
     return `${appPath}/api/layoutsettings`;
   }
-  else {
-    return `${appPath}/api/layoutsettings/${layoutset}`;
-  }
+  return `${appPath}/api/layoutsettings/${layoutset}`;
 }
 
 export function getLayoutSetsUrl() {
