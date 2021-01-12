@@ -123,12 +123,11 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const RenderLabel = () => {
     return (
-      <Label
-        labelText={texts.title}
-        helpText={texts.help}
+      <RenderLabelScoped
+        props={props}
+        passThroughProps={passThroughProps}
         language={language}
-        {...props}
-        {...passThroughProps}
+        texts={texts}
       />
     );
   };
@@ -139,6 +138,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
     return (
       <Description
+        key={`description-${props.id}`}
         description={texts.description}
         id={id}
         {...passThroughProps}
@@ -149,6 +149,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
+        key={`legend-${props.id}`}
         labelText={texts.title}
         descriptionText={texts.description}
         helpText={texts.help}
@@ -208,13 +209,18 @@ export function GenericComponent(props: IGenericComponentProps) {
       {noLabelComponents.includes(props.type) ?
         null
         :
-        <RenderLabel />
+        <RenderLabelScoped
+          props={props}
+          passThroughProps={passThroughProps}
+          language={language}
+          texts={texts}
+        />
       }
 
       {noLabelComponents.includes(props.type) ?
         null
         :
-        <RenderDescription/>
+        <RenderDescription key={`description-${props.id}`} />
       }
 
       <RenderComponent
@@ -222,10 +228,30 @@ export function GenericComponent(props: IGenericComponentProps) {
       />
 
       {isSimple && hasValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
       }
     </>
   );
 }
+
+interface IRenderLabelProps {
+  texts: any;
+  language: any;
+  props: any;
+  passThroughProps: any;
+}
+
+const RenderLabelScoped = (props: IRenderLabelProps) => {
+  return (
+    <Label
+      key={`label-${props.props.id}`}
+      labelText={props.texts.title}
+      helpText={props.texts.help}
+      language={props.language}
+      {...props.props}
+      {...props.passThroughProps}
+    />
+  );
+};
 
 export default GenericComponent;
