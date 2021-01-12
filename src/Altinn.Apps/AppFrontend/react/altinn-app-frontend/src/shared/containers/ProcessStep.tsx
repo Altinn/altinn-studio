@@ -36,14 +36,17 @@ const ProcessStepComponent = (props) => {
   const previousFormPage: string = useSelector(
     (state: IRuntimeState) => getNextView(
       state.formLayout.uiConfig.navigationConfig[state.formLayout.uiConfig.currentView],
-      state.formLayout.layouts,
+      state.formLayout.uiConfig.layoutOrder,
       state.formLayout.uiConfig.currentView,
       true,
     ),
   );
+  const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
 
   const handleBackArrowButton = () => {
-    if (props.step === ProcessTaskType.Data) {
+    if (returnToView) {
+      FormLayoutActions.updateCurrentView(returnToView, 'allPages');
+    } else if (props.step === ProcessTaskType.Data) {
       FormLayoutActions.updateCurrentView(previousFormPage);
     }
   };

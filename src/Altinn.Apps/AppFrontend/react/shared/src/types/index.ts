@@ -204,7 +204,8 @@ export interface ITextResource {
   id: string;
   value: string;
   unparsedValue: string;
-  variables:IVariable[];
+  variables: IVariable[];
+  repeating?: boolean;
 }
 
 export interface IVariable {

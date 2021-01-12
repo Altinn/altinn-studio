@@ -26,6 +26,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   required: boolean;
   textResourceBindings: ITextResourceBindings;
   triggers?: Triggers[];
+  formData?: any;
 }
 export interface IDataModelBindings {
   [id: string]: string;

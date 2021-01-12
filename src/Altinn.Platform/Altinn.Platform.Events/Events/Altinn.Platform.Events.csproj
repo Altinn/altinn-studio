@@ -24,7 +24,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     <PackageReference Include="Yuniql.AspNetCore" Version="1.0.2" />
     <PackageReference Include="Yuniql.PostgreSql" Version="1.0.1" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

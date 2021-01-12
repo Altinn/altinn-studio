@@ -100,10 +100,12 @@ function* updateRepeatingGroupsSaga({
   }
 }
 
-export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurrentView): SagaIterator {
+export function* updateCurrentViewSaga({
+  newView, runValidations, returnToView,
+}: IUpdateCurrentView): SagaIterator {
   try {
     if (!runValidations) {
-      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
     } else {
       const state: IRuntimeState = yield select();
       const currentDataTaskDataTypeId = getDataTaskDataTypeId(
@@ -146,10 +148,12 @@ export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurre
         validations = { [currentView]: validations[currentView] };
       }
       yield call(FormValidationActions.updateValidations, validations);
-      if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
+      if (state.formLayout.uiConfig.returnToView) {
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield call(FormLayoutActions.updateCurrentViewRejected, null);
       } else {
-        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
       }
     }
   } catch (err) {

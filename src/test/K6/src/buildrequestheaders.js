@@ -1,5 +1,5 @@
 let subscriptionKey = __ENV.subskey;
-let environment = __ENV.env;
+let environment = (__ENV.env).toLowerCase();
 let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
@@ -11,10 +11,9 @@ export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCooki
                 "Authorization": "Bearer " + altinnStudioRuntimeCookie,
                 "Content-Type": "application/octet-stream",
                 "Content-Disposition": "attachment; filename=test.pdf"
-            }            
+            }
         };
-    }
-    else {
+    } else {
         params = {
             headers: {
                 "Authorization": "Bearer " + altinnStudioRuntimeCookie,
