@@ -1,7 +1,7 @@
 import 'jest';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
 import { IRepeatingGroups } from '../../src/types';
-import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from '../../src/utils/formLayout';
+import { createRepeatingGroupComponents, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from '../../src/utils/formLayout';
 
 describe('>>> layout.ts', () => {
   it('+++ getRepeatingGroups should handle nested groups', () => {
@@ -72,6 +72,7 @@ describe('>>> layout.ts', () => {
     const expected = {
       Group1: {
         count: 2,
+        dataModelBinding: 'Group1',
       },
       'Group2-0': {
         count: 0,
@@ -153,9 +154,11 @@ describe('>>> layout.ts', () => {
     const expected = {
       Group1: {
         count: 3,
+        dataModelBinding: 'Group1',
       },
       Group2: {
         count: 2,
+        dataModelBinding: 'Group2',
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
@@ -207,6 +210,83 @@ describe('>>> layout.ts', () => {
         count: 3,
       },
     };
+    expect(result).toEqual(expected);
+  });
+
+  it('+++ createRepeatingGroupComponents should handle text resources with variables', () => {
+    const testLayout: ILayout = [
+      {
+        id: 'Group1',
+        type: 'group',
+        dataModelBindings: {
+          group: 'Group1',
+        },
+        children: [
+          'field1',
+        ],
+        maxCount: 3,
+      } as ILayoutGroup,
+      {
+        id: 'field1',
+        type: 'Input',
+        dataModelBindings: {
+          simple: 'Group1.prop1',
+        },
+        textResourceBindings: {
+          title: 'title-w-variable',
+        },
+        readOnly: false,
+        required: false,
+        disabled: false,
+      } as ILayoutComponent,
+    ];
+    const mockTextResources = [
+      {
+        id: 'title-w-variable',
+        value: 'Test 123 {0}',
+        unparsedValue: 'Test 123 {0}',
+        variables: [{
+          key: 'Group1[{0}].prop1',
+          dataSource: 'dataModel.default',
+        }],
+      },
+    ];
+
+    const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
+    const component : ILayoutComponent = testLayout[1] as ILayoutComponent;
+    const expected = [
+      [
+        {
+          ...testLayout[1],
+          id: `${component.id}-0`,
+          hidden: false,
+          baseComponentId: 'field1',
+          dataModelBindings: {
+            simple: 'Group1[0].prop1',
+          },
+          textResourceBindings: {
+            title: 'title-w-variable-0',
+          },
+        },
+      ],
+      [
+        {
+          ...testLayout[1],
+          id: `${component.id}-1`,
+          hidden: false,
+          baseComponentId: 'field1',
+          dataModelBindings: {
+            simple: 'Group1[1].prop1',
+          },
+          textResourceBindings: {
+            title: 'title-w-variable-1',
+          },
+        },
+      ],
+    ];
+
+    const result = createRepeatingGroupComponents(container, [testLayout[1]], 1, mockTextResources);
+
     expect(result).toEqual(expected);
   });
 });

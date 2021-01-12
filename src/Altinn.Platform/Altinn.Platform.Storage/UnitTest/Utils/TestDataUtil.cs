@@ -14,7 +14,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         public static Instance GetInstance(int instanceOwnerId, Guid instanceGuid)
         {
             string path = GetInstancePath(instanceOwnerId, instanceGuid);
-            if(!File.Exists(path))
+            if (!File.Exists(path))
             {
                 return null;
             }

@@ -5,7 +5,7 @@ exports[`>>> components/message/ErrorPaper.tsx +++ should match snapshot 1`] = `
   className="MuiPaper-root makeStyles-paper-1 MuiPaper-elevation1"
 >
   <div
-    className="MuiGrid-root makeStyles-grid-2 MuiGrid-container MuiGrid-align-items-xs-center"
+    className="MuiGrid-root makeStyles-grid-2 MuiGrid-container MuiGrid-spacing-xs-2 MuiGrid-align-items-xs-center"
   >
     <div
       className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"

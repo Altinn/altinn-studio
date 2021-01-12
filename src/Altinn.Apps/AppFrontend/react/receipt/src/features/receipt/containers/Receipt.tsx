@@ -121,7 +121,7 @@ function Receipt(props: WithStyles<typeof styles>) {
     if (instance && application) {
       const appLogicDataTypes = application.dataTypes.filter((dataType) => !!dataType.appLogic);
 
-      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id));
+      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id), true);
       setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data, true));
     }

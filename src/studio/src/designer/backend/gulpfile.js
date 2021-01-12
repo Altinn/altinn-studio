@@ -16,10 +16,10 @@ const cleanGlobs = [
 
 
 const jsServDevFile = '../frontend/dist/app-development/app-development.js';
-const jsServDevModuleFile0 = '../frontend/dist/app-development/0.app-development.js';
-const jsServDevModuleFile1 = '../frontend/dist/app-development/1.app-development.js';
-const jsServDevModuleFile2 = '../frontend/dist/app-development/2.app-development.js';
-const jsServDevModuleFile3 = '../frontend/dist/app-development/3.app-development.js';
+const jsServDevModuleFile0 = '../frontend/dist/app-development/1.app-development.js';
+const jsServDevModuleFile1 = '../frontend/dist/app-development/2.app-development.js';
+const jsServDevModuleFile2 = '../frontend/dist/app-development/3.app-development.js';
+const jsServDevModuleFile3 = '../frontend/dist/app-development/4.app-development.js';
 const jsServDevMonacoWorker1 = '../frontend/dist/app-development/editor.worker.js';
 const jsServDevMonacoWorker2 = '../frontend/dist/app-development/ts.worker.js';
 const jsDashboardFile = '../frontend/dist/dashboard/dashboard.js';
@@ -277,9 +277,6 @@ gulp.task('default', gulp.series([
   }),
   run('npm run build', {
     cwd: '../frontend/dashboard',
-  }),
-  run('npm run build', {
-    cwd: '../frontend/ux-editor',
   }),
   'copy-files'
 ]));
