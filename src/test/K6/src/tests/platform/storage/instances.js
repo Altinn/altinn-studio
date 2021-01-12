@@ -60,9 +60,33 @@ export default function(data) {
     addErrorCount(success);
 
     //Test to get all instances for a party from storage and validate the response to have 200 as code
-    res = instances.getAllinstancesByPartyId(runtimeToken, partyId);
+    var filters = {
+        "instanceOwner.partyId": partyId
+    };
+    res = instances.getAllinstancesWithFilters(runtimeToken, filters);
     success = check(res, {
         "GET Instances by instanceOwner status is 200:": (r) => r.status === 200
+    });
+    addErrorCount(success);
+
+    //Test to get all instances with filters isArchived true and isSoftDeleted false
+    //and validate the response to have 200 as code
+    filters = {
+        "instanceOwner.partyId": partyId,
+        "status.isArchived": true,
+        "status.isSoftDeleted": false
+    };
+    res = instances.getAllinstancesWithFilters(runtimeToken, filters);
+    success = check(res, {
+        "GET Instances with filters status is 200:": (r) => r.status === 200,
+        "GET Instances isHardDeleted is false:": (r) => {
+            var responseInstances = r.json("instances");
+            return responseInstances.every(instance => instance.status.isHardDeleted == false);
+        },
+        "GET Instances isArchived is true:": (r) => {
+            var responseInstances = r.json("instances");
+            return responseInstances.every(instance => instance.status.isArchived == true);
+        }
     });
     addErrorCount(success);
 

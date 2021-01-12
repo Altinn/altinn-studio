@@ -14,9 +14,18 @@ export function shuffle(array) {
  * @returns string a string like key1=value&key2=value2
  */
 export function buildQueryParametersForEndpoint(filterParameters) {
-    var query = "";
+    var query = "?";
     Object.keys(filterParameters).forEach(function(key) {
         query += key + "=" + filterParameters[key] + "&";
     });
     return query;
 };
+
+/**
+ * @returns today's date with time 00:00:00 in ISO format
+ */
+export function todayDateInISO() {
+    var todayDateTime = new Date();
+    todayDateTime.setUTCHours(0, 0, 0, 0);
+    return todayDateTime.toISOString();
+}

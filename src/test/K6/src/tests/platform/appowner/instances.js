@@ -44,7 +44,7 @@ export function setup() {
 
 
 //Tests for platform Storage: Instances for an appowner
-export default function (data) {
+export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     var instanceId = "";
@@ -79,10 +79,33 @@ export default function (data) {
     addErrorCount(success);
 
     //Test to get an instance of an app in a specific task from storage and validate the response
-    res = instances.getAllinstancesByCurrentTask(runtimeToken, appOwner, level2App, "Task_1");
+    var filters = {
+        "appId": appOwner + "/" + level2App,
+        "process.currentTask": "Task_1"
+    };
+    res = instances.getAllinstancesWithFilters(runtimeToken, filters);
     success = check(res, {
-        "GET Instance by Current task is 200:": (r) => r.status === 200,        
+        "GET Instance by Current task is 200:": (r) => r.status === 200,
         "Instance current task is task_1:": (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === "Task_1"
+    });
+    addErrorCount(success);
+
+    //Test to get an instance of an app isArchived = false from storage and validate the response
+    filters = {
+        "appId": appOwner + "/" + level2App,
+        "status.isArchived": false
+    };
+    res = instances.getAllinstancesWithFilters(runtimeToken, filters);
+    success = check(res, {
+        "GET Instance with filters is 200:": (r) => r.status === 200,
+        "GET Instances isHardDeleted is false:": (r) => {
+            var responseInstances = r.json("instances");
+            return responseInstances.every(instance => instance.status.isHardDeleted == false);
+        },
+        "GET Instances isArchived is true:": (r) => {
+            var responseInstances = r.json("instances");
+            return responseInstances.every(instance => instance.status.isArchived == false);
+        }
     });
     addErrorCount(success);
 
