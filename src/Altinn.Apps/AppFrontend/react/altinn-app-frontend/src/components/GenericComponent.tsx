@@ -61,6 +61,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[currentView]?.[props.id], shallowEqual);
 
+  if (hidden) {
+    return null;
+  }
+
   React.useEffect(() => {
     if (props.dataModelBindings && props.type) {
       setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
@@ -77,6 +81,11 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
 
     if (props.readOnly) {
+      return;
+    }
+
+    if (formData && (formData === value || formData[key] === value)) {
+      // data unchanged, do nothing
       return;
     }
 
@@ -108,10 +117,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const internalComponentValidations = getValidationsForInternalHandling();
   if (internalComponentValidations !== null) {
     passThroughProps.componentValidations = internalComponentValidations;
-  }
-
-  if (hidden) {
-    return null;
   }
 
   const RenderComponent = components.find((componentCandidate) => componentCandidate.name === props.type).Tag;

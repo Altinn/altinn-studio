@@ -35,7 +35,7 @@ export default (props) => {
   const instanceData = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
-  const textResources: any[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const serviceName: string = useSelector((state: IRuntimeState) => getTextResourceByKey('ServiceName', state.textResources.resources));
   const process: IProcessState = useSelector((state: IRuntimeState) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
@@ -53,8 +53,8 @@ export default (props) => {
     const getHeaderText = () => {
       const appNameKey = 'ServiceName';
       let appName;
-      if (textResources) {
-        appName = getTextResourceByKey(appNameKey, textResources);
+      if (serviceName) {
+        appName = serviceName;
       }
 
       if (appName && appName === appNameKey) {
@@ -65,7 +65,7 @@ export default (props) => {
       return appName;
     };
     setAppHeader(getHeaderText());
-  }, [textResources, applicationMetadata]);
+  }, [serviceName, applicationMetadata]);
 
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
