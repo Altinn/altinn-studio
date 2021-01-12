@@ -111,7 +111,7 @@ namespace Altinn.Platform.Storage.UnitTest
             },
             Data = new List<DataElement>()
             {
-                new DataElement() { LastChangedBy= UserId_2, LastChanged = Convert.ToDateTime("2019-09-20T21:19:22.2135489Z") }
+                new DataElement() { LastChangedBy = UserId_2, LastChanged = Convert.ToDateTime("2019-09-20T21:19:22.2135489Z") }
             },
             LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),

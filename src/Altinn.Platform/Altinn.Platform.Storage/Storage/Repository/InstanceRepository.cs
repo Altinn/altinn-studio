@@ -174,22 +174,20 @@ namespace Altinn.Platform.Storage.Repository
                 string queryParameter = param.Key;
                 StringValues queryValues = param.Value;
 
+                if (queryParameter.Equals("appId"))
+                {
+                    queryBuilder = queryBuilder.Where(i => queryValues.Contains(i.AppId));
+                    continue;
+                }
+
                 foreach (string queryValue in queryValues)
                 {
                     switch (queryParameter)
                     {
                         case "size":
-                            // handled outside this, it is a valid parameter.
-                            break;
-
                         case "continuationToken":
                             // handled outside this method, it is a valid parameter.
                             break;
-
-                        case "appId":
-                            queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
-                            break;
-
                         case "org":
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
