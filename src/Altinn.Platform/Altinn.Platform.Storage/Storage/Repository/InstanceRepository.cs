@@ -248,6 +248,24 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
 
                             break;
+                        case "status.isArchivedOrSoftDeleted":
+                            if (bool.Parse(queryValue))
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Status.IsArchived || i.Status.IsSoftDeleted);
+                            }
+
+                            break;
+                        case "status.isActiveorSoftDeleted":
+                            if (bool.Parse(queryValue))
+                            {
+                                queryBuilder = queryBuilder.Where(i => !i.Status.IsArchived || i.Status.IsSoftDeleted);
+                            }
+
+                            break;
+                        case "sortBy":
+                            queryBuilder = QueryBuilderForSortBy(queryBuilder, queryValue);
+
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
@@ -380,6 +398,37 @@ namespace Altinn.Platform.Storage.Repository
 
                 // A slightly more readable variant would be to use All( != ), but All() isn't supported.
                 !i.CompleteConfirmations.Any(cc => cc.StakeholderId == queryValue));
+        }
+
+        private IQueryable<Instance> QueryBuilderForSortBy(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            string[] value = queryValue.Split(':');
+            string direction = value[0].ToLower();
+            string property = value[1];
+
+            if (!direction.Equals("desc") && !direction.Equals("asc"))
+            {
+                throw new ArgumentException($"Invalid direction for sorting: {direction}");
+            }
+
+            switch (property)
+            {
+                case "lastChanged":
+                    if (direction.Equals("desc"))
+                    {
+                        queryBuilder = queryBuilder.OrderByDescending(i => i.LastChanged);
+                    }
+                    else
+                    {
+                        queryBuilder = queryBuilder.OrderBy(i => i.LastChanged);
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentException($"Cannot sort on property: {property}");
+            }
+
+            return queryBuilder;
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
