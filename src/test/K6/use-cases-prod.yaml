@@ -8,7 +8,7 @@ trigger: none
 pr: none
 
 schedules:
-- cron: "0 * * * *"
+- cron: "*/15 * * * *"
   displayName: Bruksmønster
   branches:
     include:
