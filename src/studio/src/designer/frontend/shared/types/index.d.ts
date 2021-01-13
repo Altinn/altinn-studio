@@ -149,11 +149,17 @@ export interface IParty {
 }
 
 export interface ILayoutSettings {
-  pages: IPagesSettings;
+  $schema?: string;
+  pages?: IPagesSettings;
+  components?: IComponentsSettings;
 }
 
 export interface IPagesSettings {
-  order: [];
+  order: string[];
+}
+
+export interface IComponentsSettings {
+  exludeFromPdf: string[];
 }
 
 export interface IRepository {
