@@ -52,4 +52,9 @@
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.schema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
