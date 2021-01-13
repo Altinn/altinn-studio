@@ -1,11 +1,7 @@
 /* eslint-disable max-len */
 import * as React from 'react';
-import { Grid } from '@material-ui/core';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 // eslint-disable-next-line import/no-cycle
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
-import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { GenericComponent } from '../../components/GenericComponent';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
 
@@ -54,29 +50,14 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 }
 
 export function renderGenericComponent(component: ILayoutComponent, layout: ILayout, index: number = -1) {
-  const GetHiddenSelector = makeGetHidden();
-  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id: component.id }));
-
-  if (hidden) {
-    return null;
-  }
-
   if (component.type.toLowerCase() === 'group') {
     return renderLayoutGroup(component as unknown as ILayoutGroup, layout, index);
   }
   return (
-    <Grid
-      item={true}
-      xs={12}
-      key={`grid-${component.id}`}
-    >
-      <div key={`form-${component.id}`} className='form-group a-form-group'>
-        <GenericComponent
-          key={component.id}
-          {...component}
-        />
-      </div>
-    </Grid>
+    <GenericComponent
+      key={component.id}
+      {...component}
+    />
   );
 }
 
