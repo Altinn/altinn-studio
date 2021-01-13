@@ -169,11 +169,11 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         /// Get the form layout
+        /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The layoutset id</param>
         /// <returns>A collection of FormLayout objects in JSON format.</returns>
-        /// </summary>
         [HttpGet]
         [Route("{org}/{app}/api/layouts/{id}")]
         public ActionResult GetLayouts(string org, string app, string id)
