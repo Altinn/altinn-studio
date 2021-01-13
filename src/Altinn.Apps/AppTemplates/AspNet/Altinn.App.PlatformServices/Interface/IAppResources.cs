@@ -90,9 +90,9 @@ namespace Altinn.App.Services.Interface
         string GetLayoutSettings();
 
         /// <summary>
-        /// Gets the the layouts settings
+        /// Gets the the layout sets
         /// </summary>
-        /// <returns>The layout settings</returns>
+        /// <returns>The layout sets</returns>
         string GetLayoutSets();
 
         /// <summary>
