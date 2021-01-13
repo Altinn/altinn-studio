@@ -31,11 +31,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
         [Route("{org}/{app}/api/resource/{id}")]
+        [HttpGet]
         public IActionResult Index(string org, string app, string id)
         {
             if (id == "FormLayout.json")
             {
-                return Layouts(org, app);
+                return GetLayouts(org, app);
             }
 
             byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
@@ -54,7 +55,8 @@ namespace Altinn.App.Api.Controllers
         /// <returns>File content with content type set</returns>
         /// TODO: Figure out if this can be deleted
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
-        public IActionResult RuntimeResource(string id)
+        [HttpGet]
+        public IActionResult GetRuntimeResource(string id)
         {
             byte[] fileContent = _appResourceService.GetRuntimeResource(id);
 
@@ -74,7 +76,8 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The text resource file content or 404</returns>
         [Route("{org}/{app}/api/textresources")]
         [Obsolete("TextResources endpoint is obsolete. Use endpoint in TextsController.")]
-        public IActionResult TextResources(string org, string app)
+        [HttpGet]
+        public IActionResult GetTextResources(string org, string app)
         {
             string defaultLang = "nb";
             string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
@@ -103,7 +106,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model metadata</returns>
         [HttpGet]
         [Route("{org}/{app}/api/metadata/{id}")]
-        public ActionResult ModelMetadata([FromRoute] string org, [FromRoute] string app)
+        public ActionResult GetModelMetadata([FromRoute] string org, [FromRoute] string app)
         {
             string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
             return Ok(metadata);
@@ -116,7 +119,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model json schema.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/jsonschema/{id}")]
-        public ActionResult ModelJsonSchema([FromRoute] string id)
+        public ActionResult GetModelJsonSchema([FromRoute] string id)
         {
             string schema = _appResourceService.GetModelJsonSchema(id);
             return Ok(schema);
@@ -130,7 +133,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         [HttpGet]
         [Route("{org}/{app}/api/layouts")]
-        public ActionResult Layouts(string org, string app)
+        public ActionResult GetLayouts(string org, string app)
         {
           string layouts = _appResourceService.GetLayouts();
           return Ok(layouts);
@@ -144,21 +147,21 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/layoutsettings")]
-        public ActionResult LayoutSettings(string org, string app)
+        public ActionResult GetLayoutSettings(string org, string app)
         {
             string settings = _appResourceService.GetLayoutSettings();
             return Ok(settings);
         }
 
         /// <summary>
-        /// Get the layout settings.
+        /// Get the layout-sets
         /// </summary>
         /// <param name="org">The application owner short name</param>
         /// <param name="app">The application name</param>
         /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/layoutsets")]
-        public ActionResult LayoutSets(string org, string app)
+        public ActionResult GetLayoutSets(string org, string app)
         {
             string settings = _appResourceService.GetLayoutSets();
             return Ok(settings);
@@ -173,7 +176,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         [HttpGet]
         [Route("{org}/{app}/api/layouts/{id}")]
-        public ActionResult Layouts(string org, string app, string id)
+        public ActionResult GetLayouts(string org, string app, string id)
         {
             string layouts = _appResourceService.GetLayoutsForSet(id);
             return Ok(layouts);
@@ -188,7 +191,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/layoutsettings/{id}")]
-        public ActionResult LayoutSettings(string org, string app, string id)
+        public ActionResult GetLayoutSettings(string org, string app, string id)
         {
             string settings = _appResourceService.GetLayoutSettingsForSet(id);
             return Ok(settings);
@@ -203,7 +206,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         [HttpGet]
         [Route("{org}/{app}/api/rulehandler/{id}")]
-        public ActionResult Rulehandler(string org, string app, string id)
+        public ActionResult GetRulehandler(string org, string app, string id)
         {
             byte[] fileContent = _appResourceService.GetRuleHandlerForSet(id);
             if (fileContent != null)
@@ -223,7 +226,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/ruleconfiguration/{id}")]
-        public ActionResult RuleConfiguration(string org, string app, string id)
+        public ActionResult GetRuleConfiguration(string org, string app, string id)
         {
             byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
 
