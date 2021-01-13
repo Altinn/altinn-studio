@@ -167,10 +167,10 @@ const LayoutReducer: Reducer<ILayoutState> = (
     }
 
     case ActionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED: {
-      const { settings } = action as IFetchFormLayoutSetsFulfilled;
+      const { layoutSets } = action as IFetchFormLayoutSetsFulfilled;
       return update<ILayoutState>(state, {
         layoutset: {
-          $set: settings,
+          $set: layoutSets,
         },
       });
     }

@@ -70,7 +70,7 @@ export function fetchFormLayoutSettingsRejected(error: Error): IFetchFormLayoutS
 }
 
 export interface IFetchFormLayoutSetsFulfilled extends Action {
-  settings: ILayoutSets;
+  layoutSets: ILayoutSets;
 }
 
 export interface IFetchFormLayoutSetsRejected extends Action {
@@ -83,10 +83,10 @@ export function fetchFormLayoutSets(): Action {
   };
 }
 
-export function fetchFormLayoutSetsFulfilled(settings: ILayoutSets): IFetchFormLayoutSetsFulfilled {
+export function fetchFormLayoutSetsFulfilled(layoutSets: ILayoutSets): IFetchFormLayoutSetsFulfilled {
   return {
     type: actionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED,
-    settings,
+    layoutSets,
   };
 }
 
