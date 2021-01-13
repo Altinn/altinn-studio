@@ -61,6 +61,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[currentView]?.[props.id], shallowEqual);
 
+  if (hidden) {
+    return null;
+  }
+
   React.useEffect(() => {
     if (props.dataModelBindings && props.type) {
       setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
@@ -77,6 +81,11 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
 
     if (props.readOnly) {
+      return;
+    }
+
+    if (formData && (formData === value || formData[key] === value)) {
+      // data unchanged, do nothing
       return;
     }
 
@@ -110,20 +119,15 @@ export function GenericComponent(props: IGenericComponentProps) {
     passThroughProps.componentValidations = internalComponentValidations;
   }
 
-  if (hidden) {
-    return null;
-  }
-
   const RenderComponent = components.find((componentCandidate) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
     return (
-      <Label
-        labelText={texts.title}
-        helpText={texts.help}
+      <RenderLabelScoped
+        props={props}
+        passThroughProps={passThroughProps}
         language={language}
-        {...props}
-        {...passThroughProps}
+        texts={texts}
       />
     );
   };
@@ -134,6 +138,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
     return (
       <Description
+        key={`description-${props.id}`}
         description={texts.description}
         id={id}
         {...passThroughProps}
@@ -144,6 +149,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
+        key={`legend-${props.id}`}
         labelText={texts.title}
         descriptionText={texts.description}
         helpText={texts.help}
@@ -203,13 +209,18 @@ export function GenericComponent(props: IGenericComponentProps) {
       {noLabelComponents.includes(props.type) ?
         null
         :
-        <RenderLabel />
+        <RenderLabelScoped
+          props={props}
+          passThroughProps={passThroughProps}
+          language={language}
+          texts={texts}
+        />
       }
 
       {noLabelComponents.includes(props.type) ?
         null
         :
-        <RenderDescription/>
+        <RenderDescription key={`description-${props.id}`} />
       }
 
       <RenderComponent
@@ -217,10 +228,30 @@ export function GenericComponent(props: IGenericComponentProps) {
       />
 
       {isSimple && hasValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
       }
     </>
   );
 }
+
+interface IRenderLabelProps {
+  texts: any;
+  language: any;
+  props: any;
+  passThroughProps: any;
+}
+
+const RenderLabelScoped = (props: IRenderLabelProps) => {
+  return (
+    <Label
+      key={`label-${props.props.id}`}
+      labelText={props.texts.title}
+      helpText={props.texts.help}
+      language={props.language}
+      {...props.props}
+      {...props.passThroughProps}
+    />
+  );
+};
 
 export default GenericComponent;
