@@ -5,6 +5,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { IDataModelFieldElement, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
+import { Grid } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
 import components from '.';
@@ -61,10 +62,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[currentView]?.[props.id], shallowEqual);
 
-  if (hidden) {
-    return null;
-  }
-
   React.useEffect(() => {
     if (props.dataModelBindings && props.type) {
       setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
@@ -74,6 +71,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   React.useEffect(() => {
     setHasValidationMessages(componentHasValidationMessages(componentValidations));
   }, [componentValidations]);
+
+  if (hidden) {
+    return null;
+  }
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
@@ -205,32 +206,38 @@ export function GenericComponent(props: IGenericComponentProps) {
   ];
 
   return (
-    <>
-      {noLabelComponents.includes(props.type) ?
-        null
-        :
-        <RenderLabelScoped
-          props={props}
-          passThroughProps={passThroughProps}
-          language={language}
-          texts={texts}
+    <Grid
+      item={true}
+      xs={12}
+      key={`grid-${props.id}`}
+    >
+      <div key={`form-${props.id}`} className='form-group a-form-group'>
+        {noLabelComponents.includes(props.type) ?
+          null
+          :
+          <RenderLabelScoped
+            props={props}
+            passThroughProps={passThroughProps}
+            language={language}
+            texts={texts}
+          />
+        }
+
+        {noLabelComponents.includes(props.type) ?
+          null
+          :
+          <RenderDescription key={`description-${props.id}`} />
+        }
+
+        <RenderComponent
+          {...componentProps}
         />
-      }
 
-      {noLabelComponents.includes(props.type) ?
-        null
-        :
-        <RenderDescription key={`description-${props.id}`} />
-      }
-
-      <RenderComponent
-        {...componentProps}
-      />
-
-      {isSimple && hasValidationMessages &&
-        renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-      }
-    </>
+        {isSimple && hasValidationMessages &&
+          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        }
+      </div>
+    </Grid>
   );
 }
 
