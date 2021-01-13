@@ -123,7 +123,7 @@ export function* fetchFormLayoutSetsSaga(): SagaIterator {
     yield call(Actions.fetchFormLayoutSetsFulfilled, settings);
   } catch (error) {
     if (error?.response?.status === 404) {
-      // We accept that the app does not have a settings.json as this is not default
+      // We accept that the app does not have a layout sets as this is not default
       yield call(Actions.fetchFormLayoutSetsFulfilled, null);
     } else {
       yield call(Actions.fetchFormLayoutSetsRejected, error);
