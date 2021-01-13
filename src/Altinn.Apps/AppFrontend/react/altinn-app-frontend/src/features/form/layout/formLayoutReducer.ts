@@ -15,7 +15,7 @@ export interface ILayoutState {
   layouts: ILayouts;
   error: Error;
   uiConfig: IUiConfig;
-  layoutset: ILayoutSets;
+  layoutsets: ILayoutSets;
 }
 
 const initialState: ILayoutState = {
@@ -30,7 +30,7 @@ const initialState: ILayoutState = {
     navigationConfig: {},
     layoutOrder: null,
   },
-  layoutset: null,
+  layoutsets: null,
 };
 
 const LayoutReducer: Reducer<ILayoutState> = (

@@ -11,7 +11,7 @@ import { IRuntimeState, ILayoutSets } from '../../../../types';
 import { getLayouytsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
-const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutset;
+const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
 const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
