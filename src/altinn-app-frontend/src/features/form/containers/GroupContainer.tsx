@@ -10,6 +10,7 @@ import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
 import FormLayoutActions from '../layout/formLayoutActions';
@@ -150,6 +151,8 @@ export function GroupContainer({
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenFields: string[] = useSelector((state: IRuntimeState) => getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components));
+  const GetHiddenSelector = makeGetHidden();
+  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
@@ -243,6 +246,10 @@ export function GroupContainer({
     );
     return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
   };
+
+  if (hidden) {
+    return null;
+  }
 
   return (
     <>
