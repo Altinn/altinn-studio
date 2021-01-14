@@ -1,4 +1,4 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { IDataModelFieldElement } from 'src/types';
 import { store } from '../../../store';
 import * as FetchRuleModel from './fetch/fetchRulesActions';
@@ -11,7 +11,7 @@ export interface IFormRulesActions extends ActionCreatorsMapObject {
     lastUpdatedDataValue: string,
     repeatingContainerId?: string,
   ) => RuleActions.ICheckIfRuleShouldRun;
-  fetchRuleModel: (url: string) => FetchRuleModel.IFetchRuleModel;
+  fetchRuleModel: () => Action;
   fetchRuleModelFulfilled: (formData: any) => FetchRuleModel.IFetchRuleModelFulfilled;
   fetchRuleModelRejected: (error: Error) => FetchRuleModel.IFetchRuleModelRejected;
 }

@@ -136,10 +136,6 @@ export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }
 
-export function getFetchRuleModelUrl() {
-  return `${appPath}/api/resource/RuleHandler.js`;
-}
-
 export function getFetchFormDynamicsUrl() {
   return `${appPath}/api/resource/RuleConfiguration.json`;
 }
@@ -149,4 +145,11 @@ export function getLayoutsUrl(layoutset: string) {
     return `${appPath}/api/resource/FormLayout.json`;
   }
   return `${appPath}/api/layouts/${layoutset}`;
+}
+
+export function getRulehandlerUrl(layoutset: string) {
+  if (layoutset === null) {
+    return `${appPath}/api/resource/RuleHandler.js`;
+  }
+  return `${appPath}/api/rulehandler/${layoutset}`;
 }
