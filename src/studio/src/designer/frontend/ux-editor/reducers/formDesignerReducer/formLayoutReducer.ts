@@ -1,8 +1,10 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable max-len */
 /* eslint-disable prefer-object-spread */
+import { ILayoutSettings } from 'app-shared/types';
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { getLayoutSettingsSchemaUrl } from '../../utils/urlHelper';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 
@@ -15,7 +17,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   activeContainer: string;
   activeList: any;
   selectedLayout: string;
-  layoutOrder: string[];
+  layoutSettings: ILayoutSettings;
 }
 
 const initialState: IFormLayoutState = {
@@ -28,7 +30,7 @@ const initialState: IFormLayoutState = {
   activeContainer: '',
   activeList: [],
   selectedLayout: 'default',
-  layoutOrder: [],
+  layoutSettings: { $schema: getLayoutSettingsSchemaUrl(), pages: {order: []}},
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -441,8 +443,12 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         layouts: {
           $set: formLayout,
         },
-        layoutOrder: {
-          $set: Object.keys(formLayout),
+        layoutSettings: {
+          pages: {
+            order: {
+              $set: Object.keys(formLayout),
+            },
+          },
         },
         fetching: {
           $set: false,
@@ -565,16 +571,20 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         layouts: {
           $unset: [layout],
         },
-        layoutOrder: (currentOrder) => {
-          const newOrder = [...currentOrder];
-          newOrder.splice(newOrder.indexOf(layout), 1);
-          return newOrder;
+        layoutSettings: {
+          pages: {
+            order: (currentOrder) => {
+              const newOrder = [...currentOrder];
+              newOrder.splice(currentOrder.indexOf(layout), 1);
+              return newOrder;
+            },
+          },
         },
         selectedLayout: (currentSelected) => {
           if (currentSelected !== layout) {
             return currentSelected;
           }
-          return state.layoutOrder[0];
+          return state.layoutSettings.pages.order[0];
         },
       });
     }
@@ -592,8 +602,12 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         layouts: {
           $set: layouts,
         },
-        layoutOrder: {
-          $set: Object.keys(layouts),
+        layoutSettings: {
+          pages: {
+            order: {
+              $set: Object.keys(layouts),
+            },
+          },
         },
       });
     }
@@ -614,8 +628,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           delete updatedLayouts[oldName];
           return updatedLayouts;
         },
-        layoutOrder: (currentLayoutOrder) => {
-          const newOrder = [...currentLayoutOrder];
+        layoutSettings: (currentLayoutSettings) => {
+          const newOrder = [...currentLayoutSettings.pages.order];
           newOrder[newOrder.indexOf(oldName)] = newName;
           return newOrder;
         },
@@ -632,19 +646,22 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_FULFILLED: {
       const { layout, direction } = action as FormDesignerActions.IUpdateLayoutOrderFulfilledAction;
       return update<IFormLayoutState>(state, {
-        layoutOrder: (currentOrder) => {
-          const newOrder = [...currentOrder];
-          const currentIndex = currentOrder.indexOf(layout);
-          let destination: number;
-          if (direction === 'up') {
-            destination = currentIndex - 1;
-          } else if (direction === 'down') {
-            destination = currentIndex + 1;
-          }
-          newOrder.splice(currentIndex, 1);
-          newOrder.splice(destination, 0, layout);
-          return newOrder;
-        },
+        layoutSettings: {
+          pages: {
+            order: (currentOrder => {
+            const newOrder = [...currentOrder];
+            const currentIndex = currentOrder.indexOf(layout);
+            let destination: number;
+            if (direction === 'up') {
+              destination = currentIndex - 1;
+            } else if (direction === 'down') {
+              destination = currentIndex + 1;
+            }
+            newOrder.splice(currentIndex, 1);
+            newOrder.splice(destination, 0, layout);
+            return newOrder;
+          })
+        }}
       });
     }
     case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_REJECTED: {
@@ -658,11 +675,11 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.FETCH_LAYOUT_SETTINGS_FULFILLED: {
       const { settings } = action as FormDesignerActions.IFetchLayoutSettingsFulfilledAction;
       return update<IFormLayoutState>(state, {
-        layoutOrder: (currentLayoutOrder) => {
+        layoutSettings: (currentLayoutSettings) => {
           if (!settings || !settings.pages || !settings.pages.order) {
-            return currentLayoutOrder;
+            return currentLayoutSettings;
           }
-          return settings.pages.order;
+          return settings;
         },
       });
     }

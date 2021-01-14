@@ -40,7 +40,7 @@ export default function PageElement({
 }: IPageElementProps) {
   const language = useSelector((state: IAppState) => state.appData.language.language);
   const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const [editMode, setEditMode] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>('');
   const [newName, setNewName] = React.useState<string>('');

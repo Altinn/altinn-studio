@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import PageElement from './PageElement';
 
 export default function PagesContainer() {
-  const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
+  const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
 
   return (
     <Grid
