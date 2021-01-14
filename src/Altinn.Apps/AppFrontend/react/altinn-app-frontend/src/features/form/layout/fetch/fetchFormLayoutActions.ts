@@ -3,14 +3,9 @@ import { ILayoutSettings, INavigationConfig, ILayoutSets } from 'src/types';
 import { ILayouts } from '..';
 import * as actionTypes from '../formLayoutActionTypes';
 
-export interface IFetchFormLayout extends Action {
-  url: string;
-}
-
-export function fetchFormLayout(url: string): IFetchFormLayout {
+export function fetchFormLayout(): Action {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT,
-    url,
   };
 }
 

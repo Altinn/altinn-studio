@@ -1,11 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, all, take, select } from 'redux-saga/effects';
-import { IAltinnWindow, IInstance } from 'altinn-shared/types';
+import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
-import { getLayoutSettingsUrl, getLayoutSetsUrl } from 'src/utils/urlHelper';
+import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
 import Actions from '../formLayoutActions';
-import { IFetchFormLayout } from './fetchFormLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
@@ -21,21 +20,20 @@ const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
 const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
-function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
+function* fetchFormLayoutSaga(): SagaIterator {
   try {
-    const { org, app } = window as Window as IAltinnWindow;
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const formDataState: IFormDataState = yield select(formDataSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
     const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
       aplicationMetadataState.dataTypes);
-    let apiUrl: string = url;
+
+    let layoutSetId: string = null;
     if (layoutSets != null) {
-      const layoutSetId: string = getLayouytsetForDataElement(instance, dataType, layoutSets);
-      apiUrl = `${window.location.origin}/${org}/${app}/api/layouts/${layoutSetId}`;
+      layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
     }
-    const layoutResponse: any = yield call(get, apiUrl);
+    const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
     let autoSave: boolean;
@@ -80,9 +78,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
       take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
       take(ActionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED),
     ]);
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
-    yield call(fetchFormLayoutSaga, { url } as IFetchFormLayout);
+    yield call(fetchFormLayoutSaga);
   }
 }
 

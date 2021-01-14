@@ -143,3 +143,10 @@ export function getFetchRuleModelUrl() {
 export function getFetchFormDynamicsUrl() {
   return `${appPath}/api/resource/RuleConfiguration.json`;
 }
+
+export function getLayoutsUrl(layoutset: string) {
+  if (layoutset === null) {
+    return `${appPath}/api/resource/FormLayout.json`;
+  }
+  return `${appPath}/api/layouts/${layoutset}`;
+}

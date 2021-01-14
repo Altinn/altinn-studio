@@ -6,7 +6,7 @@ import * as UpdateFormLayout from './update/updateFormLayoutActions';
 import { ILayouts } from '.';
 
 export interface IFormLayoutActions extends ActionCreatorsMapObject {
-  fetchFormLayout: (url: string) => FetchForm.IFetchFormLayout;
+  fetchFormLayout: () => Action;
   fetchFormLayoutFulfilled: (layouts: ILayouts, navigationConfig: INavigationConfig)
     => FetchForm.IFetchFormLayoutFulfilled;
   fetchFormLayoutRejected: (error: Error) => FetchForm.IFetchFormLayoutRejected;
