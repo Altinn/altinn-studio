@@ -16,7 +16,7 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../utils/formLayout';
 import { deleteCall, get, post } from '../../utils/networking';
-import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl, getLayoutSettingsSchemaUrl, getLayoutSchemaUrl } from '../../utils/urlHelper';
+import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl, getLayoutSchemaUrl } from '../../utils/urlHelper';
 import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
 import { ComponentTypes } from '../../components';
 
@@ -497,7 +497,7 @@ export function* watchDeleteLayoutSaga(): SagaIterator {
 export function* addLayoutSaga({ layout }: IAddLayoutAction): SagaIterator {
   try {
     const layouts: IFormLayouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-    const layoutOrder: string[] = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
+    const layoutOrder: string[] = yield select((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
       throw Error('Layout allready exists');
@@ -578,10 +578,8 @@ export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {
   try {
-    const layoutOrder = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
-    yield call(post, getSaveLayoutSettingsUrl(),
-      { $schema: getLayoutSettingsSchemaUrl(),
-        pages: { order: layoutOrder } });
+    const layoutSettings = yield select((state: IAppState) => state.formDesigner.layout.layoutSettings);
+    yield call(post, getSaveLayoutSettingsUrl(), layoutSettings);
   } catch (err) {
     console.error(err);
   }

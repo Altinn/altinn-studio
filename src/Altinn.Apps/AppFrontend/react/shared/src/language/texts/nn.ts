@@ -186,7 +186,7 @@ export function nn() {
       is_sent: 'er sendt inn',
       receipt: 'Kvittering',
       receiver: 'Mottakar',
-      reference_number: 'Referansenummer:',
+      reference_number: 'Referansenummer',
       sender: 'Avsendar',
       sent_content: 'Følgjande er sendt inn:',
     },

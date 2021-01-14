@@ -7,7 +7,7 @@ import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components'
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
 import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
-import { IRuntimeState, ProcessTaskType, IValidations, ITextResource } from 'src/types';
+import { IRuntimeState, ProcessTaskType, ITextResource } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
 import ErrorReport from '../../components/message/ErrorReport';
@@ -25,13 +25,9 @@ const ProcessStepComponent = (props) => {
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
-  const formHasErrors: boolean = useSelector(
-    (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations),
-  );
   const userParty: IParty = useSelector(
     (state: IRuntimeState) => (state.profile.profile ? state.profile.profile.party : {} as IParty),
   );
-  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const previousFormPage: string = useSelector(
     (state: IRuntimeState) => getNextView(
@@ -77,10 +73,7 @@ const ProcessStepComponent = (props) => {
         <div className='row'>
           <div className='col-xl-10 offset-xl-1 a-p-static'>
             <ErrorReport
-              formHasErrors={formHasErrors}
               language={language}
-              validations={validations}
-              textResources={textResources}
             />
             {isProcessStepsArchived && instance?.status?.substatus &&
               <AltinnSubstatusPaper
@@ -110,32 +103,6 @@ const ProcessStepComponent = (props) => {
       </div>
     </div>
   );
-};
-
-const getFormHasErrors = (validations: IValidations): boolean => {
-  let hasErrors = false;
-  for (const layout in validations) {
-    if (validations.hasOwnProperty(layout)) {
-      for (const key in validations[layout]) {
-        if (validations[layout].hasOwnProperty(key)) {
-          const validationObject = validations[layout][key];
-          for (const fieldKey in validationObject) {
-            if (validationObject.hasOwnProperty(fieldKey)) {
-              const fieldValidationErrors = validationObject[fieldKey].errors;
-              if (fieldValidationErrors && fieldValidationErrors.length > 0) {
-                hasErrors = true;
-                break;
-              }
-            }
-          }
-          if (hasErrors) {
-            break;
-          }
-        }
-      }
-    }
-  }
-  return hasErrors;
 };
 
 export default ProcessStepComponent;
