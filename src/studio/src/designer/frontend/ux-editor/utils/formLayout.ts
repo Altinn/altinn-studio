@@ -1,9 +1,12 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { IToolbarElement, LayoutItemType } from 'containers/Toolbar';
 import { v4 as uuidv4 } from 'uuid';
+import { useDispatch } from 'react-redux';
+import { IToolbarElement, LayoutItemType } from '../containers/Toolbar';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { addWidget } from '../features/formLayout/widgets/addWidgetActions';
 import { IComponent, ComponentTypes } from '../components';
 import { getComponentTitleByComponentType } from './language';
 
@@ -141,6 +144,20 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
     }
   });
 }
+
+export const mapWidgetToToolbarElement = (widget: IWidget, activeList: any, order: any[]): IToolbarElement => {
+  const dispatch = useDispatch();
+  return {
+    label: widget.displayName,
+    icon: 'fa fa-3rd-party-alt',
+    type: widget.displayName,
+    actionMethod: (containerId: string, position: number) => {
+      console.log('ADDING WIDGET');
+      dispatch(addWidget({ widget, position, containerId }));
+      FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
+    },
+  };
+};
 
 export const mapComponentToToolbarElement = (
   c: IComponent,

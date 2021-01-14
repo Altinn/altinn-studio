@@ -254,5 +254,11 @@ declare global {
     dataSource: string;
   }
 
+  export interface IWidget {
+    components: any[];
+    texts: ITextResource[];
+    displayName: any;
+  }
+
   export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
 }

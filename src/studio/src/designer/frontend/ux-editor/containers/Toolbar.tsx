@@ -3,7 +3,7 @@
 import List from '@material-ui/core/List';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { mapComponentToToolbarElement } from '../utils/formLayout';
+import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
 import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
@@ -27,6 +27,7 @@ export enum CollapsableMenus {
   Components,
   Texts,
   AdvancedComponents,
+  Widgets,
 }
 
 export interface IToolbarProvidedProps {
@@ -55,15 +56,48 @@ export function Toolbar() {
   const [advancedComponentListOpen, setAdvancedComponentListOpen] = React.useState<boolean>(false);
   const [advancedComponentListCloseAnimationDone, setAdvancedComponentListCloseAnimationDone]
     = React.useState<boolean>(false);
+  const [widgetComponentListOpen, setWidgetComponentListOpen] = React.useState<boolean>(false);
+  const [widgetComponentListCloseAnimationDone, setWidgetComponentListCloseAnimationDone]
+      = React.useState<boolean>(false);
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.language.language);
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
+  const widgetsMock: IWidget[] = [
+    {
+      components: [
+        {
+          id: 'message-title',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: 'message-title',
+          },
+        },
+        {
+          id: 'message-body',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: 'message-body',
+          },
+        },
+        {
+          id: 'message-attachments',
+          type: 'AttachmentList',
+          textResourceBindings: {
+            title: 'message-attachments',
+          },
+        },
+      ],
+      displayName: 'Message',
+      texts: [],
+    },
+  ];
 
   const componentList: IToolbarElement[] = schemaComponents.map((component) => mapComponentToToolbarElement(component, language, activeList, order));
   const textComponentList: IToolbarElement[] = textComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
   const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
+  const widgetComponentsList: IToolbarElement[] = widgetsMock.map((widget: any) => mapWidgetToToolbarElement(widget, activeList, order));
 
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setComponentInformationPanelOpen(true);
@@ -91,6 +125,10 @@ export function Toolbar() {
         setAdvancedComponentListOpen(!advancedComponentListOpen);
         break;
       }
+      case CollapsableMenus.Widgets: {
+        setWidgetComponentListOpen(!widgetComponentListOpen);
+        break;
+      }
       default:
         break;
     }
@@ -108,6 +146,10 @@ export function Toolbar() {
       }
       case 'advanced': {
         setAdvancedComponentListCloseAnimationDone(done);
+        break;
+      }
+      case 'widget': {
+        setWidgetComponentListCloseAnimationDone(done);
         break;
       }
       default:
@@ -153,6 +195,18 @@ export function Toolbar() {
           components={advancedComponentsList}
           componentListCloseAnimationDone={advancedComponentListCloseAnimationDone}
           componentListOpen={advancedComponentListOpen}
+          handleCollapsableListClicked={handleCollapsableListClicked}
+          handleComponentInformationOpen={handleComponentInformationOpen}
+          language={language}
+          setCollapsableListAnimationState={setCollapsableListAnimationState}
+        />
+        <ToolbarGroup
+          key='widget'
+          list='widget'
+          menuType={CollapsableMenus.Widgets}
+          components={widgetComponentsList}
+          componentListCloseAnimationDone={widgetComponentListCloseAnimationDone}
+          componentListOpen={widgetComponentListOpen}
           handleCollapsableListClicked={handleCollapsableListClicked}
           handleComponentInformationOpen={handleComponentInformationOpen}
           language={language}

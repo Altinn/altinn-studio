@@ -18,8 +18,7 @@ export interface IAppCompoentState { }
  * the mode of the application and loading initial data for the
  * application
  */
-export class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
-
+export class App extends React.Component<IAppComponentProps, IAppCompoentState> {
   public componentDidMount() {
     window.addEventListener('message', this.shouldRefetchFiles);
     this.fetchFiles();
@@ -46,30 +45,38 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
     // Fetch data model
     appDataActionDispatcher.fetchDataModel(
-      `${window.location.origin}/designer/${appId}/Model/GetJson`);
+      `${window.location.origin}/designer/${appId}/Model/GetJson`,
+    );
     // Fetch form layout
     formDesignerActionDispatchers.fetchFormLayout(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
+    );
     // Load text resources
     const languageCode = 'nb';
     appDataActionDispatcher.loadTextResources(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`,
+    );
     // Fetch ServiceConfigurations
     manageServiceConfigurationActionDispatcher.fetchJsonFile(
       `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`);
+        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`,
+    );
     // Fetch rule connections
     appDataActionDispatcher.fetchRuleModel(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetRuleHandler`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetRuleHandler`,
+    );
     // Fetch the CodeLists
     appDataActionDispatcher.fetchCodeLists(
-      `${window.location.origin}/designer/${appId}/CodeList/CodeLists`);
+      `${window.location.origin}/designer/${appId}/CodeList/CodeLists`,
+    );
     // Fetch thirdParty Components
     ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`,
+    );
     // Fetch language
     appDataActionDispatcher.fetchLanguage(
-      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb',
+    );
   }
 
   public renderFormDesigner = (): JSX.Element => {

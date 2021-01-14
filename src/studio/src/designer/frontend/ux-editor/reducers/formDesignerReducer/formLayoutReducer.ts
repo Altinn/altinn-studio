@@ -3,7 +3,9 @@
 /* eslint-disable prefer-object-spread */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IAddWidgetFulfilled } from '../../features/formLayout/widgets/addWidgetsSagas';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
+import { addWidgetFulfilled } from '../../actions/formDesignerActions/actions';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 
 export interface IFormLayoutState extends IFormDesignerLayout {
@@ -671,6 +673,29 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,
+        },
+      });
+    }
+    case addWidgetFulfilled.type: {
+      const { payload } = action as IAddWidgetFulfilled;
+      const {
+        components,
+        containerId,
+        layoutId,
+        containerOrder,
+      } = payload;
+      return update<IFormLayoutState>(state, {
+        layouts: {
+          [layoutId]: {
+            components: {
+              $set: components,
+            },
+            order: {
+              [containerId]: {
+                $set: containerOrder,
+              },
+            },
+          },
         },
       });
     }

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { CollapsableMenus } from 'containers/Toolbar';
+import { CollapsableMenus } from '../containers/Toolbar';
 import { ComponentTypes } from '../components';
 
 export function getComponentHelperTextByComponentType(type: string, language: any): string {
@@ -80,6 +80,9 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     }
     case CollapsableMenus.AdvancedComponents: {
       return language.ux_editor.collapsable_text_advanced_components;
+    }
+    case CollapsableMenus.Widgets: {
+      return language.ux_editor.collapsable_text_widgets;
     }
     default: {
       return '';
