@@ -155,11 +155,12 @@ export interface ILayoutSettings {
 }
 
 export interface IPagesSettings {
-  order: string[];
+  order?: string[];
+  excludeFromPdf?: string[];
 }
 
 export interface IComponentsSettings {
-  exludeFromPdf: string[];
+  excludeFromPdf?: string[];
 }
 
 export interface IRepository {
