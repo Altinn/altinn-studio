@@ -5,6 +5,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { IDataModelFieldElement, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
+import { Grid } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
 import components from '.';
@@ -71,12 +72,21 @@ export function GenericComponent(props: IGenericComponentProps) {
     setHasValidationMessages(componentHasValidationMessages(componentValidations));
   }, [componentValidations]);
 
+  if (hidden) {
+    return null;
+  }
+
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
     }
 
     if (props.readOnly) {
+      return;
+    }
+
+    if (formData && (formData === value || formData[key] === value)) {
+      // data unchanged, do nothing
       return;
     }
 
@@ -110,20 +120,15 @@ export function GenericComponent(props: IGenericComponentProps) {
     passThroughProps.componentValidations = internalComponentValidations;
   }
 
-  if (hidden) {
-    return null;
-  }
-
   const RenderComponent = components.find((componentCandidate) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
     return (
-      <Label
-        labelText={texts.title}
-        helpText={texts.help}
+      <RenderLabelScoped
+        props={props}
+        passThroughProps={passThroughProps}
         language={language}
-        {...props}
-        {...passThroughProps}
+        texts={texts}
       />
     );
   };
@@ -134,6 +139,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
     return (
       <Description
+        key={`description-${props.id}`}
         description={texts.description}
         id={id}
         {...passThroughProps}
@@ -144,6 +150,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
+        key={`legend-${props.id}`}
         labelText={texts.title}
         descriptionText={texts.description}
         helpText={texts.help}
@@ -199,28 +206,59 @@ export function GenericComponent(props: IGenericComponentProps) {
   ];
 
   return (
-    <>
-      {noLabelComponents.includes(props.type) ?
-        null
-        :
-        <RenderLabel />
-      }
+    <Grid
+      item={true}
+      xs={12}
+      key={`grid-${props.id}`}
+    >
+      <div key={`form-${props.id}`} className='form-group a-form-group'>
+        {noLabelComponents.includes(props.type) ?
+          null
+          :
+          <RenderLabelScoped
+            props={props}
+            passThroughProps={passThroughProps}
+            language={language}
+            texts={texts}
+          />
+        }
 
-      {noLabelComponents.includes(props.type) ?
-        null
-        :
-        <RenderDescription/>
-      }
+        {noLabelComponents.includes(props.type) ?
+          null
+          :
+          <RenderDescription key={`description-${props.id}`} />
+        }
 
-      <RenderComponent
-        {...componentProps}
-      />
+        <RenderComponent
+          {...componentProps}
+        />
 
-      {isSimple && hasValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-      }
-    </>
+        {isSimple && hasValidationMessages &&
+          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+        }
+      </div>
+    </Grid>
   );
 }
+
+interface IRenderLabelProps {
+  texts: any;
+  language: any;
+  props: any;
+  passThroughProps: any;
+}
+
+const RenderLabelScoped = (props: IRenderLabelProps) => {
+  return (
+    <Label
+      key={`label-${props.props.id}`}
+      labelText={props.texts.title}
+      helpText={props.texts.help}
+      language={props.language}
+      {...props.props}
+      {...props.passThroughProps}
+    />
+  );
+};
 
 export default GenericComponent;

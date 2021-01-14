@@ -34,7 +34,7 @@ export function setup() {
 
 
 //Tests for platform Storage: Instances
-export default function (data) {
+export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     var instanceId = "";

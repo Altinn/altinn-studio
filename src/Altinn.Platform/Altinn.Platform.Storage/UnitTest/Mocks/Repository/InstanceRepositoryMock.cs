@@ -127,7 +127,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "size",
                 "language",
                 "status.isSoftDeleted",
-                "status.isArchived"
+                "status.isArchived",
+                "status.isArchivedOrSoftDeleted",
+                "status.isActiveorSoftDeleted",
+                "sortBy"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();

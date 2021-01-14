@@ -22,6 +22,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string ApiAuthenticationConvertUri { get; set; }
 
         /// <summary>
+        /// API Management subscription key for platform in AT21.
+        /// </summary>
+        public string SubscriptionKeyAT21 { get; set; }
+
+        /// <summary>
         /// API Management subscription key for platform in TT02.
         /// </summary>
         public string SubscriptionKeyTT02 { get; set; }

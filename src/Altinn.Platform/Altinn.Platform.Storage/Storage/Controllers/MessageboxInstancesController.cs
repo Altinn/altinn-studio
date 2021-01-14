@@ -28,26 +28,30 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly ITextRepository _textRepository;
+        private readonly IApplicationRepository _applicationRepository;
         private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
-        /// <param name="instanceEventRepository">the instance event repository service</param>
+        /// <param name="instanceEventRepository">the instance event repository handler</param>
         /// <param name="textRepository">the text repository handler</param>
+        /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="pdp">the policy decision point</param>
         /// <param name="logger">The logger to be used to perform logging from the controller.</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             ITextRepository textRepository,
+            IApplicationRepository applicationRepository,
             IPDP pdp,
             ILogger<AuthorizationHelper> logger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _textRepository = textRepository;
+            _applicationRepository = applicationRepository;
             _authorizationHelper = new AuthorizationHelper(pdp, logger);
         }
 
@@ -110,8 +114,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The instance owner party id</param>
         /// <param name="appId">The application id</param>
+        /// <param name="includeActive">Boolean indicating whether to include active instances.</param>
+        /// <param name="includeArchived">Boolean indicating whether to include archived instances.</param>
+        /// <param name="includeDeleted">Boolean indicating whether to include deleted instances.</param>
         /// <param name="lastChanged">Last changed date.</param>
         /// <param name="created">Created time.</param>
+        /// <param name="searchString">Search string.</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
         [Authorize]
@@ -119,8 +127,12 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> SearchMessageBoxInstances(
             [FromQuery(Name = "instanceOwner.partyId")] int instanceOwnerPartyId,
             [FromQuery] string appId,
+            [FromQuery] bool includeActive,
+            [FromQuery] bool includeArchived,
+            [FromQuery] bool includeDeleted,
             [FromQuery] string lastChanged,
             [FromQuery] string created,
+            [FromQuery] string searchString,
             [FromQuery] string language)
         {
             string[] acceptedLanguages = { "en", "nb", "nn" };
@@ -133,6 +145,24 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
+            queryParams.Add("sortBy", "desc:lastChanged");
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                StringValues applicationIds = await MatchStringToAppTitle(searchString);
+                if (!applicationIds.Any() || (!string.IsNullOrEmpty(appId) && !applicationIds.Contains(appId)))
+                {
+                    return Ok(new List<MessageBoxInstance>());
+                }
+                else if (string.IsNullOrEmpty(appId))
+                {
+                    queryParams.Add("appId", applicationIds);
+                }
+
+                queryParams.Remove(nameof(searchString));
+            }
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
 
@@ -153,7 +183,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = queryResponse.Instances;
 
-            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow || i.Status.IsHardDeleted);
+            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
 
             allInstances.ForEach(i =>
             {
@@ -164,7 +194,7 @@ namespace Altinn.Platform.Storage.Controllers
             });
 
             List<MessageBoxInstance> authorizedInstances =
-                       await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
@@ -403,6 +433,65 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return Ok(true);
+        }
+
+        private async Task<StringValues> MatchStringToAppTitle(string searchString)
+        {
+            List<string> appIds = new List<string>();
+
+            Dictionary<string, string> appTitles = await _applicationRepository.GetAllAppTitles();
+
+            foreach (KeyValuePair<string, string> entry in appTitles)
+            {
+                if (entry.Value.Contains(searchString.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    appIds.Add(entry.Key);
+                }
+            }
+
+            return new StringValues(appIds.ToArray());
+        }
+
+        private void GetStatusFromQueryParams(
+           bool includeActive,
+           bool includeArchived,
+           bool includeDeleted,
+           Dictionary<string, StringValues> queryParams)
+        {
+            if ((includeActive == includeArchived) && (includeActive == includeDeleted))
+            {
+                // no filter required
+            }
+            else if (!includeArchived && !includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "false");
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (!includeActive && !includeDeleted)
+            {
+                queryParams.Add("status.isArchived", "true");
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (!includeActive && !includeArchived)
+            {
+                queryParams.Add("status.isSoftDeleted", "true");
+            }
+            else if (includeActive && includeArchived)
+            {
+                queryParams.Add("status.isSoftDeleted", "false");
+            }
+            else if (includeArchived)
+            {
+                queryParams.Add("status.isArchivedOrSoftDeleted", "true");
+            }
+            else
+            {
+                queryParams.Add("status.isActiveorSoftDeleted", "true");
+            }
+
+            queryParams.Remove(nameof(includeActive));
+            queryParams.Remove(nameof(includeArchived));
+            queryParams.Remove(nameof(includeDeleted));
         }
     }
 }

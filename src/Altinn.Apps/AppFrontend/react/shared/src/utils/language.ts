@@ -77,15 +77,55 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
   return textResource ? textResource.value : key;
 }
 
-export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): ITextResource[] {
+export function replaceTextResourceParams(
+  textResources: ITextResource[],
+  dataSources: IDataSources,
+  repeatingGroups?: any,
+): ITextResource[] {
   let replaceValues: string[];
+  const resourcesWithVariables = textResources.filter((resource) => resource.variables);
+  resourcesWithVariables.forEach((resource) => {
+    const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
+    if (variableForRepeatingGroup) {
+      const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
+        const id = variableForRepeatingGroup.key.split('[{0}]')[0];
+        return repeatingGroups[groupId].dataModelBinding === id;
+      });
+      const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
 
-  textResources.forEach((resource) => {
-    if (resource.variables) {
+      for (let i = 0; i <= repeatingGroupCount; ++i) {
+        replaceValues = [];
+        // eslint-disable-next-line no-loop-func
+        resource.variables.forEach((variable) => {
+          if (variable.dataSource.startsWith('dataModel')) {
+            if (variable.key.indexOf('[{0}]') > -1) {
+              const keyWithIndex = variable.key.replace('{0}', `${i}`);
+              replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
+            } else {
+              replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+            }
+          }
+        });
+        const newValue = replaceParameters(resource.unparsedValue, replaceValues);
+
+        if (resource.repeating && resource.id.endsWith(`-${i}`)) {
+          // eslint-disable-next-line no-param-reassign
+          resource.value = newValue;
+        } else if (!resource.repeating && textResources.findIndex((r) => r.id === `${resource.id}-${i}`) === -1) {
+          const newId = `${resource.id}-${i}`;
+          textResources.push({
+            ...resource,
+            id: newId,
+            value: newValue,
+            repeating: true,
+          });
+        }
+      }
+    } else {
       replaceValues = [];
       resource.variables.forEach((variable) => {
         if (variable.dataSource.startsWith('dataModel')) {
-          replaceValues.push(dataSources.dataModel[variable.key] ? dataSources.dataModel[variable.key] : variable.key);
+          replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
         }
       });
 

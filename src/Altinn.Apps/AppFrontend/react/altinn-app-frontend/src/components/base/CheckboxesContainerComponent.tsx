@@ -153,23 +153,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     if (changed === -1) {
       return false;
     }
-
-    return props.shouldFocus && changed === index;
-  };
-
-  const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
-    const { label, ...checkboxProps } = styledCheckboxProps;
-    return (
-      <Checkbox
-        className={classes.root}
-        disableRipple={true}
-        color='default'
-        checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
-        icon={<span className={classes.icon} />}
-        inputProps={{ 'aria-label': label }}
-        {...checkboxProps}
-      />
-    );
+    const should = props.shouldFocus && changed === index;
+    return should;
   };
 
   const RenderLegend = props.legend;
@@ -182,17 +167,19 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       <FormGroup
         row={checkBoxesIsRow}
         id={props.id}
+        key={`checkboxes_group_${props.id}`}
       >
         {options.map((option, index) => (
-          <React.Fragment key={index}>
+          <React.Fragment key={option.value}>
             <FormControlLabel
-              key={index}
+              key={option.value}
               classes={{ root: classNames(classes.margin) }}
               control={(
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
                   onChange={onDataChanged}
                   value={index}
+                  key={option.value}
                   name={option.value}
                   autoFocus={inFocus(index)}
                   label={props.getTextResourceAsString(option.label)}
@@ -207,5 +194,22 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
         ))}
       </FormGroup>
     </FormControl>
+  );
+};
+
+const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
+  const { label, ...checkboxProps } = styledCheckboxProps;
+  const classes = useStyles(styledCheckboxProps);
+
+  return (
+    <Checkbox
+      className={classes.root}
+      disableRipple={true}
+      color='default'
+      checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
+      icon={<span className={classes.icon} />}
+      inputProps={{ 'aria-label': label }}
+      {...checkboxProps}
+    />
   );
 };

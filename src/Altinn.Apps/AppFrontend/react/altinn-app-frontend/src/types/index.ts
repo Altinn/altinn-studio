@@ -171,6 +171,7 @@ export interface IOptions {
 export interface IRepeatingGroup {
   count: number;
   baseGroupId?: string;
+  dataModelBinding?: string;
 }
 
 export interface IRepeatingGroups {
@@ -242,6 +243,7 @@ export interface IValidationIssue {
 export interface IUiConfig {
   autoSave: boolean;
   currentView: string;
+  returnToView?: string;
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;

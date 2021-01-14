@@ -4,8 +4,9 @@ import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import { getParties } from "./api/platform/authorization.js";
 import { addErrorCount, printResponseToConsole } from "./errorcounter.js"
+import * as support from "./support.js";
 
-let environment = __ENV.env;
+let environment = (__ENV.env).toLowerCase();
 
 //Request to Authenticate an user with Altinn userName and password and returns ASPXAUTH Cookie
 export function authenticateUser(userName, userPassword) {
@@ -99,7 +100,7 @@ export function buildAttachmentTypeArray(distribution, totalIterations) {
     var medium = (distribution[1] != null) ? buildArray(totalIterations * (distribution[1] / 100), "m") : [];
     var large = (distribution[2] != null) ? buildArray(totalIterations * (distribution[2] / 100), "l") : [];
     var attachmentTypes = small.concat(medium, large);
-    return shuffle(attachmentTypes);
+    return support.shuffle(attachmentTypes);
 };
 
 //Function to build an array with the specified value and count
@@ -109,13 +110,4 @@ function buildArray(count, value) {
         array.push(value);
     }
     return array;
-}
-
-//Fisher–Yates shuffle of an array
-export function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
+};
