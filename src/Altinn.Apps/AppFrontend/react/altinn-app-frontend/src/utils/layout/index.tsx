@@ -2,8 +2,10 @@
 import * as React from 'react';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 // eslint-disable-next-line import/no-cycle
+import { IInstance } from 'altinn-shared/types';
 import { GenericComponent } from '../../components/GenericComponent';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
+import { ILayoutSets, ILayoutSet } from '../../types';
 
 export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutComponent {
   let component: ILayoutComponent;
