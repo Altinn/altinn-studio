@@ -219,7 +219,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
-                DataType applicationForm = new DataType();
+                Application existingApplicationMetadata = GetApplication(org, app);
+                DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
                 applicationForm.AllowedContentTypes = new List<string>();
 
                 if (!(attachmentMetadata.GetValue("fileType") == null))
@@ -569,7 +570,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return filedata;
         }
-        
+
         /// <inheritdoc/>
         public string GetJsonFormLayouts(string org, string app)
         {
@@ -695,10 +696,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             File.WriteAllText(filePath, content, Encoding.UTF8);
             return true;
         }
-        
+
         /// <inheritdoc />
         public bool UpdateFormLayoutName(string org, string app, string currentName, string newName)
-        {   
+        {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string curFilePath = _settings.GetFormLayoutPath(org, app, developer, currentName);
             string newFilePath = _settings.GetFormLayoutPath(org, app, developer, newName);
@@ -724,7 +725,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return deleted;
         }
-        
+
         /// <inheritdoc />
         public bool SaveLayoutSettings(string org, string app, string setting)
         {
