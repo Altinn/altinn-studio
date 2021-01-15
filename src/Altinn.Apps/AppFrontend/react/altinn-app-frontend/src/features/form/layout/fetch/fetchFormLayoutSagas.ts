@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, all, take, select } from 'redux-saga/effects';
+import { call, all, take, select, takeLatest } from 'redux-saga/effects';
 import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/urlHelper';
@@ -84,6 +84,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 
 export function* fetchFormLayoutSettingsSaga(): SagaIterator {
   try {
+    console.log('BLALBLA layout settings');
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
@@ -106,15 +107,18 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
-  yield all([
-    take(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS),
-    take(ActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
-  ]);
-  yield call(fetchFormLayoutSettingsSaga);
+  while (true) {
+    yield all([
+      take(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS),
+      take(ActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
+    ]);
+    yield call(fetchFormLayoutSettingsSaga);
+  }
 }
 
 export function* fetchFormLayoutSetsSaga(): SagaIterator {
   try {
+    console.log('AIAIAIAI SETS');
     const settings: ILayoutSets = yield call(get, getLayoutSetsUrl());
     yield call(Actions.fetchFormLayoutSetsFulfilled, settings);
   } catch (error) {
@@ -128,8 +132,5 @@ export function* fetchFormLayoutSetsSaga(): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSetsSaga(): SagaIterator {
-  yield all([
-    take(ActionTypes.FETCH_FORM_LAYOUTSETS),
-  ]);
-  yield call(fetchFormLayoutSetsSaga);
+  yield takeLatest(ActionTypes.FETCH_FORM_LAYOUTSETS, fetchFormLayoutSetsSaga);
 }
