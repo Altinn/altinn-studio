@@ -53,7 +53,7 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
     if (apiMode === 'Complete') {
       validations = mergeValidationObjects(validations, emptyFieldsValidations);
     }
-
+    validationResult.validations = validations;
     if (canFormBeSaved(validationResult, apiMode)) {
       // updates the default data element
       const defaultDataElementGuid = getCurrentTaskDataElementId(
