@@ -793,4 +793,40 @@ describe('>>> utils/validations.ts', () => {
     const componentsWithWarnings = validation.getNumberOfComponentsWithWarnings(mockApiResponse);
     expect(componentsWithWarnings).toEqual(1);
   });
+
+  it('+++ mergeValidationObjects should merge validation objects successfully', () => {
+    const source1: IValidations = {
+      layout1: {
+        component1: {
+          binding: {
+            errors: ['some error'],
+            warnings: ['some warning'],
+          },
+        },
+      },
+    };
+    const source2: IValidations = {
+      layout1: {
+        component1: {
+          binding: {
+            errors: ['some other error'],
+            warnings: ['some other warning'],
+          },
+        },
+      },
+      layout2: {
+        component2: {
+          binding: {
+            errors: ['some error'],
+            warnings: ['some warning'],
+          },
+        },
+      },
+    };
+    const result: IValidations = validation.mergeValidationObjects(source1, source2);
+    expect(result.layout1.component1.binding.errors.length).toEqual(2);
+    expect(result.layout1.component1.binding.warnings.length).toEqual(2);
+    expect(result.layout2.component2.binding.errors.length).toEqual(1);
+    expect(result.layout2.component2.binding.warnings.length).toEqual(1);
+  });
 });
