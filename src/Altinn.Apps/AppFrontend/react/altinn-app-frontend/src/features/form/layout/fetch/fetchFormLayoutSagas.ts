@@ -84,7 +84,6 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 
 export function* fetchFormLayoutSettingsSaga(): SagaIterator {
   try {
-    console.log('BLALBLA layout settings');
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
@@ -118,7 +117,6 @@ export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
 
 export function* fetchFormLayoutSetsSaga(): SagaIterator {
   try {
-    console.log('AIAIAIAI SETS');
     const settings: ILayoutSets = yield call(get, getLayoutSetsUrl());
     yield call(Actions.fetchFormLayoutSetsFulfilled, settings);
   } catch (error) {
