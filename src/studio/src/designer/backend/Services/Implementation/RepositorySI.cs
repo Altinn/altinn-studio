@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -15,11 +16,15 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using LibGit2Sharp;
+
 using Manatee.Json.Schema;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -584,7 +589,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
                 DeleteOldFormLayoutJson(org, app, developer);
-                SaveFormLayout(org, app, "FormLayout",  filedata);
+                SaveFormLayout(org, app, "FormLayout", filedata);
             }
 
             string formLayoutsPath = _settings.GetFormLayoutsPath(org, app, developer);
@@ -812,32 +817,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
-        }
-
-        /// <summary>
-        /// Gets the raw content of a code list
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name of the code list to retrieve</param>
-        /// <returns>Raw contents of a code list file</returns>
-        public string GetCodelist(string org, string app, string name)
-        {
-            try
-            {
-                Dictionary<string, string> allCodelists = GetCodelists(org, app);
-
-                if (!allCodelists.ContainsKey(name))
-                {
-                    return null;
-                }
-
-                return allCodelists[name];
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         /// <summary>
@@ -1231,55 +1210,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Create and clone the organisation's code list
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        public void CreateAndCloneOrgCodeLists(string org)
-        {
-            org = org.AsFileName();
-
-            try
-            {
-                string localOrgRepoFolder =
-                    (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                    ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
-                    : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
-
-                using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localOrgRepoFolder))
-                {
-                    // User has a local repo for codelist.
-                    return;
-                }
-            }
-            catch (RepositoryNotFoundException)
-            {
-                // Happens when developer has not cloned org repo
-            }
-
-            // First verify if there exist a remote repo
-            try
-            {
-                _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Unable to verify if there exist a remote repo for codelist", ex);
-            }
-
-            var options = new RepositoryClient.Model.CreateRepoOption(Constants.General.CodeListRepository, readme: "Kodelister", description: "Dette er repository for kodelister for " + org);
-            CreateRepository(org, options);
-
-            try
-            {
-                _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Unable to clone remote repo for codelist", ex);
-            }
-        }
-
-        /// <summary>
         /// create a repository in gitea for the given org and options
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -1288,125 +1218,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return await _gitea.CreateRepository(org, options);
-        }
-
-        /// <summary>
-        /// Gets all code lists at org or app level
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>All code lists at the given location</returns>
-        public Dictionary<string, string> GetCodelists(string org, string app)
-        {
-            org = org.AsFileName();
-            app = app.AsFileName();
-
-            CreateAndCloneOrgCodeLists(org);
-
-            Dictionary<string, string> codelists = new Dictionary<string, string>();
-            string codelistDirectoryPath = null;
-            codelistDirectoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
-                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-
-            if (!string.IsNullOrEmpty(app))
-            {
-                codelistDirectoryPath += "/" + app;
-            }
-
-            codelistDirectoryPath += "/codelists/";
-
-            if (!Directory.Exists(codelistDirectoryPath))
-            {
-                return codelists;
-            }
-
-            string[] directoryFiles = Directory.GetFiles(codelistDirectoryPath);
-            foreach (string directoryFile in directoryFiles)
-            {
-                string fileName = Path.GetFileName(directoryFile);
-                string codelistName = fileName.Substring(0, fileName.IndexOf('.'));
-
-                string codelistContents = File.ReadAllText(directoryFile);
-
-                codelists.Add(codelistName, codelistContents);
-            }
-
-            return codelists;
-        }
-
-        /// <summary>
-        /// Method that stores code list to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <param name="codelist">The content</param>
-        /// <returns>A boolean indicating if the code list was successfully saved</returns>
-        public bool SaveCodeList(string org, string app, string name, string codelist)
-        {
-            org = org.AsFileName();
-            app = app.AsFileName();
-            name = name.AsFileName();
-
-            try
-            {
-                string filePath =
-                    (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                    ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
-                    : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-
-                if (!string.IsNullOrEmpty(app))
-                {
-                    filePath += "/" + app;
-                }
-
-                filePath += $"/codelists/{name}.json";
-
-                new FileInfo(filePath).Directory.Create();
-                File.WriteAllText(filePath, codelist, Encoding.UTF8);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Method that deletes a code list from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <returns>A boolean indicating if the Code List was deleted</returns>
-        public bool DeleteCodeList(string org, string app, string name)
-        {
-            org = org.AsFileName();
-            app = app.AsFileName();
-            name = name.AsFileName();
-
-            try
-            {
-                string filePath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
-                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-
-                if (!string.IsNullOrEmpty(app))
-                {
-                    filePath += "/" + app;
-                }
-
-                filePath += $"/codelists/{name}.json";
-                File.Delete(filePath);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>

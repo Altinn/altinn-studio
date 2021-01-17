@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                 }
                 catch (Exception e)
@@ -249,7 +249,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Network.Push(remote, @"refs/heads/master", options);
             }
 
-            return pushSuccess;
+            return await Task.FromResult(pushSuccess);
         }
 
         /// <summary>

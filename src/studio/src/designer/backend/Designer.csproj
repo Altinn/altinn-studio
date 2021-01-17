@@ -81,9 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Views\Codelist\Status.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
     <Content Update="Views\Home\AppToken.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

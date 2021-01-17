@@ -11,11 +11,6 @@ namespace Altinn.App.Services.Constants
         public const string AppTokenName = "AltinnToken";
 
         /// <summary>
-        /// name of code list repository
-        /// </summary>
-        public const string CodeListRepository = "codelists";
-
-        /// <summary>
         /// The name of the authorization token
         /// </summary>
         public const string AuthorizationTokenHeaderName = "Authorization";
