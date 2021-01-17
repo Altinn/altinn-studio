@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Grid, makeStyles, Typography } from '@material-ui/core';
+import { Grid, IconButton, makeStyles, Typography } from '@material-ui/core';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 
 export interface ISingleInputSumary {
@@ -21,6 +21,10 @@ const useStyles = makeStyles({
   editIcon: {
     paddingLeft: '6px',
     fontSize: '1.8rem !important',
+  },
+  editButton: {
+    color: 'black',
+    padding: 0,
   },
   change: {
     fontSize: '1.8rem',
@@ -66,14 +70,15 @@ function SingleInputSummary({
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        <Typography
-          variant='body1'
-          onClick={onChangeClick}
-          className={classes.change}
-        >
-          <span>{changeText}</span>
-          <i className={`fa fa-editing-file ${classes.editIcon}`} />
-        </Typography>
+        <IconButton onClick={onChangeClick} className={classes.editButton}>
+          <Typography
+            variant='body1'
+            className={classes.change}
+          >
+            <span>{changeText}</span>
+            <i className={`fa fa-editing-file ${classes.editIcon}`} />
+          </Typography>
+        </IconButton>
       </Grid>
       <Grid item xs={12}>
         <Typography variant='body1'>{displayData}</Typography>
