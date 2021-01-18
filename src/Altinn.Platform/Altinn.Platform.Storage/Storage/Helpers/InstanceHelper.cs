@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 
@@ -103,6 +104,14 @@ namespace Altinn.Platform.Storage.Helpers
                 else if (instance.Process.Ended != null && instance.Status?.Archived != null)
                 {
                     return "Archived";
+                }
+                else if (instance.Process.CurrentTask.AltinnTaskType.Equals("confirmation", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "Confirmation";
+                }
+                else if (instance.Process.CurrentTask.AltinnTaskType.Equals("feedback", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "Feedback";
                 }
                 else
                 {
