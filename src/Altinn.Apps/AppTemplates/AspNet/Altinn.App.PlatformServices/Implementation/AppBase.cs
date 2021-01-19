@@ -252,21 +252,12 @@ namespace Altinn.App.Services.Implementation
                 layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Task.Contains(taskId));
             }
 
-            string layoutSettingsString = null;  
-
-            if (layoutSet == null)
-            {
-                layoutSettingsString = _resourceService.GetLayoutSettings();
-            }
-            else
-            {
-                layoutSettingsString = _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
-            }
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);  
 
             LayoutSettings layoutSettings = null;
-            if (!string.IsNullOrEmpty(layoutSettingsString))
+            if (!string.IsNullOrEmpty(layoutSettingsFileContent))
             {
-                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsString);
+                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
 
             object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
@@ -285,16 +276,8 @@ namespace Altinn.App.Services.Implementation
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
 
-            string formLayoutsString = null;
-
-            if (layoutSet == null)
-            {
-                formLayoutsString = _resourceService.GetLayouts();
-            }
-            else
-            {
-                formLayoutsString = _resourceService.GetLayoutsForSet(layoutSet.Id);
-            }
+            // If layoutst exist pick correctr layotFiles
+            string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
 
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
             if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
@@ -308,7 +291,7 @@ namespace Altinn.App.Services.Implementation
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
-                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
+                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsFileContent),
                 LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
