@@ -40,11 +40,6 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public bool DeleteCodeList(string org, string app, string name)
-        {
-            throw new NotImplementedException();
-        }
-
         public void DeleteData(string org, string repo, string path)
         {
             throw new NotImplementedException();
@@ -91,16 +86,6 @@ namespace Designer.Tests.Mocks
         }
 
         public List<AltinnCoreFile> GetCalculationFiles(string org, string app)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetCodelist(string org, string app, string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Dictionary<string, string> GetCodelists(string org, string app)
         {
             throw new NotImplementedException();
         }
@@ -246,11 +231,6 @@ namespace Designer.Tests.Mocks
         }
 
         public void SaveAppLogicFile(string org, string app, string fileName, string fileContent)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveCodeList(string org, string app, string name, string codelist)
         {
             throw new NotImplementedException();
         }

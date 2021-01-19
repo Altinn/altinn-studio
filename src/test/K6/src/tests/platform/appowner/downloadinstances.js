@@ -14,6 +14,7 @@ import * as storageInstances from "../../../api/storage/instances.js"
 import * as storageData from "../../../api/storage/data.js"
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
+import * as support from "../../../support.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
@@ -36,13 +37,13 @@ export function setup() {
     data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     data.runtimeToken = altinnStudioRuntimeToken;
     var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App, totalIterations, createdDateTime);
-    archivedAppInstances = setUpData.shuffle(archivedAppInstances);
+    archivedAppInstances = support.shuffle(archivedAppInstances);
     data.instances = archivedAppInstances;
     setUpData.clearCookies();
     return data;
 };
 
-export default function (data) {
+export default function(data) {
     const runtimeToken = data["runtimeToken"];
     const instances = data.instances;
     var maxIter = data.maxIter;

@@ -10,6 +10,7 @@ import { canFormBeSaved,
   getNumberOfComponentsWithErrors,
   getNumberOfComponentsWithWarnings,
   mapDataElementValidationToRedux,
+  mergeValidationObjects,
   validateEmptyFields,
   validateFormComponents,
   validateFormData } from '../../../../utils/validation';
@@ -47,11 +48,12 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
       state.formLayout.uiConfig.repeatingGroups,
     );
 
-    validations = Object.assign(validations, componentSpecificValidations);
-    if (apiMode === 'Complete') {
-      validations = Object.assign(validations, emptyFieldsValidations);
-    }
+    validations = mergeValidationObjects(validations, componentSpecificValidations);
 
+    if (apiMode === 'Complete') {
+      validations = mergeValidationObjects(validations, emptyFieldsValidations);
+    }
+    validationResult.validations = validations;
     if (canFormBeSaved(validationResult, apiMode)) {
       // updates the default data element
       const defaultDataElementGuid = getCurrentTaskDataElementId(

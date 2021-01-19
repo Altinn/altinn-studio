@@ -13,11 +13,6 @@ namespace Altinn.Studio.Designer.Configuration
     public class ServiceRepositorySettings
     {
         /// <summary>
-        /// Constant for the location of service code lists
-        /// </summary>
-        public const string CODELISTS_FOLDER_NAME = "Codelists/";
-
-        /// <summary>
         /// Constant for the location of resource files
         /// </summary>
         public const string RESOURCE_FOLDER_NAME = "Resources/";
@@ -686,27 +681,6 @@ namespace Altinn.Studio.Designer.Configuration
         public string GetMetadataPath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + MODEL_METADATA_FOLDER_PATH;
-        }
-
-        /// <summary>
-        /// Gets the full path to code list directory
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
-        /// <returns>The full path, ending with "/"</returns>
-        public string GetCodelistPath(string org, string app, string developer)
-        {
-            return GetServicePath(org, app, developer) + CODELISTS_FOLDER_NAME;
-        }
-
-        /// <summary>
-        /// Gets the CodeList folder
-        /// </summary>
-        /// <returns>The codelist folder</returns>
-        public string GetCodeListFolder()
-        {
-            return CODELISTS_FOLDER_NAME;
         }
 
         /// <summary>
