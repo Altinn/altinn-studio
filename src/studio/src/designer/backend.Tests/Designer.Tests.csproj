@@ -47,11 +47,14 @@
   <ItemGroup>
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\3478\32578\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\4106\35721\35721.xsd" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.schema.json" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\ra\0678\0678.xsd" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.schema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
