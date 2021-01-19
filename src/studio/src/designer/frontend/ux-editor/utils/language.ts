@@ -16,6 +16,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.RadioButtons: {
       return language.ux_editor.helper_text_for_radio_button;
     }
+    case ComponentTypes.AttachmentList: {
+      return language.ux_editor.helper_text_for_attachment_list;
+    }
     default: {
       // Several components does not yet have a helper text, a default is shown.
       return language.ux_editor.helper_text_default;
@@ -63,6 +66,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     }
     case ComponentTypes.NavigationButtons: {
       return language.ux_editor.component_navigation_buttons;
+    }
+    case ComponentTypes.AttachmentList: {
+      return language.ux_editor.component_attachment_list;
     }
     default: {
       return '';

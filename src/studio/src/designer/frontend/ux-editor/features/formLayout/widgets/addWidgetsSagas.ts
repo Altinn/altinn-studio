@@ -5,6 +5,7 @@ import { SagaIterator } from 'redux-saga';
 import { addWidget, addWidgetFulfilled, addWidgetRejected, IAddWidgetAction, IAddWidgetActionFulfilled } from './addWidgetActions';
 import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
 import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
+import { addTextResources } from '../../appData/textResources/textResourcesSlice';
 
 export interface IAddWidget {
   payload: IAddWidgetAction;
@@ -23,7 +24,6 @@ const selectCurrentLayout = (state: IAppState) => {
 
 function* addWidgetSaga(action: IAddWidget): SagaIterator {
   try {
-    console.log('ADD WIDGET SAGA');
     const {
       widget,
       position,
@@ -43,8 +43,6 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
     });
     containerOrder.splice(position, 0, ...ids);
 
-    console.log('container order: ', containerOrder);
-
     yield put(addWidgetFulfilled({
       components,
       position,
@@ -54,6 +52,10 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
     }));
 
     yield call(FormDesignerActionDispatchers.saveFormLayout);
+
+    if (widget.texts && Object.keys(widget.texts).length > 0) {
+      yield put(addTextResources({ textResources: widget.texts }));
+    }
   } catch (error) {
     yield put(addWidgetRejected({ error }));
   }

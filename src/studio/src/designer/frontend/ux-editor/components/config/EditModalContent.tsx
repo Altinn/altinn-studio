@@ -451,8 +451,18 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </>
         );
       }
-      case 'Paragraph':
       case 'AttachmentList': {
+        return (
+          <Grid>
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+          </Grid>
+        );
+      }
+      case 'Paragraph': {
         return (
           <Grid>
             {renderSelectTextFromResources('modal_properties_paragraph_helper',

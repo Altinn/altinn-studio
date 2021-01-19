@@ -64,40 +64,12 @@ export function Toolbar() {
   const language: any = useSelector((state: IAppState) => state.appData.language.language);
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
-  const widgetsMock: IWidget[] = [
-    {
-      components: [
-        {
-          id: 'message-title',
-          type: 'Paragraph',
-          textResourceBindings: {
-            title: 'message-title',
-          },
-        },
-        {
-          id: 'message-body',
-          type: 'Paragraph',
-          textResourceBindings: {
-            title: 'message-body',
-          },
-        },
-        {
-          id: 'message-attachments',
-          type: 'AttachmentList',
-          textResourceBindings: {
-            title: 'message-attachments',
-          },
-        },
-      ],
-      displayName: 'Message',
-      texts: [],
-    },
-  ];
+  const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
 
   const componentList: IToolbarElement[] = schemaComponents.map((component) => mapComponentToToolbarElement(component, language, activeList, order));
   const textComponentList: IToolbarElement[] = textComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
   const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
-  const widgetComponentsList: IToolbarElement[] = widgetsMock.map((widget: any) => mapWidgetToToolbarElement(widget, activeList, order));
+  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget: any) => mapWidgetToToolbarElement(widget, activeList, order, language));
 
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setComponentInformationPanelOpen(true);

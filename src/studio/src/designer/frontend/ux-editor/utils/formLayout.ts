@@ -145,15 +145,23 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
   });
 }
 
-export const mapWidgetToToolbarElement = (widget: IWidget, activeList: any, order: any[]): IToolbarElement => {
+export const mapWidgetToToolbarElement = (
+  widget: IWidget,
+  activeList: any,
+  order: any[],
+  language: any,
+): IToolbarElement => {
   const dispatch = useDispatch();
   return {
-    label: widget.displayName,
+    label: getLanguageFromKey(widget.displayName, language),
     icon: 'fa fa-3rd-party-alt',
     type: widget.displayName,
     actionMethod: (containerId: string, position: number) => {
-      console.log('ADDING WIDGET');
-      dispatch(addWidget({ widget, position, containerId }));
+      dispatch(addWidget({
+        widget,
+        position,
+        containerId,
+      }));
       FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
     },
   };

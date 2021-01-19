@@ -2,12 +2,15 @@ import * as React from 'react';
 import { hot } from 'react-hot-loader';
 import postMessages from 'app-shared/utils/postMessages';
 import { Route } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import appDataActionDispatcher from './actions/appDataActions/appDataActionDispatcher';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import manageServiceConfigurationActionDispatcher from './actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
+import { loadTextResources } from './features/appData/textResources/textResourcesSlice';
+import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 
 export interface IAppComponentProps { }
 
@@ -18,23 +21,10 @@ export interface IAppCompoentState { }
  * the mode of the application and loading initial data for the
  * application
  */
-export class App extends React.Component<IAppComponentProps, IAppCompoentState> {
-  public componentDidMount() {
-    window.addEventListener('message', this.shouldRefetchFiles);
-    this.fetchFiles();
-  }
+export function App() {
+  const dispatch = useDispatch();
 
-  public componentWillUnmount() {
-    window.removeEventListener('message', this.shouldRefetchFiles);
-  }
-
-  public shouldRefetchFiles = (event: any) => {
-    if (event.data === postMessages.refetchFiles) {
-      this.fetchFiles();
-    }
-  }
-
-  public fetchFiles = () => {
+  const fetchFiles = () => {
     const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
 
@@ -53,9 +43,9 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     );
     // Load text resources
     const languageCode = 'nb';
-    appDataActionDispatcher.loadTextResources(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`,
-    );
+    const url = `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`;
+    dispatch(loadTextResources({ url }));
+
     // Fetch ServiceConfigurations
     manageServiceConfigurationActionDispatcher.fetchJsonFile(
       `${window.location.origin}/designer/${
@@ -77,24 +67,38 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     appDataActionDispatcher.fetchLanguage(
       `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb',
     );
-  }
+    // Fetch widget settings
+    dispatch(fetchWidgetSettings());
+    // Fetch witgets
+    dispatch(fetchWidgets());
+  };
 
-  public renderFormDesigner = (): JSX.Element => {
+  const shouldRefetchFiles = (event: any) => {
+    if (event.data === postMessages.refetchFiles) {
+      fetchFiles();
+    }
+  };
+
+  React.useEffect(() => {
+    window.addEventListener('message', shouldRefetchFiles);
+    fetchFiles();
+    return () => { window.removeEventListener('message', shouldRefetchFiles); };
+  }, []);
+
+  const renderFormDesigner = (): JSX.Element => {
     return <FormDesigner />;
-  }
+  };
 
-  public render() {
-    return (
-      <div>
-        <ErrorMessageComponent />
-        <Route
-          exact={true}
-          path='/ui-editor'
-          render={this.renderFormDesigner}
-        />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <ErrorMessageComponent />
+      <Route
+        exact={true}
+        path='/ui-editor'
+        render={renderFormDesigner}
+      />
+    </div>
+  );
 }
 
 export default hot(module)(App);
