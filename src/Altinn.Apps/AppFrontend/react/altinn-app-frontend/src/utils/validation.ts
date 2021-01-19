@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-param-reassign */
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
@@ -636,8 +637,13 @@ export function mapDataElementValidationToRedux(
     let component;
     let componentId;
     let layoutId = Object.keys(layouts).find((id) => {
-      const foundInLayout = layouts[id].find((c: ILayoutComponent) => Object.values(c.dataModelBindings)
-        .includes(validation.field));
+      const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
+        // Special handling for FileUpload component
+        if (c.type === 'FileUpload') {
+          return c.id === validation.field;
+        }
+        return Object.values(c.dataModelBindings).includes(validation.field);
+      });
       return !!foundInLayout;
     });
     if (layoutId && layouts[layoutId]) {
@@ -848,7 +854,7 @@ export function repeatingGroupHasValidations(
   layout: ILayout,
   hiddenFields?: string[],
 ): boolean {
-  if (!group || !validations || !validations || !layout) {
+  if (!group || !validations || !layout) {
     return false;
   }
 
@@ -861,8 +867,37 @@ export function repeatingGroupHasValidations(
       const childGroupCount = repeatingGroups[childGroup.id]?.count;
       const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
       const renderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
-      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, hiddenFields);
+      const deepCopyComponents = createRepeatingGroupComponents(childGroup, renderComponents, childGroupCount, [], hiddenFields);
       return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
     });
   });
+}
+
+export function mergeValidationObjects(...sources: IValidations[]): IValidations {
+  const validations: IValidations = {};
+  if (!sources || !sources.length) {
+    return validations;
+  }
+
+  sources.forEach((source: IValidations) => {
+    Object.keys(source).forEach((layout: string) => {
+      if (!validations[layout]) {
+        validations[layout] = {};
+      }
+      Object.keys(source[layout] || {}).forEach((component: string) => {
+        if (!validations[layout][component]) {
+          validations[layout][component] = {};
+        }
+        Object.keys(source[layout][component] || {}).forEach((binding: string) => {
+          if (!validations[layout][component][binding]) {
+            validations[layout][component][binding] = { errors: [], warnings: [] };
+          }
+          validations[layout][component][binding].errors = validations[layout][component][binding].errors.concat(source[layout][component][binding]?.errors);
+          validations[layout][component][binding].warnings = validations[layout][component][binding].warnings.concat(source[layout][component][binding]?.warnings);
+        });
+      });
+    });
+  });
+
+  return validations;
 }

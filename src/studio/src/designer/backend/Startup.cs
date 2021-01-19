@@ -210,7 +210,7 @@ namespace Altinn.Studio.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
+                              controller = @"(Config|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
                               app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
                               id = "[a-zA-Z0-9_\\-\\.]{1,30}",
                           });

@@ -57,7 +57,7 @@ export interface IRightMenuProps {
 export default function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const classes = useStyles();
 
   function handleModalChange(type: 'conditionalRendering' | 'rules') {

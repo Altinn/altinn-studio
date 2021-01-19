@@ -1,7 +1,9 @@
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable no-restricted-syntax */
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { IValidations, ITextResource } from 'src/types';
+import { ITextResource, IValidations } from 'src/types';
 import { IRuntimeState } from 'src/types';
 import { useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from '../../utils/textResource';
@@ -9,14 +11,16 @@ import { getUnmappedErrors } from '../../utils/validation';
 
 export interface IErrorProps {
   language: any;
-  validations: IValidations;
-  textResources: ITextResource[];
-  formHasErrors: boolean;
 }
 
 const ErrorReport = (props: IErrorProps) => {
-  const unmappedErrors = getUnmappedErrors(props.validations);
+  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
+  const unmappedErrors = getUnmappedErrors(validations);
   const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
+  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const formHasErrors: boolean = useSelector(
+    (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations),
+  );
   const hasSubmitted = useSelector((state: IRuntimeState) => state.formData.hasSubmitted);
   const errorRef = useRef(null);
 
@@ -27,7 +31,7 @@ const ErrorReport = (props: IErrorProps) => {
     }
   }, [hasSubmitted, unmappedErrors]);
 
-  if (!props.formHasErrors) {
+  if (!formHasErrors) {
     return null;
   }
 
@@ -72,7 +76,7 @@ const ErrorReport = (props: IErrorProps) => {
                     key={key}
                   >
                     <span>
-                      {getTextFromAppOrDefault(key, props.textResources, props.language, undefined, false)}
+                      {getTextFromAppOrDefault(key, textResources, props.language, undefined, false)}
                     </span>
                   </h4>
                 );
@@ -91,6 +95,32 @@ const ErrorReport = (props: IErrorProps) => {
       </div>
     </div>
   );
+};
+
+const getFormHasErrors = (validations: IValidations): boolean => {
+  let hasErrors = false;
+  for (const layout in validations) {
+    if (validations.hasOwnProperty(layout)) {
+      for (const key in validations[layout]) {
+        if (validations[layout].hasOwnProperty(key)) {
+          const validationObject = validations[layout][key];
+          for (const fieldKey in validationObject) {
+            if (validationObject.hasOwnProperty(fieldKey)) {
+              const fieldValidationErrors = validationObject[fieldKey].errors;
+              if (fieldValidationErrors && fieldValidationErrors.length > 0) {
+                hasErrors = true;
+                break;
+              }
+            }
+          }
+          if (hasErrors) {
+            break;
+          }
+        }
+      }
+    }
+  }
+  return hasErrors;
 };
 
 export default ErrorReport;

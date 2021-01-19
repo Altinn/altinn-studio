@@ -117,7 +117,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return resource;
         }
 
-        public async Task WriteData(string filepath, Stream stream)
+        private async Task WriteData(string filepath, Stream stream)
         {
             stream.Seek(0, SeekOrigin.Begin);
             using (FileStream outputFileStream = new FileStream(filepath, FileMode.Create))

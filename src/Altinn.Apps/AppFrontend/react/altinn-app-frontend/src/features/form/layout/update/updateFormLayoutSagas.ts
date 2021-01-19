@@ -7,7 +7,7 @@ import { AxiosRequestConfig } from 'axios';
 import { get } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved } from 'src/utils/validation';
+import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import FormLayoutActions from '../formLayoutActions';
@@ -100,10 +100,12 @@ function* updateRepeatingGroupsSaga({
   }
 }
 
-export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurrentView): SagaIterator {
+export function* updateCurrentViewSaga({
+  newView, runValidations, returnToView,
+}: IUpdateCurrentView): SagaIterator {
   try {
     if (!runValidations) {
-      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
     } else {
       const state: IRuntimeState = yield select();
       const currentDataTaskDataTypeId = getDataTaskDataTypeId(
@@ -125,8 +127,8 @@ export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurre
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
       );
-      validations = Object.assign(validations, componentSpecificValidations);
-      validations = Object.assign(validations, emptyFieldsValidations);
+      validations = mergeValidationObjects(validations, componentSpecificValidations);
+      validations = mergeValidationObjects(validations, emptyFieldsValidations);
       const instanceId = state.instanceData.instance.id;
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
@@ -139,17 +141,19 @@ export function* updateCurrentViewSaga({ newView, runValidations }: IUpdateCurre
       const layoutState: ILayoutState = state.formLayout;
       const mappedValidations =
         mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
-      validations = Object.assign(validations, mappedValidations);
+      validations = mergeValidationObjects(validations, mappedValidations);
       validationResult.validations = validations;
       if (runValidations === 'page') {
         // only store validations for the specific page
         validations = { [currentView]: validations[currentView] };
       }
       yield call(FormValidationActions.updateValidations, validations);
-      if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
+      if (state.formLayout.uiConfig.returnToView) {
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+      } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield call(FormLayoutActions.updateCurrentViewRejected, null);
       } else {
-        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
       }
     }
   } catch (err) {

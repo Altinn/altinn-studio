@@ -1,10 +1,9 @@
 /* eslint-disable max-len */
 import * as React from 'react';
-import { Grid } from '@material-ui/core';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
 // eslint-disable-next-line import/no-cycle
 import { GenericComponent } from '../../components/GenericComponent';
+import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
 
 export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutComponent {
   let component: ILayoutComponent;
@@ -55,18 +54,10 @@ export function renderGenericComponent(component: ILayoutComponent, layout: ILay
     return renderLayoutGroup(component as unknown as ILayoutGroup, layout, index);
   }
   return (
-    <Grid
-      item={true}
-      xs={12}
-      key={`grid-${component.id}`}
-    >
-      <div key={`form-${component.id}`} className='form-group a-form-group'>
-        <GenericComponent
-          key={component.id}
-          {...component}
-        />
-      </div>
-    </Grid>
+    <GenericComponent
+      key={component.id}
+      {...component}
+    />
   );
 }
 

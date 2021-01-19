@@ -3,12 +3,14 @@ namespace Altinn.Platform.Storage.Repository
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
@@ -26,13 +28,22 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string partitionKey = "/org";
         private static DocumentClient _client;
         private readonly ILogger _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly string _cacheKey = "allAppTitles";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationRepository"/> class.
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">dependency injection of logger</param>
-        public ApplicationRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ApplicationRepository> logger)
+        /// <param name="memoryCache">the memory cache</param>
+        public ApplicationRepository(
+            IOptions<AzureCosmosSettings> cosmosettings,
+            IOptions<GeneralSettings> generalSettings,
+            ILogger<ApplicationRepository> logger,
+            IMemoryCache memoryCache)
         {
             _logger = logger;
 
@@ -50,6 +61,11 @@ namespace Altinn.Platform.Storage.Repository
                 documentCollection).GetAwaiter().GetResult();
 
             _client.OpenAsync();
+
+            _memoryCache = memoryCache;
+            _cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetPriority(CacheItemPriority.High)
+                .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.AppTitleCacheLifeTimeInSeconds));
         }
 
         /// <summary>
@@ -203,38 +219,34 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
+        public async Task<Dictionary<string, string>> GetAllAppTitles()
         {
-            List<string> cosmosAppIds = new List<string>();
-            foreach (string appId in appIds)
+            Dictionary<string, string> appTitles;
+
+            if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
             {
-                cosmosAppIds.Add(AppIdToCosmosId(appId));
-            }
+                appTitles = new Dictionary<string, string>();
+                IDocumentQuery<Application> query = _client.CreateDocumentQuery<Application>(_collectionUri).AsDocumentQuery();
 
-            Dictionary<string, Dictionary<string, string>> titleDictionary = new Dictionary<string, Dictionary<string, string>>();
-
-            foreach (string appId in appIds)
-            {
-                string org = appId.Split("/")[0];
-
-                IQueryable<Application> filter = _client.CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { PartitionKey = new PartitionKey(org) })
-                .Where(a => cosmosAppIds.Contains(a.Id));
-
-                IDocumentQuery<Application> query = filter.AsDocumentQuery<Application>();
-
-                FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
-
-                List<Application> applications = feedResponse.ToList<Application>();
-                foreach (Application app in applications)
+                while (query.HasMoreResults)
                 {
-                    if (!titleDictionary.ContainsKey(CosmosIdToAppId(app.Id)))
+                    FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
+                    foreach (Application item in result)
                     {
-                        titleDictionary.Add(CosmosIdToAppId(app.Id), app.Title);
+                        StringBuilder titles = new StringBuilder();
+                        foreach (string title in item.Title.Values)
+                        {
+                            titles.Append(title + ";");
+                        }
+
+                        appTitles.Add(CosmosIdToAppId(item.Id), titles.ToString());
                     }
                 }
+
+                _memoryCache.Set(_cacheKey, appTitles, _cacheEntryOptions);
             }
 
-            return titleDictionary;
+            return appTitles;
         }
     }
 }

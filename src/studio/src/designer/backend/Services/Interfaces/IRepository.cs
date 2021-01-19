@@ -74,15 +74,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetLanguageResource(string org, string app, string id);
 
         /// <summary>
-        /// Gets the raw content of a code list
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name of the code list to retrieve</param>
-        /// <returns>Raw contents of a code list file</returns>
-        string GetCodelist(string org, string app, string name);
-
-        /// <summary>
         /// Update text resource
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -137,16 +128,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool DeleteLanguage(string org, string app, string id);
 
         /// <summary>
-        /// Method that stores a code list to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <param name="codelist">The content</param>
-        /// <returns>A boolean indicating if the code list was successfully saved</returns>
-        bool SaveCodeList(string org, string app, string name, string codelist);
-
-        /// <summary>
         /// Save the Rules configuration JSON file to disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -154,15 +135,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         bool SaveRuleConfigJson(string org, string app, string resource);
-
-        /// <summary>
-        /// Method that deletes a code list from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <returns>A boolean indicating the result</returns>
-        bool DeleteCodeList(string org, string app, string name);
 
         /// <summary>
         /// Updates the serviceMetadata
@@ -204,14 +176,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>True if success, false otherwise</returns>
         bool DeleteService(string org, string app);
-
-        /// <summary>
-        /// Gets all code lists at org or app level
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>All code lists for at the given location</returns>
-        Dictionary<string, string> GetCodelists(string org, string app);
 
         /// <summary>
         /// Returns the app texts

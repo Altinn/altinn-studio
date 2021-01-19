@@ -1,6 +1,7 @@
 import http from "k6/http";
 import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
+import * as support from "../../support.js";
 
 /**
  * Api call to platform events to add a cloud event
@@ -10,14 +11,12 @@ import * as header from "../../buildrequestheaders.js"
 export function postEvents(altinnStudioRuntimeToken) {
     var endpoint = config.platformEvents["events"];
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeToken, "platform");
-    var body = [
-        {
-            "id": "24f6554b-6e23-4132-9a72-0ac3c91478d3",
-            "specversion": "1.0",
-            "type": "app.test.event",
-            "time": "2020-10-23T09:10:10.455896Z"
-        }
-    ];
+    var body = [{
+        "id": "24f6554b-6e23-4132-9a72-0ac3c91478d3",
+        "specversion": "1.0",
+        "type": "app.test.event",
+        "time": "2020-10-23T09:10:10.455896Z"
+    }];
     body = JSON.stringify(body);
     return http.post(endpoint, body, params);
 };
@@ -28,8 +27,8 @@ export function postEvents(altinnStudioRuntimeToken) {
  * @param {JSON} filterParameters 
  */
 export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
-    var endpoint = config.platformEvents["eventsByParty"] + "?";
-    endpoint += (filterParameters != null) ? buildQueryParametersForEvents(filterParameters) : "";
+    var endpoint = config.platformEvents["eventsByParty"];
+    endpoint += (filterParameters != null) ? support.buildQueryParametersForEndpoint(filterParameters) : "";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, "platform");
     return http.get(endpoint, params);
 };
@@ -42,20 +41,8 @@ export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
  * @param {JSON} filterParameters 
  */
 export function getEvents(altinnStudioRuntimeToken, appOwner, appName, filterParameters) {
-    var endpoint = config.platformEvents["events"] + appOwner + "/" + appName + "?";
-    endpoint += (filterParameters != null) ? buildQueryParametersForEvents(filterParameters) : "";
+    var endpoint = config.platformEvents["events"] + appOwner + "/" + appName;
+    endpoint += (filterParameters != null) ? support.buildQueryParametersForEndpoint(filterParameters) : "";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, "platform");
     return http.get(endpoint, params);
 };
-
-/**
- * Build a string in a format of query param to the events endpoint
- * @param {*} filterParameters a json object with key as query name and value as query value
- */
-function buildQueryParametersForEvents(filterParameters) {
-    var query = "";
-    Object.keys(filterParameters).forEach(function (key) {
-        query += key + "=" + filterParameters[key] + "&";
-    });
-    return query;
-}

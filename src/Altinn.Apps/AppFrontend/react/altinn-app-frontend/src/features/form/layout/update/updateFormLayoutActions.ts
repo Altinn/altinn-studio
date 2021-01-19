@@ -62,11 +62,13 @@ export interface IUpdateAutoSaveRejected extends Action {
 
 export interface IUpdateCurrentView extends Action {
   newView: string;
+  returnToView?: string;
   runValidations?: 'allPages' | 'page';
 }
 
 export interface IUpdateCurrentViewFulfilled extends Action {
   newView: string;
+  returnToView?: string;
 }
 
 export interface IUpdateCurrentViewRejected extends Action {
@@ -152,18 +154,24 @@ export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
   });
 }
 
-export function updateCurrentView(newView: string, runValidations?: 'allPages' | 'page'): IUpdateCurrentView {
+export function updateCurrentView(
+  newView: string,
+  runValidations?: 'allPages' | 'page',
+  returnToView?: string,
+): IUpdateCurrentView {
   return ({
     type: UPDATE_CURRENT_VIEW,
     newView,
     runValidations,
+    returnToView,
   });
 }
 
-export function updateCurrentViewFulfilled(newView: string): IUpdateCurrentViewFulfilled {
+export function updateCurrentViewFulfilled(newView: string, returnToView?: string): IUpdateCurrentViewFulfilled {
   return ({
     type: UPDATE_CURRENT_VIEW_FULFILLED,
     newView,
+    returnToView,
   });
 }
 
