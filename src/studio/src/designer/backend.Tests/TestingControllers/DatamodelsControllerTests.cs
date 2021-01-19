@@ -50,9 +50,9 @@ namespace Designer.Tests.TestingControllers
             string responsestring = await response.Content.ReadAsStringAsync();
             TextReader textReader = new StringReader(responsestring);
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+
+            new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(5, jsonSchema.Count);
         }
 
         [Fact]
