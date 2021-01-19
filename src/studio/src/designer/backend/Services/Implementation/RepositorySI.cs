@@ -779,6 +779,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
+        /// <inheritdoc/>
+        public string GetWidgetSettings(string org, string app)
+        {
+            string filePath = _settings.GetWidgetSettingsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string fileData = null;
+            if (File.Exists(filePath))
+            {
+                fileData = File.ReadAllText(filePath, Encoding.UTF8);
+            }
+            
+            return fileData;
+        }
+
         /// <summary>
         /// Save the JSON file to disk
         /// </summary>

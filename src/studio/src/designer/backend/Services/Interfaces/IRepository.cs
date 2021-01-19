@@ -429,6 +429,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool SaveJsonThirdPartyComponents(string org, string app, string resource);
 
         /// <summary>
+        /// Gets the widget settings for an app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content as string</returns>
+        string GetWidgetSettings(string org, string app);
+
+        /// <summary>
         /// Save the JSON form layout to disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

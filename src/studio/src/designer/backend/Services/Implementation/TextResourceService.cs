@@ -50,8 +50,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                     byte[] data = Convert.FromBase64String(populatedFile.Content);
-                    TextResource content = data.Deserialize<TextResource>();
-                    TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, environmentModel);
+                    Altinn.Platform.Storage.Interface.Models.TextResource content = data.Deserialize<Altinn.Platform.Storage.Interface.Models.TextResource>();
+                    Altinn.Platform.Storage.Interface.Models.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, environmentModel);
                     if (textResourceStorage == null)
                     {
                         await _storageTextResourceClient.Create(org, app, content, environmentModel);
@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private async Task<TextResource> GetTextResourceFromStorage(string org, string app, string language, EnvironmentModel environmentModel)
+        private async Task<Altinn.Platform.Storage.Interface.Models.TextResource> GetTextResourceFromStorage(string org, string app, string language, EnvironmentModel environmentModel)
         {
             try
             {

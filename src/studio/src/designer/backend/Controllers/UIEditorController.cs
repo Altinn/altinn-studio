@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -91,6 +94,43 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var result = _repository.GetLanguageResource(org, app, id);
             return Content(result);
+        }
+
+        /// <summary>
+        /// Add text resources to existing resource documents
+        [HttpPost]
+        public ActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
+        {
+            foreach (TextResource textResource in textResources)
+            {
+                var currentResourceString = _repository.GetLanguageResource(org, app, textResource.Language);
+                TextResource currentTextResource = JsonConvert.DeserializeObject<TextResource>(currentResourceString);
+                var duplicateResources = textResource.Resources.FindAll(resource => currentTextResource.Resources.Find(r => r.Id == resource.Id) != null);
+                if (duplicateResources.Count == 0)
+                {
+                    currentTextResource.Resources.AddRange(textResource.Resources);
+                }
+                else
+                {
+                    textResource.Resources.ForEach(resource =>
+                    {
+                        if (duplicateResources.Find(duplicate => duplicate.Id == resource.Id) != null)
+                        {
+                            var duplicate = currentTextResource.Resources.Find(r => r.Id == resource.Id);
+                            duplicate.Value = resource.Value;
+                            duplicate.Variables = resource.Variables;
+                        }
+                        else
+                        {
+                            currentTextResource.Resources.Add(resource);
+                        }
+                    });
+                }
+                
+                _repository.SaveLanguageResource(org, app, textResource.Language, JsonConvert.SerializeObject(currentTextResource));
+            }
+
+            return Ok();
         }
 
         /// <summary>
@@ -306,6 +346,19 @@ namespace Altinn.Studio.Designer.Controllers
                 Success = true,
                 Message = " Metadata saved",
             });
+        }
+
+        /// <summary>
+        /// Gets widget settings for app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The widget settings for the app.</returns>
+        [HttpGet]
+        public ActionResult GetWidgetSettings(string org, string app) 
+        {
+            var widgetSettings = _repository.GetWidgetSettings(org, app);
+            return Ok(widgetSettings);
         }
     }
 }
