@@ -11,7 +11,10 @@
   "dueBefore": "2019-07-05T00:00:00Z",
   "visibleAfter": "2019-06-05T00:00:00Z",
   "process": {
-    "currentTask": { "elementId": "Task_1" }
+    "currentTask": {
+      "elementId": "Task_1",
+      "altinnTaskType": "data"
+    }
   },
   "status": {
     "isArchived": false,
