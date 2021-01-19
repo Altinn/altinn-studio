@@ -27,7 +27,7 @@ export function postEvents(altinnStudioRuntimeToken) {
  * @param {JSON} filterParameters 
  */
 export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
-    var endpoint = config.platformEvents["eventsByParty"] + "?";
+    var endpoint = config.platformEvents["eventsByParty"];
     endpoint += (filterParameters != null) ? support.buildQueryParametersForEndpoint(filterParameters) : "";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, "platform");
     return http.get(endpoint, params);
@@ -41,7 +41,7 @@ export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
  * @param {JSON} filterParameters 
  */
 export function getEvents(altinnStudioRuntimeToken, appOwner, appName, filterParameters) {
-    var endpoint = config.platformEvents["events"] + appOwner + "/" + appName + "?";
+    var endpoint = config.platformEvents["events"] + appOwner + "/" + appName;
     endpoint += (filterParameters != null) ? support.buildQueryParametersForEndpoint(filterParameters) : "";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, "platform");
     return http.get(endpoint, params);
