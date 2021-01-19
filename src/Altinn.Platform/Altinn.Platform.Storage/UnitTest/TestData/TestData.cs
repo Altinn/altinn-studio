@@ -94,7 +94,7 @@ namespace Altinn.Platform.Storage.UnitTest
                 CurrentTask = new ProcessElementInfo
                 {
                     ElementId = "Task_1",
-                    AltinnTaskType = "FormFilling"
+                    AltinnTaskType = "data"
                 }
             };
         }
@@ -212,7 +212,7 @@ namespace Altinn.Platform.Storage.UnitTest
                 CurrentTask = new ProcessElementInfo
                 {
                     ElementId = "Task_1",
-                    AltinnTaskType = "FormFilling"
+                    AltinnTaskType = "data"
                 }
             }
         };
