@@ -56,6 +56,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
         private readonly IEvents _eventsService;
+        private readonly IPrefill _prefillService;
 
         private readonly AppSettings _appSettings;
 
@@ -74,7 +75,8 @@ namespace Altinn.App.Api.Controllers
             IProcess processService,
             IPDP pdp,
             IEvents eventsService,
-            IOptions<AppSettings> appSettings)
+            IOptions<AppSettings> appSettings,
+            IPrefill prefillService)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -86,6 +88,7 @@ namespace Altinn.App.Api.Controllers
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
+            _prefillService = prefillService;
         }
 
         /// <summary>
@@ -531,6 +534,9 @@ namespace Altinn.App.Api.Controllers
                     {
                         throw new InvalidOperationException(deserializer.Error);
                     }
+
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name,  data);
+                    await _altinnApp.RunDataCreation(instance, data);
 
                     dataElement = await _dataService.InsertFormData(
                         data,
