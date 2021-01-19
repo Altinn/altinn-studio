@@ -12,6 +12,7 @@ public class FormLayoutElement {
   private List<String> children;
   private int count;
   private int maxCount;
+  private List<String> dataTypeIds;
 
   public String getType() {
     return type;
@@ -46,6 +47,10 @@ public class FormLayoutElement {
   public int getMaxCount() { return maxCount; }
 
   public void setMaxCount(int maxCount) { this.maxCount = maxCount; }
+
+  public List<String> getDataTypeIds() { return dataTypeIds; }
+
+  public void setDataTypeIds(List<String> dataTypeIds) { this.dataTypeIds = dataTypeIds; }
 
 
 }

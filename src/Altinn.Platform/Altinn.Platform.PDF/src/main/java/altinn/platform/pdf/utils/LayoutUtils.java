@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 public class LayoutUtils {
 
@@ -42,13 +43,23 @@ public class LayoutUtils {
       height += textMargin;
     }
 
-    if (element.getType().equalsIgnoreCase("paragrah") || element.getType().equalsIgnoreCase("header")) {
+    if (element.getType().equalsIgnoreCase("paragraph") || element.getType().equalsIgnoreCase("header")) {
       // have no content, return height
       return height;
     }
 
     if (element.getType().equalsIgnoreCase("fileupload")) {
       List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
+      for (String line: lines) {
+        height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
+        height += (leading - fontSize);
+      }
+    } else if (element.getType().equalsIgnoreCase("attachmentlist")) {
+      List<String> lines = new ArrayList<>();
+      for (String id: element.getDataTypeIds()) {
+        lines.addAll(InstanceUtils.getAttachmentsByComponentId(id, instance));
+      }
+
       for (String line: lines) {
         height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
         height += (leading - fontSize);
