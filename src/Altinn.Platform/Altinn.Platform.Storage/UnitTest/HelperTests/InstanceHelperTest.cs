@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest
@@ -44,10 +45,10 @@ namespace Altinn.Platform.Storage.UnitTest
         {
             // Arrange
             string lastChangedBy = "20000000";
-            Instance instance = TestData.Instance_1_1;         
+            Instance instance = TestData.Instance_1_1;
 
             // Act
-            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance( instance );
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
 
             // Assert
             Assert.Equal(lastChangedBy, actual.LastChangedBy);
@@ -78,7 +79,7 @@ namespace Altinn.Platform.Storage.UnitTest
             string actualLastChangedBy = actual.LastChangedBy;
 
             // Assert
-            Assert.Equal(lastChangedBy, actualLastChangedBy);            
+            Assert.Equal(lastChangedBy, actualLastChangedBy);
         }
 
         /// <summary>
@@ -134,6 +135,64 @@ namespace Altinn.Platform.Storage.UnitTest
             Instance instance = TestData.Instance_1_Status_4;
             string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
             Assert.Equal("default", sblStatus);
+        }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for an instance in a confirmation step       
+        /// Expected: The SBL status "Confirmation" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_Confirmation()
+        {
+            Instance instance = new Instance
+            {
+                Process = new ProcessState
+                {
+                    Started = DateTime.Parse("2021-01-18T16:38:28.3776631Z"),
+                    StartEvent = "StartEvent_1",
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        Flow = 3,
+                        Started = DateTime.Parse("2021-01-18T16:41:24.6560293Z"),
+                        ElementId = "Task_2",
+                        Name = "Bekreft skjemadata",
+                        AltinnTaskType = "confirmation"
+                    }
+                }
+            };
+
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("Confirmation", sblStatus);
+        }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for an instance in a confirmation step       
+        /// Expected: The SBL status "Confirmation" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_Feedback()
+        {
+            Instance instance = new Instance
+            {
+                Process = new ProcessState
+                {
+                    Started = DateTime.Parse("2021-01-18T16:38:28.3776631Z"),
+                    StartEvent = "StartEvent_1",
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        Flow = 3,
+                        Started = DateTime.Parse("2021-01-18T16:41:24.6560293Z"),
+                        ElementId = "Task_2",
+                        Name = "Venter på tilbakemelding",
+                        AltinnTaskType = "feedback"
+                    }
+                }
+            };
+
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("Feedback", sblStatus);
         }
 
         /// <summary>
