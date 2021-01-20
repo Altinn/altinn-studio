@@ -117,8 +117,8 @@ export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
 
 export function* fetchFormLayoutSetsSaga(): SagaIterator {
   try {
-    const settings: ILayoutSets = yield call(get, getLayoutSetsUrl());
-    yield call(Actions.fetchFormLayoutSetsFulfilled, settings);
+    const layoutSets: ILayoutSets = yield call(get, getLayoutSetsUrl());
+    yield call(Actions.fetchFormLayoutSetsFulfilled, layoutSets);
   } catch (error) {
     if (error?.response?.status === 404) {
       // We accept that the app does not have a layout sets as this is not default
