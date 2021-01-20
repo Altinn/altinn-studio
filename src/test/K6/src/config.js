@@ -1,5 +1,6 @@
 // This file inhols baseURLs and endpoints for the APIs
 export var baseUrls = {
+    at21: "at21.altinn.cloud",
     at22: "at22.altinn.cloud",
     at23: "at23.altinn.cloud",
     at24: "at24.altinn.cloud",
