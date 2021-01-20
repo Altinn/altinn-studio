@@ -3,12 +3,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -88,10 +91,12 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json");
-                TextReader textReader = new StreamReader(dataStream);
-                JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-                return Ok(jsonValue.ToString());
+                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json"))
+                {
+                    TextReader textReader = new StreamReader(dataStream);
+                    JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+                    return Ok(jsonValue.ToString());
+                }
             }
             catch
             {
@@ -100,16 +105,17 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.xsd");
-                XmlReader xsdReader = XmlReader.Create(dataStream);
-                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
+                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.xsd"))
+                {
+                    XmlReader xsdReader = XmlReader.Create(dataStream);
+                    XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
+                    JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                // Act
-                JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+                    Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
+                    JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
 
-                Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
-                JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
-                return Ok(serializedConvertedSchema.ToString());
+                    return Ok(serializedConvertedSchema.ToString());
+                }
             }
             catch
             {

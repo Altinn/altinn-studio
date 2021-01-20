@@ -6,11 +6,6 @@ namespace Altinn.Studio.Designer.Constants
     public static class General
     {
         /// <summary>
-        /// name of code list repository
-        /// </summary>
-        public const string CodeListRepository = "codelists";
-
-        /// <summary>
         /// The name of the authorization token
         /// </summary>
         public const string AuthorizationTokenHeaderName = "Authorization";

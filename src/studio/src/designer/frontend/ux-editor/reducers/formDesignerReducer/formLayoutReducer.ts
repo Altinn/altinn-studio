@@ -628,10 +628,14 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           delete updatedLayouts[oldName];
           return updatedLayouts;
         },
-        layoutSettings: (currentLayoutSettings) => {
-          const newOrder = [...currentLayoutSettings.pages.order];
-          newOrder[newOrder.indexOf(oldName)] = newName;
-          return newOrder;
+        layoutSettings: {
+          pages: {
+            order: (currentOrder) => {
+              const newOrder = [...currentOrder];
+              newOrder[newOrder.indexOf(oldName)] = newName;
+              return newOrder;
+            },
+          }
         },
       });
     }
