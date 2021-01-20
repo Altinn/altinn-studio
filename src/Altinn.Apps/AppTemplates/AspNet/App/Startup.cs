@@ -247,7 +247,7 @@ namespace Altinn.App
             }
             catch (Exception e)
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
     }
