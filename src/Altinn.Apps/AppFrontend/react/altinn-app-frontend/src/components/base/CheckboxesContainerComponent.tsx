@@ -117,11 +117,12 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();
-
-    if (newSelected[event.target.value] === event.target.name) {
-      newSelected[event.target.value] = '';
+    const index = newSelected.indexOf(event.target.name);
+    
+    if (index >= 0){
+      newSelected[index] = '';
     } else {
-      newSelected[event.target.value] = event.target.name;
+      newSelected[newSelected.length] = event.target.name;
     }
     const filtered = newSelected.filter((element: string) => !!element);
     props.handleFocusUpdate(props.id);
