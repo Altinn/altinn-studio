@@ -129,7 +129,6 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       newSelected[event.target.value] = event.target.name;
     }
     const filtered = newSelected.filter((element: string) => !!element);
-
     props.handleFocusUpdate(props.id);
     props.handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
