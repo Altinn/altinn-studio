@@ -319,5 +319,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public string GetWidgetSettings(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
