@@ -118,8 +118,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();
     const index = newSelected.indexOf(event.target.name);
-    
-    if (index >= 0){
+
+    if (index >= 0) {
       newSelected[index] = '';
     } else {
       newSelected[newSelected.length] = event.target.name;
