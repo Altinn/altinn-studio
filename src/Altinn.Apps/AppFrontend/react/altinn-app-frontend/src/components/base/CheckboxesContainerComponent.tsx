@@ -98,7 +98,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
-  }, [useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId])]);
+  }, [options]);
 
   React.useEffect(() => {
     returnState();
