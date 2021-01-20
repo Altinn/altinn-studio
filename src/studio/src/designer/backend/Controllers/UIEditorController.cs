@@ -98,39 +98,18 @@ namespace Altinn.Studio.Designer.Controllers
 
         /// <summary>
         /// Add text resources to existing resource documents
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="textResources">The collection of text resources to be added</param>
+        /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         public ActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
         {
-            foreach (TextResource textResource in textResources)
+            var success = _repository.AddTextResources(org, app, textResources);
+            return Json(new
             {
-                var currentResourceString = _repository.GetLanguageResource(org, app, textResource.Language);
-                TextResource currentTextResource = JsonConvert.DeserializeObject<TextResource>(currentResourceString);
-                var duplicateResources = textResource.Resources.FindAll(resource => currentTextResource.Resources.Find(r => r.Id == resource.Id) != null);
-                if (duplicateResources.Count == 0)
-                {
-                    currentTextResource.Resources.AddRange(textResource.Resources);
-                }
-                else
-                {
-                    textResource.Resources.ForEach(resource =>
-                    {
-                        if (duplicateResources.Find(duplicate => duplicate.Id == resource.Id) != null)
-                        {
-                            var duplicate = currentTextResource.Resources.Find(r => r.Id == resource.Id);
-                            duplicate.Value = resource.Value;
-                            duplicate.Variables = resource.Variables;
-                        }
-                        else
-                        {
-                            currentTextResource.Resources.Add(resource);
-                        }
-                    });
-                }
-                
-                _repository.SaveLanguageResource(org, app, textResource.Language, JsonConvert.SerializeObject(currentTextResource));
-            }
-
-            return Ok();
+                Success = success
+            });
         }
 
         /// <summary>

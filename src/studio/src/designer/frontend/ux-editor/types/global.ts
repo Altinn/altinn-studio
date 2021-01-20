@@ -260,7 +260,7 @@ declare global {
   export interface IWidget {
     components: any[];
     texts: IWidgetTexts[];
-    displayName: any;
+    displayName: string;
   }
 
   export interface IWidgetTexts {
