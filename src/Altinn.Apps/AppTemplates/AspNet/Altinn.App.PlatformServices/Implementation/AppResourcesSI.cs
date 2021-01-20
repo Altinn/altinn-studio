@@ -336,23 +336,22 @@ namespace Altinn.App.Services.Implementation
         public byte[] GetRuleConfigurationForSet(string id)
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleConfigurationJSONFileName);
-            byte[] filedata = new byte[0];
-            if (File.Exists(filename))
-            {
-                filedata = File.ReadAllBytes(filename);
-            }
-
-            return filedata;
+            return ReadFileByte(filename);
         }
 
         /// <inheritdoc />
         public byte[] GetRuleHandlerForSet(string id)
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleHandlerFileName);
+            return ReadFileByte(filename);
+        }
+
+        private byte[] ReadFileByte(string fileName)
+        {
             byte[] filedata = null;
-            if (File.Exists(filename))
+            if (File.Exists(fileName))
             {
-                filedata = File.ReadAllBytes(filename);
+                filedata = File.ReadAllBytes(fileName);
             }
 
             return filedata;
