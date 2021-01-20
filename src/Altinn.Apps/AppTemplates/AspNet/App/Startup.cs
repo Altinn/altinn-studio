@@ -245,7 +245,7 @@ namespace Altinn.App
                 JObject appMetadataJObject = JObject.Parse(appMetaDataString);
                 return appMetadataJObject.SelectToken("id").Value<string>();
             }
-            catch
+            catch (Exception e)
             {
                 return String.Empty;
             }
