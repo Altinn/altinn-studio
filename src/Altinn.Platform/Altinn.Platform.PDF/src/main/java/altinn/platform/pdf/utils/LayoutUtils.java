@@ -48,18 +48,16 @@ public class LayoutUtils {
       return height;
     }
 
-    if (element.getType().equalsIgnoreCase("fileupload")) {
-      List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
-      for (String line: lines) {
-        height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
-        height += (leading - fontSize);
-      }
-    } else if (element.getType().equalsIgnoreCase("attachmentlist")) {
+    if (element.getType().equalsIgnoreCase("fileupload") || element.getType().equalsIgnoreCase("attachmentlist")) {
       List<String> lines = new ArrayList<>();
-      for (String id: element.getDataTypeIds()) {
-        lines.addAll(InstanceUtils.getAttachmentsByComponentId(id, instance));
+      if (element.getType().equalsIgnoreCase("fileupload")) {
+        lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
+      } else {
+        for (String id: element.getDataTypeIds()) {
+          lines.addAll(InstanceUtils.getAttachmentsByComponentId(id, instance));
+        }
       }
-
+      
       for (String line: lines) {
         height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
         height += (leading - fontSize);

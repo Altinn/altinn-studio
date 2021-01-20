@@ -420,20 +420,7 @@ public class PDFGenerator {
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
     List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
-    addSection(currentPart);
-    beginMarkedContent(COSName.P);
-    currentContent.setFont(font, fontSize);
-    currentContent.beginText();
-    float indent = 10;
-    currentContent.newLineAtOffset(xPoint + indent, yPoint);
-    for(String file: files) {
-      currentContent.showText("- " + file);
-      currentContent.newLineAtOffset(0, -leading);
-      yPoint -= leading;
-    }
-    currentContent.endText();
-    addContentToCurrentSection(COSName.P, StandardStructureTypes.P);
-    currentContent.endMarkedContent();
+    renderFileListContent(files);
   }
 
   private void renderAttachmentListContent(FormLayoutElement element) throws IOException {
@@ -442,6 +429,10 @@ public class PDFGenerator {
       files.addAll(InstanceUtils.getAttachmentsByComponentId(id, this.instance));
     }
     
+    renderFileListContent(files);
+  }
+
+  private void renderFileListContent(List<String> files) throws IOException {
     addSection(currentPart);
     beginMarkedContent(COSName.P);
     currentContent.setFont(font, fontSize);
