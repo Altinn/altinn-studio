@@ -18,6 +18,7 @@ export function buildQueryParametersForEndpoint(filterParameters) {
     Object.keys(filterParameters).forEach(function(key) {
         query += key + "=" + filterParameters[key] + "&";
     });
+    query = query.slice(0, -1);
     return query;
 };
 
