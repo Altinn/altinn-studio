@@ -110,16 +110,12 @@ export function setupGroupComponents(components: (ILayoutComponent | ILayoutGrou
 }
 
 export function getLayouytsetForDataElement(instance: IInstance, datatype: string, layoutsets: ILayoutSets) {
-  let foundLayout: string;
   const currentTaskId = instance.process.currentTask.elementId;
-  layoutsets.sets.forEach((layoutset: ILayoutSet) => {
-    if (layoutset.dataType === datatype) {
-      layoutset.task.forEach((taskfound: string) => {
-        if (taskfound === currentTaskId) {
-          foundLayout = layoutset.id;
-        }
-      });
+  const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
+    if (layoutSet.dataType !== datatype) {
+      return false;
     }
+    return layoutSet.task.find((taskId: string) => taskId === currentTaskId);
   });
-  return foundLayout;
+  return foundLayout.id;
 }
