@@ -122,7 +122,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     if (index >= 0) {
       newSelected[index] = '';
     } else {
-      newSelected[newSelected.length] = event.target.name;
+      newSelected.push(event.target.name);
     }
     const filtered = newSelected.filter((element: string) => !!element);
     props.handleFocusUpdate(props.id);
