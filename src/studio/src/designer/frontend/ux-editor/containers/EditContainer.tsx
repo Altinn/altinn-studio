@@ -291,7 +291,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
       this.props.id,
     );
     if (id !== this.props.id) {
-      FormDesignerActionDispatchers.updateContainerId(this.props.id, id);
+      FormDesignerActionDispatchers.updateFormComponentId(this.props.id, id);
     }
   }
 

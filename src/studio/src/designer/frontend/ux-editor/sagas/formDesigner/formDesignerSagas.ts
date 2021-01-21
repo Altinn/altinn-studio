@@ -267,6 +267,8 @@ export function* watchSaveFormLayoutSaga(): SagaIterator {
   yield takeLatest([
     FormDesignerActionTypes.SAVE_FORM_LAYOUT,
     FormDesignerActionTypes.ADD_LAYOUT_FULFILLED,
+    FormDesignerActionTypes.UPDATE_FORM_COMPONENT_FULFILLED,
+    FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ID_FULFILLED,
   ],
   saveFormLayoutSaga);
 }
@@ -306,7 +308,6 @@ function* updateFormComponentSaga({
       updatedComponent,
       id,
     );
-    yield call(FormDesignerActionDispatchers.saveFormLayout);
     if (updatedComponent.type === 'FileUpload') {
       const {
         maxNumberOfAttachments,
@@ -592,4 +593,16 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
     FormDesignerActionTypes.UPDATE_LAYOUT_NAME_FULFILLED,
     FormDesignerActionTypes.ADD_LAYOUT_FULFILLED,
   ], saveFormLayoutSettingSaga);
+}
+
+export function* updateFormComponentIdSaga({ currentId, newId }: FormDesignerActions.IUpdateFormComponentIdAction): SagaIterator {
+  try {
+    yield call(FormDesignerActionDispatchers.updateFormComponentIdFulfilled, currentId, newId);
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormComponentIdRejected, err);
+  }
+}
+
+export function* watchUpdateFormComponentIdSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ID, updateFormComponentIdSaga);
 }
