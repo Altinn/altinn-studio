@@ -36,9 +36,6 @@ export interface IAppConfigActionDispatchers extends ActionCreatorsMapObject {
   fetchLanguageRecjeted: (
     error: Error,
   ) => AppDataActions.IFetchLanguageRejected;
-  loadTextResources: (url: string) => AppDataActions.ILoadTextResourcesAction;
-  loadTextResourcesFulfilled: (textResources: any) => AppDataActions.ILoadTextResourcesFulfilled;
-  loadTextResourcesRejected: (error: Error) => AppDataActions.ILoadTextResourcesRejected;
   fetchCodeLists: (url: string) => AppDataActions.IFetchCodeListsAction;
   fetchCodeListsFulfilled: (codeList: any) => AppDataActions.IFetchCodeListsFulfilled;
   fetchCodeListsRejected: (error: Error) => AppDataActions.IFetchCodeListsRejected;
@@ -57,9 +54,6 @@ const actions: IAppConfigActionDispatchers = {
   fetchRuleModel: AppDataActions.fetchRuleModelAction,
   fetchRuleModelFulfilled: AppDataActions.fetchRuleModelFulfilledAction,
   fetchRuleModelRejected: AppDataActions.fetchRuleModelRejectedAction,
-  loadTextResources: AppDataActions.loadTextResourcesAction,
-  loadTextResourcesFulfilled: AppDataActions.loadTextResourcesFulfilledAction,
-  loadTextResourcesRejected: AppDataActions.loadTextResourcesRejectedAction,
   fetchCodeLists: AppDataActions.fetchCodeListsAction,
   fetchCodeListsFulfilled: AppDataActions.fetchCodeListsFulfilledAction,
   fetchCodeListsRejected: AppDataActions.fetchCodeListsRejectedAction,

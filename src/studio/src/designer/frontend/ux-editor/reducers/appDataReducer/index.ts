@@ -4,7 +4,7 @@ import codeListsReducer, { ICodeListsState } from './codeListsReducer';
 import dataModelReducer, { IDataModelState } from './dataModelReducer';
 import languageReducer, { ILanguageState } from './languageReducer';
 import ruleModelReducer, { IRuleModelState } from './ruleModelReducer';
-import textResourceReducer, { ITextResourcesState } from './textResourcesReducer';
+import textResourceReducer, { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 
 export interface IAppDataState {
   appConfig: IAppConfigState;

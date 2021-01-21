@@ -23,3 +23,4 @@ export * from './deleteLayout';
 export * from './updateLayoutName';
 export * from './updateLayoutOrder';
 export * from './fetchLayoutSettings';
+export * from '../../../features/formLayout/widgets/addWidgetActions';

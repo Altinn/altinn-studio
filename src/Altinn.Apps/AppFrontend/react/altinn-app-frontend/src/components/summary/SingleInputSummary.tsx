@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
+import { EditButton } from './EditButton';
 
 export interface ISingleInputSumary {
   formData: any;
@@ -17,14 +18,6 @@ const useStyles = makeStyles({
   },
   labelWithError: {
     color: appTheme.altinnPalette.primary.red,
-  },
-  editIcon: {
-    paddingLeft: '6px',
-    fontSize: '1.8rem !important',
-  },
-  change: {
-    fontSize: '1.8rem',
-    cursor: 'pointer',
   },
   row: {
     borderBottom: '1px dashed #008FD6',
@@ -66,14 +59,10 @@ function SingleInputSummary({
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        <Typography
-          variant='body1'
+        <EditButton
           onClick={onChangeClick}
-          className={classes.change}
-        >
-          <span>{changeText}</span>
-          <i className={`fa fa-editing-file ${classes.editIcon}`} />
-        </Typography>
+          editText={changeText}
+        />
       </Grid>
       <Grid item xs={12}>
         <Typography variant='body1'>{displayData}</Typography>
