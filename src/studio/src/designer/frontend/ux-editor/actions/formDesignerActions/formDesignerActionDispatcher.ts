@@ -291,6 +291,7 @@ const actions: IFormDesignerActionDispatchers = {
   addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
   addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
   addActiveFormContainerRejected: FormDesignerActions.addActiveFormContainerRejected,
+  addWidget: FormDesignerActions.addWidget,
   createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
   createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
   createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
