@@ -203,6 +203,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Button',
     'Checkboxes',
     'RadioButtons',
+    'AttachmentList',
   ];
 
   return (
