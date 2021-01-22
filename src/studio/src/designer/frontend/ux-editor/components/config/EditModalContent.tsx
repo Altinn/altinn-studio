@@ -59,7 +59,6 @@ export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
-  codeListResources?: ICodeListListElement[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
   cancelEdit?: () => void;
   handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
@@ -875,7 +874,6 @@ const mapStateToProps = (
   return {
     language: state.appData.language.language,
     textResources: state.appData.textResources.resources,
-    codeListResources: state.appData.codeLists.codeLists,
     thirdPartyComponents: state.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
     ...props,

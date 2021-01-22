@@ -56,3 +56,19 @@ export const getAddTextResourcesUrl = (): string => {
 export const getWidgetsSettingsUrl = (): string => {
   return `${basePath}/UIEditor/GetWidgetSettings`;
 };
+
+export const getLoadTextResourcesUrl = (languageCode: string) => {
+  return `${basePath}/UIEditor/GetTextResources/${languageCode}`;
+};
+
+export const getFetchDataModelUrl = () => {
+  return `${basePath}/Model/GetJson`;
+};
+
+export const getFetchLanguageUrl = (languageCode: string) => {
+  return `${window.location.origin}/designerapi/Language/GetLanguageAsJSON?languageCode=${languageCode}`;
+};
+
+export const getFetchRuleModelUrl = () => {
+  return `${basePath}/UIEditor/GetRuleHandler`;
+};

@@ -9,7 +9,6 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
-import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
@@ -153,7 +152,6 @@ class FormDesigner extends React.Component<
     FormDesignerActionDispatchers.fetchFormLayout(
       `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
     );
-    AppDataActionDispatcher.setDesignMode(true);
     ManageServiceConfigurationDispatchers.fetchJsonFile(
       `${window.location.origin}/designer/${
         appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`,

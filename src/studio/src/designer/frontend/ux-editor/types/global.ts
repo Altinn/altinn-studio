@@ -1,5 +1,5 @@
 import { IWidgetState } from '../features/widgets/widgetsSlice';
-import { IAppDataState } from '../reducers/appDataReducer';
+import { IAppDataState } from '../features/appData/appDataReducers';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
 import { IServiceConfigurationState } from '../reducers/serviceConfigurationReducer';
@@ -124,6 +124,10 @@ declare global {
     maxNumberOfAttachments: number;
     minNumberOfAttachments: number;
     validFileEndings?: string;
+  }
+
+  export interface IFormDesignerActionRejected {
+    error: Error;
   }
 
   export interface IDataModelBindings {

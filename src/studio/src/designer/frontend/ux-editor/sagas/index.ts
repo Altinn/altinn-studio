@@ -2,8 +2,7 @@ import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
-import appDataSagas from './appData';
-import codeListsSagas from './codeLists';
+import appDataSagas from '../features/appData/appDataSagas';
 import conditionalRenderingSagas from './conditionalRendering';
 import editContainerSagas from './editActiveList';
 import formDesignerSagas from './formDesigner';
@@ -19,7 +18,6 @@ function* root(): SagaIterator {
   yield fork(conditionalRenderingSagas);
   yield fork(appDataSagas);
   yield fork(manageJsonFileSagas);
-  yield fork(codeListsSagas);
   yield fork(thirdPartyComponentSagas);
   yield fork(widgetsSagas);
 }

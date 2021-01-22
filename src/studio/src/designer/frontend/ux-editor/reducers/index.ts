@@ -1,5 +1,5 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import appDataReducer, { IAppDataState } from './appDataReducer';
+import appDataReducer, { IAppDataState } from '../features/appData/appDataReducers';
 import errorReducer, { IErrorState } from './errorReducer';
 import formDesignerReducer, { IFormDesignerState } from './formDesignerReducer';
 import serviceConfigurationReducer, { IServiceConfigurationState } from './serviceConfigurationReducer';

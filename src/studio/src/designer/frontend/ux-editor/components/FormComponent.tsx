@@ -29,7 +29,6 @@ export interface IProvidedProps {
  */
 export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
-  designMode: boolean;
   dataModelElement: IDataModelFieldElement;
   dataModel: IDataModelFieldElement[];
   validationErrors: any[];
@@ -110,10 +109,7 @@ const FormComponent = (props: IFormElementProps) => {
       return null;
     }
     if (props.component.textResourceBindings.title) {
-      const label: string =
-        props.designMode ?
-          props.component.textResourceBindings.title :
-          getTextResource(props.component.textResourceBindings.title);
+      const label: string = getTextResource(props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={props.id}>
           {label}
@@ -176,7 +172,6 @@ const makeMapStateToProps = () => {
     singleSelected: props.singleSelected,
     component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
     order: GetLayoutOrderSelector(state),
-    designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.dataBindingName ===
         state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings?.simpleBinding,
