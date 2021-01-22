@@ -85,7 +85,12 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    if (formData && (formData === value || formData[key] === value)) {
+    if (formData instanceof Object) {
+      if (formData[key] && formData[key] === value) {
+        // data unchanged, do nothing
+        return;
+      }
+    } else if (formData && formData === value) {
       // data unchanged, do nothing
       return;
     }

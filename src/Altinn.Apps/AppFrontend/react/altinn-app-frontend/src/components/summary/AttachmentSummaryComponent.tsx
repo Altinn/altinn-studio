@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
 import { IAttachment } from 'src/shared/resources/attachments';
+import { EditButton } from './EditButton';
 
 export interface IAttachmentSummaryComponent {
   componentRef: string;
@@ -20,14 +21,6 @@ const useStyles = makeStyles({
   },
   labelWithError: {
     color: appTheme.altinnPalette.primary.red,
-  },
-  editIcon: {
-    paddingLeft: '6px',
-    fontSize: '1.8rem !important',
-  },
-  change: {
-    fontSize: '1.8rem',
-    cursor: 'pointer',
   },
   row: {
     borderBottom: '1px dashed #008FD6',
@@ -53,14 +46,10 @@ export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        <Typography
-          variant='body1'
+        <EditButton
           onClick={props.onChangeClick}
-          className={classes.change}
-        >
-          <span>{props.changeText}</span>
-          <i className={`fa fa-editing-file ${classes.editIcon}`} />
-        </Typography>
+          editText={props.changeText}
+        />
       </Grid>
       <Grid item xs={12}>
         {attachments && attachments.map((attachment) => {

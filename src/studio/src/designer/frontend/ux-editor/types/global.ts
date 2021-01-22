@@ -1,3 +1,4 @@
+import { IWidgetState } from '../features/widgets/widgetsSlice';
 import { IAppDataState } from '../reducers/appDataReducer';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
@@ -5,12 +6,13 @@ import { IServiceConfigurationState } from '../reducers/serviceConfigurationRedu
 import { IThirdPartyComponentsState } from '../reducers/thirdPartyComponentReducer';
 
 declare global {
-  export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
+  export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
     formDesigner: T1;
     serviceConfigurations: T2;
     appData: T3;
     errors: T4;
     thirdPartyComponents: T5;
+    widgets: T6;
   }
   export interface IAppState
     extends IFormDesignerNameSpace
@@ -18,7 +20,8 @@ declare global {
     IServiceConfigurationState,
     IAppDataState,
     IErrorState,
-    IThirdPartyComponentsState> { }
+    IThirdPartyComponentsState,
+    IWidgetState> { }
   export interface IAltinnEditableComponent {
     ModalContent: () => JSX.Element;
   }
@@ -245,13 +248,24 @@ declare global {
   export interface ITextResource {
     id: string;
     value: string;
-    unparsedValue: string;
-    variables:IVariable[];
+    unparsedValue?: string;
+    variables?: IVariable[];
   }
 
   export interface IVariable {
     key: string;
     dataSource: string;
+  }
+
+  export interface IWidget {
+    components: any[];
+    texts: IWidgetTexts[];
+    displayName: string;
+  }
+
+  export interface IWidgetTexts {
+    language: string;
+    resources: ITextResource[];
   }
 
   export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;

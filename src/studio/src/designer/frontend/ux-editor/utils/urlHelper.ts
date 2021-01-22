@@ -1,50 +1,44 @@
+const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
+
 export const getSaveFormLayoutUrl = (layoutName: string): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveFormLayout/${layoutName}`;
+  return `${basePath}/UIEditor/SaveFormLayout/${layoutName}`;
 };
 
 export const getUpdateFormLayoutNameUrl = (layoutName: string): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/UpdateFormLayoutName/${layoutName}`;
+  return `${basePath}/UIEditor/UpdateFormLayoutName/${layoutName}`;
 };
 
 export const getDeleteForLayoutUrl = (layout: string): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/DeleteFormLayout/${layout}`;
+  return `${basePath}/UIEditor/DeleteFormLayout/${layout}`;
 };
 
 export const getLayoutSettingsUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/GetLayoutSettings`;
+  return `${basePath}/UIEditor/GetLayoutSettings`;
 };
 
 export const getSaveLayoutSettingsUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveLayoutSettings`;
+  return `${basePath}/UIEditor/SaveLayoutSettings`;
 };
 
 export const getSaveServiceConfigurationUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
   /* tslint:disable-next-line:max-line-length */
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
+  return `${basePath}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
 };
 
 export const getAddApplicationMetadataUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
   /* tslint:disable-next-line:max-line-length */
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/AddMetadataForAttachment`;
+  return `${basePath}/UIEditor/AddMetadataForAttachment`;
 };
 
 export const getDeleteApplicationMetadataUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
   /* tslint:disable-next-line:max-line-length */
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/DeleteMetadataForAttachment?id=`;
+  return `${basePath}/UIEditor/DeleteMetadataForAttachment?id=`;
 };
 
 export const getUpdateApplicationMetadataUrl = (): string => {
-  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
   /* tslint:disable-next-line:max-line-length */
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/UpdateMetadataForAttachment`;
+  return `${basePath}/UIEditor/UpdateMetadataForAttachment`;
 };
 
 export const getLayoutSettingsSchemaUrl = (): string => {
@@ -53,4 +47,12 @@ export const getLayoutSettingsSchemaUrl = (): string => {
 
 export const getLayoutSchemaUrl = (): string => {
   return 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
+};
+
+export const getAddTextResourcesUrl = (): string => {
+  return `${basePath}/UIEditor/AddTextResources`;
+};
+
+export const getWidgetsSettingsUrl = (): string => {
+  return `${basePath}/UIEditor/GetWidgetSettings`;
 };

@@ -98,17 +98,22 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+  }, [options]);
+
+  React.useEffect(() => {
+    returnState();
   }, [props.formData]);
 
   const returnState = () => {
     if (
       !props.formData &&
-      props.preselectedOptionIndex &&
+      props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
     ) {
       const preSelected: string[] = [];
       preSelected[props.preselectedOptionIndex] = options[props.preselectedOptionIndex].value;
+      props.handleDataChange(preSelected[props.preselectedOptionIndex]);
       setSelected(preSelected);
     } else {
       setSelected(props.formData ? props.formData.toString().split(',') : []);

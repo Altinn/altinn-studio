@@ -23,7 +23,8 @@ export enum ComponentTypes {
   Button = 'Button',
   AddressComponent = 'AddressComponent',
   Group = 'Group',
-  NavigationButtons = 'NavigationButtons'
+  NavigationButtons = 'NavigationButtons',
+  AttachmentList = 'AttachmentList',
 }
 
 export const componentIcons: IComponentIcon = {
@@ -40,6 +41,7 @@ export const componentIcons: IComponentIcon = {
   AddressComponent: 'fa fa-address',
   Group: 'fa fa-group',
   NavigationButtons: 'fa fa-button',
+  AttachmentList: 'fa fa-attachment',
 };
 
 export const textComponents: IComponent[] = [
@@ -124,6 +126,10 @@ export const advancedComponents: IComponent[] = [
       simplified: true,
       readOnly: false,
     },
+  },
+  {
+    name: ComponentTypes.AttachmentList,
+    Icon: componentIcons.AttachmentList,
   },
   {
     name: ComponentTypes.Group,

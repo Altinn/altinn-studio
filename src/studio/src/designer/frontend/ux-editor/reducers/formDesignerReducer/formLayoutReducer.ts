@@ -4,8 +4,10 @@
 import { ILayoutSettings } from 'app-shared/types';
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IAddWidgetFulfilled } from '../../features/formLayout/widgets/addWidgetsSagas';
 import { getLayoutSettingsSchemaUrl } from '../../utils/urlHelper';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
+import { addWidgetFulfilled } from '../../actions/formDesignerActions/actions';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 
 export interface IFormLayoutState extends IFormDesignerLayout {
@@ -30,7 +32,7 @@ const initialState: IFormLayoutState = {
   activeContainer: '',
   activeList: [],
   selectedLayout: 'default',
-  layoutSettings: { $schema: getLayoutSettingsSchemaUrl(), pages: {order: []}},
+  layoutSettings: { $schema: getLayoutSettingsSchemaUrl(), pages: { order: [] } },
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -635,7 +637,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
               newOrder[newOrder.indexOf(oldName)] = newName;
               return newOrder;
             },
-          }
+          },
         },
       });
     }
@@ -650,9 +652,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_FULFILLED: {
       const { layout, direction } = action as FormDesignerActions.IUpdateLayoutOrderFulfilledAction;
       return update<IFormLayoutState>(state, {
-        layoutSettings: {
-          pages: {
-            order: (currentOrder => {
+        layoutSettings: { pages: {
+          order: ((currentOrder) => {
             const newOrder = [...currentOrder];
             const currentIndex = currentOrder.indexOf(layout);
             let destination: number;
@@ -664,8 +665,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
             newOrder.splice(currentIndex, 1);
             newOrder.splice(destination, 0, layout);
             return newOrder;
-          })
-        }}
+          }),
+        } },
       });
     }
     case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_REJECTED: {
@@ -692,6 +693,29 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,
+        },
+      });
+    }
+    case addWidgetFulfilled.type: {
+      const { payload } = action as IAddWidgetFulfilled;
+      const {
+        components,
+        containerId,
+        layoutId,
+        containerOrder,
+      } = payload;
+      return update<IFormLayoutState>(state, {
+        layouts: {
+          [layoutId]: {
+            components: {
+              $set: components,
+            },
+            order: {
+              [containerId]: {
+                $set: containerOrder,
+              },
+            },
+          },
         },
       });
     }
