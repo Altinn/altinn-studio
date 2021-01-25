@@ -2,6 +2,7 @@ using Altinn.App.PlatformServices.Extensions;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App
 {
@@ -10,12 +11,15 @@ namespace Altinn.App
     /// </summary>
     public class Program
     {
+        private static ILogger _logger;
+
         /// <summary>
         /// The entry point of the application. Called when the application is started.
         /// </summary>
         /// <param name="args">The command line arguments used when starting the application.</param>
         public static void Main(string[] args)
         {
+            ConfigureSetupLogging();
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -34,5 +38,21 @@ namespace Altinn.App
                     });
                     webBuilder.UseStartup<Startup>();
                 });
+
+        /// <summary>
+        /// Configure logging for setting up application. Temporary
+        /// </summary>
+        public static void ConfigureSetupLogging()
+        {
+            // Setup logging for the web host creation
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("Altinn.App.Program", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Program>();
+        }
     }
 }

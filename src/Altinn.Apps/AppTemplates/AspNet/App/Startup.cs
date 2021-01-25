@@ -40,19 +40,21 @@ namespace Altinn.App
     /// </summary>
     public class Startup
     {
-        private ILogger _logger;
+        private readonly ILogger<Startup> _logger;
         private readonly IWebHostEnvironment _env;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="Startup"/> class with the given configuration
         /// and host environment information.
         /// </summary>
+        /// <param name="logger">A generic logger</param>
         /// <param name="configuration">The current configuration.</param>
         /// <param name="env">Information about the host environment.</param>
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _env = env;
+            _logger = logger;
         }
 
         /// <summary>
@@ -66,15 +68,6 @@ namespace Altinn.App
         /// <param name="services">The current service provider.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            var logFactory = LoggerFactory.Create(builder =>
-            {
-                builder
-                    .AddFilter("App.Startup", LogLevel.Warning)
-                    .AddConsole();
-            });
-
-            _logger = logFactory.CreateLogger<Program>();
-
             _logger.LogInformation("Startup // ConfigureServices");
 
             // Add API controllers from Altinn.App.Api
