@@ -7,9 +7,14 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
-namespace Altinn.App.Models
+
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+#pragma warning disable SA1649 // File name should match first type name
+namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models
 {
-  public class ePOB_M{
+    public class ePOB_M
+    {
+#pragma warning restore SA1649 // File name should match first type name
     [XmlElement("PersonInformasjon")]
     [JsonProperty("PersonInformasjon")]
     [JsonPropertyName("PersonInformasjon")]
@@ -89,9 +94,10 @@ namespace Altinn.App.Models
     [JsonProperty("DeusRequest")]
     [JsonPropertyName("DeusRequest")]
     public Deusrequest DeusRequest { get; set; }
+    }
 
-  }
-  public class Personalia{
+    public class Personalia
+    {
     [XmlElement("bostedsadresse")]
     [JsonProperty("bostedsadresse")]
     [JsonPropertyName("bostedsadresse")]
@@ -188,7 +194,9 @@ namespace Altinn.App.Models
     public string samtykkepersonkontroll { get; set; }
 
   }
-  public class Adresse{
+
+    public class Adresse
+    {
     [XmlElement("adressebeskrivelse")]
     [JsonProperty("adressebeskrivelse")]
     [JsonPropertyName("adressebeskrivelse")]
@@ -210,7 +218,9 @@ namespace Altinn.App.Models
     public string land { get; set; }
 
   }
-  public class Iddokumenter{
+
+    public class Iddokumenter
+    {
     [XmlElement("typedokument")]
     [JsonProperty("typedokument")]
     [JsonPropertyName("typedokument")]
@@ -227,7 +237,9 @@ namespace Altinn.App.Models
     public string land { get; set; }
 
   }
-  public class Person{
+
+    public class Person
+    {
     [XmlElement("foedselsnummer")]
     [JsonProperty("foedselsnummer")]
     [JsonPropertyName("foedselsnummer")]
@@ -262,9 +274,10 @@ namespace Altinn.App.Models
     [JsonProperty("utenlandsadresse")]
     [JsonPropertyName("utenlandsadresse")]
     public List<Adresse> utenlandsadresse { get; set; }
+    }
 
-  }
-  public class Personnavn{
+    public class Personnavn
+    {
     [XmlElement("fornavn")]
     [JsonProperty("fornavn")]
     [JsonPropertyName("fornavn")]
@@ -284,9 +297,10 @@ namespace Altinn.App.Models
     [JsonProperty("fulltnavn")]
     [JsonPropertyName("fulltnavn")]
     public string fulltnavn { get; set; }
-
   }
-  public class Statsborgerskap{
+
+    public class Statsborgerskap
+    {
     [XmlElement("fraDato")]
     [JsonProperty("fraDato")]
     [JsonPropertyName("fraDato")]
@@ -321,9 +335,10 @@ namespace Altinn.App.Models
     [JsonProperty("land")]
     [JsonPropertyName("land")]
     public string land { get; set; }
-
   }
-  public class Relasjoner{
+
+    public class Relasjoner
+    {
     [XmlElement("barn")]
     [JsonProperty("barn")]
     [JsonPropertyName("barn")]
@@ -358,9 +373,10 @@ namespace Altinn.App.Models
     [JsonProperty("persontilknytning")]
     [JsonPropertyName("persontilknytning")]
     public List<Naerstaaende> persontilknytning { get; set; }
+    }
 
-  }
-  public class Naerstaaende{
+    public class Naerstaaende
+    {
     [XmlElement("personinfo")]
     [JsonProperty("personinfo")]
     [JsonPropertyName("personinfo")]
@@ -405,9 +421,10 @@ namespace Altinn.App.Models
     [JsonProperty("relasjonmedperson")]
     [JsonPropertyName("relasjonmedperson")]
     public string relasjonmedperson { get; set; }
+    }
 
-  }
-  public class Samboerektefelle{
+    public class Samboerektefelle
+    {
     [XmlElement("hattsamboerstatsborgerandreland")]
     [JsonProperty("hattsamboerstatsborgerandreland")]
     [JsonPropertyName("hattsamboerstatsborgerandreland")]
@@ -462,9 +479,10 @@ namespace Altinn.App.Models
     [JsonProperty("BostederEU")]
     [JsonPropertyName("BostederEU")]
     public List<Bostedhistorikkeu> BostederEU { get; set; }
-
   }
-  public class Bostedhistorikkutland{
+
+    public class Bostedhistorikkutland
+    {
     [XmlElement("land")]
     [JsonProperty("land")]
     [JsonPropertyName("land")]
@@ -514,9 +532,10 @@ namespace Altinn.App.Models
     [JsonProperty("spesifikasjon")]
     [JsonPropertyName("spesifikasjon")]
     public string spesifikasjon { get; set; }
+    }
 
-  }
-  public class Bostedhistorikkeu{
+    public class Bostedhistorikkeu
+    {
     [XmlElement("land")]
     [JsonProperty("land")]
     [JsonPropertyName("land")]
@@ -536,9 +555,10 @@ namespace Altinn.App.Models
     [JsonProperty("antallganger")]
     [JsonPropertyName("antallganger")]
     public string antallganger { get; set; }
+    }
 
-  }
-  public class OEkonomi{
+    public class OEkonomi
+    {
     [XmlElement("hattprivatelaan")]
     [JsonProperty("hattprivatelaan")]
     [JsonPropertyName("hattprivatelaan")]
@@ -608,9 +628,10 @@ namespace Altinn.App.Models
     [JsonProperty("okonomiskesituasjonbeskrivelse")]
     [JsonPropertyName("okonomiskesituasjonbeskrivelse")]
     public string okonomiskesituasjonbeskrivelse { get; set; }
+    }
 
-  }
-  public class Investering{
+    public class Investering
+    {
     [XmlElement("type")]
     [JsonProperty("type")]
     [JsonPropertyName("type")]
@@ -625,9 +646,10 @@ namespace Altinn.App.Models
     [JsonProperty("land")]
     [JsonPropertyName("land")]
     public string land { get; set; }
+    }
 
-  }
-  public class Transaksjonutland{
+    public class Transaksjonutland
+    {
     [XmlElement("antallganger")]
     [JsonProperty("antallganger")]
     [JsonPropertyName("antallganger")]
@@ -647,9 +669,10 @@ namespace Altinn.App.Models
     [JsonProperty("belop")]
     [JsonPropertyName("belop")]
     public string belop { get; set; }
+    }
 
-  }
-  public class Strafferettslig{
+    public class Strafferettslig
+    {
     [XmlElement("hattlovbruddnorge")]
     [JsonProperty("hattlovbruddnorge")]
     [JsonPropertyName("hattlovbruddnorge")]
@@ -679,9 +702,10 @@ namespace Altinn.App.Models
     [JsonProperty("hattstraffutlandet")]
     [JsonPropertyName("hattstraffutlandet")]
     public List<Straffforhold> hattstraffutlandet { get; set; }
+    }
 
-  }
-  public class Straffforhold{
+    public class Straffforhold
+    {
     [XmlElement("aar")]
     [JsonProperty("aar")]
     [JsonPropertyName("aar")]
@@ -701,9 +725,10 @@ namespace Altinn.App.Models
     [JsonProperty("type")]
     [JsonPropertyName("type")]
     public string type { get; set; }
+    }
 
-  }
-  public class Rusmidler{
+    public class Rusmidler
+    {
     [XmlElement("hattalkoholhendelser")]
     [JsonProperty("hattalkoholhendelser")]
     [JsonPropertyName("hattalkoholhendelser")]
@@ -753,9 +778,10 @@ namespace Altinn.App.Models
     [JsonProperty("hattakan")]
     [JsonPropertyName("hattakan")]
     public string hattakan { get; set; }
+    }
 
-  }
-  public class Sikkerhetsopplysninger{
+    public class Sikkerhetsopplysninger
+    {
     [XmlElement("hattKontaktterror")]
     [JsonProperty("hattKontaktterror")]
     [JsonPropertyName("hattKontaktterror")]
@@ -790,9 +816,10 @@ namespace Altinn.App.Models
     [JsonProperty("beskrivelseandreforhold")]
     [JsonPropertyName("beskrivelseandreforhold")]
     public string beskrivelseandreforhold { get; set; }
+    }
 
-  }
-  public class Statstilknytning{
+    public class Statstilknytning
+    {
     [XmlElement("hatttjenensterutland")]
     [JsonProperty("hatttjenensterutland")]
     [JsonPropertyName("hatttjenensterutland")]
@@ -847,9 +874,10 @@ namespace Altinn.App.Models
     [JsonProperty("utdanningssteder")]
     [JsonPropertyName("utdanningssteder")]
     public List<Utdanningssted> utdanningssteder { get; set; }
+    }
 
-  }
-  public class Tilknytningtilfelle{
+    public class Tilknytningtilfelle
+    {
     [XmlElement("beskrivelse")]
     [JsonProperty("beskrivelse")]
     [JsonPropertyName("beskrivelse")]
@@ -869,9 +897,10 @@ namespace Altinn.App.Models
     [JsonProperty("til")]
     [JsonPropertyName("til")]
     public string til { get; set; }
-
   }
-  public class Utdanningssted{
+
+    public class Utdanningssted
+    {
     [XmlElement("utdanningsted")]
     [JsonProperty("utdanningsted")]
     [JsonPropertyName("utdanningsted")]
@@ -891,9 +920,10 @@ namespace Altinn.App.Models
     [JsonProperty("til")]
     [JsonPropertyName("til")]
     public string til { get; set; }
-
   }
-  public class Helse{
+
+    public class Helse
+    {
     [XmlElement("hattsykdom")]
     [JsonProperty("hattsykdom")]
     [JsonPropertyName("hattsykdom")]
@@ -923,9 +953,10 @@ namespace Altinn.App.Models
     [JsonProperty("utdypelselegemidler")]
     [JsonPropertyName("utdypelselegemidler")]
     public string utdypelselegemidler { get; set; }
-
   }
-  public class Helseutredning{
+
+    public class Helseutredning
+    {
     [XmlElement("typebehandling")]
     [JsonProperty("typebehandling")]
     [JsonPropertyName("typebehandling")]
@@ -940,9 +971,10 @@ namespace Altinn.App.Models
     [JsonProperty("utdypelse")]
     [JsonPropertyName("utdypelse")]
     public string utdypelse { get; set; }
-
   }
-  public class Arbeidserfaringer{
+
+    public class Arbeidserfaringer
+    {
     [XmlElement("fraaar")]
     [JsonProperty("fraaar")]
     [JsonPropertyName("fraaar")]
@@ -1012,9 +1044,10 @@ namespace Altinn.App.Models
     [JsonProperty("tilmaaned")]
     [JsonPropertyName("tilmaaned")]
     public string tilmaaned { get; set; }
-
   }
-  public class Deusrequest{
+
+    public class Deusrequest
+    {
     [XmlElement("clearauthority")]
     [JsonProperty("clearauthority")]
     [JsonPropertyName("clearauthority")]
@@ -1046,4 +1079,5 @@ namespace Altinn.App.Models
     public string requestid { get; set; }
 
   }
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 }
