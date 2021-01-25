@@ -51,7 +51,7 @@ Tests should be run in an order that makes sure the tests are intact on the subs
 #### Tests on different solutions of studio
 
 ```cmd
-    npm run test
+    npm run test:studio
 ```
 
 #### Cleanup: After all the tests
