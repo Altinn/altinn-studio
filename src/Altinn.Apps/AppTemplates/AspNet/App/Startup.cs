@@ -242,6 +242,7 @@ namespace Altinn.App
             }
             catch 
             {
+                // Swagger will not have the xml-documentation to describe the api's.
             }            
         }
 
