@@ -98,17 +98,22 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+  }, [options]);
+
+  React.useEffect(() => {
+    returnState();
   }, [props.formData]);
 
   const returnState = () => {
     if (
       !props.formData &&
-      props.preselectedOptionIndex &&
+      props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
     ) {
       const preSelected: string[] = [];
       preSelected[props.preselectedOptionIndex] = options[props.preselectedOptionIndex].value;
+      props.handleDataChange(preSelected[props.preselectedOptionIndex]);
       setSelected(preSelected);
     } else {
       setSelected(props.formData ? props.formData.toString().split(',') : []);
@@ -117,11 +122,12 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();
+    const index = newSelected.indexOf(event.target.name);
 
-    if (newSelected[event.target.value] === event.target.name) {
-      newSelected[event.target.value] = '';
+    if (index >= 0) {
+      newSelected[index] = '';
     } else {
-      newSelected[event.target.value] = event.target.name;
+      newSelected.push(event.target.name);
     }
     const filtered = newSelected.filter((element: string) => !!element);
     props.handleFocusUpdate(props.id);
