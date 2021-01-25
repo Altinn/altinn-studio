@@ -27,6 +27,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Linq;
@@ -39,6 +40,7 @@ namespace Altinn.App
     /// </summary>
     public class Startup
     {
+        private ILogger _logger;
         private readonly IWebHostEnvironment _env;
 
         /// <summary>
@@ -64,6 +66,17 @@ namespace Altinn.App
         /// <param name="services">The current service provider.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("App.Startup", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Program>();
+
+            _logger.LogInformation("Startup // ConfigureServices");
+
             // Add API controllers from Altinn.App.Api
             IMvcBuilder mvcBuilder = services.AddControllersWithViews();
             mvcBuilder
@@ -199,14 +212,20 @@ namespace Altinn.App
             }
 
             string applicationId = GetApplicationId();
-
-            app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
-
-            app.UseSwaggerUI(c =>
+            if (!string.IsNullOrEmpty(applicationId))
             {
-                c.SwaggerEndpoint("/" + applicationId + "/swagger/v1/swagger.json", "Altinn App API");
-                c.RoutePrefix = applicationId + "/swagger";
-            });
+                app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
+
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint($"/{applicationId}/swagger/v1/swagger.json", "Altinn App API");
+                    c.RoutePrefix = applicationId + "/swagger";
+                });
+            }
+            else
+            {
+                _logger.LogError("Unable to configure swagger, applicationId is empty");
+            }
 
             app.UseRouting();
             app.UseAuthentication();
@@ -230,11 +249,18 @@ namespace Altinn.App
 
         private void IncludeXmlComments(SwaggerGenOptions options)
         {
-            string fileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            string fullFilePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            options.IncludeXmlComments(fullFilePath);
-            string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
-            options.IncludeXmlComments(fullFilePathApi);
+            try
+            {
+                string fileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string fullFilePath = Path.Combine(AppContext.BaseDirectory, fileName);
+                options.IncludeXmlComments(fullFilePath);
+                string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
+                options.IncludeXmlComments(fullFilePathApi);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to read documentation-xml {e}");
+            }
         }
 
         private string GetApplicationId()
@@ -245,7 +271,7 @@ namespace Altinn.App
                 JObject appMetadataJObject = JObject.Parse(appMetaDataString);
                 return appMetadataJObject.SelectToken("id").Value<string>();
             }
-            catch (Exception e)
+            catch
             {
                 return string.Empty;
             }
