@@ -18,8 +18,8 @@ namespace Altinn.App.Common.Models
         public string DataType { get; set; }
 
         /// <summary>
-        /// List of task where layuout should be used
+        /// List of tasks where layuout should be used
         /// </summary>
-        public List<string> Task { get; set; }
+        public List<string> Tasks { get; set; }
     }
 }

@@ -139,7 +139,7 @@ export interface ILayoutSets {
 export interface ILayoutSet{
   id: string;
   dataType: string;
-  task: string[];
+  tasks: string[];
 }
 
 export interface ILayoutSettings {

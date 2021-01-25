@@ -115,7 +115,7 @@ export function getLayouytsetForDataElement(instance: IInstance, datatype: strin
     if (layoutSet.dataType !== datatype) {
       return false;
     }
-    return layoutSet.task.find((taskId: string) => taskId === currentTaskId);
+    return layoutSet.tasks.find((taskId: string) => taskId === currentTaskId);
   });
   return foundLayout.id;
 }

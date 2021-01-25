@@ -230,12 +230,13 @@ namespace Altinn.App.Api.Controllers
         {
             byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
 
-            if (fileContent != null)
+            if (fileContent == null)
             {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
+                // frontend will fail witout content
+                fileContent = new byte[0];
             }
 
-            return StatusCode(404);
+            return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
         }
     }
 }

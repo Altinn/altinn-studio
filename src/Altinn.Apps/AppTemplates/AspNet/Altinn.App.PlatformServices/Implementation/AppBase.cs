@@ -249,7 +249,7 @@ namespace Altinn.App.Services.Implementation
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
                 layoutSets = JsonConvert.DeserializeObject<LayoutSets>(layoutSetsString);
-                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Task.Contains(taskId));
+                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
             string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);  
