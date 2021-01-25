@@ -69,7 +69,7 @@ namespace Altinn.App
             var logFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .AddFilter("App.Startup", LogLevel.Debug)
+                    .AddFilter("App.Startup", LogLevel.Warning)
                     .AddConsole();
             });
 
