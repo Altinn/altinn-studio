@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Infrastructure
 {
@@ -41,6 +42,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                         OnRedirectToLogin = async (context) =>
                         {
                             context.HttpContext.Response.Redirect(loginUrl);
+                            await Task.CompletedTask;
                         }
                     };
                 });
