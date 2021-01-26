@@ -1,18 +1,21 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { ILayoutSettings, INavigationConfig } from 'src/types';
+import { ILayoutSettings, INavigationConfig, ILayoutSets } from 'src/types';
 import { store } from '../../../store';
 import * as FetchForm from './fetch/fetchFormLayoutActions';
 import * as UpdateFormLayout from './update/updateFormLayoutActions';
 import { ILayouts } from '.';
 
 export interface IFormLayoutActions extends ActionCreatorsMapObject {
-  fetchFormLayout: (url: string) => FetchForm.IFetchFormLayout;
+  fetchFormLayout: () => Action;
   fetchFormLayoutFulfilled: (layouts: ILayouts, navigationConfig: INavigationConfig)
     => FetchForm.IFetchFormLayoutFulfilled;
   fetchFormLayoutRejected: (error: Error) => FetchForm.IFetchFormLayoutRejected;
   fetchFormLayoutSettings: () => Action;
   fetchFormLayoutSettingsFulfilled: (settings: ILayoutSettings) => FetchForm.IFetchFormLayoutSettingsFulfilled;
   fetchFormLayoutSettingsRejected: (error: Error) => FetchForm.IFetchFormLayoutSettingsRejected;
+  fetchFormLayoutSets: () => Action;
+  fetchFormLayoutSetsFulfilled: (settings: ILayoutSets) => FetchForm.IFetchFormLayoutSetsFulfilled;
+  fetchFormLayoutSetsRejected: (error: Error) => FetchForm.IFetchFormLayoutSetsRejected;
   updateFocus: (currentComponentId: string, step?: number) => UpdateFormLayout.IUpdateFocus;
   updateFocusFulfilled: (focusComponentId: string) => UpdateFormLayout.IUpdateFocusFulfilled;
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;
@@ -38,6 +41,9 @@ const actions: IFormLayoutActions = {
   fetchFormLayoutSettings: FetchForm.fetchFormLayoutSettings,
   fetchFormLayoutSettingsFulfilled: FetchForm.fetchFormLayoutSettingsFulfilled,
   fetchFormLayoutSettingsRejected: FetchForm.fetchFormLayoutSettingsRejected,
+  fetchFormLayoutSets: FetchForm.fetchFormLayoutSets,
+  fetchFormLayoutSetsFulfilled: FetchForm.fetchFormLayoutSetsFulfilled,
+  fetchFormLayoutSetsRejected: FetchForm.fetchFormLayoutSetsRejected,
   updateFocus: UpdateFormLayout.updateFocus,
   updateFocusFulfilled: UpdateFormLayout.updateFocusFulfilled,
   updateFocusRejected: UpdateFormLayout.updateFocusRejected,
