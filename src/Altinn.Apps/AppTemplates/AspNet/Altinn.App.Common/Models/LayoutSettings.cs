@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Altinn.App.Common.Models
 {
     /// <summary>
@@ -16,32 +14,5 @@ namespace Altinn.App.Common.Models
         /// Components
         /// </summary>
         public Components Components { get; set; }
-    }
-
-    /// <summary>
-    /// Pages
-    /// </summary>
-    public class Pages
-    {
-        /// <summary>
-        /// Order
-        /// </summary>
-        public List<string> Order { get; set; }
-
-        /// <summary>
-        /// Exclude from pdf
-        /// </summary>
-        public List<string> ExcludeFromPdf { get; set; }
-    }
-
-    /// <summary>
-    /// Components
-    /// </summary>
-    public class Components
-    {
-        /// <summary>
-        /// Exclude from pdf
-        /// </summary>
-        public List<string> ExcludeFromPdf { get; set; }
     }
 }

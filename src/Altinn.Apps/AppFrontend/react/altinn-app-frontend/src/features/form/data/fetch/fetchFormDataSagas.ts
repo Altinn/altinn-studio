@@ -17,7 +17,7 @@ import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getFetchFormDynamicsUrl, getFetchRuleModelUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
@@ -57,7 +57,6 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
     yield call(
       FormRulesActions.fetchRuleModel,
-      getFetchRuleModelUrl(),
     );
 
     yield call(
