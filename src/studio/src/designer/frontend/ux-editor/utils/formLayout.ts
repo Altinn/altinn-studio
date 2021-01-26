@@ -1,6 +1,14 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
+import { useDispatch } from 'react-redux';
+import { IToolbarElement, LayoutItemType } from '../containers/Toolbar';
+import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { addWidget } from '../features/formLayout/widgets/addWidgetActions';
+import { IComponent, ComponentTypes } from '../components';
+import { getComponentTitleByComponentType } from './language';
 
 export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
   const convertedLayout: IFormLayout = {
@@ -136,3 +144,70 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
     }
   });
 }
+
+export const mapWidgetToToolbarElement = (
+  widget: IWidget,
+  activeList: any,
+  order: any[],
+  language: any,
+): IToolbarElement => {
+  const dispatch = useDispatch();
+  return {
+    label: getLanguageFromKey(widget.displayName, language),
+    icon: 'fa fa-3rd-party-alt',
+    type: widget.displayName,
+    actionMethod: (containerId: string, position: number) => {
+      dispatch(addWidget({
+        widget,
+        position,
+        containerId,
+      }));
+      FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
+    },
+  };
+};
+
+export const mapComponentToToolbarElement = (
+  c: IComponent,
+  language: any,
+  activeList: any,
+  order: any[],
+): IToolbarElement => {
+  const customProperties = c.customProperties ? c.customProperties : {};
+  return {
+    label: c.name,
+    icon: c.Icon,
+    type: c.name,
+    actionMethod: (c.name === ComponentTypes.Group) ? addContainerToLayout :
+      (containerId: string, position: number) => {
+        FormDesignerActionDispatchers.addFormComponent({
+          type: c.name,
+          itemType: LayoutItemType.Component,
+          textResourceBindings: {
+            title: c.name === 'Button' ?
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
+              : getComponentTitleByComponentType(c.name, language),
+          },
+          dataModelBindings: {},
+          ...JSON.parse(JSON.stringify(customProperties)),
+        },
+        position,
+        containerId);
+        FormDesignerActionDispatchers.updateActiveListOrder(activeList, order);
+      },
+  } as IToolbarElement;
+};
+
+export const addContainerToLayout = (containerId: string, index: number) => {
+  FormDesignerActionDispatchers.addFormContainer(
+    {
+      maxCount: 0,
+      dataModelBindings: {},
+      itemType: 'CONTAINER',
+    } as ICreateFormContainer,
+    null,
+    containerId,
+    null,
+    index,
+  );
+};

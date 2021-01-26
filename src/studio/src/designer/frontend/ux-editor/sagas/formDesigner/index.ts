@@ -22,6 +22,7 @@ import { watchAddActiveFormContainerSaga,
   watchUpdateLayoutOrderSaga,
   watchFetchFormLayoutSettingSaga,
   watchSaveFormLayoutSettingSaga } from './formDesignerSagas';
+import { watchAddWidgetSaga } from '../../features/formLayout/widgets/addWidgetsSagas';
 
 // eslint-disable-next-line func-names
 export default function* (): SagaIterator {
@@ -47,4 +48,5 @@ export default function* (): SagaIterator {
   yield fork(watchUpdateLayoutOrderSaga);
   yield fork(watchFetchFormLayoutSettingSaga);
   yield fork(watchSaveFormLayoutSettingSaga);
+  yield fork(watchAddWidgetSaga);
 }

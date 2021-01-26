@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
-import { ComponentTypes } from '../components';
 import { CollapsableMenus } from '../containers/Toolbar';
+import { ComponentTypes } from '../components';
 
 export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {
@@ -15,6 +15,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     }
     case ComponentTypes.RadioButtons: {
       return language.ux_editor.helper_text_for_radio_button;
+    }
+    case ComponentTypes.AttachmentList: {
+      return language.ux_editor.helper_text_for_attachment_list;
     }
     default: {
       // Several components does not yet have a helper text, a default is shown.
@@ -64,6 +67,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.NavigationButtons: {
       return language.ux_editor.component_navigation_buttons;
     }
+    case ComponentTypes.AttachmentList: {
+      return language.ux_editor.component_attachment_list;
+    }
     default: {
       return '';
     }
@@ -80,6 +86,9 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     }
     case CollapsableMenus.AdvancedComponents: {
       return language.ux_editor.collapsable_text_advanced_components;
+    }
+    case CollapsableMenus.Widgets: {
+      return language.ux_editor.collapsable_text_widgets;
     }
     default: {
       return '';

@@ -1,5 +1,5 @@
 /* tslint:disable:jsx-wrap-multiline */
-import { mount, shallow } from 'enzyme';
+import { shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -313,5 +313,4 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   //   const result = instance.joinValidationMessages();
   //   expect(result).toEqual(mockResult);
   // });
-
 });

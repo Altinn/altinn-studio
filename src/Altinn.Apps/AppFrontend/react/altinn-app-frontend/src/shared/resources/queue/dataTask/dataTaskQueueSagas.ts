@@ -9,14 +9,11 @@ import DataModelActions from '../../../../features/form/datamodel/formDatamodelA
 
 export function* startInitialDataTaskQueue(): SagaIterator {
   const { org, app } = window as Window as IAltinnWindow;
-
   yield call(FormDataActions.fetchFormDataInitial);
   yield call(DataModelActions.fetchJsonSchema);
   yield call(DataModelActions.fetchDataModel, `${window.location.origin}/${org}/${app}/api/metadata/ServiceMetaData`);
-  yield call(
-    FormLayoutActions.fetchFormLayout,
-    `${window.location.origin}/${org}/${app}/api/layouts`,
-  );
+  yield call(FormLayoutActions.fetchFormLayoutSets);
+  yield call(FormLayoutActions.fetchFormLayout);
   yield call(FormLayoutActions.fetchFormLayoutSettings);
 
   yield call(

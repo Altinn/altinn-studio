@@ -113,6 +113,11 @@ namespace Altinn.Studio.Designer.Configuration
         public const string TEXTRESOURCE_COMMON_FOLDER_NAME = "/altinn/common/text/";
 
         /// <summary>
+        /// Constant for the location of widgets
+        /// </summary>
+        public const string WIDGETS_FOLDER_NAME = "widgets/";
+
+        /// <summary>
         /// Constant for the location of app metadata
         /// </summary>
         public const string MODEL_METADATA_FOLDER_PATH = "App/models/";
@@ -310,6 +315,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the repo search page count used for searching repos
         /// </summary>
         public int RepoSearchPageCount { get; set; } = 1337;
+
+        /// <summary>
+        /// Gets or sets the file name for the widet settings
+        /// </summary>
+        public string WidgetSettingsFileName { get; set; } = "widgetSettings.json";
 
         /// <summary>
         /// Gets the styles config element
@@ -808,6 +818,18 @@ namespace Altinn.Studio.Designer.Configuration
         {
             developer = developer.AsFileName();
             return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
+        }
+
+        /// <summary>
+        /// Gets the path to widgets in app repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current user, app developer.</param>
+        /// <returns>The path to widget settings in the app repo, ending with "/"</returns>
+        public string GetWidgetSettingsPath(string org, string app, string developer)
+        {
+            return $"{GetServicePath(org, app, developer)}{WIDGETS_FOLDER_NAME}{WidgetSettingsFileName}";
         }
     }
 }
