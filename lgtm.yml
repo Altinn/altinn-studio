@@ -7,4 +7,4 @@ extraction:
   csharp:
     index:
       dotnet:
-        version: 3.1.404
+        version: 5.0.102

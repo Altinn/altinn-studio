@@ -83,7 +83,7 @@ namespace Designer.Tests.TestingControllers
         [Fact]
         public async void Get_Put_Updatemodel_Ok()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
             if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/3478/32578/32578.schema.json"))
             {
@@ -130,7 +130,7 @@ namespace Designer.Tests.TestingControllers
         [Fact]
         public async void Get_Put_Updatemodel2_Ok()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
             if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/5245/41111/41111.schema.json"))
             {
@@ -177,7 +177,7 @@ namespace Designer.Tests.TestingControllers
         [Fact]
         public async void Get_Put_Updatemodel3_Ok()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
             if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.schema.json"))
             {
@@ -220,7 +220,7 @@ namespace Designer.Tests.TestingControllers
 
         private HttpClient GetTestClient()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
 
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
