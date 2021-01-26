@@ -83,7 +83,7 @@ namespace Altinn.App.Services.Implementation
                 if (userProfileDict.Count > 0)
                 {
                     int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
-                    UserProfile userProfile = await _profile.GetUserProfile(userId);
+                    UserProfile userProfile = userId != 0 ? await _profile.GetUserProfile(userId) : null;
                     if (userProfile != null)
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
