@@ -48,6 +48,7 @@ const useStyles = makeStyles({
     borderBottom: `2px solid${theme.altinnPalette.primary.blue}`,
   },
   editContainer: {
+    display: 'inline-block',
     border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     padding: '12px',
   },
