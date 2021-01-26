@@ -32,11 +32,12 @@ namespace Altinn.App.Api.Controllers
         /// <returns>File content with content type set</returns>
         [HttpGet]
         [Route("{org}/{app}/api/resource/{id}")]
+        [HttpGet]
         public IActionResult Index(string org, string app, string id)
         {
             if (id == "FormLayout.json")
             {
-                return Layouts(org, app);
+                return GetLayouts(org, app);
             }
 
             byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
@@ -56,7 +57,8 @@ namespace Altinn.App.Api.Controllers
         /// TODO: Figure out if this can be deleted
         [HttpGet]
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
-        public IActionResult RuntimeResource(string id)
+        [HttpGet]
+        public IActionResult GetRuntimeResource(string id)
         {
             byte[] fileContent = _appResourceService.GetRuntimeResource(id);
 
@@ -77,7 +79,8 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         [Route("{org}/{app}/api/textresources")]
         [Obsolete("TextResources endpoint is obsolete. Use endpoint in TextsController.")]
-        public IActionResult TextResources(string org, string app)
+        [HttpGet]
+        public IActionResult GetTextResources(string org, string app)
         {
             string defaultLang = "nb";
             string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
@@ -106,7 +109,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model metadata</returns>
         [HttpGet]
         [Route("{org}/{app}/api/metadata/{id}")]
-        public ActionResult ModelMetadata([FromRoute] string org, [FromRoute] string app)
+        public ActionResult GetModelMetadata([FromRoute] string org, [FromRoute] string app)
         {
             string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
             return Ok(metadata);
@@ -119,7 +122,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model json schema.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/jsonschema/{id}")]
-        public ActionResult ModelJsonSchema([FromRoute] string id)
+        public ActionResult GetModelJsonSchema([FromRoute] string id)
         {
             string schema = _appResourceService.GetModelJsonSchema(id);
             return Ok(schema);
@@ -133,10 +136,25 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         [HttpGet]
         [Route("{org}/{app}/api/layouts")]
-        public ActionResult Layouts(string org, string app)
+        public ActionResult GetLayouts(string org, string app)
         {
           string layouts = _appResourceService.GetLayouts();
           return Ok(layouts);
+        }
+
+        /// <summary>
+        /// Get the form layout
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>A collection of FormLayout objects in JSON format.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layouts/{id}")]
+        public ActionResult GetLayouts(string org, string app, string id)
+        {
+            string layouts = _appResourceService.GetLayoutsForSet(id);
+            return Ok(layouts);
         }
 
         /// <summary>
@@ -147,10 +165,81 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/layoutsettings")]
-        public ActionResult LayoutSettings(string org, string app)
+        public ActionResult GetLayoutSettings(string org, string app)
         {
             string settings = _appResourceService.GetLayoutSettings();
             return Ok(settings);
+        }
+
+        /// <summary>
+        /// Get the layout settings.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsettings/{id}")]
+        public ActionResult GetLayoutSettings(string org, string app, string id)
+        {
+            string settings = _appResourceService.GetLayoutSettingsForSet(id);
+            return Ok(settings);
+        }
+
+        /// <summary>
+        /// Get the layout-sets
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsets")]
+        public ActionResult GetLayoutSets(string org, string app)
+        {
+            string settings = _appResourceService.GetLayoutSets();
+            return Ok(settings);
+        }
+
+        /// <summary>
+        /// Get the rule settings
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>A collection of FormLayout objects in JSON format.</returns>
+        /// </summary>
+        [HttpGet]
+        [Route("{org}/{app}/api/rulehandler/{id}")]
+        public ActionResult GetRulehandler(string org, string app, string id)
+        {
+            byte[] fileContent = _appResourceService.GetRuleHandlerForSet(id);
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".ts"));
+            }
+
+            return StatusCode(404);
+        }
+
+        /// <summary>
+        /// Get the ruleconfiguration.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/ruleconfiguration/{id}")]
+        public ActionResult GetRuleConfiguration(string org, string app, string id)
+        {
+            byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
+
+            if (fileContent == null)
+            {
+                // frontend will fail witout content
+                fileContent = new byte[0];
+            }
+
+            return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
         }
     }
 }

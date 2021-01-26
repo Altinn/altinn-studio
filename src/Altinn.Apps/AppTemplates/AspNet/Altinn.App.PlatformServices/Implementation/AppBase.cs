@@ -215,7 +215,7 @@ namespace Altinn.App.Services.Implementation
                     if (generatePdf)
                     {
                         Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
-                        Task createPdf = GenerateAndStoreReceiptPDF(instance, dataElement, dataElementType);
+                        Task createPdf = GenerateAndStoreReceiptPDF(instance, taskId, dataElement, dataElementType);
                         await Task.WhenAll(updateData, createPdf);
                     }
                     else
@@ -236,19 +236,28 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
         }
 
-        private async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
+        private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
             int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            string layoutSettingsString = _resourceService.GetLayoutSettings();
+            string layoutSetsString = _resourceService.GetLayoutSets();
+            LayoutSets layoutSets = null;
+            LayoutSet layoutSet = null;
+            if (!string.IsNullOrEmpty(layoutSetsString))
+            {
+                layoutSets = JsonConvert.DeserializeObject<LayoutSets>(layoutSetsString);
+                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
+            }
+
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);  
 
             LayoutSettings layoutSettings = null;
-            if (!string.IsNullOrEmpty(layoutSettingsString))
+            if (!string.IsNullOrEmpty(layoutSettingsFileContent))
             {
-                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_resourceService.GetLayoutSettings());
+                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
 
             object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
@@ -267,7 +276,9 @@ namespace Altinn.App.Services.Implementation
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
 
-            string formLayoutsString = _resourceService.GetLayouts();
+            // If layoutst exist pick correctr layotFiles
+            string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
+
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
             if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
             {
@@ -280,7 +291,7 @@ namespace Altinn.App.Services.Implementation
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
-                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
+                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsFileContent),
                 LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),

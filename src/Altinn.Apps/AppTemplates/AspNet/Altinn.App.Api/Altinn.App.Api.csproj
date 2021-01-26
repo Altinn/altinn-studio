@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>3.0.4</Version>
+    <Version>3.1.4</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>3.0.4.0</AssemblyVersion>
+    <AssemblyVersion>3.1.4.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>3.0.4.0</FileVersion>
+    <FileVersion>3.1.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
