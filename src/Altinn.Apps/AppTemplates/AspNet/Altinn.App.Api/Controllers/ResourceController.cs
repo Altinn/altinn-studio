@@ -172,20 +172,6 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Get the layout-sets
-        /// </summary>
-        /// <param name="org">The application owner short name</param>
-        /// <param name="app">The application name</param>
-        /// <returns>The settings in the form of a string.</returns>
-        [HttpGet]
-        [Route("{org}/{app}/api/layoutsets")]
-        public ActionResult GetLayoutSets(string org, string app)
-        {
-            string settings = _appResourceService.GetLayoutSets();
-            return Ok(settings);
-        }
-
-        /// <summary>
         /// Get the layout settings.
         /// </summary>
         /// <param name="org">The application owner short name</param>
@@ -197,6 +183,20 @@ namespace Altinn.App.Api.Controllers
         public ActionResult GetLayoutSettings(string org, string app, string id)
         {
             string settings = _appResourceService.GetLayoutSettingsForSet(id);
+            return Ok(settings);
+        }
+
+        /// <summary>
+        /// Get the layout-sets
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsets")]
+        public ActionResult GetLayoutSets(string org, string app)
+        {
+            string settings = _appResourceService.GetLayoutSets();
             return Ok(settings);
         }
 
