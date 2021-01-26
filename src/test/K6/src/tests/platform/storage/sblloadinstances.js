@@ -47,7 +47,7 @@ export const options = {
 };
 
 //Load test for SBL
-export default function () {
+export default function() {
     var userNumber = (__VU - 1) % usersCount;
     var res, success;
 
@@ -63,8 +63,13 @@ export default function () {
     setUpData.clearCookies();
     const partyId = users[userNumber].partyid;
 
-    //Test to get active instances for a party from storage: SBL and validate the response
-    res = sbl.getSblInstanceByParty(runtimeToken, partyId, "active");
+    //Test to get active instances for a party from storage: SBL and validate the response    
+    var filters = {
+        "language": "nb",
+        "instanceOwner.partyId": partyId,
+        "includeActive": "true"
+    };
+    res = sbl.searchSblInstances(runtimeToken, filters);
     success = check(res, {
         "GET active Instance by Party status is 200:": (r) => r.status === 200
     });

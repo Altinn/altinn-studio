@@ -119,7 +119,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   };
 
-  // some compoenets handle their validations internally (i.e merge with internal validaiton state)
+  // some components handle their validations internally (i.e merge with internal validaiton state)
   const internalComponentValidations = getValidationsForInternalHandling();
   if (internalComponentValidations !== null) {
     passThroughProps.componentValidations = internalComponentValidations;
