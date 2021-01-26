@@ -44,6 +44,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">The name of the app</param>
         /// <param name="instanceId">The id of the instance being handled.</param>
         /// <returns></returns>
+        [HttpGet]
         [Route("{org}/{app}/")]
         [Route("{org}/{app}/{instanceId}")]
         public IActionResult Index([FromRoute] string org, [FromRoute] string app, [FromRoute] Guid? instanceId)

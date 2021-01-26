@@ -30,6 +30,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
+        [HttpGet]
         [Route("{org}/{app}/api/resource/{id}")]
         [HttpGet]
         public IActionResult Index(string org, string app, string id)
@@ -54,6 +55,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>File content with content type set</returns>
         /// TODO: Figure out if this can be deleted
+        [HttpGet]
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
         [HttpGet]
         public IActionResult GetRuntimeResource(string id)
@@ -74,6 +76,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
+        [HttpGet]
         [Route("{org}/{app}/api/textresources")]
         [Obsolete("TextResources endpoint is obsolete. Use endpoint in TextsController.")]
         [HttpGet]

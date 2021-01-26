@@ -179,7 +179,7 @@ const makeMapStateToProps = () => {
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.dataBindingName ===
-        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings.simpleBinding,
+        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings?.simpleBinding,
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,

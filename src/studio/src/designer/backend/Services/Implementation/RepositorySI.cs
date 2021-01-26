@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -27,6 +26,8 @@ using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
+using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -119,7 +120,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void CreateApplicationMetadata(string org, string app, string appTitle)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Application appMetadata = new Application
+            PlatformStorageModels.Application appMetadata = new PlatformStorageModels.Application
             {
                 Id = ApplicationHelper.GetFormattedApplicationId(org, app),
                 VersionId = null,
@@ -129,24 +130,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 LastChanged = DateTime.UtcNow,
                 LastChangedBy = developer,
                 Title = new Dictionary<string, string> { { "nb", appTitle ?? app } },
-                DataTypes = new List<DataType>
+                DataTypes = new List<PlatformStorageModels.DataType>
                 {
-                    new DataType
+                    new PlatformStorageModels.DataType
                     {
                         Id = "default",
                         AllowedContentTypes = new List<string>() { "application/xml" },
-                        AppLogic = new ApplicationLogic() { },
+                        AppLogic = new PlatformStorageModels.ApplicationLogic() { },
                         TaskId = "Task_1",
                         MaxCount = 1,
                         MinCount = 1,
                     },
-                    new DataType
+                    new PlatformStorageModels.DataType
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
                     }
                 },
-                PartyTypesAllowed = new PartyTypesAllowed()
+                PartyTypesAllowed = new PlatformStorageModels.PartyTypesAllowed()
             };
 
             string metadata = JsonConvert.SerializeObject(appMetadata, Newtonsoft.Json.Formatting.Indented);
@@ -157,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateApplication(string org, string app, Application applicationMetadata)
+        public bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
             try
             {
@@ -199,9 +200,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
+                PlatformStorageModels.DataType formMetadata = JsonConvert.DeserializeObject<PlatformStorageModels.DataType>(applicationMetadata);
                 formMetadata.TaskId = "Task_1";
-                Application existingApplicationMetadata = GetApplication(org, app);
+                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
                 existingApplicationMetadata.DataTypes.Add(formMetadata);
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
@@ -224,8 +225,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
-                Application existingApplicationMetadata = GetApplication(org, app);
-                DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
+                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+                PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
                 applicationForm.AllowedContentTypes = new List<string>();
 
                 if (!(attachmentMetadata.GetValue("fileType") == null))
@@ -261,11 +262,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                Application existingApplicationMetadata = GetApplication(org, app);
+                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
 
                 if (existingApplicationMetadata.DataTypes != null)
                 {
-                    DataType removeForm = existingApplicationMetadata.DataTypes.Find(m => m.Id == id);
+                    PlatformStorageModels.DataType removeForm = existingApplicationMetadata.DataTypes.Find(m => m.Id == id);
                     existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
@@ -304,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Application GetApplication(string org, string app)
+        public PlatformStorageModels.Application GetApplication(string org, string app)
         {
             string filedata = string.Empty;
             string filename = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -315,7 +316,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                 }
 
-                return JsonConvert.DeserializeObject<Application>(filedata);
+                return JsonConvert.DeserializeObject<PlatformStorageModels.Application>(filedata);
             }
             catch (Exception ex)
             {
@@ -785,6 +786,54 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
+        /// <inheritdoc/>
+        public string GetWidgetSettings(string org, string app)
+        {
+            string filePath = _settings.GetWidgetSettingsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string fileData = null;
+            if (File.Exists(filePath))
+            {
+                fileData = File.ReadAllText(filePath, Encoding.UTF8);
+            }
+            
+            return fileData;
+        }
+
+        /// <inheritdoc/>
+        public bool AddTextResources(string org, string app, List<TextResource> textResourcesList)
+        {
+            foreach (TextResource textResource in textResourcesList)
+            {
+                var currentResourceString = GetLanguageResource(org, app, textResource.Language);
+                TextResource currentTextResource = JsonConvert.DeserializeObject<TextResource>(currentResourceString);
+                var duplicateResources = textResource.Resources.FindAll(resource => currentTextResource.Resources.Find(r => r.Id == resource.Id) != null);
+                if (duplicateResources.Count == 0)
+                {
+                    currentTextResource.Resources.AddRange(textResource.Resources);
+                }
+                else
+                {
+                    textResource.Resources.ForEach(resource =>
+                    {
+                        if (duplicateResources.Find(duplicate => duplicate.Id == resource.Id) != null)
+                        {
+                            var duplicate = currentTextResource.Resources.Find(r => r.Id == resource.Id);
+                            duplicate.Value = resource.Value;
+                            duplicate.Variables = resource.Variables;
+                        }
+                        else
+                        {
+                            currentTextResource.Resources.Add(resource);
+                        }
+                    });
+                }
+                
+                SaveLanguageResource(org, app, textResource.Language, JsonConvert.SerializeObject(currentTextResource));
+            }
+            
+            return true;
+        }
+
         /// <summary>
         /// Save the JSON file to disk
         /// </summary>
@@ -978,16 +1027,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns></returns>
         private bool UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
         {
-            Application application = GetApplication(org, app);
+            PlatformStorageModels.Application application = GetApplication(org, app);
             if (application.DataTypes == null)
             {
-                application.DataTypes = new List<DataType>();
+                application.DataTypes = new List<PlatformStorageModels.DataType>();
             }
 
-            DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
+            PlatformStorageModels.DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
 
             logicElement.Id = dataTypeId;
-            logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
+            logicElement.AppLogic = new PlatformStorageModels.ApplicationLogic { AutoCreate = true, ClassRef = classRef };
             UpdateApplication(org, app, application);
 
             return true;
@@ -1523,7 +1572,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                Application existingApplicationMetadata = GetApplication(org, app);
+                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
 
                 if (existingApplicationMetadata.Title == null)
                 {
@@ -1555,7 +1604,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public bool UpdateAppTitle(string org, string app, string languageId, string newTitle)
         {
-            Application appMetadata = GetApplication(org, app);
+            PlatformStorageModels.Application appMetadata = GetApplication(org, app);
 
             if (appMetadata == null)
             {
@@ -1787,10 +1836,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetModelName(string org, string app)
         {
-            Application application = GetApplication(org, app);
+            PlatformStorageModels.Application application = GetApplication(org, app);
 
             string dataTypeId = string.Empty;
-            foreach (DataType data in application.DataTypes)
+            foreach (PlatformStorageModels.DataType data in application.DataTypes)
             {
                 if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
                 {
