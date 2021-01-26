@@ -2,6 +2,7 @@ import http from "k6/http";
 import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
 import { printResponseToConsole } from "../../errorcounter.js";
+import * as support from "../../support.js";
 
 /**
  * Api call to Storage:Instances to create an app instance and returns response
@@ -36,15 +37,9 @@ export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) 
 };
 
 //Api call to Storage:Instances to get all instances under a party id and return response
-export function getAllinstancesByPartyId(altinnStudioRuntimeCookie, partyId) {
-    var endpoint = config.platformStorage["instances"] + "?instanceOwner.partyId=" + partyId;
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
-    return http.get(endpoint, params);
-};
-
-//Api call to Storage:Instances to get all instances of an app which are in a specific current task and return response
-export function getAllinstancesByCurrentTask(altinnStudioRuntimeCookie, appOwner, appName, currentTask) {
-    var endpoint = config.platformStorage["instances"] + "?appId=" + appOwner + "/" + appName + "&process.currentTask=" + currentTask;
+export function getAllinstancesWithFilters(altinnStudioRuntimeCookie, filters) {
+    var endpoint = config.platformStorage["instances"];
+    endpoint += (filters != null) ? support.buildQueryParametersForEndpoint(filters) : "";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
     return http.get(endpoint, params);
 };
@@ -54,9 +49,7 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
 
     //If createdDateTime is not sent update the value to today's date
     if (!(createdDateTime)) {
-        var todayDateTime = new Date();
-        todayDateTime.setUTCHours(0, 0, 0, 0);
-        createdDateTime = todayDateTime.toISOString();
+        createdDateTime = support.todayDateInISO();
     };
 
     //find archived instances of the app that has created date > createdDateTime

@@ -69,6 +69,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
         className="form-control disabled"
         id="address_post_place_mock-id"
         readOnly={true}
+        required={false}
         value=""
       />
     </div>

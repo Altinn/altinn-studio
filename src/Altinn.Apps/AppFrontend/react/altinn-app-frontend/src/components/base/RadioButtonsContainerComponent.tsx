@@ -85,17 +85,22 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   React.useEffect(() => {
     returnSelected();
+  }, [options]);
+
+  React.useEffect(() => {
+    returnSelected();
   }, [props.formData]);
 
   const returnSelected = () => {
     if (
       !props.formData &&
-      props.preselectedOptionIndex &&
+      props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
     ) {
-      const preselectedValue = options[props.preselectedOptionIndex].value;
-      setSelected(preselectedValue);
+      const preSelectedValue = options[props.preselectedOptionIndex].value;
+      props.handleDataChange(preSelectedValue);
+      setSelected(preSelectedValue);
     } else {
       setSelected(props.formData ? props.formData : '');
     }

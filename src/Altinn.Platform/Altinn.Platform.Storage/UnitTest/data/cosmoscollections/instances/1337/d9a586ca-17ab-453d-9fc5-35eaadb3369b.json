@@ -12,7 +12,10 @@
   "process": {
     "started": "2020-04-29T13:53:01.7020218Z",
     "startEvent": "StartEvent_1",
-    "currentTask": { "elementId": "Task_1" }
+    "currentTask": {
+      "elementId": "Task_1",
+      "altinnTaskType": "data"
+    }
   },
   "status": {
     "isArchived": false,

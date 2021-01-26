@@ -70,7 +70,7 @@ export function filterInstancesByAppName(appNames, responseJson) {
  * @returns {JSON} response body, code and timings
  */
 export function searchSblInstances(altinnStudioRuntimeCookie, filters) {
-    var endpoint = config.platformStorage["messageBoxInstances"] + "/search?" + support.buildQueryParametersForEndpoint(filters);
+    var endpoint = config.platformStorage["messageBoxInstances"] + "/search" + support.buildQueryParametersForEndpoint(filters);
     var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
     return http.get(endpoint, params);
 };

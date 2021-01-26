@@ -7,6 +7,7 @@ import { check } from "k6";
 import * as instances from "../../../api/storage/instances.js"
 import * as sbl from "../../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
+import * as support from "../../../support.js";
 import { addErrorCount } from "../../../errorcounter.js";
 
 const userName = __ENV.username;
@@ -63,10 +64,26 @@ export default function(data) {
         "language": "nb",
         "appId": appOwner + "/" + appName,
         "instanceOwner.partyId": partyId
-    }
+    };
     res = sbl.searchSblInstances(runtimeToken, filters);
     success = check(res, {
         "Search instances by app id status is 200:": (r) => r.status === 200
+    });
+    addErrorCount(success);
+
+    //Test to get instances based on filter parameters: created and lastChanged from storage: SBL and validate the response
+    filters = {
+        "instanceOwner.partyId": partyId,
+        "created": "gt:" + support.todayDateInISO(),
+        "lastChanged": "lte:" + new Date().toISOString()
+    };
+    res = sbl.searchSblInstances(runtimeToken, filters);
+    success = check(res, {
+        "Search instances by date filters status is 200:": (r) => r.status === 200,
+        "Search instances Created date is greaten than today:": (r) => {
+            var responseInstances = r.json();
+            return responseInstances.every(instance => instance.createdDateTime > support.todayDateInISO());
+        }
     });
     addErrorCount(success);
 

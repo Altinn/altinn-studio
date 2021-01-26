@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Altinn.Platform.Storage.Interface.Models;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
+
+using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -393,6 +395,23 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool SaveJsonThirdPartyComponents(string org, string app, string resource);
 
         /// <summary>
+        /// Gets the widget settings for an app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content as string</returns>
+        string GetWidgetSettings(string org, string app);
+
+        /// <summary>
+        /// Adds text resources to existing language resource files
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="textResourcesList">The list of text resource items to add</param>
+        /// <returns>A boolean indicating if resources were added ok</returns>
+        bool AddTextResources(string org, string app, List<TextResource> textResourcesList);
+
+        /// <summary>
         /// Save the JSON form layout to disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -453,7 +472,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application  metadata for an application.</returns>
-        Application GetApplication(string org, string app);
+        PlatformStorageModels.Application GetApplication(string org, string app);
 
         /// <summary>
         /// Creates the application metadata file
@@ -470,7 +489,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata to be updated</param>
         /// <returns>true if the metadata is updated successfully</returns>
-        bool UpdateApplication(string org, string app, Application applicationMetadata);
+        bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata);
 
         /// <summary>
         /// Updates app title in application metadata
