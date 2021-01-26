@@ -1,11 +1,13 @@
+using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Authorization;
 using Altinn.Studio.Designer.Configuration;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Infrastructure
 {
