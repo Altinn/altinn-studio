@@ -58,6 +58,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
+            Console.WriteLine($"//// middleware triggered");
+
             string org = _httpContext.GetRouteValue("org")?.ToString();
             string app = _httpContext.GetRouteValue("app")?.ToString();
 
@@ -102,16 +104,22 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 string matchTeam = $"Deploy-{environment}";
                 List<Team> teams = await _giteaApiWrapper.GetTeams();
 
+                Console.WriteLine($"//// match team {matchTeam}");
+                Console.WriteLine($"//// Teams {JsonConvert.SerializeObject(teams)}");
+
                 bool any = teams.Any(t => t.Organization.Username.Equals(
                     org, System.StringComparison.OrdinalIgnoreCase)
                     && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
 
                 if (any)
                 {
+                    Console.WriteLine($"//// match found");
+
                     context.Succeed(requirement);
                 }
                 else
                 {
+                    Console.WriteLine($"//// no match found");
                     _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
 
