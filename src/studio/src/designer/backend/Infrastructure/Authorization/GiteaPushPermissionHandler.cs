@@ -90,6 +90,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
                         environment = model.Environment.Name;
+                        Console.WriteLine($"// GiteaPushPermissionHandler // Environment: {environment}");
                     }
                     catch
                     {
@@ -104,16 +105,21 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
                 string matchTeam = $"Deploy-{environment}";
                 List<Team> teams = await _giteaApiWrapper.GetTeams();
+                Console.WriteLine($"// GiteaPushPermissionHandler // Teams count: {teams.Count}");
+
                 bool any = teams.Any(t => t.Organization.Username.Equals(
                     org, System.StringComparison.OrdinalIgnoreCase)
                     && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
 
                 if (any)
                 {
+                    Console.WriteLine($"// GiteaPushPermissionHandler // Found match");
+
                     context.Succeed(requirement);
                 }
                 else
                 {
+                    Console.WriteLine($"// GiteaPushPermissionHandler // Did not find match");
                     _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
 
