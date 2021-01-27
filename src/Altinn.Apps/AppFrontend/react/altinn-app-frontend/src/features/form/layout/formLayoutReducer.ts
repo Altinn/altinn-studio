@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IUiConfig } from 'src/types';
+import { ILayoutSets, IUiConfig } from 'src/types';
 import { ILayouts } from './index';
-import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected, IFetchFormLayoutSettingsFulfilled, IFetchFormLayoutSettingsRejected } from './fetch/fetchFormLayoutActions';
+import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected, IFetchFormLayoutSettingsFulfilled, IFetchFormLayoutSettingsRejected, IFetchFormLayoutSetsFulfilled, IFetchFormLayoutSetsRejected } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
 import { IUpdateFocusFulfilled,
   IUpdateHiddenComponents,
@@ -15,6 +15,7 @@ export interface ILayoutState {
   layouts: ILayouts;
   error: Error;
   uiConfig: IUiConfig;
+  layoutsets: ILayoutSets;
 }
 
 const initialState: ILayoutState = {
@@ -29,6 +30,7 @@ const initialState: ILayoutState = {
     navigationConfig: {},
     layoutOrder: null,
   },
+  layoutsets: null,
 };
 
 const LayoutReducer: Reducer<ILayoutState> = (
@@ -160,6 +162,24 @@ const LayoutReducer: Reducer<ILayoutState> = (
 
     case ActionTypes.FETCH_FORM_LAYOUT_SETTINGS_REJECTED: {
       const { error } = action as IFetchFormLayoutSettingsRejected;
+      return update<ILayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
+    case ActionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED: {
+      const { layoutSets } = action as IFetchFormLayoutSetsFulfilled;
+      return update<ILayoutState>(state, {
+        layoutsets: {
+          $set: layoutSets,
+        },
+      });
+    }
+
+    case ActionTypes.FETCH_FORM_LAYOUTSETS_REJECTED: {
+      const { error } = action as IFetchFormLayoutSetsRejected;
       return update<ILayoutState>(state, {
         error: {
           $set: error,
