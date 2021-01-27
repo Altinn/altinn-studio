@@ -72,3 +72,7 @@ export const getFetchLanguageUrl = (languageCode: string) => {
 export const getFetchRuleModelUrl = () => {
   return `${basePath}/UIEditor/GetRuleHandler`;
 };
+
+export const getFetchRuleConfigurationUrl = () => {
+  return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`
+};

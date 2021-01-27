@@ -34,15 +34,17 @@ const conditionalRenderingSlice = createSlice({
       }, {});
       state = { ...newConnectionsObj };
     },
-    fetchConditionalRendering: () => {},
-    fetchConditionalRenderingFulfilled: (state, action) => {},
-    fetchConditionalRenderingRejected: (state, action) => {},
+    setConditionalRenderingConnections: (state, action) => {
+      const { conditionalRendering } = action.payload;
+      state = { ...conditionalRendering };
+    },
   },
 });
 
 export const {
   addConditionalRenderingConnection,
   deleteConditionalRenderingConnnection,
+  setConditionalRenderingConnections,
 } = conditionalRenderingSlice.actions;
 
 export default conditionalRenderingSlice.reducer;
