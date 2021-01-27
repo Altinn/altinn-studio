@@ -350,11 +350,14 @@ namespace UnitTests
             List<Claim> claims = new List<Claim>();
 
             // type, value, valuetype, issuer
-            claims.Add(new Claim("urn:name", "Ola", "string", "org"));
             claims.Add(new Claim("urn:altinn:authlevel", "2", "string", "org"));
             if (org != null)
             {
                 claims.Add(new Claim("urn:altinn:org", org, "string", "org"));
+            }
+            else
+            {
+                claims.Add(new Claim("urn:name", "Ola", "string", "org"));
             }
 
             if (addExtraClaim)
