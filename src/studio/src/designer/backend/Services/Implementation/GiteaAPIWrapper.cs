@@ -5,12 +5,17 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
+using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -65,6 +70,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 " Get current user failed with statuscode " + response.StatusCode);
 
             return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Team>> GetTeams()
+        {
+            List<Team> teams = new List<Team>();
+
+            Claim claim = _httpContextAccessor.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.DeveloperToken).FirstOrDefault();
+
+            if (claim == null)
+            {
+                return teams;
+            }
+
+            string url = $"user/teams?token={claim.Value}";
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            teams = await response.Content.ReadAsAsync<List<Team>>();
+
+            return teams;
         }
 
         /// <inheritdoc />

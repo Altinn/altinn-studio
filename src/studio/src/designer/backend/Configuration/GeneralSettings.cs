@@ -53,6 +53,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string HostName { get; set; }
 
         /// <summary>
+        /// Checks if only needs push for deploy or group membershit
+        /// </summary>
+        public bool CheckTeamMembershipForDeploy { get; set; }
+
+        /// <summary>
         /// Gets the path to the service implementation template.
         /// </summary>
         public string ServiceImplementationTemplate
