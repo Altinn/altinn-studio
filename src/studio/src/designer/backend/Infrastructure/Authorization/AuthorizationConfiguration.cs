@@ -18,7 +18,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         {
             services.AddAuthorization(options =>
             {
-
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaPushPermission,
                     policy =>
