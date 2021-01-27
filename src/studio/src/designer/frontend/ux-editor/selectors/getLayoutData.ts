@@ -22,7 +22,7 @@ const layoutContainerOrderSelector = (state: IAppState, containerId: string) => 
 };
 
 const allLayoutContainerSelector = (state: IAppState) => {
-  const allContainers: IFormDesignerContainer = {};
+  const allContainers: IFormDesignerContainers = {};
   Object.keys(state.formDesigner.layout.layouts).forEach((key: string) => {
     Object.assign(allContainers, state.formDesigner.layout.layouts[key].containers);
   });
@@ -30,7 +30,7 @@ const allLayoutContainerSelector = (state: IAppState) => {
 };
 
 const allLayoutComponentSelector = (state: IAppState) => {
-  const allComponents: IFormDesignerComponent = {};
+  const allComponents: IFormDesignerComponents = {};
   Object.keys(state.formDesigner.layout.layouts).forEach((key: string) => {
     Object.assign(allComponents, state.formDesigner.layout.layouts[key].components);
   });

@@ -4,7 +4,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
-import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations } from 'src/types';
+import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
@@ -131,7 +131,10 @@ export function validateEmptyFieldsForLayout(
     );
   });
   fieldsToCheck.forEach((component: any) => {
-    validateEmptyField(formData, component, validations, language);
+    const result = validateEmptyField(formData, component.dataModelBindings, language);
+    if (result !== null) {
+      validations[component.id] = result;
+    }
   });
 
   groupsToCheck.forEach((group: ILayoutGroup) => {
@@ -160,7 +163,10 @@ export function validateEmptyFieldsForLayout(
                 id: `${component.id}-${parentIndex}-${i}`,
                 dataModelBindings,
               };
-              validateEmptyField(formData, componentToCheck, validations, language, indexedGroupDataBinding, i);
+              const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, indexedGroupDataBinding, i);
+              if (result !== null) {
+                validations[componentToCheck.id] = result;
+              }
             }
           });
         } else {
@@ -170,11 +176,17 @@ export function validateEmptyFieldsForLayout(
               ...component,
               id: `${component.id}-${i}`,
             };
-            validateEmptyField(formData, componentToCheck, validations, language, groupDataModelBinding, i);
+            const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, groupDataModelBinding, i);
+            if (result !== null) {
+              validations[componentToCheck.id] = result;
+            }
           }
         }
       } else {
-        validateEmptyField(formData, component, validations, language);
+        const result = validateEmptyField(formData, component.dataModelBindings, language);
+        if (result !== null) {
+          validations[component.id] = result;
+        }
       }
     });
   });
@@ -199,34 +211,39 @@ export function getParentGroup(group: ILayoutGroup, layout: ILayout): ILayoutGro
 
 export function validateEmptyField(
   formData: any,
-  component: any,
-  validations: any,
+  dataModelBindings: IDataModelBindings,
   language: any,
   groupDataBinding?: string,
   index?: number,
-) {
-  const fieldKey = Object.keys(component.dataModelBindings)
-    .find((binding: string) => component.dataModelBindings[binding]);
-  let dataModelBindingKey = component.dataModelBindings[fieldKey];
-  if (groupDataBinding) {
-    dataModelBindingKey = dataModelBindingKey.replace(groupDataBinding, `${groupDataBinding}[${index}]`);
+): IComponentValidations {
+  if (!dataModelBindings) {
+    return null;
   }
-  const value = formData[dataModelBindingKey];
-  if (!value && fieldKey) {
-    // eslint-disable-next-line no-param-reassign
-    validations[component.id] = {};
-    const componentValidations: IComponentValidations = {
-      [fieldKey]: {
+  const fieldKeys: string [] = [];
+  Object.keys(dataModelBindings).forEach((modelBinding) => {
+    fieldKeys.push(modelBinding);
+  });
+  const componentValidations: IComponentValidations = {};
+  fieldKeys.forEach((fieldKey) => {
+    let dataModelBindingKey = dataModelBindings[fieldKey];
+    if (groupDataBinding) {
+      dataModelBindingKey = dataModelBindingKey.replace(groupDataBinding, `${groupDataBinding}[${index}]`);
+    }
+    const value = formData[dataModelBindingKey];
+    if (!value && fieldKey) {
+      componentValidations[fieldKey] = {
         errors: [],
         warnings: [],
-      },
-    };
-    componentValidations[fieldKey].errors.push(
-      getLanguageFromKey('form_filler.error_required', language),
-    );
-    // eslint-disable-next-line no-param-reassign
-    validations[component.id] = componentValidations;
+      };
+      componentValidations[fieldKey].errors.push(
+        getLanguageFromKey('form_filler.error_required', language),
+      );
+    }
+  });
+  if (Object.keys(componentValidations).length > 0) {
+    return componentValidations;
   }
+  return null;
 }
 
 export function validateFormComponents(

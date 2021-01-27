@@ -11,6 +11,7 @@ export * from './selectFormComponent';
 export * from './updateActiveList';
 export * from './updateDataModelBinding';
 export * from './updateFormComponent';
+export * from './updateFormComponentId';
 export * from './updateFormContainer';
 export * from './updateFormComponentOrder';
 export * from './addApplicationMetadata';

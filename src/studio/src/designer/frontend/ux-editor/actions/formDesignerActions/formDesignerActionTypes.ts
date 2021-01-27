@@ -135,3 +135,8 @@ export const UPDATE_LAYOUT_ORDER_REJECTED: string = `${moduleName}.UPDATE_LAYOUT
 export const FETCH_LAYOUT_SETTINGS: string = `${moduleName}.FETCH_LAYOUT_SETTINGS`;
 export const FETCH_LAYOUT_SETTINGS_FULFILLED: string = `${moduleName}.FETCH_LAYOUT_SETTINGS_FULFILLED`;
 export const FETCH_LAYOUT_SETTINGS_REJECTED: string = `${moduleName}.FETCH_LAYOUT_SETTINGS_REJECTED`;
+
+// Update component id
+export const UPDATE_FORM_COMPONENT_ID: string = `${moduleName}.UPDATE_COMPONENT_ID`;
+export const UPDATE_FORM_COMPONENT_ID_FULFILLED: string = `${moduleName}.UPDATE_COMPONENT_ID_FULFILLED`;
+export const UPDATE_FORM_COMPONENT_ID_REJECTED: string = `${moduleName}.UPDATE_COMPONENT_ID_REJECTED`;

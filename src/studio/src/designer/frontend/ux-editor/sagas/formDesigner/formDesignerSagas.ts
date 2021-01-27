@@ -4,7 +4,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
-import { all, call, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { all, call, delay, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
@@ -246,7 +246,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 function* saveFormLayoutSaga(): SagaIterator {
   try {
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-    const selectedLayout = yield select((state:IAppState) => state.formDesigner.layout.selectedLayout);
+    const selectedLayout = yield select((state: IAppState) => state.formDesigner.layout.selectedLayout);
     const convertedLayout = {
       $schema: getLayoutSchemaUrl(),
       data: {
@@ -306,7 +306,6 @@ function* updateFormComponentSaga({
       updatedComponent,
       id,
     );
-    yield call(FormDesignerActionDispatchers.saveFormLayout);
     if (updatedComponent.type === 'FileUpload') {
       const {
         maxNumberOfAttachments,
@@ -317,6 +316,7 @@ function* updateFormComponentSaga({
       yield call(FormDesignerActionDispatchers.updateApplicationMetadata,
         id, maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings);
     }
+    yield call(FormDesignerActionDispatchers.saveFormLayout);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
   }
@@ -467,7 +467,7 @@ export function* watchUpdateContainerIdSaga(): SagaIterator {
   yield takeLatest(FormDesignerActionTypes.UPDATE_CONTAINER_ID, updateContainerIdSaga);
 }
 
-export function* updateSelectedLayoutSaga({ selectedLayout } : IUpdateSelectedLayoutAction) : SagaIterator {
+export function* updateSelectedLayoutSaga({ selectedLayout }: IUpdateSelectedLayoutAction): SagaIterator {
   try {
     yield call(FormDesignerActionDispatchers.updateSelectedLayoutFulfilled, selectedLayout);
     yield call(FormDesignerActionDispatchers.deleteActiveListAction);
@@ -592,4 +592,32 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
     FormDesignerActionTypes.UPDATE_LAYOUT_NAME_FULFILLED,
     FormDesignerActionTypes.ADD_LAYOUT_FULFILLED,
   ], saveFormLayoutSettingSaga);
+}
+
+export function* updateFormComponentIdSaga({ currentId, newId }: FormDesignerActions.IUpdateFormComponentIdAction): SagaIterator {
+  try {
+    const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const components = currentLayout.components;
+    yield call(FormDesignerActionDispatchers.updateFormComponentIdFulfilled, currentId, newId);
+    const component = components[currentId];
+    if (components[currentId].type === 'FileUpload') {
+      const {
+        maxNumberOfAttachments,
+        minNumberOfAttachments,
+        maxFileSizeInMB,
+        validFileEndings,
+      } = component as IFormFileUploaderComponent;
+      yield call(FormDesignerActionDispatchers.addApplicationMetadata,
+        newId, maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings);
+      yield delay(500);
+      yield call(FormDesignerActionDispatchers.deleteApplicationMetadata, currentId);
+    }
+    yield call(FormDesignerActionDispatchers.saveFormLayout);
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormComponentIdRejected, err);
+  }
+}
+
+export function* watchUpdateFormComponentIdSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ID, updateFormComponentIdSaga);
 }

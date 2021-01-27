@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-nested-ternary */
 import { createStyles, Grid, IconButton, ListItem, withStyles } from '@material-ui/core';
 import * as React from 'react';
@@ -266,10 +267,13 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
         inEditMode: false,
       },
     }, () => {
-      const { required: requiredState, ...restState } = this.state.component;
-      const { required: requiredProps, ...restProps } = this.props.component;
+      const { id: stateId, ...restState } = this.state.component;
+      const { id: idProps, ...restProps } = this.props.component;
       if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
         this.handleSaveChange(this.state.component);
+      }
+      if (this.props.id !== this.state.component.id) {
+        FormDesignerActionDispatchers.updateFormComponentId(this.props.id, this.state.component.id);
       }
       this.props.sendItemToParent(this.state.listItem);
       FormDesignerActionDispatchers.deleteActiveListAction();
@@ -290,9 +294,6 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
       rest,
       this.props.id,
     );
-    if (id !== this.props.id) {
-      FormDesignerActionDispatchers.updateContainerId(this.props.id, id);
-    }
   }
 
   public handleTitleChange = (e: any): void => {

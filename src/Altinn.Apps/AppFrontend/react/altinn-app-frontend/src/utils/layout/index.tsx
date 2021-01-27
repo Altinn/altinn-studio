@@ -2,8 +2,10 @@
 import * as React from 'react';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 // eslint-disable-next-line import/no-cycle
+import { IInstance } from 'altinn-shared/types';
 import { GenericComponent } from '../../components/GenericComponent';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../../features/form/layout';
+import { ILayoutSets, ILayoutSet } from '../../types';
 
 export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutComponent {
   let component: ILayoutComponent;
@@ -105,4 +107,15 @@ export function setupGroupComponents(components: (ILayoutComponent | ILayoutGrou
     };
   });
   return childComponents;
+}
+
+export function getLayouytsetForDataElement(instance: IInstance, datatype: string, layoutsets: ILayoutSets) {
+  const currentTaskId = instance.process.currentTask.elementId;
+  const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
+    if (layoutSet.dataType !== datatype) {
+      return false;
+    }
+    return layoutSet.tasks.find((taskId: string) => taskId === currentTaskId);
+  });
+  return foundLayout.id;
 }
