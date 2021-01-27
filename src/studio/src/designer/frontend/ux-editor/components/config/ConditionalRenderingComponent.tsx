@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
+import { getComponentTitleByComponentType } from '../../utils/language';
 import { makeGetAllLayoutComponents, makeGetALlLayoutContainers, makeGetFullOrder } from '../../selectors/getLayoutData';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
@@ -10,7 +11,7 @@ export interface IConditionalRenderingComponentProps {
   saveEdit: (updatedConnection: any) => void;
   ruleModelElements: IRuleModelFieldElement[];
   conditionalRendering: any;
-  formLayoutComponents: IFormDesignerComponent;
+  formLayoutComponents: IFormDesignerComponents;
   deleteConnection?: (connectionId: any) => void;
   formLayoutContainers: any;
   order: IFormLayoutOrder;
@@ -150,7 +151,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               ...newSelectedFields, [item]: this.state.conditionalRendering.selectedFields[item],
             };
           },
-            {}),
+          {}),
       },
     });
   }
@@ -179,9 +180,11 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   }
 
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
+    const component: IFormComponent = this.props.formLayoutComponents[id];
+    const labelText = getComponentTitleByComponentType(component.type, this.props.language);
     return (
       <option key={id} value={id}>
-        {`${this.props.formLayoutComponents[id].type} (id=${id})`}
+        {`${labelText} (${id})`}
       </option>
     );
   }
@@ -192,9 +195,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
       return options;
     }
     if (!baseContainer) {
+      const name = getComponentTitleByComponentType('Group', this.props.language);
       options.push(
         <option key={id} value={id}>
-          {`Container (id=${id})`}
+          {`${name} (${id})`}
         </option>,
       );
     }
@@ -254,11 +258,12 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               value={selectedMethod}
               className='custom-select a-custom-select'
               id='selectConditionalRule'
+              style={{ fontSize: '16px' }}
             >
-              <option value={''}>
+              <option value=''>
                 {this.props.language.general.choose_method}
               </option>
-              {this.props.ruleModelElements.map((funcObj: any, i: any) => {
+              {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>{funcObj.name}</option>
                 );
@@ -272,15 +277,15 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   {this.props.language.ux_editor.modal_configure_conditional_rendering_configure_input_header}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
-                  (key: any, index: any) => {
+                  (key: any) => {
                     const paramName = key;
                     return (
-                      <div className='row align-items-center mb-1' key={index}>
+                      <div className='row align-items-center mb-1' key={key}>
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              {this.props.language.
-                                ux_editor.modal_configure_conditional_rendering_configure_input_param_helper}
+                              {this.props.language
+                                .ux_editor.modal_configure_conditional_rendering_configure_input_param_helper}
                             </label>
                             <input
                               id={paramName}
@@ -303,7 +308,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         </div>
                       </div>
                     );
-                  })}
+                  },
+                )}
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
@@ -311,22 +317,23 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
-                    <label className='a-form-label' htmlFor={'select_action'}>
-                      {this.props.language.
-                        ux_editor.modal_configure_conditional_rendering_configure_output_action_helper}
+                    <label className='a-form-label' htmlFor='select_action'>
+                      {this.props.language
+                        .ux_editor.modal_configure_conditional_rendering_configure_output_action_helper}
                     </label>
                     <select
-                      id={'select_action'}
+                      id='select_action'
                       value={this.state.conditionalRendering.selectedAction}
                       onChange={this.handleActionChange}
                       className='custom-select a-custom-select'
+                      style={{ fontSize: '16px' }}
                     >
-                      <option value={''}>
+                      <option value=''>
                         {this.props.language.general.action}
                       </option>
-                      {this.state.selectableActions.map((value: string, key: any) => {
+                      {this.state.selectableActions.map((value: string) => {
                         return (
-                          <option key={key} value={value}>{value}</option>
+                          <option key={value} value={value}>{value}</option>
                         );
                       })}
                     </select>
@@ -344,9 +351,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                           onChange={this.handleFieldMappingChange.bind(null, key)}
                           value={this.state.conditionalRendering.selectedFields[key]}
                           className='custom-select a-custom-select mb-1'
+                          style={{ fontSize: '16px' }}
                         >
-                          <option value={''}>
-                            {this.props.language.general.select_field}
+                          <option value=''>
+                            {this.props.language.general.select_component}
                           </option>
                           {
                             this.renderCondtionalRenderingTargetOptions()
@@ -372,8 +380,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       className='a-btn'
                       onClick={this.addNewField}
                     >
-                      {this.props.language.ux_editor.
-                        modal_configure_conditional_rendering_configure_add_new_field_mapping}
+                      {this.props.language.ux_editor
+                        .modal_configure_conditional_rendering_configure_add_new_field_mapping}
                     </button>
                   </div>
                 </div>
@@ -384,13 +392,19 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           <div className='row mt-3'>
             <div className='col'>
               {this.state.conditionalRendering.selectedFunction ?
-                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
+                <button
+                  onClick={this.handleSaveEdit} type='submit'
+                  className='a-btn a-btn-success mr-2'
+                >
                   {this.props.language.general.save}
                 </button>
                 : null
               }
               {this.props.connectionId ?
-                <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
+                <button
+                  type='button' className='a-btn a-btn-danger mr-2'
+                  onClick={this.handleDeleteConnection}
+                >
                   {this.props.language.general.delete}
                 </button>
                 : null

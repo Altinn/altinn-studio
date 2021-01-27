@@ -11,6 +11,7 @@ import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
 import FormLayoutActions from '../layout/formLayoutActions';
@@ -146,6 +147,7 @@ export function GroupContainer({
   components,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
+  const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
@@ -183,6 +185,18 @@ export function GroupContainer({
     hiddenFields,
   );
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
+
+  React.useEffect(() => {
+    if (validations && validations[currentView] && validations[currentView][id]) {
+      let errorText = '';
+      validations[currentView][id].group.errors.forEach((error, index) => {
+        errorText += `${index > 0 ? ' ,' : ''}${getTextFromAppOrDefault(error, textResources, language, [], true)}`;
+      });
+      setGroupErrors(errorText);
+    } else {
+      setGroupErrors(null);
+    }
+  }, [validations, currentView, id]);
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
@@ -429,6 +443,13 @@ export function GroupContainer({
       <Grid container={true} style={{ paddingTop: '12px' }}>
         <ErrorPaper
           message={getLanguageFromKey('group.row_error', language)}
+        />
+      </Grid>
+      }
+      {groupErrors &&
+      <Grid container={true} style={{ paddingTop: '12px' }}>
+        <ErrorPaper
+          message={groupErrors}
         />
       </Grid>
       }
