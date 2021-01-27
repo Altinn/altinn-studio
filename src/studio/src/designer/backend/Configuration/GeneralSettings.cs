@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Configuration
         public string HostName { get; set; }
 
         /// <summary>
-        /// Checks if only needs push for deploy or group membershit
+        /// Checks if team membership is required for deploy.
         /// </summary>
         public bool CheckTeamMembershipForDeploy { get; set; }
 
