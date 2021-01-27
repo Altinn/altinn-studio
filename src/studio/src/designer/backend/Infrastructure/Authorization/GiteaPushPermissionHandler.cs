@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
                 string matchTeam = $"Deploy-{environment}";
                 List<Team> teams = await _giteaApiWrapper.GetTeams();
-                Console.WriteLine($"// GiteaPushPermissionHandler // Teams: { JsonConvert.SerializeObject(teams.Count)}");
+                Console.WriteLine($"// GiteaPushPermissionHandler // Teams: { JsonConvert.SerializeObject(teams)}");
 
                 Console.WriteLine($"// GiteaPushPermissionHandler // match team: { matchTeam}");
 
