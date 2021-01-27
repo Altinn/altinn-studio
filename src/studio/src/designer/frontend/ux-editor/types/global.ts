@@ -2,7 +2,7 @@ import { IWidgetState } from '../features/widgets/widgetsSlice';
 import { IAppDataState } from '../features/appData/appDataReducers';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
-import { IServiceConfigurationState } from '../reducers/serviceConfigurationReducer';
+import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationReducer';
 import { IThirdPartyComponentsState } from '../reducers/thirdPartyComponentReducer';
 
 declare global {

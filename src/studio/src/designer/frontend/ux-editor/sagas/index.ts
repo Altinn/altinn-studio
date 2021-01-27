@@ -3,21 +3,17 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import appDataSagas from '../features/appData/appDataSagas';
-import conditionalRenderingSagas from './conditionalRendering';
 import editContainerSagas from './editActiveList';
 import formDesignerSagas from './formDesigner';
-import manageJsonFileSagas from './manageServiceConfiguration';
-import ruleConnectionSagas from './ruleConnection';
+import serviceConfigurationSagas from '../features/serviceConfigurations/serviceConfigurationSagas';
 import thirdPartyComponentSagas from './thirdPartyComponents';
 import widgetsSagas from '../features/widgets/widgetsSagas';
 
 function* root(): SagaIterator {
   yield fork(editContainerSagas);
   yield fork(formDesignerSagas);
-  yield fork(ruleConnectionSagas);
-  yield fork(conditionalRenderingSagas);
   yield fork(appDataSagas);
-  yield fork(manageJsonFileSagas);
+  yield fork(serviceConfigurationSagas);
   yield fork(thirdPartyComponentSagas);
   yield fork(widgetsSagas);
 }

@@ -2,13 +2,32 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IConditionalRenderingState {
-  [key: string]: any;
+  [key: string]: IConditionalRendering;
+}
+
+export interface IConditionalRendering {
+  selectedFields: ISelectedFields;
+  selectedAction: string;
+  selectedFunction: string;
+  inputParams: IInputParams;
+}
+
+export interface ISelectedFields {
+  [key: string]: string;
+}
+
+export interface IInputParams {
+  [key: string]: string;
 }
 
 const initialState: IConditionalRenderingState = null;
 
 export interface IAddConditionalRendering {
   newConnection: any;
+}
+
+export interface ISetConditionalRendering {
+  conditionalRenderingConnections: IConditionalRenderingState;
 }
 
 const conditionalRenderingSlice = createSlice({
@@ -34,9 +53,9 @@ const conditionalRenderingSlice = createSlice({
       }, {});
       state = { ...newConnectionsObj };
     },
-    setConditionalRenderingConnections: (state, action) => {
-      const { conditionalRendering } = action.payload;
-      state = { ...conditionalRendering };
+    setConditionalRenderingConnections: (state, action: PayloadAction<ISetConditionalRendering>) => {
+      const { conditionalRenderingConnections } = action.payload;
+      state = { ...conditionalRenderingConnections };
     },
   },
 });

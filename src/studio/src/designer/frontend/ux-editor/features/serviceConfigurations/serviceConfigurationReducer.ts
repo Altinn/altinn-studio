@@ -1,8 +1,8 @@
 import { combineReducers, Reducer } from 'redux';
-import conditionalRenderingReducer, { IConditionalRenderingState } from '../conditionalRenderingReducer';
+import conditionalRenderingReducer, { IConditionalRenderingState } from './conditionalRendering/conditionalRenderingSlice';
 import manageServiceConfigurationReducer,
-{ IManageServiceConfigurationState } from '../manageServiceConfigurationReducer';
-import ruleConnectionReducer, { IRuleConnectionState } from '../ruleConnectionReducer';
+{ IManageServiceConfigurationState } from './manageServiceConfigurations/manageServiceConfigurationsSlice';
+import ruleConnectionReducer, { IRuleConnectionState } from '../../reducers/ruleConnectionReducer';
 
 export interface IServiceConfigurationState {
   ruleConnection: IRuleConnectionState;
