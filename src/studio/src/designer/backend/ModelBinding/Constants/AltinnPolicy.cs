@@ -6,6 +6,11 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
     public static class AltinnPolicy
     {
         /// <summary>
+        /// MustHaveGiteaPushPermission
+        /// </summary>
+        public const string MustHaveGiteaPushPermission = "MustHaveGiteaPushPermission";
+
+        /// <summary>
         /// MustHaveGiteaDeployPermission
         /// </summary>
         public const string MustHaveGiteaDeployPermission = "MustHaveGiteaDeployPermission";
