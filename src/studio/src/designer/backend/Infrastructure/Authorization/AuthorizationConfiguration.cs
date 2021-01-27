@@ -18,14 +18,14 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(
-                    AltinnPolicy.MustHaveGiteaPushPermission,
+                    AltinnPolicy.MustHaveGiteaDeployPermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
-                        policy.Requirements.Add(new GiteaPushPermissionRequirement());
+                        policy.Requirements.Add(new GiteaDeployPermissionRequirement());
                     });
             });
-            services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, GiteaDeployPermissionHandler>();
 
             return services;
         }

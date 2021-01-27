@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="createRelease">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
-        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<ReleaseEntity>> Create([FromBody]CreateReleaseRequestViewModel createRelease)
         {

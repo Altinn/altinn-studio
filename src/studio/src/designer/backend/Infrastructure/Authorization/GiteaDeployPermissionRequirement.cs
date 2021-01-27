@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
-    /// Requirement for GiteaPushPermission
+    /// Requirement for GiteaDeployPermission
     /// </summary>
-    public class GiteaPushPermissionRequirement : IAuthorizationRequirement
+    public class GiteaDeployPermissionRequirement : IAuthorizationRequirement
     {
     }
 }

@@ -24,9 +24,9 @@ using Newtonsoft.Json;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
-    /// Authorization Handler for GiteaPushPermissionRequirement
+    /// Authorization Handler for GiteaDeployPermissionRequirement
     /// </summary>
-    public class GiteaPushPermissionHandler : AuthorizationHandler<GiteaPushPermissionRequirement>
+    public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
     {
         private readonly IGitea _giteaApiWrapper;
         private readonly HttpContext _httpContext;
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="settings">The general settings</param>
-        public GiteaPushPermissionHandler(
+        public GiteaDeployPermissionHandler(
             IGitea giteaApiWrapper,
             IHttpContextAccessor httpContextAccessor,
             IOptions<GeneralSettings> settings)
@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaPushPermissionRequirement requirement)
+            GiteaDeployPermissionRequirement requirement)
         {
             if (_httpContext == null)
             {
