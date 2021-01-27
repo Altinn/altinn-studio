@@ -3,7 +3,8 @@ import appDataReducer, { IAppDataState } from '../features/appData/appDataReduce
 import errorReducer, { IErrorState } from '../features/error/errorSlice';
 // eslint-disable-next-line import/no-cycle
 import formDesignerReducer, { IFormDesignerState } from './formDesignerReducer';
-import serviceConfigurationReducer, { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationReducer';
+import serviceConfigurationReducer from '../features/serviceConfigurations/serviceConfigurationSlice';
+import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from './thirdPartyComponentReducer';
 import widgetsReducer, { IWidgetState } from '../features/widgets/widgetsSlice';
 

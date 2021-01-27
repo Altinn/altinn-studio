@@ -4,7 +4,6 @@ import postMessages from 'app-shared/utils/postMessages';
 import { Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
-import manageServiceConfigurationActionDispatcher from './actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
@@ -14,6 +13,7 @@ import { getLoadTextResourcesUrl } from './utils/urlHelper';
 import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
+import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 
 export interface IAppComponentProps { }
 
@@ -40,16 +40,10 @@ export function App() {
     formDesignerActionDispatchers.fetchFormLayout(
       `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
     );
-    // Load text resources
+
     const languageCode = 'nb';
     dispatch(loadTextResources({ url: getLoadTextResourcesUrl(languageCode) }));
-
-    // Fetch ServiceConfigurations
-    manageServiceConfigurationActionDispatcher.fetchJsonFile(
-      `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`,
-    );
-    // Fetch rule connections
+    dispatch(fetchServiceConfiguration());
     dispatch(fetchRuleModel());
 
     // Fetch thirdParty Components

@@ -1,17 +1,21 @@
 import { SagaIterator } from 'redux-saga';
 import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
 import postMessages from 'app-shared/utils/postMessages';
-import { fetchServiceConfiguration,
+import { addConditionalRenderingConnection,
+  addRuleConnection,
+  deleteConditionalRenderingConnnection,
+  deleteRuleConnnection,
+  fetchServiceConfiguration,
   fetchServiceConfigurationFulfilled,
   fetchServiceConfigurationRejected,
   saveServiceConfiguration,
   saveServiceConfigurationFulfilled,
-  saveServiceConfigurationRejected } from './manageServiceConfigurationsSlice';
-import { addConditionalRenderingConnection, deleteConditionalRenderingConnnection, setConditionalRenderingConnections } from '../conditionalRendering/conditionalRenderingSlice';
-import { IServiceConfigurationState } from '../serviceConfigurationReducer';
+  saveServiceConfigurationRejected,
+  setConditionalRenderingConnections,
+  setRuleConnections } from '../serviceConfigurationSlice';
+import { IServiceConfigurationState } from '../serviceConfigurationTypes';
 import { get, post } from '../../../utils/networking';
 import { getFetchRuleConfigurationUrl, getSaveServiceConfigurationUrl } from '../../../utils/urlHelper';
-import { addRuleConnection, deleteRuleConnnection, setRuleConnections } from '../ruleConnections/ruleConnectionsSlice';
 
 const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState => state.serviceConfigurations;
 
@@ -27,7 +31,7 @@ export function* fetchJsonFileSaga(): SagaIterator {
       conditionalRenderingConnections: serviceConfiguration?.data?.conditionalRendering,
     }));
     yield put(setRuleConnections({
-      ruleConnections: serviceConfiguration?.data?.ruleConection,
+      ruleConnections: serviceConfiguration?.data?.ruleConnection,
     }));
   } catch (error) {
     yield put(fetchServiceConfigurationRejected({ error }));
@@ -46,7 +50,7 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
 
 export function* saveServiceConfigurationSaga(): SagaIterator {
   try {
-    delay(500);
+    delay(200);
     const serviceConfigurationState: IServiceConfigurationState = yield select(selectServiceConfiguration);
 
     // create new serviceConfigurations object without manageServiceConfiguration status

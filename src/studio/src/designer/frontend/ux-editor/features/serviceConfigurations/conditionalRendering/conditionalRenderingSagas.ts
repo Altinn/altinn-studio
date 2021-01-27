@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { put, select, takeLatest } from 'redux-saga/effects';
-import { IConditionalRenderingState } from './conditionalRenderingSlice';
+import { IConditionalRenderingState } from '../serviceConfigurationTypes';
 import * as FormDesignerActionType from '../../../actions/formDesignerActions/formDesignerActionTypes';
 import * as FormDesignerActions from '../../../actions/formDesignerActions/actions';
-import { setConditionalRenderingConnections } from './conditionalRenderingSlice';
-import { saveServiceConfiguration } from '../manageServiceConfigurations/manageServiceConfigurationsSlice';
+import { setConditionalRenderingConnections } from '../serviceConfigurationSlice';
+import { saveServiceConfiguration } from '../serviceConfigurationSlice';
 
 const selectConditionalRuleConnection = (state: IAppState): any => state.serviceConfigurations.conditionalRendering;
 
