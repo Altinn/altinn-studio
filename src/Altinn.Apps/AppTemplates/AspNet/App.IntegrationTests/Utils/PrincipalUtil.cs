@@ -28,7 +28,7 @@ namespace App.IntegrationTests.Utils
             return token;
         }
 
-        public static string GetOrgToken(string org, int authenticationLevel = 4)
+        public static string GetOrgToken(string org, int authenticationLevel = 3)
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";

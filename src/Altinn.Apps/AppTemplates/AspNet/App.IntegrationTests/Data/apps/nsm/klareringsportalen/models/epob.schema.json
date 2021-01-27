@@ -1,0 +1,845 @@
+﻿{
+	"$schema" : "http://json-schema.org/schema#",
+	"$id" : "schema.json",
+	"type" : "object",
+	"properties" : {
+			"ePOB_M" : {
+					"$ref" : "#/definitions/ePOB_M"
+				}
+		},
+	"info" : {
+			"XSLT-skriptnavn" : "SERES_XSD_GEN",
+			"XSD-generatorversjon" : "2.0.23",
+			"XSLT-prosessor" : "SAXON versjon 9.1.0.7",
+			"generert" : "2020-12-16T19:35:54.961+01:00",
+			"navneromprefix" : "http://seres.no/xsd",
+			"namespace" : "http://seres.no/xsd/NSM/ePOB_M/2020",
+			"meldingsnavn" : "melding",
+			"domenenavn" : "NSM",
+			"modellnavn" : "ePOB_M",
+			"metamodellversjon" : "1.2",
+			"guid" : "true",
+			"orid" : "false",
+			"nillable" : "true",
+			"tillat-gjenbruk" : "true",
+			"elementtype" : "true",
+			"forvaltningsdata" : "true",
+			"forvaltningsdata-navnerom" : "http://seres.no/xsd/forvaltningsdata",
+			"saernorske-bokstaver-i-navn" : "false",
+			"ft_guid_som_attributt" : "false",
+			"sem-ref" : "false",
+			"kodebibliotek" : "false",
+			"spraak" : "",
+			"XSD-variant" : "Altinn 1.3.2"
+		},
+	"definitions" : {
+			"ePOB_M" : {
+					"properties" : {
+							"PersonInformasjon" : {
+									"$ref" : "#/definitions/Personalia"
+								},
+							"PersonRelasjoner" : {
+									"$ref" : "#/definitions/Relasjoner"
+								},
+							"Samboerellerektefelle" : {
+									"$ref" : "#/definitions/Samboerektefelle"
+								},
+							"PersonligOkonomi" : {
+									"$ref" : "#/definitions/OEkonomi"
+								},
+							"Straff" : {
+									"$ref" : "#/definitions/Strafferettslig"
+								},
+							"PersonRusmidler" : {
+									"$ref" : "#/definitions/Rusmidler"
+								},
+							"SikkerhetsOpplysninger" : {
+									"$ref" : "#/definitions/Sikkerhetsopplysninger"
+								},
+							"StatsTilknytning" : {
+									"$ref" : "#/definitions/Statstilknytning"
+								},
+							"HelsePerson" : {
+									"$ref" : "#/definitions/Helse"
+								},
+							"HistorikkBostederUtland" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkutland"
+										}
+								},
+							"HistorikkBostederEU" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkeu"
+										}
+								},
+							"ArbeidsErfaring" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 30,
+									"items" : {
+											"$ref" : "#/definitions/Arbeidserfaringer"
+										}
+								},
+							"TidligereNavn" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Person"
+										}
+								},
+							"FlereGjeldendeStatsborgerskap" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Statsborgerskap"
+										}
+								},
+							"TidligereStatsborgerskap" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Statsborgerskap"
+										}
+								},
+							"DeusRequest" : {
+									"$ref" : "#/definitions/Deusrequest"
+								}
+						}
+				},
+			"Samboerektefelle" : {
+					"properties" : {
+							"hattsamboerstatsborgerandreland" : {
+									"type" : "string"
+								},
+							"hattoppholdutland" : {
+									"type" : "string"
+								},
+							"hattoppholdeos" : {
+									"type" : "string"
+								},
+							"samboerperson" : {
+									"$ref" : "#/definitions/Person"
+								},
+							"naavaerendestatsborgerskap" : {
+									"$ref" : "#/definitions/Statsborgerskap"
+								},
+							"FlereStatsborgerskap" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Statsborgerskap"
+										}
+								},
+							"TidligereStatsborgerskap" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Statsborgerskap"
+										}
+								},
+							"SamboerEktefelleBostederUtland" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkutland"
+										}
+								},
+							"SamboerEktefelleBostederEU" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkeu"
+										}
+								},
+							"BostederUtland" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkutland"
+										}
+								},
+							"BostederEU" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Bostedhistorikkeu"
+										}
+								}
+						}
+				},
+			"Relasjoner" : {
+					"properties" : {
+							"barn" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Person"
+										}
+								},
+							"far" : {
+									"$ref" : "#/definitions/Person"
+								},
+							"mor" : {
+									"$ref" : "#/definitions/Person"
+								},
+							"sosken" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Person"
+										}
+								},
+							"fodtannetlandmor" : {
+									"type" : "string"
+								},
+							"fodtannetlandfar" : {
+									"type" : "string"
+								},
+							"persontilknytning" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 30,
+									"items" : {
+											"$ref" : "#/definitions/Naerstaaende"
+										}
+								}
+						}
+				},
+			"Naerstaaende" : {
+					"properties" : {
+							"personinfo" : {
+									"$ref" : "#/definitions/Person"
+								},
+							"harinvesteringerutland" : {
+									"type" : "string"
+								},
+							"bosattutland" : {
+									"type" : "string"
+								},
+							"harblittstrattet" : {
+									"type" : "string"
+								},
+							"harkontaktmedorgkrim" : {
+									"type" : "string"
+								},
+							"hartransaksjonutland" : {
+									"type" : "string"
+								},
+							"hatttjenesterutland" : {
+									"type" : "string"
+								},
+							"hattkontaktetterettning" : {
+									"type" : "string"
+								},
+							"relasjonmedperson" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Statstilknytning" : {
+					"properties" : {
+							"hatttjenensterutland" : {
+									"type" : "string"
+								},
+							"hatttjenestemilitaere" : {
+									"type" : "string"
+								},
+							"militaertjenesteland" : {
+									"type" : "string"
+								},
+							"militaerfradato" : {
+									"type" : "string"
+								},
+							"militaertildato" : {
+									"type" : "string"
+								},
+							"militaerbeskrivelse" : {
+									"type" : "string"
+								},
+							"harstudertutland" : {
+									"type" : "string"
+								},
+							"hattkontaktetteretning" : {
+									"type" : "string"
+								},
+							"beskrivelseetterretning" : {
+									"type" : "string"
+								},
+							"tilknyttningstilfeller" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Tilknytningtilfelle"
+										}
+								},
+							"utdanningssteder" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 20,
+									"items" : {
+											"$ref" : "#/definitions/Utdanningssted"
+										}
+								}
+						}
+				},
+			"Utdanningssted" : {
+					"properties" : {
+							"utdanningsted" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								},
+							"fra" : {
+									"type" : "string"
+								},
+							"til" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Tilknytningtilfelle" : {
+					"properties" : {
+							"beskrivelse" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								},
+							"fra" : {
+									"type" : "string"
+								},
+							"til" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Personalia" : {
+					"properties" : {
+							"bostedsadresse" : {
+									"$ref" : "#/definitions/Adresse"
+								},
+							"postadresse" : {
+									"$ref" : "#/definitions/Adresse"
+								},
+							"sivilstatus" : {
+									"type" : "string"
+								},
+							"prefiksnr" : {
+									"type" : "string"
+								},
+							"mobilnummer" : {
+									"type" : "string"
+								},
+							"epost" : {
+									"type" : "string"
+								},
+							"ishatttidligerenavn" : {
+									"type" : "boolean"
+								},
+							"hatttidligerenavn" : {
+									"type" : "string"
+								},
+							"hattandrepersonnummer" : {
+									"type" : "string"
+								},
+							"tidligerepersonnummer" : {
+									"type" : "string"
+								},
+							"andreiddokumenter" : {
+									"type" : "array",
+									"minItems" : 0,
+									"items" : {
+											"$ref" : "#/definitions/Iddokumenter"
+										}
+								},
+							"harandreiddokumenter" : {
+									"type" : "string"
+								},
+							"harpostadrsammesombosted" : {
+									"type" : "string"
+								},
+							"person" : {
+									"$ref" : "#/definitions/Person"
+								},
+							"harandrestatsborgerskap" : {
+									"type" : "string"
+								},
+							"hatttidligerestatsborgerskap" : {
+									"type" : "string"
+								},
+							"hattoppholdutland" : {
+									"type" : "string"
+								},
+							"hattoppholdeu" : {
+									"type" : "string"
+								},
+							"samtykkepersonkontroll" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Person" : {
+					"properties" : {
+							"foedselsnummer" : {
+									"type" : "string"
+								},
+							"utenlandskfoedselsnummer" : {
+									"type" : "string"
+								},
+							"foedselsdato" : {
+									"type" : "string"
+								},
+							"kjoenn" : {
+									"type" : "string"
+								},
+							"personnavn" : {
+									"$ref" : "#/definitions/Personnavn"
+								},
+							"naavaandestatsborgerskap" : {
+									"$ref" : "#/definitions/Statsborgerskap"
+								},
+							"utenlandsadresse" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 10,
+									"items" : {
+											"$ref" : "#/definitions/Adresse"
+										}
+								}
+						}
+				},
+			"Personnavn" : {
+					"properties" : {
+							"fornavn" : {
+									"type" : "string"
+								},
+							"mellomnavn" : {
+									"type" : "string"
+								},
+							"etternavn" : {
+									"type" : "string"
+								},
+							"fulltnavn" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Adresse" : {
+					"properties" : {
+							"adressebeskrivelse" : {
+									"type" : "string"
+								},
+							"postnummer" : {
+									"type" : "string"
+								},
+							"poststed" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Iddokumenter" : {
+					"properties" : {
+							"typedokument" : {
+									"type" : "string"
+								},
+							"dokumentnr" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Strafferettslig" : {
+					"properties" : {
+							"hattlovbruddnorge" : {
+									"type" : "string"
+								},
+							"beskrivelserefselse" : {
+									"type" : "string"
+								},
+							"hattrefselse" : {
+									"type" : "string"
+								},
+							"hattlovbruddutland" : {
+									"type" : "string"
+								},
+							"straffforholdnorge" : {
+									"$ref" : "#/definitions/Straffforhold"
+								},
+							"hattstraffutlandet" : {
+									"type" : "array",
+									"minItems" : 0,
+									"items" : {
+											"$ref" : "#/definitions/Straffforhold"
+										}
+								}
+						}
+				},
+			"Straffforhold" : {
+					"properties" : {
+							"aar" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								},
+							"utfall" : {
+									"type" : "string"
+								},
+							"type" : {
+									"type" : "string"
+								}
+						}
+				},
+			"OEkonomi" : {
+					"properties" : {
+							"hattprivatelaan" : {
+									"type" : "string"
+								},
+							"redegjorelseprivatelaan" : {
+									"type" : "string"
+								},
+							"hattmislighold" : {
+									"type" : "string"
+								},
+							"redegjorelsemislighold" : {
+									"type" : "string"
+								},
+							"hattpengespill" : {
+									"type" : "string"
+								},
+							"redegjorelsepengespill" : {
+									"type" : "string"
+								},
+							"investeringer" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 30,
+									"items" : {
+											"$ref" : "#/definitions/Investering"
+										}
+								},
+							"harinvesteringer" : {
+									"type" : "string"
+								},
+							"harmottattpenger" : {
+									"type" : "string"
+								},
+							"mottattpengerutland" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 30,
+									"items" : {
+											"$ref" : "#/definitions/Transaksjonutland"
+										}
+								},
+							"harsentpenger" : {
+									"type" : "string"
+								},
+							"sentpengerutland" : {
+									"type" : "array",
+									"minItems" : 0,
+									"maxItems" : 30,
+									"items" : {
+											"$ref" : "#/definitions/Transaksjonutland"
+										}
+								},
+							"okonomiskesituasjon" : {
+									"type" : "string"
+								},
+							"okonomiskesituasjonbeskrivelse" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Investering" : {
+					"properties" : {
+							"type" : {
+									"type" : "string"
+								},
+							"harinvestering" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Transaksjonutland" : {
+					"properties" : {
+							"antallganger" : {
+									"type" : "string"
+								},
+							"opprinnelsepenger" : {
+									"type" : "string"
+								},
+							"anledning" : {
+									"type" : "string"
+								},
+							"belop" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Rusmidler" : {
+					"properties" : {
+							"hattalkoholhendelser" : {
+									"type" : "string"
+								},
+							"beskrivelsereaksjonalkohol" : {
+									"type" : "string"
+								},
+							"hattdoping" : {
+									"type" : "string"
+								},
+							"hattalkoholreaksjoner" : {
+									"type" : "string"
+								},
+							"beskrivelsehendelseralkohol" : {
+									"type" : "string"
+								},
+							"beskrivelsenarkotika" : {
+									"type" : "string"
+								},
+							"beskrivelsedoping" : {
+									"type" : "string"
+								},
+							"hattbruktnarkotika" : {
+									"type" : "string"
+								},
+							"hattbehandlingrus" : {
+									"type" : "string"
+								},
+							"hattakan" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Sikkerhetsopplysninger" : {
+					"properties" : {
+							"hattKontaktterror" : {
+									"type" : "string"
+								},
+							"hattkontaktkriminalitet" : {
+									"type" : "string"
+								},
+							"beskrivelsekrim" : {
+									"type" : "string"
+								},
+							"hattkontaktkrim" : {
+									"type" : "string"
+								},
+							"beskrivelsekontaktterror" : {
+									"type" : "string"
+								},
+							"harandreforhold" : {
+									"type" : "string"
+								},
+							"beskrivelseandreforhold" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Helse" : {
+					"properties" : {
+							"hattsykdom" : {
+									"type" : "string"
+								},
+							"HelseUtredning" : {
+									"$ref" : "#/definitions/Helseutredning"
+								},
+							"hattvurderingsevne" : {
+									"type" : "string"
+								},
+							"utdypelsevurderingsevne" : {
+									"type" : "string"
+								},
+							"hattlegemidler" : {
+									"type" : "string"
+								},
+							"utdypelselegemidler" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Helseutredning" : {
+					"properties" : {
+							"typebehandling" : {
+									"type" : "string"
+								},
+							"tidspunktbehandling" : {
+									"type" : "string"
+								},
+							"utdypelse" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Bostedhistorikkutland" : {
+					"properties" : {
+							"land" : {
+									"type" : "string"
+								},
+							"startoppholdmnd" : {
+									"type" : "string"
+								},
+							"startoppholdaar" : {
+									"type" : "string"
+								},
+							"sluttoppholdmnd" : {
+									"type" : "string"
+								},
+							"sluttoppholdaar" : {
+									"type" : "string"
+								},
+							"adresse" : {
+									"type" : "string"
+								},
+							"postnr" : {
+									"type" : "string"
+								},
+							"poststed" : {
+									"type" : "string"
+								},
+							"bakgrunn" : {
+									"type" : "string"
+								},
+							"spesifikasjon" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Bostedhistorikkeu" : {
+					"properties" : {
+							"land" : {
+									"type" : "string"
+								},
+							"spesifikasjon" : {
+									"type" : "string"
+								},
+							"bakgrunn" : {
+									"type" : "string"
+								},
+							"antallganger" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Statsborgerskap" : {
+					"properties" : {
+							"fraDato" : {
+									"type" : "string"
+								},
+							"tilDato" : {
+									"type" : "string"
+								},
+							"passnr" : {
+									"type" : "string"
+								},
+							"fodested" : {
+									"type" : "string"
+								},
+							"fodeland" : {
+									"type" : "string"
+								},
+							"statsborgerfrafodsel" : {
+									"type" : "string"
+								},
+							"land" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Arbeidserfaringer" : {
+					"properties" : {
+							"fraaar" : {
+									"type" : "string"
+								},
+							"tilaar" : {
+									"type" : "string"
+								},
+							"stilling" : {
+									"type" : "string"
+								},
+							"type" : {
+									"type" : "string"
+								},
+							"tildagsdato" : {
+									"type" : "string"
+								},
+							"arbeidssted" : {
+									"type" : "string"
+								},
+							"arbeidstedsland" : {
+									"type" : "string"
+								},
+							"selskap" : {
+									"type" : "string"
+								},
+							"selskapsland" : {
+									"type" : "string"
+								},
+							"skole" : {
+									"type" : "string"
+								},
+							"skolensland" : {
+									"type" : "string"
+								},
+							"arbeidsledigland" : {
+									"type" : "string"
+								},
+							"framaaned" : {
+									"type" : "string"
+								},
+							"tilmaaned" : {
+									"type" : "string"
+								}
+						}
+				},
+			"Deusrequest" : {
+					"properties" : {
+							"clearauthority" : {
+									"type" : "string"
+								},
+							"nationallevel" : {
+									"type" : "string"
+								},
+							"natolevel" : {
+									"type" : "string"
+								},
+							"personid" : {
+									"type" : "string"
+								},
+							"requestbusiness" : {
+									"type" : "string"
+								},
+							"requestid" : {
+									"type" : "string"
+								}
+						}
+				}
+		}
+}
