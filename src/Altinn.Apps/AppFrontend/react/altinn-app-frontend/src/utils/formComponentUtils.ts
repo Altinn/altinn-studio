@@ -34,6 +34,10 @@ export const getComponentValidations = (
 };
 
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
+  if (!dataModelBindings) {
+    return '';
+  }
+
   if (dataModelBindings.simpleBinding) {
     const formDataVal = formData[dataModelBindings.simpleBinding];
     return formDataVal;

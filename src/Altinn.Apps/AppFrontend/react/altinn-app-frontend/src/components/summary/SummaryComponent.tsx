@@ -146,12 +146,14 @@ export function SummaryComponent(props: ISummaryComponent) {
           style={{ paddingTop: '12px' }}
           spacing={2}
         >
-          {componentValidations?.simpleBinding?.errors.map((validationText) => {
-            return (
-              <ErrorPaper
-                message={validationText}
-              />
-            );
+          {Object.keys(componentValidations).map((binding: string) => {
+            return componentValidations[binding]?.errors?.map((validationText: string) => {
+              return (
+                <ErrorPaper
+                  message={validationText}
+                />
+              );
+            });
           })}
           <Grid item={true} xs={12}>
             <button

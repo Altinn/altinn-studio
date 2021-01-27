@@ -1,9 +1,18 @@
+import { post } from 'app-shared/utils/networking';
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import * as AppDataActions from '../../actions/appDataActions/actions';
 import AppDataActionDispatchers from '../../actions/appDataActions/appDataActionDispatcher';
 import * as AppDataActionTypes from '../../actions/appDataActions/appDataActionTypes';
 import { get } from '../../utils/networking';
+import { ILoadTextResourcesAction,
+  loadTextResources,
+  loadTextResourcesFulfilled,
+  loadTextResourcesRejected,
+  addTextResources,
+  addTextResourcesFulfilled,
+  addTextResourcesRejected } from '../../features/appData/textResources/textResourcesSlice';
+import { getAddTextResourcesUrl } from '../../utils/urlHelper';
 
 function* fetchDataModelSaga({
   url,
@@ -64,19 +73,18 @@ export function* watchFetchDataModelSaga(): SagaIterator {
   yield takeLatest(AppDataActionTypes.FETCH_DATA_MODEL, fetchDataModelSaga);
 }
 
-export function* loadTextResourcesSaga({
-  url,
-}: AppDataActions.ILoadTextResourcesAction): SagaIterator {
+export function* loadTextResourcesSaga({ payload }: ILoadTextResourcesAction): SagaIterator {
   try {
+    const { url } = payload;
     const textResources = yield call(get, url);
-    yield call(AppDataActionDispatchers.loadTextResourcesFulfilled, textResources);
-  } catch (err) {
-    yield call(AppDataActionDispatchers.loadTextResourcesRejected, err);
+    yield put(loadTextResourcesFulfilled({ textResources }));
+  } catch (error) {
+    yield put(loadTextResourcesRejected({ error }));
   }
 }
 
 export function* watchLoadTextResourcesSaga(): SagaIterator {
-  yield takeLatest(AppDataActionTypes.LOAD_TEXT_RESOURCES, loadTextResourcesSaga);
+  yield takeLatest(loadTextResources.type, loadTextResourcesSaga);
 }
 
 export function* watchFetchRuleModelSaga(): SagaIterator {
@@ -99,4 +107,19 @@ export function* watchFetchLanguageSaga(): SagaIterator {
     AppDataActionTypes.FETCH_LANGUAGE,
     fetchLanguageSaga,
   );
+}
+
+export function* addTextResourcesSaga({ payload }: any): SagaIterator {
+  try {
+    const { textResources } = payload;
+    const url = getAddTextResourcesUrl();
+    yield call(post, url, textResources);
+    yield put(addTextResourcesFulfilled());
+  } catch (error) {
+    yield put(addTextResourcesRejected({ error }));
+  }
+}
+
+export function* watchAddTextResourcesSaga(): SagaIterator {
+  yield takeLatest(addTextResources.type, addTextResourcesSaga);
 }

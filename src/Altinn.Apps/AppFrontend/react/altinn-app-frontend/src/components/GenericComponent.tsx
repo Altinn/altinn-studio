@@ -85,7 +85,12 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    if (formData && (formData === value || formData[key] === value)) {
+    if (formData instanceof Object) {
+      if (formData[key] && formData[key] === value) {
+        // data unchanged, do nothing
+        return;
+      }
+    } else if (formData && formData === value) {
       // data unchanged, do nothing
       return;
     }
@@ -114,7 +119,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   };
 
-  // some compoenets handle their validations internally (i.e merge with internal validaiton state)
+  // some components handle their validations internally (i.e merge with internal validaiton state)
   const internalComponentValidations = getValidationsForInternalHandling();
   if (internalComponentValidations !== null) {
     passThroughProps.componentValidations = internalComponentValidations;
@@ -203,6 +208,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Button',
     'Checkboxes',
     'RadioButtons',
+    'AttachmentList',
   ];
 
   return (
