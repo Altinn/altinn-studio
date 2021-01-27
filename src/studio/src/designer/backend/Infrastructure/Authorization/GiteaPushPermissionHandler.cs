@@ -53,6 +53,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             AuthorizationHandlerContext context,
             GiteaPushPermissionRequirement requirement)
         {
+            Console.WriteLine($"////// middleware triggered");
             if (_httpContext == null)
             {
                 return;
@@ -67,6 +68,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
+
+            Console.WriteLine($"//////////////////// Check membership: {_settings.CheckTeamMembershipForDeploy}");
 
             if (_settings.CheckTeamMembershipForDeploy)
             {
