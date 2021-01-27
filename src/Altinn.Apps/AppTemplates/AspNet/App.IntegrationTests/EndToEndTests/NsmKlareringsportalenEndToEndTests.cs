@@ -107,6 +107,28 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Single(createdInstance.Data);
             #endregion
 
+            #region end user gets instance
+
+            // Reset token and client to end user
+            client = SetupUtil.GetTestClient(_factory, "nsm", "klareringsportalen");
+            token = PrincipalUtil.GetToken(1337, 4);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string instancePath = "/nsm/klareringsportalen/instances/" + createdInstance.Id;
+
+            HttpRequestMessage httpRequestMessage =
+            new HttpRequestMessage(HttpMethod.Get, instancePath);
+
+            response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("1337", instance.InstanceOwner.PartyId);
+            Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
+            Assert.Single(instance.Data);
+            #endregion
+
             TestDataUtil.DeleteInstanceAndData("nsm", "klareringsportalen", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
     }
