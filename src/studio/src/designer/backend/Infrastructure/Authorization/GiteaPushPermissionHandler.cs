@@ -53,7 +53,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             AuthorizationHandlerContext context,
             GiteaPushPermissionRequirement requirement)
         {
-            Console.WriteLine($"////// middleware triggered");
             if (_httpContext == null)
             {
                 return;
@@ -68,8 +67,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
-
-            Console.WriteLine($"//////////////////// Check membership: {_settings.CheckTeamMembershipForDeploy}");
 
             if (_settings.CheckTeamMembershipForDeploy)
             {
@@ -90,7 +87,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
                         environment = model.Environment.Name;
-                        Console.WriteLine($"// GiteaPushPermissionHandler // Environment: {environment}");
                     }
                     catch
                     {
@@ -105,9 +101,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
                 string matchTeam = $"Deploy-{environment}";
                 List<Team> teams = await _giteaApiWrapper.GetTeams();
-                Console.WriteLine($"// GiteaPushPermissionHandler // Teams: { JsonConvert.SerializeObject(teams)}");
-
-                Console.WriteLine($"// GiteaPushPermissionHandler // match team: { matchTeam}");
 
                 bool any = teams.Any(t => t.Organization.Username.Equals(
                     org, System.StringComparison.OrdinalIgnoreCase)
@@ -115,13 +108,10 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
                 if (any)
                 {
-                    Console.WriteLine($"// GiteaPushPermissionHandler // Found match");
-
                     context.Succeed(requirement);
                 }
                 else
                 {
-                    Console.WriteLine($"// GiteaPushPermissionHandler // Did not find match");
                     _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
 
