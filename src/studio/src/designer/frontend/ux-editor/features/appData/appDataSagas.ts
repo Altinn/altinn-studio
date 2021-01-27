@@ -46,6 +46,25 @@ function* fetchRuleModelSaga(): SagaIterator {
     const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);
+    window.document.body.appendChild(scriptEle);
+    Object.keys((window as any).ruleHandlerObject).forEach((functionName) => {
+      const innerFuncObj = {
+        name: functionName,
+        inputs: (window as any).ruleHandlerHelper[functionName](),
+        type: 'rule',
+      };
+      ruleModelFields.push(innerFuncObj);
+    });
+
+    Object.keys((window as any).conditionalRuleHandlerObject).forEach((functionName) => {
+      const innerFuncObj = {
+        name: functionName,
+        inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
+        type: 'condition',
+      };
+      ruleModelFields.push(innerFuncObj);
+    });
+
     yield put(fetchRuleModelFulfilled({ ruleModel: ruleModelFields }));
   } catch (error) {
     yield put(fetchRuleModelRejected({ error }));
