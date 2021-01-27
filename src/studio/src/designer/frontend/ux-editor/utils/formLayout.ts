@@ -94,8 +94,8 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
 }
 
 function extractChildrenFromGroupInternal(
-  components: IFormDesignerComponent,
-  containers: IFormDesignerContainer,
+  components: IFormDesignerComponents,
+  containers: IFormDesignerContainers,
   order: IFormLayoutOrder,
   formLayout: any[],
   groupId: string,
@@ -211,3 +211,14 @@ export const addContainerToLayout = (containerId: string, index: number) => {
     index,
   );
 };
+
+export function idExists(
+  id: string,
+  components: IFormDesignerComponents,
+  containers: IFormDesignerContainers,
+): boolean {
+  return Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
+  Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1;
+}
+
+export const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;

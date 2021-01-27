@@ -155,6 +155,17 @@ export interface IFormDesignerActionDispatchers
   updateFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateFormComponentActionRejected;
+  updateFormComponentId: (
+    currentId: string,
+    newId: string,
+  ) => FormDesignerActions.IUpdateFormComponentIdAction
+  updateFormComponentIdFulfilled: (
+    currentId: string,
+    newId: string,
+  ) => FormDesignerActions.IUpdateFormComponentIdFulfilledAction
+  updateFormComponentIdRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateFormComponentIdRejectedAction
   updateFormContainer: (
     updatedContainer: ICreateFormContainer,
     id: string,
@@ -335,6 +346,9 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.updateFormComponentActionFulfilled,
   updateFormComponentRejected:
     FormDesignerActions.updateFormComponentActionRejected,
+  updateFormComponentId: FormDesignerActions.updateFormComponentIdAction,
+  updateFormComponentIdFulfilled: FormDesignerActions.updateFormComponentIdFulfilledAction,
+  updateFormComponentIdRejected: FormDesignerActions.updateFormComponentIdRejectedAction,
   updateFormContainer: FormDesignerActions.updateFormContainerAction,
   updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
   updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected,
