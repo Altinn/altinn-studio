@@ -34,15 +34,7 @@ const serviceConfigurationSlice = createSlice({
     },
     deleteConditionalRenderingConnnection: (state, action) => {
       const { connectionId } = action.payload;
-      const connectionsArray = Object.keys(state);
-      const newConnectionsArray = connectionsArray.filter(
-        (conditionalRendringCon: any) => conditionalRendringCon !== connectionId,
-      );
-      const newConnectionsObj = newConnectionsArray.reduce((acc: any, conditionalRendringCon: any) => {
-        acc[conditionalRendringCon] = state.conditionalRendering[conditionalRendringCon];
-        return acc;
-      }, {});
-      state.conditionalRendering = { ...newConnectionsObj };
+      delete state.conditionalRendering[connectionId];
     },
     deleteRuleConnnection: (state, action) => {
       const { connectionId } = action.payload;

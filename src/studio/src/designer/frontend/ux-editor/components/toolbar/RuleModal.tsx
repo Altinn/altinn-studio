@@ -52,7 +52,7 @@ export default function RuleModal(props: IRuleModalProps) {
       <>
         {Object.keys(ruleConnection || {}).map((key: string) => (
           <RuleButton
-            text={ruleConnection[key].selectedFunction}
+            text={ruleConnection[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}

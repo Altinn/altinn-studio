@@ -54,7 +54,7 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
       <>
         {Object.keys(conditionalRendering || {}).map((key: string) => (
           <RuleButton
-            text={conditionalRendering[key].selectedFunction}
+            text={conditionalRendering[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}

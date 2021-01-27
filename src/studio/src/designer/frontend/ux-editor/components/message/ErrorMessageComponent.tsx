@@ -21,7 +21,7 @@ export function ErrorMessageComponent() {
           errors.map((error: IErrorStateError, index: number) => (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
             <div
-              key={index}
+              key={error.errorMessage}
               onClick={removeClickedError.bind(null, index)}
               className='error-snackbar-items'
             >
