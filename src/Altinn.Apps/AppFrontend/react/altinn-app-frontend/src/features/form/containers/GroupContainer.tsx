@@ -192,6 +192,8 @@ export function GroupContainer({
         errorText += `${index > 0 ? ' ,' : ''}${getTextFromAppOrDefault(error, textResources, language, [], true)}`;
       });
       setGroupErrors(errorText);
+    } else {
+      setGroupErrors(null);
     }
   }, [validations, currentView, id]);
 
