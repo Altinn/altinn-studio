@@ -1,5 +1,6 @@
 /* eslint-disable no-shadow */
 import { AddressComponent } from './advanced/AddressComponent';
+import { AttachmentListComponent } from './base/AttachmentListComponent';
 import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 // eslint-disable-next-line import/no-cycle
@@ -37,6 +38,7 @@ export enum ComponentTypes {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
+  AttachmentList,
 }
 
 export const textComponents: IComponent[] = [
@@ -123,6 +125,11 @@ export const schemaComponents: IComponent[] = [
     name: 'NavigationButtons',
     Tag: NavigationButtonsComponent,
     Type: ComponentTypes.NavigationButtons,
+  },
+  {
+    name: 'AttachmentList',
+    Tag: AttachmentListComponent,
+    Type: ComponentTypes.AttachmentList,
   },
 ];
 

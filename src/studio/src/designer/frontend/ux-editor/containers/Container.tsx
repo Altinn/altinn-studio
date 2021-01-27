@@ -23,8 +23,9 @@ import { renderSelectGroupDataModelBinding, renderSelectTextFromResources } from
 import { FormComponentWrapper } from '../components/FormComponent';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { getTextResource } from '../utils/language';
+import { idExists, validComponentId } from '../utils/formLayout';
 
-export interface IProvidedContainerProps extends WithStyles<typeof styles>{
+export interface IProvidedContainerProps extends WithStyles<typeof styles> {
   id: string;
   index?: number;
   baseContainer?: boolean;
@@ -40,7 +41,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
 export interface IContainerProps extends IProvidedContainerProps {
   dataModelGroup?: string;
   itemOrder: any;
-  components: IFormDesignerComponent;
+  components: IFormDesignerComponents;
   containers: any;
   repeating: boolean;
   index?: number;
@@ -127,9 +128,6 @@ const styles = createStyles({
     border: '0.15rem solid #fff',
   },
 });
-
-const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;
-
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
     if (prevState.currentlyDragging) {
@@ -224,7 +222,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
-      if (this.idAlreadyExist(this.state.tmpId)) {
+      if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
           groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
         }));
@@ -255,7 +253,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public handleNewId = (event: any) => {
-    if (this.idAlreadyExist(event.target.value) && event.target.value !== this.props.id) {
+    if (
+      idExists(event.target.value, this.props.components, this.props.containers) &&
+      event.target.value !== this.props.id
+    ) {
       this.setState(() => ({
         groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
       }));
@@ -268,11 +269,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         groupIdError: null,
       });
     }
-  }
-
-  public idAlreadyExist = (newId: string): boolean => {
-    return Object.keys(this.props.containers).findIndex((key) => key.toUpperCase() === newId.toUpperCase()) > -1 ||
-      Object.keys(this.props.components).findIndex((key) => key.toUpperCase() === newId.toUpperCase()) > -1;
   }
 
   public handleClosePopup = () => {
@@ -524,31 +520,31 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               true)
             }
             {(this.props.itemOrder.length > 0) &&
-            <Grid item={true} style={{ marginTop: '24px' }}>
-              {this.props.language.ux_editor.modal_properties_group_table_headers}
-              {this.props.itemOrder.map((id: string, index: number) => {
-                const componentLabel = getTextResource(
-                  this.props.components[id].textResourceBindings?.title,
-                  this.props.textResources,
-                );
-                const tableHeaders = this.state.tmpContainer.tableHeaders || this.props.itemOrder;
-                return (
-                  <Grid item={true} xs={12}>
-                    <AltinnCheckBox
-                      checked={tableHeaders.includes(id)}
-                      onChangeFunction={() => this.handleTableHeadersChange(id, index)}
-                    />
-                    {componentLabel}
-                  </Grid>
-                );
-              })}
-              <div ref={this.state.tableHeadersPopoverRef} />
-              <ErrorPopover
-                anchorEl={this.state.tableHeadersError ? this.state.tableHeadersPopoverRef.current : null}
-                onClose={this.handleClosePopup}
-                errorMessage={this.state.tableHeadersError}
-              />
-            </Grid>
+              <Grid item={true} style={{ marginTop: '24px' }}>
+                {this.props.language.ux_editor.modal_properties_group_table_headers}
+                {this.props.itemOrder.map((id: string, index: number) => {
+                  const componentLabel = getTextResource(
+                    this.props.components[id].textResourceBindings?.title,
+                    this.props.textResources,
+                  );
+                  const tableHeaders = this.state.tmpContainer.tableHeaders || this.props.itemOrder;
+                  return (
+                    <Grid item={true} xs={12}>
+                      <AltinnCheckBox
+                        checked={tableHeaders.includes(id)}
+                        onChangeFunction={() => this.handleTableHeadersChange(id, index)}
+                      />
+                      {componentLabel}
+                    </Grid>
+                  );
+                })}
+                <div ref={this.state.tableHeadersPopoverRef} />
+                <ErrorPopover
+                  anchorEl={this.state.tableHeadersError ? this.state.tableHeadersPopoverRef.current : null}
+                  onClose={this.handleClosePopup}
+                  errorMessage={this.state.tableHeadersError}
+                />
+              </Grid>
             }
           </Grid>
         }

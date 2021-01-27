@@ -659,7 +659,7 @@ export function mapDataElementValidationToRedux(
         if (c.type === 'FileUpload') {
           return c.id === validation.field;
         }
-        return Object.values(c.dataModelBindings).includes(validation.field);
+        return c.dataModelBindings && Object.values(c.dataModelBindings).includes(validation.field);
       });
       return !!foundInLayout;
     });
@@ -676,6 +676,9 @@ export function mapDataElementValidationToRedux(
           let index: string;
           if (validation.field) {
             index = getIndex(validation.field);
+          }
+          if (!componentCandidate.dataModelBindings) {
+            return found;
           }
           Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
             const fieldToCheck = getKeyWithoutIndex(validation.field.toLowerCase());
