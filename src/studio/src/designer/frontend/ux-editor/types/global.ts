@@ -155,14 +155,14 @@ declare global {
     | IFormFileUploaderComponent
     | IFormAddressComponent;
 
-  export interface IFormDesignerComponent {
+  export interface IFormDesignerComponents {
     [id: string]: IFormComponent;
   }
   export interface IFormDesignerComponentProps {
     [id: string]: IProperties;
   }
 
-  export interface IFormDesignerContainer {
+  export interface IFormDesignerContainers {
     [id: string]: ICreateFormContainer;
   }
 
@@ -175,8 +175,8 @@ declare global {
   }
 
   export interface IFormLayout {
-    components: IFormDesignerComponent;
-    containers: IFormDesignerContainer;
+    components: IFormDesignerComponents;
+    containers: IFormDesignerContainers;
     order: IFormLayoutOrder;
   }
 

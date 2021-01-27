@@ -58,6 +58,7 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       navigationConfig: {},
       layoutOrder: [],
     },
+    layoutsets: null,
   };
 
   return {
