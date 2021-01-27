@@ -292,6 +292,10 @@ public class PDFGenerator {
       // different view for file upload
       renderFileUploadContent(element);
     }
+    else if (elementType.equalsIgnoreCase("attachmentlist")){
+      // different view for attachment list
+      renderAttachmentListContent(element);
+    }
     else if (elementType.equalsIgnoreCase("AddressComponent")) {
       renderAddressComponent(element);
     }
@@ -416,6 +420,19 @@ public class PDFGenerator {
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
     List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
+    renderFileListContent(files);
+  }
+
+  private void renderAttachmentListContent(FormLayoutElement element) throws IOException {
+    List<String> files = new ArrayList<>();
+    for (String id: element.getDataTypeIds()) {
+      files.addAll(InstanceUtils.getAttachmentsByComponentId(id, this.instance));
+    }
+    
+    renderFileListContent(files);
+  }
+
+  private void renderFileListContent(List<String> files) throws IOException {
     addSection(currentPart);
     beginMarkedContent(COSName.P);
     currentContent.setFont(font, fontSize);

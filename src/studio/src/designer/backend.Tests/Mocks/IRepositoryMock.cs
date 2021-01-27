@@ -4,12 +4,14 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Altinn.Platform.Storage.Interface.Models;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
+using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Designer.Tests.Mocks
 {
@@ -65,7 +67,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Application GetApplication(string org, string app)
+        public PlatformStorageModels.Application GetApplication(string org, string app)
         {
             throw new NotImplementedException();
         }
@@ -285,7 +287,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public bool UpdateApplication(string org, string app, Application applicationMetadata)
+        public bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
             throw new NotImplementedException();
         }
@@ -316,6 +318,16 @@ namespace Designer.Tests.Mocks
         }
 
         public Task WriteData(string org, string repo, string filepath, Stream stream)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetWidgetSettings(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool AddTextResources(string org, string app, List<TextResource> textResourceList)
         {
             throw new NotImplementedException();
         }

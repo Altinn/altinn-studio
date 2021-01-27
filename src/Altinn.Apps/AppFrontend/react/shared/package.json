@@ -19,7 +19,7 @@
     "@material-ui/icons": "~4.11.2",
     "axios": "~0.21.1",
     "classnames": "~2.2.6",
-    "core-js": "~3.8.2",
+    "core-js": "~3.8.3",
     "diff": "~5.0.0",
     "dompurify": "~2.2.6",
     "marked": "~1.2.7",

@@ -3,7 +3,8 @@ import { fork } from 'redux-saga/effects';
 import { watchFetchDataModelSaga,
   watchFetchLanguageSaga,
   watchFetchRuleModelSaga,
-  watchLoadTextResourcesSaga } from './appDataSagas';
+  watchLoadTextResourcesSaga,
+  watchAddTextResourcesSaga } from './appDataSagas';
 
 // eslint-disable-next-line func-names
 export default function* (): SagaIterator {
@@ -11,4 +12,5 @@ export default function* (): SagaIterator {
   yield fork(watchLoadTextResourcesSaga);
   yield fork(watchFetchRuleModelSaga);
   yield fork(watchFetchLanguageSaga);
+  yield fork(watchAddTextResourcesSaga);
 }

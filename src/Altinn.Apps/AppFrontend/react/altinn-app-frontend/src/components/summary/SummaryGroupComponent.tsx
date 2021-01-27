@@ -11,6 +11,7 @@ import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroup
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import GroupInputSummary from './GroupInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
+import { EditButton } from './EditButton';
 
 export interface ISummaryGroupComponent {
   id: string;
@@ -46,14 +47,6 @@ const useStyles = makeStyles({
   },
   labelWithError: {
     color: appTheme.altinnPalette.primary.red,
-  },
-  editIcon: {
-    paddingLeft: '6px',
-    fontSize: '1.8rem !important',
-  },
-  change: {
-    fontSize: '1.8rem',
-    cursor: 'pointer',
   },
   link: {
     background: 'none',
@@ -276,34 +269,30 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           </Typography>
         </Grid>
         <Grid item xs={2}>
-          <Typography
-            variant='body1'
+          <EditButton
             onClick={props.onChangeClick}
-            className={classes.change}
-          >
-            <span>{props.changeText}</span>
-            <i className={`fa fa-editing-file ${classes.editIcon}`} />
-          </Typography>
+            editText={props.changeText}
+          />
         </Grid>
         <Grid item xs={12}>
           {renderComponents}
         </Grid>
       </Grid>
       {groupHasErrors &&
-      <Grid container={true} style={{ paddingTop: '12px' }}>
-        <ErrorPaper
-          message={getLanguageFromKey('group.row_error', language)}
-        />
-        <Grid item={true} xs={12}>
-          <button
-            className={classes.link}
-            onClick={props.onChangeClick}
-            type='button'
-          >
-            {getTextFromAppOrDefault('form_filler.summary_go_to_correct_page', textResources, language, [], true)}
-          </button>
+        <Grid container={true} style={{ paddingTop: '12px' }}>
+          <ErrorPaper
+            message={getLanguageFromKey('group.row_error', language)}
+          />
+          <Grid item={true} xs={12}>
+            <button
+              className={classes.link}
+              onClick={props.onChangeClick}
+              type='button'
+            >
+              {getTextFromAppOrDefault('form_filler.summary_go_to_correct_page', textResources, language, [], true)}
+            </button>
+          </Grid>
         </Grid>
-      </Grid>
       }
     </>
   );

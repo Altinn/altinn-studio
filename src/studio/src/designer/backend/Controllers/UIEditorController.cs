@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -91,6 +94,22 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var result = _repository.GetLanguageResource(org, app, id);
             return Content(result);
+        }
+
+        /// <summary>
+        /// Add text resources to existing resource documents
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="textResources">The collection of text resources to be added</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpPost]
+        public ActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
+        {
+            var success = _repository.AddTextResources(org, app, textResources);
+            return Json(new
+            {
+                Success = success
+            });
         }
 
         /// <summary>
@@ -306,6 +325,19 @@ namespace Altinn.Studio.Designer.Controllers
                 Success = true,
                 Message = " Metadata saved",
             });
+        }
+
+        /// <summary>
+        /// Gets widget settings for app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The widget settings for the app.</returns>
+        [HttpGet]
+        public ActionResult GetWidgetSettings(string org, string app) 
+        {
+            var widgetSettings = _repository.GetWidgetSettings(org, app);
+            return Ok(widgetSettings);
         }
     }
 }
