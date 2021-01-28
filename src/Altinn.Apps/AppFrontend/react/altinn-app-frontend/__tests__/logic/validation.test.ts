@@ -185,6 +185,18 @@ describe('>>> utils/validations.ts', () => {
             warnings: ['Warning message 1', 'Warning message 2'],
           },
         },
+        'componentId_4-1': {
+          simpleBinding: {
+            errors: ['test error'],
+            warnings: [],
+          },
+        },
+        'componentId_5-0-1': {
+          simpleBinding: {
+            errors: ['test error'],
+            warnings: [],
+          },
+        },
       },
       unmapped: {
         unmapped: {
@@ -380,6 +392,22 @@ describe('>>> utils/validations.ts', () => {
       },
       {
         field: 'random_key',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'test error',
+        code: '',
+      },
+      {
+        field: 'group_1[1].dataModelField_4',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'test error',
+        code: '',
+      },
+      {
+        field: 'group_1[0].group_2[1].dataModelField_5',
         severity: Severity.Error,
         scope: null,
         targetId: '',
