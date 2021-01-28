@@ -18,17 +18,14 @@ namespace Altinn.Studio.Designer.Authorization
         /// </summary>
         /// <param name="context">The context</param>
         /// <returns>A async task</returns>
-        #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public static async Task RedirectToNotAuthorized(RedirectContext<CookieAuthenticationOptions> context)
-        #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            bool requireUpgrade = false;
             if (context.HttpContext.Items["upgrade"] != null)
             {
-                requireUpgrade = (bool)context.HttpContext.Items["upgrade"];
-                int requiredAuthenticationLevel = Convert.ToInt32(context.HttpContext.Items["requiredLevel"]);
+                bool requireUpgrade = (bool)context.HttpContext.Items["upgrade"];
                 if (requireUpgrade)
                 {
+                    int requiredAuthenticationLevel = Convert.ToInt32(context.HttpContext.Items["requiredLevel"]);
                     context.Response.Redirect("/Home/UpgradeAuthentication/" + requiredAuthenticationLevel);
                 }
                 else
@@ -36,6 +33,8 @@ namespace Altinn.Studio.Designer.Authorization
                     context.Response.Redirect("/Home/NotAuthorized/");
                 }
             }
+
+            await Task.CompletedTask;
         }
     }
 }

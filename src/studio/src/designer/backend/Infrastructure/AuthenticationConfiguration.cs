@@ -1,5 +1,8 @@
+using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Authorization;
 using Altinn.Studio.Designer.Configuration;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +44,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                         OnRedirectToLogin = async (context) =>
                         {
                             context.HttpContext.Response.Redirect(loginUrl);
+                            await Task.CompletedTask;
                         }
                     };
                 });

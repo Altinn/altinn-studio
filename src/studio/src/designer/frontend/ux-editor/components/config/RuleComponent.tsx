@@ -128,6 +128,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               onChange={this.handleSelectedMethodChange}
               value={selectedMethod}
               className='custom-select a-custom-select'
+              style={{fontSize: '16px'}}
             >
               <option value={''}>{this.props.language.general.choose_method}
               </option>
