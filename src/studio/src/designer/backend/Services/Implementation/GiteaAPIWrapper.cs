@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<Team> teams = new List<Team>();
 
-            Claim claim = _httpContextAccessor.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.DeveloperToken).FirstOrDefault();
+            Claim claim = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == AltinnCoreClaimTypes.DeveloperToken);
 
             if (claim == null)
             {
