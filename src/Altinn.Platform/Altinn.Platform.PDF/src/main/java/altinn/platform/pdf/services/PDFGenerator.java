@@ -49,6 +49,7 @@ public class PDFGenerator {
   private FormLayout originalFormLayout;
   private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
+  private HashMap<String, HashMap<String, String>> optionsDictionary;
   private List<FormLayoutElement> repeatingGroups;
   private Party party;
   private Party userParty;
@@ -74,6 +75,7 @@ public class PDFGenerator {
     this.pagesOutline = new PDOutlineItem();
     this.originalFormLayout = pdfContext.getFormLayout();
     this.formLayouts = pdfContext.getFormLayouts();
+    this.optionsDictionary = pdfContext.getOptionsDictionary();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
@@ -410,7 +412,15 @@ public class PDFGenerator {
   }
 
   private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
-    String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+
+ String value;
+
+    if(element.getOptionsId() != null){
+      String optionValue = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+      value = OptionsUtils.getLabelFromValue(this.optionsDictionary, element.getOptionsId(), optionValue);
+    }else{
+      value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+    }
     if (element.getType().equalsIgnoreCase("Datepicker")) {
       renderContent(TextUtils.getDateFormat(value, getUserLanguage()));
     } else {
