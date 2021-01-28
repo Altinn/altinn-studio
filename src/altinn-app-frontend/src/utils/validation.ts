@@ -659,7 +659,7 @@ export function mapDataElementValidationToRedux(
         if (c.type === 'FileUpload') {
           return c.id === validation.field;
         }
-        return c.dataModelBindings && Object.values(c.dataModelBindings).includes(validation.field);
+        return c.dataModelBindings && Object.values(c.dataModelBindings).includes(getKeyWithoutIndex(validation.field));
       });
       return !!foundInLayout;
     });
