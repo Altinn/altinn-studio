@@ -98,6 +98,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         /// <summary>
         /// Add text resources to existing resource documents
+        /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="textResources">The collection of text resources to be added</param>
