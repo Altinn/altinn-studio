@@ -6,6 +6,8 @@ import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+
+import java.util.HashMap;
 import java.util.SortedMap;
 
 @ApiModel(description = "The PDF context which the PDF is generated from.")
@@ -47,6 +49,10 @@ public class PdfContext {
   @ApiModelProperty(notes = "The profile of the active user")
   @Nullable
   private UserProfile userProfile;
+
+  @ApiModelProperty(notes = "The dictionary containing all options")
+  @Nullable
+  private  HashMap<String, HashMap<String, String>> optionsDictionary;
 
   @Nullable
   public LayoutSettings getLayoutSettings() { return layoutSettings; }
@@ -90,4 +96,9 @@ public class PdfContext {
     this.userProfile = userProfile;
   }
 
+  public HashMap<String, HashMap<String, String>> getOptionsDictionary(){ return optionsDictionary; }
+  
+  public void setOptionsDictionary(HashMap<String, HashMap<String, String>> optionsDictionary){
+    this.optionsDictionary = optionsDictionary;
+  }
 }

@@ -14,6 +14,7 @@ public class FormLayoutElement {
   private String id;
   private HashMap<String, String> dataModelBindings;
   private TextResourceBindings textResourceBindings;
+  private String optionsId;
   private boolean simplified;
   private List<String> children;
   private int count;
