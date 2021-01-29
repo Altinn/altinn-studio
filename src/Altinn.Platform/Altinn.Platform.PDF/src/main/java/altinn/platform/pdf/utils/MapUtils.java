@@ -9,7 +9,7 @@ public class MapUtils {
   public static String getLabelFromValue(Map<String, Map<String,String>> optionsDictionary, String optionsId, String value){
 
     Map<String,String> options = optionsDictionary.get(optionsId);
-//Map<String, String> option =  options.getOptions();
+
     if(options != null){
       for (Map.Entry<String, String> entry :options.entrySet()) {
         if(entry.getValue().equals((value))){
