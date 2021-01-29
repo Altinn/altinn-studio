@@ -436,7 +436,7 @@ public class PDFGenerator {
     } else {
       Options[] optionsArray = element.getOptions();
       Options options = Arrays.stream(optionsArray)
-        .filter(o -> o.getValue() == value)
+        .filter(o -> o.getValue().equals(value))
         .findFirst()
         .orElse(null);
 
