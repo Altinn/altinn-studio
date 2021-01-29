@@ -439,6 +439,7 @@ public class PDFGenerator {
     for (String id: element.getDataTypeIds()) {
       files.addAll(InstanceUtils.getAttachmentsByComponentId(id, this.instance));
     }
+    
     renderFileListContent(files);
   }
 
