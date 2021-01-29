@@ -418,7 +418,8 @@ public class PDFGenerator {
 
     if(element.getOptionsId() != null){
       String optionValue = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
-      value = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
+      String label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
+      value = TextUtils.getTextResourceByKey(label, textResources);
     }else{
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     }
@@ -439,7 +440,7 @@ public class PDFGenerator {
     for (String id: element.getDataTypeIds()) {
       files.addAll(InstanceUtils.getAttachmentsByComponentId(id, this.instance));
     }
-    
+
     renderFileListContent(files);
   }
 
