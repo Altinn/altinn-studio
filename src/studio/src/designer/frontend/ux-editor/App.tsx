@@ -4,7 +4,6 @@ import postMessages from 'app-shared/utils/postMessages';
 import { Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
-import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
 import { loadTextResources } from './features/appData/textResources/textResourcesSlice';
@@ -14,6 +13,7 @@ import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
+import { fetchThirdPartyComponents } from './features/thirdPartyComponents/thirdPartyComponentSlice';
 
 export interface IAppComponentProps { }
 
@@ -47,10 +47,8 @@ export function App() {
     dispatch(fetchRuleModel());
 
     // Fetch thirdParty Components
-    ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`,
-    );
-
+    const location = `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`;
+    dispatch(fetchThirdPartyComponents({ location }));
     dispatch(fetchLanguage({ languageCode }));
     dispatch(fetchWidgetSettings());
     dispatch(fetchWidgets());

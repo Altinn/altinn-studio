@@ -6,7 +6,7 @@ import appDataSagas from '../features/appData/appDataSagas';
 import editContainerSagas from './editActiveList';
 import formDesignerSagas from './formDesigner';
 import serviceConfigurationSagas from '../features/serviceConfigurations/serviceConfigurationSagas';
-import thirdPartyComponentSagas from './thirdPartyComponents';
+import thirdPartyComponentSagas from '../features/thirdPartyComponents/thirdPartyComponentsSagas';
 import widgetsSagas from '../features/widgets/widgetsSagas';
 
 function* root(): SagaIterator {

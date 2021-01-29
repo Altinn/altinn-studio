@@ -3,7 +3,7 @@ import { IAppDataState } from '../features/appData/appDataReducers';
 import { IErrorState } from '../features/error/errorSlice';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
-import { IThirdPartyComponentsState } from '../reducers/thirdPartyComponentReducer';
+import { IThirdPartyComponentsState } from '../features/thirdPartyComponents/thirdPartyComponentSlice';
 
 declare global {
   export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
