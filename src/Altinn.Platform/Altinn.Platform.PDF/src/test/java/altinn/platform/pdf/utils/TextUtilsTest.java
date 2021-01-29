@@ -1,13 +1,11 @@
 package altinn.platform.pdf.utils;
 
-import com.google.gson.Gson;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.IOException;
 import java.util.Map;
-
 
 public class TextUtilsTest extends TestCase {
 
@@ -74,12 +72,5 @@ public class TextUtilsTest extends TestCase {
       assertEquals("House number", languages.get("en").get("house_number"));
       assertEquals("Bustadnummer", languages.get("nn").get("house_number"));
       assertEquals("Bolignummer", languages.get("nb").get("house_number"));
-    }
-
-    public void testShit(){
-   /*   Gson g = new Gson();
-      OptionsDictionary p = g.fromJson("{\"pdfOptions\":{\"label1\":\"value1\",\"label2\":\"value2\"}}", OptionsDictionary.class);
-      Map<String, String> a = p.getOptions("pdfOptions");
-      assertNotNull(p);*/
     }
 }

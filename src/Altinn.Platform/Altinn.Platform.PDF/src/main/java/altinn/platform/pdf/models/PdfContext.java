@@ -7,7 +7,6 @@ import org.springframework.lang.Nullable;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
