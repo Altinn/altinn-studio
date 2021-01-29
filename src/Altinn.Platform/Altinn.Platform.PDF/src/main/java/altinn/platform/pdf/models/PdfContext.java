@@ -48,7 +48,7 @@ public class PdfContext {
 
   @ApiModelProperty(notes = "The dictionary containing all option sets")
   @Nullable
-  private Map<String, Options> optionsDictionary;
+  private Map<String, Map<String,String>> optionsDictionary;
 
   @ApiModelProperty(notes = "The layout settings")
   @Nullable
@@ -99,9 +99,9 @@ public class PdfContext {
 
 
   @Nullable
-  public Map<String, Options> getOptionsDictionary(){ return optionsDictionary; }
+  public Map<String, Map<String,String>> getOptionsDictionary(){ return optionsDictionary; }
 
-  public void setOptionsDictionary(@Nullable Map<String, Options> optionsDictionary){
+  public void setOptionsDictionary(@Nullable Map<String, Map<String,String>> optionsDictionary){
 
     this.optionsDictionary = optionsDictionary;
   }

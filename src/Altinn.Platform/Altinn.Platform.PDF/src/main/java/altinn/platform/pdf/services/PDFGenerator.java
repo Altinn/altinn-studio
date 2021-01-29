@@ -50,7 +50,7 @@ public class PDFGenerator {
   private FormLayout originalFormLayout;
   private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
-  private Map<String, Options> optionsDictionary;
+  private Map<String, Map<String,String>> optionsDictionary;
   private List<FormLayoutElement> repeatingGroups;
   private Party party;
   private Party userParty;
@@ -418,7 +418,7 @@ public class PDFGenerator {
 
     if(element.getOptionsId() != null){
       String optionValue = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
-      value = OptionsUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
+      value = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
     }else{
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     }
