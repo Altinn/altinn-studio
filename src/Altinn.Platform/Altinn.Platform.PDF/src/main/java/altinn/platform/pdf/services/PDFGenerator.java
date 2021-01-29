@@ -49,7 +49,7 @@ public class PDFGenerator {
   private FormLayout originalFormLayout;
   private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
-  private HashMap<String, HashMap<String, String>> optionsDictionary;
+  private OptionsDictionary optionsDictionary;
   private List<FormLayoutElement> repeatingGroups;
   private Party party;
   private Party userParty;
@@ -438,7 +438,7 @@ public class PDFGenerator {
     for (String id: element.getDataTypeIds()) {
       files.addAll(InstanceUtils.getAttachmentsByComponentId(id, this.instance));
     }
-    
+
     renderFileListContent(files);
   }
 

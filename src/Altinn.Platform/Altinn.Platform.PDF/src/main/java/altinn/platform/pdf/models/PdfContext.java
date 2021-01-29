@@ -52,7 +52,7 @@ public class PdfContext {
 
   @ApiModelProperty(notes = "The dictionary containing all options")
   @Nullable
-  private  HashMap<String, HashMap<String, String>> optionsDictionary;
+  private OptionsDictionary optionsDictionary;
 
   @Nullable
   public LayoutSettings getLayoutSettings() { return layoutSettings; }
@@ -96,9 +96,10 @@ public class PdfContext {
     this.userProfile = userProfile;
   }
 
-  public HashMap<String, HashMap<String, String>> getOptionsDictionary(){ return optionsDictionary; }
-  
-  public void setOptionsDictionary(HashMap<String, HashMap<String, String>> optionsDictionary){
+  @Nullable
+  public OptionsDictionary getOptionsDictionary(){ return optionsDictionary; }
+
+  public void setOptionsDictionary(@Nullable OptionsDictionary optionsDictionary){
     this.optionsDictionary = optionsDictionary;
   }
 }
