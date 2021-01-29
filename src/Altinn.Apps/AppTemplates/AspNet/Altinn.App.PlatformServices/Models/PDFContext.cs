@@ -38,12 +38,6 @@ namespace Altinn.App.Services.Models
         public object TextResources { get; set; }
 
         /// <summary>
-        /// Gets or sets the options
-        /// </summary>
-        [JsonProperty(PropertyName = "options")]
-        public object Options { get; set; }
-
-        /// <summary>
         /// Gets or sets the data, note that this should be base64 encoded
         /// </summary>
         [JsonProperty(PropertyName = "data")]
