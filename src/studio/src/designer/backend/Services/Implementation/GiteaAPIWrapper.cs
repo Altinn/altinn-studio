@@ -83,6 +83,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 teams = await response.Content.ReadAsAsync<List<Team>>();
             }
+            else
+            {
+                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);         
+            }
 
             return teams;
         }
