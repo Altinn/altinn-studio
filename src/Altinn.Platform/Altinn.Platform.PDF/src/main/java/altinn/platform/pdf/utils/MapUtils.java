@@ -6,13 +6,13 @@ public class MapUtils {
   private MapUtils() {
   }
 
-  public static String getLabelFromValue(Map<String, Map<String,String>> dict, String outerKey, String innerValue){
+  public static String getLabelFromValue(Map<String, Map<String, String>> dict, String outerKey, String innerValue) {
 
-    Map<String,String> options = dict.get(outerKey);
+    Map<String, String> options = dict.get(outerKey);
 
-    if(options != null){
-      for (Map.Entry<String, String> entry :options.entrySet()) {
-        if(entry.getValue().equals((innerValue))){
+    if (options != null) {
+      for (Map.Entry<String, String> entry : options.entrySet()) {
+        if (entry.getValue().equals((innerValue))) {
           return entry.getKey();
         }
       }
