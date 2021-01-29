@@ -428,19 +428,19 @@ public class PDFGenerator {
   }
 
   private String getValueFromOptions(FormLayoutElement element) {
-    String optionValue = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+    String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     String label;
 
     if (element.getOptionsId() != null) {
-      label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
+      label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), value);
     } else {
       Options[] optionsArray = element.getOptions();
       Options options = Arrays.stream(optionsArray)
-        .filter(o -> o.getValue() == optionValue)
+        .filter(o -> o.getValue() == value)
         .findFirst()
         .orElse(null);
 
-      label = (options != null) ? options.getLabel() : optionValue;
+      label = (options != null) ? options.getLabel() : value;
     }
 
     return TextUtils.getTextResourceByKey(label, textResources);
