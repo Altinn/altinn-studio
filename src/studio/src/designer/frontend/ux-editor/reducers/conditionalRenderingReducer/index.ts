@@ -6,8 +6,22 @@ import * as ManageJsonFileActions from '../../actions/manageServiceConfiguration
 import * as ManageJsonFileActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';
 
 export interface IConditionalRenderingState {
-  conditionalRendering: any;
-  [key: string]: any;
+  [key: string]: IConditonalRendering;
+}
+
+export interface IConditonalRendering {
+  selectedFields: ISelectedFields;
+  selectedAction: string;
+  selectedFunction: string;
+  inputParams: IInputParams;
+}
+
+export interface ISelectedFields {
+  [key: string]: string;
+}
+
+export interface IInputParams {
+  [key: string]: string;
 }
 
 const initialState: IConditionalRenderingState = null;

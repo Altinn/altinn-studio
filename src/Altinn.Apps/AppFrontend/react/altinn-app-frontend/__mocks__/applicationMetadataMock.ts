@@ -25,6 +25,22 @@ const applicationMetadataJSON = `{
       ],
       "maxCount": 0,
       "minCount": 0
+    },
+    {
+      "id": "test-data-type-1",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 5,
+      "minCount": 0
+    },
+    {
+      "id": "test-data-type-2",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 2,
+      "minCount": 0
     }
   ],
   "partyTypesAllowed": {

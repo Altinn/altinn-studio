@@ -30,6 +30,9 @@ namespace Altinn.Common.PEP.Helpers
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
 
+        private const string PolicyObligationMinAuthnLevel = "urn:altinn:minimum-authenticationlevel";
+        private const string PolicyObligationMinAuthnLevelOrg = "urn:altinn:minimum-authenticationlevel-org";
+
         /// <summary>
         /// Create decision request based for policy decision point.
         /// </summary>
@@ -265,7 +268,7 @@ namespace Altinn.Common.PEP.Helpers
             if (result.Obligations != null)
             {
                 List<XacmlJsonObligationOrAdvice> obligationList = result.Obligations;
-                XacmlJsonAttributeAssignment attributeMinLvAuth = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
+                XacmlJsonAttributeAssignment attributeMinLvAuth = GetObligation(PolicyObligationMinAuthnLevel, obligationList);
 
                 // Checks if the obligation contains a minimum authentication level attribute
                 if (attributeMinLvAuth != null)
@@ -276,6 +279,18 @@ namespace Altinn.Common.PEP.Helpers
                     // Checks that the user meets the minimum authentication level
                     if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
                     {
+                        if (user.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:org")) != null)
+                        {
+                            XacmlJsonAttributeAssignment attributeMinLvAuthOrg = GetObligation(PolicyObligationMinAuthnLevelOrg, obligationList);
+                            if (attributeMinLvAuthOrg != null)
+                            {
+                                if (Convert.ToInt32(usersAuthenticationLevel) >= Convert.ToInt32(attributeMinLvAuthOrg.Value))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+
                         return false;
                     }
                 }
@@ -302,7 +317,7 @@ namespace Altinn.Common.PEP.Helpers
             if (result.Obligations != null)
             {
                 List<XacmlJsonObligationOrAdvice> obligationList = result.Obligations;
-                XacmlJsonAttributeAssignment attributeMinLvAuth = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
+                XacmlJsonAttributeAssignment attributeMinLvAuth = GetObligation(PolicyObligationMinAuthnLevel, obligationList);
 
                 // Checks if the obligation contains a minimum authentication level attribute
                 if (attributeMinLvAuth != null)
@@ -313,6 +328,20 @@ namespace Altinn.Common.PEP.Helpers
                     // Checks that the user meets the minimum authentication level
                     if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
                     {
+                        if (user.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:org")) != null)
+                        {
+                            XacmlJsonAttributeAssignment attributeMinLvAuthOrg = GetObligation(PolicyObligationMinAuthnLevelOrg, obligationList);
+                            if (attributeMinLvAuthOrg != null)
+                            {
+                                if (Convert.ToInt32(usersAuthenticationLevel) >= Convert.ToInt32(attributeMinLvAuthOrg.Value))
+                                {
+                                    return new EnforcementResult() { Authorized = true };
+                                }
+
+                                minAuthenticationLevel = attributeMinLvAuthOrg.Value;
+                            }
+                        }
+
                         return new EnforcementResult()
                         {
                             Authorized = false,
@@ -326,6 +355,20 @@ namespace Altinn.Common.PEP.Helpers
             }
 
             return new EnforcementResult() { Authorized = true };
+        }
+
+        private static XacmlJsonAttributeAssignment GetObligation(string category, List<XacmlJsonObligationOrAdvice> obligations)
+        {
+            foreach (XacmlJsonObligationOrAdvice obligation in obligations)
+            {
+                XacmlJsonAttributeAssignment assignment = obligation.AttributeAssignment.FirstOrDefault(a => a.Category.Equals(category));
+                if (assignment != null)
+                {
+                    return assignment;
+                }
+            }
+
+            return null;
         }
     }
 }
