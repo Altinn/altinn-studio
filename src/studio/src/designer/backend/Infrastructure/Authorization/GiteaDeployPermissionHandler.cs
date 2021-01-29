@@ -70,70 +70,70 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            if (_settings.CheckTeamMembershipForDeploy)
+            if (!_settings.CheckTeamMembershipForDeploy)
             {
-                string environment;
-
-                _httpContext.Request.EnableBuffering();
-
-                using (var reader = new StreamReader(
-                   _httpContext.Request.Body,
-                   encoding: Encoding.UTF8,
-                   detectEncodingFromByteOrderMarks: false,
-                   bufferSize: 1024,
-                   leaveOpen: true))
+                RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
+                if (repository?.Permissions?.Push == true ||
+                    repository?.Permissions?.Admin == true)
                 {
-                    string body = await reader.ReadToEndAsync();
-
-                    try
-                    {
-                        CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
-                        environment = model.Environment.Name;
-                    }
-                    catch
-                    {
-                        reader.Close();
-                        _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                        return;
-                    }
-
-                    // Reset the request body stream position so the next middleware can read it
-                    _httpContext.Request.Body.Position = 0;
-                }
-
-                string matchTeam = $"Deploy-{environment}";
-                List<Team> teams = await _giteaApiWrapper.GetTeams();
-
-                Console.WriteLine($"//// match team {matchTeam}");
-                Console.WriteLine($"//// Teams {JsonConvert.SerializeObject(teams)}");
-
-                bool any = teams.Any(t => t.Organization.Username.Equals(
-                    org, System.StringComparison.OrdinalIgnoreCase)
-                    && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
-
-                if (any)
-                {
-                    Console.WriteLine($"//// match found");
-
                     context.Succeed(requirement);
                 }
                 else
                 {
-                    Console.WriteLine($"//// no match found");
                     _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
 
                 return;
             }
 
-            RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
-            if (repository?.Permissions?.Push == true ||
-                repository?.Permissions?.Admin == true)
+            string environment;
+
+            _httpContext.Request.EnableBuffering();
+
+            using (var reader = new StreamReader(
+               _httpContext.Request.Body,
+               encoding: Encoding.UTF8,
+               detectEncodingFromByteOrderMarks: false,
+               bufferSize: 1024,
+               leaveOpen: true))
             {
+                string body = await reader.ReadToEndAsync();
+
+                try
+                {
+                    CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
+                    environment = model.Environment.Name;
+                }
+                catch
+                {
+                    reader.Close();
+                    _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
+
+                // Reset the request body stream position so the next middleware can read it
+                _httpContext.Request.Body.Position = 0;
+            }
+
+            string matchTeam = $"Deploy-{environment}";
+            List<Team> teams = await _giteaApiWrapper.GetTeams();
+
+            Console.WriteLine($"//// match team {matchTeam}");
+            Console.WriteLine($"//// Teams {JsonConvert.SerializeObject(teams)}");
+
+            bool any = teams.Any(t => t.Organization.Username.Equals(
+                org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
+
+            if (any)
+            {
+                Console.WriteLine($"//// match found");
+
                 context.Succeed(requirement);
             }
             else
             {
+                Console.WriteLine($"//// no match found");
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
         }

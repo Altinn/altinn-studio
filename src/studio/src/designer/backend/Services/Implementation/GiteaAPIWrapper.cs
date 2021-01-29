@@ -77,16 +77,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<Team> teams = new List<Team>();
 
-            Claim claim = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == AltinnCoreClaimTypes.DeveloperToken);
-
-            if (claim == null)
-            {
-                return teams;
-            }
-
-            string url = $"user/teams?token={claim.Value}";
+            string url = $"user/teams";
             HttpResponseMessage response = await _httpClient.GetAsync(url);
-            teams = await response.Content.ReadAsAsync<List<Team>>();
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                teams = await response.Content.ReadAsAsync<List<Team>>();
+            }
 
             return teams;
         }
