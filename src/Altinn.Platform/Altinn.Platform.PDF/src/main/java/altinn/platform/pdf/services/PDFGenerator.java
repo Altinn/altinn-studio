@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class PDFGenerator {
@@ -49,7 +50,7 @@ public class PDFGenerator {
   private FormLayout originalFormLayout;
   private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
-  private OptionsDictionary optionsDictionary;
+  private Map<String, Options> optionsDictionary;
   private List<FormLayoutElement> repeatingGroups;
   private Party party;
   private Party userParty;
@@ -417,7 +418,7 @@ public class PDFGenerator {
 
     if(element.getOptionsId() != null){
       String optionValue = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
-      value = OptionsUtils.getLabelFromValue(this.optionsDictionary, element.getOptionsId(), optionValue);
+      value = OptionsUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), optionValue);
     }else{
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     }

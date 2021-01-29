@@ -8,6 +8,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 
 @ApiModel(description = "The PDF context which the PDF is generated from.")
@@ -19,11 +20,6 @@ public class PdfContext {
 
   @ApiModelProperty(notes = "The form layout json file")
   private FormLayout formLayout;
-
-  @Nullable
-  public SortedMap<String, FormLayout> getFormLayouts() { return formLayouts; }
-
-  public void setFormLayouts(@Nullable SortedMap<String, FormLayout> formLayouts) { this.formLayouts = formLayouts; }
 
   @ApiModelProperty(notes = "A dictionary of form layouts.")
   @Nullable
@@ -50,20 +46,20 @@ public class PdfContext {
   @Nullable
   private UserProfile userProfile;
 
-  @ApiModelProperty(notes = "The dictionary containing all options")
+  @ApiModelProperty(notes = "The dictionary containing all option sets")
   @Nullable
-  private OptionsDictionary optionsDictionary;
-
-  @Nullable
-  public LayoutSettings getLayoutSettings() { return layoutSettings; }
-
-  public void setLayoutSettings(@Nullable LayoutSettings layoutSettings) { this.layoutSettings = layoutSettings; }
+  private Map<String, Options> optionsDictionary;
 
   @ApiModelProperty(notes = "The layout settings")
   @Nullable
   private LayoutSettings layoutSettings;
 
   public Party getUserParty() { return userParty; }
+
+  @Nullable
+  public LayoutSettings getLayoutSettings() { return layoutSettings; }
+
+  public void setLayoutSettings(@Nullable LayoutSettings layoutSettings) { this.layoutSettings = layoutSettings; }
 
   public void setUserParty(Party userParty) { this.userParty = userParty; }
 
@@ -97,9 +93,16 @@ public class PdfContext {
   }
 
   @Nullable
-  public OptionsDictionary getOptionsDictionary(){ return optionsDictionary; }
+  public SortedMap<String, FormLayout> getFormLayouts() { return formLayouts; }
 
-  public void setOptionsDictionary(@Nullable OptionsDictionary optionsDictionary){
+  public void setFormLayouts(@Nullable SortedMap<String, FormLayout> formLayouts) { this.formLayouts = formLayouts; }
+
+
+  @Nullable
+  public Map<String, Options> getOptionsDictionary(){ return optionsDictionary; }
+
+  public void setOptionsDictionary(@Nullable Map<String, Options> optionsDictionary){
+
     this.optionsDictionary = optionsDictionary;
   }
 }

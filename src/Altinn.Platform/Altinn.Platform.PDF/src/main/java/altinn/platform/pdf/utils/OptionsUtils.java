@@ -1,19 +1,19 @@
 package altinn.platform.pdf.utils;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import altinn.platform.pdf.models.OptionsDictionary;
+import altinn.platform.pdf.models.Options;
 
 public class OptionsUtils {
-  private OptionsUtils() {}
+  private OptionsUtils() {
+  }
 
-  public static String getLabelFromValue(OptionsDictionary optionsDictionary, String optionsId, String value){
+  public static String getLabelFromValue(Map<String, Options> optionsDictionary, String optionsId, String value){
 
-    HashMap<String, String> options = optionsDictionary.getOptions(optionsId);
-
+   Options options = optionsDictionary.get(optionsId);
+Map<String, String> option =  options.getOptions();
     if(options != null){
-      for (Map.Entry<String, String> entry : options.entrySet()) {
+      for (Map.Entry<String, String> entry :option.entrySet()) {
         if(entry.getValue().equals((value))){
           return entry.getKey();
         }
