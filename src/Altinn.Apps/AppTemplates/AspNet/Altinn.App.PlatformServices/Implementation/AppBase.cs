@@ -376,13 +376,16 @@ namespace Altinn.App.Services.Implementation
                 appOptions.Options = _resourceService.GetOptions(optionsId);
                 appOptions = await GetOptions(optionsId, appOptions);
 
-                Dictionary<string, string> options = new Dictionary<string, string>();
-                foreach (AppOption item in appOptions.Options)
+                if (appOptions.Options != null)
                 {
-                    options.Add(item.Label, item.Value);
-                }
+                    Dictionary<string, string> options = new Dictionary<string, string>();
+                    foreach (AppOption item in appOptions.Options)
+                    {
+                        options.Add(item.Label, item.Value);
+                    }
 
-                dictionary.Add(optionsId, options);
+                    dictionary.Add(optionsId, options);
+                }          
             }
 
             return dictionary;
