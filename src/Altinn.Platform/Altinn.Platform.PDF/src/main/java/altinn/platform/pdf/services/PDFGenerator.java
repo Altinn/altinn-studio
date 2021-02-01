@@ -434,8 +434,8 @@ public class PDFGenerator {
     if (element.getOptionsId() != null) {
       label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), value);
     } else {
-      Options[] optionsArray = element.getOptions();
-      Options options = Arrays.stream(optionsArray)
+      List<Options> optionsList = element.getOptions();
+      Options options = optionsList.stream()
         .filter(o -> o.getValue().equals(value))
         .findFirst()
         .orElse(null);
