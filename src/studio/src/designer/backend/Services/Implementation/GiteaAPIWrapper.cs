@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -13,8 +12,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using AltinnCore.Authentication.Constants;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
