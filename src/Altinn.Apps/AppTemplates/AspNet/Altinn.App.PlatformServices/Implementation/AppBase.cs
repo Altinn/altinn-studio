@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
@@ -13,10 +14,12 @@ using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
@@ -224,8 +227,8 @@ namespace Altinn.App.Services.Implementation
                     }
                 }
             }
-            
-            if (_appMetadata.AutoDeleteOnProcessEnd) 
+
+            if (_appMetadata.AutoDeleteOnProcessEnd)
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -252,7 +255,7 @@ namespace Altinn.App.Services.Implementation
                 layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
-            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);  
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
 
             LayoutSettings layoutSettings = null;
             if (!string.IsNullOrEmpty(layoutSettingsFileContent))
@@ -287,6 +290,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
+            Dictionary<string, Dictionary<string, string>> optionsDictionary = await GetOptionsDictionary(formLayoutsFileContent);
 
             PDFContext pdfContext = new PDFContext
             {
@@ -294,6 +298,7 @@ namespace Altinn.App.Services.Implementation
                 FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsFileContent),
                 LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
+                OptionsDictionary = optionsDictionary,
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
                 UserProfile = userProfile,
@@ -340,6 +345,50 @@ namespace Altinn.App.Services.Implementation
 
             fileName = Uri.EscapeDataString(fileName);
             return fileName;
+        }
+
+        private List<string> GetOptionIdsFromFormLayout(string formLayout)
+        {
+            List<string> optionsIds = new List<string>();
+            string matchString = "\"optionsId\":\"";
+
+            string[] formLayoutSubstrings = formLayout.Replace(" ", string.Empty).Split(new string[] { matchString }, StringSplitOptions.None);
+
+            for (int i = 1; i < formLayoutSubstrings.Length; i++)
+            {
+                string[] workingSet = formLayoutSubstrings[i].Split('\"');
+                string optionsId = workingSet[0];
+                optionsIds.Add(optionsId);
+            }
+
+            return optionsIds;
+        }
+
+        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout)
+        {
+            Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
+            List<string> optionsIdsList = GetOptionIdsFromFormLayout(formLayout);
+
+            foreach (string optionsId in optionsIdsList)
+            {
+                AppOptions appOptions = new AppOptions();
+
+                appOptions.Options = _resourceService.GetOptions(optionsId);
+                appOptions = await GetOptions(optionsId, appOptions);
+
+                if (appOptions.Options != null)
+                {
+                    Dictionary<string, string> options = new Dictionary<string, string>();
+                    foreach (AppOption item in appOptions.Options)
+                    {
+                        options.Add(item.Label, item.Value);
+                    }
+
+                    dictionary.Add(optionsId, options);
+                }          
+            }
+
+            return dictionary;
         }
     }
 }
