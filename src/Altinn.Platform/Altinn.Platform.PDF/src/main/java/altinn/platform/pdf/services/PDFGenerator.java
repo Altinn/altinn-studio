@@ -431,6 +431,10 @@ public class PDFGenerator {
     String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     String label;
 
+    if(optionsDictionary == null){
+      return value;
+    }
+
     if (element.getOptionsId() != null) {
       label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), value);
     } else {
