@@ -9,5 +9,10 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// MustHaveGiteaPushPermission
         /// </summary>
         public const string MustHaveGiteaPushPermission = "MustHaveGiteaPushPermission";
+
+        /// <summary>
+        /// MustHaveGiteaDeployPermission
+        /// </summary>
+        public const string MustHaveGiteaDeployPermission = "MustHaveGiteaDeployPermission";
     }
 }
