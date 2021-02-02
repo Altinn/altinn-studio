@@ -54,6 +54,14 @@ export function AddressComponent(props: IAddressComponentProps) {
   const [validations, setValidations] = React.useState({} as any);
 
   React.useEffect(() => {
+    setAddress(props.formData.address || '');
+    setZipCode(props.formData.zipCode || '');
+    setPostPlace(props.formData.postPlace || '');
+    setCareOf(props.formData.careOf || '');
+    setHouseNumber(props.formData.houseNumber || '');
+  }, [props.formData]);
+
+  React.useEffect(() => {
     if (!zipCode || !zipCode.match(new RegExp('^[0-9]{4}$'))) {
       setPostPlace('');
       return;

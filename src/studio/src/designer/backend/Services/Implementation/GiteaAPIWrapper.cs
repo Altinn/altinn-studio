@@ -6,11 +6,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -65,6 +67,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 " Get current user failed with statuscode " + response.StatusCode);
 
             return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Team>> GetTeams()
+        {
+            List<Team> teams = new List<Team>();
+
+            string url = $"user/teams";
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                teams = await response.Content.ReadAsAsync<List<Team>>();
+            }
+            else
+            {
+                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);         
+            }
+
+            return teams;
         }
 
         /// <inheritdoc />

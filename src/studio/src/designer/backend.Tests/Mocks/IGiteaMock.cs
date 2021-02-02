@@ -51,6 +51,11 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(token);
         }
 
+        public Task<List<Team>> GetTeams()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> GetUserNameFromUI()
         {
             return Task.FromResult("testUser");
