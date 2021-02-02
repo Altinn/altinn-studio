@@ -148,7 +148,6 @@ const FormComponent = (props: IFormElementProps) => {
         sendItemToParent={handleActiveListChange}
         singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
-        dispatch={dispatch}
       >
         <div onClick={disableEditOnClickForAddedComponent}>
           {renderLabel()}

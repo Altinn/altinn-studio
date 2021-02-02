@@ -5,7 +5,7 @@ import { ILayoutSettings } from 'app-shared/types';
 import * as FormLayoutTypes from '../formDesignerTypes';
 import { actions, moduleName } from './formLayoutActions';
 import { getLayoutSettingsSchemaUrl } from '../../../utils/urlHelper';
-import { addToOrDeleteFromArray, sortArray } from '../../../utils/arrayHelpers/arrayLogic';
+import { sortArray } from '../../../utils/arrayHelpers/arrayLogic';
 
 export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
@@ -60,7 +60,12 @@ const formLayoutSlice = createSlice({
         callback(component, id);
       }
 
-      state.layouts[state.selectedLayout].components[id] = component;
+      const selectedLayout = state.layouts[state.selectedLayout];
+
+      selectedLayout.components[id] = component;
+      if (!selectedLayout.order[containerId]) {
+        selectedLayout.order[containerId] = [];
+      }
       state.layouts[state.selectedLayout].order[containerId].splice(position, 0, id);
     },
     addFormComponentRejected: (state, action: PayloadAction<FormLayoutTypes.IFormDesignerActionRejected>) => {
@@ -180,6 +185,7 @@ const formLayoutSlice = createSlice({
     },
     deleteFormComponents: (state, action: PayloadAction<FormLayoutTypes.IDeleteComponentsAction>) => {
       const { components } = action.payload;
+      console.log('delete form components: ', components);
       const selectedLayout = state.layouts[state.selectedLayout];
       components.forEach((id) => {
         let containerId = Object.keys(selectedLayout.order)[0];
@@ -272,19 +278,9 @@ const formLayoutSlice = createSlice({
       state.unSavedChanges = true;
       state.error = error;
     },
-    updateActiveList: (state, action: PayloadAction<FormLayoutTypes.IUpdateActiveListAction>) => {
-      const { containerList, listItem } = action.payload;
-      let returnedList = [];
-      const func = addToOrDeleteFromArray();
-      if (containerList.length >= 1) {
-        returnedList = func({ array: containerList, object: listItem });
-      } else {
-        returnedList.push(listItem);
-      }
-
-      if (Array.isArray(returnedList)) {
-        state.activeList = returnedList;
-      }
+    updateActiveListFulfilled: (state, action: PayloadAction<FormLayoutTypes.IUpdateActiveListActionFulfilled>) => {
+      const { containerList } = action.payload;
+      state.activeList = containerList;
     },
     updateActiveListOrder: (state, action: PayloadAction<FormLayoutTypes.IUpdateActiveListOrderAction>) => {
       const { containerList, orderList } = action.payload;
@@ -292,7 +288,7 @@ const formLayoutSlice = createSlice({
       let returnedList = null;
       const func = sortArray();
       if (containerList.length >= 1) {
-        returnedList = func({ array: containerList, order: orderList[key] });
+        returnedList = func({ array: [...containerList], order: orderList[key] });
       } else {
         returnedList = [];
       }
@@ -336,13 +332,14 @@ const formLayoutSlice = createSlice({
     },
     updateFormComponentId: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentIdAction>) => {
       const { currentId, newId } = action.payload;
+      console.log('currentId: ', currentId, ', newId: ', newId);
       const currentLayout = state.layouts[state.selectedLayout];
       // update component id
-      currentLayout.containers[newId] = currentLayout.containers[currentId];
-      delete currentLayout.containers[currentId];
-      const currentLayoutOrder = currentLayout.order;
+      currentLayout.components[newId] = currentLayout.components[currentId];
+      delete currentLayout.components[currentId];
 
       // update id in parent container order
+      const currentLayoutOrder = currentLayout.order;
       const parentContainer = Object.keys(currentLayoutOrder).find((containerId) => {
         return (currentLayoutOrder[containerId].indexOf(currentId) > -1);
       });

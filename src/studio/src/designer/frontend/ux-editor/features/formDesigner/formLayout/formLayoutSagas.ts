@@ -490,8 +490,8 @@ export function* updateFormComponentIdSaga({ payload }: PayloadAction<IUpdateFor
   const { currentId, newId } = payload;
   const currentLayout: IFormLayout = yield select(selectCurrentLayout);
   const components = currentLayout.components;
-  const component = components[currentId];
-  if (components[currentId].type === 'FileUpload') {
+  const component = components[currentId] || components[newId];
+  if (component.type === 'FileUpload') {
     const {
       maxNumberOfAttachments,
       minNumberOfAttachments,

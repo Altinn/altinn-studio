@@ -124,6 +124,10 @@ export interface IUpdateActiveListAction {
   containerList: any;
 }
 
+export interface IUpdateActiveListActionFulfilled {
+  containerList: any;
+}
+
 export interface IUpdateActiveListOrderAction {
   containerList: any;
   orderList: any[];

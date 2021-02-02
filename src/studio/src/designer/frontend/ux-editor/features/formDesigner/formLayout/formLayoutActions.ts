@@ -18,6 +18,7 @@ export const actions = {
   deleteFormContainer: createAction<FormDesignerTypes.IDeleteContainerAction>(`${moduleName}/deleteFormContainer`),
   deleteLayout: createAction<FormDesignerTypes.IDeleteLayoutAction>(`${moduleName}/deleteLayout`),
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
+  updateActiveList: createAction<FormDesignerTypes.IUpdateActiveListAction>(`${moduleName}/updateActiveList`),
   updateApplicationMetadata: createAction<FormDesignerTypes.IUpdateApplicationMetadaAction>(`${moduleName}/updateApplicationMetadata`),
   updateApplicationMetadataFulfilled: createAction(`${moduleName}/updateApplicationMetadataFulfilled`),
   updateLayoutName: createAction<FormDesignerTypes.IUpdateLayoutNameAction>(`${moduleName}/updateLayoutName`),
