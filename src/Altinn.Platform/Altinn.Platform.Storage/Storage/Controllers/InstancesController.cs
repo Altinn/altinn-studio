@@ -193,7 +193,6 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (!isOrgQuerying)
                 {
-                    int originalCount = result.Instances.Count;
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
                 }
