@@ -368,6 +368,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
+        /// Returns the path to the app folder
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>A string containing the path</returns>
+        public string GetAppPath(string org, string app)
+        {
+            return _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+        }
+
+        /// <summary>
         /// Get content of resource file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
