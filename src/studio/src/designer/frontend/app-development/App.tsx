@@ -27,7 +27,7 @@ import handleServiceInformationActionDispatchers from './features/administration
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
-import applicationMetadataDispatcher from './sharedResources/applicationMetadata/applicationMetadataDispatcher';
+import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 import { getRepoStatusUrl } from './utils/urlHelper';
 
@@ -56,7 +56,11 @@ const styles = () => createStyles({
   },
 });
 
-export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
+export interface IServiceDevelopmentProvidedProps {
+  dispatch?: any;
+}
+
+export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, IServiceDevelopmentProvidedProps {
   language: any;
   location: any;
   repoStatus: any;
@@ -77,10 +81,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public componentDidMount() {
     const { org, app } = window as Window as IAltinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
-      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb',
+    );
     handleServiceInformationActionDispatchers.fetchServiceName(
-      `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`);
-    applicationMetadataDispatcher.getApplicationMetadata();
+      `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+    );
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
@@ -221,11 +227,13 @@ const makeMapStateToProps = () => {
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
   const mapStateToProps = (
     state: IServiceDevelopmentState,
+    props: IServiceDevelopmentProvidedProps,
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
       language: state.language,
       serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
+      dispatch: props.dispatch,
     };
   };
   return mapStateToProps;

@@ -10,12 +10,12 @@ import { CircularProgress,
   withStyles,
   WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
 import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
@@ -145,6 +145,8 @@ export interface IAppReleaseContainer extends WithStyles<typeof styles> { }
 
 function AppReleaseContainer(props: IAppReleaseContainer) {
   const { classes } = props;
+  const dispatch = useDispatch();
+
   const [tabIndex, setTabIndex] = React.useState(0);
   const [anchorElement, setAchorElement] = React.useState<Element>();
 
@@ -159,14 +161,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
 
   React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
-    AppReleaseActions.getAppReleasesIntervalStart();
+    dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
       FetchLanguageActionDispatchers.fetchLanguage(languageUrl, 'nb');
     }
     RepoStatusActionDispatchers.getMasterRepoStatus(org, app);
     HandleMergeConflictActionDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
     return () => {
-      AppReleaseActions.getAppReleasesIntervalStop();
+      dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
   }, []);
 

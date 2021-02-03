@@ -8,7 +8,7 @@ import AltinnFormControlLabel from 'app-shared/components/AltinnFormControlLabel
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
-import applicationMetadataDispatcher from '../../../sharedResources/applicationMetadata/applicationMetadataDispatcher';
+import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 const theme = createMuiTheme(altinnTheme);
@@ -61,6 +61,7 @@ const styles = createStyles({
 
 export interface IAccessControlContainerProvidedProps {
   classes: any;
+  dispatch?: any;
   applicationMetadata: any;
 }
 
@@ -121,7 +122,7 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public componentDidMount() {
-    applicationMetadataDispatcher.getApplicationMetadata();
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
   }
 
   public handlePartyTypesAllowedChange(partyType: PartyTypes) {
@@ -139,7 +140,9 @@ export class AccessControlContainerClass extends React.Component<
     const newApplicationMetadata =
       JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
+    this.props.dispatch(ApplicationMetadataActions.putApplicationMetadata({
+      applicationMetadata: newApplicationMetadata,
+    }));
   }
 
   public renderMainContent = (): JSX.Element => {

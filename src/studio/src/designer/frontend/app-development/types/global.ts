@@ -2,10 +2,10 @@
 // eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
-import { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
-import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentReducer';
-import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
-import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
+import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
+import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
+import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
+import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 import { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
