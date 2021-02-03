@@ -58,8 +58,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            Console.WriteLine($"//// middleware triggered");
-
             string org = _httpContext.GetRouteValue("org")?.ToString();
             string app = _httpContext.GetRouteValue("app")?.ToString();
 
@@ -86,40 +84,40 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            string environment;
+            string environment = _httpContext.GetRouteValue("environment")?.ToString();
 
-            _httpContext.Request.EnableBuffering();
-
-            using (var reader = new StreamReader(
-               _httpContext.Request.Body,
-               encoding: Encoding.UTF8,
-               detectEncodingFromByteOrderMarks: false,
-               bufferSize: 1024,
-               leaveOpen: true))
+            if (string.IsNullOrEmpty(environment))
             {
-                string body = await reader.ReadToEndAsync();
+                _httpContext.Request.EnableBuffering();
 
-                try
+                using (var reader = new StreamReader(
+                   _httpContext.Request.Body,
+                   encoding: Encoding.UTF8,
+                   detectEncodingFromByteOrderMarks: false,
+                   bufferSize: 1024,
+                   leaveOpen: true))
                 {
-                    CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
-                    environment = model.Environment.Name;
-                }
-                catch
-                {
-                    reader.Close();
-                    _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    return;
-                }
+                    string body = await reader.ReadToEndAsync();
 
-                // Reset the request body stream position so the next middleware can read it
-                _httpContext.Request.Body.Position = 0;
+                    try
+                    {
+                        CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
+                        environment = model.Environment.Name;
+                    }
+                    catch
+                    {
+                        reader.Close();
+                        _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return;
+                    }
+
+                    // Reset the request body stream position so the next middleware can read it
+                    _httpContext.Request.Body.Position = 0;
+                }
             }
 
             string matchTeam = $"Deploy-{environment}";
             List<Team> teams = await _giteaApiWrapper.GetTeams();
-
-            Console.WriteLine($"//// match team {matchTeam}");
-            Console.WriteLine($"//// Teams {JsonConvert.SerializeObject(teams)}");
 
             bool any = teams.Any(t => t.Organization.Username.Equals(
                 org, System.StringComparison.OrdinalIgnoreCase)
@@ -127,13 +125,10 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
             if (any)
             {
-                Console.WriteLine($"//// match found");
-
                 context.Succeed(requirement);
             }
             else
             {
-                Console.WriteLine($"//// no match found");
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
         }
