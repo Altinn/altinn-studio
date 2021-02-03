@@ -57,8 +57,8 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonSchema jsonSchemas = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
                 // Create the directory if it does not exist
-                var appPath = _repository.GetAppPath(org, app);
-                var directory = appPath + Path.GetDirectoryName(filepath);
+                string appPath = _repository.GetAppPath(org, app);
+                string directory = appPath + Path.GetDirectoryName(filepath);
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
