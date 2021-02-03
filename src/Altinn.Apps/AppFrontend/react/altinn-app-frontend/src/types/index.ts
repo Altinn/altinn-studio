@@ -287,3 +287,7 @@ export enum Severity {
 export enum Triggers {
   Validation = 'validation',
 }
+
+export interface ILabelSettings {
+  optionalIndicator?: boolean;
+}
