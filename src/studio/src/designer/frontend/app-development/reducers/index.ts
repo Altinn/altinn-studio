@@ -5,9 +5,9 @@ import appClusterReducer, { IAppClusterState } from '../sharedResources/appClust
 import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
-import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
+import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
-import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
+import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
 import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 
 export interface IServiceDevelopmentReducers

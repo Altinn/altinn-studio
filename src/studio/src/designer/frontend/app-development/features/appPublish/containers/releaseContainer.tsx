@@ -17,8 +17,8 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/l
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
-import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
+import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
 import { getGitCommitLink, getRepoStatusUrl, languageUrl } from '../../../utils/urlHelper';
 import HandleMergeConflictActionDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
@@ -165,7 +165,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (!language) {
       FetchLanguageActionDispatchers.fetchLanguage(languageUrl, 'nb');
     }
-    RepoStatusActionDispatchers.getMasterRepoStatus(org, app);
+    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     HandleMergeConflictActionDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());

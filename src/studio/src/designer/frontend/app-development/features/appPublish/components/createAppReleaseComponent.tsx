@@ -14,7 +14,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
+import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 
 const styles = createStyles({
   createReleaseFormItem: {

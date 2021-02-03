@@ -10,8 +10,8 @@ import { AppDeploymentActions, IAppDeploymentState } from '../../../sharedResour
 import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
-import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
-import { IConfigurationState } from '../../../sharedResources/configuration/configurationReducer';
+import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
+import { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 
 const theme = createMuiTheme(StudioTheme);
@@ -50,7 +50,7 @@ export const DeployContainer = (props: IDeployContainer) => {
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
   React.useEffect(() => {
-    ConfigurationActions.getEnvironments();
+    dispatch(ConfigurationActions.getEnvironments());
     dispatch(AppDeploymentActions.getAppDeploymentsStartInterval());
 
     return () => {

@@ -7,8 +7,8 @@ import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploym
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
-import { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
-import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
+import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
+import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
 import { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 
 declare global {
