@@ -7,6 +7,7 @@ using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json;
@@ -46,6 +47,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
         {
             SchemaKeywordCatalog.Add<InfoKeyword>();
+            filepath = filepath.AsFileName();
 
             using (Stream resource = Request.Body)
             {
@@ -97,6 +99,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
         public async Task<IActionResult> GetDatamodel(string org, string repository, string filepath)
         {
+            filepath = filepath.AsFileName();
+
             try
             {
                 using (Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json"))
