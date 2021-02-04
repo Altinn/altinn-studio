@@ -1,5 +1,5 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
+import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';

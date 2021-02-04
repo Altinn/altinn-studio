@@ -1,108 +1,93 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import * as HandleServiceInformationActions from './handleServiceInformationActions';
-import * as HandleServiceInformationActionTypes from './handleServiceInformationActionTypes';
-import HandleServiceInformationDispatcher from './handleServiceInformationDispatcher';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { HandleServiceInformationActions } from './handleServiceInformationSlice';
+import { IFetchInitialCommitAction, IFetchServiceAction, IFetchServiceConfigAction, IFetchServiceNameAction, ISaveServiceConfigAction, ISaveServiceNameAction } from './types';
 
-export function* handleFetchServiceSaga({
+export function* handleFetchServiceSaga({ payload: {
   url,
-}: HandleServiceInformationActions.IFetchServiceAction): SagaIterator {
+} }: PayloadAction<IFetchServiceAction>): SagaIterator {
   try {
     const result = yield call(get, url);
 
-    yield call(HandleServiceInformationDispatcher.fetchServiceFulfilled, result);
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.fetchServiceRejected, err);
+    yield put(HandleServiceInformationActions.fetchServiceFulfilled({ repository: result }));
+  } catch (error) {
+    yield put(HandleServiceInformationActions.fetchServiceRejected({ error }));
   }
 }
 
 export function* watchHandleFetchServiceSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.FETCH_SERVICE,
-    handleFetchServiceSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchService, handleFetchServiceSaga);
 }
 
-export function* handleFetchServiceNameSaga({
+export function* handleFetchServiceNameSaga({ payload: {
   url,
-}: HandleServiceInformationActions.IFetchServiceNameAction): SagaIterator {
+} }: PayloadAction<IFetchServiceNameAction>): SagaIterator {
   try {
     const serviceName = yield call(get, url);
 
-    yield call(HandleServiceInformationDispatcher.fetchServiceNameFulfilled, serviceName || '');
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.fetchServiceNameRejected, err);
+    yield put(HandleServiceInformationActions.fetchServiceNameFulfilled({ serviceName: serviceName || '' }));
+  } catch (error) {
+    yield put(HandleServiceInformationActions.fetchServiceNameRejected({ error }));
   }
 }
 
 export function* watchHandleFetchServiceNameSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.FETCH_SERVICE_NAME,
-    handleFetchServiceNameSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchServiceName, handleFetchServiceNameSaga);
 }
 
-export function* handleSaveServiceNameSaga({
+export function* handleSaveServiceNameSaga({ payload: {
   url, newServiceName,
-}: HandleServiceInformationActions.ISaveServiceNameAction): SagaIterator {
+} }: PayloadAction<ISaveServiceNameAction>): SagaIterator {
   try {
     yield call(post, url, { serviceName: newServiceName });
-    yield call(HandleServiceInformationDispatcher.saveServiceNameFulfilled, newServiceName);
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.saveServiceNameRejected, err);
+    yield put(HandleServiceInformationActions.saveServiceNameFulfilled({ newServiceName }));
+  } catch (error) {
+    yield put(HandleServiceInformationActions.saveServiceNameRejected({ error }));
   }
 }
 
 export function* watchHandleSaveServiceNameSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.SAVE_SERVICE_NAME,
-    handleSaveServiceNameSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.saveServiceName, handleSaveServiceNameSaga);
 }
 
-export function* handleFetchInitialCommitSaga({
+export function* handleFetchInitialCommitSaga({ payload: {
   url,
-}: HandleServiceInformationActions.IFetchInitialCommitAction): SagaIterator {
+} }: PayloadAction<IFetchInitialCommitAction>): SagaIterator {
   try {
     const result = yield call(get, url);
 
-    yield call(HandleServiceInformationDispatcher.fetchInitialCommitFulfilled, result);
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.fetchInitialCommitRejected, err);
+    yield put(HandleServiceInformationActions.fetchInitialCommitFulfilled({ result }));
+  } catch (error) {
+    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
   }
 }
 
 export function* watchHandleFetchInitialCommitSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.FETCH_INITIAL_COMMIT,
-    handleFetchInitialCommitSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchInitialCommit, handleFetchInitialCommitSaga);
 }
 
-export function* handleFetchServiceConfigSaga({
+export function* handleFetchServiceConfigSaga({ payload: {
   url,
-}: HandleServiceInformationActions.IFetchServiceConfigAction): SagaIterator {
+} }: PayloadAction<IFetchServiceConfigAction>): SagaIterator {
   try {
     const serviceConfig = yield call(get, url);
 
-    yield call(HandleServiceInformationDispatcher.fetchServiceConfigFulfilled, serviceConfig || null);
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.fetchInitialCommitRejected, err);
+    yield put(HandleServiceInformationActions.fetchServiceConfigFulfilled({ serviceConfig: serviceConfig || null }));
+  } catch (error) {
+    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
   }
 }
 
 export function* watchHandleFetchServiceConfigSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.FETCH_SERVICE_CONFIG,
-    handleFetchServiceConfigSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchServiceConfig, handleFetchServiceConfigSaga);
 }
 
-export function* handleSaveServiceConfigSaga({
+export function* handleSaveServiceConfigSaga({ payload: {
   url, newServiceDescription, newServiceId, newServiceName,
-}: HandleServiceInformationActions.ISaveServiceConfigAction): SagaIterator {
+} }: PayloadAction<ISaveServiceConfigAction>): SagaIterator {
   try {
     yield call(post, url,
       {
@@ -110,17 +95,17 @@ export function* handleSaveServiceConfigSaga({
         serviceId: newServiceId,
         serviceName: newServiceName,
       });
-    yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled,
-      newServiceDescription, newServiceId, newServiceName);
+    yield put(HandleServiceInformationActions.saveServiceConfigFulfilled({
+      newServiceDescription,
+      newServiceId,
+      newServiceName,
+    }));
     window.postMessage(postMessages.filesAreSaved, window.location.href);
-  } catch (err) {
-    yield call(HandleServiceInformationDispatcher.saveServiceConfigRejected, err);
+  } catch (error) {
+    yield put(HandleServiceInformationActions.saveServiceConfigRejected({ error }));
   }
 }
 
 export function* watchHandleSaveServiceConfigSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActionTypes.SAVE_SERVICE_CONFIG,
-    handleSaveServiceConfigSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.saveServiceConfig, handleSaveServiceConfigSaga);
 }

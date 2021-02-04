@@ -23,7 +23,7 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import routes from './config/routes';
-import handleServiceInformationActionDispatchers from './features/administration/handleServiceInformationDispatcher';
+import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
@@ -83,9 +83,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     fetchLanguageDispatcher.fetchLanguage(
       `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb',
     );
-    handleServiceInformationActionDispatchers.fetchServiceName(
-      `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-    );
+    this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
+      url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+    }));
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
 
     this.checkForMergeConflict();

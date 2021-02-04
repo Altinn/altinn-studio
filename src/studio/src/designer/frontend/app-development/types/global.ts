@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 // eslint-disable-next-line import/no-cycle
-import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
+import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';

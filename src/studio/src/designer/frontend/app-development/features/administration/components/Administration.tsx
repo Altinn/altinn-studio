@@ -9,7 +9,7 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ICommit, IRepository } from '../../../types/global';
-import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
+import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import HandleMergeConflictDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
@@ -17,6 +17,7 @@ import { getRepoStatusUrl } from '../../../utils/urlHelper';
 
 export interface IAdministrationComponentProvidedProps {
   classes: any;
+  dispatch?: any;
 }
 
 export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
@@ -132,15 +133,15 @@ export class AdministrationComponent extends
     const altinnWindow: any = window;
     const { org, app } = altinnWindow;
 
-    handleServiceInformationActionDispatchers.fetchService(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`,
-    );
-    handleServiceInformationActionDispatchers.fetchInitialCommit(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}`,
-    );
-    handleServiceInformationActionDispatchers.fetchServiceConfig(
-      `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
-    );
+    this.props.dispatch(HandleServiceInformationActions.fetchService(
+      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}` },
+    ));
+    this.props.dispatch(HandleServiceInformationActions.fetchInitialCommit(
+      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}` },
+    ));
+    this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
+      { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
+    ));
     HandleMergeConflictDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
   }
 
@@ -160,11 +161,16 @@ export class AdministrationComponent extends
     } else {
       const { org, app } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
-      handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
-      handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
-      );
+      this.props.dispatch(HandleServiceInformationActions.saveServiceName({
+        url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
+        newServiceName: this.state.serviceName,
+      }));
+      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        newServiceDescription: this.state.serviceDescription,
+        newServiceId: this.state.serviceId,
+        newServiceName: this.state.serviceName,
+      }));
       this.setState({ editServiceName: false });
     }
   }
@@ -177,10 +183,12 @@ export class AdministrationComponent extends
     if (this.state.editServiceDescription) {
       const { org, app } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
-      handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
-      );
+      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        newServiceDescription: this.state.serviceDescription,
+        newServiceId: this.state.serviceId,
+        newServiceName: this.state.serviceName,
+      }));
       this.setState({ editServiceDescription: false });
     }
   }
@@ -193,10 +201,12 @@ export class AdministrationComponent extends
     if (this.state.editServiceId) {
       const { org, app } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
-      handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
-      );
+      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        newServiceDescription: this.state.serviceDescription,
+        newServiceId: this.state.serviceId,
+        newServiceName: this.state.serviceName,
+      }));
       this.setState({ editServiceId: false });
     }
   }
@@ -267,6 +277,7 @@ const mapStateToProps = (
 ): IAdministrationComponentProps => {
   return {
     classes: props.classes,
+    dispatch: props.dispatch,
     initialCommit: state.serviceInformation.initialCommit,
     language: state.language,
     service: state.serviceInformation.repositoryInfo,
