@@ -2,6 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import { isIE } from 'react-device-detect';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
@@ -63,8 +64,9 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
       try {
         yield call(put, dataElementUrl(defaultDataElementGuid), model);
       } catch (err) {
-        if (err.response && err.response.status === 303) {
-          yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
+        if ((err.response && err.response.status === 303) || isIE) {
+          // 303 is treated as en error in IE - we try to fetch.
+          yield call(FormDataActions.fetchFormData, dataElementUrl(defaultDataElementGuid));
         } else {
           throw err;
         }
@@ -116,8 +118,9 @@ function* saveFormDataSaga(): SagaIterator {
     try {
       yield call(put, dataElementUrl(defaultDataElementGuid), model);
     } catch (err) {
-      if (err.response && err.response.status === 303) {
-        yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
+      if ((err.response && err.response.status === 303) || isIE) {
+        // 303 is treated as en error in IE - we try to fetch.
+        yield call(FormDataActions.fetchFormData, dataElementUrl(defaultDataElementGuid));
       } else {
         throw err;
       }
