@@ -331,5 +331,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public string GetAppPath(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

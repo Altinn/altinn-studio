@@ -541,5 +541,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Lists the content of a repository
         /// </summary>
         List<FileSystemObject> GetContents(string org, string repository, string path = "");
+
+        /// <summary>
+        /// Returns the path to the app folder
+        /// </summary>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns></returns>
+        string GetAppPath(string org, string app);
     }
 }

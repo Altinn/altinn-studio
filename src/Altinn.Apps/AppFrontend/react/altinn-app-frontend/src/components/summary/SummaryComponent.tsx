@@ -13,6 +13,7 @@ import { IComponentValidations, IRuntimeState } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
+import { makeGetHidden } from '../../selectors/getLayoutData';
 import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
 
 export interface ISummaryComponent {
@@ -44,11 +45,12 @@ export function SummaryComponent(props: ISummaryComponent) {
   const classes = useStyles();
   const {
     pageRef,
+    id,
   } = props;
-
+  const GetHiddenSelector = makeGetHidden();
   const [componentValidations, setComponentValidations] = React.useState<IComponentValidations>({});
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
-
+  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
   const summaryPageName = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const changeText = useSelector((state: IRuntimeState) => getTextFromAppOrDefault(
     'form_filler.summary_item_change',
@@ -136,6 +138,10 @@ export function SummaryComponent(props: ISummaryComponent) {
         );
     }
   };
+
+  if (hidden) {
+    return null;
+  }
 
   return (
     <Grid container={true} className={classes.row}>
