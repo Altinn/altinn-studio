@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,8 +38,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
             => await _deploymentService.GetAsync(query);
+
+        /// <summary>
+        /// Checks if user can deploy to environment
+        /// </summary>
+        /// <returns>200 Ok if user is permitted to deploy</returns>
+        [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
+        [Route("hasPermission/{environment}")]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        public Task HasPermission()
+        {
+            return Task.FromResult(Ok());
+        }
 
         /// <summary>
         /// Creates a release
@@ -47,7 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create([FromBody]CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create([FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)
             {
