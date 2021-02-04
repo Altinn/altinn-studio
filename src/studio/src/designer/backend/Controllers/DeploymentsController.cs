@@ -47,9 +47,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>200 Ok if user is permitted to deploy</returns>
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-        [Route("checkPermission/{environment}")]
+        [Route("hasPermission/{environment}")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public Task CheckPermission()
+        public Task HasPermission()
         {
             return Task.FromResult(Ok());
         }
