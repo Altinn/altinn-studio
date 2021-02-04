@@ -20,8 +20,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
         private const int MagicNumberMaxOccurs = 99999;
 
-        private Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
-        private Dictionary<string, Dictionary<string, TextResourceElement>> allTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
+        private readonly Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
+        private readonly Dictionary<string, Dictionary<string, TextResourceElement>> modelTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <returns></returns>
         public Dictionary<string, Dictionary<string, TextResourceElement>> GetTexts()
         {
-            return allTexts;
+            return modelTexts;
         }
 
         private JsonObject GenerateInitialReferences()
@@ -406,9 +406,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         languageWithTextResource.Add(LanguageCode(lang), new TextResourceElement { Id = textKey, Value = textMessage });
                     }
 
-                    if (!allTexts.ContainsKey(textKey))
+                    if (!modelTexts.ContainsKey(textKey))
                     {
-                        allTexts.Add(textKey, languageWithTextResource);
+                        modelTexts.Add(textKey, languageWithTextResource);
                     }
                 }
             }

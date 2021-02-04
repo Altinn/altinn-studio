@@ -436,7 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
         /// <returns>resource texts</returns>
-        private Dictionary<string, Dictionary<string, TextResourceElement>> MergeResourceTexts(string path, Dictionary<string, Dictionary<string, TextResourceElement>> resourceTexts)
+        private static Dictionary<string, Dictionary<string, TextResourceElement>> MergeResourceTexts(string path, Dictionary<string, Dictionary<string, TextResourceElement>> resourceTexts)
         {
             if (Directory.Exists(path))
             {
@@ -549,7 +549,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     tr.Resources.Add(actualResource.Value);
                 }
 
-                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore }));
+                string resourceString = JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
+                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", resourceString);
             }
         }
 
