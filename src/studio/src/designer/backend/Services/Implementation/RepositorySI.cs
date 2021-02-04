@@ -403,34 +403,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text</returns>
-        public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string app)
+        /// <remarks>
+        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// </remarks>
+        /// <returns>The texts in a dictionary</returns>
+        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app)
         {
-            Dictionary<string, Dictionary<string, string>> appTextsAllLanguages =
-                new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages =
+                new Dictionary<string, Dictionary<string, TextResourceElement>>();
 
             // Get app level text resources
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            appTextsAllLanguages = GetResourceTexts(resourcePath, appTextsAllLanguages);
+            appTextsAllLanguages = MergeResourceTexts(resourcePath, appTextsAllLanguages);
 
             // Get Org level text resources
             string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            appTextsAllLanguages = GetResourceTexts(orgResourcePath, appTextsAllLanguages);
+            appTextsAllLanguages = MergeResourceTexts(orgResourcePath, appTextsAllLanguages);
 
             // Get Altinn common level text resources
             string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            appTextsAllLanguages = GetResourceTexts(commonResourcePath, appTextsAllLanguages);
+            appTextsAllLanguages = MergeResourceTexts(commonResourcePath, appTextsAllLanguages);
 
             return appTextsAllLanguages;
         }
 
         /// <summary>
-        /// retrieves resource text for the given path
+        /// Merges the provided resource texts with the resource text in the the given path
         /// </summary>
         /// <param name="path">path for the resource files</param>
         /// <param name="resourceTexts">resource text dictionary</param>
+        /// <remarks>
+        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// </remarks>
         /// <returns>resource texts</returns>
-        private Dictionary<string, Dictionary<string, string>> GetResourceTexts(string path, Dictionary<string, Dictionary<string, string>> resourceTexts)
+        private Dictionary<string, Dictionary<string, TextResourceElement>> MergeResourceTexts(string path, Dictionary<string, Dictionary<string, TextResourceElement>> resourceTexts)
         {
             if (Directory.Exists(path))
             {
@@ -442,23 +448,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     string[] nameParts = fileName.Split('.');
                     if (nameParts.Length == 3 && nameParts[0] == "resource" && nameParts[2] == "json")
                     {
-                        JObject resourceFile = JObject.Parse(File.ReadAllText(directoryFile));
-                        string culture = (string)resourceFile["language"];
-                        foreach (JObject resource in resourceFile["resources"])
+                        string content = File.ReadAllText(directoryFile);
+                        TextResource r = JsonConvert.DeserializeObject<TextResource>(content);
+                        string culture = r.Language;
+
+                        foreach (TextResourceElement item in r.Resources)
                         {
-                            string key = (string)resource["id"];
-                            string value = (string)resource["value"];
+                            string key = item.Id;
+                            string value = item.Value;
 
                             if (key != null && value != null)
                             {
                                 if (!resourceTexts.ContainsKey(key))
                                 {
-                                    resourceTexts.Add(key, new Dictionary<string, string>());
+                                    resourceTexts.Add(key, new Dictionary<string, TextResourceElement>());
                                 }
 
                                 if (!resourceTexts[key].ContainsKey(culture))
                                 {
-                                    resourceTexts[key].Add(culture, value);
+                                    resourceTexts[key].Add(culture, item);
                                 }
                             }
                         }
@@ -502,49 +510,46 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="texts">The texts to be saved</param>
-        public void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, string>> texts)
+        public void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> texts)
         {
-            // Language, key, value
-            Dictionary<string, Dictionary<string, JObject>> resourceTextsAsJson =
-                new Dictionary<string, Dictionary<string, JObject>>();
+            // Language, key, TextResourceElement
+            Dictionary<string, Dictionary<string, TextResourceElement>> resourceTextsAsJson =
+                new Dictionary<string, Dictionary<string, TextResourceElement>>();
 
-            foreach (KeyValuePair<string, Dictionary<string, string>> text in texts)
+            // loop through text resource key
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> text in texts)
             {
-                foreach (KeyValuePair<string, string> localizedText in text.Value)
+                foreach (KeyValuePair<string, TextResourceElement> localizedText in text.Value)
                 {
                     if (!resourceTextsAsJson.ContainsKey(localizedText.Key))
                     {
-                        resourceTextsAsJson.Add(localizedText.Key, new Dictionary<string, JObject>());
+                        resourceTextsAsJson.Add(localizedText.Key, new Dictionary<string, TextResourceElement>());
                     }
 
                     if (!resourceTextsAsJson[localizedText.Key].ContainsKey(text.Key))
                     {
-                        dynamic textObject = new JObject
-                        {
-                            new JProperty("id", text.Key),
-                            new JProperty("value", localizedText.Value),
-                        };
-                        resourceTextsAsJson[localizedText.Key].Add(text.Key, textObject);
+                        resourceTextsAsJson[localizedText.Key].Add(text.Key, new TextResourceElement { Id = text.Key, Value = localizedText.Value.Value, Variables = localizedText.Value.Variables });
                     }
                 }
             }
 
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            foreach (KeyValuePair<string, Dictionary<string, JObject>> processedResource in resourceTextsAsJson)
+            // foreach language
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTextsAsJson)
             {
-                JObject resourceObject = new JObject();
-                string language = processedResource.Key;
-                resourceObject.Add(new JProperty("language", language));
-                JArray textsArray = new JArray();
+                TextResource tr = new TextResource();
+                tr.Language = processedResource.Key;
+                tr.Resources = new List<TextResourceElement>();
 
-                foreach (KeyValuePair<string, JObject> actualResource in processedResource.Value)
+                // for each text resource in language
+                foreach (KeyValuePair<string, TextResourceElement> actualResource in processedResource.Value)
                 {
-                    textsArray.Add(actualResource.Value);
+                    tr.Resources.Add(actualResource.Value);
                 }
 
-                resourceObject.Add("resources", textsArray);
-                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", resourceObject.ToString());
+                // format or prettify json?
+                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented }));
             }
         }
 
@@ -806,7 +811,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 fileData = File.ReadAllText(filePath, Encoding.UTF8);
             }
-            
+
             return fileData;
         }
 
@@ -838,10 +843,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         }
                     });
                 }
-                
+
                 SaveLanguageResource(org, app, textResource.Language, JsonConvert.SerializeObject(currentTextResource));
             }
-            
+
             return true;
         }
 

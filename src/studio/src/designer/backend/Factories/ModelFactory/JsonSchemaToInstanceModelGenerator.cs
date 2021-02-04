@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -19,7 +21,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private const int MagicNumberMaxOccurs = 99999;
 
         private Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
-        private Dictionary<string, Dictionary<string, string>> allTexts = new Dictionary<string, Dictionary<string, string>>();
+        private Dictionary<string, Dictionary<string, TextResourceElement>> allTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
@@ -75,7 +77,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         ///  Returns the texts found when parsing the Schema
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string, Dictionary<string, string>> GetTexts()
+        public Dictionary<string, Dictionary<string, TextResourceElement>> GetTexts()
         {
             return allTexts;
         }
@@ -396,18 +398,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                     result.Add(TextTypeFormat(textType), textKey);
 
-                    Dictionary<string, string> languageWithText = new Dictionary<string, string>();
+                    Dictionary<string, TextResourceElement> languageWithTextResource = new Dictionary<string, TextResourceElement>();
 
                     foreach (string lang in language.Object.Keys)
                     {
                         string textMessage = language.Object.TryGetString(lang);
-
-                        languageWithText.Add(LanguageCode(lang), textMessage);
+                        languageWithTextResource.Add(LanguageCode(lang), new TextResourceElement { Id = textKey, Value = textMessage });
                     }
 
                     if (!allTexts.ContainsKey(textKey))
                     {
-                        allTexts.Add(textKey, languageWithText);
+                        allTexts.Add(textKey, languageWithTextResource);
                     }
                 }
             }
