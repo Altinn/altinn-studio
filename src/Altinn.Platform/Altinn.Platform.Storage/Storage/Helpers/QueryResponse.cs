@@ -9,12 +9,6 @@ namespace Altinn.Platform.Storage.Helpers
     public class QueryResponse<T>
     {
         /// <summary>
-        /// The total set of items that matches the query.
-        /// </summary>
-        [JsonProperty(PropertyName = "totalHits")]
-        public long TotalHits { get; set; }
-
-        /// <summary>
         /// The number of items in this response.
         /// </summary>
         [JsonProperty(PropertyName = "count")]
