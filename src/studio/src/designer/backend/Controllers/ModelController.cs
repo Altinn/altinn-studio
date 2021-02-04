@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.Controllers
             return Json(false);
         }
 
-        private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> allTexts)
+        private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> modelTexts)
         {
             // <textResourceElement.Id <language, textResourceElement>>
             Dictionary<string, Dictionary<string, TextResourceElement>> existingTexts = _repository.GetServiceTexts(org, app);
@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Controllers
                 existingTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
             }
 
-            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> item in allTexts)
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> item in modelTexts)
             {
                 string textResourceElementId = item.Key;
 

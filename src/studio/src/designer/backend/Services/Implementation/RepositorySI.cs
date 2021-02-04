@@ -516,40 +516,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, Dictionary<string, TextResourceElement>> resourceTextsAsJson =
                 new Dictionary<string, Dictionary<string, TextResourceElement>>();
 
-            // loop through text resource key
             foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> text in texts)
             {
+                string textResourceElementId = text.Key;
                 foreach (KeyValuePair<string, TextResourceElement> localizedText in text.Value)
                 {
-                    if (!resourceTextsAsJson.ContainsKey(localizedText.Key))
+                    string language = localizedText.Key;
+                    TextResourceElement tre = localizedText.Value;
+                    if (!resourceTextsAsJson.ContainsKey(language))
                     {
-                        resourceTextsAsJson.Add(localizedText.Key, new Dictionary<string, TextResourceElement>());
+                        resourceTextsAsJson.Add(language, new Dictionary<string, TextResourceElement>());
                     }
 
-                    if (!resourceTextsAsJson[localizedText.Key].ContainsKey(text.Key))
+                    if (!resourceTextsAsJson[language].ContainsKey(textResourceElementId))
                     {
-                        resourceTextsAsJson[localizedText.Key].Add(text.Key, new TextResourceElement { Id = text.Key, Value = localizedText.Value.Value, Variables = localizedText.Value.Variables });
+                        resourceTextsAsJson[language].Add(textResourceElementId, new TextResourceElement { Id = textResourceElementId, Value = tre.Value, Variables = tre.Variables });
                     }
                 }
             }
 
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            // foreach language
+            // loop through each language et of resources
             foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTextsAsJson)
             {
                 TextResource tr = new TextResource();
                 tr.Language = processedResource.Key;
                 tr.Resources = new List<TextResourceElement>();
 
-                // for each text resource in language
                 foreach (KeyValuePair<string, TextResourceElement> actualResource in processedResource.Value)
                 {
                     tr.Resources.Add(actualResource.Value);
                 }
 
-                // format or prettify json?
-                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented }));
+                File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore }));
             }
         }
 
