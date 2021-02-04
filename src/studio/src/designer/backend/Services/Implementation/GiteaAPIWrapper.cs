@@ -360,7 +360,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         // reading the API key value
                         HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
                         string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
-                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
                         List<string> keys = FindAllAppKeysId(htmlContent, keyName);
 
                         KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
