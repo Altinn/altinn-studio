@@ -24,16 +24,18 @@ fixture('Bruksmønster')
 test('Navigation', async() => {
   await t
     .click(designerPage.aboutNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.aboutLeftMenuItems[0].visible).ok();
+    .expect(designerPage.appNameLocked.value).contains("auto", 'input contains text ' + appName);
   await t
     .click(designerPage.createNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.createLeftMenuItems[0].visible).ok()
+    .expect(designerPage.inputComponent.exists).ok();
+  await t
+    .click(designerPage.languageNavigationTab)
+    .switchToIframe('iframe')
+    .expect(designerPage.languageTabs.visible).ok();
 });
 
 //Gitea connection
-test('Gitea connection', async() => {
+test('Gitea connection - Pull changes', async() => {
   await t
     .click(designerPage.pullChanges)
     .expect(Selector('h3').withText("Appen din er oppdatert til siste versjon").visible).ok();
@@ -44,5 +46,8 @@ test('App builds and deploys', async() => {
   await t
     .click(designerPage.deployNavigationTab)
     .expect(getLocation()).contains('deploy')
-    .expect(designerPage.appBuilds.child().count).gte(0);
+    .expect(designerPage.appBuilds.child().count).gte(1);
+  await t
+    .expect(designerPage.deployTable.visible).ok()
+    .expect(designerPage.deploys.count).gte(1);
 });
