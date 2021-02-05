@@ -452,10 +452,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         TextResource r = JsonConvert.DeserializeObject<TextResource>(content);
                         string culture = r.Language;
 
-                        foreach (TextResourceElement item in r.Resources)
+                        foreach (TextResourceElement resource in r.Resources)
                         {
-                            string key = item.Id;
-                            string value = item.Value;
+                            string key = resource.Id;
+                            string value = resource.Value;
 
                             if (key != null && value != null)
                             {
@@ -466,7 +466,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                                 if (!resourceTexts[key].ContainsKey(culture))
                                 {
-                                    resourceTexts[key].Add(culture, item);
+                                    resourceTexts[key].Add(culture, resource);
                                 }
                             }
                         }

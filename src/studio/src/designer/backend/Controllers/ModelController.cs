@@ -110,16 +110,16 @@ namespace Altinn.Studio.Designer.Controllers
                 existingTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
             }
 
-            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> item in modelTexts)
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> textResourceElementDict in modelTexts)
             {
-                string textResourceElementId = item.Key;
+                string textResourceElementId = textResourceElementDict.Key;
 
                 if (!existingTexts.ContainsKey(textResourceElementId))
                 {
                     existingTexts.Add(textResourceElementId, new Dictionary<string, TextResourceElement>());
                 }
                 
-                foreach (KeyValuePair<string, TextResourceElement> localizedString in item.Value)
+                foreach (KeyValuePair<string, TextResourceElement> localizedString in textResourceElementDict.Value)
                 {
                     string language = localizedString.Key;
                     TextResourceElement textResourceElement = localizedString.Value;
