@@ -1,11 +1,15 @@
-version: '3.7'
+version: "3.8"
 
 networks:
   altinncore_network:
     external: false
 
 volumes:
-  gitea-data:
+  designer-git-data:
+  gitea-git-data:
+  gitea-db-data:
+  gitea-avatars-data:
+  gitea-attachments-data:
   keys:
 
 services:
@@ -33,7 +37,7 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+      - "designer-git-data:/AltinnCore/Repos"
       - "keys:/mnt/keys"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -67,7 +71,10 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "gitea-data:/data"
+      - "gitea-git-data:/data/git"
+      - "gitea-db-data:/data/gitea/db"
+      - "gitea-avatars-data:/data/gitea/avatars"
+      - "gitea-attachments-data:/data/gitea/attachments"
     ports:
       - "3000:3000"
       - "222:22"

@@ -56,6 +56,14 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
                 JsonSchema jsonSchemas = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
+                // Create the directory if it does not exist
+                string appPath = _repository.GetAppPath(org, app);
+                string directory = appPath + Path.GetDirectoryName(filepath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
                 // Serialize and store the Json Schema
                 var serializer = new Manatee.Json.Serialization.JsonSerializer();
                 JsonValue toar = serializer.Serialize(jsonSchemas);
