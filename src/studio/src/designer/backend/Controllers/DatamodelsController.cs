@@ -45,6 +45,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
         {
+            if (!ValidateFilePath(filepath))
+            {
+                return BadRequest("Invalid filepath value");
+            }
+
             SchemaKeywordCatalog.Add<InfoKeyword>();
 
             using (Stream resource = Request.Body)
@@ -97,6 +102,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
         public async Task<IActionResult> GetDatamodel(string org, string repository, string filepath)
         {
+            if (!ValidateFilePath(filepath))
+            {
+                return BadRequest("Invalid filepath value");
+            }
+
             try
             {
                 using (Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json"))
@@ -129,6 +139,17 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NotFound();
             }
+        }
+
+        private bool ValidateFilePath(string filepath)
+        {
+            string[] pathParts = filepath.Split('/');
+            if (pathParts.Length != 3 || pathParts[0] != "App" || pathParts[1] != "models")
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
