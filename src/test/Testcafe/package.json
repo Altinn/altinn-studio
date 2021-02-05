@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node .\\testRunner",
     "wcag": "node .\\WCAGRunner",
-    "usecase": "testcafe -c 3 chrome ./usecase/usecase.js -u -e --reporter junit > testresult.xml"
+    "usecase": "testcafe chrome ./usecase/usecase.js --assertion-timeout 5000 -u -e --reporter junit > testresult.xml"
   },
   "keywords": [],
   "author": "",
