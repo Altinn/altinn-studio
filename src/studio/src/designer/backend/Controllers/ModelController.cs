@@ -6,6 +6,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
@@ -99,27 +100,32 @@ namespace Altinn.Studio.Designer.Controllers
             return Json(false);
         }
 
-        private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, string>> allTexts)
+        private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> modelTexts)
         {
-            Dictionary<string, Dictionary<string, string>> existingTexts = _repository.GetServiceTexts(org, app);
+            // <textResourceElement.Id <language, textResourceElement>>
+            Dictionary<string, Dictionary<string, TextResourceElement>> existingTexts = _repository.GetServiceTexts(org, app);
 
             if (existingTexts == null)
             {
-                existingTexts = new Dictionary<string, Dictionary<string, string>>();
+                existingTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
             }
 
-            foreach (KeyValuePair<string, Dictionary<string, string>> cultureString in allTexts)
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> textResourceElementDict in modelTexts)
             {
-                if (!existingTexts.ContainsKey(cultureString.Key))
-                {
-                    existingTexts.Add(cultureString.Key, new Dictionary<string, string>());
-                }
+                string textResourceElementId = textResourceElementDict.Key;
 
-                foreach (KeyValuePair<string, string> localizedString in cultureString.Value)
+                if (!existingTexts.ContainsKey(textResourceElementId))
                 {
-                    if (!existingTexts[cultureString.Key].ContainsKey(localizedString.Key))
+                    existingTexts.Add(textResourceElementId, new Dictionary<string, TextResourceElement>());
+                }
+                
+                foreach (KeyValuePair<string, TextResourceElement> localizedString in textResourceElementDict.Value)
+                {
+                    string language = localizedString.Key;
+                    TextResourceElement textResourceElement = localizedString.Value;
+                    if (!existingTexts[textResourceElementId].ContainsKey(language))
                     {
-                        existingTexts[cultureString.Key].Add(localizedString.Key, localizedString.Value);
+                        existingTexts[textResourceElementId].Add(language, textResourceElement);
                     }
                 }
             }

@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (Request.Headers["accept"] == "application/json")
             {
-                Dictionary<string, Dictionary<string, string>> resources = _repository.GetServiceTexts(org, app);
+                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(org, app);
                 return Json(resources);
             }
 
