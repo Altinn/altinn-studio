@@ -513,7 +513,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> texts)
         {
             // Language, key, TextResourceElement
-            Dictionary<string, Dictionary<string, TextResourceElement>> resourceTextsAsJson =
+            Dictionary<string, Dictionary<string, TextResourceElement>> resourceTexts =
                 new Dictionary<string, Dictionary<string, TextResourceElement>>();
 
             foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> text in texts)
@@ -523,14 +523,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string language = localizedText.Key;
                     TextResourceElement tre = localizedText.Value;
-                    if (!resourceTextsAsJson.ContainsKey(language))
+                    if (!resourceTexts.ContainsKey(language))
                     {
-                        resourceTextsAsJson.Add(language, new Dictionary<string, TextResourceElement>());
+                        resourceTexts.Add(language, new Dictionary<string, TextResourceElement>());
                     }
 
-                    if (!resourceTextsAsJson[language].ContainsKey(textResourceElementId))
+                    if (!resourceTexts[language].ContainsKey(textResourceElementId))
                     {
-                        resourceTextsAsJson[language].Add(textResourceElementId, new TextResourceElement { Id = textResourceElementId, Value = tre.Value, Variables = tre.Variables });
+                        resourceTexts[language].Add(textResourceElementId, new TextResourceElement { Id = textResourceElementId, Value = tre.Value, Variables = tre.Variables });
                     }
                 }
             }
@@ -538,7 +538,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             // loop through each language et of resources
-            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTextsAsJson)
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTexts)
             {
                 TextResource tr = new TextResource();
                 tr.Language = processedResource.Key;
