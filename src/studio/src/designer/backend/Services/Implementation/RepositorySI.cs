@@ -537,7 +537,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            // loop through each language et of resources
+            // loop through each language set of text resources
             foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTexts)
             {
                 TextResource tr = new TextResource();
