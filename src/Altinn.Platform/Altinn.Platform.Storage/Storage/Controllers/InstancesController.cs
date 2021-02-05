@@ -193,10 +193,8 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (!isOrgQuerying)
                 {
-                    int originalCount = result.Instances.Count;
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
-                    result.TotalHits -= originalCount - result.Instances.Count;
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
@@ -206,7 +204,6 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
-                    TotalHits = result.TotalHits ?? 0
                 };
 
                 if (continuationToken == null)
