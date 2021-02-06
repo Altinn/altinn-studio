@@ -1,0 +1,39 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "2ce985c6-caa7-4b70-86b2-9a75faf1d78e",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "messageTitle"
+        }
+      },
+      {
+        "id": "0d2125b5-4edc-4ce8-a24f-af5b0b2a5a46",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "messageBody"
+        }
+      },
+      {
+        "id": "9f8e3fa8-0f64-4508-bcff-c36caf491e8d",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "messageAttachments"
+        },
+        "dataTypeIds": [
+          "<dataType ID>"
+        ]
+      },
+      {
+        "id": "e34bf467-3ef2-4cd8-b178-cdab8c7ebede",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

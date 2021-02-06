@@ -6,11 +6,14 @@
   },
   "dataTypes": [
     {
-      "id": "default",
+      "id": "message",
       "allowedContentTypes": [
         "application/xml"
       ],
-      "appLogic": {},
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.MessageV1"
+      },
       "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1

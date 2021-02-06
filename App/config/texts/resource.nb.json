@@ -1,9 +1,1 @@
-﻿{
-  "language": "nb",
-  "resources": [
-    {
-      "id": "ServiceName",
-      "value": "frontend-test"
-    }
-  ]
-}
+﻿{"language":"nb","resources":[{"id":"ServiceName","value":"frontend-test","variables":null},{"id":"messageTitle","value":"## {0}","variables":[{"key":"Title","dataSource":"dataModel.message.schema.v1"}]},{"id":"messageBody","value":"{0}","variables":[{"key":"Body","dataSource":"dataModel.message.schema.v1"}]},{"id":"messageAttachments","value":"Vedlegg","variables":null}]}
