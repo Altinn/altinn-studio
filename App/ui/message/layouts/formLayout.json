@@ -1,8 +1,7 @@
 ﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
-    "layout": [
-      {
+    "layout": [{
         "id": "2ce985c6-caa7-4b70-86b2-9a75faf1d78e",
         "type": "Paragraph",
         "textResourceBindings": {
@@ -23,7 +22,7 @@
           "title": "messageAttachments"
         },
         "dataTypeIds": [
-          "<dataType ID>"
+          "fileUpload-message"
         ]
       },
       {

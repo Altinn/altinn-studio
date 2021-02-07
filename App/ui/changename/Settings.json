@@ -1,0 +1,15 @@
+{
+    "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
+    "pages": {
+        "order": [
+            "formLayout"
+        ],        
+        "excludeFromPdf": [            
+        ]
+    },
+    "components": {
+        "excludeFromPdf": [    
+            "confirmChangeName"        
+        ]
+    }
+}

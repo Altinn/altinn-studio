@@ -1,0 +1,18 @@
+﻿{
+  "sets": [{
+      "id": "message",
+      "dataType": "message",
+      "tasks": [
+        "Task_1"
+      ]
+    },
+
+    {
+      "id": "changename",
+      "dataType": "ServiceModel-test",
+      "tasks": [
+        "Task_2"
+      ]
+    }
+  ]
+}
