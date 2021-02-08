@@ -19,7 +19,7 @@ fixture('GUI app designer tests')
   })
 
 // Test to verify the drag and drop functionality in designer
-test('Drag and drop test', async () => {
+test('Drag and drop test', async() => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
@@ -31,7 +31,7 @@ test('Drag and drop test', async () => {
 });
 
 //Test to add ui components using keyboard clicks
-test('Add one of each component to the designer using keyboard', async () => {
+test('Add one of each component to the designer using keyboard', async() => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
@@ -55,13 +55,13 @@ test('Add one of each component to the designer using keyboard', async () => {
 });
 
 //Tests to commit and push changes to the gitea repo
-test('Sync an app with master', async () => {
+test('Sync an app with master', async() => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.createNavigationTab)
     .click(designer.pullChanges)
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.aboutNavigationTab)
@@ -79,7 +79,7 @@ test('Sync an app with master', async () => {
 });
 
 //Tests toverify the functionlaity inside the about page of an app
-test('About page items and editing', async () => {
+test('About page items and editing', async() => {
   const randNumOne = Math.floor(100 + Math.random() * 900);
   const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
@@ -108,7 +108,7 @@ test('About page items and editing', async () => {
 });
 
 //Test to verify that an app cannot be cloned when it lacks datamodel
-test("User cannot clone an app that does not have a data model", async () => {
+test("User cannot clone an app that does not have a data model", async() => {
   var appName = config[environment].withoutDataModelApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
@@ -121,7 +121,7 @@ test("User cannot clone an app that does not have a data model", async () => {
     .expect(designer.dataModelTabs.visible).notOk()
 })
 
-test('Configure and delete rules', async () => {
+test('Configure and delete rules', async() => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
@@ -140,16 +140,16 @@ test('Configure and delete rules', async () => {
     .click(designer.deleteRulesButton);
 });
 
-test('Links in App Logic menu', async () => {
+test('Links in App Logic menu', async() => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
-  await t    
+  await t
     .expect(designer.editDynamic.exists).ok()
-    .expect(designer.editDynamic.visible).ok();    
+    .expect(designer.editDynamic.visible).ok();
 });
 
-test('Add and delete conditional rendering connections', async () => {
+test('Add and delete conditional rendering connections', async() => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
@@ -167,7 +167,7 @@ test('Add and delete conditional rendering connections', async () => {
     .click(designer.deleteRulesButton);
 });
 
-test('Clone modal functionality', async () => {
+test('Clone modal functionality', async() => {
   var appName = config[environment].designerApp;
   await t
     .useRole(AutoTestUser)
@@ -180,7 +180,7 @@ test('Clone modal functionality', async () => {
     .click(designer.copyUrlRepoButton)
 });
 
-test('Validation of missing datamodel in clone modal', async () => {
+test('Validation of missing datamodel in clone modal', async() => {
   var appName = config[environment].withoutDataModelApp;
   await t
     .useRole(AutoTestUser)
@@ -193,13 +193,13 @@ test('Validation of missing datamodel in clone modal', async () => {
 });
 
 //Test to delete the local changes in stuido and reset the repo to the latest version from the repo
-test('Delete local app changes', async () => {
+test('Delete local app changes', async() => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.createNavigationTab)
     .click(designer.pullChanges)
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   appName = (appName.split('/'))[1];
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
@@ -215,7 +215,7 @@ test('Delete local app changes', async () => {
     .click(designer.confirmDeleteLocalChanges)
     .wait(4000);
 
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   await t
     .wait(5000)
     .expect(designer.noChanges.exists).ok('Local changes are not deleted', { timeout: 120000 });
