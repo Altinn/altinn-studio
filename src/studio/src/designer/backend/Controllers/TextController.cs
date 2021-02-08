@@ -1,16 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -28,6 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
+        private readonly JsonSerializerSettings _serializerSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextController"/> class.
@@ -44,6 +48,11 @@ namespace Altinn.Studio.Designer.Controllers
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _serializerSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
         }
 
         /// <summary>
@@ -86,7 +95,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string app)
+        public IActionResult SaveResource([FromBody] dynamic jsonData, string id, string org, string app)
         {
             id = id.Split('-')[0];
             JObject json = jsonData;
@@ -217,16 +226,19 @@ namespace Altinn.Studio.Designer.Controllers
                     textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
-                _repository.SaveLanguageResource(org, app, "nb", JObject.FromObject(textResourceObject).ToString());
+                string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
+
+                _repository.SaveLanguageResource(org, app, "nb", resourceString);
             }
             else
             {
-                JObject json = JObject.FromObject(new
+                ResourceCollection resourceCollection = new ResourceCollection
                 {
-                    language = "nb",
-                    resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
-                });
-                _repository.SaveLanguageResource(org, app, "nb", json.ToString());
+                    Language = "nb",
+                    Resources = new List<Resource> { new Resource { Id = "ServiceName", Value = serviceName.serviceName.ToString() } }
+                };
+
+                _repository.SaveLanguageResource(org, app, "nb", JsonConvert.SerializeObject(resourceCollection, _serializerSettings));
             }
         }
     }
