@@ -1,10 +1,10 @@
 {
-  "partyId": "1337",
+  "partyId": "512345",
   "partyTypeName": 1,
   "orgNumber": "null",
-  "ssn": "01039012345",
+  "ssn": "01017512345",
   "unitType": null,
-  "name": "Sophie Salt",
+  "name": "Ola Nordmann",
   "isDeleted": false,
   "onlyHierarchyElementWithNoAccess": false,
   "person": null,
