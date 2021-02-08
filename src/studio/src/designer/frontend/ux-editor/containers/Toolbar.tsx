@@ -7,9 +7,9 @@ import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../util
 import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { ToolbarGroup } from './ToolbarGroup';
 
 import '../styles/toolBar.css';
-import { ToolbarGroup } from './ToolbarGroup';
 
 export interface IToolbarElement {
   label: string;
