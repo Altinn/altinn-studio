@@ -20,14 +20,14 @@ export interface ISetDataModelFilePathActionPayload extends Action {
 
 export interface IDataModelingState {
   schema: any;
-  filePath: string;
+  modelName: string;
   error: Error;
   saving: boolean;
 }
 
 const initialState: IDataModelingState = {
   schema: {},
-  filePath: undefined,
+  modelName: undefined,
   error: null,
   saving: false,
 };
@@ -59,9 +59,9 @@ const dataModelingSlice = createSlice({
       state.error = error;
       state.saving = false;
     },
-    setDataModelFilePath(state, action) {
-      const { filePath } = action.payload;
-      state.filePath = filePath;
+    setDataModelName(state, action) {
+      const { modelName } = action.payload;
+      state.modelName = modelName;
     },
   },
 });
@@ -73,7 +73,7 @@ export const {
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
-  setDataModelFilePath,
+  setDataModelName,
 } = dataModelingSlice.actions;
 
 export default dataModelingSlice.reducer;

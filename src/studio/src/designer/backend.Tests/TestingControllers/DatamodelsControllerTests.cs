@@ -40,7 +40,7 @@ namespace Designer.Tests.TestingControllers
         {
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/41111";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
    
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -63,7 +63,7 @@ namespace Designer.Tests.TestingControllers
             // Arrange
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=../App/models/41111";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=../App/models/41111";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -77,7 +77,7 @@ namespace Designer.Tests.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("Invalid filepath value", responsestring);
+            Assert.Equal("Invalid model name value.", responsestring);
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace Designer.Tests.TestingControllers
         {
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/35721";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=35721";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -119,7 +119,7 @@ namespace Designer.Tests.TestingControllers
   
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/32578";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=32578";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -133,7 +133,7 @@ namespace Designer.Tests.TestingControllers
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
             JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=App/models/32578";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=32578";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -166,7 +166,7 @@ namespace Designer.Tests.TestingControllers
 
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/41111";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -180,7 +180,7 @@ namespace Designer.Tests.TestingControllers
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
             JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=App/models/41111";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=41111";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -213,7 +213,7 @@ namespace Designer.Tests.TestingControllers
 
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/0678";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=0678";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -227,7 +227,7 @@ namespace Designer.Tests.TestingControllers
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
             JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=App/models/0678";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=0678";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -252,7 +252,7 @@ namespace Designer.Tests.TestingControllers
             // Arrange
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=App/models/0678";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=0678";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -266,7 +266,7 @@ namespace Designer.Tests.TestingControllers
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
             JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=../../App/models/0678";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=../../0678";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -285,7 +285,7 @@ namespace Designer.Tests.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, responsePut.StatusCode);
             string responsestringPut = await responsePut.Content.ReadAsStringAsync();
-            Assert.Equal("Invalid filepath value", responsestringPut);
+            Assert.Equal("Invalid model name value.", responsestringPut);
         }
 
         private HttpClient GetTestClient()
