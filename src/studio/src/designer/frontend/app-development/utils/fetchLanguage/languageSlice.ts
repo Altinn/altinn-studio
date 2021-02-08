@@ -26,7 +26,6 @@ const languageSlice = createSlice({
   reducers: {
     fetchLanguageFulfilled: (state, action: PayloadAction<IFetchLanguageFulfilled>) => {
       const { language } = action.payload;
-      console.log('language: ', language);
       // eslint-disable-next-line no-param-reassign
       state.language = language;
     },

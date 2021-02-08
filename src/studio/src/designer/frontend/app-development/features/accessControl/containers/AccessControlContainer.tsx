@@ -183,7 +183,6 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public renderSideMenu = (): JSX.Element => {
-    console.log('language: ', this.props.language);
     return (
       <>
         <Typography className={this.props.classes.sidebarHeader}>
@@ -231,7 +230,6 @@ const makeMapStateToProps = () => {
     state: IServiceDevelopmentState,
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => {
-    console.log('state.language.language: ', state.language.language);
     return {
       language: state.language.language,
       applicationMetadata: getApplicationMetadata(state),

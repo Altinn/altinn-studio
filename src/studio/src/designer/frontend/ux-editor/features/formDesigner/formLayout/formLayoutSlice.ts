@@ -185,7 +185,6 @@ const formLayoutSlice = createSlice({
     },
     deleteFormComponents: (state, action: PayloadAction<FormLayoutTypes.IDeleteComponentsAction>) => {
       const { components } = action.payload;
-      console.log('delete form components: ', components);
       const selectedLayout = state.layouts[state.selectedLayout];
       components.forEach((id) => {
         let containerId = Object.keys(selectedLayout.order)[0];
@@ -332,7 +331,6 @@ const formLayoutSlice = createSlice({
     },
     updateFormComponentId: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentIdAction>) => {
       const { currentId, newId } = action.payload;
-      console.log('currentId: ', currentId, ', newId: ', newId);
       const currentLayout = state.layouts[state.selectedLayout];
       // update component id
       currentLayout.components[newId] = currentLayout.components[currentId];

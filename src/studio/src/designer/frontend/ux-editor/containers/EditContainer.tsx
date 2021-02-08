@@ -221,7 +221,6 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   };
 
   const handleSave = (): void => {
-    console.log('component: ', component);
     const newListItem = { ...listItem, inEditMode: false };
     setListItem(newListItem);
     setIsEditMode(false);
