@@ -73,24 +73,24 @@ namespace Altinn.Studio.Designer.Controllers
                 return Unauthorized();
             }
 
-            if (!(DateTime.UtcNow < timeout.AddMinutes(-2)))
+            if (DateTime.UtcNow >= timeout.AddMinutes(-2))
             {
-                return Unauthorized();
+                HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
+
+                await HttpContext.SignInAsync(
+                  CookieAuthenticationDefaults.AuthenticationScheme,
+                  HttpContext.User,
+                  new AuthenticationProperties
+                  {
+                      ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes),
+                      IsPersistent = false,
+                      AllowRefresh = false,
+                  });
+
+                return Ok();
             }
 
-            HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
-
-            await HttpContext.SignInAsync(
-              CookieAuthenticationDefaults.AuthenticationScheme,
-              HttpContext.User,
-              new AuthenticationProperties
-              {
-                  ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes),
-                  IsPersistent = false,
-                  AllowRefresh = false,
-              });
-
-            return Ok();
+            return Unauthorized();            
         }
     }
 }

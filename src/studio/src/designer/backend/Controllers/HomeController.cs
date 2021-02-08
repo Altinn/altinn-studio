@@ -174,7 +174,7 @@ namespace Altinn.Studio.Designer.Controllers
             string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
             HttpContext.Response.Cookies.Append(
                 _generalSettings.SessionTimeoutCookieName,
-               timeoutString,
+                timeoutString,
                 new CookieOptions { HttpOnly = true });
 
             await HttpContext.SignInAsync(
