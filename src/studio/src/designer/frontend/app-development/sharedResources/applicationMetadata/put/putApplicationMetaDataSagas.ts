@@ -10,7 +10,7 @@ export function* putApplicationMetadataSaga(action: PayloadAction<IPutApplicatio
   try {
     const url = getApplicationMetadataUrl();
     const result = yield call(axiosPut, url, applicationMetadata);
-    yield put(ApplicationMetadataActions.getApplicationMetadataFulfilled({ applicationMetadata: result }));
+    yield put(ApplicationMetadataActions.putApplicationMetadataFulfilled({ applicationMetadata: result }));
   } catch (error) {
     yield put(ApplicationMetadataActions.putApplicationMetadataRejected({ error }));
   }

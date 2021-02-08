@@ -1,18 +1,19 @@
-import { createMuiTheme, Typography, makeStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
+import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnCheckBoxGroup from 'app-shared/components/AltinnCheckBoxGroup';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
+import AltinnFormControlLabel from 'app-shared/components/AltinnFormControlLabel';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-// eslint-disable-next-line import/no-cycle
-import { PartyTypeComponent } from '../components/PartyTypeComponent';
+import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 const theme = createMuiTheme(altinnTheme);
 
-const useStyles = makeStyles({
+const styles = createStyles({
   sectionHeader: {
     marginBottom: 12,
     fontSize: 20,
@@ -60,8 +61,8 @@ const useStyles = makeStyles({
 
 export interface IAccessControlContainerProvidedProps {
   classes: any;
-  dispatch?: any;
   applicationMetadata: any;
+  dispatch?: any;
 }
 
 export interface IAccessControlContainerProps extends IAccessControlContainerProvidedProps {
@@ -87,169 +88,156 @@ export enum PartyTypes {
   subUnit = 'subUnit',
 }
 
-function reducer(state: IPartyTypesAllowed, action: any) {
-  console.log('change stuff up!', action.type);
-  switch (action.type) {
-    case PartyTypes.bankruptcyEstate: {
+export class AccessControlContainerClass extends React.Component<
+  IAccessControlContainerProps, IAccessControlContainerState> {
+  public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
+    const { partyTypesAllowed } = nextProps.applicationMetadata;
+    if (!partyTypesAllowed) {
+      return null;
+    }
+    if (state.partyTypesAllowed !== partyTypesAllowed) {
       return {
-        ...state,
-        bankruptcyEstate: !state.bankruptcyEstate,
+        partyTypesAllowed,
+        // tslint:disable-next-line: max-line-length
       };
     }
-    case PartyTypes.organisation: {
-      return {
-        ...state,
-        organisation: !state.organisation,
-      };
-    }
-    case PartyTypes.person: {
-      return {
-        ...state,
-        person: !state.person,
-      };
-    }
-    case PartyTypes.subUnit: {
-      return {
-        ...state,
-        subUnit: !state.subUnit,
-      };
-    }
-    default: {
-      throw new Error();
-    }
+    return null;
   }
-}
 
-const initialPartyTypesAllowed: IPartyTypesAllowed = {
-  bankruptcyEstate: false,
-  organisation: false,
-  person: false,
-  subUnit: false,
-};
+  constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
+    super(props, state);
+    const { partyTypesAllowedProps } = props.applicationMetadata;
+    const partyTypesAllowed = {
+      bankruptcyEstate: partyTypesAllowedProps?.bankruptcyEstate || false,
+      organisation: partyTypesAllowedProps?.organisation || false,
+      person: partyTypesAllowedProps?.person || false,
+      subUnit: partyTypesAllowedProps?.subUnit || false,
+    };
 
-export default function AccessControlContainer(props: IAccessControlContainerProvidedProps) {
-  const classes = useStyles();
-  const dispatch = useDispatch();
+    this.state = {
+      partyTypesAllowed,
+    };
+  }
 
-  const [partyTypesAllowed, setPartyTypesAllowed] = React.useReducer(reducer, initialPartyTypesAllowed);
+  public componentDidMount() {
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
+  }
 
-  // const applicationMetadata = useSelector(
-  //   (state: IServiceDevelopmentState) => state.applicationMetadataState.applicationMetadata,
-  // );
-  const language = useSelector((state: IServiceDevelopmentState) => state.language);
+  public handlePartyTypesAllowedChange(partyType: PartyTypes) {
+    // eslint-disable-next-line react/no-access-state-in-setstate
+    const partyTypesAllowed = { ...this.state.partyTypesAllowed };
+    partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+    this.setState({
+      partyTypesAllowed,
+    }, () => {
+      this.saveApplicationMetadata(partyTypesAllowed);
+    });
+  }
 
-  React.useEffect(() => {
-    dispatch(ApplicationMetadataActions.getApplicationMetadata());
-  }, []);
+  public saveApplicationMetadata(partyTypesAllowed: any) {
+    // tslint:disable-next-line: max-line-length
+    const newApplicationMetadata =
+      JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
+    newApplicationMetadata.partyTypesAllowed = partyTypesAllowed;
+    this.props.dispatch(
+      ApplicationMetadataActions.putApplicationMetadata({ applicationMetadata: newApplicationMetadata }),
+    );
+  }
 
-  // React.useEffect(() => {
-  //   if (props.applicationMetadata) {
-  //     const updatedPartyTypes = props.applicationMetadata.partyTypesAllowed;
-  //     if (updatedPartyTypes && partyTypesAllowed !== updatedPartyTypes) {
-  //       setPartyTypesAllowed(updatedPartyTypes);
-  //     }
-  //   } else {
-  //     setPartyTypesAllowed({
-  //       bankruptcyEstate: false,
-  //       organisation: false,
-  //       person: false,
-  //       subUnit: false,
-  //     });
-  //   }
-  // }, [props.applicationMetadata]);
-
-  const handlePartyTypesAllowedChange = (partyType: PartyTypes) => {
-    const newValue = !partyTypesAllowed[partyType];
-    console.log('party type ', partyType, 'newValue: ', newValue);
-    setPartyTypesAllowed({ type: partyType });
-    console.log('partyTypesAllowed: ', partyTypesAllowed);
-    // saveApplicationMetadata();
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const saveApplicationMetadata = () => {
-  //   // tslint:disable-next-line: max-line-length
-  //   const newApplicationMetadata =
-  //     JSON.parse(JSON.stringify((applicationMetadata || {})));
-  //   newApplicationMetadata.partyTypesAllowed = partyTypesAllowed;
-  //   console.log('partytypesallowed: ', partyTypesAllowed);
-  //   dispatch(ApplicationMetadataActions.putApplicationMetadata({
-  //     applicationMetadata: newApplicationMetadata,
-  //   }));
-  // };
-
-  const RenderMainContent = (): JSX.Element => {
+  public renderMainContent = (): JSX.Element => {
     return (
       <>
-        <RenderPartySection />
+        {this.renderPartySection()}
       </>
     );
-  };
+  }
 
-  const RenderPartySection = (): JSX.Element => {
+  public renderPartySection = (): JSX.Element => {
     const partyTypeKeys = Object.keys(PartyTypes);
     return (
-      <div className={classes.contentMargin}>
-        <Typography className={classes.sectionHeader}>
-          {getLanguageFromKey('access_control.party_type_header', language)}
+      <div className={this.props.classes.contentMargin}>
+        <Typography className={this.props.classes.sectionHeader}>
+          {getLanguageFromKey('access_control.party_type_header', this.props.language)}
         </Typography>
-        <Typography className={classes.sectionContent}>
-          {getLanguageFromKey('access_control.party_type', language)}
+        <Typography className={this.props.classes.sectionContent}>
+          {getLanguageFromKey('access_control.party_type', this.props.language)}
         </Typography>
         <AltinnCheckBoxGroup row={true}>
           {partyTypeKeys.map((partyTypeKey: string) => {
             // value used for mapping internal state, key used for language reference
             const partyTypeValue = PartyTypes[partyTypeKey as PartyTypes] as keyof IPartyTypesAllowed;
             return (
-              <PartyTypeComponent
+              <AltinnFormControlLabel
                 key={partyTypeKey}
-                partyTypeKey={partyTypeKey}
-                partyTypeValue={partyTypeValue}
-                handlePartyTypesAllowedChange={handlePartyTypesAllowedChange}
-                label={getLanguageFromKey(`access_control.${partyTypeKey}`, language)}
+                control={<AltinnCheckBox
+                  checked={this.state.partyTypesAllowed[partyTypeValue]}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, partyTypeValue)}
+                />}
+                label={getLanguageFromKey(`access_control.${partyTypeKey}`, this.props.language)}
               />);
           })}
         </AltinnCheckBoxGroup>
       </div>
     );
-  };
+  }
 
-  const RenderSideMenu = (): JSX.Element => {
+  public renderSideMenu = (): JSX.Element => {
     return (
       <>
-        <Typography className={classes.sidebarHeader}>
-          {getLanguageFromKey('access_control.about_header', language)}
+        <Typography className={this.props.classes.sidebarHeader}>
+          {getLanguageFromKey('access_control.about_header', this.props.language)}
         </Typography>
-        <div className={classes.sidebarSectionContainer}>
-          <Typography className={classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_initiation_header', language)}
+        <div className={this.props.classes.sidebarSectionContainer}>
+          <Typography className={this.props.classes.sidebarSectionHeader}>
+            {getLanguageFromKey('access_control.test_initiation_header', this.props.language)}
           </Typography>
-          <Typography className={classes.infoText}>
-            {getLanguageFromKey('access_control.test_initiation', language)}
+          <Typography className={this.props.classes.infoText}>
+            {getLanguageFromKey('access_control.test_initiation', this.props.language)}
           </Typography>
         </div>
-        <div className={classes.sidebarSectionContainer}>
-          <Typography className={classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_what_header', language)}
+        <div className={this.props.classes.sidebarSectionContainer}>
+          <Typography className={this.props.classes.sidebarSectionHeader}>
+            {getLanguageFromKey('access_control.test_what_header', this.props.language)}
           </Typography>
-          <Typography className={classes.infoText}>
-            {getLanguageFromKey('access_control.test_what', language)}
+          <Typography className={this.props.classes.infoText}>
+            {getLanguageFromKey('access_control.test_what', this.props.language)}
           </Typography>
         </div>
       </>
     );
-  };
+  }
 
-  return (
-    <AltinnColumnLayout
-      aboveColumnChildren={
-        <div className={classes.versionControlHeaderMargin}>
-          <VersionControlHeader language={language} />
-        </div>}
-      sideMenuChildren={<RenderSideMenu />}
-      header={getLanguageFromKey('access_control.header', language)}
-    >
-      <RenderMainContent />
-    </AltinnColumnLayout>
-  );
+  public render() {
+    return (
+      <AltinnColumnLayout
+        aboveColumnChildren={
+          <div className={this.props.classes.versionControlHeaderMargin}>
+            <VersionControlHeader language={this.props.language} />
+          </div>}
+        sideMenuChildren={this.renderSideMenu()}
+        header={getLanguageFromKey('access_control.header', this.props.language)}
+      >
+        {this.renderMainContent()}
+      </AltinnColumnLayout>
+    );
+  }
 }
+
+const makeMapStateToProps = () => {
+  const getApplicationMetadata = makeGetApplicationMetadata();
+  const mapStateToProps = (
+    state: IServiceDevelopmentState,
+    props: IAccessControlContainerProvidedProps,
+  ): IAccessControlContainerProps => {
+    return {
+      language: state.language.language,
+      applicationMetadata: getApplicationMetadata(state),
+      dispatch: props.dispatch,
+      ...props,
+    };
+  };
+  return mapStateToProps;
+};
+
+export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));
