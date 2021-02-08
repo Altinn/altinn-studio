@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return Unauthorized();
             }
 
-            if (DateTime.UtcNow >= timeout.AddMinutes(-2))
+            if (DateTime.UtcNow < timeout.AddMinutes(-2))
             {
                 HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
 
