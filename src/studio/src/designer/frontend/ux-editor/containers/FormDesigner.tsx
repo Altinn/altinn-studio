@@ -145,7 +145,7 @@ function FormDesigner() {
   const [codeEditorMode, setCodeEditorMode] = React.useState<LogicMode>(null);
 
   const selectedLayout: string = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
   React.useEffect(() => {
@@ -221,7 +221,7 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView dispatch={null} />
+              <DesignView />
               {codeEditorOpen ?
                 renderLogicEditor()
                 : null}

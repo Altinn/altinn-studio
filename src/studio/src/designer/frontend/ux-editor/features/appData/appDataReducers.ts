@@ -8,14 +8,14 @@ export interface IAppDataState {
   dataModel: IDataModelState;
   textResources: ITextResourcesState;
   ruleModel: IRuleModelState;
-  language: ILanguageState;
+  languageState: ILanguageState;
 }
 
 const combinedReducers: Reducer<IAppDataState> = combineReducers({
   dataModel: dataModelReducer,
   textResources: textResourceReducer,
   ruleModel: ruleModelReducer,
-  language: languageReducer,
+  languageState: languageReducer,
 });
 
 export default combinedReducers;

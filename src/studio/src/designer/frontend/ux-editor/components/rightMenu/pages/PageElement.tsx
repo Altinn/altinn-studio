@@ -41,7 +41,7 @@ export default function PageElement({
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
   const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const [editMode, setEditMode] = React.useState<boolean>(false);

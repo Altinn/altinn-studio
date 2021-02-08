@@ -3,16 +3,14 @@ import { IAppDataState } from '../features/appData/appDataReducers';
 import { IErrorState } from '../features/error/errorSlice';
 import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
-import { IThirdPartyComponentsState } from '../features/thirdPartyComponents/thirdPartyComponentSlice';
 
 declare global {
-  export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
+  export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
     formDesigner: T1;
     serviceConfigurations: T2;
     appData: T3;
     errors: T4;
-    thirdPartyComponents: T5;
-    widgets: T6;
+    widgets: T5;
   }
   export interface IAppState
     extends IFormDesignerNameSpace
@@ -20,7 +18,6 @@ declare global {
     IServiceConfigurationState,
     IAppDataState,
     IErrorState,
-    IThirdPartyComponentsState,
     IWidgetState> { }
   export interface IAltinnEditableComponent {
     ModalContent: () => JSX.Element;

@@ -26,7 +26,7 @@ export interface IServiceDevelopmentReducers
   ReducersMapObject { }
 
 const reducers: IServiceDevelopmentReducers = {
-  language: languageReducer,
+  languageState: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
   applicationMetadataState: applicationMetadataReducer,

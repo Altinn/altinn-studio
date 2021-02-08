@@ -16,7 +16,7 @@ export default function RuleModal(props: IRuleModalProps) {
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const ruleConnection = useSelector((state: IAppState) => state.serviceConfigurations.ruleConnection);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);

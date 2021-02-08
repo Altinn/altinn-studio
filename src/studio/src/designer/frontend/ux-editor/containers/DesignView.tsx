@@ -1,13 +1,14 @@
 /* eslint-disable no-undef */
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 interface IDesignerPreviewProvidedProps {
-  dispatch: any;
+  dispatch?: Dispatch;
 }
 
 interface IDesignerPreviewProps extends IDesignerPreviewProvidedProps {

@@ -25,7 +25,6 @@ export enum ComponentTypes {
   Group = 'Group',
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
-  SomeComponnet = 'SomeComponent',
 }
 
 export const componentIcons: IComponentIcon = {
@@ -43,7 +42,6 @@ export const componentIcons: IComponentIcon = {
   Group: 'fa fa-group',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
-  SomeComponent: 'fa fa-attachment',
 };
 
 export const textComponents: IComponent[] = [
@@ -117,10 +115,6 @@ export const schemaComponents: IComponent[] = [
   {
     name: ComponentTypes.Button,
     Icon: componentIcons.Button,
-  },
-  {
-    name: ComponentTypes.SomeComponnet,
-    Icon: componentIcons.SomeComponent,
   },
 ];
 

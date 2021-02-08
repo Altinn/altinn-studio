@@ -1,6 +1,7 @@
 import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnCheckBoxGroup from 'app-shared/components/AltinnCheckBoxGroup';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
@@ -62,7 +63,7 @@ const styles = createStyles({
 export interface IAccessControlContainerProvidedProps {
   classes: any;
   applicationMetadata: any;
-  dispatch?: any;
+  dispatch?: Dispatch;
 }
 
 export interface IAccessControlContainerProps extends IAccessControlContainerProvidedProps {
@@ -92,7 +93,6 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
-    console.log('getDerivedStateFromProps state: ', state);
     if (state.setStateCalled) {
       return {
         ...state,
@@ -242,7 +242,7 @@ const makeMapStateToProps = () => {
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => {
     return {
-      language: state.language.language,
+      language: state.languageState.language,
       applicationMetadata: getApplicationMetadata(state),
       dispatch: props.dispatch,
       ...props,

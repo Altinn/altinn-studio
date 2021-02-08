@@ -14,7 +14,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps } from 'react-router';
 import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
-import { compose } from 'redux';
+import { compose, Dispatch } from 'redux';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -57,7 +57,7 @@ const styles = () => createStyles({
 });
 
 export interface IServiceDevelopmentProvidedProps {
-  dispatch?: any;
+  dispatch?: Dispatch;
 }
 
 export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, IServiceDevelopmentProvidedProps {
@@ -236,7 +236,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
-      language: state.language.language,
+      language: state.languageState.language,
       serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
       dispatch: props.dispatch,
     };

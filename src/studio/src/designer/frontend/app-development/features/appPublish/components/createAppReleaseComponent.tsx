@@ -57,7 +57,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   const createReleaseErrorCode: number =
     useSelector((state: IServiceDevelopmentState) => state.appReleases.errors.createReleaseErrorCode);
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
 
   const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(createReleaseErrorCode !== null);
   const ref = React.useRef<React.RefObject<HTMLButtonElement>>();

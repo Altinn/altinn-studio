@@ -3,6 +3,7 @@
 import { createMuiTheme, createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -17,7 +18,7 @@ import { getRepoStatusUrl } from '../../../utils/urlHelper';
 
 export interface IAdministrationComponentProvidedProps {
   classes: any;
-  dispatch?: any;
+  dispatch?: Dispatch;
 }
 
 export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
@@ -283,7 +284,7 @@ const mapStateToProps = (
     classes: props.classes,
     dispatch: props.dispatch,
     initialCommit: state.serviceInformation.initialCommit,
-    language: state.language.language,
+    language: state.languageState.language,
     service: state.serviceInformation.repositoryInfo,
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,

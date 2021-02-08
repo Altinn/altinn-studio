@@ -46,7 +46,7 @@ export const DeployContainer = (props: IDeployContainer) => {
   const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) => state.appDeployments.createAppDeploymentErrors);
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
   React.useEffect(() => {
@@ -55,7 +55,7 @@ export const DeployContainer = (props: IDeployContainer) => {
 
     return () => {
       dispatch(AppDeploymentActions.getAppDeploymentsStopInterval());
-      dispatch(getDeploymentsStartInterval());
+      dispatch(getDeploymentsStopInterval());
     };
   }, []);
 
@@ -70,7 +70,7 @@ export const DeployContainer = (props: IDeployContainer) => {
         (envName: string) => configuration.environments.result.find((env: any) => env.name === envName),
       ).filter((element: any) => element != null));
     }
-  }, [orgs, configuration]);
+  }, [orgs, org, configuration]);
 
   React.useEffect(() => {
     if (environments.length) {
@@ -78,7 +78,7 @@ export const DeployContainer = (props: IDeployContainer) => {
     } else {
       dispatch(getDeploymentsStopInterval());
     }
-  }, [environments, appDeployments]);
+  }, [environments, dispatch, appDeployments]);
 
   React.useEffect(() => {
     const tempImages = deployableImages.releases

@@ -13,23 +13,17 @@ import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
-import { fetchThirdPartyComponents } from './features/thirdPartyComponents/thirdPartyComponentSlice';
-
-export interface IAppComponentProps { }
-
-export interface IAppCompoentState { }
 
 /**
  * This is the main React component responsible for controlling
  * the mode of the application and loading initial data for the
  * application
  */
+
 export function App() {
   const dispatch = useDispatch();
 
   const fetchFiles = () => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
     dispatch(fetchDataModel());
     dispatch(FormLayoutActions.fetchFormLayout());
 
@@ -37,9 +31,6 @@ export function App() {
     dispatch(loadTextResources({ url: getLoadTextResourcesUrl(languageCode) }));
     dispatch(fetchServiceConfiguration());
     dispatch(fetchRuleModel());
-
-    const location = `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`;
-    dispatch(fetchThirdPartyComponents({ location }));
     dispatch(fetchLanguage({ languageCode }));
     dispatch(fetchWidgetSettings());
     dispatch(fetchWidgets());

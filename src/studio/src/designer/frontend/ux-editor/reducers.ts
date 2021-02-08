@@ -5,7 +5,6 @@ import errorReducer, { IErrorState } from './features/error/errorSlice';
 import formDesignerReducer, { IFormDesignerState } from './features/formDesigner/formDesignerReducer';
 import serviceConfigurationReducer from './features/serviceConfigurations/serviceConfigurationSlice';
 import { IServiceConfigurationState } from './features/serviceConfigurations/serviceConfigurationTypes';
-import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from './features/thirdPartyComponents/thirdPartyComponentSlice';
 import widgetsReducer, { IWidgetState } from './features/widgets/widgetsSlice';
 
 export interface IReducers
@@ -14,7 +13,6 @@ export interface IReducers
   Reducer<IServiceConfigurationState>,
   Reducer<IAppDataState>,
   Reducer<IErrorState>,
-  Reducer<IThirdPartyComponentsState>,
   Reducer<IWidgetState>
   >,
   ReducersMapObject { }
@@ -24,7 +22,6 @@ const reducers: IReducers = {
   serviceConfigurations: serviceConfigurationReducer,
   appData: appDataReducer,
   errors: errorReducer,
-  thirdPartyComponents: thirdPartyComponentsReducer,
   widgets: widgetsReducer,
 };
 

@@ -185,7 +185,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
 
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
 

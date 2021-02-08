@@ -152,13 +152,14 @@ function* deleteFormComponentsSaga({ payload }: PayloadAction<IDeleteComponentsA
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     for (const id of components) {
       const component = currentLayout.components[id];
-      if (component.type === 'FileUpload') {
+      if (component?.type === 'FileUpload') {
         yield put(FormLayoutActions.deleteApplicationMetadata({ id }));
       }
     }
     yield put(FormLayoutActions.saveFormLayout());
   } catch (error) {
-    yield put(FormLayoutActions.deleteApplicationMetadataRejected({ error }));
+    console.error(error);
+    yield put(FormLayoutActions.deleteFormComponentRejected({ error }));
   }
 }
 

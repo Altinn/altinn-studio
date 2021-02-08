@@ -61,7 +61,7 @@ export function Toolbar() {
       = React.useState<boolean>(false);
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language: any = useSelector((state: IAppState) => state.appData.language.language);
+  const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);

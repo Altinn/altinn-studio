@@ -18,7 +18,7 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);

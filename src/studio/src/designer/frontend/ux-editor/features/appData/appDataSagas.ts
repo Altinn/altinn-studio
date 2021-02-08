@@ -46,7 +46,6 @@ function* fetchRuleModelSaga(): SagaIterator {
     const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);
-    window.document.body.appendChild(scriptEle);
     Object.keys((window as any).ruleHandlerObject).forEach((functionName) => {
       const innerFuncObj = {
         name: functionName,

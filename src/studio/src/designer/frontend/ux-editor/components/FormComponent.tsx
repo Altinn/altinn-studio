@@ -33,7 +33,6 @@ export interface IFormElementProps extends IProvidedProps {
   dataModel: IDataModelFieldElement[];
   validationErrors: any[];
   textResources: any[];
-  thirdPartyComponents: any;
   order: any[];
 }
 
@@ -175,7 +174,6 @@ const makeMapStateToProps = () => {
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;

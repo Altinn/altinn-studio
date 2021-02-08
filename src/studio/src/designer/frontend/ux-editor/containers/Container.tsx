@@ -7,6 +7,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { createStyles, IconButton, withStyles, WithStyles, Grid } from '@material-ui/core';
 
@@ -31,7 +32,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles> {
   baseContainer?: boolean;
   items?: string[];
   layoutOrder?: IFormLayoutOrder;
-  dispatch?: any;
+  dispatch?: Dispatch;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -763,7 +764,7 @@ const makeMapStateToProps = () => {
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       dispatch: props.dispatch,
-      language: state.appData.language.language,
+      language: state.appData.languageState.language,
       itemOrder: !props.items ? itemOrder : props.items,
       id: props.id,
       index: props.index,
