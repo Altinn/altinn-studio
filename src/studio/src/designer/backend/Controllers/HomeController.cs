@@ -171,7 +171,12 @@ namespace Altinn.Studio.Designer.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            HttpContext.Response.Cookies.Append(_generalSettings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString());
+            string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
+            HttpContext.Response.Cookies.Append(
+                _generalSettings.SessionTimeoutCookieName,
+               timeoutString,
+                new CookieOptions { HttpOnly = true });
+
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal,
@@ -191,7 +196,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
         {
-            HttpContext.Response.Cookies.Append(_generalSettings.SessionTimeoutCookieName, string.Empty, new CookieOptions { Expires = DateTime.Now.AddDays(-10) });
+            HttpContext.Response.Cookies.Append(_generalSettings.SessionTimeoutCookieName, string.Empty, new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) });
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");
         }
