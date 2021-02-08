@@ -33,7 +33,7 @@ namespace Designer.Tests.TestingServices
                     Type = FileSystemObjectType.Dir.ToString(),
                     Path = "App"
                 },
-               new FileSystemObject
+                new FileSystemObject
                 {
                     Name = "App.sln",
                     Type = FileSystemObjectType.File.ToString(),
@@ -123,7 +123,7 @@ namespace Designer.Tests.TestingServices
         private RepositorySI GetServiceForTest(Mock<IHttpContextAccessor> httpContextAccsessorMock)
         {
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTest).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTest).Assembly.Location).LocalPath);
             repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
 
             RepositorySI service = new RepositorySI(

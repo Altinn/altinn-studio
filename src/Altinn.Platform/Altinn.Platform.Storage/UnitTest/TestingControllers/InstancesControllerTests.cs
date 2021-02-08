@@ -348,13 +348,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            Assert.Equal(expectedNoInstances, queryResponse.Count);
         }
 
-            /// <summary>
-            /// Test case: Org user requests to get multiple instances from one of their apps.
-            /// Expected: List of instances is returned.
-            /// </summary>
+        /// <summary>
+        /// Test case: Org user requests to get multiple instances from one of their apps.
+        /// Expected: List of instances is returned.
+        /// </summary>
         [Fact]
         public async void GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
         {
@@ -374,7 +374,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            Assert.Equal(expectedNoInstances, queryResponse.Count);
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            Assert.Equal(expectedNoInstances, queryResponse.Count);
         }
 
         /// <summary>
@@ -426,7 +426,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            Assert.Equal(expectedNoInstances, queryResponse.Count);
         }
 
         /// <summary>
@@ -452,7 +452,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            Assert.Equal(expectedNoInstances, queryResponse.Count);
         }
 
         /// <summary>

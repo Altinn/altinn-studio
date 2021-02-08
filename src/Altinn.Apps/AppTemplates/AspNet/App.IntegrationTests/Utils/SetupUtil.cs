@@ -104,6 +104,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "nabovarsel":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
                             break;
+                        case "klareringsportalen":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;

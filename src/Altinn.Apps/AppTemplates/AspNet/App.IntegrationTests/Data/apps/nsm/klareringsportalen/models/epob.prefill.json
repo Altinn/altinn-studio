@@ -1,0 +1,19 @@
+{
+    "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+    "allowOverwrite": true,
+    "ER": {
+    },
+    "DSF": {
+        "FirstName":"PersonInformasjon.person.PersonNavn.fornavn",
+        "MiddleName": "PersonInformasjon.person.PersonNavn.mellomnavn",
+        "LastName":"PersonInformasjon.person.PersonNavn.etternavn",
+        "SSN":"PersonInformasjon.person.foedselsnummer",
+        "MobileNumber": "PersonInformasjon.mobilnummer",
+        "MailingAddress":"PersonInformasjon.bostedsadresse.adressebeskrivelse",
+        "MailingPostalCode":"PersonInformasjon.bostedsadresse.postnummer",
+        "MailingPostalCity":"PersonInformasjon.bostedsadresse.poststed"
+    },
+    "UserProfile": {
+        "Email": "PersonInformasjon.epost"
+    }
+}

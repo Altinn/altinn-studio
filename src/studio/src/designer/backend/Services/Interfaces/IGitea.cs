@@ -106,5 +106,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="shortCommitId">The short hash of a commit id</param>
         /// <returns>a list of files in the given directory</returns>
         Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
+
+        /// <summary>
+        /// Retuns list of the teams the user is memeber of.
+        /// </summary>
+        /// <returns></returns>
+        Task<List<Team>> GetTeams();
     }
 }
