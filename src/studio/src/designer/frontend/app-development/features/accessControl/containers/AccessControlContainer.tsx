@@ -71,6 +71,7 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 
 export interface IAccessControlContainerState {
   partyTypesAllowed: IPartyTypesAllowed;
+  setStateCalled: boolean;
 }
 
 export interface IPartyTypesAllowed {
@@ -91,6 +92,14 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
+    console.log('getDerivedStateFromProps state: ', state);
+    if (state.setStateCalled) {
+      return {
+        ...state,
+        setStateCalled: false,
+      };
+    }
+
     const { partyTypesAllowed } = nextProps.applicationMetadata;
     if (!partyTypesAllowed) {
       return null;
@@ -116,6 +125,7 @@ export class AccessControlContainerClass extends React.Component<
 
     this.state = {
       partyTypesAllowed,
+      setStateCalled: false,
     };
   }
 
@@ -129,16 +139,17 @@ export class AccessControlContainerClass extends React.Component<
     partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
     this.setState({
       partyTypesAllowed,
+      setStateCalled: true,
     }, () => {
-      this.saveApplicationMetadata(partyTypesAllowed);
+      this.saveApplicationMetadata();
     });
   }
 
-  public saveApplicationMetadata(partyTypesAllowed: any) {
+  public saveApplicationMetadata() {
     // tslint:disable-next-line: max-line-length
     const newApplicationMetadata =
       JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
-    newApplicationMetadata.partyTypesAllowed = partyTypesAllowed;
+    newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
     this.props.dispatch(
       ApplicationMetadataActions.putApplicationMetadata({ applicationMetadata: newApplicationMetadata }),
     );

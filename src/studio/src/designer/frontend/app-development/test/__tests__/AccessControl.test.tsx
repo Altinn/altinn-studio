@@ -2,7 +2,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes} from '../../features/accessControl/containers/AccessControlContainer';
+import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes } from '../../features/accessControl/containers/AccessControlContainer';
 
 describe('AccessControl', () => {
   let nextAccessContainerProps: IAccessControlContainerProps;
@@ -47,7 +47,8 @@ describe('AccessControl', () => {
   it('getDerivedStateFromProps should only return object on changed state', () => {
     const shouldUpdateOnEqualProps = AccessControlContainerClass.getDerivedStateFromProps(
       nextAccessContainerProps,
-      accessContainerState);
+      accessContainerState,
+    );
     const shouldNotUpdateOnNewProps = AccessControlContainerClass.getDerivedStateFromProps(
       currentAccessContainerProps,
       accessContainerState,
@@ -58,7 +59,8 @@ describe('AccessControl', () => {
         language: {},
         classes: {},
       },
-      accessContainerState);
+      accessContainerState,
+    );
     expect(shouldUpdateOnEqualProps).not.toBe(null);
     expect(shouldNotUpdateOnNewProps).toBe(null);
     expect(shouldNotUpdateOnNullValues).toBe(null);
@@ -70,7 +72,9 @@ describe('AccessControl', () => {
         applicationMetadata={currentApplicationMetadata}
         language={{}}
         classes={{}}
-      />);
+        dispatch={() => {}}
+      />,
+    );
     const instance = wrapper.instance() as AccessControlContainerClass;
     instance.handlePartyTypesAllowedChange(PartyTypes.bankruptcyEstate);
     instance.handlePartyTypesAllowedChange(PartyTypes.organisation);
@@ -85,7 +89,9 @@ describe('AccessControl', () => {
         applicationMetadata={{}}
         language={{}}
         classes={{}}
-      />);
+        dispatch={() => {}}
+      />,
+    );
     expect(wrapper.state('partyTypesAllowed')).toEqual({
       bankruptcyEstate: false,
       organisation: false,
