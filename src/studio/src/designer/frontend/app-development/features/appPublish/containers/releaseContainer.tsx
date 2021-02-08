@@ -19,10 +19,9 @@ import { IAppReleaseState } from '../../../sharedResources/appRelease/appRelease
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
+import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
 import { getGitCommitLink, getRepoStatusUrl, languageUrl } from '../../../utils/urlHelper';
-import HandleMergeConflictActionDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
-import { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictReducer';
+import { fetchRepoStatus, IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
 
@@ -163,10 +162,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     const { org, app } = window as Window as IAltinnWindow;
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
-      FetchLanguageActionDispatchers.fetchLanguage(languageUrl, 'nb');
+      dispatch(fetchLanguage({ url: languageUrl, languageCode: 'nb' }));
     }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
-    HandleMergeConflictActionDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
+    dispatch(fetchRepoStatus({
+      url: getRepoStatusUrl(),
+      org,
+      repo: app,
+    }));
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };

@@ -1,12 +1,12 @@
 /* eslint-disable camelcase */
 // eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
-import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
+import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
-import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
+import { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
 import { IDataModelingState } from '../features/dataModeling/dataModelingSlice';

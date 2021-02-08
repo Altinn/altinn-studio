@@ -3,7 +3,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { IRepoStatusAction, RepoStatusActions } from '../repoStatusSlice';
-import HandleMergeConflictDispatchers from '../../../features/handleMergeConflict/handleMergeConflictDispatcher';
+import { fetchRepoStatus } from '../../../features/handleMergeConflict/handleMergeConflictSlice';
 import { getRepoStatusUrl } from '../../../utils/urlHelper';
 
 // GET MASTER REPO
@@ -15,7 +15,11 @@ export function* resetLocalRepoSaga({ payload: {
     const result = yield call(get,
       `/designerapi/Repository/ResetLocalRepository?org=${org}&repository=${repo}`);
 
-    yield call(HandleMergeConflictDispatchers.fetchRepoStatus, getRepoStatusUrl(), org, repo);
+    yield put(fetchRepoStatus({
+      url: getRepoStatusUrl(),
+      org,
+      repo,
+    }));
 
     yield put(RepoStatusActions.resetLocalRepoFulfilled({ result }));
   } catch (error) {

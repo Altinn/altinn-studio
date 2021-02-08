@@ -10,7 +10,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ICommit, IRepository } from '../../../types/global';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
-import HandleMergeConflictDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
+import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
 import { getRepoStatusUrl } from '../../../utils/urlHelper';
@@ -142,7 +142,11 @@ export class AdministrationComponent extends
     this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
       { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
     ));
-    HandleMergeConflictDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
+    this.props.dispatch(fetchRepoStatus({
+      url: getRepoStatusUrl(),
+      org,
+      repo: app,
+    }));
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -279,7 +283,7 @@ const mapStateToProps = (
     classes: props.classes,
     dispatch: props.dispatch,
     initialCommit: state.serviceInformation.initialCommit,
-    language: state.language,
+    language: state.language.language,
     service: state.serviceInformation.repositoryInfo,
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,

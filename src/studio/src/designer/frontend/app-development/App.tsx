@@ -25,10 +25,10 @@ import { redirects } from './config/redirects';
 import routes from './config/routes';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
-import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
+import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
-import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
+import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { getRepoStatusUrl } from './utils/urlHelper';
 
 const theme = createMuiTheme(altinnTheme);
@@ -80,9 +80,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public componentDidMount() {
     const { org, app } = window as Window as IAltinnWindow;
-    fetchLanguageDispatcher.fetchLanguage(
-      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb',
-    );
+    this.props.dispatch(fetchLanguage({
+      url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
+      languageCode: 'nb',
+    }));
     this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
       url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
@@ -100,7 +101,11 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     const { org, app } = window as Window as IAltinnWindow;
     const repoStatusUrl = getRepoStatusUrl();
 
-    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
+    this.props.dispatch(fetchRepoStatus({
+      url: repoStatusUrl,
+      org,
+      repo: app,
+    }));
   }
 
   public windowEventReceived = (event: any) => {
@@ -231,7 +236,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
-      language: state.language,
+      language: state.language.language,
       serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
       dispatch: props.dispatch,
     };
