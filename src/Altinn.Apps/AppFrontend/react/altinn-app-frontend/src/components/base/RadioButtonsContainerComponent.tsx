@@ -112,6 +112,10 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
     props.handleDataChange(event.target.value);
   };
 
+  const handleOnBlur = () => {
+    props.handleDataChange(props.formData);
+  };
+
   const RenderLegend = props.legend;
 
   return (
@@ -126,6 +130,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
         aria-label={props.title}
         name={props.title}
         value={selected}
+        onBlur={handleOnBlur}
         onChange={onDataChange}
         row={radioGroupIsRow}
         id={props.id}
