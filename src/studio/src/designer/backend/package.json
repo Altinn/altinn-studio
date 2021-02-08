@@ -31,7 +31,7 @@
     "jquery-validation-unobtrusive": "3.2.11",
     "js-beautify": "1.13.5",
     "json-editor": "0.7.28",
-    "monaco-editor": "0.22.1",
+    "monaco-editor": "0.22.3",
     "popper.js": "1.16.1",
     "requirejs": "2.3.6",
     "requirejs-text": "2.0.15",
