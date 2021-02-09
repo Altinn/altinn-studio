@@ -132,6 +132,16 @@ export interface IFormRadioButtonComponent extends IFormComponent {
 
 export interface IFormTextAreaComponent extends IFormComponent { }
 
+export interface ILayoutSets {
+   sets: ILayoutSet[];
+}
+
+export interface ILayoutSet{
+  id: string;
+  dataType: string;
+  tasks: string[];
+}
+
 export interface ILayoutSettings {
   pages: IPagesSettings;
 }
@@ -276,4 +286,8 @@ export enum Severity {
 
 export enum Triggers {
   Validation = 'validation',
+}
+
+export interface ILabelSettings {
+  optionalIndicator?: boolean;
 }

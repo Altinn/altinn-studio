@@ -51,13 +51,12 @@ public class TextUtilsTest extends TestCase {
       assertEquals(expectedResult, result);
     }
 
-    public void testGetDateFormatForDate_NN()
-    {
-      String value = "2020-09-19";
-      String result = TextUtils.getDateFormat(value, "nn");
-      String expectedResult = "19.09.2020";
-      assertEquals(expectedResult, result);
-    }
+  public void testGetDateFormatForDate_NN() {
+    String value = "2020-09-19";
+    String result = TextUtils.getDateFormat(value, "nn");
+    String expectedResult = "19.09.2020";
+    assertEquals(expectedResult, result);
+  }
 
     public void testGetDateFormatForDate_EN()
     {

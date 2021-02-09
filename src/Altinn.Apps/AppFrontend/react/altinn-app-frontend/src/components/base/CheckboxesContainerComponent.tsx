@@ -134,6 +134,10 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     props.handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
 
+  const handleOnBlur = () => {
+    props.handleDataChange(props.formData);
+  };
+
   const selectedHasValues = (select: string[]): boolean => {
     return select.some((element) => element !== '');
   };
@@ -184,6 +188,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
                   onChange={onDataChanged}
+                  onBlur={handleOnBlur}
                   value={index}
                   key={option.value}
                   name={option.value}

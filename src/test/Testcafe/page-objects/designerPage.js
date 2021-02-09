@@ -10,6 +10,7 @@ export default class DesignerPage {
 
     //"Om" navigation tab selectors
     this.aboutNavigationTab = Selector('div > a').withExactText('Om');
+    this.appNameLocked = Selector("#administrationInputServicename_textField");
     this.aboutAppName = Selector('#administrationInputServicename > div > div > input');
     this.aboutChangeAppName = Selector("button > span > span").withExactText("Endre");
     this.aboutAppId = Selector('#administrationInputServiceid > div > div > input');
@@ -59,6 +60,7 @@ export default class DesignerPage {
     this.languageLeftMenuItems = [
       this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster')
     ];
+    this.languageTabs = Selector('#tabs');
 
     //"Deploy" navigation tab selectors
     this.deployNavigationTab = Selector('div > a').withExactText('Deploy');
@@ -74,6 +76,7 @@ export default class DesignerPage {
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
     this.deployTable = (environment == 'prod') ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
+    this.deploys = this.deployTable.find('tr');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 

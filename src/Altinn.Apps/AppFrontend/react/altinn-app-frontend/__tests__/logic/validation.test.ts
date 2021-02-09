@@ -141,6 +141,18 @@ describe('>>> utils/validations.ts', () => {
           readOnly: false,
           textResourceBindings: {},
         },
+        {
+          type: 'AddressComponent',
+          id: 'componentId_6',
+          dataModelBindings: {
+            address: 'address.StreetName',
+            zipCode: 'address.PostCode',
+            postPlace: 'address.PostPlacee',
+          },
+          required: true,
+          readOnly: false,
+          textResourceBindings: {},
+        },
       ],
     };
 
@@ -171,6 +183,18 @@ describe('>>> utils/validations.ts', () => {
           customBinding: {
             errors: [],
             warnings: ['Warning message 1', 'Warning message 2'],
+          },
+        },
+        'componentId_4-1': {
+          simpleBinding: {
+            errors: ['test error'],
+            warnings: [],
+          },
+        },
+        'componentId_5-0-1': {
+          simpleBinding: {
+            errors: ['test error'],
+            warnings: [],
           },
         },
       },
@@ -233,6 +257,9 @@ describe('>>> utils/validations.ts', () => {
                 $ref: '#/definitions/Group1',
               },
             },
+            address: {
+              $ref: '#/definitions/Address',
+            },
           },
           required: [
             'dataModelField_1',
@@ -261,6 +288,19 @@ describe('>>> utils/validations.ts', () => {
             dataModelField_5: {
               type: 'string',
               minLength: 10,
+            },
+          },
+        },
+        Address: {
+          properties: {
+            StreetName: {
+              type: 'string',
+            },
+            PostCode: {
+              type: 'string',
+            },
+            PostPlace: {
+              type: 'string',
             },
           },
         },
@@ -352,6 +392,22 @@ describe('>>> utils/validations.ts', () => {
       },
       {
         field: 'random_key',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'test error',
+        code: '',
+      },
+      {
+        field: 'group_1[1].dataModelField_4',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'test error',
+        code: '',
+      },
+      {
+        field: 'group_1[0].group_2[1].dataModelField_5',
         severity: Severity.Error,
         scope: null,
         targetId: '',
@@ -493,22 +549,35 @@ describe('>>> utils/validations.ts', () => {
         repeatingGroups,
       );
 
-    const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } } };
+    const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } }, componentId_6: { address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] } } } };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
 
   it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
-    const validations = {};
     const component = mockLayout.FormLayout.find((c) => c.id === 'componentId_3');
-    validation.validateEmptyField(
+    const validations = {};
+    validations[component.id] = validation.validateEmptyField(
       mockFormData,
-      component,
-      validations,
+      component.dataModelBindings,
       mockLanguage.language,
     );
 
     const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
+
+    expect(validations).toEqual(mockResult);
+  });
+
+  it('+++ validateEmptyField should find all errors in an AddressComponent', () => {
+    const component = mockLayout.FormLayout.find((c) => c.id === 'componentId_6');
+    const validations = {};
+    validations[component.id] = validation.validateEmptyField(
+      mockFormData,
+      component.dataModelBindings,
+      mockLanguage.language,
+    );
+
+    const mockResult = { componentId_6: { address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] } } };
 
     expect(validations).toEqual(mockResult);
   });

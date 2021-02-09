@@ -5,7 +5,7 @@
 import axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
-import { IComponentValidations } from 'src/types';
+import { IComponentValidations, ILabelSettings } from 'src/types';
 import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
@@ -22,6 +22,7 @@ export interface IAddressComponentProps {
   dataModelBindings: IDataModelBindings;
   readOnly: boolean;
   required: boolean;
+  labelSettings?: ILabelSettings;
   language: any;
   textResourceBindings: ITextResourceBindings;
   componentValidations?: IComponentValidations;
@@ -31,6 +32,7 @@ interface IAddressValidationErrors {
   address?: string;
   zipCode?: string;
   houseNumber?: string;
+  postPlace?: string;
 }
 
 export enum AddressKeys {
@@ -53,16 +55,16 @@ export function AddressComponent(props: IAddressComponentProps) {
   const [validations, setValidations] = React.useState({} as any);
 
   React.useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    const zipCode = props.formData.zipCode;
-    if (!zipCode || zipCode === '') {
-      return;
-    }
+    setAddress(props.formData.address || '');
+    setZipCode(props.formData.zipCode || '');
+    setPostPlace(props.formData.postPlace || '');
+    setCareOf(props.formData.careOf || '');
+    setHouseNumber(props.formData.houseNumber || '');
+  }, [props.formData]);
 
-    if (!zipCode.match(new RegExp('^[0-9]{4}$'))) {
-      const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', props.language);
+  React.useEffect(() => {
+    if (!zipCode || !zipCode.match(new RegExp('^[0-9]{4}$'))) {
       setPostPlace('');
-      setValidations({ ...validations, zipCode: errorMessage });
       return;
     }
 
@@ -110,8 +112,9 @@ export function AddressComponent(props: IAddressComponentProps) {
     const validationErrors: IAddressValidationErrors = {
       zipCode: null,
       houseNumber: null,
+      postPlace: null,
     };
-    if (zipCode !== null && zipCode !== '' && !zipCode.match(new RegExp('^[0-9]{4}$'))) {
+    if (zipCode && !zipCode.match(new RegExp('^[0-9]{4}$'))) {
       validationErrors.zipCode = getLanguageFromKey(
         'address_component.validation_error_zipcode', props.language,
       );
@@ -119,7 +122,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     } else {
       validationErrors.zipCode = null;
     }
-    if (!houseNumber.match(new RegExp('^[a-z,A-Z]{1}[0-9]{4}$')) && houseNumber !== '') {
+    if (houseNumber && !houseNumber.match(new RegExp('^[a-z,A-Z]{1}[0-9]{4}$'))) {
       validationErrors.houseNumber = getLanguageFromKey(
         'address_component.validation_error_house_number', props.language,
       );
@@ -200,7 +203,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     return (
       <label className='a-form-label title-label' htmlFor={id}>
         {label}
-        {props.required || hideOptional ?
+        {props.required || props.readOnly || props.labelSettings?.optionalIndicator === false || hideOptional ?
           null :
           <span className='label-optional'>
             ({getLanguageFromKey('general.optional', props.language)})
@@ -228,7 +231,7 @@ export function AddressComponent(props: IAddressComponentProps) {
         readOnly={props.readOnly}
         required={props.required}
       />
-      {allValidations ?
+      {allValidations?.[AddressKeys.address] ?
         renderValidationMessagesForComponent(allValidations[AddressKeys.address],
           `${props.id}_${AddressKeys.address}`)
         : null}
@@ -248,7 +251,7 @@ export function AddressComponent(props: IAddressComponentProps) {
             onBlur={onBlurField.bind(null, AddressKeys.careOf, careOf)}
             readOnly={props.readOnly}
           />
-          {allValidations ?
+          {allValidations?.[AddressKeys.careOf] ?
             renderValidationMessagesForComponent(allValidations[AddressKeys.careOf],
               `${props.id}_${AddressKeys.careOf}`)
             : null}
@@ -272,7 +275,7 @@ export function AddressComponent(props: IAddressComponentProps) {
             required={props.required}
             type='number'
           />
-          {allValidations ?
+          {allValidations?.[AddressKeys.careOf] ?
             renderValidationMessagesForComponent(allValidations[AddressKeys.zipCode],
               `${props.id}_${AddressKeys.zipCode}`)
             : null}
@@ -288,8 +291,9 @@ export function AddressComponent(props: IAddressComponentProps) {
               })}
             value={postPlace}
             readOnly={true}
+            required={props.required}
           />
-          {allValidations ?
+          {allValidations?.[AddressKeys.postPlace] ?
             renderValidationMessagesForComponent(allValidations[AddressKeys.postPlace],
               `${props.id}_${AddressKeys.postPlace}`)
             : null}
@@ -316,7 +320,7 @@ export function AddressComponent(props: IAddressComponentProps) {
           onBlur={onBlurField.bind(null, AddressKeys.houseNumber, houseNumber)}
           readOnly={props.readOnly}
         />
-        {allValidations ?
+        {allValidations?.[AddressKeys.houseNumber] ?
           renderValidationMessagesForComponent(allValidations[AddressKeys.houseNumber],
             `${props.id}_${AddressKeys.houseNumber}`)
           : null}

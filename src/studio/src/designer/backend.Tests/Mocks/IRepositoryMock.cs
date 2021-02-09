@@ -207,7 +207,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string app)
+        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app)
         {
             throw new NotImplementedException();
         }
@@ -328,6 +328,16 @@ namespace Designer.Tests.Mocks
         }
 
         public bool AddTextResources(string org, string app, List<TextResource> textResourceList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetAppPath(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> texts)
         {
             throw new NotImplementedException();
         }

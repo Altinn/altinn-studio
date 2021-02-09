@@ -21,7 +21,8 @@ import { watchAddActiveFormContainerSaga,
   watchUpdateLayoutNameSaga,
   watchUpdateLayoutOrderSaga,
   watchFetchFormLayoutSettingSaga,
-  watchSaveFormLayoutSettingSaga } from './formDesignerSagas';
+  watchSaveFormLayoutSettingSaga,
+  watchUpdateFormComponentIdSaga } from './formDesignerSagas';
 import { watchAddWidgetSaga } from '../../features/formLayout/widgets/addWidgetsSagas';
 
 // eslint-disable-next-line func-names
@@ -35,6 +36,7 @@ export default function* (): SagaIterator {
   yield fork(watchSaveFormLayoutSaga);
   yield fork(watchUpdateDataModelBindingSaga);
   yield fork(watchUpdateFormComponentSaga);
+  yield fork(watchUpdateFormComponentIdSaga);
   yield fork(watchUpdateFormComponentOrderSaga);
   yield fork(watchAddApplicationMetadataSaga);
   yield fork(watchDeleteApplicationMetadataSaga);

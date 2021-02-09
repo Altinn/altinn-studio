@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
@@ -13,10 +14,12 @@ using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
@@ -215,7 +218,7 @@ namespace Altinn.App.Services.Implementation
                     if (generatePdf)
                     {
                         Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
-                        Task createPdf = GenerateAndStoreReceiptPDF(instance, dataElement, dataElementType);
+                        Task createPdf = GenerateAndStoreReceiptPDF(instance, taskId, dataElement, dataElementType);
                         await Task.WhenAll(updateData, createPdf);
                     }
                     else
@@ -224,8 +227,8 @@ namespace Altinn.App.Services.Implementation
                     }
                 }
             }
-            
-            if (_appMetadata.AutoDeleteOnProcessEnd) 
+
+            if (_appMetadata.AutoDeleteOnProcessEnd)
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -236,19 +239,28 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
         }
 
-        private async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement, Type dataElementModelType)
+        private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
             int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            string layoutSettingsString = _resourceService.GetLayoutSettings();
+            string layoutSetsString = _resourceService.GetLayoutSets();
+            LayoutSets layoutSets = null;
+            LayoutSet layoutSet = null;
+            if (!string.IsNullOrEmpty(layoutSetsString))
+            {
+                layoutSets = JsonConvert.DeserializeObject<LayoutSets>(layoutSetsString);
+                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
+            }
+
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
 
             LayoutSettings layoutSettings = null;
-            if (!string.IsNullOrEmpty(layoutSettingsString))
+            if (!string.IsNullOrEmpty(layoutSettingsFileContent))
             {
-                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(_resourceService.GetLayoutSettings());
+                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
 
             object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
@@ -267,7 +279,9 @@ namespace Altinn.App.Services.Implementation
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
 
-            string formLayoutsString = _resourceService.GetLayouts();
+            // If layoutst exist pick correctr layotFiles
+            string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
+
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
             if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
             {
@@ -276,13 +290,15 @@ namespace Altinn.App.Services.Implementation
             }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
+            Dictionary<string, Dictionary<string, string>> optionsDictionary = await GetOptionsDictionary(formLayoutsFileContent);
 
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
-                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
+                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsFileContent),
                 LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
+                OptionsDictionary = optionsDictionary,
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
                 UserProfile = userProfile,
@@ -329,6 +345,50 @@ namespace Altinn.App.Services.Implementation
 
             fileName = Uri.EscapeDataString(fileName);
             return fileName;
+        }
+
+        private List<string> GetOptionIdsFromFormLayout(string formLayout)
+        {
+            List<string> optionsIds = new List<string>();
+            string matchString = "\"optionsId\":\"";
+
+            string[] formLayoutSubstrings = formLayout.Replace(" ", string.Empty).Split(new string[] { matchString }, StringSplitOptions.None);
+
+            for (int i = 1; i < formLayoutSubstrings.Length; i++)
+            {
+                string[] workingSet = formLayoutSubstrings[i].Split('\"');
+                string optionsId = workingSet[0];
+                optionsIds.Add(optionsId);
+            }
+
+            return optionsIds;
+        }
+
+        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout)
+        {
+            Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
+            List<string> optionsIdsList = GetOptionIdsFromFormLayout(formLayout);
+
+            foreach (string optionsId in optionsIdsList)
+            {
+                AppOptions appOptions = new AppOptions();
+
+                appOptions.Options = _resourceService.GetOptions(optionsId);
+                appOptions = await GetOptions(optionsId, appOptions);
+
+                if (appOptions.Options != null)
+                {
+                    Dictionary<string, string> options = new Dictionary<string, string>();
+                    foreach (AppOption item in appOptions.Options)
+                    {
+                        options.Add(item.Label, item.Value);
+                    }
+
+                    dictionary.Add(optionsId, options);
+                }          
+            }
+
+            return dictionary;
         }
     }
 }

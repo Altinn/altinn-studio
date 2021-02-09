@@ -249,14 +249,116 @@ namespace UnitTests
             Assert.Equal(minAuthLevel, result.FailedObligations[AltinnObligations.RequiredAuthenticationLevel]);
         }
 
-        private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
+        /// <summary>
+        /// Test case: Response contains obligation with min authentication level that the user do not meet, get detailed response
+        /// Expected: Returns false
+        /// </summary>
+        [Fact]
+        public void ValidatePdpDecision_TC09()
+        {
+            // Arrange
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = new List<XacmlJsonResult>();
+            XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
+            xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
+            response.Response.Add(xacmlJsonResult);
+
+            // Add obligation to result with a minimum authentication level attribute
+            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+            string minAuthLevel = "4";
+            XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
+            {
+                Category = "urn:altinn:minimum-authenticationlevel",
+                Value = minAuthLevel
+            };
+            obligation.AttributeAssignment.Add(authenticationAttribute);
+
+            XacmlJsonObligationOrAdvice obligationOrg = new XacmlJsonObligationOrAdvice();
+            obligationOrg.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+            string minAuthLevelOrg = "2";
+            XacmlJsonAttributeAssignment authenticationAttributeOrg = new XacmlJsonAttributeAssignment()
+            {
+                Category = "urn:altinn:minimum-authenticationlevel",
+                Value = minAuthLevelOrg
+            };
+            obligationOrg.AttributeAssignment.Add(authenticationAttributeOrg);
+
+            xacmlJsonResult.Obligations = new List<XacmlJsonObligationOrAdvice>();
+            xacmlJsonResult.Obligations.Add(obligation);
+            xacmlJsonResult.Obligations.Add(obligationOrg);
+
+            // Act
+            EnforcementResult result = DecisionHelper.ValidatePdpDecisionDetailed(response.Response, CreateUserClaims(false));
+
+            // Assert
+            Assert.False(result.Authorized);
+            Assert.Contains(AltinnObligations.RequiredAuthenticationLevel, result.FailedObligations.Keys);
+            Assert.Equal(minAuthLevel, result.FailedObligations[AltinnObligations.RequiredAuthenticationLevel]);
+        }
+
+        /// <summary>
+        /// Test case: Response contains obligation with min authentication level that the user do not meet, get detailed response
+        /// Expected: Returns false
+        /// </summary>
+        [Fact]
+        public void ValidatePdpDecision_TC10()
+        {
+            // Arrange
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = new List<XacmlJsonResult>();
+            XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
+            xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
+            response.Response.Add(xacmlJsonResult);
+
+            // Add obligation to result with a minimum authentication level attribute
+            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+            string minAuthLevel = "4";
+            XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
+            {
+                Category = "urn:altinn:minimum-authenticationlevel",
+                Value = minAuthLevel
+            };
+            obligation.AttributeAssignment.Add(authenticationAttribute);
+
+            XacmlJsonObligationOrAdvice obligationOrg = new XacmlJsonObligationOrAdvice();
+            obligationOrg.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+            string minAuthLevelOrg = "2";
+            XacmlJsonAttributeAssignment authenticationAttributeOrg = new XacmlJsonAttributeAssignment()
+            {
+                Category = "urn:altinn:minimum-authenticationlevel-org",
+                Value = minAuthLevelOrg
+            };
+            obligationOrg.AttributeAssignment.Add(authenticationAttributeOrg);
+
+            xacmlJsonResult.Obligations = new List<XacmlJsonObligationOrAdvice>();
+            xacmlJsonResult.Obligations.Add(obligationOrg);
+            xacmlJsonResult.Obligations.Add(obligation);
+
+            // Act
+            EnforcementResult result = DecisionHelper.ValidatePdpDecisionDetailed(response.Response, CreateUserClaims(false, "ttd"));
+
+            // Assert
+            Assert.True(result.Authorized);
+            Assert.Null(result.FailedObligations);
+        }
+
+        private ClaimsPrincipal CreateUserClaims(bool addExtraClaim, string org = null)
         {
             // Create the user
             List<Claim> claims = new List<Claim>();
 
             // type, value, valuetype, issuer
-            claims.Add(new Claim("urn:name", "Ola", "string", "org"));
             claims.Add(new Claim("urn:altinn:authlevel", "2", "string", "org"));
+            if (org != null)
+            {
+                claims.Add(new Claim("urn:altinn:org", org, "string", "org"));
+            }
+            else
+            {
+                claims.Add(new Claim("urn:name", "Ola", "string", "org"));
+            }
 
             if (addExtraClaim)
             {

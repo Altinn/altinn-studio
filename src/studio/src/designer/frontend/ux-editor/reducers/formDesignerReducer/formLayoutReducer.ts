@@ -399,6 +399,41 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
     }
+    case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ID_FULFILLED: {
+      const { currentId, newId } = action as FormDesignerActions.IUpdateFormComponentIdFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        // update component id
+        layouts: {
+          [state.selectedLayout]: {
+            components: (currentComponents) => {
+              const updatedComponents = Object.assign({}, currentComponents);
+              updatedComponents[newId] = updatedComponents[currentId];
+              delete updatedComponents[currentId];
+              return updatedComponents;
+            },
+            order: (currentOrder) => {
+              // update id in parent container order
+              const updatedOrder = Object.assign({}, currentOrder);
+              const parentContainer = Object.keys(updatedOrder).find((containerId: string) => {
+                return (updatedOrder[containerId].indexOf(currentId) > -1);
+              });
+              const parentContainerOrder = updatedOrder[parentContainer];
+              const componentIndex = parentContainerOrder.indexOf(currentId);
+              parentContainerOrder[componentIndex] = newId;
+              return updatedOrder;
+            },
+          },
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ID_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateFormComponentIdRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
     case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_FULFILLED: {
       const { updatedContainer, id } = action as FormDesignerActions.IUpdateFormContainerActionFulfilled;
       return update<IFormLayoutState>(state, {

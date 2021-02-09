@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -35,7 +35,7 @@ namespace Altinn.App.Services.Implementation
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
                 {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    ContractResolver = new CamelCaseExceptDictionaryResolver()
                 });
 
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiPdfEndpoint);

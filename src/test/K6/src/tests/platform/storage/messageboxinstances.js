@@ -59,15 +59,22 @@ export default function(data) {
     });
     addErrorCount(success);
 
-    //Test to get instances based on filter parameters from storage: SBL and validate the response
+    //Test to get active instances based of a specific app from storage: SBL and validate the response
     var filters = {
         "language": "nb",
         "appId": appOwner + "/" + appName,
-        "instanceOwner.partyId": partyId
+        "instanceOwner.partyId": partyId,
+        "includeActive": "true"
     };
     res = sbl.searchSblInstances(runtimeToken, filters);
     success = check(res, {
-        "Search instances by app id status is 200:": (r) => r.status === 200
+        "Search instances by app id status is 200:": (r) => r.status === 200,
+        "Search instances by app id count is more than 0:": (r) => (JSON.parse(r.body)).length > 0,
+        "Search instances only active instances retrieved:": (r) => {
+            var responseInstances = r.json();
+            return (responseInstances.every(instance => instance.archivedDateTime === null) &&
+                responseInstances.every(instance => instance.deletedDateTime === null));
+        }
     });
     addErrorCount(success);
 
@@ -83,6 +90,22 @@ export default function(data) {
         "Search instances Created date is greaten than today:": (r) => {
             var responseInstances = r.json();
             return responseInstances.every(instance => instance.createdDateTime > support.todayDateInISO());
+        }
+    });
+    addErrorCount(success);
+
+    //Test to get instances based on filter parameters: search string (app title) from storage: SBL and validate the response
+    filters = {
+        "instanceOwner.partyId": partyId,
+        "searchString": "app",
+        "language": "nb"
+    };
+    res = sbl.searchSblInstances(runtimeToken, filters);
+    success = check(res, {
+        "Search instances by app title status is 200:": (r) => r.status === 200,
+        "Search instances app title matches:": (r) => {
+            var responseInstances = r.json();
+            return responseInstances.every(instance => instance.title.includes("app"));
         }
     });
     addErrorCount(success);

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
-import { IDataModelFieldElement, ITextResource, Triggers } from 'src/types';
+import { IDataModelFieldElement, ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
 import { Grid } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
@@ -36,6 +36,7 @@ export interface IGenericComponentProps {
   componentValidations?: IComponentValidations;
   readOnly: boolean;
   required: boolean;
+  labelSettings?: ILabelSettings;
   triggers?: Triggers[];
   hidden?: boolean;
 }
@@ -119,7 +120,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   };
 
-  // some compoenets handle their validations internally (i.e merge with internal validaiton state)
+  // some components handle their validations internally (i.e merge with internal validaiton state)
   const internalComponentValidations = getValidationsForInternalHandling();
   if (internalComponentValidations !== null) {
     passThroughProps.componentValidations = internalComponentValidations;
@@ -208,6 +209,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Button',
     'Checkboxes',
     'RadioButtons',
+    'AttachmentList',
   ];
 
   return (
