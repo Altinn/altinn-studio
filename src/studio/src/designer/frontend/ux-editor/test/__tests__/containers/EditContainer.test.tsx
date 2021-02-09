@@ -17,7 +17,7 @@ describe('>>> containers/EditContainer', () => {
     const createStore = configureStore();
     const initialState = {
       appData: {
-        language: {
+        languageState: {
           language: {
             ux_editor: {
               modal_properties_data_model_helper: 'Lenke til datamodell',
