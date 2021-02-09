@@ -40,9 +40,8 @@ namespace Designer.Tests.TestingControllers
             // Arrange
             string uri = $"{_versionPrefix}/remaining";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
             HttpClient client = GetTestClient();
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -81,15 +80,6 @@ namespace Designer.Tests.TestingControllers
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile("appsettings.json");
-                });
-
-                var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IGitea, IGiteaMock>();

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller that exposes endpoints for hangling everything related to the user's session in Altinn Studio.
+    /// Controller that exposes endpoints for handling everything related to the user's session in Altinn Studio.
     /// </summary>
     [ApiController]
     [Route("/designer/api/v1/session")]
@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets the value of the session timeout cookie.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The remainder of the session in minutes</returns>
         [HttpGet]
         [Route("remaining")]
 
@@ -52,9 +52,9 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Extends the current session with the defined extension length.
+        /// Extends the duration current session 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>200 ok if session is extended.</returns>
         [HttpPut]
         [Route("keepAlive")]
         public async Task<ActionResult> KeepAlive()
@@ -73,24 +73,24 @@ namespace Altinn.Studio.Designer.Controllers
                 return Unauthorized();
             }
 
-            if (DateTime.UtcNow < timeout.AddMinutes(-2))
+            if (DateTime.UtcNow >= timeout.AddMinutes(-2))
             {
-                HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
-
-                await HttpContext.SignInAsync(
-                  CookieAuthenticationDefaults.AuthenticationScheme,
-                  HttpContext.User,
-                  new AuthenticationProperties
-                  {
-                      ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes),
-                      IsPersistent = false,
-                      AllowRefresh = false,
-                  });
-
-                return Ok();
+                return Unauthorized();
             }
 
-            return Unauthorized();            
+            HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
+
+            await HttpContext.SignInAsync(
+              CookieAuthenticationDefaults.AuthenticationScheme,
+              HttpContext.User,
+              new AuthenticationProperties
+              {
+                  ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes),
+                  IsPersistent = false,
+                  AllowRefresh = false,
+              });
+
+            return Ok();
         }
     }
 }

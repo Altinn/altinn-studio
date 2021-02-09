@@ -196,7 +196,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
         {
-            HttpContext.Response.Cookies.Append(_generalSettings.SessionTimeoutCookieName, string.Empty, new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) });
+            HttpContext.Response.Cookies.Append(
+                _generalSettings.SessionTimeoutCookieName,
+                string.Empty,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddDays(-10)
+                });
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");
         }
