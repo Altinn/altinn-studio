@@ -27,10 +27,10 @@ export const getAppDeploymentsUrl = () => {
   return `${origin}/designer/api/v1/${org}/${app}/Deployments`;
 };
 
-export const getFetchDataModelUrl = (filePath: string) => {
-  return `${origin}/designer/api/${org}/${app}/datamodels/GetDatamodel?filePath=${encodeURIComponent(filePath)}`;
+export const getFetchDataModelUrl = (modelName: string) => {
+  return `${origin}/designer/api/${org}/${app}/datamodels/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
 
-export const getSaveDataModelUrl = (filePath: string) => {
-  return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?filePath=${encodeURIComponent(filePath)}`;
+export const getSaveDataModelUrl = (modelName: string) => {
+  return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
