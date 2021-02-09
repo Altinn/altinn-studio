@@ -144,7 +144,7 @@ describe('Administration', () => {
 
   // Todo: Refactor to test onBlurServiceDescription()
   it('Should match snapshot', () => {
-    const rendered = renderer.create(<RenderAdministrationComponent dispatch={() => {}} />);
+    const rendered = renderer.create(<RenderAdministrationComponent />);
     expect(rendered).toMatchSnapshot();
   });
 

@@ -72,7 +72,6 @@ describe('AccessControl', () => {
         applicationMetadata={currentApplicationMetadata}
         language={{}}
         classes={{}}
-        dispatch={() => {}}
       />,
     );
     const instance = wrapper.instance() as AccessControlContainerClass;
@@ -89,7 +88,6 @@ describe('AccessControl', () => {
         applicationMetadata={{}}
         language={{}}
         classes={{}}
-        dispatch={() => {}}
       />,
     );
     expect(wrapper.state('partyTypesAllowed')).toEqual({
