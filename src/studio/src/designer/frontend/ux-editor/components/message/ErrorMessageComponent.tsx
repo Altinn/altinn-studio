@@ -1,38 +1,34 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react';
-import { connect } from 'react-redux';
-import errorActionDispatcher from '../../actions/errorActions/errorActionDispatcher';
-import { IErrorStateError } from '../../reducers/errorReducer/errorsReducer';
+import { useDispatch, useSelector } from 'react-redux';
+import { removeError, IErrorStateError } from '../../features/error/errorSlice';
+
 import '../../styles/ErrorMessageComponent.css';
 
-export interface IErrorMessageContainerProps {
-  errors: IErrorStateError[];
-}
+export function ErrorMessageComponent() {
+  const dispatch = useDispatch();
+  const errors = useSelector((state: IAppState) => state.errors.errorList);
 
-const removeClickedError: (index: number) => void = (index: number): void => {
-  errorActionDispatcher.removeError(index);
-};
+  const removeClickedError: (index: number) => void = (index: number): void => {
+    dispatch(removeError({ errorIndex: index }));
+  };
 
-const ErrorMessageContainer: React.StatelessComponent<IErrorMessageContainerProps> = (
-  props: IErrorMessageContainerProps,
-) => (
-    <div className={'error-snackbar-container'}>
+  return (
+    <div className='error-snackbar-container'>
       {
-        !props.errors.length ?
+        !errors.length ?
           null :
-          props.errors.map((error: IErrorStateError, index: number) => (
-            <div key={index} onClick={removeClickedError.bind(null, index)} className={'error-snackbar-items'}>
+          errors.map((error: IErrorStateError, index: number) => (
+            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+            <div
+              key={error.errorMessage}
+              onClick={removeClickedError.bind(null, index)}
+              className='error-snackbar-items'
+            >
               <p>{error.errorMessage}</p>
             </div>
           ))
       }
     </div>
   );
-
-const mapStateToProps: (
-  state: IAppState,
-  props: any,
-) => IErrorMessageContainerProps = (state: IAppState, props: any): IErrorMessageContainerProps => ({
-  errors: state.errors.errorList,
-});
-
-export const ErrorMessageComponent = connect(mapStateToProps)(ErrorMessageContainer);
+}

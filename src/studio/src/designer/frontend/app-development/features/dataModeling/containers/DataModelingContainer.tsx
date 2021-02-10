@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
-import { fetchDataModel, saveDataModel, setDataModelFilePath } from '../dataModelingSlice';
+import { fetchDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 import { SchemaSelect } from '../schemaSelect';
 import { createStyles, makeStyles } from '@material-ui/core';
 
@@ -37,7 +37,7 @@ function DataModelingContainer(): JSX.Element {
   React.useEffect(() => {
     if (dataModelName) {
       setSelectedDataModel(dataModelName);
-      dispatch(setDataModelFilePath({ filePath: `App/models/${dataModelName}` }));
+      dispatch(setDataModelName({ modelName: dataModelName }));
       dispatch(fetchDataModel({}));
     }
   }, [dispatch, dataModelName]);
@@ -49,7 +49,7 @@ function DataModelingContainer(): JSX.Element {
   const onSchemaSelected = (id: string, schema: any) => {
     console.log(schema);
     setSelectedDataModel(schema.id);
-    dispatch(setDataModelFilePath({ filePath: `App/models/${schema.id}` }));
+    dispatch(setDataModelName({ modelName: schema.id }));
     dispatch(fetchDataModel({}));
   }
 

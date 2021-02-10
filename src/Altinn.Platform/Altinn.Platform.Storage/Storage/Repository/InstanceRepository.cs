@@ -111,6 +111,7 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     EnableCrossPartitionQuery = true,
                     MaxItemCount = size - queryResponse.Count,
+                    ResponseContinuationTokenLimitInKb = 7
                 };
 
                 if (continuationToken != null)

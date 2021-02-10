@@ -19,10 +19,10 @@ import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSi
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getValueByPath } from 'app-shared/utils/getValueByPath';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterReducer';
-import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
-import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
-import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/create/createAppDeploymentActions';
+import { useDispatch } from 'react-redux';
+import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { ICreateAppDeploymentEnvObject, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 
 export interface IReceiptContainerProps {
@@ -122,6 +122,7 @@ const useStyles = makeStyles(() => createStyles({
 
 const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   const classes = useStyles(props);
+  const dispatch = useDispatch();
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
@@ -189,7 +190,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   const startDeploy = () => {
     setDeployInProgress(true);
     setDeployButtonHasShownError(false);
-    AppDeploymentActions.createAppDeployment(selectedImageTag, envObj);
+    dispatch(AppDeploymentActions.createAppDeployment({ tagName: selectedImageTag, envObj }));
   };
 
   React.useEffect(() => {

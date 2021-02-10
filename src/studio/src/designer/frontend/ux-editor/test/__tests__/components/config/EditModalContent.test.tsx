@@ -42,7 +42,7 @@ describe('>>> containers/EditModalContent', () => {
           fetched: true,
           fetching: false,
         },
-        language: {
+        languageState: {
           language: mockLanguage,
         },
         dataModel: {

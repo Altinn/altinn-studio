@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -257,6 +258,14 @@ namespace Altinn.App.Api.Controllers
                 instanceTemplate.Process = null;
                 string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
                 processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                string userOrgClaim = User.GetOrg();
+
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    instanceTemplate.Status = instanceTemplate.Status ?? new InstanceStatus();
+                    instanceTemplate.Status.ReadStatus = ReadStatus.Read;
+                }
 
                 // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
@@ -535,7 +544,7 @@ namespace Altinn.App.Api.Controllers
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name,  data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
                     await _altinnApp.RunDataCreation(instance, data);
 
                     dataElement = await _dataService.InsertFormData(

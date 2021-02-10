@@ -1,13 +1,13 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
-import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
-import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
-import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentReducer';
-import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
-import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
-import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationReducer';
-import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
-import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusReducer';
+import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
+import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
+import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
+import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
+import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
+import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
+import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
+import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
+import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
 import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 
 export interface IServiceDevelopmentReducers
@@ -26,7 +26,7 @@ export interface IServiceDevelopmentReducers
   ReducersMapObject { }
 
 const reducers: IServiceDevelopmentReducers = {
-  language: languageReducer,
+  languageState: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
   applicationMetadataState: applicationMetadataReducer,

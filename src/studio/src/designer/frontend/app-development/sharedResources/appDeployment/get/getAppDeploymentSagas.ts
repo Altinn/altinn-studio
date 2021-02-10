@@ -1,11 +1,10 @@
 // import * as moment from 'moment';
 import { SagaIterator } from 'redux-saga';
 import { delay } from 'redux-saga/effects';
-import { call, fork, race, take } from 'redux-saga/effects';
+import { call, fork, put, race, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
-import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
-import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
+import { AppDeploymentActions } from '../appDeploymentSlice';
 
 // Worker function - polling
 function* getAppDeploymentIntervalSaga(): SagaIterator {
@@ -13,10 +12,10 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
     try {
       const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=descending&sortBy=created`);
 
-      yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
+      yield put(AppDeploymentActions.getAppDeploymentsFulfilled({ deployments }));
       yield delay(10000);
-    } catch (err) {
-      yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
+    } catch (error) {
+      yield put(AppDeploymentActions.getAppDeploymentsRejected({ error }));
       yield delay(10000);
     }
   }
@@ -25,10 +24,10 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
 // Interval watcher function
 function* watchGetAppDeploymentIntervalSaga(): SagaIterator {
   while (true) {
-    yield take(AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_START_INTERVAL);
+    yield take(AppDeploymentActions.getAppDeploymentsStartInterval);
     yield race({
       do: call(getAppDeploymentIntervalSaga),
-      cancel: take(AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_STOP_INTERVAL),
+      cancel: take(AppDeploymentActions.getAppDeploymentsStopInterval),
     });
   }
 }
