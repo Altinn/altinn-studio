@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Extends the duration current session 
         /// </summary>
         /// <returns>200 ok if session is extended.</returns>
-        [HttpPut]
+        [HttpGet]
         [Route("keepalive")]
         [Authorize]
         public async Task<ActionResult> KeepAlive()

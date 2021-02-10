@@ -61,7 +61,7 @@ namespace Designer.Tests.TestingControllers
             // Arrange
             string uri = $"{_versionPrefix}/keepalive";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
             {
             };
             HttpClient client = GetTestClient();
