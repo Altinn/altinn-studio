@@ -62,7 +62,6 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
       yield put(addTextResources({ textResources: widget.texts }));
     }
   } catch (error) {
-    console.error(error);
     yield put(addWidgetRejected({ error }));
   }
 }
