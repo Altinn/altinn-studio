@@ -60,7 +60,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The start page</returns>
         public async Task<ActionResult> StartPage()
         {
-            string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = await _giteaApi.GetUserNameFromUI();
 
             if (string.IsNullOrEmpty(userName))
