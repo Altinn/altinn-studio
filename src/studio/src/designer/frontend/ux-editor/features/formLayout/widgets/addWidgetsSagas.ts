@@ -27,12 +27,17 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
     const {
       widget,
       position,
-      containerId,
     } = action.payload;
+    let { containerId } = action.payload;
     const layoutId: string = yield select(selectCurrentLayoutId);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     const internalComponents = convertFromLayoutToInternalFormat(widget.components);
     const components: any = { ...currentLayout.components };
+    if (!containerId) {
+      // if not containerId set it to base-container
+      containerId = Object.keys(currentLayout.order)[0];
+    }
+
     const containerOrder: string[] = [...(currentLayout.order[containerId])];
     const ids: string[] = [];
     Object.keys(internalComponents.components).forEach((id: string) => {
@@ -57,6 +62,7 @@ function* addWidgetSaga(action: IAddWidget): SagaIterator {
       yield put(addTextResources({ textResources: widget.texts }));
     }
   } catch (error) {
+    console.error(error);
     yield put(addWidgetRejected({ error }));
   }
 }
