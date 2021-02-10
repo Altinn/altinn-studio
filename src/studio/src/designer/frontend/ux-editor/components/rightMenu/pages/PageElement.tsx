@@ -1,12 +1,12 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import * as React from 'react';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button, Grid, IconButton, makeStyles, MenuItem, TextField, TextFieldProps } from '@material-ui/core';
-import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
 import ConfirmModal from '../ConfirmModal';
 import { MenuItemContent } from './PageMenuItem';
 import PageMenu from './PageMenu';
+import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 
 export interface IPageElementProps {
   name: string;
@@ -38,7 +38,10 @@ const useStyles = makeStyles({
 export default function PageElement({
   name,
 }: IPageElementProps) {
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const classes = useStyles();
+  const dispatch = useDispatch();
+
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
   const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const [editMode, setEditMode] = React.useState<boolean>(false);
@@ -48,11 +51,10 @@ export default function PageElement({
   const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(null);
   const disableUp = (layoutOrder.indexOf(name) === 0);
   const disableDown = (layoutOrder.indexOf(name) === (layoutOrder.length - 1));
-  const classes = useStyles();
 
   function onPageClick() {
     if (selectedLayout !== name) {
-      FormDesignerActionDispatchers.updateSelectedLayout(name);
+      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
     }
   }
 
@@ -74,7 +76,7 @@ export default function PageElement({
       setEditMode(true);
       setNewName(name);
     } else if (action === 'up' || action === 'down') {
-      FormDesignerActionDispatchers.updateLayoutOrder(name, action);
+      dispatch(FormLayoutActions.updateLayoutOrder({ layout: name, direction: action }));
     }
     setMenuAnchorEl(null);
   }
@@ -83,7 +85,7 @@ export default function PageElement({
     event.stopPropagation();
     setEditMode(false);
     if (!errorMessage && name !== newName) {
-      FormDesignerActionDispatchers.updateLayoutName(name, newName);
+      dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
     }
   }
 
@@ -112,7 +114,7 @@ export default function PageElement({
     event.stopPropagation();
     if (event.key === 'Enter') {
       if (!errorMessage && name !== newName) {
-        FormDesignerActionDispatchers.updateLayoutName(name, newName);
+        dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
         setEditMode(false);
       }
     }
@@ -130,7 +132,7 @@ export default function PageElement({
   function handleConfirmDelete(event?: React.SyntheticEvent) {
     event?.stopPropagation();
     setDeleteAnchorEl(null);
-    FormDesignerActionDispatchers.deleteLayout(name);
+    dispatch(FormLayoutActions.deleteLayout({ layout: name }));
   }
 
   return (

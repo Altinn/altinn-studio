@@ -1,12 +1,12 @@
 /* eslint-disable react/jsx-max-props-per-line */
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
-import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
+import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 // eslint-disable-next-line import/no-named-as-default
 import DeployContainer from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
@@ -24,12 +24,13 @@ export interface IDeployPaperProps extends WithStyles<typeof styles>, RouteCompo
 function DeployPage(props: IDeployPaperProps) {
   const { org } = window as Window as IAltinnWindow;
   const { classes } = props;
+  const dispatch = useDispatch();
 
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
 
   React.useEffect(() => {
-    ConfigurationActions.getOrgs();
+    dispatch(ConfigurationActions.getOrgs());
   }, []);
 
   const isLoading = (): boolean => {

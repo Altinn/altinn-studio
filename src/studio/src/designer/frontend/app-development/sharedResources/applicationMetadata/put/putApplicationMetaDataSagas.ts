@@ -1,24 +1,21 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
-import { put } from 'app-shared/utils/networking';
+import { call, put, takeLatest } from 'redux-saga/effects';
+import { put as axiosPut } from 'app-shared/utils/networking';
 import { getApplicationMetadataUrl } from 'app-shared/utils/urlHelper';
-import * as MetadataActionTypes from '../applicationMetadataActionTypes';
-import metadataActionDispatcher from '../applicationMetadataDispatcher';
-import { IPutApplicationMetadata } from './putApplicationMetaDataActions';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { ApplicationMetadataActions, IPutApplicationMetadata } from '../applicationMetadataSlice';
 
-export function* putApplicationMetadataSaga({ applicationMetadata }: IPutApplicationMetadata): SagaIterator {
+export function* putApplicationMetadataSaga(action: PayloadAction<IPutApplicationMetadata>): SagaIterator {
+  const { applicationMetadata } = action.payload;
   try {
     const url = getApplicationMetadataUrl();
-    const result = yield call(put, url, applicationMetadata);
-    yield call(metadataActionDispatcher.putApplicationMetadataFulfilled, result);
+    const result = yield call(axiosPut, url, applicationMetadata);
+    yield put(ApplicationMetadataActions.putApplicationMetadataFulfilled({ applicationMetadata: result }));
   } catch (error) {
-    yield call(metadataActionDispatcher.putApplicationMetadataRejected, error);
+    yield put(ApplicationMetadataActions.putApplicationMetadataRejected({ error }));
   }
 }
 
 export function* watchPutApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    MetadataActionTypes.PUT_APPLICATION_METADATA,
-    putApplicationMetadataSaga,
-  );
+  yield takeLatest(ApplicationMetadataActions.putApplicationMetadata, putApplicationMetadataSaga);
 }

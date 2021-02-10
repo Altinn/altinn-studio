@@ -114,7 +114,7 @@ const mapStateToProps = (
     onDataModelChange: props.onDataModelChange,
     noOptionsMessage: props.noOptionsMessage,
     dataModelElements: state.appData.dataModel.model,
-    language: state.appData.language.language,
+    language: state.appData.languageState.language,
   };
 };
 

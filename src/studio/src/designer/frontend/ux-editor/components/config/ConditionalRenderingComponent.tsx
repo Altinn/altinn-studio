@@ -431,7 +431,7 @@ const mapStateToProps = (state: IAppState, props: any): any => {
     formLayoutComponents: getAllComponents(state),
     formLayoutContainers: getAllContainers(state),
     order: getFullOrder(state),
-    language: state.appData.language.language,
+    language: state.appData.languageState.language,
   };
 };
 

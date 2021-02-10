@@ -7,6 +7,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { createStyles, IconButton, withStyles, WithStyles, Grid } from '@material-ui/core';
 
@@ -21,9 +22,9 @@ import { makeGetActiveFormContainer,
   makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import { renderSelectGroupDataModelBinding, renderSelectTextFromResources } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 export interface IProvidedContainerProps extends WithStyles<typeof styles> {
   id: string;
@@ -31,6 +32,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles> {
   baseContainer?: boolean;
   items?: string[];
   layoutOrder?: IFormLayoutOrder;
+  dispatch?: Dispatch;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -205,13 +207,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const { dispatch } = this.props;
     event.stopPropagation();
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
+    dispatch(FormLayoutActions.deleteFormContainer({ id: this.props.id, index: this.props.index }));
   }
 
   public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
-    FormDesignerActionDispatchers.deleteActiveListAction();
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.deleteActiveList());
     this.setState({
       editMode: false,
       tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
@@ -221,6 +225,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
+    const { dispatch } = this.props;
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
@@ -231,9 +236,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
         }));
       } else {
-        FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
-        FormDesignerActionDispatchers.deleteActiveListAction();
-        FormDesignerActionDispatchers.updateContainerId(this.props.id, this.state.tmpId);
+        dispatch(FormLayoutActions.updateFormContainer({
+          updatedContainer: this.state.tmpContainer,
+          id: this.props.id,
+        }));
+        dispatch(FormLayoutActions.deleteActiveList());
+        dispatch(FormLayoutActions.updateContainerId({ currentId: this.props.id, newId: this.state.tmpId }));
         this.setState({
           editMode: false,
         });
@@ -244,8 +252,11 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       });
     } else {
       // No validations, save.
-      FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
-      FormDesignerActionDispatchers.deleteActiveListAction();
+      dispatch(FormLayoutActions.updateFormContainer({
+        updatedContainer: this.state.tmpContainer,
+        id: this.props.id,
+      }));
+      dispatch(FormLayoutActions.deleteActiveList());
       this.setState({
         editMode: false,
       });
@@ -355,6 +366,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
+    const { dispatch } = this.props;
     this.setState((prevState: IContainerState) => {
       const isEdit = !(prevState.editMode);
       if (isEdit) {
@@ -366,7 +378,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           order: this.props.index,
         };
         this.props.sendListToParent([activeObject]);
-        FormDesignerActionDispatchers.updateActiveList(activeObject, this.props.activeList);
+        dispatch(FormLayoutActions.updateActiveList({ containerList: this.props.activeList, listItem: activeObject }));
       }
       return {
         editMode: isEdit,
@@ -751,7 +763,8 @@ const makeMapStateToProps = () => {
       formContainerActive: GetActiveFormContainer(state, props),
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
-      language: state.appData.language.language,
+      dispatch: props.dispatch,
+      language: state.appData.languageState.language,
       itemOrder: !props.items ? itemOrder : props.items,
       id: props.id,
       index: props.index,

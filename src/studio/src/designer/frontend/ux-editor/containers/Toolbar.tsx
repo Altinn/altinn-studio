@@ -7,9 +7,9 @@ import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../util
 import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { ToolbarGroup } from './ToolbarGroup';
 
 import '../styles/toolBar.css';
-import { ToolbarGroup } from './ToolbarGroup';
 
 export interface IToolbarElement {
   label: string;
@@ -61,7 +61,7 @@ export function Toolbar() {
       = React.useState<boolean>(false);
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language: any = useSelector((state: IAppState) => state.appData.language.language);
+  const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);

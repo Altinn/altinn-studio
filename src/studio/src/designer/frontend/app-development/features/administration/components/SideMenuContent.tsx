@@ -3,10 +3,10 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { makeStyles, Typography } from '@material-ui/core';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import AltinnButton from 'app-shared/components/AltinnButton';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
-import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
+import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 
 // eslint-disable-next-line import/order
 import classNames = require('classnames');
@@ -47,6 +47,7 @@ export interface ISideMenuContent {
 
 const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const classes = setupClasses();
+  const dispatch = useDispatch();
 
   const [resetRepoModalOpen, setResetRepoModalOpen] = React.useState<boolean>(false);
   const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] = React.useState<any>(null);
@@ -64,7 +65,7 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const handleResetRepoClick = () => {
     const altinnWindow: any = window;
     const { org, app } = altinnWindow;
-    RepoStatusActionDispatchers.resetLocalRepo(org, app);
+    dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
   };
 
   React.useEffect(() => {

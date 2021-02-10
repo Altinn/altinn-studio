@@ -4,17 +4,17 @@ import { createStyles,
   withStyles,
   WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInput from 'app-shared/components/AltinnInput';
 import AltinnTextArea from 'app-shared/components/AltinnTextArea';
 import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
 import theme from 'app-shared/theme/altinnAppTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
+import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 
 const styles = createStyles({
   createReleaseFormItem: {
@@ -48,6 +48,7 @@ export interface ICreateAppReleaseComponent extends WithStyles<typeof styles> {
 
 function ReleaseComponent(props: ICreateAppReleaseComponent) {
   const { classes } = props;
+  const dispatch = useDispatch();
 
   const [tagName, setTagName] = React.useState<string>('');
   const [body, setBody] = React.useState<string>('');
@@ -56,7 +57,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   const createReleaseErrorCode: number =
     useSelector((state: IServiceDevelopmentState) => state.appReleases.errors.createReleaseErrorCode);
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
 
   const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(createReleaseErrorCode !== null);
   const ref = React.useRef<React.RefObject<HTMLButtonElement>>();
@@ -98,7 +99,12 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   function handleBuildVersionClick() {
     if (versionNameValid() && tagName !== '') {
-      AppReleaseActions.createAppRelease(tagName, tagName, body, repoStatus.branch.master.commit.id);
+      dispatch(AppReleaseActions.createAppRelease({
+        tagName,
+        name: tagName,
+        body,
+        targetCommitish: repoStatus.branch.master.commit.id,
+      }));
       setTagName('');
       setBody('');
     }

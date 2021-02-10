@@ -2,17 +2,16 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as moment from 'moment';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import StudioTheme from 'app-shared/theme/altinnStudioTheme';
-import AppClusterActions from '../../../sharedResources/appCluster/appClusterDispatcher';
-import { IAppClusterState } from '../../../sharedResources/appCluster/appClusterReducer';
-import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
-import { IAppDeploymentState, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import { getDeploymentsStartInterval, getDeploymentsStopInterval, IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
+import { AppDeploymentActions, IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
-import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
-import { IConfigurationState } from '../../../sharedResources/configuration/configurationReducer';
+import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
+import { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 
 const theme = createMuiTheme(StudioTheme);
@@ -36,6 +35,7 @@ export interface IDeployContainer extends WithStyles<typeof styles> {
 export const DeployContainer = (props: IDeployContainer) => {
   const { org, app } = window as Window as IAltinnWindow;
   const { classes } = props;
+  const dispatch = useDispatch();
 
   const [environments, setEnvironments] = React.useState([]);
   const [imageOptions, setImageOptions] = React.useState([]);
@@ -46,16 +46,16 @@ export const DeployContainer = (props: IDeployContainer) => {
   const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) => state.appDeployments.createAppDeploymentErrors);
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
   React.useEffect(() => {
-    ConfigurationActions.getEnvironments();
-    AppDeploymentActions.getAppDeploymentsStartInterval();
+    dispatch(ConfigurationActions.getEnvironments());
+    dispatch(AppDeploymentActions.getAppDeploymentsStartInterval());
 
     return () => {
-      AppDeploymentActions.getAppDeploymentsStopInterval();
-      AppClusterActions.getDeploymentsStopInterval();
+      dispatch(AppDeploymentActions.getAppDeploymentsStopInterval());
+      dispatch(getDeploymentsStopInterval());
     };
   }, []);
 
@@ -70,15 +70,15 @@ export const DeployContainer = (props: IDeployContainer) => {
         (envName: string) => configuration.environments.result.find((env: any) => env.name === envName),
       ).filter((element: any) => element != null));
     }
-  }, [orgs, configuration]);
+  }, [orgs, org, configuration]);
 
   React.useEffect(() => {
     if (environments.length) {
-      AppClusterActions.getDeploymentsStartInterval();
+      dispatch(getDeploymentsStartInterval());
     } else {
-      AppClusterActions.getDeploymentsStopInterval();
+      dispatch(getDeploymentsStopInterval());
     }
-  }, [environments, appDeployments]);
+  }, [environments, dispatch, appDeployments]);
 
   React.useEffect(() => {
     const tempImages = deployableImages.releases
