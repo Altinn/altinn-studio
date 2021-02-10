@@ -1,15 +1,27 @@
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 
 using Altinn.Studio.Designer;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+
+using Moq;
 
 using Xunit;
 
@@ -19,10 +31,14 @@ namespace Designer.Tests.TestingControllers
     {
         private readonly WebApplicationFactory<Startup> _factory;
         private readonly string _versionPrefix = "/designer/api/v1/session";
+        private readonly Mock<IHttpContextAccessor> _contextAccessorMock = new Mock<IHttpContextAccessor>();
+        private readonly IOptions<GeneralSettings> _generalSettings;
+        private SessionController _controller;
 
         public SessionControllerTest(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
+            _generalSettings = Options.Create(new GeneralSettings { SessionTimeoutCookieName = "timeoutCookie" });
         }
 
         [Fact]
@@ -47,6 +63,18 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
+        public void GetRemainingSessionTime_NoCookie()
+        {
+            HttpRequestMessage mes = new HttpRequestMessage();
+
+            DefaultHttpContext context = new DefaultHttpContext();
+            _contextAccessorMock.Setup(m => m.HttpContext).Returns(context);
+            _controller = new SessionController(_contextAccessorMock.Object, _generalSettings);
+
+            int actual = _controller.GetRemainingSessionTime();
+        }
+
+        [Fact]
         public async void KeepAlive_SessionIsExtended()
         {
             // Arrange
@@ -64,6 +92,23 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async void KeepAlive_NoTimeoutCookie()
+        {
+            int expectedCode = 401;
+            HttpRequestMessage mes = new HttpRequestMessage();
+
+            DefaultHttpContext context = new DefaultHttpContext();
+            _contextAccessorMock.Setup(m => m.HttpContext).Returns(context);
+            _controller = new SessionController(_contextAccessorMock.Object, _generalSettings);
+
+            // Act
+            ActionResult actual = await _controller.KeepAlive();
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(actual);
+        }
+  
         private HttpClient GetTestClient()
         {
             Program.ConfigureSetupLogging();
@@ -76,5 +121,21 @@ namespace Designer.Tests.TestingControllers
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
         }
+
+        private static IRequestCookieCollection MockRequestCookieCollection(string key, string value)
+        {
+            var requestFeature = new HttpRequestFeature();
+            var featureCollection = new FeatureCollection();
+
+            requestFeature.Headers = new HeaderDictionary();
+            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(key + "=" + value));
+
+            featureCollection.Set<IHttpRequestFeature>(requestFeature);
+
+            var cookiesFeature = new RequestCookiesFeature(featureCollection);
+
+            return cookiesFeature.Cookies;
+        }
+
     }
 }

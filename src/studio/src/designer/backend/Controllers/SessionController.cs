@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -23,13 +24,16 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly GeneralSettings _settings;
         private readonly int _sessingExtensionInMinutes = 30;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionController"/> class.
         /// </summary>
+        /// <param name="httpContextAccessor">The context accessor.</param>
         /// <param name="settings">The general settings.</param>
-        public SessionController(IOptions<GeneralSettings> settings)
+        public SessionController(IHttpContextAccessor httpContextAccessor, IOptions<GeneralSettings> settings)
         {
+            _httpContextAccessor = httpContextAccessor;
             _settings = settings.Value;
         }
 
@@ -42,7 +46,8 @@ namespace Altinn.Studio.Designer.Controllers
 
         public int GetRemainingSessionTime()
         {
-            HttpContext.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
+            HttpContext ctx = _httpContextAccessor.HttpContext;
+            ctx.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
 
             if (string.IsNullOrEmpty(remainingString) || !DateTime.TryParse(remainingString, out DateTime timeout))
             {
@@ -61,7 +66,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         public async Task<ActionResult> KeepAlive()
         {
-            HttpContext.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
+            HttpContext ctx = _httpContextAccessor.HttpContext;
+            ctx.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
 
             if (!DateTime.TryParse(remainingString, out DateTime timeout))
             {
