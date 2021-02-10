@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Configuration;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -56,16 +57,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>200 ok if session is extended.</returns>
         [HttpPut]
-        [Route("keepAlive")]
+        [Route("keepalive")]
+        [Authorize]
         public async Task<ActionResult> KeepAlive()
         {
-            AuthenticateResult ar = await HttpContext.AuthenticateAsync();
-
-            if (!ar.Succeeded)
-            {
-                return Unauthorized();
-            }
-
             HttpContext.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
 
             if (!DateTime.TryParse(remainingString, out DateTime timeout))

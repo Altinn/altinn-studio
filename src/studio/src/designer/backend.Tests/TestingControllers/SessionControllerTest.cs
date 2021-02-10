@@ -59,7 +59,7 @@ namespace Designer.Tests.TestingControllers
         public async void KeepAlive_SessionIsExtended()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/keepAlive";
+            string uri = $"{_versionPrefix}/keepalive";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
             {
