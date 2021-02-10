@@ -1035,7 +1035,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        ///  This logic is limited to having one datamodel per app. Needs to be updated for expanded functionality
+        ///  Updates application model
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="app">The app</param>
