@@ -27,7 +27,7 @@ function DeployPage(props: IDeployPaperProps) {
   const dispatch = useDispatch();
 
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
 
   React.useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());

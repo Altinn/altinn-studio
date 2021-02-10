@@ -52,7 +52,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
 
   const appReleaseErrors: IAppReleaseErrors =
     useSelector((state: IServiceDevelopmentState) => state.appReleases.errors);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
 
   function renderStatusIcon(status: IBuild) {
     if (status.result === BuildResult.succeeded) {
