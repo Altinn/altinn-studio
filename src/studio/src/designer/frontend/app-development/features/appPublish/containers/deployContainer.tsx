@@ -46,7 +46,7 @@ export const DeployContainer = (props: IDeployContainer) => {
   const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) => state.appDeployments.createAppDeploymentErrors);
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
   React.useEffect(() => {

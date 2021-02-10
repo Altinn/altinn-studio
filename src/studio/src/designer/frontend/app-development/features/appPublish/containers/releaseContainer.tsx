@@ -156,7 +156,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
   const handleMergeConflict: IHandleMergeConflictState =
     useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
 
   React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
