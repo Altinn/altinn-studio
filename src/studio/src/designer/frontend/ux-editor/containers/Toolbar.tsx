@@ -2,7 +2,7 @@
 /* eslint-disable import/no-cycle */
 import List from '@material-ui/core/List';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
 import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
@@ -45,6 +45,7 @@ export interface IToolbarProps extends IToolbarProvidedProps {
 }
 
 export function Toolbar() {
+  const dispatch = useDispatch();
   const [componentInformationPanelOpen, setComponentInformationPanelOpen] = React.useState<boolean>(false);
   const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel]
     = React.useState<ComponentTypes>(null);
@@ -66,10 +67,18 @@ export function Toolbar() {
   const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
 
-  const componentList: IToolbarElement[] = schemaComponents.map((component) => mapComponentToToolbarElement(component, language, activeList, order));
-  const textComponentList: IToolbarElement[] = textComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
-  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => mapComponentToToolbarElement(component, language, activeList, order));
-  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget: any) => mapWidgetToToolbarElement(widget, activeList, order, language));
+  const componentList: IToolbarElement[] = schemaComponents.map((component) => {
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
+  });
+  const textComponentList: IToolbarElement[] = textComponents.map((component: any) => {
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
+  });
+  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => {
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
+  });
+  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget: any) => {
+    return mapWidgetToToolbarElement(widget, activeList, order, language, dispatch);
+  });
 
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setComponentInformationPanelOpen(true);
