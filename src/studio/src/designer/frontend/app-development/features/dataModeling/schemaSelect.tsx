@@ -22,9 +22,10 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
   const classes = useStyles();
   const {id, onChange, value} = props;
 
-  const getDataModelTypes = (applicationMetaData: any) => applicationMetaData?.dataTypes?.map((d: any) => ({value: d, label: d.id})) ?? [];
+  const getDataModelTypes = (applicationMetaData: any) =>
+    applicationMetaData?.dataTypes?.filter((d: any) => d.appLogic).map((d: any) => ({value: d, label: d.id})) ?? [];
+  
   const dataModels = useSelector((state: IServiceDevelopmentState) => getDataModelTypes(state.applicationMetadataState.applicationMetadata));
-
   const onValueChange = (event: any) => {
     onChange(id, event.value);
   }
@@ -32,7 +33,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
   return (
     <Select
       id={`schema-select-${id}`}
-      defaultValue={value ?
+      value={value ?
         dataModels.find((s: any) => s.label == value) :
         dataModels[0]}
       onChange={onValueChange}
