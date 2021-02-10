@@ -33,25 +33,25 @@ function DataModelingContainer(): JSX.Element {
     (state: IServiceDevelopmentState) => getDataModelTypeName(state.applicationMetadataState.applicationMetadata),
   );
   const [selectedDataModel, setSelectedDataModel] = React.useState(dataModelName)
- 
+
+  const fetchModel = (name: string) => {
+    setSelectedDataModel(name);
+    dispatch(setDataModelName({ modelName: name }));
+    dispatch(fetchDataModel({}));
+  }
+
   React.useEffect(() => {
     if (dataModelName) {
-      setSelectedDataModel(dataModelName);
-      dispatch(setDataModelName({ modelName: dataModelName }));
-      dispatch(fetchDataModel({}));
+      fetchModel(dataModelName);
     }
   }, [dispatch, dataModelName]);
 
+  const onSchemaSelected = (id: string, schema: any) => {
+    fetchModel(schema.id);
+  }
   const onSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema }));
   };
-
-  const onSchemaSelected = (id: string, schema: any) => {
-    console.log(schema);
-    setSelectedDataModel(schema.id);
-    dispatch(setDataModelName({ modelName: schema.id }));
-    dispatch(fetchDataModel({}));
-  }
 
   return (
     <div className={classes.root}>
