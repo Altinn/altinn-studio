@@ -43,7 +43,6 @@ namespace Altinn.Studio.Designer.Infrastructure
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
                         OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
                         OnRedirectToLogin = async (context) =>
-
                         {
                             if (context.Request.Path.Value.Contains("keepalive", System.StringComparison.OrdinalIgnoreCase))
                             {
