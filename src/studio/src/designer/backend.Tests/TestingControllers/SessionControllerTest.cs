@@ -95,7 +95,6 @@ namespace Designer.Tests.TestingControllers
         [Fact]
         public async void KeepAlive_NoTimeoutCookie()
         {
-            int expectedCode = 401;
             HttpRequestMessage mes = new HttpRequestMessage();
 
             DefaultHttpContext context = new DefaultHttpContext();
