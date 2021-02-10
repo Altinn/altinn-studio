@@ -5,10 +5,6 @@ import { fetchDataModel, saveDataModel, setDataModelName } from '../dataModeling
 import { SchemaSelect } from '../schemaSelect';
 import { createStyles, makeStyles } from '@material-ui/core';
 
-export interface IDataModelingContainer {
-  filePath: string;
-}
-
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
   const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
@@ -24,7 +20,6 @@ const useStyles = makeStyles(
   }),
 );
 
-
 function DataModelingContainer(): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -32,10 +27,9 @@ function DataModelingContainer(): JSX.Element {
   const dataModelName = useSelector(
     (state: IServiceDevelopmentState) => getDataModelTypeName(state.applicationMetadataState.applicationMetadata),
   );
-  const [selectedDataModel, setSelectedDataModel] = React.useState(dataModelName)
+  const selectedDataModelName = useSelector((state: IServiceDevelopmentState) => state.dataModeling.modelName);
 
   const fetchModel = (name: string) => {
-    setSelectedDataModel(name);
     dispatch(setDataModelName({ modelName: name }));
     dispatch(fetchDataModel({}));
   }
@@ -55,11 +49,11 @@ function DataModelingContainer(): JSX.Element {
 
   return (
     <div className={classes.root}>
-      <SchemaSelect id="schema" value={selectedDataModel} onChange={onSchemaSelected}/>
+      <SchemaSelect id="schema" value={selectedDataModelName} onChange={onSchemaSelected}/>
       <SchemaEditorApp
         schema={jsonSchema || {}}
         onSaveSchema={onSaveSchema}
-        rootItemId={`#/definitions/${selectedDataModel}`}
+        rootItemId={`#/definitions/${selectedDataModelName}`}
       />
     </div>
   );
