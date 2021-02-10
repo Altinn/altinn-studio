@@ -3,7 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
-import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 import { IToolbarElement, LayoutItemType } from '../containers/Toolbar';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { IComponent, ComponentTypes } from '../components';
@@ -156,8 +156,8 @@ export const mapWidgetToToolbarElement = (
   activeList: any,
   order: any[],
   language: any,
+  dispatch: Dispatch,
 ): IToolbarElement => {
-  const dispatch = useDispatch();
   return {
     label: getLanguageFromKey(widget.displayName, language),
     icon: 'fa fa-3rd-party-alt',
@@ -178,48 +178,49 @@ export const mapComponentToToolbarElement = (
   language: any,
   activeList: any,
   order: any[],
+  dispatch: Dispatch,
 ): IToolbarElement => {
   const customProperties = c.customProperties ? c.customProperties : {};
-  const dispatch = useDispatch();
+  let actionMethod = (containerId: string, position: number) => {
+    dispatch(addFormComponent({
+      component: {
+        type: c.name,
+        itemType: LayoutItemType.Component,
+        textResourceBindings: {
+          title: c.name === 'Button' ?
+            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
+            : getComponentTitleByComponentType(c.name, language),
+        },
+        dataModelBindings: {},
+        ...JSON.parse(JSON.stringify(customProperties)),
+      },
+      position,
+      containerId,
+    }));
+    dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
+  };
+
+  if (c.name === ComponentTypes.Group) {
+    actionMethod = (containerId: string, index: number) => {
+      dispatch(addFormContainer({
+        container: {
+          maxCount: 0,
+          dataModelBindings: {},
+          itemType: 'CONTAINER',
+        } as ICreateFormContainer,
+        positionAfterId: null,
+        addToId: containerId,
+        callback: null,
+        destinationIndex: index,
+      }));
+    };
+  }
   return {
     label: c.name,
     icon: c.Icon,
     type: c.name,
-    actionMethod: (c.name === ComponentTypes.Group) ? addContainerToLayout :
-      (containerId: string, position: number) => {
-        dispatch(addFormComponent({
-          component: {
-            type: c.name,
-            itemType: LayoutItemType.Component,
-            textResourceBindings: {
-              title: c.name === 'Button' ?
-                getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
-                : getComponentTitleByComponentType(c.name, language),
-            },
-            dataModelBindings: {},
-            ...JSON.parse(JSON.stringify(customProperties)),
-          },
-          position,
-          containerId,
-        }));
-        dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
-      },
+    actionMethod,
   } as IToolbarElement;
-};
-
-export const addContainerToLayout = (containerId: string, index: number) => {
-  const dispatch = useDispatch();
-  dispatch(addFormContainer({
-    container: {
-      maxCount: 0,
-      dataModelBindings: {},
-      itemType: 'CONTAINER',
-    } as ICreateFormContainer,
-    positionAfterId: null,
-    addToId: containerId,
-    callback: null,
-    destinationIndex: index,
-  }));
 };
 
 export function idExists(
