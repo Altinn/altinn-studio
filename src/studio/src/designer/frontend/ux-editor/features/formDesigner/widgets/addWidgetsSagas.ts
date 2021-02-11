@@ -1,4 +1,5 @@
 /* eslint-disable import/no-cycle */
+import { PayloadAction } from '@reduxjs/toolkit';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import { v4 as uuidv4 } from 'uuid';
 import { SagaIterator } from 'redux-saga';
@@ -6,7 +7,6 @@ import { FormLayoutActions } from '../formLayout/formLayoutSlice';
 import { IAddWidgetAction } from '../formDesignerTypes';
 import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
 import { addTextResources } from '../../appData/textResources/textResourcesSlice';
-import { PayloadAction } from '@reduxjs/toolkit';
 
 const selectCurrentLayoutId = (state: IAppState): string => state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) => {
