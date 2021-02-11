@@ -10,9 +10,10 @@ import { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
 import { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
+import { IUserState } from '../sharedResources/user/userSlice';
 
 declare global {
-  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
+  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
     languageState: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
@@ -23,6 +24,7 @@ declare global {
     appDeployments: T8;
     configuration: T9;
     dataModeling: T10;
+    userState: T11;
   }
 
   export interface IServiceDevelopmentState
@@ -36,7 +38,8 @@ declare global {
     IAppReleaseState,
     IAppDeploymentState,
     IConfigurationState,
-    IDataModelingState> { }
+    IDataModelingState,
+    IUserState> { }
 }
 
 export interface IRepository {
