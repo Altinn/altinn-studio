@@ -34,3 +34,7 @@ export const getFetchDataModelUrl = (modelName: string) => {
 export const getSaveDataModelUrl = (modelName: string) => {
   return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
+
+export const getFetchDeployPermissionsUrl = () => {
+  return `${origin}/designer/api/v1/${org}/${app}/deployments/permissions`;
+};

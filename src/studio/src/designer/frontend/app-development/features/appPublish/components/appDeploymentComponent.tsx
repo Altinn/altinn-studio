@@ -25,7 +25,7 @@ import { AppDeploymentActions } from '../../../sharedResources/appDeployment/app
 import { ICreateAppDeploymentEnvObject, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 
-export interface IReceiptContainerProps {
+export interface IAppDeploymentComponentProps {
   envName: string;
   envObj: ICreateAppDeploymentEnvObject;
   deploymentList?: IEnvironmentItem;
@@ -35,6 +35,8 @@ export interface IReceiptContainerProps {
   deployHistory?: any;
   releases?: any[];
   language: any;
+  deployPermission: boolean;
+  orgName: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -120,7 +122,7 @@ const useStyles = makeStyles(() => createStyles({
   },
 }));
 
-const AppDeploymentComponent = (props: IReceiptContainerProps) => {
+const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
   const classes = useStyles(props);
   const dispatch = useDispatch();
 
@@ -289,6 +291,20 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
   const selectNoOptionsMessage = () => (
     'Du har ingen versjoner å deploye'
+  );
+
+  const returnMissingPermissionsText = () => (
+    <Grid container>
+      <Grid item xs={1}>
+        <AltinnIcon iconClass='fa fa-circle-exclamation' iconColor='black'/>
+      </Grid>
+      <Grid item xs={11}>
+        <Typography>
+          {`Du har ikke rettigheter til å starte en deploy til ${envName.toUpperCase()}-miljøet.
+          Tilgang kan delegeres av owners i ${props.orgName}.`}
+        </Typography>
+      </Grid>
+    </Grid>
   );
 
   const returnDeployDropDown = () => (
@@ -516,8 +532,11 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           sm={12} md={5}
           className={classNames(classes.dropdownGrid)}
         >
-          {deploymentList && deploymentList.getStatus.success === true && returnDeployDropDown()}
-          {deploymentList && deploymentList.getStatus.success === false && returnDeployUnavailable()}
+          {!props.deployPermission && returnMissingPermissionsText()}
+          {deploymentList && deploymentList.getStatus.success === true
+            && props.deployPermission && returnDeployDropDown()}
+          {deploymentList && deploymentList.getStatus.success === false
+            && props.deployPermission && returnDeployUnavailable()}
 
         </Grid>
 
