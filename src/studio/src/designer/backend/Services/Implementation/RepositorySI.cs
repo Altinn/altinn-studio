@@ -1035,7 +1035,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        ///  Updates application model
+        ///  Updates application model with new app logic model
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="app">The app</param>
