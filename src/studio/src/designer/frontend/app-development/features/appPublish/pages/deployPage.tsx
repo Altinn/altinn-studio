@@ -10,6 +10,7 @@ import { ConfigurationActions } from '../../../sharedResources/configuration/con
 // eslint-disable-next-line import/no-named-as-default
 import DeployContainer from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
+import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
 
 const styles = createStyles({
   deployPaper: {
@@ -31,6 +32,7 @@ function DeployPage(props: IDeployPaperProps) {
 
   React.useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
+    dispatch(fetchDeployPermissions());
   }, []);
 
   const isLoading = (): boolean => {

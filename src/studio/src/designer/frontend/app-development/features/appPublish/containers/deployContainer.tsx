@@ -48,6 +48,16 @@ export const DeployContainer = (props: IDeployContainer) => {
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
   const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
   const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
+  const deployPermissions: string[] = useSelector(
+    (state: IServiceDevelopmentState) => state.userState.permissions.deploy.environments,
+  );
+  const orgName: string = useSelector((state: IServiceDevelopmentState) => {
+    let name = '';
+    if (state.configuration.orgs.allOrgs && state.configuration.orgs.allOrgs[org]) {
+      name = state.configuration.orgs.allOrgs[org].name.nb;
+    }
+    return name;
+  });
 
   React.useEffect(() => {
     dispatch(ConfigurationActions.getEnvironments());
@@ -144,6 +154,8 @@ export const DeployContainer = (props: IDeployContainer) => {
               (error: ICreateAppDeploymentErrors) => error.env === env.name,
             )}
             language={language}
+            deployPermission={deployPermissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1}
+            orgName={orgName}
           />
         );
       })}
