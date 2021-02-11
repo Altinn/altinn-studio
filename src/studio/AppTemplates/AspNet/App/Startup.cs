@@ -1,5 +1,6 @@
 using System;
-
+using System.IO;
+using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.PlatformServices.Extensions;
@@ -27,6 +28,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Linq;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.App
 {
@@ -158,6 +162,13 @@ namespace Altinn.App
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);   // Enables Application Insights
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
+
+            // Add Swagger support (Swashbuckle)
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
+                IncludeXmlComments(c);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -168,6 +179,18 @@ namespace Altinn.App
                 app.UseDeveloperExceptionPage();
             }
 
+            string applicationId = GetApplicationId();
+            if (!string.IsNullOrEmpty(applicationId))
+            {
+                app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
+
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint($"/{applicationId}/swagger/v1/swagger.json", "Altinn App API");
+                    c.RoutePrefix = applicationId + "/swagger";
+                });
+            }
+            
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -186,6 +209,29 @@ namespace Altinn.App
             }
 
             return Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
+        }
+
+                private void IncludeXmlComments(SwaggerGenOptions options)
+        {
+            try
+            {
+                string fileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string fullFilePath = Path.Combine(AppContext.BaseDirectory, fileName);
+                options.IncludeXmlComments(fullFilePath);
+                string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
+                options.IncludeXmlComments(fullFilePathApi);
+            }
+            catch 
+            {
+                // Swagger will not have the xml-documentation to describe the api's.
+            }            
+        }
+
+        private string GetApplicationId()
+        {
+            string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
+            JObject appMetadataJObject = JObject.Parse(appMetaDataString);
+            return appMetadataJObject.SelectToken("id").Value<string>();
         }
     }
 }
