@@ -120,9 +120,6 @@ const useStyles = makeStyles(() => createStyles({
   typographyTekniskFeilkode: {
     paddingTop: '1.2rem',
   },
-  permissionsRoot: {
-    alignItems: 'center',
-  },
 }));
 
 const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
