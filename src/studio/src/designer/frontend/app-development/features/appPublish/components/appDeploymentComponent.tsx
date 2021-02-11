@@ -120,6 +120,9 @@ const useStyles = makeStyles(() => createStyles({
   typographyTekniskFeilkode: {
     paddingTop: '1.2rem',
   },
+  permissionsRoot: {
+    alignItems: 'center',
+  },
 }));
 
 const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
@@ -290,18 +293,29 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
   };
 
   const selectNoOptionsMessage = () => (
-    'Du har ingen versjoner å deploye'
+    getLanguageFromKey('app_publish.no_versions', language)
   );
 
   const returnMissingPermissionsText = () => (
-    <Grid container>
-      <Grid item xs={1}>
-        <AltinnIcon iconClass='fa fa-circle-exclamation' iconColor='black'/>
+    <Grid
+      container={true}
+      className={classes.deployStatusGridContainer}
+      alignItems='center'
+    >
+      <Grid
+        item={true}
+        className={classes.deploySpinnerGridItem}
+        xs={1}
+      >
+        <AltinnIcon
+          iconClass='fa fa-info-circle'
+          iconColor={theme.altinnPalette.primary.black}
+          iconSize='3.6rem'
+        />
       </Grid>
-      <Grid item xs={11}>
+      <Grid item xs={10}>
         <Typography>
-          {`Du har ikke rettigheter til å starte en deploy til ${envName.toUpperCase()}-miljøet.
-          Tilgang kan delegeres av owners i ${props.orgName}.`}
+          {getParsedLanguageFromKey('app_publish.missing_rights', language, [envName.toUpperCase(), props.orgName], true)}
         </Typography>
       </Grid>
     </Grid>
