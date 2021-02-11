@@ -245,7 +245,7 @@ const mapsStateToProps = (state: IAppState, props: any): any => {
     dataModelElements: state.appData.dataModel.model,
     ruleConnection: state.serviceConfigurations.ruleConnection,
     selectedFunction: props.selectedFunction,
-    language: state.appData.language.language,
+    language: state.appData.languageState.language,
   };
 };
 

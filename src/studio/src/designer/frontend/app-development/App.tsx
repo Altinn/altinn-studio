@@ -14,7 +14,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps } from 'react-router';
 import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
-import { compose } from 'redux';
+import { compose, Dispatch } from 'redux';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -23,12 +23,12 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import routes from './config/routes';
-import handleServiceInformationActionDispatchers from './features/administration/handleServiceInformationDispatcher';
+import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
-import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
+import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
-import applicationMetadataDispatcher from './sharedResources/applicationMetadata/applicationMetadataDispatcher';
-import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
+import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
+import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { getRepoStatusUrl } from './utils/urlHelper';
 
 const theme = createMuiTheme(altinnTheme);
@@ -56,7 +56,11 @@ const styles = () => createStyles({
   },
 });
 
-export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
+export interface IServiceDevelopmentProvidedProps {
+  dispatch?: Dispatch;
+}
+
+export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, IServiceDevelopmentProvidedProps {
   language: any;
   location: any;
   repoStatus: any;
@@ -76,11 +80,14 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public componentDidMount() {
     const { org, app } = window as Window as IAltinnWindow;
-    fetchLanguageDispatcher.fetchLanguage(
-      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
-    handleServiceInformationActionDispatchers.fetchServiceName(
-      `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`);
-    applicationMetadataDispatcher.getApplicationMetadata();
+    this.props.dispatch(fetchLanguage({
+      url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
+      languageCode: 'nb',
+    }));
+    this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
+      url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+    }));
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
@@ -94,7 +101,11 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     const { org, app } = window as Window as IAltinnWindow;
     const repoStatusUrl = getRepoStatusUrl();
 
-    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
+    this.props.dispatch(fetchRepoStatus({
+      url: repoStatusUrl,
+      org,
+      repo: app,
+    }));
   }
 
   public windowEventReceived = (event: any) => {
@@ -221,11 +232,13 @@ const makeMapStateToProps = () => {
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
   const mapStateToProps = (
     state: IServiceDevelopmentState,
+    props: IServiceDevelopmentProvidedProps,
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
-      language: state.language,
+      language: state.languageState.language,
       serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
+      dispatch: props.dispatch,
     };
   };
   return mapStateToProps;

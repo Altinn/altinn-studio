@@ -3,11 +3,11 @@
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { Typography } from '@material-ui/core';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import ConditionalRenderingActionDispatchers from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
+import { addConditionalRenderingConnection, deleteConditionalRenderingConnnection } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -15,9 +15,10 @@ export interface IConditionalRenderingModalProps {
 }
 
 export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
+  const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -30,13 +31,13 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
   }
 
   function handleSaveChange(newConnection: string) {
-    ConditionalRenderingActionDispatchers.addConditionalRendering(newConnection);
+    dispatch(addConditionalRenderingConnection({ newConnection }));
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    ConditionalRenderingActionDispatchers.delConditionalRendering(connectionId);
+    dispatch(deleteConditionalRenderingConnnection({ connectionId }));
     setSelectedConnectionId(null);
     props.handleClose();
   }
@@ -53,7 +54,7 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
       <>
         {Object.keys(conditionalRendering || {}).map((key: string) => (
           <RuleButton
-            text={conditionalRendering[key].selectedFunction}
+            text={conditionalRendering[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}

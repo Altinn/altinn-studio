@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Authorization;
@@ -43,7 +44,15 @@ namespace Altinn.Studio.Designer.Infrastructure
                         OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
                         OnRedirectToLogin = async (context) =>
                         {
-                            context.HttpContext.Response.Redirect(loginUrl);
+                            if (context.Request.Path.Value.Contains("keepalive", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.HttpContext.Response.StatusCode = 401;
+                            }
+                            else
+                            {
+                                context.HttpContext.Response.Redirect(loginUrl);
+                            }
+
                             await Task.CompletedTask;
                         }
                     };
