@@ -28,7 +28,7 @@
     "jquery": "3.5.1",
     "jquery-ui-dist": "1.12.1",
     "jquery-validation": "1.19.3",
-    "jquery-validation-unobtrusive": "3.2.11",
+    "jquery-validation-unobtrusive": "3.2.12",
     "js-beautify": "1.13.5",
     "json-editor": "0.7.28",
     "monaco-editor": "0.22.3",
