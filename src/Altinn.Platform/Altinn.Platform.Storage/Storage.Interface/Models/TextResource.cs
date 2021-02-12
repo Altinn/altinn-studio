@@ -19,20 +19,19 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the org, used as a partition key
         /// </summary>
         [JsonProperty(PropertyName = "org")]
-        public string Org {get; set;}
+        public string Org { get; set; }
 
         /// <summary>
         /// Gets or sets the language. Should be a two letter ISO name.
         /// </summary>
         [JsonProperty(PropertyName= "language")]
-        public string Language {get; set;}
+        public string Language { get; set; }
 
         /// <summary>
         /// Gets or sets a list of text resource elements
         /// </summary>
         [JsonProperty(PropertyName = "resources")]
         public List<TextResourceElement> Resources { get; set; }
-
     }
 
     /// <summary>
