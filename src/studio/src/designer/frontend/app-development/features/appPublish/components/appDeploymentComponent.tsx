@@ -19,13 +19,13 @@ import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSi
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getValueByPath } from 'app-shared/utils/getValueByPath';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterReducer';
-import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
-import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
-import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/create/createAppDeploymentActions';
+import { useDispatch } from 'react-redux';
+import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { ICreateAppDeploymentEnvObject, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 
-export interface IReceiptContainerProps {
+export interface IAppDeploymentComponentProps {
   envName: string;
   envObj: ICreateAppDeploymentEnvObject;
   deploymentList?: IEnvironmentItem;
@@ -35,6 +35,8 @@ export interface IReceiptContainerProps {
   deployHistory?: any;
   releases?: any[];
   language: any;
+  deployPermission: boolean;
+  orgName: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -120,8 +122,9 @@ const useStyles = makeStyles(() => createStyles({
   },
 }));
 
-const AppDeploymentComponent = (props: IReceiptContainerProps) => {
+const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
   const classes = useStyles(props);
+  const dispatch = useDispatch();
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
@@ -189,7 +192,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   const startDeploy = () => {
     setDeployInProgress(true);
     setDeployButtonHasShownError(false);
-    AppDeploymentActions.createAppDeployment(selectedImageTag, envObj);
+    dispatch(AppDeploymentActions.createAppDeployment({ tagName: selectedImageTag, envObj }));
   };
 
   React.useEffect(() => {
@@ -287,7 +290,32 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   };
 
   const selectNoOptionsMessage = () => (
-    'Du har ingen versjoner å deploye'
+    getLanguageFromKey('app_publish.no_versions', language)
+  );
+
+  const returnMissingPermissionsText = () => (
+    <Grid
+      container={true}
+      className={classes.deployStatusGridContainer}
+      alignItems='center'
+    >
+      <Grid
+        item={true}
+        className={classes.deploySpinnerGridItem}
+        xs={1}
+      >
+        <AltinnIcon
+          iconClass='fa fa-info-circle'
+          iconColor={theme.altinnPalette.primary.black}
+          iconSize='3.6rem'
+        />
+      </Grid>
+      <Grid item xs={10}>
+        <Typography>
+          {getParsedLanguageFromKey('app_publish.missing_rights', language, [envName.toUpperCase(), props.orgName], true)}
+        </Typography>
+      </Grid>
+    </Grid>
   );
 
   const returnDeployDropDown = () => (
@@ -515,8 +543,11 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           sm={12} md={5}
           className={classNames(classes.dropdownGrid)}
         >
-          {deploymentList && deploymentList.getStatus.success === true && returnDeployDropDown()}
-          {deploymentList && deploymentList.getStatus.success === false && returnDeployUnavailable()}
+          {!props.deployPermission && returnMissingPermissionsText()}
+          {deploymentList && deploymentList.getStatus.success === true
+            && props.deployPermission && returnDeployDropDown()}
+          {deploymentList && deploymentList.getStatus.success === false
+            && props.deployPermission && returnDeployUnavailable()}
 
         </Grid>
 

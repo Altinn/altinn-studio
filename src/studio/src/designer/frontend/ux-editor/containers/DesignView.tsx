@@ -1,19 +1,26 @@
 /* eslint-disable no-undef */
-import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { Dispatch } from 'redux';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
-interface IDesignerPreviewProps {
+interface IDesignerPreviewProvidedProps {
+  dispatch?: Dispatch;
+}
+
+interface IDesignerPreviewProps extends IDesignerPreviewProvidedProps {
   layoutOrder: IFormLayoutOrder;
   order: IFormLayoutOrder;
   activeList: any[];
 }
 
-interface IDesignerPreviewState extends IDesignerPreviewProps {
+interface IDesignerPreviewState {
+  layoutOrder: IFormLayoutOrder;
+  order: IFormLayoutOrder;
+  activeList: any[];
   isDragging: boolean;
 }
 
@@ -59,16 +66,16 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       }
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, moveItem);
-      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-        layoutOrder: {
-          [sourceContainerId]: {
-            $set: [...updatedOrder],
+      this.setState((prevState: IDesignerPreviewState) => {
+        return {
+          ...prevState,
+          layoutOrder: {
+            ...prevState.layoutOrder,
+            [sourceContainerId]: [...updatedOrder],
           },
-        },
-        isDragging: {
-          $set: true,
-        },
-      }));
+          isDragging: true,
+        };
+      });
     } else {
       // Moving to different container
       // If element is still inside old container => remove from old and place in the new conatiner
@@ -79,19 +86,17 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         // Remove component from source, place in dest layoutOrder
         const [moveItem] = updatedOrderSource.splice(updatedOrderSource.indexOf(id), 1);
         updatedOrderDestination.splice(index, 0, moveItem);
-        this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-          layoutOrder: {
-            [destinationContainerId]: {
-              $set: [...updatedOrderDestination],
+        this.setState((prevState: IDesignerPreviewState) => {
+          return {
+            ...prevState,
+            layoutOrder: {
+              ...prevState.layoutOrder,
+              [destinationContainerId]: [...updatedOrderDestination],
+              [sourceContainerId]: [...updatedOrderSource],
             },
-            [sourceContainerId]: {
-              $set: [...updatedOrderSource],
-            },
-          },
-          isDragging: {
-            $set: true,
-          },
-        }));
+            isDragging: true,
+          };
+        });
       } else {
         // The component has been dragged to an unknown container, locate the container and remove
         const container = Object.keys(layoutOrder).find((containerId: string) => {
@@ -102,19 +107,17 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           return;
         }
         updatedOrderDestination.splice(index, 0, movedComponent);
-        this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-          layoutOrder: {
-            [destinationContainerId]: {
-              $set: [...updatedOrderDestination],
+        this.setState((prevState: IDesignerPreviewState) => {
+          return {
+            ...prevState,
+            layoutOrder: {
+              ...prevState.layoutOrder,
+              [destinationContainerId]: [...updatedOrderDestination],
+              [container]: [...layoutOrder[container]],
             },
-            [container]: {
-              $set: [...layoutOrder[container]],
-            },
-          },
-          isDragging: {
-            $set: true,
-          },
-        }));
+            isDragging: true,
+          };
+        });
       }
     }
   }
@@ -148,16 +151,16 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       }
       const [movedContainer] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, movedContainer);
-      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-        layoutOrder: {
-          [sourceContainerId]: {
-            $set: [...updatedOrder],
+      this.setState((prevState: IDesignerPreviewState) => {
+        return {
+          ...prevState,
+          layoutOrder: {
+            ...prevState.layoutOrder,
+            [sourceContainerId]: [...updatedOrder],
           },
-        },
-        isDragging: {
-          $set: true,
-        },
-      }));
+          isDragging: true,
+        };
+      });
     } else {
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
@@ -168,39 +171,47 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       }
       const [movedContainer] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
       updatedDestination?.splice(index, 0, movedContainer);
-      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-        layoutOrder: {
-          [destinationContainerId]: {
-            $set: [...updatedDestination],
+      this.setState((prevState: IDesignerPreviewState) => {
+        return {
+          ...prevState,
+          layoutOrder: {
+            ...prevState.layoutOrder,
+            [destinationContainerId]: [...updatedDestination],
           },
-        },
-        isDragging: {
-          $set: true,
-        },
-      }));
+          isDragging: true,
+        };
+      });
     }
   }
 
   public dropContainer = () => {
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      this.state.layoutOrder,
-    );
-    this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-      isDragging: {
-        $set: false,
-      },
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.updateFormComponentOrder({ updatedOrder: this.state.layoutOrder }));
+    this.setState((prevState: IDesignerPreviewState) => {
+      return {
+        ...prevState,
+        isDragging: false,
+      };
+    });
+    dispatch(FormLayoutActions.updateActiveListOrder({
+      containerList: this.props.activeList,
+      orderList: this.props.order as any,
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
   }
 
   public dropComponent = () => {
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
-    this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-      isDragging: {
-        $set: false,
-      },
+    const { dispatch } = this.props;
+    dispatch(FormLayoutActions.updateFormComponentOrder({ updatedOrder: this.state.layoutOrder }));
+    this.setState((prevState: IDesignerPreviewState) => {
+      return {
+        ...prevState,
+        isDragging: false,
+      };
+    });
+    dispatch(FormLayoutActions.updateActiveListOrder({
+      containerList: this.props.activeList,
+      orderList: this.props.order as any,
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
   }
 
   public render(): JSX.Element {
@@ -239,6 +250,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
 }
 const mapsStateToProps = (
   state: IAppState,
+  props: IDesignerPreviewProvidedProps,
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const selectedLayout = state.formDesigner.layout.selectedLayout;
@@ -246,6 +258,7 @@ const mapsStateToProps = (
     layoutOrder: JSON.parse(JSON.stringify(state.formDesigner.layout.layouts[selectedLayout]?.order || {})),
     order: GetLayoutOrderSelector(state),
     activeList: state.formDesigner.layout.activeList,
+    dispatch: props.dispatch,
   };
 };
 

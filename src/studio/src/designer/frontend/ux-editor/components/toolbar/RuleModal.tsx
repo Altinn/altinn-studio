@@ -2,10 +2,10 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { Typography } from '@material-ui/core';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useSelector } from 'react-redux';
-import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
+import { useDispatch, useSelector } from 'react-redux';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
+import { addRuleConnection, deleteRuleConnnection } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -13,9 +13,10 @@ export interface IRuleModalProps {
 }
 
 export default function RuleModal(props: IRuleModalProps) {
+  const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const ruleConnection = useSelector((state: IAppState) => state.serviceConfigurations.ruleConnection);
-  const language = useSelector((state: IAppState) => state.appData.language.language);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -28,13 +29,13 @@ export default function RuleModal(props: IRuleModalProps) {
   }
 
   function handleSaveChange(newConnection: string) {
-    RuleConnectionActionDispatchers.addRuleConnection(newConnection);
+    dispatch(addRuleConnection({ newConnection }));
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    RuleConnectionActionDispatchers.delRuleConnection(connectionId);
+    dispatch(deleteRuleConnnection({ connectionId }));
     setSelectedConnectionId(null);
     props.handleClose();
   }
@@ -51,7 +52,7 @@ export default function RuleModal(props: IRuleModalProps) {
       <>
         {Object.keys(ruleConnection || {}).map((key: string) => (
           <RuleButton
-            text={ruleConnection[key].selectedFunction}
+            text={ruleConnection[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}

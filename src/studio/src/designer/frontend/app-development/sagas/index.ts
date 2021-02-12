@@ -12,6 +12,7 @@ import { appClusterSagas } from '../sharedResources/appCluster/appClusterSagas';
 import { configurationSagas } from '../sharedResources/configuration/configurationSagas';
 import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
 import { watchFetchDataModelSaga, watchSaveDataModelSaga } from '../features/dataModeling/dataModelingSagas';
+import userSagas from '../sharedResources/user/userSagas';
 
 function* root(): SagaIterator {
   yield fork(languageSagas);
@@ -30,6 +31,7 @@ function* root(): SagaIterator {
   yield fork(configurationSagas);
   yield fork(watchFetchDataModelSaga);
   yield fork(watchSaveDataModelSaga);
+  yield fork(userSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);

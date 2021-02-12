@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -9,16 +8,19 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
+
 using Xunit;
 
 namespace Designer.Tests.TestingControllers
@@ -34,11 +36,11 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
-        public async void Get_Datamodel_Ok()
+        public async Task Get_Datamodel_Ok()
         {
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=5245/41111/41111";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
    
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -56,11 +58,34 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
-        public async void Get_Datamodel_onlyXsd_Ok()
+        public async Task GetDatamodel_InvalidFilePath_ReturnsBadRequest()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=../App/models/41111";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("Invalid model name value.", responsestring);
+        }
+
+        [Fact]
+        public async Task Get_Datamodel_onlyXsd_Ok()
         {
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=4106/35721/35721";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=35721";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -81,20 +106,20 @@ namespace Designer.Tests.TestingControllers
         /// Scenario: Post a Json Schema
         /// </summary>
         [Fact]
-        public async void Get_Put_Updatemodel_Ok()
+        public async Task Get_Put_Updatemodel_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/3478/32578/32578.schema.json"))
+            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/3478/32578/32578.schema.json");
+                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
   
-            File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/3478/32578/32578.xsd", true);
+            File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
   
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=3478/32578/32578";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=32578";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -106,9 +131,9 @@ namespace Designer.Tests.TestingControllers
             string responsestring = await response.Content.ReadAsStringAsync();
             TextReader textReader = new StringReader(responsestring);
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+            JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=3478/32578/32578";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=32578";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -128,20 +153,20 @@ namespace Designer.Tests.TestingControllers
         /// Scenario: Post a Json Schema
         /// </summary>
         [Fact]
-        public async void Get_Put_Updatemodel2_Ok()
+        public async Task Get_Put_Updatemodel2_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/5245/41111/41111.schema.json"))
+            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/5245/41111/41111.schema.json");
+                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/5245/41111/41111.xsd", true);
+            File.Copy(unitTestFolder + "Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
 
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=5245/41111/41111";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -153,9 +178,9 @@ namespace Designer.Tests.TestingControllers
             string responsestring = await response.Content.ReadAsStringAsync();
             TextReader textReader = new StringReader(responsestring);
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+            JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=5245/41111/41111";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=41111";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -175,20 +200,20 @@ namespace Designer.Tests.TestingControllers
         /// Scenario: Post a Json Schema
         /// </summary>
         [Fact]
-        public async void Get_Put_Updatemodel3_Ok()
+        public async Task Get_Put_Updatemodel3_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.schema.json"))
+            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.schema.json");
+                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/RA-0678_M.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/ra/0678/0678.xsd", true);
+            File.Copy(unitTestFolder + "Model/Xsd/RA-0678_M.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
 
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=ra/0678/0678";
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=0678";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
             {
@@ -200,9 +225,9 @@ namespace Designer.Tests.TestingControllers
             string responsestring = await response.Content.ReadAsStringAsync();
             TextReader textReader = new StringReader(responsestring);
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+            JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
-            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=ra/0678/0678";
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=0678";
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(jsonSchema);
@@ -216,6 +241,51 @@ namespace Designer.Tests.TestingControllers
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessagePut);
             HttpResponseMessage responsePut = await client.SendAsync(httpRequestMessagePut);
             Assert.Equal(HttpStatusCode.OK, responsePut.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario: Attempt to update a JSON Schema to an invalid path.
+        /// </summary>
+        [Fact]
+        public async Task UpdateDatamodel_FilePathIsInvalid_ReturnsBadRequest()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=0678";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
+            TextReader textReader = new StringReader(responsestring);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+
+            dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?modelName=../../0678";
+
+            var serializer = new JsonSerializer();
+            JsonValue toar = serializer.Serialize(jsonSchema);
+
+            string requestBody = toar.ToString();
+            HttpRequestMessage httpRequestMessagePut = new HttpRequestMessage(HttpMethod.Put, dataPathWithData)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessagePut);
+
+            // Act
+            HttpResponseMessage responsePut = await client.SendAsync(httpRequestMessagePut);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, responsePut.StatusCode);
+            string responsestringPut = await responsePut.Content.ReadAsStringAsync();
+            Assert.Equal("Invalid model name value.", responsestringPut);
         }
 
         private HttpClient GetTestClient()

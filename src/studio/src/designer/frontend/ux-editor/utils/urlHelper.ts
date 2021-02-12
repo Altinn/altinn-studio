@@ -1,6 +1,10 @@
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
 const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
 
+export const getFetchFormLayoutUrl = (): string => {
+  return `${basePath}/UIEditor/GetFormLayout`;
+};
+
 export const getSaveFormLayoutUrl = (layoutName: string): string => {
   return `${basePath}/UIEditor/SaveFormLayout/${layoutName}`;
 };
@@ -55,4 +59,24 @@ export const getAddTextResourcesUrl = (): string => {
 
 export const getWidgetsSettingsUrl = (): string => {
   return `${basePath}/UIEditor/GetWidgetSettings`;
+};
+
+export const getLoadTextResourcesUrl = (languageCode: string) => {
+  return `${basePath}/UIEditor/GetTextResources/${languageCode}`;
+};
+
+export const getFetchDataModelUrl = () => {
+  return `${basePath}/Model/GetJson`;
+};
+
+export const getFetchLanguageUrl = (languageCode: string) => {
+  return `${window.location.origin}/designerapi/Language/GetLanguageAsJSON?languageCode=${languageCode}`;
+};
+
+export const getFetchRuleModelUrl = () => {
+  return `${basePath}/UIEditor/GetRuleHandler`;
+};
+
+export const getFetchRuleConfigurationUrl = () => {
+  return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`
 };

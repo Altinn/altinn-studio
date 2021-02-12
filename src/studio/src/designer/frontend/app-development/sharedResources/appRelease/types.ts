@@ -25,6 +25,29 @@ export interface IBuild {
   finished: string;
 }
 
+export interface ICreateReleaseAction {
+  tagName: string;
+  name: string;
+  body: string;
+  targetCommitish: string;
+}
+
+export interface ICreateReleaseFulfilledAction {
+  release: IRelease;
+}
+
+export interface ICreateReleaseRejectedActions {
+  errorCode: number;
+}
+
+export interface IGetReleaseActionFulfilled {
+  releases: IRelease[];
+}
+
+export interface IGetReleaseActionRejected {
+  errorCode: number;
+}
+
 export interface IRelease {
   id: string;
   tagName: string;

@@ -19,10 +19,12 @@ labels: kind/user-story
 ## Specification tasks
 
 - [ ] Development tasks are defined
-- [ ] Test design / decide test need
 
 ## Development tasks
 > Add tasks here
+
+## Test
+> Add test cases here as checkboxes that are being tested as part of the changes.
 
 ## Definition of done
 Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) (Only for project members) before closing.

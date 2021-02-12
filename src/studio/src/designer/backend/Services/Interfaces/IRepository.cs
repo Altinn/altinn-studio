@@ -184,8 +184,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text</returns>
-        Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string app);
+        /// <remarks>
+        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// </remarks>
+        /// <returns>The text resources</returns>
+        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app);
 
         /// <summary>
         /// Returns the app languages
@@ -288,7 +291,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="texts">The texts to be saved</param>
-        void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, string>> texts);
+        /// <remarks>
+        /// Format of the dictionary is expedted to be : &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// </remarks>
+        void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> texts);
 
         /// <summary>
         /// Get XSD model from disk

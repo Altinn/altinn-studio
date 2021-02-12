@@ -1,8 +1,7 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
-import * as ConfigurationActionTypes from '../configurationActionTypes';
-import ConfigurationDispatcher from '../configurationDispatcher';
+import { ConfigurationActions } from '../configurationSlice';
 
 import { getEnvironmentsConfigUrl } from '../../../utils/urlHelper';
 
@@ -10,21 +9,17 @@ import { getEnvironmentsConfigUrl } from '../../../utils/urlHelper';
 function* getEnvironmentsSaga(): SagaIterator {
   try {
     const result = yield call(get, getEnvironmentsConfigUrl());
-    yield call(ConfigurationDispatcher.getEnvironmentsFulfilled, result);
-  } catch (err) {
-    yield call(ConfigurationDispatcher.getEnvironmentsRejected, err);
+    yield put(ConfigurationActions.getEnvironmentsFulfilled({ result }));
+  } catch (error) {
+    yield put(ConfigurationActions.getEnvironmentsRejected({ error }));
   }
 }
 
 function* watchGetEnvironmentsSaga(): SagaIterator {
-  yield takeLatest(
-    ConfigurationActionTypes.GET_ENVIRONMENTS,
-    getEnvironmentsSaga,
-  );
+  yield takeLatest(ConfigurationActions.getEnvironments, getEnvironmentsSaga);
 }
 
 // WATCHES EXPORT
 export default function* getEnvironmentsSagas(): SagaIterator {
   yield fork(watchGetEnvironmentsSaga);
-  // Insert all watchSagas here
 }

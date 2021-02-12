@@ -44,7 +44,6 @@ function AddPropertyModal(props: IAddPropertyModal) {
   }, [props.sharedTypes]);
 
   const onCloseModal = () => {
-    console.log('property: ', property);
     props.onClose(property);
   }
 
