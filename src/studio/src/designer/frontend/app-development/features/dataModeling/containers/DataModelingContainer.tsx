@@ -1,11 +1,7 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
-import { fetchDataModel, saveDataModel, setDataModelFilePath } from '../dataModelingSlice';
-
-export interface IDataModelingContainer {
-  filePath: string;
-}
+import { fetchDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
@@ -22,7 +18,7 @@ function DataModelingContainer(): JSX.Element {
 
   React.useEffect(() => {
     if (dataModelName) {
-      dispatch(setDataModelFilePath({ filePath: `App/models/${dataModelName}` }));
+      dispatch(setDataModelName({ modelName: dataModelName }));
       dispatch(fetchDataModel({}));
     }
   }, [dispatch, dataModelName]);

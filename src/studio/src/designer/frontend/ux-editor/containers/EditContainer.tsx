@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-nested-ternary */
-import { createStyles, Grid, IconButton, ListItem, withStyles } from '@material-ui/core';
+import { Grid, IconButton, ListItem, makeStyles } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
-import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons } from '../components';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
-const styles = createStyles({
+const useStyles = makeStyles({
   active: {
     backgroundColor: '#fff',
     boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
@@ -151,20 +151,9 @@ export interface IEditContainerProvidedProps {
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   sendItemToParent: any;
-  classes: any;
   singleSelected: boolean;
   partOfGroup?: boolean;
-}
-export interface IEditContainerProps extends IEditContainerProvidedProps {
-  id: string;
-  dataModel: IDataModelFieldElement[];
-  textResources: ITextResource[];
-  language: any;
-  components: any;
-  firstInActiveList: boolean;
-  lastInActiveList: boolean;
-  activeList: any;
-  orderList: any[];
+  children: any;
 }
 
 export interface IEditContainerState {
@@ -177,323 +166,245 @@ export interface IEditContainerState {
   activeList: any;
 }
 
-export class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
-  constructor(_props: IEditContainerProps, _state: IEditContainerState) {
-    super(_props, _state);
-    if (!_props.component.textResourceBindings) {
-      // eslint-disable-next-line no-param-reassign
-      _props.component.textResourceBindings = {};
-    }
-    this.state = {
-      isEditModalOpen: false,
-      isEditMode: false,
-      hideDelete: false,
-      hideEdit: false,
-      component: {
-        id: this.props.id,
-        ...this.props.component,
-      },
-      listItem: {
-        id: _props.id,
-        firstInActiveList: _props.firstInActiveList,
-        lastInActiveList: _props.lastInActiveList,
-        inEditMode: false,
-        order: null,
-      },
-      activeList: _props.activeList,
-    };
-  }
+export function EditContainer(props: IEditContainerProvidedProps) {
+  const classes = useStyles();
+  const dispatch = useDispatch();
 
-  public handleComponentUpdate = (updatedComponent: IFormComponent): void => {
-    this.setState((state) => {
-      return {
-        ...state,
-        component: { ...updatedComponent },
-      };
-    });
-  }
+  const [component, setComponent] = React.useState<any>({
+    id: props.id,
+    ...props.component,
+  });
+  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
+  const [listItem, setListItem] = React.useState<any>({
+    id: props.id,
+    firstInActiveList: props.firstInActiveList,
+    lastInActiveList: props.lastInActiveList,
+    inEditMode: false,
+    order: null,
+  });
 
-  public handleComponentDelete = (e: any): void => {
-    const activeListLength = this.props.activeList.length;
-    if (activeListLength > 1) {
-      FormDesignerActionDispatchers.deleteFormComponents(this.props.activeList);
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
+  const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
+
+  const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
+    setComponent({ ...updatedComponent });
+  };
+
+  const handleComponentDelete = (e: any): void => {
+    if (activeList.length > 1) {
+      dispatch(FormLayoutActions.deleteFormComponents({ components: activeList }));
     } else {
-      FormDesignerActionDispatchers.deleteFormComponents([this.props.id]);
+      dispatch(FormLayoutActions.deleteFormComponents({ components: [props.id] }));
     }
-    FormDesignerActionDispatchers.deleteActiveListAction();
+    dispatch(FormLayoutActions.deleteActiveList());
     e.stopPropagation();
-  }
+  };
 
-  public handleOpenEdit = (): void => {
-    this.setState({
-      isEditMode: true,
-      listItem: {
-        ...this.state.listItem,
-        inEditMode: true,
-      },
-    }, () => {
-      this.props.sendItemToParent(this.state.listItem);
-    });
-  }
+  const handleOpenEdit = (): void => {
+    setIsEditMode(true);
+    const newListItem = { ...listItem, inEditMode: true };
+    setListItem(newListItem);
+    props.sendItemToParent(listItem);
+  };
 
-  public handleSetActive = (): void => {
-    if (!this.state.isEditMode) {
-      const key: any = Object.keys(this.props.orderList)[0];
-      const orderIndex = this.props.orderList[key].indexOf(this.state.listItem.id);
-
-      this.setState((prevState) => ({
-        listItem: {
-          ...prevState.listItem,
-          order: orderIndex,
-        },
-        hideDelete: false,
-      }), () => {
-        this.props.sendItemToParent(this.state.listItem);
-      });
-
-      if (!this.state.listItem.firstInActiveList) {
-        this.setState({
-          hideDelete: true,
-        });
-      }
+  const handleSetActive = (): void => {
+    if (!isEditMode) {
+      const key: any = Object.keys(orderList)[0];
+      const orderIndex = orderList[key].indexOf(listItem.id);
+      const newListItem = { ...listItem, order: orderIndex };
+      setListItem(newListItem);
+      props.sendItemToParent(newListItem);
     }
-  }
+  };
 
-  public handleSave = (): void => {
-    this.setState({
-      isEditMode: false,
-      listItem: {
-        ...this.state.listItem,
-        inEditMode: false,
-      },
-    }, () => {
-      const { id: stateId, ...restState } = this.state.component;
-      const { id: idProps, ...restProps } = this.props.component;
-      if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
-        this.handleSaveChange(this.state.component);
-      }
-      if (this.props.id !== this.state.component.id) {
-        FormDesignerActionDispatchers.updateFormComponentId(this.props.id, this.state.component.id);
-      }
-      this.props.sendItemToParent(this.state.listItem);
-      FormDesignerActionDispatchers.deleteActiveListAction();
-    });
-  }
+  const handleSave = (): void => {
+    const newListItem = { ...listItem, inEditMode: false };
+    setListItem(newListItem);
+    setIsEditMode(false);
 
-  public handleDiscard = (): void => {
-    this.setState({
-      component: { ...this.props.component },
-      isEditMode: false,
-    });
-    FormDesignerActionDispatchers.deleteActiveListAction();
-  }
+    const { id: stateId, ...restState } = component;
+    const { id: idProps, ...restProps } = props.component;
+    if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
+      handleSaveChange(component);
+    }
+    if (props.id !== component.id) {
+      dispatch(FormLayoutActions.updateFormComponentId({ currentId: props.id, newId: component.id }));
+    }
+    props.sendItemToParent(newListItem);
+    dispatch(FormLayoutActions.deleteActiveList());
+  };
 
-  public handleSaveChange = (callbackComponent: FormComponentType): void => {
+  const handleDiscard = (): void => {
+    setComponent({ ...props.component });
+    setIsEditMode(false);
+    dispatch(FormLayoutActions.deleteActiveList());
+  };
+
+  const handleSaveChange = (callbackComponent: FormComponentType): void => {
     const { id, ...rest } = callbackComponent;
-    FormDesignerActionDispatchers.updateFormComponent(
-      rest,
-      this.props.id,
-    );
-  }
+    dispatch(FormLayoutActions.updateFormComponent({ id: props.id, updatedComponent: rest }));
+  };
 
-  public handleTitleChange = (e: any): void => {
-    this.state.component.textResourceBindings.title = e.value;
-  }
-
-  public searchForText = (e: any): void => {
-    this.state.component.textResourceBindings.title = e.target.value;
-  }
-
-  public handleKeyPress = (e: any) => {
+  const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
-      this.handleSetActive();
+      handleSetActive();
     }
-  }
+  };
 
-  public setPlacementClass = (index: number) => {
-    const first = this.props.activeList[index].firstInActiveList;
-    const last = this.props.activeList[index].lastInActiveList;
+  const setPlacementClass = (index: number) => {
+    const first = activeList[index].firstInActiveList;
+    const last = activeList[index].lastInActiveList;
     if (first) {
       return last ? 'first last' : 'first';
     }
     return last ? 'last' : '';
-  }
-
-  public btnGrid = () => {
-    if (this.props.activeList.length > 1) {
-      if (this.props.partOfGroup) {
-        return this.props.classes.gridForBtnActiveGroup;
-      }
-      return this.props.classes.gridForBtnActive;
-    }
-    if (this.props.activeList.length === 1) {
-      if (this.props.partOfGroup) {
-        return this.props.classes.gridForBtnSingleActiveGroup;
-      }
-      return this.props.classes.gridForBtnSingleActive;
-    }
-    if (this.props.partOfGroup) {
-      return this.props.classes.gridForBtnGroup;
-    }
-    return this.props.classes.gridForBtn;
-  }
-
-  public render(): JSX.Element {
-    const activeListIndex =
-      this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
-    return (
-      <>
-        <Grid container={true}>
-          <Grid
-            container={true}
-            direction='row'
-            spacing={0}
-            className={this.props.classes.wrapper}
-          >
-            <Grid
-              item={true}
-              xs={11}
-              className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
-                this.props.classes.gridWrapperActive : (this.props.partOfGroup ? '' : this.props.classes.gridWrapper)}
-            >
-              <div
-                className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
-                  `${this.props.classes.listBorder} ${this.setPlacementClass(activeListIndex)}` :
-                  this.props.classes.noOutline}
-              >
-                <ListItem
-                  className={activeListIndex > -1 || this.state.isEditMode ? this.props.classes.active :
-                    ((this.props.component.type === 'Group') ? this.props.classes.formGroup : this.props.classes.formComponent)}
-                  onClick={this.handleSetActive}
-                  tabIndex={0}
-                  onKeyPress={this.handleKeyPress}
-                  component='div'
-                >
-                  {this.state.isEditMode ?
-                    <Grid
-                      item={true}
-                      xs={12}
-                      className={this.props.classes.activeWrapper}
-                    >
-                      <EditModalContent
-                        component={JSON.parse(JSON.stringify(this.state.component))}
-                        language={this.props.language}
-                        handleComponentUpdate={this.handleComponentUpdate}
-                      />
-                    </Grid>
-                    :
-                    <div className={`${this.props.classes.textPrimaryDark} ${this.props.classes.formComponentTitle}`}>
-                      <i
-                        className={
-                          `${this.props.classes.icon} ${componentIcons[this.state.component.type]}`
-                        }
-                      />
-                      {this.state.component.textResourceBindings.title ?
-                        truncate(
-                          getTextResource(this.state.component.textResourceBindings.title,
-                            this.props.textResources), 80,
-                        )
-                        : getComponentTitleByComponentType(this.state.component.type, this.props.language)}
-                    </div>
-                  }
-                </ListItem>
-              </div>
-            </Grid>
-            {!this.state.isEditMode &&
-              <Grid item={true} xs={1}>
-                <Grid
-                  container={true}
-                  direction='row'
-                  className={this.btnGrid()}
-                >
-                  <Grid item={true} xs={12}>
-                    {(activeListIndex === 0 || this.props.activeList.length < 1) &&
-                      <IconButton
-                        type='button'
-                        className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
-                        onClick={this.handleComponentDelete}
-                        tabIndex={0}
-                      >
-                        <i className='fa fa-circletrash' />
-                      </IconButton>
-                    }
-                  </Grid>
-                  <Grid item={true} xs={12}>
-                    {(this.props.activeList.length < 1 ||
-                      this.props.activeList.length === 1 && activeListIndex === 0) &&
-                      <IconButton
-                        type='button'
-                        className={this.props.classes.formComponentsBtn}
-                        onClick={this.handleOpenEdit}
-                        tabIndex={0}
-                      >
-                        <i className='fa fa-edit' />
-                      </IconButton>
-                    }
-                  </Grid>
-                </Grid>
-              </Grid>}
-            {this.state.isEditMode &&
-              <Grid item={true} xs={1}>
-                <Grid
-                  container={true}
-                  direction='row'
-                  // eslint-disable-next-line max-len
-                  className={this.props.partOfGroup ? this.props.classes.gridForBtnSingleActiveGroup : this.props.classes.gridForBtnSingleActive}
-                >
-                  <Grid item={true} xs={12}>
-                    <IconButton
-                      type='button'
-                      className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
-                      onClick={this.handleDiscard}
-                      tabIndex={0}
-                    >
-                      <i className='fa fa-circlecancel' />
-                    </IconButton>
-                  </Grid>
-                  <Grid item={true} xs={12}>
-                    <IconButton
-                      type='button'
-                      className={`${this.props.classes.formComponentsBt} ${this.props.classes.specialBtn}`}
-                      onClick={this.handleSave}
-                      tabIndex={0}
-                    >
-                      <i className='fa fa-circlecheck' />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Grid>}
-          </Grid>
-        </Grid>
-      </>
-    );
-  }
-}
-
-const makeMapStateToProps = () => {
-  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const mapStateToProps = (
-    state: IAppState,
-    props: IEditContainerProvidedProps,
-  ): IEditContainerProps => {
-    return {
-      activeList: state.formDesigner.layout.activeList,
-      classes: props.classes,
-      component: props.component,
-      components: GetLayoutComponentsSelector(state),
-      dataModel: state.appData.dataModel.model,
-      firstInActiveList: props.firstInActiveList,
-      sendItemToParent: props.sendItemToParent,
-      id: props.id,
-      language: state.appData.language.language,
-      lastInActiveList: props.lastInActiveList,
-      orderList: GetLayoutOrderSelector(state),
-      singleSelected: props.singleSelected,
-      textResources: state.appData.textResources.resources,
-    };
   };
-  return mapStateToProps;
-};
 
-export const EditContainer = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(Edit));
+  const btnGrid = () => {
+    if (activeList.length > 1) {
+      if (props.partOfGroup) {
+        return classes.gridForBtnActiveGroup;
+      }
+      return classes.gridForBtnActive;
+    }
+    if (activeList.length === 1) {
+      if (props.partOfGroup) {
+        return classes.gridForBtnSingleActiveGroup;
+      }
+      return classes.gridForBtnSingleActive;
+    }
+    if (props.partOfGroup) {
+      return classes.gridForBtnGroup;
+    }
+    return classes.gridForBtn;
+  };
+
+  const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
+
+  return (
+    <>
+      <Grid container={true}>
+        <Grid
+          container={true}
+          direction='row'
+          spacing={0}
+          className={classes.wrapper}
+        >
+          <Grid
+            item={true}
+            xs={11}
+            className={(activeList.length > 1) && (activeListIndex >= 0) ?
+              classes.gridWrapperActive : (props.partOfGroup ? '' : classes.gridWrapper)}
+          >
+            <div
+              className={(activeList.length > 1) && (activeListIndex >= 0) ?
+                `${classes.listBorder} ${setPlacementClass(activeListIndex)}` :
+                classes.noOutline}
+            >
+              <ListItem
+                className={activeListIndex > -1 || isEditMode ? classes.active :
+                  ((props.component.type === 'Group') ? 'formGroup' : classes.formComponent)}
+                onClick={handleSetActive}
+                tabIndex={0}
+                onKeyPress={handleKeyPress}
+                component='div'
+              >
+                {isEditMode ?
+                  <Grid
+                    item={true}
+                    xs={12}
+                    className={classes.activeWrapper}
+                  >
+                    <EditModalContent
+                      component={JSON.parse(JSON.stringify(component))}
+                      language={language}
+                      handleComponentUpdate={handleComponentUpdate}
+                    />
+                  </Grid>
+                  :
+                  <div className={`${classes.textPrimaryDark} ${classes.formComponentTitle}`}>
+                    <i
+                      className={
+                        `${classes.icon} ${componentIcons[component.type]}`
+                      }
+                    />
+                    {component.textResourceBindings.title ?
+                      truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
+                      : getComponentTitleByComponentType(component.type, language)}
+                  </div>
+                }
+              </ListItem>
+            </div>
+          </Grid>
+          {!isEditMode &&
+            <Grid item={true} xs={1}>
+              <Grid
+                container={true}
+                direction='row'
+                className={btnGrid()}
+              >
+                <Grid item={true} xs={12}>
+                  {(activeListIndex === 0 || activeList.length < 1) &&
+                    <IconButton
+                      type='button'
+                      className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
+                      onClick={handleComponentDelete}
+                      tabIndex={0}
+                    >
+                      <i className='fa fa-circletrash' />
+                    </IconButton>
+                  }
+                </Grid>
+                <Grid item={true} xs={12}>
+                  {(activeList.length < 1 ||
+                    (activeList.length === 1 && activeListIndex === 0)) &&
+                    <IconButton
+                      type='button'
+                      className={classes.formComponentsBtn}
+                      onClick={handleOpenEdit}
+                      tabIndex={0}
+                    >
+                      <i className='fa fa-edit' />
+                    </IconButton>
+                  }
+                </Grid>
+              </Grid>
+            </Grid>}
+          {isEditMode &&
+            <Grid item={true} xs={1}>
+              <Grid
+                container={true}
+                direction='row'
+                // eslint-disable-next-line max-len
+                className={props.partOfGroup ? classes.gridForBtnSingleActiveGroup : classes.gridForBtnSingleActive}
+              >
+                <Grid item={true} xs={12}>
+                  <IconButton
+                    type='button'
+                    className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
+                    onClick={handleDiscard}
+                    tabIndex={0}
+                  >
+                    <i className='fa fa-circlecancel' />
+                  </IconButton>
+                </Grid>
+                <Grid item={true} xs={12}>
+                  <IconButton
+                    type='button'
+                    className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
+                    onClick={handleSave}
+                    tabIndex={0}
+                  >
+                    <i className='fa fa-circlecheck' />
+                  </IconButton>
+                </Grid>
+              </Grid>
+            </Grid>}
+        </Grid>
+      </Grid>
+    </>
+  );
+}

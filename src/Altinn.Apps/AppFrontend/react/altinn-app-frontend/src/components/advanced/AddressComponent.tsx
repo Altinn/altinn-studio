@@ -5,7 +5,7 @@
 import axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
-import { IComponentValidations } from 'src/types';
+import { IComponentValidations, ILabelSettings } from 'src/types';
 import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
@@ -22,6 +22,7 @@ export interface IAddressComponentProps {
   dataModelBindings: IDataModelBindings;
   readOnly: boolean;
   required: boolean;
+  labelSettings?: ILabelSettings;
   language: any;
   textResourceBindings: ITextResourceBindings;
   componentValidations?: IComponentValidations;
@@ -202,7 +203,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     return (
       <label className='a-form-label title-label' htmlFor={id}>
         {label}
-        {props.required || hideOptional ?
+        {props.required || props.readOnly || props.labelSettings?.optionalIndicator === false || hideOptional ?
           null :
           <span className='label-optional'>
             ({getLanguageFromKey('general.optional', props.language)})

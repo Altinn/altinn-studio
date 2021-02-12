@@ -1,20 +1,19 @@
 /* eslint-disable import/no-cycle */
-import { createStyles, Drawer, Grid, Theme, Typography, withStyles } from '@material-ui/core';
+import { createMuiTheme, Drawer, Grid, makeStyles, Theme, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
-import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
+import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
@@ -32,7 +31,9 @@ export interface IFormDesignerState {
   codeEditorMode: LogicMode;
 }
 
-const styles = ((theme: Theme) => createStyles({
+const useTheme = createMuiTheme(altinnTheme);
+
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     [theme.breakpoints.up('md')]: {
       paddingLeft: theme.sharedStyles.mainPaddingLeft,
@@ -129,156 +130,117 @@ const styles = ((theme: Theme) => createStyles({
     fontWeight: 500,
   },
 }));
+
+// eslint-disable-next-line no-shadow
 export enum LayoutItemType {
   Container = 'CONTAINER',
   Component = 'COMPONENT',
 }
 
-class FormDesigner extends React.Component<
-  IFormDesignerProps,
-  IFormDesignerState
-  > {
-  constructor(props: IFormDesignerProps) {
-    super(props);
-    this.state = {
-      codeEditorOpen: false,
-      codeEditorMode: null,
-    };
-  }
+function FormDesigner() {
+  const classes = useStyles(useTheme);
+  const dispatch = useDispatch();
 
-  public componentDidMount() {
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
+  const [codeEditorOpen, setCodeEditorOpen] = React.useState<boolean>(false);
+  const [codeEditorMode, setCodeEditorMode] = React.useState<LogicMode>(null);
 
-    FormDesignerActionDispatchers.fetchFormLayout(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`,
-    );
-    AppDataActionDispatcher.setDesignMode(true);
-    ManageServiceConfigurationDispatchers.fetchJsonFile(
-      `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`,
-    );
-  }
+  const selectedLayout: string = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
-  public toggleCodeEditor = (mode?: LogicMode) => {
-    this.setState((prevState: IFormDesignerState) => {
-      return {
-        codeEditorOpen: !prevState.codeEditorOpen,
-        codeEditorMode: mode || null,
-      };
-    });
-  }
+  React.useEffect(() => {
+    dispatch(FormLayoutActions.fetchFormLayout());
+    dispatch(fetchServiceConfiguration());
+  }, []);
 
-  public getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
-    return filterDataModelForIntellisense(this.props.dataModel, filterText);
-  }
+  const toggleCodeEditor = (mode?: LogicMode) => {
+    setCodeEditorOpen(!codeEditorOpen);
+    setCodeEditorMode(mode || null);
+  };
 
-  public getEditorHeight = () => {
+  const getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
+    return filterDataModelForIntellisense(dataModel, filterText);
+  };
+
+  const getEditorHeight = () => {
     const height = document.getElementById('formFillerGrid').clientHeight;
     const editorHeight = height - 20;
     return editorHeight.toString();
-  }
+  };
 
-  public renderLogicEditor = () => {
-    const { classes } = this.props;
+  const renderLogicEditor = () => {
     return (
       <Drawer
         anchor='bottom'
-        open={this.state.codeEditorOpen}
+        open={codeEditorOpen}
         classes={{ paper: classNames(classes.drawerRoot) }}
       >
         <FileEditor
-          editorHeight={this.getEditorHeight()}
-          mode={this.state.codeEditorMode.toString()}
-          closeFileEditor={this.toggleCodeEditor}
-          getDataModelSuggestions={this.getDataModelSuggestions}
+          editorHeight={getEditorHeight()}
+          mode={codeEditorMode.toString()}
+          closeFileEditor={toggleCodeEditor}
+          getDataModelSuggestions={getDataModelSuggestions}
           boxShadow={true}
         />
       </Drawer>
     );
-  }
+  };
 
-  public render() {
-    const { classes } = this.props;
-    return (
-      <DndProvider backend={HTML5Backend}>
-        <div className={classes.root}>
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className={classes.root}>
+        <Grid
+          container={true}
+          wrap='nowrap'
+          spacing={0}
+          classes={{ container: classNames(classes.container) }}
+          id='formFillerGrid'
+        >
           <Grid
-            container={true}
-            wrap='nowrap'
-            spacing={0}
-            classes={{ container: classNames(classes.container) }}
-            id='formFillerGrid'
+            item={true} xs={2}
+            className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}
           >
-            <Grid
-              item={true} xs={2}
-              className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}
-            >
-              <Toolbar />
-            </Grid>
-            <Grid
-              item={true} xs={8}
-              className={classes.mainContent} classes={{ item: classNames(classes.item) }}
-            >
-              <div className={classes.versionControlHeaderMargin}>
-                <VersionControlHeader language={this.props.language} />
-              </div>
-              <div className={classes.pageHeader}>
-                <Typography classes={{ root: classes.pageHeaderText }}>
-                  {`Side - ${this.props.selectedLayout}`}
-                </Typography>
-              </div>
-              <div
-                style={{
-                  width: 'calc(100% - 48px)',
-                  paddingTop: '12px',
-                  marginLeft: '24px',
-                }}
-              >
-                <DesignView />
-                {this.state.codeEditorOpen ?
-                  this.renderLogicEditor()
-                  : null}
-              </div>
-            </Grid>
-            <Grid
-              item={true}
-              xs={2}
-              classes={{ item: classNames(classes.item) }}
-            >
-              <RightMenu
-                toggleFileEditor={this.toggleCodeEditor}
-                language={this.props.language}
-              />
-            </Grid>
+            <Toolbar />
           </Grid>
-        </div>
-      </DndProvider>
-    );
-  }
+          <Grid
+            item={true} xs={8}
+            className={classes.mainContent} classes={{ item: classNames(classes.item) }}
+          >
+            <div className={classes.versionControlHeaderMargin}>
+              <VersionControlHeader language={language} />
+            </div>
+            <div className={classes.pageHeader}>
+              <Typography classes={{ root: classes.pageHeaderText }}>
+                {`Side - ${selectedLayout}`}
+              </Typography>
+            </div>
+            <div
+              style={{
+                width: 'calc(100% - 48px)',
+                paddingTop: '12px',
+                marginLeft: '24px',
+              }}
+            >
+              <DesignView />
+              {codeEditorOpen ?
+                renderLogicEditor()
+                : null}
+            </div>
+          </Grid>
+          <Grid
+            item={true}
+            xs={2}
+            classes={{ item: classNames(classes.item) }}
+          >
+            <RightMenu
+              toggleFileEditor={toggleCodeEditor}
+              language={language}
+            />
+          </Grid>
+        </Grid>
+      </div>
+    </DndProvider>
+  );
 }
 
-const mapsStateToProps = (
-  state: IAppState,
-  props: IFormDesignerProvidedProps,
-): IFormDesignerProps => {
-  return {
-    classes: props.classes,
-    components: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components,
-    activeList: state.formDesigner.layout.activeList,
-    language: state.appData.language.language,
-    dataModel: state.appData.dataModel.model,
-    selectedLayout: state.formDesigner.layout.selectedLayout,
-  };
-};
-
-export default withStyles(
-  styles,
-  { withTheme: true },
-)(
-  connect(
-    mapsStateToProps,
-  )(
-    FormDesigner,
-  ),
-);
+export default FormDesigner;

@@ -57,7 +57,7 @@ export class HandleMergeConflictDiscardChanges extends
   public discardChangesPopover = (event: any) => {
     this.setState({
       anchorEl: event.currentTarget,
-      popoverState: { // TODO: Immutability-helper
+      popoverState: {
         ...this.state.popoverState,
         btnMethod: this.discardChangesConfirmed,
         btnConfirmText: getLanguageFromKey('handle_merge_conflict.discard_changes_button_confirm',

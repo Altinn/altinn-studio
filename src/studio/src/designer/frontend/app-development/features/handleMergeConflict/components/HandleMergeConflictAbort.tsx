@@ -44,7 +44,7 @@ export class HandleMergeConflictAbort extends
   public AbortPopover = (event: any) => {
     this.setState({
       anchorEl: event.currentTarget,
-      popoverState: { // TODO: Immutability-helper
+      popoverState: {
         ...this.state.popoverState,
         btnMethod: this.AbortConfirmed,
         btnConfirmText: getLanguageFromKey('handle_merge_conflict.abort_merge_button_confirm',

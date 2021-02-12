@@ -1,12 +1,12 @@
 import { Grid, IconButton, makeStyles, createMuiTheme, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
 import { getLanguageFromKey } from '../../../shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
-import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -59,6 +59,7 @@ export default function RightMenu(props: IRightMenuProps) {
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
   const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   function handleModalChange(type: 'conditionalRendering' | 'rules') {
     if (type === 'conditionalRendering') {
@@ -70,7 +71,7 @@ export default function RightMenu(props: IRightMenuProps) {
 
   function handleAddPage() {
     const name = getLanguageFromKey('right_menu.page', props.language) + (layoutOrder.length + 1);
-    FormDesignerActionDispatchers.addLayout(name);
+    dispatch(FormLayoutActions.addLayout({ layout: name }));
   }
 
   return (

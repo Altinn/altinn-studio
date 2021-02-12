@@ -2,7 +2,8 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes} from '../../features/accessControl/containers/AccessControlContainer';
+import configureStore from 'redux-mock-store';
+import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes } from '../../features/accessControl/containers/AccessControlContainer';
 
 describe('AccessControl', () => {
   let nextAccessContainerProps: IAccessControlContainerProps;
@@ -10,6 +11,9 @@ describe('AccessControl', () => {
   let accessContainerState: IAccessControlContainerState;
   let currentApplicationMetadata: any;
   let newApplicationMetadata: any;
+  let mockLanguage: any;
+  let initialState: any;
+  let mockStore: any;
 
   beforeEach(() => {
     currentApplicationMetadata = {
@@ -31,6 +35,7 @@ describe('AccessControl', () => {
     };
     accessContainerState = {
       partyTypesAllowed: currentApplicationMetadata.partyTypesAllowed,
+      setStateCalled: false,
     };
     nextAccessContainerProps = {
       applicationMetadata: newApplicationMetadata,
@@ -42,12 +47,52 @@ describe('AccessControl', () => {
       language: {},
       classes: {},
     };
+    mockLanguage = {};
+    initialState = {
+      language: {
+        language: mockLanguage,
+      },
+      appCluster: {
+        deploymentList: [],
+      },
+      appDeployments: {
+        createAppDeploymentErrors: [],
+        deployments: [],
+        getAppDeploymentsError: null,
+      },
+      appReleases: {
+        creatingRelease: false,
+        errors: null,
+        releases: [],
+      },
+      applicationMetadataState: {
+        applicationMetadata: currentApplicationMetadata,
+        error: null,
+      },
+      configuration: {
+        environments: null,
+        orgs: null,
+      },
+      handleMergeConflict: {
+        repoStatus: {
+          behindBy: 0,
+          aheadBy: 0,
+          contentStatus: [],
+        },
+      },
+      repoStatus: {
+        resettingLocalRepo: false,
+      },
+    };
+    const createStore = configureStore();
+    mockStore = createStore(initialState);
   });
 
   it('getDerivedStateFromProps should only return object on changed state', () => {
     const shouldUpdateOnEqualProps = AccessControlContainerClass.getDerivedStateFromProps(
       nextAccessContainerProps,
-      accessContainerState);
+      accessContainerState,
+    );
     const shouldNotUpdateOnNewProps = AccessControlContainerClass.getDerivedStateFromProps(
       currentAccessContainerProps,
       accessContainerState,
@@ -58,7 +103,8 @@ describe('AccessControl', () => {
         language: {},
         classes: {},
       },
-      accessContainerState);
+      accessContainerState,
+    );
     expect(shouldUpdateOnEqualProps).not.toBe(null);
     expect(shouldNotUpdateOnNewProps).toBe(null);
     expect(shouldNotUpdateOnNullValues).toBe(null);
@@ -70,7 +116,9 @@ describe('AccessControl', () => {
         applicationMetadata={currentApplicationMetadata}
         language={{}}
         classes={{}}
-      />);
+        dispatch={mockStore.dispatch}
+      />,
+    );
     const instance = wrapper.instance() as AccessControlContainerClass;
     instance.handlePartyTypesAllowedChange(PartyTypes.bankruptcyEstate);
     instance.handlePartyTypesAllowedChange(PartyTypes.organisation);
@@ -80,12 +128,22 @@ describe('AccessControl', () => {
   });
 
   it('constructor should initiate partyTypesAllowed with empty values if passed as null', () => {
+    const createStore = configureStore();
+    const store = createStore({
+      ...initialState,
+      applicationMetadataState: {
+        applicationMetadata: {},
+        error: null,
+      },
+    });
     const wrapper = mount(
       <AccessControlContainerClass
         applicationMetadata={{}}
         language={{}}
         classes={{}}
-      />);
+        dispatch={store.dispatch}
+      />,
+    );
     expect(wrapper.state('partyTypesAllowed')).toEqual({
       bankruptcyEstate: false,
       organisation: false,

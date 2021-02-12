@@ -62,13 +62,11 @@ export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
-  codeListResources?: ICodeListListElement[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
   cancelEdit?: () => void;
   handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
   classes: any;
-  thirdPartyComponents?: any;
   components?: IFormDesignerComponents;
   containers?: IFormDesignerContainers;
 }
@@ -729,19 +727,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid >
         );
       }
-      case 'ThirdParty': {
-        const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
-        if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] ||
-          !this.props.thirdPartyComponents[packageName][component]) {
-          return null;
-        }
-        return (
-          <div>
-            <span className='a-btn-icon-text'>{packageName} - {component}</span>
-            {this.props.thirdPartyComponents[packageName][component]}
-          </div>
-        );
-      }
 
       case 'FileUpload': {
         const component = (this.props.component as IFormFileUploaderComponent);
@@ -969,10 +954,8 @@ const mapStateToProps = (
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
   return {
-    language: state.appData.language.language,
+    language: state.appData.languageState.language,
     textResources: state.appData.textResources.resources,
-    codeListResources: state.appData.codeLists.codeLists,
-    thirdPartyComponents: state.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
     components: GetLayoutComponentsSelector(state),
     containers: GetLayoutContainersSelector(state),

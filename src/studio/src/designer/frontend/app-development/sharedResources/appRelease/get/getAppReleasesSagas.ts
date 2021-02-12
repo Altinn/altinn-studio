@@ -1,30 +1,26 @@
 import { AxiosError } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { delay } from 'redux-saga/effects';
-import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
+import { call, fork, put, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { get } from '../../../utils/networking';
 import { releasesUrlGet } from '../../../utils/urlHelper';
-import * as AppReleaseActionTypes from '../appReleaseActionTypes';
-import AppReleaseActionDispatcher from '../appReleaseDispatcher';
+import { AppReleaseActions } from '../appReleaseSlice';
 
 function* getReleasesSaga(): SagaIterator {
   try {
     const result: any = yield call(get, releasesUrlGet);
-    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
-  } catch (err) {
-    if (checkIfAxiosError(err)) {
-      const { response: { status } } = err as AxiosError;
-      yield call(AppReleaseActionDispatcher.getAppReleasesRejected, status);
+    yield put(AppReleaseActions.getAppReleasesFulfilled({ releases: result.results }));
+  } catch (error) {
+    if (checkIfAxiosError(error)) {
+      const { response: { status } } = error as AxiosError;
+      yield put(AppReleaseActions.getAppReleasesRejected({ errorCode: status }));
     }
   }
 }
 
 export function* watchGetReleasesSaga(): SagaIterator {
-  yield takeLatest(
-    AppReleaseActionTypes.GET_APP_RELEASES,
-    getReleasesSaga,
-  );
+  yield takeLatest(AppReleaseActions.getAppRelease, getReleasesSaga);
 }
 
 function* getReleasesIntervalSaga(): SagaIterator {
@@ -32,18 +28,18 @@ function* getReleasesIntervalSaga(): SagaIterator {
     try {
       yield call(getReleasesSaga);
       yield delay(5000);
-    } catch (err) {
-      yield call(AppReleaseActionDispatcher.getAppReleasesRejected, 1);
+    } catch (error) {
+      yield put(AppReleaseActions.getAppReleasesRejected({ errorCode: 1 }));
     }
   }
 }
 
 function* watchGetReleasesIntervalSaga(): SagaIterator {
   while (true) {
-    yield take(AppReleaseActionTypes.GET_APP_RELEASES_START_INTERVAL);
+    yield take(AppReleaseActions.getAppReleaseStartInterval);
     yield race({
       do: call(getReleasesIntervalSaga),
-      cancel: take(AppReleaseActionTypes.GET_APP_RELEASES_STOP_INTERVAL),
+      cancel: take(AppReleaseActions.getAppReleaseStopInterval),
     });
   }
 }
