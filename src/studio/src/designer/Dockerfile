@@ -56,7 +56,7 @@ RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.3-alpine3.13 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.103-alpine3.13 AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
