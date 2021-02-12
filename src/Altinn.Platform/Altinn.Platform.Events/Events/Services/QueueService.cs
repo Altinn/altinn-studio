@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
@@ -15,6 +16,7 @@ namespace Altinn.Platform.Events.Services
     /// <summary>
     /// The queue service that handles actions related to the queue storage.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class QueueService : IQueueService
     {
         private readonly QueueStorageSettings _settings;

@@ -44,11 +44,6 @@ namespace Altinn.Platform.Events.Tests.TestingServices
             Assert.NotEmpty(actual);
         }
 
-        private Mock ILogger<T>()
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Scenario:
         ///   Store a cloud event in postgres DB when id is null.
@@ -71,6 +66,31 @@ namespace Altinn.Platform.Events.Tests.TestingServices
 
             // Assert
             Assert.NotEmpty(actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Store an event, but push to queue fails.
+        /// Expected result:
+        /// Event is stored and eventId returned.
+        /// Success criteria:
+        ///  Error is logged.
+        /// </summary>
+        [Fact]
+        public async Task Create_PushEventFails_ErrorIsLogged()
+        {
+            // Arrange
+            Mock<IQueueService> queueMock = new Mock<IQueueService>();
+            queueMock.Setup(q => q.PushToQueue(It.IsAny<string>())).ReturnsAsync(new PushQueueReceipt { Success = false, Exception = new Exception("The push failed due to something") });
+
+            Mock<ILogger<IEventsService>> logger = new Mock<ILogger<IEventsService>>();
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), queueMock.Object, logger.Object);
+
+            // Act
+            await eventsService.StoreCloudEvent(GetCloudEvent());
+
+            // Assert
+            logger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Once);
         }
 
         /// <summary>
