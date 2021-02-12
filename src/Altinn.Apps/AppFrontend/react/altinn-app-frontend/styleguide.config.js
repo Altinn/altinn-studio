@@ -19,7 +19,7 @@ module.exports = {
         {
           rel: 'stylesheet',
           href:
-            'https://fonts.googleapis.com/css?family=Roboto&display=swap'
+            '"https://altinncdn.no/fonts/altinn-din/altinn-din.css'
         },
         {
           rel: 'stylesheet',
