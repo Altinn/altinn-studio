@@ -90,5 +90,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\events");
         }
+
+        private string GetEventsSubscriptionPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\eventssubscriptions");
+        }
     }
 }

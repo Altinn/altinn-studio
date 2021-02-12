@@ -21,5 +21,21 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         /// Calls a function to retrieve cloud events based on query params
         /// </summary>
         Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size);
+
+        /// <summary>
+        /// Creates an cloud event in repository
+        /// </summary>
+        Task<string> CreateEventsSubscription(EventsSubscription eventsSubscription);
+
+        /// <summary>
+        /// Gets a specific subscription
+        /// </summary>
+        Task<string> GetSubscription(int id);
+
+        /// <summary>
+        /// Deletes a given subscription
+        /// </summary>
+        /// <returns></returns>
+        Task DeleteSubscription(int id);
     }
 }
