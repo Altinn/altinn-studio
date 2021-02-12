@@ -1,10 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services.Interfaces;
+
+using Azure.Storage.Queues;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Services
 {
@@ -17,13 +25,20 @@ namespace Altinn.Platform.Events.Services
     public class EventsService : IEventsService
     {
         private readonly IPostgresRepository _repository;
+        private readonly IQueueService _queue;
+        private readonly ILogger<IEventsService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsService"/> class.
         /// </summary>
-        public EventsService(IPostgresRepository repository)
+        public EventsService(
+            IPostgresRepository repository,
+            IQueueService queue,
+            ILogger<IEventsService> logger)
         {
             _repository = repository;
+            _queue = queue;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -31,7 +46,15 @@ namespace Altinn.Platform.Events.Services
         {
             cloudEvent.Id = Guid.NewGuid().ToString();
             cloudEvent.Time = null;
-            return await _repository.Create(cloudEvent);
+            string cloudEventId = await _repository.Create(cloudEvent);
+            PushQueueReceipt receipt = await _queue.PushToQueue(JsonSerializer.Serialize(cloudEvent));
+
+            if (!receipt.Success)
+            {
+                _logger.LogError("// EventsService // StoreCloudEvent // Failed to push event {EventId} to queue. Exception {Exception}", cloudEventId, receipt.Exception);
+            }
+
+            return cloudEventId;
         }
 
         /// <inheritdoc/>
