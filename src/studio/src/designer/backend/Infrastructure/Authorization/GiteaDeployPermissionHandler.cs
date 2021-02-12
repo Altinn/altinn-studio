@@ -30,22 +30,18 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     {
         private readonly IGitea _giteaApiWrapper;
         private readonly HttpContext _httpContext;
-        private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="settings">The general settings</param>
         public GiteaDeployPermissionHandler(
             IGitea giteaApiWrapper,
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<GeneralSettings> settings)
+            IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaApiWrapper = giteaApiWrapper;
-            _settings = settings.Value;
         }
 
         /// <inheritdoc/>
