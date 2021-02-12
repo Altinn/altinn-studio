@@ -134,15 +134,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     new PlatformStorageModels.DataType
                     {
-                        Id = "default",
-                        AllowedContentTypes = new List<string>() { "application/xml" },
-                        AppLogic = new PlatformStorageModels.ApplicationLogic() { },
-                        TaskId = "Task_1",
-                        MaxCount = 1,
-                        MinCount = 1,
-                    },
-                    new PlatformStorageModels.DataType
-                    {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
                     }
@@ -1050,15 +1041,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<PlatformStorageModels.DataType>();
             }
 
+            PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
             PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
+            
             if (logicElement == null)
             {
                 logicElement = new PlatformStorageModels.DataType
                 {
                     Id = dataTypeId,
-
-                    // TODO: these properties
-                    // TaskId = "Task_1",
+                    TaskId = existingLogicElement?.TaskId ?? "Task_1",
                     AllowedContentTypes = new List<string>() { "application/xml" },
                     MaxCount = 1,
                     MinCount = 1,

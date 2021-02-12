@@ -8,7 +8,7 @@ import { createStyles, makeStyles } from '@material-ui/core';
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
   const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
-  return dataTypeWithLogic.id;
+  return dataTypeWithLogic?.id ?? 'default';
 }
 
 const useStyles = makeStyles(
