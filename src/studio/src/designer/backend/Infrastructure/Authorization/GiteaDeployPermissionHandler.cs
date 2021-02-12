@@ -68,22 +68,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            if (!_settings.CheckTeamMembershipForDeploy)
-            {
-                RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
-                if (repository?.Permissions?.Push == true ||
-                    repository?.Permissions?.Admin == true)
-                {
-                    context.Succeed(requirement);
-                }
-                else
-                {
-                    _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                }
-
-                return;
-            }
-
             string environment = _httpContext.GetRouteValue("environment")?.ToString();
 
             if (string.IsNullOrEmpty(environment))
