@@ -1049,7 +1049,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 logicElement = new PlatformStorageModels.DataType
                 {
                     Id = dataTypeId,
-                    TaskId = existingLogicElement?.TaskId ?? "Task_1",
+                    TaskId = existingLogicElement == null ? "Task_1" : null,
                     AllowedContentTypes = new List<string>() { "application/xml" },
                     MaxCount = 1,
                     MinCount = 1,
