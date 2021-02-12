@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0.102-1-alpine3.12 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.103-alpine3.13 AS build
 WORKDIR Profile/
 
 COPY Profile ./Profile
@@ -7,7 +7,7 @@ WORKDIR Profile/
 RUN dotnet build Altinn.Platform.Profile.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Profile.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.2-alpine3.12 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.3-alpine3.13 AS final
 EXPOSE 5030
 WORKDIR /app
 COPY --from=build /app_output .
