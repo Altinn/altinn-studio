@@ -106,6 +106,26 @@
     {
       "id": "PersonNyttMellomnavn",
       "value": "Nytt mellomnavn"
+    },
+    {
+      "id": "datofeltet",
+      "value": "Når vil du at navnendringen skal skje?"
+    },
+    {
+      "id": "kontaktinfoBeskrivelse",
+      "value": "Denne kontaktinformasjonen brukes til å kontakte deg hvis det er noen spørsmål rundt informasjonen du har sendt inn."
+    },
+    {
+      "id": "vedlegg",
+      "value": "Last opp eventuell dokumentasjon for ditt nye navn"
+    },
+    {
+      "id": "PersonNyttFornavn.helptext",
+      "value": "Tenk deg godt om, det tar 10 år før du kan endre navn igjen"
+    },
+    {
+      "id": "summaryTitle",
+      "value": "## Oppsummering"
     }
   ]
 }

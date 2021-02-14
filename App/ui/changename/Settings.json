@@ -2,9 +2,11 @@
     "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
     "pages": {
         "order": [
-            "formLayout"
+            "formLayout",
+            "summary"
         ],        
-        "excludeFromPdf": [            
+        "excludeFromPdf": [
+            "summary"          
         ]
     },
     "components": {

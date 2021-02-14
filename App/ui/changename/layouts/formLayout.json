@@ -1,11 +1,9 @@
 ﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
-    "layout": [
-      {
+    "layout": [{
         "id": "currentName",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "NavarendeNavn"
         },
@@ -18,7 +16,6 @@
       {
         "id": "newFirstName",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "PersonNyttFornavn",
           "help": "PersonNyttFornavn.helptext"
@@ -32,7 +29,6 @@
       {
         "id": "newLastName",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "PersonNyttEtternavn",
           "description": "HintEtternavn"
@@ -46,7 +42,6 @@
       {
         "id": "newMiddleName",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "PersonNyttMellomnavn",
           "description": "HintMellomnavn"
@@ -60,7 +55,6 @@
       {
         "id": "yourChanges",
         "type": "Header",
-        "componentType": 0,
         "textResourceBindings": {
           "title": "DineEndringer"
         },
@@ -70,7 +64,6 @@
       {
         "id": "changeNameFrom",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "EndreNavnFra"
         },
@@ -83,7 +76,6 @@
       {
         "id": "changeNameTo",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "EndreNavnTil"
         },
@@ -96,34 +88,29 @@
       {
         "id": "confirmChangeName",
         "type": "Checkboxes",
-        "componentType": 5,
         "textResourceBindings": {
           "title": "BekreftNavnTittel"
         },
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
         },
-        "options": [
-          {
-            "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
-            "value": "Ja"
-          }
-        ],
+        "options": [{
+          "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
+          "value": "Ja"
+        }],
         "required": true,
         "readOnly": false
       },
       {
         "id": "reason",
         "type": "RadioButtons",
-        "componentType": 6,
         "textResourceBindings": {
           "title": "BegrunnelseValgNavn"
         },
         "dataModelBindings": {
           "simpleBinding": "Radioknapp"
         },
-        "options": [
-          {
+        "options": [{
             "label": "Slektskap",
             "value": "1"
           },
@@ -166,7 +153,6 @@
       {
         "id": "reasonRelationship",
         "type": "TextArea",
-        "componentType": 7,
         "textResourceBindings": {
           "title": "BegrunnelseSlektskap"
         },
@@ -179,7 +165,6 @@
       {
         "id": "reasonParents",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseSteforeldre"
         },
@@ -192,7 +177,6 @@
       {
         "id": "reasonSSN",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "Fodselsnummer"
         },
@@ -205,7 +189,6 @@
       {
         "id": "reasonCohabitant1",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseSamboer1"
         },
@@ -218,7 +201,6 @@
       {
         "id": "reasonCohabitant2",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseSamboer2"
         },
@@ -231,7 +213,6 @@
       {
         "id": "reasonFarm1",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseGard1"
         },
@@ -244,7 +225,6 @@
       {
         "id": "reasonFarm2",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseGard2"
         },
@@ -257,7 +237,6 @@
       {
         "id": "reasonFarm3",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseGard3"
         },
@@ -270,7 +249,6 @@
       {
         "id": "reasonFarm4",
         "type": "Input",
-        "componentType": 2,
         "textResourceBindings": {
           "title": "BegrunnelseGard4"
         },
@@ -283,7 +261,6 @@
       {
         "id": "reasonFarm5",
         "type": "TextArea",
-        "componentType": 7,
         "textResourceBindings": {
           "title": "BegrunnelseGard5"
         },
@@ -296,7 +273,6 @@
       {
         "id": "reasonNewName",
         "type": "TextArea",
-        "componentType": 7,
         "textResourceBindings": {
           "title": "BegrunnelseNyttNavn"
         },
@@ -309,7 +285,6 @@
       {
         "id": "reasonOthers",
         "type": "TextArea",
-        "componentType": 7,
         "textResourceBindings": {
           "title": "BegrunnelseAnnet"
         },
@@ -322,7 +297,6 @@
       {
         "id": "dateOfEffect",
         "type": "Datepicker",
-        "componentType": 3,
         "textResourceBindings": {
           "title": "datofeltet"
         },
@@ -337,9 +311,8 @@
         "timeStamp": false
       },
       {
-        "id": "fileUpload",
+        "id": "fileUpload-changename",
         "type": "FileUpload",
-        "componentType": 8,
         "textResourceBindings": {
           "title": "vedlegg"
         },
@@ -353,15 +326,13 @@
         "validFileEndings": ".pdf"
       },
       {
-        "id": "sendInButton",
-        "type": "Button",
-        "componentType": 9,
+        "id": "toSummary",
+        "type": "NavigationButtons",
+        "showPrev": false,
         "textResourceBindings": {
-          "title": "Send inn"
+          "next": "Next"
         },
-        "dataModelBindings": {},
-        "textResourceId": "Standard.Button.Button",
-        "customType": "Standard"
+        "dataModelBindings": {}
       }
     ]
   }
