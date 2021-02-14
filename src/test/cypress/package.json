@@ -13,11 +13,12 @@
     "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
     "test:studio": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'",
+    "create:testfiles": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
     "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
     "start:app": "cd %npm_package_config_appPath% && dotnet run",
     "start:frontend": "cd %npm_package_config_frontendPath% && npm ci && npm run install-deps && cd altinn-app-frontend && npm start",
     "before:appfrontend": "run-p start:localtest start:app start:frontend",
-    "test:appfrontend": "cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'"
+    "test:appfrontend": "cypress run --headless -b chrome -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
     "cypress": "^6.4.0",

@@ -1,12 +1,18 @@
-# Studio Tests
+# Cypress Tests
 
-This project has the tests using [cypress](https://www.cypress.io/) for studio that is running locally.
+This project has the tests using [cypress](https://www.cypress.io/) for studio and app frontend that is running locally.
 
 ## Getting Started
 
 These instructions will get you run the integration tests on local studio.
 
-### Starting the solution for test
+### Install dependencies
+
+```cmd
+    npm install # only needed first time, or when dependencies are updated    
+```
+
+### Starting the solutions for testing studio
 
 The [Prerequisites](https://github.com/Altinn/altinn-studio/tree/master/src/studio#prerequisites) defined here must be satisifed to start the solution.
 
@@ -17,12 +23,6 @@ Remove the mounted volume of studio gitea using `docker-compose down -v` (only n
 Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/src/studio/src/repositories/gitea-data/gitea/conf/app.ini#L80).
 
 Start the solution by following the procedure [here](https://github.com/Altinn/altinn-studio/tree/master/src/studio#running-solutions-locally).
-
-### Install dependencies
-
-```cmd
-    npm install # only needed first time, or when dependencies are updated    
-```
 
 ### Test data prerequisite
 
@@ -38,9 +38,9 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 }
 ```
 
-### Run tests
+### Run Altinn Studio tests
 
-Tests should be run in an order that makes sure the tests are intact on the subsequent runs.
+The commands should be run in an order that makes sure the tests are intact on the subsequent runs.
 
 #### Setup: Before all the tests
 
@@ -58,4 +58,23 @@ Tests should be run in an order that makes sure the tests are intact on the subs
 
 ```cmd
     npm run after:all
+```
+
+### Run App Frontend tests
+Follow the steps below to start localtest, app frontend, app and the tests.
+
+1. Create testfiles that are used by the tests as attachments in app instances
+```cmd
+    npm run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
+```
+
+2. Clone the app to be tested and update config in `package.json` with the paths.
+
+3. Start localtest, app frontend, app
+```cmd
+    npm run before:appfrontend
+```
+4. Start the app frontend tests
+```cmd
+    npm run test:appfrontend
 ```
