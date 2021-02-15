@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
@@ -21,14 +24,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
+        private readonly IGitea _giteaService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
-        public DeploymentsController(IDeploymentService deploymentService)
+        /// <param name="giteaService">IGiteaService</param>
+        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService)
         {
             _deploymentService = deploymentService;
+            _giteaService = giteaService;
         }
 
         /// <summary>
@@ -42,16 +48,24 @@ namespace Altinn.Studio.Designer.Controllers
             => await _deploymentService.GetAsync(query);
 
         /// <summary>
-        /// Checks if user can deploy to environment
+        /// Gets list of environments the user can deploy to.
         /// </summary>
-        /// <returns>200 Ok if user is permitted to deploy</returns>
+        /// <returns>List of environment names</returns>
         [HttpGet]
-        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-        [Route("hasPermission/{environment}")]
+        [Route("permissions")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public Task HasPermission()
+        public async Task<List<string>> Permissions([FromRoute] string org)
         {
-            return Task.FromResult(Ok());
+            List<string> permittedEnvironments = new List<string>();
+
+            List<Team> teams = await _giteaService.GetTeams();
+            permittedEnvironments = teams.Where(t =>
+            t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+            && t.Name.StartsWith("Deploy-", System.StringComparison.OrdinalIgnoreCase))
+                .Select(t => t.Name.Split('-')[1])
+                .ToList();
+
+            return permittedEnvironments;
         }
 
         /// <summary>

@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// Checks if team membership is required for deploy.
         /// </summary>
         public bool CheckTeamMembershipForDeploy { get; set; }
-
+        
         /// <summary>
         /// Gets the path to the service implementation template.
         /// </summary>
@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Configuration
         {
             get
             {
-               return TemplateLocation;
+                return TemplateLocation;
             }
         }
 
@@ -198,5 +198,15 @@ namespace Altinn.Studio.Designer.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings_SBLBaseAdress") ?? SBLBaseAdress;
             }
         }
+
+        /// <summary>
+        /// Gets the duration for a session in Altinn Studio.
+        /// </summary>
+        public int SessionDurationInMinutes { get; set; } = 200;
+
+        /// <summary>
+        /// Gets the name of the session timeout cookie
+        /// </summary>
+        public string SessionTimeoutCookieName { get; set; } = "DesignerSessionTimeout";
     }
 }

@@ -1,18 +1,14 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { post } from 'app-shared/utils/networking';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
-import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
-import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
-import * as CreateAppDeploymentActions from './createAppDeploymentActions';
+import { ICreateAppDeployment } from '../types';
+import { AppDeploymentActions } from '../appDeploymentSlice';
 
-function* createAppDeploymentSaga({
-  tagName,
-  envObj,
-}: CreateAppDeploymentActions.ICreateAppDeployment): SagaIterator {
+function* createAppDeploymentSaga(action: PayloadAction<ICreateAppDeployment>): SagaIterator {
+  const { envObj, tagName } = action.payload;
   try {
-    // throw new Error('Network error');
-
     const data = {
       tagName,
       env: envObj,
@@ -20,17 +16,14 @@ function* createAppDeploymentSaga({
 
     const result = yield call(post, getAppDeploymentsUrl(), data);
 
-    yield call(AppDeploymentActionDispatcher.createAppDeploymentFulfilled, result, envObj.name);
-  } catch (err) {
-    yield call(AppDeploymentActionDispatcher.createAppDeploymentRejected, err, envObj.name);
+    yield put(AppDeploymentActions.createAppDeploymentFulfilled({ envName: envObj.name, result }));
+  } catch (error) {
+    yield put(AppDeploymentActions.createAppDeploymentRejected({ envName: envObj.name, error }));
   }
 }
 
 export function* watchCreateAppDeploymentSaga(): SagaIterator {
-  yield takeLatest(
-    AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT,
-    createAppDeploymentSaga,
-  );
+  yield takeLatest(AppDeploymentActions.createAppDeployment, createAppDeploymentSaga);
 }
 
 // eslint-disable-next-line func-names

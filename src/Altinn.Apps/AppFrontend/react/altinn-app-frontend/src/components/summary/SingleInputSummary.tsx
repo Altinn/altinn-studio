@@ -9,6 +9,7 @@ export interface ISingleInputSumary {
   hasValidationMessages: boolean;
   changeText: any;
   onChangeClick: () => void;
+  readOnlyComponent?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -32,6 +33,7 @@ function SingleInputSummary({
   hasValidationMessages,
   changeText,
   onChangeClick,
+  readOnlyComponent,
 }: ISingleInputSumary) {
   const classes = useStyles();
   const [displayData, setDisplayData] = React.useState<string>('');
@@ -59,10 +61,11 @@ function SingleInputSummary({
         </Typography>
       </Grid>
       <Grid item xs={2}>
+        {!readOnlyComponent &&
         <EditButton
           onClick={onChangeClick}
           editText={changeText}
-        />
+        />}
       </Grid>
       <Grid item xs={12}>
         <Typography variant='body1'>{displayData}</Typography>

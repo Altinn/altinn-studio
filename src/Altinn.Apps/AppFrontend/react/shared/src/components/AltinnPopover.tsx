@@ -74,6 +74,7 @@ const AltinnPopoverComponent = (props: any) => {
         open={!!props.anchorEl}
         anchorEl={props.anchorEl}
         onClose={handleClose}
+        onBlur={handleClose}
         anchorOrigin={{
           horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
           vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',

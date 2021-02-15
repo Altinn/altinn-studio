@@ -102,7 +102,7 @@ const mapStateToProps: (
 ) => IListSelectorProps = (state: IAppState, props: IListSelectorProvidedProps) => ({
   classes: props.classes,
   onChange: props.onChange,
-  language: state.appData.language.language,
+  language: state.appData.languageState.language,
 });
 
 export const ListSelectorComponent =

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -27,29 +30,36 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
+        /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
-        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, ISourceControl sourceControl)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IGitea giteaWrapper,
+            ISourceControl sourceControl)
         {
             _logger = logger;
             _settings = repositorySettings.Value;
+            _generalSettings = generalSettings.Value;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
         }
- 
+
         /// <summary>
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>
         /// <returns>The start page</returns>
         public async Task<ActionResult> StartPage()
         {
-            string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = await _giteaApi.GetUserNameFromUI();
 
             if (string.IsNullOrEmpty(userName))
@@ -160,12 +170,18 @@ namespace Altinn.Studio.Designer.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
+            string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
+            HttpContext.Response.Cookies.Append(
+                _generalSettings.SessionTimeoutCookieName,
+                timeoutString,
+                new CookieOptions { HttpOnly = true });
+
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal,
                 new AuthenticationProperties
                 {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes),
                     IsPersistent = false,
                     AllowRefresh = false,
                 });
@@ -179,6 +195,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
         {
+            HttpContext.Response.Cookies.Append(
+                _generalSettings.SessionTimeoutCookieName,
+                string.Empty,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddDays(-10)
+                });
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");
         }

@@ -26,7 +26,7 @@ fixture('Deploy of app to a test environment tests')
   });
 
 //Test to make changes in an app, push, build and deploy an app to a test environment.
-test('Happy case; build and deploy an app after a change', async () => {
+test('Happy case; build and deploy an app after a change', async() => {
   var appName = config[environment].deployApp;
   await t
     .useRole(AutoTestUser)
@@ -36,7 +36,7 @@ test('Happy case; build and deploy an app after a change', async () => {
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea);
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   await designer.pushAndCommitChanges(t);
   await t
     .click(designer.deployNavigationTab)
@@ -74,14 +74,14 @@ test('Happy case; build and deploy an app after a change', async () => {
 });
 
 //Tests that an app build shall fail when there is a fail in an app file
-test('App cannot build due to compilation error', async () => {
+test('App cannot build due to compilation error', async() => {
   var buildVersion = '0.0.3';
   var appName = config[environment].compilerErrorApp;
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .click(designer.pullChanges);
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
@@ -104,7 +104,7 @@ test('App cannot build due to compilation error', async () => {
 });
 
 //Tests to verify that one cannot build an app before committing the changes
-test('App cannot be built due to uncommited local changes', async () => {
+test('App cannot be built due to uncommited local changes', async() => {
   var appName = config[environment].deployApp;
   await t
     .useRole(AutoTestUser)
@@ -115,25 +115,21 @@ test('App cannot be built due to uncommited local changes', async () => {
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
-  await t.eval(() => location.reload(true));
+  await t.eval(() => location.reload());
   await t
     .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
     .click(designer.deployNavigationTab)
     .expect(designer.buildButton.exists).notOk();
 });
 
-//Tests that Users without an write access to an app , cannot build or deploy app to a test environment
-test('User does not have write access to app, and cannot deploy', async () => {
+//Tests that Users without access to deploy teams cannot deploy app to the environment
+test('User without access to deploy team cannot deploy', async() => {
   var appName = config[environment].deployApp;
   await t
     .useRole(NoDeployUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.deployNavigationTab)
-    .expect(designer.deployVersionDropDown.visible).ok()
-    .click(designer.deployVersionDropDown)
-    .click(designer.deployVersionOptions.child(0))
-    .click(designer.deployButton)
-    .expect(designer.deployConfirm.visible).ok()
-    .click(designer.deployConfirm)
-    .expect(Selector('div').withText('Teknisk feilkode 403').visible).ok({ timeout: 60000 });
+    .wait(2000);
+  await t
+    .expect(designer.noDeployAccess.exists).ok();
 });

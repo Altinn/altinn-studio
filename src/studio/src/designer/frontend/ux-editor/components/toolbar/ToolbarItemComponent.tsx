@@ -109,7 +109,7 @@ const mapStateToProps: (
   state: IAppState,
   props: IToolbarItemProvidedProps,
 ) => IToolbarItemProps = (state: IAppState, props: IToolbarItemProvidedProps) => ({
-  language: state.appData.language.language,
+  language: state.appData.languageState.language,
   componentType: props.componentType,
   onClick: props.onClick,
   classes: props.classes,

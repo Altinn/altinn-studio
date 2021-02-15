@@ -6,18 +6,6 @@
   "title": { "nb": "Bestillingseksempelapp" },
   "dataTypes": [
     {
-      "id": "default",
-      "allowedContentTypes": [ "application/xml" ],
-      "appLogic": {
-        "autoCreate": true,
-        "SchemaRef": "models/default/bestilling.xsd",
-        "ClassRef": "Altinn.Apps.Models.Bestilling"
-      },
-      "taskId":  "Task_1",
-      "minCount": 1,
-      "maxCount": 1
-    },
-    {
       "id": "vedlegg",
       "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
       "minCount": 0,

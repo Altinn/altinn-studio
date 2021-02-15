@@ -88,7 +88,7 @@ const mapStateToProps: (
   state: IAppState,
   props: ICollapsableMenuProvidedProps,
 ) => ICollapsableMenuProps = (state: IAppState, props: ICollapsableMenuProvidedProps) => ({
-  language: state.appData.language.language,
+  language: state.appData.languageState.language,
   onClick: props.onClick,
   classes: props.classes,
   menuIsOpen: props.menuIsOpen,

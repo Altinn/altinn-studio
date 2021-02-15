@@ -97,7 +97,7 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
 }
 
 export function truncate(s: string, size: number) {
-  if (s.length > size) {
+  if (s && s.length > size) {
     return (`${s.substring(0, size)}...`);
   }
   return s;

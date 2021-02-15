@@ -7,16 +7,16 @@ import { fetchDataModel,
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
-  setDataModelFilePath,
+  setDataModelName,
   IDataModelAction } from './dataModelingSlice';
 import { getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
 
-const filePathState = (state: IServiceDevelopmentState) => state.dataModeling.filePath;
+const modelNameState = (state: IServiceDevelopmentState) => state.dataModeling.modelName;
 
 export function* fetchDataModelSaga(): SagaIterator {
   try {
-    const filePath = yield select(filePathState);
-    const url = getFetchDataModelUrl(filePath);
+    const modelName = yield select(modelNameState);
+    const url = getFetchDataModelUrl(modelName);
     const result = yield call(get, url);
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
@@ -25,18 +25,20 @@ export function* fetchDataModelSaga(): SagaIterator {
 }
 
 export function* watchFetchDataModelSaga(): SagaIterator {
-  yield all([
-    take(fetchDataModel.type),
-    take(setDataModelFilePath.type),
-  ]);
-  yield call(fetchDataModelSaga);
+  while(true) {
+    yield all([
+      take(fetchDataModel.type),
+      take(setDataModelName.type),
+    ]);
+    yield call(fetchDataModelSaga);
+  }
 }
 
 export function* saveDatamodelSaga(action: IDataModelAction) {
   try {
     const { schema } = action.payload;
-    const filePath = yield select(filePathState);
-    const url = getSaveDataModelUrl(filePath);
+    const modelName = yield select(modelNameState);
+    const url = getSaveDataModelUrl(modelName);
     yield axiosPut(url, schema);
     yield put(saveDataModelFulfilled({}));
   } catch (err) {
