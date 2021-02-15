@@ -4,7 +4,7 @@ namespace Altinn.Platform.Register.Models
     /// Class representing a person
     /// </summary>
     public class Person
-    {        
+    {
         /// <summary>
         /// Gets or sets the social security number
         /// </summary>
