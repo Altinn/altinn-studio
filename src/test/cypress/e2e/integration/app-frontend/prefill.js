@@ -6,14 +6,7 @@ const appName = Cypress.env('localTestAppName');
 
 describe('Prefill', () => {
   before(() => {
-    cy.visit(Cypress.env('localTestBaseUrl'));
-    cy.get(af.appSelection).select(appName);
-    cy.get(af.startButton).click();
-    cy.get(af.closeButton).should('be.visible');
-    cy.get(af.sendinButton).then((button) => {
-      cy.get(button).should('be.visible')
-        .click();
-    })
+    cy.navigateToChangeName(appName);
   });
 
   //Tests that field is populated with the user name and the field is readonly

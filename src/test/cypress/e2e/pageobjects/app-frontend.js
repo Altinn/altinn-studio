@@ -6,9 +6,10 @@ export const startButton = '.btn';
 //App frontend
 export const closeButton = '.a-modal-close-icon';
 export const attachmentIcon = '.reg-attachment';
-export const downloadAttachment = 'last ned';
 export const sendinButton = '#sendInButton';
 export const helpText = '.ai-circle-plus';
+export const fieldValidationError = '[id^="error_';
+export const fieldValidationWarning = '[id^="message_'
 
 //selectors for ttd/frontend-test app
 //message - task_1

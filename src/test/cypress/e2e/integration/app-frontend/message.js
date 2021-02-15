@@ -1,6 +1,7 @@
 /// <reference types='cypress' />
 
 import * as af from '../../pageobjects/app-frontend';
+import * as texts from '../../fixtures/texts.json'
 
 const appName = Cypress.env('localTestAppName');
 
@@ -25,7 +26,7 @@ describe('Message', () => {
     cy.get(af.message['attachmentList']).siblings('ul').children('a')
       .then((attachments) => {
         cy.get(attachments).should('have.length', 1);
-        cy.get(attachments).first().should('contain.text', af.downloadAttachment);
+        cy.get(attachments).first().should('contain.text', texts.downloadAttachment);
         cy.get(af.attachmentIcon).should('be.visible');
       });
   });

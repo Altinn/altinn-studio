@@ -6,17 +6,10 @@ const appName = Cypress.env('localTestAppName');
 
 describe('Dynamics', () => {
   before(() => {
-    cy.visit(Cypress.env('localTestBaseUrl'));
-    cy.get(af.appSelection).select(appName);
-    cy.get(af.startButton).click();
-    cy.get(af.closeButton).should('be.visible');
-    cy.get(af.sendinButton).then((button) => {
-      cy.get(button).should('be.visible')
-        .click();
-    })
+    cy.navigateToChangeName(appName);
   });
   beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AltinnStudioRuntime', 'AltinnPartyId', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
+    cy.preserveCookies();
   });
 
   //Tests that checkbox to confirm name is shown and hidden when firstname field is changed

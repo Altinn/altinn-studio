@@ -42,20 +42,17 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 
 The commands should be run in an order that makes sure the tests are intact on the subsequent runs.
 
-#### Setup: Before all the tests
-
+1. Setup: Before all the tests
 ```cmd
     npm run before:all
 ```
 
-#### Tests on different solutions of studio
-
+2. Tests on different solutions of studio
 ```cmd
     npm run test:studio
 ```
 
-#### Cleanup: After all the tests
-
+3. Cleanup: After all the tests
 ```cmd
     npm run after:all
 ```
@@ -74,6 +71,7 @@ Follow the steps below to start localtest, app frontend, app and the tests.
 ```cmd
     npm run before:appfrontend
 ```
+
 4. Start the app frontend tests
 ```cmd
     npm run test:appfrontend
