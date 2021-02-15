@@ -16,6 +16,7 @@ const styles = createStyles({
     flexDirection: 'column',
     alignSelf: 'center',
     padding: 12,
+    'ms-flex-wrap': 'nowrap',
   },
 });
 
