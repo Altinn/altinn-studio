@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         private string GetTextsPath(string id)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextRepositoryMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\texts\" + id + ".json");
         }
     }

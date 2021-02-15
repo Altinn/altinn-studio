@@ -36,7 +36,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// The end time for process
         /// </summary>
         public DateTime? Ended { get; set; }
-
     }
 
     /// <summary>

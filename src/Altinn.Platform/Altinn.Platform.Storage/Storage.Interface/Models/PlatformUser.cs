@@ -32,6 +32,5 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "endUserSystemId")]
         public int? EndUserSystemId { get; set; }
-        
     }
 }
