@@ -409,7 +409,6 @@ export function GroupContainer({
       <Grid container={true} className={classes.editContainer}>
         <Grid
           container={true}
-          direction='column'
         >
           <Grid
             item={true}
@@ -440,14 +439,22 @@ export function GroupContainer({
         </Grid>
       </Grid>}
       {tableHasErrors &&
-      <Grid container={true} style={{ paddingTop: '12px' }}>
+      <Grid
+        container={true}
+        style={{ paddingTop: '12px' }}
+        direction='column'
+      >
         <ErrorPaper
           message={getLanguageFromKey('group.row_error', language)}
         />
       </Grid>
       }
       {groupErrors &&
-      <Grid container={true} style={{ paddingTop: '12px' }}>
+      <Grid
+        container={true}
+        style={{ paddingTop: '12px' }}
+        direction='column'
+      >
         <ErrorPaper
           message={groupErrors}
         />

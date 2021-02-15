@@ -23,22 +23,12 @@ function InstantiationErrorPage(props: IInstantiationErrorPageProps) {
       <Grid
         container={true}
         direction='row'
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-        }}
       >
-        <main role='main'>
-          <Grid container={true}>
-            <Grid item={true}>
-              <AltinnError
-                title={title}
-                content={content}
-                statusCode={statusCode}
-              />
-            </Grid>
-          </Grid>
-        </main>
+        <AltinnError
+          title={title}
+          content={content}
+          statusCode={statusCode}
+        />
       </Grid>
     </InstantiateContainer>
   );
