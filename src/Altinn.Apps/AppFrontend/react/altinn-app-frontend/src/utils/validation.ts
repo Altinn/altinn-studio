@@ -163,9 +163,11 @@ export function validateEmptyFieldsForLayout(
                 id: `${component.id}-${parentIndex}-${i}`,
                 dataModelBindings,
               };
-              const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, indexedGroupDataBinding, i);
-              if (result !== null) {
-                validations[componentToCheck.id] = result;
+              if (!hiddenFields.includes(componentToCheck.id)) {
+                const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, indexedGroupDataBinding, i);
+                if (result !== null) {
+                  validations[componentToCheck.id] = result;
+                }
               }
             }
           });
@@ -176,9 +178,11 @@ export function validateEmptyFieldsForLayout(
               ...component,
               id: `${component.id}-${i}`,
             };
-            const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, groupDataModelBinding, i);
-            if (result !== null) {
-              validations[componentToCheck.id] = result;
+            if (!hiddenFields.includes(componentToCheck.id)) {
+              const result = validateEmptyField(formData, componentToCheck.dataModelBindings, language, groupDataModelBinding, i);
+              if (result !== null) {
+                validations[componentToCheck.id] = result;
+              }
             }
           }
         }
