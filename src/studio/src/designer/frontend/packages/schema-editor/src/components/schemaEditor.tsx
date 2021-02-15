@@ -18,7 +18,6 @@ const useStyles = makeStyles(
       flexGrow: 1,
       maxWidth: 1200,
       marginTop: 24,
-      marginLeft: 48,
     },
     button: {
       marginLeft: 24,

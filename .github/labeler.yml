@@ -61,7 +61,7 @@ area/language:
   - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/language/**/*'
   - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/textResources/**/*'
 
-area/printout:
+area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
 area/process:

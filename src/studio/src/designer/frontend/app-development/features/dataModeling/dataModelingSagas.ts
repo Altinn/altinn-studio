@@ -25,11 +25,13 @@ export function* fetchDataModelSaga(): SagaIterator {
 }
 
 export function* watchFetchDataModelSaga(): SagaIterator {
-  yield all([
-    take(fetchDataModel.type),
-    take(setDataModelName.type),
-  ]);
-  yield call(fetchDataModelSaga);
+  while(true) {
+    yield all([
+      take(fetchDataModel.type),
+      take(setDataModelName.type),
+    ]);
+    yield call(fetchDataModelSaga);
+  }
 }
 
 export function* saveDatamodelSaga(action: IDataModelAction) {
