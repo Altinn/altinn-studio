@@ -203,7 +203,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             if (queryParams.ContainsKey("archiveReference"))
             {
                 string archiveRef = queryParams.GetValueOrDefault("archiveReference").ToString();
-                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower());
+                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
             }
 
             bool match;
