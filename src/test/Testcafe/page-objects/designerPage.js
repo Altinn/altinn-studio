@@ -79,6 +79,9 @@ export default class DesignerPage {
     this.deploys = this.deployTable.find('tr');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
+    this.noDeployAccessText = "Du har ikke rettigheter til å starte en deploy til ";
+    this.noDeployAccess = (environment == 'prod') ? Selector('p').withText(this.noDeployAccessText + "PRODUCTION-miljøet") :
+      Selector('p').withText(this.noDeployAccessText + "AT22-miljøet");
 
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");

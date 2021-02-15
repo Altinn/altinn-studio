@@ -76,6 +76,9 @@ export function AddressComponent(props: IAddressComponentProps) {
               clientUrl: window.location.href,
               pnr,
             },
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
             cancelToken: cancellationToken,
           });
         if (response.valid) {

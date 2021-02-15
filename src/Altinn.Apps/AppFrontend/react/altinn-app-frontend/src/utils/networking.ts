@@ -8,10 +8,13 @@ export interface IGetRequestResponse {
   body: any;
 }
 
-export async function get(url: string, options?: any): Promise<any> {
+export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
   const response: AxiosResponse = await axios.get(
     url,
-    options || null,
+    {
+      headers: { Pragma: 'no-cache' },
+      ...options,
+    },
   );
   return response.data ? response.data : null;
 }

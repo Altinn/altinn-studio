@@ -134,15 +134,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     new PlatformStorageModels.DataType
                     {
-                        Id = "default",
-                        AllowedContentTypes = new List<string>() { "application/xml" },
-                        AppLogic = new PlatformStorageModels.ApplicationLogic() { },
-                        TaskId = "Task_1",
-                        MaxCount = 1,
-                        MinCount = 1,
-                    },
-                    new PlatformStorageModels.DataType
-                    {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
                     }
@@ -1035,7 +1026,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        ///  This logic is limited to having one datamodel per app. Needs to be updated for expanded functionality
+        ///  Updates application model with new app logic model
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="app">The app</param>
@@ -1050,9 +1041,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<PlatformStorageModels.DataType>();
             }
 
-            PlatformStorageModels.DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
+            PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
+            PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
+            
+            if (logicElement == null)
+            {
+                logicElement = new PlatformStorageModels.DataType
+                {
+                    Id = dataTypeId,
+                    TaskId = existingLogicElement == null ? "Task_1" : null,
+                    AllowedContentTypes = new List<string>() { "application/xml" },
+                    MaxCount = 1,
+                    MinCount = 1,
+                };
+                application.DataTypes.Add(logicElement);
+            }
 
-            logicElement.Id = dataTypeId;
             logicElement.AppLogic = new PlatformStorageModels.ApplicationLogic { AutoCreate = true, ClassRef = classRef };
             UpdateApplication(org, app, application);
 
