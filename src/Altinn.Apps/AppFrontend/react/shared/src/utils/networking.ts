@@ -1,15 +1,14 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export async function get(url: string, options?: any): Promise<any> {
-  try {
-    const response: AxiosResponse = await axios.get(
-      url,
-      options ? options : null,
-    );
-    return response.data ? response.data : null;
-  } catch (err) {
-    throw err;
-  }
+export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
+  const response: AxiosResponse = await axios.get(
+    url,
+    {
+      headers: { Pragma: 'no-cache' },
+      ...options,
+    },
+  );
+  return response.data ? response.data : null;
 }
 
 export async function post(
@@ -17,12 +16,8 @@ export async function post(
   data?: any,
   options?: AxiosRequestConfig,
 ): Promise<void> {
-  try {
-    const response: AxiosResponse = await axios.post(url, data ? data : null, options ? options : null);
-    return response.data ? response.data : null;
-  } catch (err) {
-    throw err;
-  }
+  const response: AxiosResponse = await axios.post(url, data || null, options || null);
+  return response.data ? response.data : null;
 }
 
 export async function put(
@@ -30,12 +25,8 @@ export async function put(
   data: any,
   config?: AxiosRequestConfig,
 ): Promise<void> {
-  try {
-    const response = await axios.put(url, data, config ? config : null);
-    return response.data;
-  } catch (err) {
-    throw err;
-  }
+  const response = await axios.put(url, data, config || null);
+  return response.data;
 }
 
 export function checkIfAxiosError(error: Error): boolean {
