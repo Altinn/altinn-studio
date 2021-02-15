@@ -7,7 +7,7 @@ import * as OrgsActionTypes from './fetchOrgsActionTypes';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {
-    const result: any = yield call(get, orgsListUrl);
+    const result: any = yield call(get, orgsListUrl, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
     const orgObject = result.orgs;
     yield call(OrgsActions.fetchOrgsFulfilled, orgObject);
   } catch (err) {
