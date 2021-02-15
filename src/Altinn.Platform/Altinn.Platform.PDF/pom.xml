@@ -97,9 +97,10 @@
       <version>2.6.2</version>
     </dependency>
     <dependency>
+      <!--Bumping to 1.2.3 breaks app runtime -->
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.2.3</version>
+      <version>1.2.2</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
