@@ -134,6 +134,7 @@ export function SummaryComponent(props: ISummaryComponent) {
             changeText={changeText}
             {...props}
             formData={formData}
+            readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
           />
         );
     }

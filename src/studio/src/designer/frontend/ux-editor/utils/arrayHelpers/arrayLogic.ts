@@ -10,7 +10,7 @@ export interface ITwoArraysObj {
   order: any [];
 }
 
-const pushOrPop = ({array, object}: IUpdateArrayObj) => {
+const pushOrPop = ({ array, object }: IUpdateArrayObj) => {
   const tempObj = array.find((o: any) => o.id === object.id);
   const index = array.indexOf(tempObj);
   if (array.find((o: any) => o.inEditMode === true)) {
@@ -41,7 +41,7 @@ const changeOrderNum = ({array, order}: ITwoArraysObj) => {
     }
   });
   markFirstAndLastObject(array);
-  const cloneOfObj = JSON.parse(JSON.stringify({array, order}));
+  const cloneOfObj = JSON.parse(JSON.stringify({ array, order }));
   return cloneOfObj;
 };
 

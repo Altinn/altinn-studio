@@ -1,6 +1,7 @@
 import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnCheckBoxGroup from 'app-shared/components/AltinnCheckBoxGroup';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
@@ -8,7 +9,7 @@ import AltinnFormControlLabel from 'app-shared/components/AltinnFormControlLabel
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
-import applicationMetadataDispatcher from '../../../sharedResources/applicationMetadata/applicationMetadataDispatcher';
+import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 const theme = createMuiTheme(altinnTheme);
@@ -62,6 +63,7 @@ const styles = createStyles({
 export interface IAccessControlContainerProvidedProps {
   classes: any;
   applicationMetadata: any;
+  dispatch?: Dispatch;
 }
 
 export interface IAccessControlContainerProps extends IAccessControlContainerProvidedProps {
@@ -70,6 +72,7 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 
 export interface IAccessControlContainerState {
   partyTypesAllowed: IPartyTypesAllowed;
+  setStateCalled: boolean;
 }
 
 export interface IPartyTypesAllowed {
@@ -90,6 +93,13 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
+    if (state.setStateCalled) {
+      return {
+        ...state,
+        setStateCalled: false,
+      };
+    }
+
     const { partyTypesAllowed } = nextProps.applicationMetadata;
     if (!partyTypesAllowed) {
       return null;
@@ -105,30 +115,31 @@ export class AccessControlContainerClass extends React.Component<
 
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
-    let { partyTypesAllowed } = props.applicationMetadata;
-    if (!partyTypesAllowed) {
-      partyTypesAllowed = {
-        bankruptcyEstate: false,
-        organisation: false,
-        person: false,
-        subUnit: false,
-      };
-    }
+    const { partyTypesAllowedProps } = props.applicationMetadata;
+    const partyTypesAllowed = {
+      bankruptcyEstate: partyTypesAllowedProps?.bankruptcyEstate || false,
+      organisation: partyTypesAllowedProps?.organisation || false,
+      person: partyTypesAllowedProps?.person || false,
+      subUnit: partyTypesAllowedProps?.subUnit || false,
+    };
 
     this.state = {
       partyTypesAllowed,
+      setStateCalled: false,
     };
   }
 
   public componentDidMount() {
-    applicationMetadataDispatcher.getApplicationMetadata();
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
   }
 
   public handlePartyTypesAllowedChange(partyType: PartyTypes) {
-    const { partyTypesAllowed } = this.state;
+    // eslint-disable-next-line react/no-access-state-in-setstate
+    const partyTypesAllowed = { ...this.state.partyTypesAllowed };
     partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
     this.setState({
       partyTypesAllowed,
+      setStateCalled: true,
     }, () => {
       this.saveApplicationMetadata();
     });
@@ -139,7 +150,9 @@ export class AccessControlContainerClass extends React.Component<
     const newApplicationMetadata =
       JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
+    this.props.dispatch(
+      ApplicationMetadataActions.putApplicationMetadata({ applicationMetadata: newApplicationMetadata }),
+    );
   }
 
   public renderMainContent = (): JSX.Element => {
@@ -229,8 +242,9 @@ const makeMapStateToProps = () => {
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => {
     return {
-      language: state.language.language,
+      language: state.languageState.language,
       applicationMetadata: getApplicationMetadata(state),
+      dispatch: props.dispatch,
       ...props,
     };
   };

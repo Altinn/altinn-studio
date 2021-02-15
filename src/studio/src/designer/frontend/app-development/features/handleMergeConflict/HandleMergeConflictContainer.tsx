@@ -241,7 +241,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
-      language: state.language,
+      language: state.languageState.language,
     };
   };
   return mapStateToProps;

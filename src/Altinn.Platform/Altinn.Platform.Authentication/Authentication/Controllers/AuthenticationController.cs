@@ -234,6 +234,12 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
 
                 JwtSecurityToken jwt = _validator.ReadJwtToken(originalToken);
+
+                if (!jwt.Issuer.Equals("studio") && !jwt.Issuer.Equals("dev-studio"))
+                {
+                    return Unauthorized();
+                }
+
                 IEnumerable<SecurityKey> signingKeys = await _designerSigningKeysResolver.GetSigningKeys(jwt.Issuer);
 
                 TokenValidationParameters validationParameters = new TokenValidationParameters
