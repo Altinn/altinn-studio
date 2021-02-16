@@ -1,12 +1,14 @@
 /// <reference types="cypress" />
 
 import * as dashboard from "../../pageobjects/dashboard";
-import * as common from "../../pageobjects/common";
+import Common from "../../pageobjects/common";
 import { repos } from "../../fixtures/repo"
+
+const common = new Common();
 
 context("Dashboard", () => {
   beforeEach(() => {
-    cy.visit("/");    
+    cy.visit("/");
   });
 
   it("Create an app and exit creation", () => {
@@ -19,7 +21,7 @@ context("Dashboard", () => {
     cy.get(dashboard.closeButton).click();
   });
 
-  it("Login and dashboard lists app", () => {    
+  it("Login and dashboard lists app", () => {
     cy.intercept("GET", "**/designerapi/Repository/UserRepos", repos(10));
     cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
     cy.get('h2').parent('div').siblings(common.gridContainer).children(common.gridItem).should('have.length', 10);

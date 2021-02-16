@@ -1,9 +1,10 @@
 /// <reference types='cypress' />
 
-import * as af from '../../pageobjects/app-frontend';
+import AppFrontend from '../../pageobjects/app-frontend';
 import * as texts from '../../fixtures/texts.json'
 
 const appName = Cypress.env('localTestAppName');
+const af = new AppFrontend();
 
 describe('Message', () => {
   before(() => {

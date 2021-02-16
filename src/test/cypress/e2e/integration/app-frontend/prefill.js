@@ -1,8 +1,9 @@
 /// <reference types='cypress' />
 
-import * as af from '../../pageobjects/app-frontend';
+import AppFrontend from '../../pageobjects/app-frontend';
 
 const appName = Cypress.env('localTestAppName');
+const af = new AppFrontend();
 
 describe('Prefill', () => {
   before(() => {

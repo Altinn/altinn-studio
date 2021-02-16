@@ -3,16 +3,18 @@
 import * as designer from "../../pageobjects/designer";
 import * as dashboard from "../../pageobjects/dashboard";
 import * as header from "../../pageobjects/header";
-import * as common from "../../pageobjects/common";
+import Common from "../../pageobjects/common";
+
+const common = new Common();
 
 context("Designer", () => {
-    before(() => {
-      cy.visit("/");    
-      cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
-      cy.createapp(Cypress.env("appOwner"), "designer");
-      cy.get(header.profileButton).click();
-      cy.contains(header.menuItem, "Logout").click();
-    });
+  before(() => {
+    cy.visit("/");
+    cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
+    cy.createapp(Cypress.env("appOwner"), "designer");
+    cy.get(header.profileButton).click();
+    cy.contains(header.menuItem, "Logout").click();
+  });
   beforeEach(() => {
     cy.visit("/");
     cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));

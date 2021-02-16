@@ -75,5 +75,11 @@ declare namespace Cypress {
      * @example cy.preserveCookies()
      */
     preserveCookies(): Chainable<Element>;
+
+    /**
+     * Custom command to complete the change name form with supplied names and move to next page
+     * @example cy.completeChangeNameForm('abc', 'xyz')
+     */
+    completeChangeNameForm(firstName: string, lastName: string): Chainable<Element>;
   }
 }

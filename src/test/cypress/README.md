@@ -65,7 +65,7 @@ Follow the steps below to start localtest, app frontend, app and the tests.
     npm run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
 ```
 
-2. Clone the app to be tested and update config in `package.json` with the paths.
+2. Clone the app (frontend-test) to be tested and update config in `package.json` with the paths.
 
 3. Start localtest, app frontend, app
 ```cmd
