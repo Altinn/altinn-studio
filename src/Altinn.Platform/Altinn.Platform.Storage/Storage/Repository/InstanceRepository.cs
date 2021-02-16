@@ -13,6 +13,7 @@ using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -114,7 +115,7 @@ namespace Altinn.Platform.Storage.Repository
                     ResponseContinuationTokenLimitInKb = 7
                 };
 
-                if (continuationToken != null)
+                if (!string.IsNullOrEmpty(continuationToken))
                 {
                     feedOptions.RequestContinuation = continuationToken;
                 }
@@ -265,6 +266,10 @@ namespace Altinn.Platform.Storage.Repository
                             break;
                         case "sortBy":
                             queryBuilder = QueryBuilderForSortBy(queryBuilder, queryValue);
+
+                            break;
+                        case "archiveReference":
+                            queryBuilder = queryBuilder.Where(i => i.Id.EndsWith(queryValue.ToLower()));
 
                             break;
                         default:

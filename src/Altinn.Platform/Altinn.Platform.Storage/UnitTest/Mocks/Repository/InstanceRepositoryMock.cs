@@ -130,7 +130,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "status.isArchived",
                 "status.isArchivedOrSoftDeleted",
                 "status.isActiveorSoftDeleted",
-                "sortBy"
+                "sortBy",
+                "archiveReference"
             };
 
             InstanceQueryResponse response = new InstanceQueryResponse();
@@ -197,6 +198,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                         }
                     }
                 }
+            }
+
+            if (queryParams.ContainsKey("archiveReference"))
+            {
+                string archiveRef = queryParams.GetValueOrDefault("archiveReference").ToString();
+                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
             }
 
             bool match;

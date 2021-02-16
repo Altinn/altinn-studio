@@ -120,6 +120,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="lastChanged">Last changed date.</param>
         /// <param name="created">Created time.</param>
         /// <param name="searchString">Search string.</param>
+        /// <param name="archiveReference">The archive reference.</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
         [Authorize]
@@ -133,6 +134,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string lastChanged,
             [FromQuery] string created,
             [FromQuery] string searchString,
+            [FromQuery] string archiveReference,
             [FromQuery] string language)
         {
             string[] acceptedLanguages = { "en", "nb", "nn" };
