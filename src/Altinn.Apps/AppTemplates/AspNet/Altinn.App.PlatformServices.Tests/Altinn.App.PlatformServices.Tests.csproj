@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
-    <ProjectReference Include="..\App\AppRef.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
@@ -33,12 +32,6 @@
     <AdditionalFiles Include="..\..\..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Implementation\data\*.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
