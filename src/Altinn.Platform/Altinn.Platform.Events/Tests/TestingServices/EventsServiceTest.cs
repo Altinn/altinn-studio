@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services;
+using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
+
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 using Moq;
+
 using Xunit;
 
 namespace Altinn.Platform.Events.Tests.TestingServices
@@ -28,7 +35,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         public async Task Create_EventSuccessfullyStored_IdReturned()
         {
             // Arrange
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock());
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), new QueueServiceMock(), new Mock<ILogger<IEventsService>>().Object);
 
             // Act
             string actual = await eventsService.StoreCloudEvent(GetCloudEvent());
@@ -49,7 +56,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         public async Task Create_CheckIdCreatedByService_IdReturned()
         {
             // Arrange
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock());
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), new QueueServiceMock(), new Mock<ILogger<IEventsService>>().Object);
 
             CloudEvent item = GetCloudEvent();
             item.Id = null;
@@ -59,6 +66,31 @@ namespace Altinn.Platform.Events.Tests.TestingServices
 
             // Assert
             Assert.NotEmpty(actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Store an event, but push to queue fails.
+        /// Expected result:
+        /// Event is stored and eventId returned.
+        /// Success criteria:
+        ///  Error is logged.
+        /// </summary>
+        [Fact]
+        public async Task Create_PushEventFails_ErrorIsLogged()
+        {
+            // Arrange
+            Mock<IQueueService> queueMock = new Mock<IQueueService>();
+            queueMock.Setup(q => q.PushToQueue(It.IsAny<string>())).ReturnsAsync(new PushQueueReceipt { Success = false, Exception = new Exception("The push failed due to something") });
+
+            Mock<ILogger<IEventsService>> logger = new Mock<ILogger<IEventsService>>();
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), queueMock.Object, logger.Object);
+
+            // Act
+            await eventsService.StoreCloudEvent(GetCloudEvent());
+
+            // Assert
+            logger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Once);
         }
 
         /// <summary>
@@ -75,7 +107,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
             // Arrange
             int expectedCount = 1;
             string expectedSubject = "/party/54321";
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2));
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), new QueueServiceMock(), new Mock<ILogger<IEventsService>>().Object);
 
             // Act
             List<CloudEvent> actual = await eventsService.Get(string.Empty, new DateTime(2020, 06, 17), null, 54321, new List<string>() { }, new List<string>() { });
@@ -98,7 +130,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         {
             // Arrange
             int expectedCount = 3;
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2));
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), new QueueServiceMock(), new Mock<ILogger<IEventsService>>().Object);
 
             // Act
             List<CloudEvent> actual = await eventsService.Get("e31dbb11-2208-4dda-a549-92a0db8c8808", null, null, 0, new List<string>() { }, new List<string>() { });
