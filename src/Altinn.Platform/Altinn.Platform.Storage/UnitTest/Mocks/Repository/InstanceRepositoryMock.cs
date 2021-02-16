@@ -147,30 +147,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
             string instancesPath = GetInstancesPath();
 
-            if (queryParams.ContainsKey("appId"))
+            if (Directory.Exists(instancesPath))
             {
-                string appId = queryParams.GetValueOrDefault("appId").ToString();
-
-                if (Directory.Exists(instancesPath))
-                {
-                    string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
-
-                    foreach (var file in files)
-                    {
-                        string content = File.ReadAllText(file);
-                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        if (instance.AppId.Equals(appId, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            PostProcess(instance);
-                            instances.Add(instance);
-                        }
-                    }
-                }
-            }
-            else if (queryParams.ContainsKey("instanceOwner.partyId"))
-            {
-                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.partyId")}";
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+
                 foreach (var file in files)
                 {
                     string content = File.ReadAllText(file);
@@ -179,25 +159,22 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                     instances.Add(instance);
                 }
             }
-            else if (queryParams.ContainsKey("org"))
+
+            if (queryParams.ContainsKey("org"))
             {
                 string org = queryParams.GetValueOrDefault("org").ToString();
+                instances.RemoveAll(i => !i.Org.Equals(org, StringComparison.OrdinalIgnoreCase));
+            }
+        
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appId = queryParams.GetValueOrDefault("appId").ToString();
+                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));                
+            }
 
-                if (Directory.Exists(instancesPath))
-                {
-                    string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
-
-                    foreach (var file in files)
-                    {
-                        string content = File.ReadAllText(file);
-                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        if (instance.Org.Equals(org, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            PostProcess(instance);
-                            instances.Add(instance);
-                        }
-                    }
-                }
+            if (queryParams.ContainsKey("instanceOwner.partyId"))
+            {
+                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));                
             }
 
             if (queryParams.ContainsKey("archiveReference"))
