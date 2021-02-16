@@ -983,7 +983,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string content = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
-            int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).ToList().Distinct().Count();
+            int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).Distinct().Count();
                 
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
