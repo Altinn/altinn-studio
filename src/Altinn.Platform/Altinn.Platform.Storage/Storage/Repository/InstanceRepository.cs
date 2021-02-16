@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.Repository
                     ResponseContinuationTokenLimitInKb = 7
                 };
 
-                if (continuationToken != null && !string.IsNullOrEmpty(continuationToken))
+                if (!string.IsNullOrEmpty(continuationToken))
                 {
                     feedOptions.RequestContinuation = continuationToken;
                 }
