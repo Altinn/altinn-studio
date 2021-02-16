@@ -87,7 +87,11 @@ export function Form() {
   }, [layout]);
 
   return (
-    <Grid container={true}>
+    <Grid
+      container={true}
+      spacing={3}
+      alignItems='flex-start'
+    >
       {currentView === currentLayout && filteredLayout && filteredLayout.map((component) => {
         return renderLayoutComponent(component, layout);
       })}
