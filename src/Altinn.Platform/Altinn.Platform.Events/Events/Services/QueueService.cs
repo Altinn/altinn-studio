@@ -7,7 +7,6 @@ using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 
 using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;
 
 using Microsoft.Extensions.Options;
 

@@ -50,7 +50,6 @@
     <Folder Include="Migration\_init\" />
     <Folder Include="Migration\_post\" />
     <Folder Include="Migration\_pre\" />
-    <Folder Include="Clients\" />
   </ItemGroup>
 
   <PropertyGroup>
