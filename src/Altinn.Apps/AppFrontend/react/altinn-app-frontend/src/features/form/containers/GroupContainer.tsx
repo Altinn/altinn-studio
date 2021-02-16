@@ -465,14 +465,22 @@ export function GroupContainer({
         </Grid>
       </div>}
       {tableHasErrors &&
-      <Grid container={true} style={{ paddingTop: '12px' }}>
+      <Grid
+        container={true}
+        style={{ paddingTop: '12px' }}
+        direction='column'
+      >
         <ErrorPaper
           message={getLanguageFromKey('group.row_error', language)}
         />
       </Grid>
       }
       {groupErrors &&
-      <Grid container={true} style={{ paddingTop: '12px' }}>
+      <Grid
+        container={true}
+        style={{ paddingTop: '12px' }}
+        direction='column'
+      >
         <ErrorPaper
           message={groupErrors}
         />

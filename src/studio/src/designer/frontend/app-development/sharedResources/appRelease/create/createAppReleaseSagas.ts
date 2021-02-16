@@ -1,20 +1,20 @@
 import { AxiosError } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { delay } from 'redux-saga/effects';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from '../../../utils/networking';
 import { releasesUrlPost } from '../../../utils/urlHelper';
-import * as AppReleaseActionTypes from '../appReleaseActionTypes';
-import AppReleaseActionDispatcher from '../appReleaseDispatcher';
-import { ICreateReleaseAction } from './createAppReleaseActions';
+import { AppReleaseActions } from '../appReleaseSlice';
+import { ICreateReleaseAction } from '../types';
 
-function* createReleaseSaga({
+function* createReleaseSaga({ payload: {
   tagName,
   name,
   body,
   targetCommitish,
-}: ICreateReleaseAction): SagaIterator {
+} }: PayloadAction<ICreateReleaseAction>): SagaIterator {
   try {
     const responseData: any = yield call(post, releasesUrlPost, {
       tagName,
@@ -23,20 +23,17 @@ function* createReleaseSaga({
       targetCommitish,
     });
     yield delay(2000);
-    yield call(AppReleaseActionDispatcher.createAppReleaseFulfilled, responseData);
-  } catch (err) {
-    if (checkIfAxiosError(err)) {
-      const { response: { status } } = err as AxiosError;
-      yield call(AppReleaseActionDispatcher.createAppReleaseRejected, status);
+    yield put(AppReleaseActions.createAppReleasesFulfilled({ release: responseData }));
+  } catch (error) {
+    if (checkIfAxiosError(error)) {
+      const { response: { status } } = error as AxiosError;
+      yield put(AppReleaseActions.createAppReleasesRejected({ errorCode: status }));
     }
   }
 }
 
 export function* watchCreateReleaseSaga(): SagaIterator {
-  yield takeLatest(
-    AppReleaseActionTypes.CREATE_APP_RELEASE,
-    createReleaseSaga,
-  );
+  yield takeLatest(AppReleaseActions.createAppRelease, createReleaseSaga);
 }
 
 // eslint-disable-next-line func-names

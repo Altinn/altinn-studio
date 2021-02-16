@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 import { createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { connect, useDispatch } from 'react-redux';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
@@ -29,12 +29,10 @@ export interface IProvidedProps {
  */
 export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
-  designMode: boolean;
   dataModelElement: IDataModelFieldElement;
   dataModel: IDataModelFieldElement[];
   validationErrors: any[];
   textResources: any[];
-  thirdPartyComponents: any;
   order: any[];
 }
 
@@ -47,12 +45,9 @@ export interface IFormElementState {
   wrapperRef: any;
 }
 
-/**
- * The component constructur
- */
-
 const FormComponent = (props: IFormElementProps) => {
   const [wrapperRef, setWrapperRef] = React.useState(null);
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
     window.addEventListener('mousedown', handleClick);
@@ -73,7 +68,7 @@ const FormComponent = (props: IFormElementProps) => {
         const key: any = Object.keys(props.order)[0];
         const order = props.order[key].indexOf(props.id);
 
-        if (wrapperRef && !wrapperRef.contains(event.target) &&
+        if (wrapperRef && !wrapperRef.contains(e.target) &&
           order === 0) {
           handleActiveListChange({});
         }
@@ -110,10 +105,7 @@ const FormComponent = (props: IFormElementProps) => {
       return null;
     }
     if (props.component.textResourceBindings.title) {
-      const label: string =
-        props.designMode ?
-          props.component.textResourceBindings.title :
-          getTextResource(props.component.textResourceBindings.title);
+      const label: string = getTextResource(props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={props.id}>
           {label}
@@ -130,9 +122,9 @@ const FormComponent = (props: IFormElementProps) => {
 
   const handleActiveListChange = (obj: any) => {
     if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-      FormDesignerActionDispatchers.deleteActiveListAction();
+      dispatch(FormLayoutActions.deleteActiveList());
     } else {
-      FormDesignerActionDispatchers.updateActiveList(obj, props.activeList);
+      dispatch(FormLayoutActions.updateActiveList({ listItem: obj, containerList: props.activeList }));
     }
     props.sendListToParent(props.activeList);
   };
@@ -176,14 +168,12 @@ const makeMapStateToProps = () => {
     singleSelected: props.singleSelected,
     component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
     order: GetLayoutOrderSelector(state),
-    designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.dataBindingName ===
         state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings?.simpleBinding,
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;

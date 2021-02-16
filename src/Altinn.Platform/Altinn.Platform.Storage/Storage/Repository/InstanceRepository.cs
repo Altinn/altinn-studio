@@ -13,6 +13,7 @@ using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -111,9 +112,10 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     EnableCrossPartitionQuery = true,
                     MaxItemCount = size - queryResponse.Count,
+                    ResponseContinuationTokenLimitInKb = 7
                 };
 
-                if (continuationToken != null)
+                if (!string.IsNullOrEmpty(continuationToken))
                 {
                     feedOptions.RequestContinuation = continuationToken;
                 }
@@ -180,6 +182,12 @@ namespace Altinn.Platform.Storage.Repository
                     continue;
                 }
 
+                if (queryParameter.Equals("instanceOwner.partyId"))
+                {
+                    queryBuilder = queryBuilder.Where(i => queryValues.Contains(i.InstanceOwner.PartyId));
+                    continue;
+                }
+
                 foreach (string queryValue in queryValues)
                 {
                     switch (queryParameter)
@@ -191,11 +199,6 @@ namespace Altinn.Platform.Storage.Repository
                         case "org":
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
-
-                        case "instanceOwner.partyId":
-                            queryBuilder = queryBuilder.Where(i => i.InstanceOwner.PartyId == queryValue);
-                            break;
-
                         case "lastChanged":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
@@ -264,6 +267,10 @@ namespace Altinn.Platform.Storage.Repository
                             break;
                         case "sortBy":
                             queryBuilder = QueryBuilderForSortBy(queryBuilder, queryValue);
+
+                            break;
+                        case "archiveReference":
+                            queryBuilder = queryBuilder.Where(i => i.Id.EndsWith(queryValue.ToLower()));
 
                             break;
                         default:

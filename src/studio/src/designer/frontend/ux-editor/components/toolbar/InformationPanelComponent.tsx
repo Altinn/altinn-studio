@@ -149,7 +149,7 @@ const mapStateToProps: (
   state: IAppState,
   props: IInformationPanelProvidedProps,
 ) => IInformationPanelProps = (state: IAppState, props: IInformationPanelProvidedProps) => ({
-  language: state.appData.language.language,
+  language: state.appData.languageState.language,
   anchorElement: props.anchorElement,
   selectedComponent: props.selectedComponent,
   informationPanelOpen: props.informationPanelOpen,

@@ -75,8 +75,8 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Gets or sets a value indicating whether the element has been read.
         /// </summary>
-         [JsonProperty(PropertyName = "isRead")]
-        public bool IsRead{ get; set; } = true;
+        [JsonProperty(PropertyName = "isRead")]
+        public bool IsRead { get; set; } = true;
 
         /// <inheritdoc/>
         public override string ToString()

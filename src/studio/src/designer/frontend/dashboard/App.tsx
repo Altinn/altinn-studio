@@ -10,17 +10,22 @@ import { HashRouter as Router, Route } from 'react-router-dom';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import './App.css';
+import { Dispatch } from 'redux';
 import { CloneService } from './features/cloneService/cloneServices';
 import { KnownIssues } from './features/knownIssues/knownIssues';
 import { ServicesOverview } from './features/serviceOverview/servicesOverview';
-import fetchServicesActionDispatchers from './resources/fetchDashboardResources/fetchDashboardDispatcher';
-import fetchLanguageDispatcher from './resources/fetchLanguage/fetchLanguageDispatcher';
+import { DashboardActions } from './resources/fetchDashboardResources/dashboardSlice';
+import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
 
 export interface IMainDashboardState {
   drawerOpen: boolean;
 }
 
-export interface IDashboardProps {
+export interface IDashboardProvidedProps {
+  dispatch?: Dispatch;
+}
+
+export interface IDashboardProps extends IDashboardProvidedProps {
   user: any;
 }
 
@@ -34,17 +39,22 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
   public componentDidMount() {
     const altinnWindow: Window = window;
 
-    fetchServicesActionDispatchers.fetchCurrentUser(
-      `${altinnWindow.location.origin}/designerapi/User/Current`);
+    this.props.dispatch(DashboardActions.fetchCurrentUser({
+      url: `${altinnWindow.location.origin}/designerapi/User/Current`,
+    }));
 
-    fetchLanguageDispatcher.fetchLanguage(
-      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+    this.props.dispatch(fetchLanguage({
+      url: `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`,
+      languageCode: 'nb',
+    }));
 
-    fetchServicesActionDispatchers.fetchServices(
-      `${altinnWindow.location.origin}/designerapi/Repository/UserRepos`);
+    this.props.dispatch(DashboardActions.fetchServices({
+      url: `${altinnWindow.location.origin}/designerapi/Repository/UserRepos`,
+    }));
 
-    fetchServicesActionDispatchers.fetchOrganisations(
-      `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
+    this.props.dispatch(DashboardActions.fetchOrganisations({
+      url: `${altinnWindow.location.origin}/designerapi/Repository/Organizations`,
+    }));
   }
 
   public handleDrawerToggle = () => {
@@ -69,22 +79,25 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               backgroundColor={theme.altinnPalette.primary.white}
             />
             <Route
-              path={'/'}
+              path='/'
               exact={true}
               render={() => (
-                <Grid container={true} justify='center' direction='row' className='block-with-text' >
+                <Grid
+                  container={true} justify='center'
+                  direction='row' className='block-with-text'
+                >
                   <Grid item={true} xs={10}>
                     <ServicesOverview />
                   </Grid>
                 </Grid>)}
             />
             <Route
-              path={'/clone-app/:org/:serviceName'}
+              path='/clone-app/:org/:serviceName'
               exact={true}
               component={CloneService}
             />
             <Route
-              path={'/known-issues'}
+              path='/known-issues'
               exact={true}
               component={KnownIssues}
             />
@@ -97,9 +110,11 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
 
 const mapStateToProps = (
   state: IDashboardAppState,
+  props: IDashboardProvidedProps,
 ): IDashboardProps => {
   return {
     user: state.dashboard.user,
+    dispatch: props.dispatch,
   };
 };
 

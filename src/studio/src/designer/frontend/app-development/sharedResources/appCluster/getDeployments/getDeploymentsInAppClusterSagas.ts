@@ -1,10 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-restricted-syntax */
 import { SagaIterator } from 'redux-saga';
-import { call, fork, race, select, take, delay } from 'redux-saga/effects';
+import { call, fork, put, race, select, take, delay } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
-import * as AppClusterActionTypes from '../appClusterActionTypes';
-import AppClusterDispatcher from '../appClusterDispatcher';
+import { getDeploymentsFulfilled, getDeploymentsRejected, getDeploymentsStartInterval, getDeploymentsStopInterval } from '../appClusterSlice';
 
 const SelectEnvironments = (store: IServiceDevelopmentState) => store.configuration.environments.result;
 const OrgsSelector = (store: IServiceDevelopmentState) => store.configuration.orgs.allOrgs;
@@ -30,19 +29,19 @@ function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaI
       // eslint-disable-next-line max-len
       `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`);
 
-    yield call(AppClusterDispatcher.getDeploymentsFulfilled, result, env.name);
-  } catch (err) {
-    yield call(AppClusterDispatcher.getDeploymentsRejected, err, env.name);
+    yield put(getDeploymentsFulfilled({ result, env: env.name }));
+  } catch (error) {
+    yield put(getDeploymentsRejected({ error, env: env.name }));
   }
 }
 
 // Interval watcher function
 function* watchGetDeploymentsIntervalSaga(): SagaIterator {
   while (true) {
-    yield take(AppClusterActionTypes.GET_DEPLOYMENTS_START_INTERVAL);
+    yield take(getDeploymentsStartInterval);
     yield race({
       do: call(getDeploymentsIntervalSaga),
-      cancel: take(AppClusterActionTypes.GET_DEPLOYMENTS_STOP_INTERVAL),
+      cancel: take(getDeploymentsStopInterval),
     });
   }
 }

@@ -298,7 +298,7 @@ const mapStateToProps = (
   props: ISelectionEditComponentProvidedProps,
 ): ISelectionEditComponentProps => {
   return {
-    language: state.appData.language.language,
+    language: state.appData.languageState.language,
     textResources: state.appData.textResources.resources,
     ...props,
   };

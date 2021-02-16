@@ -208,6 +208,7 @@ describe('Administration', () => {
       initialCommit: mockInitialCommit,
       serviceId: mockServiceId,
       serviceIdIsSaving: mockServiceIdIsSaving,
+      dispatch: mockStore.dispatch,
     };
 
     return (

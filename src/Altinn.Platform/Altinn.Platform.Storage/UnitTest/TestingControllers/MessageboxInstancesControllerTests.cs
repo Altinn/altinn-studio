@@ -604,12 +604,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1606, 3));
 
             int expectedCount = 1;
 
             // Act
-            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=tdd/test-applikasjon-1&language=en");
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&appId=ttd/complete-test&language=en");
             string content = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
@@ -959,6 +959,36 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(expectedCount, actualAppid.Count());
             Assert.False(actual.ContainsKey("searchString"));
             instanceRepositoryMock.VerifyAll();
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances across parties
+        /// Expected:
+        ///  Both instanceOwner.partyIds are forwarded to instance repository.
+        /// Success:
+        ///  Instances for two parties are returned
+        /// </summary>
+        [Fact]
+        public async void Search_MultiplePartyIds_InstancesForBothIdsReturned()
+        {
+            // Arrange          
+            int expectedCount = 3;
+            int expectedDistinctInstanceOwners = 2;
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&instanceOwner.partyId=1000&appId=ttd/complete-test");
+
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+            int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).Distinct().Count();
+                
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actual.Count());
+            Assert.Equal(expectedDistinctInstanceOwners, distinctInstanceOwners);
         }
 
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)

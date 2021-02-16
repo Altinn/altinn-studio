@@ -1,25 +1,24 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
-import * as HandleMergeConflictActions from './handleMergeConflictActions';
-import * as HandleMergeConclictActionTypes from './handleMergeConflictActionTypes';
-import HandleMergeConflictDispatchers from './handleMergeConflictDispatcher';
+import { fetchRepoStatus,
+  fetchRepoStatusFulfilled,
+  fetchRepoStatusRejected,
+  IFetchRepoStatusAction } from './handleMergeConflictSlice';
 
-export function* handleMergeConflictSaga({ url }: HandleMergeConflictActions.IFetchRepoStatusAction): SagaIterator {
+export function* handleMergeConflictSaga({ payload: { url } }: PayloadAction<IFetchRepoStatusAction>): SagaIterator {
   try {
     const result = yield call(get, url);
 
-    yield call(HandleMergeConflictDispatchers.fetchRepoStatusFulfilled, result);
-  } catch (err) {
-    yield call(HandleMergeConflictDispatchers.fetchRepoStatusRejected, err);
+    yield put(fetchRepoStatusFulfilled({ result }));
+  } catch (error) {
+    yield put(fetchRepoStatusRejected({ error }));
   }
 }
 
 export function* watchHandleMergeConflictSaga(): SagaIterator {
-  yield takeLatest(
-    HandleMergeConclictActionTypes.FETCH_REPO_STATUS,
-    handleMergeConflictSaga,
-  );
+  yield takeLatest(fetchRepoStatus, handleMergeConflictSaga);
 }
 
 // eslint-disable-next-line func-names

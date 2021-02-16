@@ -122,18 +122,14 @@ test('App cannot be built due to uncommited local changes', async() => {
     .expect(designer.buildButton.exists).notOk();
 });
 
-//Tests that Users without an write access to an app , cannot build or deploy app to a test environment
-test('User does not have write access to app, and cannot deploy', async() => {
+//Tests that Users without access to deploy teams cannot deploy app to the environment
+test('User without access to deploy team cannot deploy', async() => {
   var appName = config[environment].deployApp;
   await t
     .useRole(NoDeployUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.deployNavigationTab)
-    .expect(designer.deployVersionDropDown.visible).ok()
-    .click(designer.deployVersionDropDown)
-    .click(designer.deployVersionOptions.child(0))
-    .click(designer.deployButton)
-    .expect(designer.deployConfirm.visible).ok()
-    .click(designer.deployConfirm)
-    .expect(Selector('div').withText('Teknisk feilkode 403').visible).ok({ timeout: 60000 });
+    .wait(2000);
+  await t
+    .expect(designer.noDeployAccess.exists).ok();
 });

@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                return await DownloadToStreamAsync(org, blobStoragePath);
+                return await DownloadBlobAsync(org, blobStoragePath);
             }
             catch (RequestFailedException requestFailedException)
             {
@@ -112,7 +112,7 @@ namespace Altinn.Platform.Storage.Repository
 
                         _sasTokenProvider.InvalidateSasToken(org);
 
-                        return await DownloadToStreamAsync(org, blobStoragePath);
+                        return await DownloadBlobAsync(org, blobStoragePath);
                     case "BlobNotFound":
                         _logger.LogWarning($"Unable to find a blob based on the given information - {org}: {blobStoragePath}");
 
@@ -235,15 +235,13 @@ namespace Altinn.Platform.Storage.Repository
             return properties.ContentLength;
         }
 
-        private async Task<Stream> DownloadToStreamAsync(string org, string fileName)
+        private async Task<Stream> DownloadBlobAsync(string org, string fileName)
         {
             BlobClient blockBlob = await CreateBlobClient(org, fileName);
 
-            var memoryStream = new MemoryStream();
-            await blockBlob.DownloadToAsync(memoryStream);
-            memoryStream.Position = 0;
+            Response<BlobDownloadInfo> response = await blockBlob.DownloadAsync();
 
-            return memoryStream;
+            return response.Value.Content;
         }
 
         private async Task<bool> DeleteIfExistsAsync(string org, string fileName)
