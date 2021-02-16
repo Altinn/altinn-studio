@@ -983,16 +983,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
 
-            int expectedCount = 1;
-
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea");
-            string content = await responseMessage.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-            Assert.Equal(expectedCount, messageBoxInstances.Count);
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
             actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
             Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
@@ -1000,14 +995,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///  Search instances based on archive reference. Include active and archived selected.
+        ///  Search instances based on archive reference. Include active and soft deleted selected.
         /// Expected:
         ///  Query parameters are mapped to parameters that instanceRepository can handle. Excluding all active instances.
         /// Success:
         ///  isArchived is set to true. isSoftDeleted is set to false.
         /// </summary>
         [Fact]
-        public async void Search_ArchiveReferenceIncludeActiveAndArchived_OriginalQuerySuccesfullyConverted()
+        public async void Search_ArchiveReferenceIncludeActiveAndSoftDeleted_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -1020,21 +1015,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
 
-            int expectedCount = 1;
-
             // Act
-            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea&includeActive=true&includeArchived=true");
-            string content = await responseMessage.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea&includeActive=true&includeDeleted=true");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-            Assert.Equal(expectedCount, messageBoxInstances.Count);
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
-            actual.TryGetValue("status.isArchived", out StringValues actualIsArchived);
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsArchived);
             Assert.True(bool.Parse(actualIsArchived.First()));
-            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsSoftDeleted);
-            Assert.False(bool.Parse(actualIsSoftDeleted.First()));
         }
 
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
