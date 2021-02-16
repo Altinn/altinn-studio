@@ -24,7 +24,8 @@
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "triggers": ["validation"]
       },
       {
         "id": "newLastName",
@@ -50,7 +51,9 @@
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "triggers": ["validation"],
+        "labelSettings": { "optionalIndicator": false }
       },
       {
         "id": "yourChanges",
@@ -148,7 +151,8 @@
           }
         ],
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "preselectedOptionIndex": 0
       },
       {
         "id": "reasonRelationship",
@@ -330,9 +334,10 @@
         "type": "NavigationButtons",
         "showPrev": false,
         "textResourceBindings": {
-          "next": "Next"
+          "next": "Neste"
         },
-        "dataModelBindings": {}
+        "dataModelBindings": {},
+        "triggers": ["validatePage"]
       }
     ]
   }
