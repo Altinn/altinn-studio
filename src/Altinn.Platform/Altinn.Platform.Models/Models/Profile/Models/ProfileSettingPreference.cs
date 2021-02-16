@@ -1,5 +1,3 @@
-using Altinn.Platform.Profile.Enums;
-
 namespace Altinn.Platform.Profile.Models
 {
     /// <summary>
