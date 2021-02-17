@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
-import { IDataModelFieldElement, ILabelSettings, ITextResource, Triggers } from 'src/types';
+import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
 import { Grid } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
@@ -52,7 +52,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [isSimple, setIsSimple] = React.useState(true);
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
 
-  const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[currentView]?.[props.id]));
@@ -103,10 +102,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     FormDataActions.updateFormData(dataModelField, value, props.id);
 
-    const dataModelElement = dataModel.find(
-      (element) => element.dataBindingName === props.dataModelBindings[key],
-    );
-    RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
+    RuleActions.checkIfRuleShouldRun(props.id, props.dataModelBindings[key], value);
   };
 
   const handleFocusUpdate = (componentId: string, step?: number) => {

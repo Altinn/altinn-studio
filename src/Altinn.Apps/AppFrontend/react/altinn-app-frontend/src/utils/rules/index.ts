@@ -1,4 +1,3 @@
-import { IDataModelFieldElement } from 'src/types';
 import { IFormData } from '../../features/form/data/formDataReducer';
 import { IDataModelState } from '../../features/form/datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../features/form/dynamics';
@@ -11,7 +10,7 @@ export function checkIfRuleShouldRun(
   formDataModelState: IDataModelState,
   layouts: ILayouts,
   repeatingContainerId: string,
-  lastUpdatedDataBinding: IDataModelFieldElement,
+  lastUpdatedDataBinding: string,
 ) {
   /*
   let repContainer;
@@ -45,7 +44,7 @@ export function checkIfRuleShouldRun(
         return;
       }
 
-      if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.dataBindingName) {
+      if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding) {
         shouldRunFunction = true;
       }
     });
@@ -66,9 +65,7 @@ export function checkIfRuleShouldRun(
           return acc;
         }, {});
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
-        const updatedDataBinding: IDataModelFieldElement = formDataModelState.dataModel.find(
-          (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0,
-        );
+        const updatedDataBinding = connectionDef.outParams.outParam0;
         let updatedComponent: string;
         Object.keys(layouts).forEach((id) => {
           const layout = layouts[id];
@@ -103,7 +100,7 @@ export function checkIfRuleShouldRun(
             } */
           rules.push({
             ruleShouldRun: true,
-            dataBindingName: updatedDataBinding.dataBindingName,
+            dataBindingName: updatedDataBinding,
             componentId: updatedComponent,
             result: result.toString(),
           });
