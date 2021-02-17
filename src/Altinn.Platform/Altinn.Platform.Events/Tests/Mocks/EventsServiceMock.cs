@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks

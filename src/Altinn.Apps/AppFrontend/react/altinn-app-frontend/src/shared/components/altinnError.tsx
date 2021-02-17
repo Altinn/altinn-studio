@@ -39,6 +39,7 @@ const styles = createStyles({
   },
   gridContainer: {
     maxWidth: 750,
+    '-ms-flex-wrap': 'nowrap',
   },
 });
 

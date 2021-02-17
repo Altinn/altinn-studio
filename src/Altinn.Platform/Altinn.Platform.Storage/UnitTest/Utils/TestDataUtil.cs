@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
         private static string GetInstancePath(int instanceOwnerId, Guid instanceGuid)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.Location).LocalPath);
             return Path.Combine(
                 unitTestFolder,
                 @"..\..\..\data\cosmoscollections\instances\",
@@ -45,7 +45,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
         private static string GetDataPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements");
         }
     }

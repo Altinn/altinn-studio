@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<List<string>> Permissions([FromRoute] string org)
         {
-            List<string> permittedEnvironments = new List<string>();
+            List<string> permittedEnvironments;
 
             List<Team> teams = await _giteaService.GetTeams();
             permittedEnvironments = teams.Where(t =>

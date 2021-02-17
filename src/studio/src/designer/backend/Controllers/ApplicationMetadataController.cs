@@ -1,8 +1,8 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -16,16 +16,13 @@ namespace Altinn.Studio.Designer.Controllers
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IRepository _repository;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class.
         /// </summary>
-        /// <param name="logger">The logger implementation</param>
         /// <param name="repository">The repository implementation</param>
-        public ApplicationMetadataController(ILogger<ApplicationMetadataController> logger, IRepository repository)
+        public ApplicationMetadataController(IRepository repository)
         {
-            _logger = logger;
             _repository = repository;
         }
 
