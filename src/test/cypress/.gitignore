@@ -14,3 +14,6 @@ videos/
 # Test attachment files
 e2e/fixtures/*.pdf
 e2e/fixtures/*.png
+
+# Reports
+reports/
