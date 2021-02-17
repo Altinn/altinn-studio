@@ -5,6 +5,8 @@ import { deleteDataModel, fetchDataModel, newDataModel, saveDataModel, setDataMo
 import { SchemaSelect } from '../schemaSelect';
 import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
 import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
+import AltinnPopover from 'app-shared/components/AltinnPopover';
+
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
   const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
@@ -39,6 +41,7 @@ function DataModelingContainer(): JSX.Element {
     dispatch(setDataModelName({ modelName: name }));
     dispatch(fetchDataModel({}));
   }
+  const [anchor, setAnchor] = React.useState(null);
 
   React.useEffect(() => {
     if (dataModelName) {
@@ -56,11 +59,17 @@ function DataModelingContainer(): JSX.Element {
     // todo: show modal with input for name
     dispatch(newDataModel({ modelName: 'test' }));
   }
-  const onDeleteClick = () => {
+  const onDeleteClick = (event: any) => {
     console.log('delete')
-    // TODO: confirmation
-    dispatch(deleteDataModel({}));
+    setAnchor(event.currentTarget);
     //TODO: have to fetch app meta data again
+  }
+  const onDeleteConfirmClick = () => {
+    dispatch(deleteDataModel({}));
+    setAnchor(null);
+  }
+  const onCancelDelete = () => {
+    setAnchor(null);
   }
 
   return (
@@ -89,6 +98,17 @@ function DataModelingContainer(): JSX.Element {
             Delete
           </Button>
         </Grid>
+        <AltinnPopover
+            anchorEl={anchor}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            btnCancelText="Nei"
+            descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
+            btnClick={onDeleteConfirmClick}
+            btnConfirmText="Ja"
+            btnPrimaryId='deployPopover'
+            handleClose={onCancelDelete}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            />
       </Grid>
       <SchemaEditorApp
         schema={jsonSchema || {}}
