@@ -34,8 +34,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
     <Select
       id={`schema-select-${id}`}
       value={value ?
-        dataModels.find((s: any) => s.label == value) :
-        dataModels[0]}
+        dataModels.find((s: any) => s.label == value) ?? {value, label: value} : dataModels[0]}
       onChange={onValueChange}
       className={classes.select}
       fullWidth={true}

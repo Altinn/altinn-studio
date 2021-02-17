@@ -38,6 +38,18 @@ export async function put(
   }
 }
 
+export async function del(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<void> {
+  try {
+    const response = await axios.delete(url, config ? config : null);
+    return response.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export function checkIfAxiosError(error: Error): boolean {
   return (error as AxiosError).config !== undefined;
 }

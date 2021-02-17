@@ -63,6 +63,24 @@ const dataModelingSlice = createSlice({
       const { modelName } = action.payload;
       state.modelName = modelName;
     },
+    newDataModel(state, action) {
+      const { modelName } = action.payload
+      state.modelName = modelName;
+      state.error = null;
+      state.schema = {};
+    },
+    deleteDataModel(state, action) {
+      state.saving = true;
+    },
+    deleteDataModelFulfilled(state, action) {
+      state.saving = false;
+      state.schema = {}
+      state.modelName = '';
+    },
+    deleteDataModelRejected(state, action) {
+      state.error = action.payload.error;
+      state.saving = false;
+    }
   },
 });
 
@@ -74,6 +92,10 @@ export const {
   saveDataModelFulfilled,
   saveDataModelRejected,
   setDataModelName,
+  newDataModel,
+  deleteDataModel,
+  deleteDataModelFulfilled,
+  deleteDataModelRejected
 } = dataModelingSlice.actions;
 
 export default dataModelingSlice.reducer;
