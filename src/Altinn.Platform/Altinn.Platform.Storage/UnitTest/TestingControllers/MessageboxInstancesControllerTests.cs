@@ -991,6 +991,70 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(expectedDistinctInstanceOwners, distinctInstanceOwners);
         }
 
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on archive reference. No state filter included.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle. Excluding all active instances.
+        /// Success:
+        ///  isArchivedOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Search_ArchiveReferenceNoStateFilter_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on archive reference. Include active and soft deleted selected.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle. Excluding all active instances.
+        /// Success:
+        ///  isArchived is set to true. isSoftDeleted is set to false.
+        /// </summary>
+        [Fact]
+        public async void Search_ArchiveReferenceIncludeActiveAndSoftDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea&includeActive=true&includeDeleted=true");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsArchived);
+            Assert.True(bool.Parse(actualIsArchived.First()));
+        }
+
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController

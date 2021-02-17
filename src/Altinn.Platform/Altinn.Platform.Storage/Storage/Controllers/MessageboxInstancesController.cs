@@ -148,6 +148,24 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
+            if (!string.IsNullOrEmpty(archiveReference))
+            {
+                if ((includeActive == includeArchived) && (includeActive == includeDeleted))
+                {
+                    includeActive = false;
+                    includeDeleted = true;
+                    includeArchived = true;
+                }
+                else if (includeActive && !includeArchived && !includeDeleted)
+                {
+                    return Ok(new List<MessageBoxInstance>());
+                }
+                else if (includeActive && (includeArchived || includeDeleted))
+                {
+                    includeActive = false;
+                }
+            }
+
             GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
             queryParams.Add("sortBy", "desc:lastChanged");
 
