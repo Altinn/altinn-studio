@@ -20,7 +20,7 @@ namespace Altinn.Platform.Events.Services
     {
         private readonly QueueStorageSettings _settings;
 
-        private QueueClient _client;
+        private QueueClient _inboundQueueClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueService"/> class.
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Events.Services
 
             try
             {
-                QueueClient client = await GetClient();
+                QueueClient client = await GetInboundQueueClient();
                 await client.SendMessageAsync(content);
             }
             catch (Exception e)
@@ -52,15 +52,15 @@ namespace Altinn.Platform.Events.Services
             return new PushQueueReceipt { Success = true };
         }
 
-        private async Task<QueueClient> GetClient()
+        private async Task<QueueClient> GetInboundQueueClient()
         {
-            if (_client == null)
+            if (_inboundQueueClient == null)
             {
-                _client = new QueueClient(_settings.ConnectionString, _settings.QueueName);
-                await _client.CreateIfNotExistsAsync();
+                _inboundQueueClient = new QueueClient(_settings.ConnectionString, _settings.InboundQueueName);
+                await _inboundQueueClient.CreateIfNotExistsAsync();
             }
 
-            return _client;
+            return _inboundQueueClient;
         }
     }
 }
