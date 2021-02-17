@@ -60,19 +60,19 @@ The commands should be run in an order that makes sure the tests are intact on t
 ### Run App Frontend tests
 Follow the steps below to start localtest, app frontend, app and the tests.
 
-1. Create testfiles that are used by the tests as attachments in app instances
+1. Create testfiles that are used by the tests as attachments in app instances.
 ```cmd
     npm run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
 ```
 
 2. Clone the app (frontend-test) to be tested and update config in `package.json` with the paths.
 
-3. Start localtest, app frontend, app
+3. Start localtest, app frontend, app.
 ```cmd
     npm run before:appfrontend
 ```
 
-4. Start the app frontend tests
+4. Start the app frontend tests from a new git bash terminal.
 ```cmd
     npm run test:appfrontend
 ```
