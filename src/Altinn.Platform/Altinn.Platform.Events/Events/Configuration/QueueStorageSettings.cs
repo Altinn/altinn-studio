@@ -11,9 +11,9 @@ namespace Altinn.Platform.Events.Configuration
         public string ConnectionString { get; set; }
 
         /// <summary>
-        /// Name of the queue to push events to.
+        /// Name of the queue to push incomming events to.
         /// </summary>
-        public string QueueName { get; set; }
+        public string InboundQueueName { get; set; }
 
         /// <summary>
         /// Indicated if events should be pushed to queue.
