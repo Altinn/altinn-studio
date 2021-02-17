@@ -2,6 +2,7 @@
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common'
+import * as texts from '../../fixtures/texts.json'
 const mui = new Common();
 
 const appName = Cypress.env('localTestAppName');
@@ -20,7 +21,7 @@ describe('Receipt', () => {
     cy.get(af.receiptContainer).should('be.visible')
       .find(mui.tableBody).then((table) => {
         cy.get(table).should('exist').and('be.visible');
-        cy.get(table).contains(mui.tableElement, 'Mottaker').siblings().should('contain.text', 'Testdepartementet');
+        cy.get(table).contains(mui.tableElement, 'Mottaker').siblings().should('contain.text', texts.ttd);
       });
     cy.get(af.linkToArchive).should('be.visible');
     cy.get(mui.listedAnchor).should('be.visible').and('have.length', 2);

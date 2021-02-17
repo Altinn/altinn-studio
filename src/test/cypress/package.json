@@ -18,8 +18,8 @@
     "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
     "start:app": "cd %npm_package_config_appPath% && dotnet run",
     "start:frontend": "cd %npm_package_config_frontendPath% && npm ci && npm run install-deps && cd altinn-app-frontend && npm start",
-    "before:appfrontend": "run-p start:localtest start:app start:frontend delete:reports",
-    "test:appfrontend": "cypress run --headless -b chrome -s 'e2e/integration/app-frontend/*.js'"
+    "before:appfrontend": "run-p start:localtest start:app start:frontend",
+    "test:appfrontend": "npm run delete:reports && cypress run --headless -b chrome -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
     "cypress": "^6.5.0",
