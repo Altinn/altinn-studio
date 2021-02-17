@@ -182,6 +182,12 @@ namespace Altinn.Platform.Storage.Repository
                     continue;
                 }
 
+                if (queryParameter.Equals("instanceOwner.partyId"))
+                {
+                    queryBuilder = queryBuilder.Where(i => queryValues.Contains(i.InstanceOwner.PartyId));
+                    continue;
+                }
+
                 foreach (string queryValue in queryValues)
                 {
                     switch (queryParameter)
@@ -193,11 +199,6 @@ namespace Altinn.Platform.Storage.Repository
                         case "org":
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
-
-                        case "instanceOwner.partyId":
-                            queryBuilder = queryBuilder.Where(i => i.InstanceOwner.PartyId == queryValue);
-                            break;
-
                         case "lastChanged":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
