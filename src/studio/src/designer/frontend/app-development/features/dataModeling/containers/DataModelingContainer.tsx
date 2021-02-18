@@ -8,10 +8,11 @@ import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
+
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
   const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
-  return dataTypeWithLogic?.id ?? 'default';
+  return dataTypeWithLogic?.id;
 }
 
 const useStyles = makeStyles(
@@ -93,12 +94,12 @@ function DataModelingContainer(): JSX.Element {
             className={classes.button}
             startIcon={<AddCircleOutline />}
             onClick={onCreateClick}
-            >
-          New
+          >
+            New
         </Button>
         </Grid>
         <Grid item xs={9}>
-          <SchemaSelect id="schema" value={selectedDataModelName} onChange={onSchemaSelected}/>
+          <SchemaSelect id="schema" value={selectedDataModelName} onChange={onSchemaSelected} />
         </Grid>
         <Grid item>
           <Button
@@ -111,40 +112,41 @@ function DataModelingContainer(): JSX.Element {
           </Button>
         </Grid>
         <AltinnPopover
-            anchorEl={deleteButtonAnchor}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            btnCancelText="Nei"
-            descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
-            btnConfirmText="Ja"
-            btnPrimaryId='deployPopover'
-            btnClick={onDeleteConfirmClick}
-            handleClose={onCancelDelete}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            />
+          anchorEl={deleteButtonAnchor}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          btnCancelText="Nei"
+          descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
+          btnConfirmText="Ja"
+          btnPrimaryId='deployPopover'
+          btnClick={onDeleteConfirmClick}
+          handleClose={onCancelDelete}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        />
         <AltinnPopoverSimple
-              anchorEl={createButtonAnchor}
-              handleClose={onCancelCreate}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-            >
-                  <AltinnInputField
-                  id="newModelInput"
-                  placeholder="Name"
-                  btnText="Ok"
-                  inputFieldStyling={{ width: '250px' }}
-                  onChangeFunction={onNewModelNameChanged}
-                  onBtnClickFunction={onCreateConfirmClick}
-                  ></AltinnInputField>
+          anchorEl={createButtonAnchor}
+          handleClose={onCancelCreate}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+        >
+          <AltinnInputField
+            id="newModelInput"
+            placeholder="Name"
+            btnText="Ok"
+            inputFieldStyling={{ width: '250px' }}
+            onChangeFunction={onNewModelNameChanged}
+            onBtnClickFunction={onCreateConfirmClick}
+          ></AltinnInputField>
 
-            </AltinnPopoverSimple>
+        </AltinnPopoverSimple>
       </Grid>
-      <SchemaEditorApp
-        schema={jsonSchema || {}}
-        onSaveSchema={onSaveSchema}
-        rootItemId={`#/definitions/${selectedDataModelName}`}
-      />
+      { selectedDataModelName ?
+        <SchemaEditorApp
+          schema={jsonSchema || {}}
+          onSaveSchema={onSaveSchema}
+          rootItemId={`#/definitions/${selectedDataModelName}`}
+        /> : null}
     </div>
   );
 }
