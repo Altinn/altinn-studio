@@ -184,9 +184,10 @@ namespace Altinn.Studio.Designer.Controllers
             // delete meta data
             if (_repository.DeleteMetadataForAttachment(org, repository, modelName))
             {
-                // delete file
+                // delete files
                 string filePath = $"App/models/{modelName}";
-                _repository.DeleteData(org, repository, filePath);
+                _repository.DeleteData(org, repository, $"{filePath}.schema.json");
+                _repository.DeleteData(org, repository, $"{filePath}.xsd");
                 return Ok();
             }
 

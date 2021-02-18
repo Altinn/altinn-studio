@@ -6,7 +6,8 @@ import { SchemaSelect } from '../schemaSelect';
 import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
 import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
-
+import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import AltinnInputField from 'app-shared/components/AltinnInputField';
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
   const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
@@ -36,13 +37,13 @@ function DataModelingContainer(): JSX.Element {
     (state: IServiceDevelopmentState) => getDataModelTypeName(state.applicationMetadataState.applicationMetadata),
   );
   const selectedDataModelName = useSelector((state: IServiceDevelopmentState) => state.dataModeling.modelName);
-
   const fetchModel = (name: string) => {
     dispatch(setDataModelName({ modelName: name }));
     dispatch(fetchDataModel({}));
   }
-  const [anchor, setAnchor] = React.useState(null);
-
+  const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
+  const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
+  const [newModelName, setNewModelName] = React.useState('');
   React.useEffect(() => {
     if (dataModelName) {
       fetchModel(dataModelName);
@@ -55,21 +56,32 @@ function DataModelingContainer(): JSX.Element {
   const onSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema }));
   };
-  const onCreateClick = () => {
-    // todo: show modal with input for name
-    dispatch(newDataModel({ modelName: 'test' }));
+  const onCreateClick = (event: any) => {
+    setCreateButtonAnchor(event.currentTarget);
+  }
+  const onNewModelNameChanged = (e: any) => {
+    setNewModelName(e.target.value);
+  }
+  const onCreateConfirmClick = (e: any) => {
+    if (newModelName && newModelName.length > 0) {
+      dispatch(newDataModel({ modelName: newModelName }));
+    }
+    setCreateButtonAnchor(null);
   }
   const onDeleteClick = (event: any) => {
     console.log('delete')
-    setAnchor(event.currentTarget);
+    setDeleteButtonAnchor(event.currentTarget);
     //TODO: have to fetch app meta data again
   }
   const onDeleteConfirmClick = () => {
     dispatch(deleteDataModel({}));
-    setAnchor(null);
+    setDeleteButtonAnchor(null);
   }
   const onCancelDelete = () => {
-    setAnchor(null);
+    setDeleteButtonAnchor(null);
+  }
+  const onCancelCreate = () => {
+    setCreateButtonAnchor(null);
   }
 
   return (
@@ -99,7 +111,7 @@ function DataModelingContainer(): JSX.Element {
           </Button>
         </Grid>
         <AltinnPopover
-            anchorEl={anchor}
+            anchorEl={deleteButtonAnchor}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             btnCancelText="Nei"
             descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
@@ -109,6 +121,24 @@ function DataModelingContainer(): JSX.Element {
             handleClose={onCancelDelete}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             />
+        <AltinnPopoverSimple
+              anchorEl={createButtonAnchor}
+              handleClose={onCancelCreate}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+            >
+                  <AltinnInputField
+                  id="createModelInput"
+                  inputFieldStyling={{ width: '250px' }}
+                  onChangeFunction={onNewModelNameChanged}
+                  placeholder="Name"
+                  btnText="Ok"
+                  onBtnClickFunction={onCreateConfirmClick}
+                  ></AltinnInputField>
+
+            </AltinnPopoverSimple>
       </Grid>
       <SchemaEditorApp
         schema={jsonSchema || {}}
