@@ -51,11 +51,6 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the host name.
         /// </summary>
         public string HostName { get; set; }
-
-        /// <summary>
-        /// Checks if team membership is required for deploy.
-        /// </summary>
-        public bool CheckTeamMembershipForDeploy { get; set; }
         
         /// <summary>
         /// Gets the path to the service implementation template.

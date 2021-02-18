@@ -30,22 +30,18 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     {
         private readonly IGitea _giteaApiWrapper;
         private readonly HttpContext _httpContext;
-        private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="settings">The general settings</param>
         public GiteaDeployPermissionHandler(
             IGitea giteaApiWrapper,
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<GeneralSettings> settings)
+            IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaApiWrapper = giteaApiWrapper;
-            _settings = settings.Value;
         }
 
         /// <inheritdoc/>
@@ -65,22 +61,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 string.IsNullOrWhiteSpace(app))
             {
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
-
-            if (!_settings.CheckTeamMembershipForDeploy)
-            {
-                RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
-                if (repository?.Permissions?.Push == true ||
-                    repository?.Permissions?.Admin == true)
-                {
-                    context.Succeed(requirement);
-                }
-                else
-                {
-                    _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                }
-
                 return;
             }
 

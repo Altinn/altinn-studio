@@ -7,7 +7,7 @@ namespace Altinn.Platform.Models.Tests
     /// Helper methods for model validation.
     /// </summary>
     public static class ModelValidator
-    {        
+    {
         /// <summary>
         /// Perform validation of an instance of a model.
         /// </summary>

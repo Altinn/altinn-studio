@@ -11,10 +11,10 @@ const theme = createMuiTheme(AltinnAppTheme);
 const useStyles = makeStyles({
   paper: {
     backgroundColor: theme.altinnPalette.primary.redLight,
+    maxWidth: '330px',
   },
   grid: {
     padding: '12px',
-    maxWidth: '330px',
   },
 });
 
