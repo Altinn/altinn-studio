@@ -152,13 +152,13 @@ export interface IUpdateContainerIdFulfilled {
 }
 
 export interface IUpdateFormComponentAction {
-  updatedComponent: any;
+  updatedComponent: IFormComponent;
   id: string;
   activeContainer?: string;
 }
 
 export interface IUpdateFormComponentActionFulfilled {
-  updatedComponent: any;
+  updatedComponent: IFormComponent;
   id: string;
 }
 
