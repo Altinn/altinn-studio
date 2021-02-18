@@ -13,6 +13,7 @@ import { fetchDataModel,
   deleteDataModelFulfilled,
   deleteDataModelRejected} from './dataModelingSlice';
 import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
+import { ApplicationMetadataActions } from '../../sharedResources/applicationMetadata/applicationMetadataSlice';
 
 const modelNameState = (state: IServiceDevelopmentState) => state.dataModeling.modelName;
 
@@ -44,6 +45,7 @@ export function* saveDatamodelSaga(action: IDataModelAction) {
     const url = getSaveDataModelUrl(modelName);
     yield axiosPut(url, schema);
     yield put(saveDataModelFulfilled({}));
+    yield put(ApplicationMetadataActions.getApplicationMetadata());
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
   }
@@ -60,6 +62,7 @@ export function* deleteDataModelSaga(): SagaIterator {
     const url = getDeleteDataModelUrl(modelName);
     const result = yield call(del, url);
     yield put(deleteDataModelFulfilled({ schema: result }));
+    yield put(ApplicationMetadataActions.getApplicationMetadata());
   } catch (err) {
     yield put(deleteDataModelRejected({ error: err }));
   }

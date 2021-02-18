@@ -43,7 +43,7 @@ function DataModelingContainer(): JSX.Element {
   }
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
-  const [newModelName, setNewModelName] = React.useState('');
+  const [newModelName, setNewModelName] = React.useState(null);
   React.useEffect(() => {
     if (dataModelName) {
       fetchModel(dataModelName);
@@ -67,11 +67,10 @@ function DataModelingContainer(): JSX.Element {
       dispatch(newDataModel({ modelName: newModelName }));
     }
     setCreateButtonAnchor(null);
+    setNewModelName(null);
   }
   const onDeleteClick = (event: any) => {
-    console.log('delete')
     setDeleteButtonAnchor(event.currentTarget);
-    //TODO: have to fetch app meta data again
   }
   const onDeleteConfirmClick = () => {
     dispatch(deleteDataModel({}));
@@ -82,6 +81,7 @@ function DataModelingContainer(): JSX.Element {
   }
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
+    setNewModelName(null);
   }
 
   return (
@@ -115,9 +115,9 @@ function DataModelingContainer(): JSX.Element {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             btnCancelText="Nei"
             descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
-            btnClick={onDeleteConfirmClick}
             btnConfirmText="Ja"
             btnPrimaryId='deployPopover'
+            btnClick={onDeleteConfirmClick}
             handleClose={onCancelDelete}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             />
@@ -130,11 +130,11 @@ function DataModelingContainer(): JSX.Element {
               }}
             >
                   <AltinnInputField
-                  id="createModelInput"
-                  inputFieldStyling={{ width: '250px' }}
-                  onChangeFunction={onNewModelNameChanged}
+                  id="newModelInput"
                   placeholder="Name"
                   btnText="Ok"
+                  inputFieldStyling={{ width: '250px' }}
+                  onChangeFunction={onNewModelNameChanged}
                   onBtnClickFunction={onCreateConfirmClick}
                   ></AltinnInputField>
 
