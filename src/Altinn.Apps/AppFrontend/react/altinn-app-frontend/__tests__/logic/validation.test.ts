@@ -120,7 +120,7 @@ describe('>>> utils/validations.ts', () => {
           dataModelBindings: {
             simpleBinding: 'group_1.dataModelField_4',
           },
-          required: false,
+          required: true,
           readOnly: false,
           textResourceBindings: {},
         },
@@ -546,6 +546,26 @@ describe('>>> utils/validations.ts', () => {
         mockLayout,
         mockLanguage.language,
         [],
+        repeatingGroups,
+      );
+
+    const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } }, 'componentId_4-0': { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } }, componentId_6: { address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] } } } };
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
+
+  it('+++ validateEmptyFields should not return error for repeating group if child is hidden', () => {
+    const repeatingGroups = {
+      group1: {
+        count: 0,
+      },
+    };
+    const componentSpesificValidations =
+      validation.validateEmptyFields(
+        mockFormData,
+        mockLayout,
+        mockLanguage.language,
+        ['componentId_4-0'],
         repeatingGroups,
       );
 

@@ -37,12 +37,12 @@ namespace Altinn.Platform.Register.Models
             {
                 if (OrgNo != null)
                 {
-                    issues.Add(new ValidationResult($"With Ssn already provided the OrgNo field should be null.", new string[] { nameof(OrgNo) } ));
+                    issues.Add(new ValidationResult($"With Ssn already provided the OrgNo field should be null.", new string[] { nameof(OrgNo) }));
                 }
             }
             else if (OrgNo == null)
             {
-                issues.Add(new ValidationResult($"At least one of the object properties must have a value", new string[] { nameof(Ssn), nameof(OrgNo) } ));
+                issues.Add(new ValidationResult($"At least one of the object properties must have a value", new string[] { nameof(Ssn), nameof(OrgNo) }));
             }
 
             return issues;

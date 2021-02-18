@@ -3,10 +3,11 @@ import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IRuntimeState } from '../../../types';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { getTextFromAppOrDefault } from '../../../utils/textResource';
 
 function InstantiateValidationError(props: {message: string}) {
   const language = useSelector((state: IRuntimeState) => state.language.language);
-
+  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   if (!language) {
     return null;
   }
@@ -21,12 +22,7 @@ function InstantiateValidationError(props: {message: string}) {
 
   function getCustomErrorMessage(message: string) {
     if (!message) return null;
-    return getParsedLanguageFromKey(
-      message,
-      language,
-      [],
-      false,
-    );
+    return getTextFromAppOrDefault(message, textResources, language, [], false);
   }
 
   function createErrorContent() {

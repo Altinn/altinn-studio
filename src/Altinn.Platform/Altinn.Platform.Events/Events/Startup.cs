@@ -99,6 +99,7 @@ namespace Altinn.Platform.Events
             services.AddSingleton(Configuration);
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<QueueStorageSettings>(Configuration.GetSection("QueueStorageSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
@@ -141,6 +142,7 @@ namespace Altinn.Platform.Events
             services.AddHttpClient<IRegisterService, RegisterService>();
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
+            services.AddSingleton<IQueueService, QueueService>();
             services.AddSingleton<IPDP, PDPAppSI>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
