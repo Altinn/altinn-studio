@@ -45,7 +45,7 @@ export default function(data) {
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId. Count should to be 20": (r) => {54
+      "GET Instances filter on appId. Count should to be 20": (r) => {
           var responseInstances = r.json("instances");
           return responseInstances.length == 20;
       }     
@@ -60,7 +60,7 @@ export default function(data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId and exclude confirmed by. Count should to be 15": (r) => {54
+      "GET Instances filter on appId and exclude confirmed by. Count should to be 15": (r) => {
           var responseInstances = r.json("instances");
           return responseInstances.length == 15;
       }     
@@ -75,7 +75,7 @@ export default function(data) {
   
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter  on appId and process complete. Count should to be 10": (r) => {54
+      "GET Instances filter  on appId and process complete. Count should to be 10": (r) => {
           var responseInstances = r.json("instances");
           return responseInstances.length == 10;
       }     
@@ -91,7 +91,7 @@ export default function(data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId, process complete and exclude confirmed by app owner. Count should to bee 5": (r) => {54
+      "GET Instances filter on appId, process complete and exclude confirmed by app owner. Count should to bee 5": (r) => {
           var responseInstances = r.json("instances");
           return responseInstances.length == 5;
       }     
