@@ -4,9 +4,8 @@
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable after generating the token
 
-    This test script is to create instance of an app as an appowner for a party id
-    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
-    and maskinporten token
+    This test script is to verify that get instances endpoint in storage works with a variety of filters
+    Test data required: maskinporten token
     Command: docker-compose run k6 run /src/tests/platform/appowner/getinstances5482.js -e env=tt02 -e maskinporten=token
 */
 
