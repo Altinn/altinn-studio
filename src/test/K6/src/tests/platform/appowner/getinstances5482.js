@@ -19,15 +19,15 @@ const app = "testcase-5482";
 const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
-    thresholds: {
-        "errors": ["count<1"]
-    },
-    setupTimeout: '1m'
+  thresholds: {
+    "errors": ["count<1"]
+  },
+  setupTimeout: '1m'
 };
 
 //Function to setup data and return AltinnstudioRuntime Token
 export function setup() {
-  var altinnStudioRuntimeCookie =  convertMaskinPortenToken(maskinPortenToken, "true");
+  var altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
   var data = {};
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;
@@ -41,29 +41,29 @@ export default function(data) {
 
   //Test to get instances with filter on appId. Count expected to be 20.
   var filters = {
-      "appId": appOwner + "/" + app,
+    "appId": appOwner + "/" + app,
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId. Count should to be 20": (r) => {
-          var responseInstances = r.json("instances");
-          return responseInstances.length == 20;
-      }     
+    "GET Instances filter on appId Count should to be 20:": (r) => {
+      var responseInstances = r.json("instances");
+      return responseInstances.length == 20;
+    }
   });
   addErrorCount(success);
 
   // Test to get instances with filter on appId and exclude confirmed by app owner. Count should to be 15.
-   filters = {
+  filters = {
     "appId": appOwner + "/" + app,
     "excludeConfirmedBy": appOwner
   };
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId and exclude confirmed by. Count should to be 15": (r) => {
-          var responseInstances = r.json("instances");
-          return responseInstances.length == 15;
-      }     
+    "GET Instances filter on appId and exclude confirmed by Count should to be 15:": (r) => {
+      var responseInstances = r.json("instances");
+      return responseInstances.length == 15;
+    }
   });
   addErrorCount(success);
 
@@ -72,13 +72,13 @@ export default function(data) {
     "appId": appOwner + "/" + app,
     "process.isComplete": true
   };
-  
+
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter  on appId and process complete. Count should to be 10": (r) => {
-          var responseInstances = r.json("instances");
-          return responseInstances.length == 10;
-      }     
+    "GET Instances filter  on appId and process complete Count should to be 10:": (r) => {
+      var responseInstances = r.json("instances");
+      return responseInstances.length == 10;
+    }
   });
   addErrorCount(success);
 
@@ -91,10 +91,10 @@ export default function(data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-      "GET Instances filter on appId, process complete and exclude confirmed by app owner. Count should to bee 5": (r) => {
-          var responseInstances = r.json("instances");
-          return responseInstances.length == 5;
-      }     
+    "GET Instances filter on appId process complete and exclude confirmed by app owner Count should to bee 5:": (r) => {
+      var responseInstances = r.json("instances");
+      return responseInstances.length == 5;
+    }
   });
   addErrorCount(success);
 };
