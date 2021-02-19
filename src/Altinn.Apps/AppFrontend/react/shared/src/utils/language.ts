@@ -6,7 +6,7 @@ import { ITextResource, IDataSources } from '../types';
 const marked = require('marked');
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if ('target' in (node as any)) {
+  if (node.tagName === 'A') {
     node.setAttribute('rel', 'noopener noreferrer');
     node.setAttribute('target', '_blank');
   }
