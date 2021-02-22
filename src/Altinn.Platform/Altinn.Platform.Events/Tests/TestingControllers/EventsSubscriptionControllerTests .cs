@@ -10,6 +10,7 @@ using Altinn.Common.AccessToken.Services;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
+using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
 using Altinn.Platform.Events.Tests.Mocks.Authentication;
@@ -57,21 +58,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenValidCloudEvent_ReturnsStatusCreatedAndCorrectData()
+            public async void Post_GivenValidCloudEventSubscription_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscription";
-                string responseId = Guid.NewGuid().ToString();
-                EventsSubscription cloudEvent = GetEventsSubscription();
-
-                Mock<IEventsService> eventsService = new Mock<IEventsService>();
-                eventsService.Setup(s => s.StoreCloudEvent(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
-
-                HttpClient client = GetTestClient(eventsService.Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                    EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
+ 
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
                 {
-                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                    Content = new StringContent(cloudEventSubscription.Serialize(), Encoding.UTF8, "application/json")
                 };
 
                 // Act
@@ -81,18 +78,18 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
                 string content = response.Content.ReadAsStringAsync().Result;
-                Assert.Contains(responseId, content);
+                Assert.Contains(cloudEventSubscription.SourceFilter, content);
             }
 
-            private HttpClient GetTestClient(IEventsService eventsService)
+            private HttpClient GetTestClient()
             {
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
                     {
-                        services.AddSingleton(eventsService);
                         services.AddSingleton<IRegisterService, RegisterServiceMock>();
+                        services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
@@ -104,11 +101,13 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private EventsSubscription GetEventsSubscription()
+            private EventsSubscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
             {
                 EventsSubscription subscription = new EventsSubscription()
                 {
-                    EndPoint = "https://www.kpmg.no/"
+                    EndPoint = endpoint,
+                    AlternativeSubjectFilter = alternativeSubjectFilter,
+                    SourceFilter = sourceFilter
                 };
 
                 return subscription;

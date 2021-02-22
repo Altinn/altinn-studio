@@ -5,6 +5,8 @@ using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
+using Altinn.Platorm.Events.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -25,6 +27,9 @@ namespace Altinn.Platform.Events.Controllers
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
         private readonly AccessTokenSettings _accessTokenSettings;
+
+        private const string OrganizationPrefix = "/organization/";
+        private const string PersonPrefix = "/person/";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
@@ -51,21 +56,26 @@ namespace Altinn.Platform.Events.Controllers
         /// <param name="eventsSubscription">The subscription details</param>
         /// <returns></returns>
         [HttpPost()]
+        [Authorize]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] EventsSubscription eventsSubscription)
         {
-            // TODO Validate type of authenticated user
+            await EnrichSubject(eventsSubscription);
 
-            // TODO Validate the type of subscription based on 
+            EnrichConsumer(eventsSubscription);
 
-            // Validate the subject. Identify partyId,
+            string message = null;
+            if (!ValidateSubscription(eventsSubscription, out message))
+            {
+                return BadRequest(message);
+            }
 
-            _eventsSubscriptionService.CreateSubscription(eventsSubscription);
+            int id = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
 
-            return Created("sdaf", eventsSubscription);
+            return Created("/events/api/v1/subscription/" + id, eventsSubscription);
         }
 
         /// <summary>
@@ -84,6 +94,96 @@ namespace Altinn.Platform.Events.Controllers
         public async Task<ActionResult<string>> Delete(int id)
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// Enriches the 
+        /// </summary>
+        private async Task EnrichSubject(EventsSubscription eventsSubscription)
+        {
+            if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
+                && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
+            {
+                eventsSubscription.SubjectFilter = await GetPartyFromAlternativeSubject(eventsSubscription.AlternativeSubjectFilter);
+            }
+        }
+
+        private bool ValidateSubscription(EventsSubscription eventsSubscription, out string message)
+        {
+            if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
+                && string.IsNullOrEmpty(HttpContext.User.GetOrg()))
+            {
+                message = "A valid subject to the authenticated is required";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(eventsSubscription.Consumer))
+            {
+                message = "Missing event consumer";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
+                && string.IsNullOrEmpty(eventsSubscription.SourceFilter))
+            {
+                message = "Source is required when subject is not defined";
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        private async Task<string> GetPartyFromAlternativeSubject(string alternativeSubject)
+        {
+            int partyId = 0;
+
+            if (alternativeSubject.StartsWith(OrganizationPrefix))
+            {
+                string orgNo = alternativeSubject.Replace(OrganizationPrefix, string.Empty);
+                partyId = await _registerService.PartyLookup(orgNo, null);
+            }
+            else if (alternativeSubject.StartsWith(PersonPrefix))
+            {
+                string persnoNo = alternativeSubject.Replace(OrganizationPrefix, string.Empty);
+                partyId = await _registerService.PartyLookup(null, persnoNo);
+            }
+
+            if (partyId != 0)
+            {
+                return "/party/" + partyId;
+            }
+
+            return null;
+        }
+
+        private void EnrichConsumer(EventsSubscription eventsSubscription)
+        {
+            if (string.IsNullOrEmpty(eventsSubscription.Consumer))
+            {
+                string org = HttpContext.User.GetOrg();
+                if (!string.IsNullOrEmpty(org))
+                {
+                    eventsSubscription.Consumer = "/org/" + org;
+                    return;
+                }
+
+                int? userId = HttpContext.User.GetUserIdAsInt();
+                {
+                    if (userId.HasValue)
+                    {
+                        eventsSubscription.Consumer = "/user/" + userId.Value;
+                    }
+                }
+
+                string organization = HttpContext.User.GetOrgNumber();
+                {
+                    if (!string.IsNullOrEmpty(organization))
+                    {
+                        eventsSubscription.Consumer = "/organization/" + organization;
+                    }
+                }
+            }
         }
     }
 }

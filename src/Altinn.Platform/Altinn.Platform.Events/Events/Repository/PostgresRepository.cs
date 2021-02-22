@@ -66,6 +66,18 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
+        public Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public Task DeleteSubscription(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
         public async Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
         {
             List<CloudEvent> searchResult = new List<CloudEvent>();
@@ -105,6 +117,12 @@ namespace Altinn.Platform.Events.Repository
             {
                 await _conn.CloseAsync();
             }
+        }
+
+        /// <inheritdoc/>
+        public Task<EventsSubscription> GetSubscription(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

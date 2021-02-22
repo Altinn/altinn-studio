@@ -28,6 +28,18 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return Task.FromResult(cloudEvent.Id);
         }
 
+        public Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription)
+        {
+            Random rnd = new Random();
+            eventsSubscription.Id = rnd.Next(1, int.MaxValue); 
+            return Task.FromResult(eventsSubscription.Id);
+        }
+
+        public Task DeleteSubscription(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <inheritdoc/>
         public Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
         {
@@ -83,6 +95,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
             }
 
             return null;
+        }
+
+        public Task<EventsSubscription> GetSubscription(int id)
+        {
+            throw new NotImplementedException();
         }
 
         private string GetEventsPath()

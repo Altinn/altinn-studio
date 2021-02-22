@@ -25,12 +25,12 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         /// <summary>
         /// Creates an cloud event in repository
         /// </summary>
-        Task<string> CreateEventsSubscription(EventsSubscription eventsSubscription);
+        Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription);
 
         /// <summary>
         /// Gets a specific subscription
         /// </summary>
-        Task<string> GetSubscription(int id);
+        Task<EventsSubscription> GetSubscription(int id);
 
         /// <summary>
         /// Deletes a given subscription

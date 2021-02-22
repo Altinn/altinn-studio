@@ -34,7 +34,12 @@ namespace Altinn.Platform.Events.Models
         /// <summary>
         /// Filter on 
         /// </summary>
-        public string AlternativeSubject { get; set; }
+        public string AlternativeSubjectFilter { get; set; }
+
+        /// <summary>
+        /// The events consumer
+        /// </summary>
+        public string Consumer { get; set; }
 
         /// <summary>
         /// Serializes the cloud event to a JSON string.
