@@ -32,8 +32,11 @@ export function* keepAliveSessionSaga(): SagaIterator {
     const addedMinutes = yield call(get, url);
     yield put(keepAliveSessionFulfilled({ addedMinutes}));
   } catch (error) {
-    yield put(signOutUser());
-    yield put(keepAliveSessionRejected({ error }));
+    if (error.response && error.response.status === 401) {
+      yield put(signOutUser());
+    } else {
+      yield put(keepAliveSessionRejected({ error }));
+    }
   }
 }
 
