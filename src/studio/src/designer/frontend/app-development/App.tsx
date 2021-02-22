@@ -91,9 +91,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public componentDidUpdate(_prevProps: IServiceDevelopmentProps) {
     if (_prevProps.remainingSessionMinutes != this.props.remainingSessionMinutes) {
-      this.setState({
+      this.setState(_x => ({
         remainingSessionMinutes: this.props.remainingSessionMinutes,
-      });
+      }));
       return true;
     }
     return false;
@@ -164,6 +164,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
             <AltinnPopoverSimple
               anchorEl={(this.state.remainingSessionMinutes < 11) ? this.state.sessionExpiredPopoverRef : null}
               anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+              transformOrigin={{vertical: 'top', horizontal: 'center'}}
               handleClose={(event: string) => this.handleSessionExpiresClose(event)}
               btnCancelText={getLanguageFromKey('general.sign_out', this.props.language)}
               btnConfirmText={getLanguageFromKey('general.continue', this.props.language)}

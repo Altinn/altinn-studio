@@ -15,7 +15,7 @@ export function* fetchRemainingSessionSaga(): SagaIterator {
     yield put(fetchRemainingSessionFulfilled({ remainingMinutes }));
     if (remainingMinutes > 10) {
       yield delay((remainingMinutes - 10) * 60 * 1000);
-      yield put(fetchRemainingSession);
+      yield put(fetchRemainingSession());
     }
   } catch (error) {
     yield put(fetchRemainingSessionRejected({ error }));
@@ -32,7 +32,7 @@ export function* keepAliveSessionSaga(): SagaIterator {
     const addedMinutes = yield call(get, url);
     yield put(keepAliveSessionFulfilled({ addedMinutes}));
   } catch (error) {
-    yield put(signOutUser);
+    yield put(signOutUser());
     yield put(keepAliveSessionRejected({ error }));
   }
 }
