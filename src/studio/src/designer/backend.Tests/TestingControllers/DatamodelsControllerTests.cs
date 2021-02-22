@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.TestingControllers
@@ -293,6 +293,7 @@ namespace Designer.Tests.TestingControllers
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
 
             Program.ConfigureSetupLogging();
+
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
@@ -308,10 +309,28 @@ namespace Designer.Tests.TestingControllers
 
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
+                Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
+                repositoryMock
+                    .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(true);
+
+                repositoryMock.
+                    Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
+                    Returns<string, string, string>(async (org, repo, path) =>
+                    {
+                        string repopath = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+                        repopath += @"testUser\ttd\ttd-datamodels\";
+
+                        Stream fs = File.OpenRead(repopath + path);
+                        return await Task.FromResult(fs);
+                    });
+
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
                     services.AddSingleton<IGitea, IGiteaMock>();
+
+                    services.AddSingleton<IRepository>(repositoryMock.Object);
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
