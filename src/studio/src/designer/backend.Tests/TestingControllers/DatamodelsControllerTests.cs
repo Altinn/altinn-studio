@@ -312,7 +312,7 @@ namespace Designer.Tests.TestingControllers
                 Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
                 repositoryMock
                     .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(true);
+                    .Verifiable();
 
                 repositoryMock.
                     Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).

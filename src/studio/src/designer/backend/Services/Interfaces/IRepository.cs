@@ -563,7 +563,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">The app</param>
         /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
         /// <param name="classRef">The class ref</param>
-        /// <returns></returns>
-        bool UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
+        void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
     }
 }

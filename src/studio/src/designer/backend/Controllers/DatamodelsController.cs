@@ -166,7 +166,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">The org</param>
         /// <param name="repository">the repository</param>
         /// <param name="modelName">The name of the data model.</param>
-        /// <returns></returns>
         [Authorize]
         [HttpDelete]
         [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
@@ -181,10 +180,8 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest("Invalid model name value.");
             }
 
-            // delete meta data
             if (_repository.DeleteMetadataForAttachment(org, repository, modelName))
             {
-                // delete files
                 string filePath = $"App/models/{modelName}";
                 _repository.DeleteData(org, repository, $"{filePath}.schema.json");
                 _repository.DeleteData(org, repository, $"{filePath}.xsd");
