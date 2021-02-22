@@ -3,11 +3,16 @@ import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IUserState {
   permissions: IUserPermissions;
+  session: IUserSession;
   error: Error;
 }
 
 export interface IUserPermissions {
   deploy: IDeployPermissions;
+}
+
+export interface IUserSession {
+  remainingMinutes: number;
 }
 
 export interface IDeployPermissions {
@@ -20,6 +25,9 @@ const initialState: IUserState = {
       environments: [],
     },
   },
+  session: {
+    remainingMinutes: 120,
+  },
   error: null,
 };
 
@@ -28,6 +36,22 @@ export interface IFetchDeployPermissionsFulfilled {
 }
 
 export interface IUserActionRejected {
+  error: Error;
+}
+
+export interface IFetchRemainingSessionFulfilled {
+  remainingMinutes: number;
+}
+
+export interface IFetchRemainingSessionRejected {
+  error: Error;
+}
+
+export interface IKeepAliveSessionFulfilled {
+  addedMinutes: number;
+}
+
+export interface IKeepAliveSessionRejected {
   error: Error;
 }
 
@@ -49,14 +73,49 @@ const userSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    fetchRemainingSessionFulfilled: (
+      state: IUserState, action: PayloadAction<IFetchRemainingSessionFulfilled>,
+    ) => {
+      const { remainingMinutes } = action.payload;
+      state.session.remainingMinutes = remainingMinutes;
+    },
+    fetchRemainingSessionRejected: (
+      state: IUserState, action: PayloadAction<IFetchRemainingSessionRejected>,
+    ) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
+    keepAliveSessionFulfilled: (
+      state: IUserState, action: PayloadAction<IKeepAliveSessionFulfilled>,
+    ) => {
+      const { addedMinutes } = action.payload;
+      state.session.remainingMinutes = (state.session.remainingMinutes + addedMinutes);
+    },
+    keepAliveSessionRejected: (
+      state: IUserState, action: PayloadAction<IKeepAliveSessionRejected>,
+    ) => {
+      const { error } = action.payload;
+      state.error = error;
+    }
   },
 });
 
 export const fetchDeployPermissions = createAction(`${moduleName}/fetchDeployPermissions`);
 
+export const fetchRemainingSession = createAction(`${moduleName}/fetchRemainingSession`);
+
+export const keepAliveSession = createAction(`${moduleName}/keepAliveSession`);
+
+export const signOutUser = createAction(`${moduleName}/signOutUser`);
+
+
 export const {
   fetchDeployPermissionsFulfilled,
   fetchDeployPermissionsRejected,
+  fetchRemainingSessionFulfilled,
+  fetchRemainingSessionRejected,
+  keepAliveSessionFulfilled,
+  keepAliveSessionRejected,
 } = userSlice.actions;
 
 export default userSlice.reducer;

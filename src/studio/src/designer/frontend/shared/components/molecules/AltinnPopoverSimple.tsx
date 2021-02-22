@@ -68,12 +68,12 @@ const useStyles = makeStyles(() =>
 );
 
 const defaultAnchorOrigin: PopoverOrigin = {
-  horizontal: 'left',
+  horizontal: 'center',
   vertical: 'top',
 };
 
 const defaultTransformOrigin: PopoverOrigin = {
-  horizontal: 'left',
+  horizontal: 'center',
   vertical: 'top',
 };
 
@@ -131,7 +131,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                 id={props.btnSecondaryId}
                 color='primary'
                 className={classes.buttonCancel}
-                onClick={props.handleClose}
+                onClick={() => props.handleClose('close')}
               >
                 <span className={classes.borderBottom}>
                   {props.btnCancelText}

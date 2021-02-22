@@ -30,6 +30,10 @@ import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handle
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { getRepoStatusUrl } from './utils/urlHelper';
+import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
+import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { Typography } from '@material-ui/core';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -65,9 +69,13 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, ISe
   location: any;
   repoStatus: any;
   serviceName: any;
+  remainingSessionMinutes: number;
 }
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
+  sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
+  sessionExpiredPopoverOpen: boolean;
+  remainingSessionMinutes: number;
 }
 
 class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
@@ -75,7 +83,20 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     super(_props, _state);
     this.state = {
       forceRepoStatusCheckComplete: true,
+      sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
+      sessionExpiredPopoverOpen: false,
+      remainingSessionMinutes: _props.remainingSessionMinutes,
     };
+  }
+
+  public componentDidUpdate(_prevProps: IServiceDevelopmentProps) {
+    if (_prevProps.remainingSessionMinutes != this.props.remainingSessionMinutes) {
+      this.setState({
+        remainingSessionMinutes: this.props.remainingSessionMinutes,
+      });
+      return true;
+    }
+    return false;
   }
 
   public componentDidMount() {
@@ -88,9 +109,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-
+    this.props.dispatch(fetchRemainingSession());
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
+    this.setState({ sessionExpiredPopoverOpen: true});
   }
 
   public componentWillUnmount() {
@@ -118,6 +140,18 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     NavigationActionDispatcher.toggleDrawer();
   }
 
+  public handleSessionExpiresClose = (action: string) => {
+    if (action === 'close') {
+      // user clicked close button, sign user out
+      this.props.dispatch(signOutUser());
+    } else {
+      // user clicked outside the popover or pressed "continue", keep signed in
+      this.props.dispatch(keepAliveSession());
+
+    }
+    this.setState({ sessionExpiredPopoverOpen: false });
+  }
+
   public render() {
     const { classes, repoStatus } = this.props;
     const { org, app } = window as Window as IAltinnWindow;
@@ -126,7 +160,26 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <div className={classes.container}>
+            <div className={classes.container} ref={this.state.sessionExpiredPopoverRef}>
+            <AltinnPopoverSimple
+              anchorEl={(this.state.remainingSessionMinutes < 11) ? this.state.sessionExpiredPopoverRef : null}
+              anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+              handleClose={(event: string) => this.handleSessionExpiresClose(event)}
+              btnCancelText={getLanguageFromKey('general.sign_out', this.props.language)}
+              btnConfirmText={getLanguageFromKey('general.continue', this.props.language)}
+              btnClick={this.handleSessionExpiresClose}
+              paperProps={{ style: { margin: '2.4rem' }}}
+              children={
+                <>
+                  <Typography variant={'h2'}>
+                    {getLanguageFromKey('session.expires', this.props.language)}
+                  </Typography>
+                  <Typography variant={'body1'} style={{ marginTop: '1.6rem'} }>
+                    {getLanguageFromKey('session.inactive', this.props.language)}
+                  </Typography>
+                </>
+              }
+              />
               <Grid container={true} direction='row'>
                 <Grid item={true} xs={12}>
                   {repoStatus.hasMergeConflict !== true ?
@@ -239,6 +292,7 @@ const makeMapStateToProps = () => {
       language: state.languageState.language,
       serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
       dispatch: props.dispatch,
+      remainingSessionMinutes: state.userState.session.remainingMinutes,
     };
   };
   return mapStateToProps;
