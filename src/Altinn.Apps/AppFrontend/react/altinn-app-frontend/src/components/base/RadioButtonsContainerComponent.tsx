@@ -102,7 +102,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
       props.handleDataChange(preSelectedValue);
       setSelected(preSelectedValue);
     } else {
-      setSelected(props.formData ? props.formData : '');
+      setSelected((props.formData !== undefined && props.formData !== null) ? props.formData : '');
     }
   };
 

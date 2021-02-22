@@ -5,6 +5,13 @@ import { ITextResource, IDataSources } from '../types';
 
 const marked = require('marked');
 
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A') {
+    node.setAttribute('rel', 'noopener noreferrer');
+    node.setAttribute('target', '_blank');
+  }
+});
+
 export function getLanguageFromKey(key: string, language: any) {
   if (!key) {
     return key;
