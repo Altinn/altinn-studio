@@ -51,9 +51,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Post a valid CloudEvent instance.
+            ///   Post a valid EventsSubscription for SKD
             /// Expected result:
-            ///   Returns HttpStatus Created and the Id for the instance.
+            ///   Returns HttpStatus Created and the url with object for the resource created.
             /// Success criteria:
             ///   The response has correct status and correct responseId.
             /// </summary>
@@ -62,7 +62,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscription";
-                    EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
+                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
  
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
@@ -79,6 +79,35 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string content = response.Content.ReadAsStringAsync().Result;
                 Assert.Contains(cloudEventSubscription.SourceFilter, content);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post a valid EventsSubscription for SKD
+            /// Expected result:
+            ///   Returns HttpStatus Created and the url with object for the resource created.
+            /// Success criteria:
+            ///   The response has correct status and correct responseId.
+            /// </summary>
+            [Fact]
+            public async void Post_OrgSubscriptionWithMissing_ReturnsStatusCreatedAndCorrectData()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscription";
+                EventsSubscription cloudEventSubscription = GetEventsSubscription(string.Empty, null, "https://www.skatteetaten.no/hook");
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEventSubscription.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
 
             private HttpClient GetTestClient()
