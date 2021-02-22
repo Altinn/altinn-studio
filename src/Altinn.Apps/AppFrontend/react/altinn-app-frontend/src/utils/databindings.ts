@@ -74,7 +74,7 @@ export function flattenObject(data: any, index: boolean = false): any {
   const toReturn: IData = {};
 
   Object.keys(data).forEach((i) => {
-    if (!i || (!data[i] && data[i] !== 0)) return;
+    if (!i || (data[i] === undefined || data[i] === null)) return;
     if (Array.isArray(data[i]) || typeof data[i] === 'object') {
       const flatObject = flattenObject(data[i], Array.isArray(data[i]));
       Object.keys(flatObject).forEach((x) => {

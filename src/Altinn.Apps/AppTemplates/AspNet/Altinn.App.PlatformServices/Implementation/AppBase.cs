@@ -376,7 +376,7 @@ namespace Altinn.App.Services.Implementation
                 appOptions.Options = _resourceService.GetOptions(optionsId);
                 appOptions = await GetOptions(optionsId, appOptions);
 
-                if (appOptions.Options != null)
+                if (appOptions.Options != null && !dictionary.ContainsKey(optionsId))
                 {
                     Dictionary<string, string> options = new Dictionary<string, string>();
                     foreach (AppOption item in appOptions.Options)
