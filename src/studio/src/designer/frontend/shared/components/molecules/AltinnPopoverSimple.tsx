@@ -68,12 +68,12 @@ const useStyles = makeStyles(() =>
 );
 
 const defaultAnchorOrigin: PopoverOrigin = {
-  horizontal: 'center',
+  horizontal: 'left',
   vertical: 'top',
 };
 
 const defaultTransformOrigin: PopoverOrigin = {
-  horizontal: 'center',
+  horizontal: 'left',
   vertical: 'top',
 };
 
