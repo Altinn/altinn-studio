@@ -356,7 +356,7 @@ const formLayoutSlice = createSlice({
     },
     updateFormContainer: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormContainerAction>) => {
       const { updatedContainer, id } = action.payload;
-      const selectedLayoutContainers = state.layouts[state.selectedLayout].components;
+      const selectedLayoutContainers = state.layouts[state.selectedLayout].containers;
       selectedLayoutContainers[id] = {
         ...selectedLayoutContainers[id],
         ...updatedContainer,

@@ -28,7 +28,7 @@ namespace Altinn.Platform.Register.UnitTest
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task VerifyHeltCheck_OK()
+        public async Task VerifyHealthCheck_OK()
         {
             HttpClient client = GetTestClient();
 
