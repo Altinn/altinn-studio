@@ -9,6 +9,7 @@ export interface IParagraphProps {
 export function ParagraphComponent(props: IParagraphProps) {
   const style = {
     marginTop: '2.4rem',
+    letterSpacing: '0.3px',
   };
 
   return (

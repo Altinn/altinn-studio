@@ -16,10 +16,9 @@ import { watchAddApplicationMetadataSaga,
   watchSaveFormLayoutSaga,
   watchSaveFormLayoutSettingSaga,
   watchUpdateApplicationMetadataSaga,
-  watchUpdateFormComponentIdSaga,
   watchUpdateFormComponentSaga,
   watchUpdateLayoutNameSaga } from './formLayout/formLayoutSagas';
-  import { watchAddWidgetSaga } from './widgets/addWidgetsSagas';
+import { watchAddWidgetSaga } from './widgets/addWidgetsSagas';
 
 export default function* formDesignerSagas(): SagaIterator {
   yield fork(watchAddActiveFormContainerSaga);
@@ -37,7 +36,6 @@ export default function* formDesignerSagas(): SagaIterator {
   yield fork(watchSaveFormLayoutSaga);
   yield fork(watchSaveFormLayoutSettingSaga);
   yield fork(watchUpdateApplicationMetadataSaga);
-  yield fork(watchUpdateFormComponentIdSaga);
   yield fork(watchUpdateFormComponentSaga);
   yield fork(watchUpdateLayoutNameSaga);
   yield fork(watchAddWidgetSaga);
