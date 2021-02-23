@@ -27,6 +27,10 @@ input:focus + .slider {
   box-shadow: 0 0 1px #1EAEF7;
 }
 
+p {
+  font-family: 'Altinn-DIN';
+}
+
 option {
   overflow: 'hidden';
   text-overflow: 'ellipsis';
