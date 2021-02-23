@@ -30,7 +30,7 @@ const useStyles = makeStyles(
   }),
 );
 
-function DataModelingContainer(): JSX.Element {
+export default function DataModelingContainer(): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
@@ -45,6 +45,7 @@ function DataModelingContainer(): JSX.Element {
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
   const [newModelName, setNewModelName] = React.useState(null);
+  
   React.useEffect(() => {
     if (dataModelName) {
       fetchModel(dataModelName);
@@ -150,5 +151,3 @@ function DataModelingContainer(): JSX.Element {
     </div>
   );
 }
-
-export default DataModelingContainer;
