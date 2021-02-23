@@ -63,6 +63,8 @@ namespace Altinn.Platform.Events.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] EventsSubscription eventsSubscription)
         {
+            eventsSubscription.CreatedBy = "asd";
+
             await EnrichSubject(eventsSubscription);
 
             EnrichConsumer(eventsSubscription);
