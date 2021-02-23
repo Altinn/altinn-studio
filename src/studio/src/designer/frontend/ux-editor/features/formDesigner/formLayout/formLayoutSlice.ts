@@ -323,31 +323,33 @@ const formLayoutSlice = createSlice({
     updateFormComponent: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentActionFulfilled>) => {
       const { updatedComponent, id } = action.payload;
       const selectedLayoutComponents = state.layouts[state.selectedLayout].components;
-      selectedLayoutComponents[id] = {
-        ...selectedLayoutComponents[id],
-        ...updatedComponent,
-      };
+      if (id !== updatedComponent.id) {
+        const newId = updatedComponent.id;
+        selectedLayoutComponents[newId] = {
+          ...selectedLayoutComponents[id],
+          ...updatedComponent,
+        };
+        delete selectedLayoutComponents[id];
+
+        // update id in parent container order
+        const selectedLayoutOrder = state.layouts[state.selectedLayout].order;
+        const parentContainer = Object.keys(selectedLayoutOrder).find((containerId) => {
+          return (selectedLayoutOrder[containerId].indexOf(id) > -1);
+        });
+        const parentContainerOrder = selectedLayoutOrder[parentContainer];
+        const containerIndex = parentContainerOrder.indexOf(id);
+        parentContainerOrder[containerIndex] = newId;
+
+        // update id of the containers order array
+        // selectedLayoutOrder[newId] = selectedLayoutOrder[id];
+        // delete selectedLayoutOrder[id];
+      } else {
+        selectedLayoutComponents[id] = {
+          ...selectedLayoutComponents[id],
+          ...updatedComponent,
+        };
+      }
       state.unSavedChanges = true;
-    },
-    updateFormComponentId: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentIdAction>) => {
-      const { currentId, newId } = action.payload;
-      const currentLayout = state.layouts[state.selectedLayout];
-      // update component id
-      currentLayout.components[newId] = currentLayout.components[currentId];
-      delete currentLayout.components[currentId];
-
-      // update id in parent container order
-      const currentLayoutOrder = currentLayout.order;
-      const parentContainer = Object.keys(currentLayoutOrder).find((containerId) => {
-        return (currentLayoutOrder[containerId].indexOf(currentId) > -1);
-      });
-      const parentContainerOrder = currentLayoutOrder[parentContainer];
-      const containerIndex = parentContainerOrder.indexOf(currentId);
-      parentContainerOrder[containerIndex] = newId;
-
-      // update id of the containers order array
-      currentLayoutOrder[newId] = currentLayoutOrder[currentId];
-      delete currentLayoutOrder[currentId];
     },
     // eslint-disable-next-line max-len
     updateFormComponentOrder: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentOrderAction>) => {

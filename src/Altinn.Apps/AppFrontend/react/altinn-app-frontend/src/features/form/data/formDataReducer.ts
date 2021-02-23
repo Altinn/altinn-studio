@@ -3,6 +3,7 @@ import { Action, Reducer } from 'redux';
 import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
 import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
+import * as LayoutActionTypes from '../layout/formLayoutActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
 import * as ProcessActionTypes from '../../../shared/resources/process/processActionTypes';
 
@@ -151,6 +152,22 @@ const FormDataReducer: Reducer<IFormDataState> = (
     case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
       return Immutable<IFormDataState>(state, {
         isSubmitting: {
+          $set: false,
+        },
+      });
+    }
+
+    case LayoutActionTypes.UPDATE_CURRENT_VIEW: {
+      return Immutable<IFormDataState>(state, {
+        hasSubmitted: {
+          $set: true,
+        },
+      });
+    }
+
+    case LayoutActionTypes.UPDATE_CURRENT_VIEW_FULFILLED: {
+      return Immutable<IFormDataState>(state, {
+        hasSubmitted: {
           $set: false,
         },
       });
