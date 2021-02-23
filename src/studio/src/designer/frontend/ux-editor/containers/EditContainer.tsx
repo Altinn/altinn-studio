@@ -225,14 +225,13 @@ export function EditContainer(props: IEditContainerProvidedProps) {
     setListItem(newListItem);
     setIsEditMode(false);
 
-    const { id: stateId, ...restState } = component;
-    const { id: idProps, ...restProps } = props.component;
-    if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
+    if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
+      if (props.id !== component.id) {
+        dispatch(FormLayoutActions.updateFormComponentId({ newId: component.id, currentId: props.id }));
+      }
     }
-    if (props.id !== component.id) {
-      dispatch(FormLayoutActions.updateFormComponentId({ currentId: props.id, newId: component.id }));
-    }
+
     props.sendItemToParent(newListItem);
     dispatch(FormLayoutActions.deleteActiveList());
   };
@@ -244,8 +243,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   };
 
   const handleSaveChange = (callbackComponent: FormComponentType): void => {
-    const { id, ...rest } = callbackComponent;
-    dispatch(FormLayoutActions.updateFormComponent({ id: props.id, updatedComponent: rest }));
+    dispatch(FormLayoutActions.updateFormComponent({ id: props.id, updatedComponent: callbackComponent }));
   };
 
   const handleKeyPress = (e: any) => {
