@@ -1,17 +1,16 @@
 import { Action } from 'redux';
-import { IDataModelFieldElement } from 'src/types';
 import * as ActionTypes from '../rulesActionTypes';
 
 export interface ICheckIfRuleShouldRun extends Action {
   lastUpdatedComponentId: string;
-  lastUpdatedDataBinding: IDataModelFieldElement;
+  lastUpdatedDataBinding: string;
   lastUpdatedDataValue: string;
   repeatingContainerId?: string;
 }
 
 export function checkIfRuleShouldRun(
   lastUpdatedComponentId: string,
-  lastUpdatedDataBinding: IDataModelFieldElement,
+  lastUpdatedDataBinding: string,
   lastUpdatedDataValue: string,
   repeatingContainerId?: string,
 ): ICheckIfRuleShouldRun {
