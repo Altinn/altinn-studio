@@ -37,7 +37,7 @@ export default function Label(props: IFormLabelProps) {
         </label>
       </Grid>
       {props.helpText &&
-        <Grid item={true} style={{ marginTop: '20px' }}>
+        <Grid item={true}>
           <HelpTextContainer
             language={props.language}
             id={props.id}
