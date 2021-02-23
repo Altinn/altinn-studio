@@ -16,7 +16,19 @@ export function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayou
       return RenderLayoutGroup(layoutComponent as ILayoutGroup, layout);
     }
     case 'Summary': {
-      return <SummaryComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />;
+      const grid = (layoutComponent as ILayoutComponent).grid;
+      return (
+        <Grid
+          item={true}
+          xs={grid?.xs || 12}
+          sm={grid?.sm || false}
+          md={grid?.md || false}
+          lg={grid?.lg || false}
+          xl={grid?.xl || false}
+        >
+          <SummaryComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />
+        </Grid>
+      );
     }
     default: {
       return (
