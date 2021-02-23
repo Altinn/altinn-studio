@@ -84,7 +84,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     this.state = {
       forceRepoStatusCheckComplete: true,
       sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
-      sessionExpiredPopoverOpen: false,
       remainingSessionMinutes: _props.remainingSessionMinutes,
     };
   }
@@ -112,7 +111,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     this.props.dispatch(fetchRemainingSession());
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
-    this.setState({ sessionExpiredPopoverOpen: true});
   }
 
   public componentWillUnmount() {
@@ -149,7 +147,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       this.props.dispatch(keepAliveSession());
 
     }
-    this.setState({ sessionExpiredPopoverOpen: false });
   }
 
   public render() {
