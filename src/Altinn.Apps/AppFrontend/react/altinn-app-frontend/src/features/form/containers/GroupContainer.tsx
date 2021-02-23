@@ -52,6 +52,7 @@ const useStyles = makeStyles({
     display: 'inline-block',
     border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     padding: '12px',
+    width: '100%',
   },
   deleteItem: {
     paddingBottom: '0px !important',
