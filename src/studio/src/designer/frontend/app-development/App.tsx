@@ -74,7 +74,6 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, ISe
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
   sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
-  sessionExpiredPopoverOpen: boolean;
   remainingSessionMinutes: number;
 }
 
