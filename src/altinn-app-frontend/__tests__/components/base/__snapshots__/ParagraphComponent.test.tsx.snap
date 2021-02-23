@@ -6,6 +6,7 @@ exports[`>>> components/base/ParagraphComponent.tsx --- Snapshot +++ should matc
   id="mock-id"
   style={
     Object {
+      "letterSpacing": "0.3px",
       "marginTop": "2.4rem",
     }
   }

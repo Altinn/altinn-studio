@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "2.8.17",
+  "version": "3.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -64,7 +64,7 @@
     "@types/react-test-renderer": "~16.9.3",
     "@types/redux-mock-store": "~1.0.2",
     "@types/uuid": "8.3.0",
-    "altinn-designsystem": "~2.7.12",
+    "altinn-designsystem": "~3.0.0",
     "classnames": "~2.2.6",
     "core-js": "~3.8.3",
     "cross-env": "~7.0.3",

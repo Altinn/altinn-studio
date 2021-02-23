@@ -158,6 +158,18 @@ const AltinnAppTheme = {
   typography: {
     htmlFontSize: 16,
     useNextVariants: true,
+    fontFamily: [
+      '-apple-system',
+      'BlinkMacSystemFont',
+      'Altinn-DIN',
+      '"Segoe UI"',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(','),
   },
 };
 
