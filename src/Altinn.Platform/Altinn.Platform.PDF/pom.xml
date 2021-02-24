@@ -11,8 +11,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>8</source>
-          <target>8</target>
+          <source>15</source>
+          <target>15</target>
         </configuration>
       </plugin>
       <plugin>
@@ -25,10 +25,9 @@
   <url>http://maven.apache.org</url>
 
   <parent>
-    <!--Bumping to 2.4.0 breaks the build-->
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.3.8.RELEASE</version>
+    <version>2.4.3</version>
   </parent>
   <dependencies>
     <dependency>
@@ -97,10 +96,9 @@
       <version>2.6.2</version>
     </dependency>
     <dependency>
-      <!--Bumping to 1.2.3 breaks app runtime -->
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.2.2</version>
+      <version>1.2.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
