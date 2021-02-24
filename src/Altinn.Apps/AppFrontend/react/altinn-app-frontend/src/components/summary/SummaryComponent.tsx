@@ -7,7 +7,7 @@ import { componentHasValidationMessages,
   getDisplayFormDataForComponent } from 'src/utils/formComponentUtils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { ILayoutComponent } from 'src/features/form/layout';
+import { IGrid, ILayoutComponent } from 'src/features/form/layout';
 import FormLayoutActions from '../../features/form/layout/formLayoutActions';
 import { IComponentValidations, IRuntimeState } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
@@ -24,6 +24,7 @@ export interface ISummaryComponent {
   largeGroup?: boolean;
   index?: number;
   formData?: any;
+  grid?: IGrid;
 }
 
 const useStyles = makeStyles({
@@ -145,34 +146,43 @@ export function SummaryComponent(props: ISummaryComponent) {
   }
 
   return (
-    <Grid container={true} className={classes.row}>
-      {renderSummaryComponent()}
-      {hasValidationMessages &&
-        <Grid
-          container={true}
-          style={{ paddingTop: '12px' }}
-          spacing={2}
-        >
-          {Object.keys(componentValidations).map((binding: string) => {
-            return componentValidations[binding]?.errors?.map((validationText: string) => {
-              return (
-                <ErrorPaper
-                  message={validationText}
-                />
-              );
-            });
-          })}
-          <Grid item={true} xs={12}>
-            <button
-              className={classes.link}
-              onClick={onChangeClick}
-              type='button'
-            >
-              {goToCorrectPageLinkText}
-            </button>
+    <Grid
+      item={true}
+      xs={props.grid?.xs || 12}
+      sm={props.grid?.sm || false}
+      md={props.grid?.md || false}
+      lg={props.grid?.lg || false}
+      xl={props.grid?.xl || false}
+    >
+      <Grid container={true} className={classes.row}>
+        {renderSummaryComponent()}
+        {hasValidationMessages &&
+          <Grid
+            container={true}
+            style={{ paddingTop: '12px' }}
+            spacing={2}
+          >
+            {Object.keys(componentValidations).map((binding: string) => {
+              return componentValidations[binding]?.errors?.map((validationText: string) => {
+                return (
+                  <ErrorPaper
+                    message={validationText}
+                  />
+                );
+              });
+            })}
+            <Grid item={true} xs={12}>
+              <button
+                className={classes.link}
+                onClick={onChangeClick}
+                type='button'
+              >
+                {goToCorrectPageLinkText}
+              </button>
+            </Grid>
           </Grid>
-        </Grid>
-      }
+        }
+      </Grid>
     </Grid>
   );
 }

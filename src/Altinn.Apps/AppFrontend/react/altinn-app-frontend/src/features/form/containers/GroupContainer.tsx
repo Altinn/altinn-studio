@@ -63,6 +63,7 @@ const useStyles = makeStyles({
   table: {
     tableLayout: 'fixed',
     marginBottom: '12px',
+    wordBreak: 'break-all',
   },
   tableHeader: {
     borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
@@ -446,7 +447,7 @@ export function GroupContainer({
           </Grid>
           <Grid
             container={true}
-            alignItems='flex-end'
+            alignItems='flex-start'
             item={true}
             spacing={3}
           >
