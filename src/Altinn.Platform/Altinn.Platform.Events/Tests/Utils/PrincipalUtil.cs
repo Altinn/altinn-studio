@@ -56,11 +56,15 @@ namespace Altinn.Platform.Events.Tests.Utils
                    + "I9d4F2Edrs0nhCKs5JSFbdX5jVNAhYOw833yNxzSI5keFlRrCN_BXDSqdo9bn8joCwnCJ9fZ3kv_ieYKbMa0tgcN9lBM_KcGQU5EPxpA";
         }
 
-        public static string GetOrgToken(string org, int orgNumber = 111111111, string scope = "altinn:appdeploy")
+        public static string GetOrgToken(string org, string orgNumber = "991825827", string scope = "altinn:appdeploy")
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
-            claims.Add(new Claim(AltinnCoreClaimTypesOrg, org, ClaimValueTypes.String, issuer));
+            if (!string.IsNullOrEmpty(org))
+            {
+                claims.Add(new Claim(AltinnCoreClaimTypesOrg, org, ClaimValueTypes.String, issuer));
+            }
+
             claims.Add(new Claim(AltinnCoreClaimTypesOrgNumber, orgNumber.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));

@@ -63,16 +63,25 @@ namespace Altinn.Platform.Events.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] EventsSubscription eventsSubscription)
         {
-            eventsSubscription.CreatedBy = "asd";
-
             await EnrichSubject(eventsSubscription);
 
+            SetCreatedBy(eventsSubscription);
             EnrichConsumer(eventsSubscription);
 
             string message = null;
             if (!ValidateSubscription(eventsSubscription, out message))
             {
                 return BadRequest(message);
+            }
+
+            if (!AuthorizeIdenityForConsumer(eventsSubscription, out message))
+            {
+                return Unauthorized(message);
+            }
+
+            if (!AuthorizeSubjectForConsumer(eventsSubscription, out message))
+            {
+                return Unauthorized(message);
             }
 
             int id = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
@@ -132,6 +141,45 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
+            if (string.IsNullOrEmpty(eventsSubscription.CreatedBy))
+            {
+                message = "Invalid creator";
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        /// <summary>
+        /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
+        /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
+        /// </summary>
+        private bool AuthorizeIdenityForConsumer(EventsSubscription eventsSubscription, out string message)
+        {
+            // First version require that 
+            if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
+            {
+                message = "Not authorized to create a subscription on behalf of " + eventsSubscription.Consumer;
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        /// <summary>
+        /// Validates that the identity (user, organization or org) is authorized to create subscriptions for a given subject.
+        /// Currently the subject needs to match the identity.  Org does not need subject.
+        /// </summary>
+        private bool AuthorizeSubjectForConsumer(EventsSubscription eventsSubscription, out string message)
+        {
+            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter) && !eventsSubscription.AlternativeSubjectFilter.Equals(eventsSubscription.Consumer))
+            {
+                message = "Not authorized to create a subscription with subject " + eventsSubscription.AlternativeSubjectFilter;
+                return false;
+            }
+
             message = null;
             return true;
         }
@@ -184,6 +232,32 @@ namespace Altinn.Platform.Events.Controllers
                     {
                         eventsSubscription.Consumer = "/organization/" + organization;
                     }
+                }
+            }
+        }
+
+        private void SetCreatedBy(EventsSubscription eventsSubscription)
+        {
+            string org = HttpContext.User.GetOrg();
+            if (!string.IsNullOrEmpty(org))
+            {
+                eventsSubscription.CreatedBy = "/org/" + org;
+                return;
+            }
+
+            int? userId = HttpContext.User.GetUserIdAsInt();
+            {
+                if (userId.HasValue)
+                {
+                    eventsSubscription.CreatedBy = "/user/" + userId.Value;
+                }
+            }
+
+            string organization = HttpContext.User.GetOrgNumber();
+            {
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    eventsSubscription.CreatedBy = "/organization/" + organization;
                 }
             }
         }
