@@ -21,7 +21,7 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class SubscriptionController : ControllerBase
     {
-        private readonly IEventsSubscriptionService _eventsSubscriptionService;
+        private readonly ISubscriptionService _eventsSubscriptionService;
         private readonly IRegisterService _registerService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
@@ -35,7 +35,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
         /// </summary>
         public SubscriptionController(
-            IEventsSubscriptionService eventsSubscriptionService,
+            ISubscriptionService eventsSubscriptionService,
             IRegisterService registerService,
             IOptions<GeneralSettings> settings,
             ILogger<EventsController> logger,

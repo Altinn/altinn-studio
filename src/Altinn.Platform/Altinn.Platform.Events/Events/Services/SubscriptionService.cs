@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Platform.Events.Services
 {
     /// <inheritdoc/>
-    public class EventsSubscriptionService : IEventsSubscriptionService
+    public class SubscriptionService : ISubscriptionService
     {
         private readonly IPostgresRepository _repository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventsSubscriptionService"/> class.
+        /// Initializes a new instance of the <see cref="SubscriptionService"/> class.
         /// </summary>
-        public EventsSubscriptionService(IPostgresRepository repository)
+        public SubscriptionService(IPostgresRepository repository)
         {
             _repository = repository;
         }

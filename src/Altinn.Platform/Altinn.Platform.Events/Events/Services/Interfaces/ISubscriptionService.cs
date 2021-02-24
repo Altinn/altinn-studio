@@ -9,7 +9,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
     /// <summary>
     /// Interface for 
     /// </summary>
-    public interface IEventsSubscriptionService
+    public interface ISubscriptionService
     {
         /// <summary>
         /// Operation to create a subscription

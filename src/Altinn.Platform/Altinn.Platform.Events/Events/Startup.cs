@@ -140,7 +140,7 @@ namespace Altinn.Platform.Events
 
             services.AddHttpClient<IRegisterService, RegisterService>();
             services.AddSingleton<IEventsService, EventsService>();
-            services.AddSingleton<IEventsSubscriptionService, EventsSubscriptionService>();
+            services.AddSingleton<ISubscriptionService, SubscriptionService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
             services.AddSingleton<IPDP, PDPAppSI>();
 
