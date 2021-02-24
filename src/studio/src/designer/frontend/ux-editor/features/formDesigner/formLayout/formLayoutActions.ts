@@ -21,5 +21,6 @@ export const actions = {
   updateActiveList: createAction<FormDesignerTypes.IUpdateActiveListAction>(`${moduleName}/updateActiveList`),
   updateApplicationMetadata: createAction<FormDesignerTypes.IUpdateApplicationMetadaAction>(`${moduleName}/updateApplicationMetadata`),
   updateApplicationMetadataFulfilled: createAction(`${moduleName}/updateApplicationMetadataFulfilled`),
+  updateFormComponentId: createAction<FormDesignerTypes.IUpdateFormComponentIdAction>(`${moduleName}/updateFormComponentId`),
   updateLayoutName: createAction<FormDesignerTypes.IUpdateLayoutNameAction>(`${moduleName}/updateLayoutName`),
 };

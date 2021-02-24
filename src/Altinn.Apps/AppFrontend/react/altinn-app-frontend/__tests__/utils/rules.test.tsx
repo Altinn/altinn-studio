@@ -2,16 +2,13 @@
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { IDataModelFieldElement } from '../../src/types';
 import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
 
 describe('>>> features/rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
   let mockFormDataState: IFormData;
-  let mockFormDataModelState: any;
   let mockFormLayoutState: any;
-  let mockRepeatingContainerId: string;
-  let mockLastUpdatedDataBinding: IDataModelFieldElement;
+  let mockLastUpdatedDataBinding: string;
   let mockRuleHandlerHelper;
   let mockRuleHandlerObject;
   let mockLayout: any;
@@ -91,52 +88,11 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       },
       unsavedChanges: false,
     };
-    mockFormDataModelState = {
-      dataModel: [
-        {
-          id: 'Skjema.mockDataModelBinding1',
-          dataBindingName: 'mockDataModelBinding1',
-        },
-        {
-          id: 'Skjema.mockDataModelBinding2',
-          dataBindingName: 'mockDataModelBinding2',
-        },
-        {
-          id: 'Skjema.mockDataModelBinding3',
-          dataBindingName: 'mockDataModelBinding3',
-        },
-        {
-          id: 'Skjema.mockDataModelBinding4',
-          dataBindingName: 'mockDataModelBinding4',
-        },
-      ],
-      error: null,
-    };
     mockFormLayoutState = {
       error: null,
       layouts: mockLayout,
     };
-    mockRepeatingContainerId = null; // Should be tests on repeating groups when it's implemented
-    mockLastUpdatedDataBinding = {
-      id: 'Skjema.mockDataModelBinding2',
-      dataBindingName: 'mockDataModelBinding2',
-      displayString: 'Skjema.mockDataModelBinding2 : [0..1] String',
-      isReadOnly: false,
-      isTagContent: false,
-      jsonSchemaPointer: '#/definitions/Skjema/properties/mockDataModelBinding2',
-      maxOccurs: 1,
-      minOccurs: 0,
-      name: 'mockDataModelBinding2',
-      restrictions: {},
-      parentElement: 'Skjema',
-      texts: {},
-      type: 'Attribute',
-      typeName: 'String',
-      xName: 'etatid',
-      xPath: '/Skjema/mockDataModelBinding2',
-      xmlSchemaXPath: null,
-      xsdValueType: 'String',
-    };
+    mockLastUpdatedDataBinding = 'mockDataModelBinding2';
     (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
     (window as any).ruleHandlerObject = mockRuleHandlerObject;
   });
@@ -145,42 +101,19 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules[0].ruleShouldRun).toBe(true);
     expect(rules[0].dataBindingName).toEqual('mockDataModelBinding4');
   });
   it('+++ should return false if no rule should be triggered', () => {
-    mockLastUpdatedDataBinding = {
-      id: 'Skjema.mockDataModelBinding5',
-      dataBindingName: 'mockDataModelBinding5',
-      displayString: 'Skjema.mockDataModelBinding5 : [0..1] String',
-      isReadOnly: false,
-      isTagContent: false,
-      jsonSchemaPointer: '#/definitions/Skjema/properties/mockDataModelBinding5',
-      maxOccurs: 1,
-      minOccurs: 0,
-      name: 'mockDataModelBinding5',
-      restrictions: {},
-      parentElement: 'Skjema',
-      texts: {},
-      type: 'Attribute',
-      typeName: 'String',
-      xName: 'etatid',
-      xPath: '/Skjema/mockDataModelBinding5',
-      xmlSchemaXPath: null,
-      xsdValueType: 'String',
-    };
+    mockLastUpdatedDataBinding = 'mockDataModelBinding5';
 
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -191,9 +124,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -226,9 +157,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -243,9 +172,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -261,9 +188,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         },
       },
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -283,9 +208,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         },
       },
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
@@ -307,9 +230,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
-      mockFormDataModelState,
       mockFormLayoutState.layouts,
-      mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
     expect(rules.length).toBe(0);
