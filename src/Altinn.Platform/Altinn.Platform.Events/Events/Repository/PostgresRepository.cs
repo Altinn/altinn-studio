@@ -24,6 +24,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
         private readonly string insertEventsSubscriptionSql = "call events.insert_eventssubcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @v_id)";
+        private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgresRepository"/> class.
@@ -171,9 +172,43 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public Task<EventsSubscription> GetSubscription(int id)
+        public async Task<EventsSubscription> GetSubscription(int id)
         {
-            throw new NotImplementedException();
+            EventsSubscription subscription = null;
+            try
+            {
+                await _conn.OpenAsync();
+
+                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionSql, _conn);
+                pgcom.Parameters.AddWithValue("_id", NpgsqlDbType.Integer, id);
+             
+                using (NpgsqlDataReader reader = pgcom.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        subscription = new EventsSubscription();
+                        subscription.Id = Convert.ToInt32(reader["id"].ToString());
+                        subscription.SourceFilter = reader["sourcefilter"].ToString();
+                        subscription.SubjectFilter = reader["subjectfilter"].ToString();
+                        subscription.TypeFilter = reader["typefilter"].ToString();
+                        subscription.Consumer = reader["consumer"].ToString();
+                        subscription.EndPoint = reader["endpointurl"].ToString();
+                        subscription.CreatedBy = reader["createdby"].ToString();
+                        subscription.Created = DateTime.Parse(reader["time"].ToString());
+                    }
+                }
+
+                return subscription;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($" PostgresRepository // Get // Exception {JsonSerializer.Serialize(e)}");
+                throw;
+            }
+            finally
+            {
+                await _conn.CloseAsync();
+            }
         }
     }
 }

@@ -52,6 +52,11 @@ namespace Altinn.Platform.Events.Models
         public string CreatedBy { get; set; }
 
         /// <summary>
+        /// When subscription was created
+        /// </summary>
+        public DateTime Created { get; set; }
+
+        /// <summary>
         /// Serializes the cloud event to a JSON string.
         /// </summary>
         /// <returns>Serialized cloud event</returns>

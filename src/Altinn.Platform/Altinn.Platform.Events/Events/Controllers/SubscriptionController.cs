@@ -17,7 +17,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Controller to handle administration of event subscriptions
     /// </summary>
-    [Route("events/api/v1/subscription")]
+    [Route("events/api/v1/subscriptions")]
     [ApiController]
     public class SubscriptionController : ControllerBase
     {
@@ -90,17 +90,22 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Method to register an event
+        /// Method to get a specific subscription
         /// </summary>
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> Get(int id)
         {
-            return Ok();
+            EventsSubscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            // TODO Authorize
+            return Ok(subscription);
         }
 
         /// <summary>
         /// API to delete a given event
         /// </summary>
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult<string>> Delete(int id)
         {

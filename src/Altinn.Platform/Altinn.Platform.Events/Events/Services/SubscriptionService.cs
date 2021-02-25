@@ -31,7 +31,7 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public void DeleteSubscription(int id)
+        public Task DeleteSubscription(int id)
         {
             throw new NotImplementedException();
         }
@@ -43,9 +43,9 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public EventsSubscription GetSubscription(int id)
+        public async Task<EventsSubscription> GetSubscription(int id)
         {
-            throw new NotImplementedException();
+            return await _repository.GetSubscription(id);
         }
     }
 }

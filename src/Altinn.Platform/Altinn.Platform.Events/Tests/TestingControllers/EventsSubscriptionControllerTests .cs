@@ -196,6 +196,25 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             }
 
+            [Fact]
+            public async void Get_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions/12";
+                
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "950474084"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri)
+                {
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
             private HttpClient GetTestClient()
             {
                 Program.ConfigureSetupLogging();
@@ -204,7 +223,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton<IRegisterService, RegisterServiceMock>();
-                        services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
+
+                        // services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

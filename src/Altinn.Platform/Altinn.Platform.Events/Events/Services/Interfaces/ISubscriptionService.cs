@@ -20,7 +20,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <summary>
         /// Operation to delete a given subscriptions
         /// </summary>
-        public void DeleteSubscription(int id);
+        public Task DeleteSubscription(int id);
 
         /// <summary>
         /// Opeation to list all events 
@@ -32,6 +32,6 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// </summary>
         /// <param name="id">The subcription Id</param>
         /// <returns></returns>
-        public EventsSubscription GetSubscription(int id);
+        public Task<EventsSubscription> GetSubscription(int id);
     }
 }
