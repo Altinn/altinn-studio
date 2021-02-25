@@ -55,7 +55,7 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="eventsSubscription">The subscription details</param>
         /// <returns></returns>
-        [HttpPost()]
+        [HttpPost]
         [Authorize]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
