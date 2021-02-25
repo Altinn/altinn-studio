@@ -3,6 +3,7 @@ package altinn.platform.pdf.services;
 import altinn.platform.pdf.models.*;
 import altinn.platform.pdf.utils.*;
 
+import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.*;
@@ -55,6 +56,7 @@ public class PDFGenerator {
   private Party party;
   private Party userParty;
   private UserProfile userProfile;
+  private String language;
   private PDPage currentPage;
   private PDPageContentStream currentContent;
   private PDDocumentOutline outline;
@@ -82,6 +84,7 @@ public class PDFGenerator {
     this.output = new ByteArrayOutputStream();
     this.party = pdfContext.getParty();
     this.userParty = pdfContext.getUserParty();
+    this.language = pdfContext.getLanguage();
     this.userProfile = pdfContext.getUserProfile();
     this.layoutSettings = pdfContext.getLayoutSettings();
     try {
@@ -421,7 +424,7 @@ public class PDFGenerator {
     }
 
     if (element.getType().equalsIgnoreCase("Datepicker")) {
-      renderContent(TextUtils.getDateFormat(value, getUserLanguage()));
+      renderContent(TextUtils.getDateFormat(value, getLanguage()));
     } else {
       renderContent(value);
     }
@@ -562,11 +565,15 @@ public class PDFGenerator {
   }
 
   private String getLanguageString(String key) {
-    return TextUtils.getLanguageStringByKey(key, getUserLanguage());
+    return TextUtils.getLanguageStringByKey(key, getLanguage());
   }
 
-  private String getUserLanguage() {
-    return (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
+  private String getLanguage() {
+    if (StringUtils.isNotEmpty(this.language)) {
+      return this.language;
+    } else {
+      return (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
+    }
   }
 }
 
