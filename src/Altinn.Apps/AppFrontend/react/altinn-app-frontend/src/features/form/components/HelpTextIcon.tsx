@@ -7,7 +7,6 @@ const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {
-    width: '44px',
     fontSize: '3rem',
     color: theme.altinnPalette.primary.blue,
     '&:hover': {

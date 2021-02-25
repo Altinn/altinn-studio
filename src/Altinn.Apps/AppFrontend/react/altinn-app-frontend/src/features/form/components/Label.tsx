@@ -26,7 +26,7 @@ export default function Label(props: IFormLabelProps) {
       container={true}
       xs={12}
     >
-      <Grid item={true} xs={12}>
+      <Grid item={true}>
         <label
           className='a-form-label title-label'
           htmlFor={props.id}
@@ -41,7 +41,7 @@ export default function Label(props: IFormLabelProps) {
         </label>
       </Grid>
       {props.helpText &&
-        <Grid item={true} xs={12}>
+        <Grid item={true}>
           <HelpTextContainer
             language={props.language}
             id={props.id}
