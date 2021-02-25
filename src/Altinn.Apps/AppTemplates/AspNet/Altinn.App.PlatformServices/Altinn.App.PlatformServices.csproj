@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>3.2.3</Version>
+    <Version>3.2.4</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>3.2.3.0</AssemblyVersion>
+    <AssemblyVersion>3.2.4.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>3.2.3.0</FileVersion>
+    <FileVersion>3.2.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,11 +21,11 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.6" />
-    <PackageReference Include="Altinn.Platform.Models" Version="1.0.4-alpha" />
+    <PackageReference Include="Altinn.Platform.Models" Version="1.0.5" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.30" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.8.0" />
   </ItemGroup>
