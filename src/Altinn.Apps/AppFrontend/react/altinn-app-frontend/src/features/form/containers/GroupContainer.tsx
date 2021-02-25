@@ -52,10 +52,18 @@ const useStyles = makeStyles({
     display: 'inline-block',
     border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     padding: '12px',
+    width: '100%',
+  },
+  deleteItem: {
+    paddingBottom: '0px !important',
+  },
+  saveItem: {
+    paddingTop: '0px !important',
   },
   table: {
     tableLayout: 'fixed',
     marginBottom: '12px',
+    wordBreak: 'break-all',
   },
   tableHeader: {
     borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
@@ -267,9 +275,13 @@ export function GroupContainer({
   }
 
   return (
-    <>
+    <Grid
+      container={true}
+      item={true}
+    >
       <Grid
         container={true}
+        item={true}
         data-testid={`group-${id}`}
         id={`group-${id}`}
       >
@@ -322,11 +334,13 @@ export function GroupContainer({
         </TableContainer>}
         {mobileView &&
         <Grid
-          container={true} direction='column'
+          container={true}
+          item={true}
+          direction='column'
           className={classes.mobileContainer}
         >
           {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-            const rowHasErrors = components.some((component: ILayoutComponent | ILayoutGroup) => {
+            const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
               return childElementHasErrors(component, repeatingGroupIndex);
             });
             return (
@@ -406,15 +420,20 @@ export function GroupContainer({
       </Grid>
       }
       {(editIndex >= 0) &&
-      <Grid container={true} className={classes.editContainer}>
+      <div className={classes.editContainer}>
         <Grid
           container={true}
+          item={true}
+          direction='row'
+          spacing={3}
         >
           <Grid
             item={true}
             container={true}
             direction='column'
             alignItems='flex-end'
+            spacing={3}
+            className={classes.deleteItem}
           >
             <Grid item={true}>
               <IconButton
@@ -426,10 +445,19 @@ export function GroupContainer({
               </IconButton>
             </Grid>
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid
+            container={true}
+            alignItems='flex-start'
+            item={true}
+            spacing={3}
+          >
             { repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => { return renderGenericComponent(component, layout, editIndex); }) }
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid
+            item={true}
+            spacing={3}
+            className={classes.saveItem}
+          >
             <AltinnButton
               btnText={getLanguageFromKey('general.save', language)}
               onClickFunction={() => setEditIndex(-1)}
@@ -437,7 +465,7 @@ export function GroupContainer({
             />
           </Grid>
         </Grid>
-      </Grid>}
+      </div>}
       {tableHasErrors &&
       <Grid
         container={true}
@@ -460,6 +488,6 @@ export function GroupContainer({
         />
       </Grid>
       }
-    </>
+    </Grid>
   );
 }

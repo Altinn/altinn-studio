@@ -36,7 +36,6 @@ import { IAddActiveFormContainerAction,
   IDeleteLayoutAction,
   IUpdateApplicationMetadaAction,
   IUpdateFormComponentAction,
-  IUpdateFormComponentIdAction,
   IUpdateLayoutNameAction } from '../formDesignerTypes';
 import { FormLayoutActions } from './formLayoutSlice';
 
@@ -285,13 +284,27 @@ function* updateFormComponentSaga({ payload }: PayloadAction<IUpdateFormComponen
       validFileEndings,
     } = updatedComponent as IFormFileUploaderComponent;
 
-    yield put(FormLayoutActions.updateApplicationMetadata({
-      fileType: validFileEndings,
-      id,
-      maxFiles: maxNumberOfAttachments,
-      maxSize: maxFileSizeInMB,
-      minFiles: minNumberOfAttachments,
-    }));
+    if (id !== updatedComponent.id) {
+      yield call(addApplicationMetadata, {
+        payload: {
+          id: updatedComponent.id,
+          fileType: validFileEndings,
+          maxFiles: maxNumberOfAttachments,
+          maxSize: maxFileSizeInMB,
+          minFiles: minNumberOfAttachments,
+        },
+        type: 'addApplicationMetadata',
+      });
+      yield call(deleteApplicationMetadata, { payload: { id }, type: 'deleteApplicationMetadata' });
+    } else {
+      yield put(FormLayoutActions.updateApplicationMetadata({
+        fileType: validFileEndings,
+        id,
+        maxFiles: maxNumberOfAttachments,
+        maxSize: maxFileSizeInMB,
+        minFiles: minNumberOfAttachments,
+      }));
+    }
   }
 }
 
@@ -486,36 +499,6 @@ export function* deleteLayoutSaga({ payload }: PayloadAction<IDeleteLayoutAction
 
 export function* watchDeleteLayoutSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.deleteLayout, deleteLayoutSaga);
-}
-
-export function* updateFormComponentIdSaga({ payload }: PayloadAction<IUpdateFormComponentIdAction>): SagaIterator {
-  const { currentId, newId } = payload;
-  const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-  const components = currentLayout.components;
-  const component = components[currentId] || components[newId];
-  if (component.type === 'FileUpload') {
-    const {
-      maxNumberOfAttachments,
-      minNumberOfAttachments,
-      maxFileSizeInMB,
-      validFileEndings,
-    } = component as IFormFileUploaderComponent;
-    yield put(FormLayoutActions.addApplicationMetadata({
-      id: newId,
-      fileType: validFileEndings,
-      maxFiles: maxNumberOfAttachments,
-      maxSize: maxFileSizeInMB,
-      minFiles: minNumberOfAttachments,
-    }));
-
-    yield delay(500);
-    yield put(FormLayoutActions.deleteApplicationMetadata({ id: currentId }));
-  }
-  yield put(FormLayoutActions.saveFormLayout());
-}
-
-export function* watchUpdateFormComponentIdSaga(): SagaIterator {
-  yield takeLatest(FormLayoutActions.updateFormComponentId, updateFormComponentIdSaga);
 }
 
 export function* deleteActiveListSaga(): SagaIterator {

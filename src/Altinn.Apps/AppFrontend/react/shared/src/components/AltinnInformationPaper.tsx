@@ -12,7 +12,7 @@ const useStyles = makeStyles({
     borderRadius: 0,
     fontSize: 16,
     padding: 24,
-    fontFamily: 'Roboto',
+    fontFamily: 'Altinn-DIN',
   },
 });
 

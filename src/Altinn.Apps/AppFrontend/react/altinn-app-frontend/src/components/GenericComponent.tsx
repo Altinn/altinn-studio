@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
-import { IDataModelFieldElement, ILabelSettings, ITextResource, Triggers } from 'src/types';
+import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
 import { Grid } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
@@ -11,7 +11,7 @@ import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
+import { IDataModelBindings, IGrid, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
 import ValidationActions from '../features/form/validation/validationActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
@@ -37,6 +37,7 @@ export interface IGenericComponentProps {
   readOnly: boolean;
   required: boolean;
   labelSettings?: ILabelSettings;
+  grid?: IGrid;
   triggers?: Triggers[];
   hidden?: boolean;
 }
@@ -52,7 +53,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [isSimple, setIsSimple] = React.useState(true);
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
 
-  const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[currentView]?.[props.id]));
@@ -103,10 +103,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     FormDataActions.updateFormData(dataModelField, value, props.id);
 
-    const dataModelElement = dataModel.find(
-      (element) => element.dataBindingName === props.dataModelBindings[key],
-    );
-    RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
+    RuleActions.checkIfRuleShouldRun(props.id, props.dataModelBindings[key], value);
   };
 
   const handleFocusUpdate = (componentId: string, step?: number) => {
@@ -215,27 +212,37 @@ export function GenericComponent(props: IGenericComponentProps) {
   return (
     <Grid
       item={true}
-      xs={12}
+      container={true}
+      xs={props.grid?.xs || 12}
+      sm={props.grid?.sm || false}
+      md={props.grid?.md || false}
+      lg={props.grid?.lg || false}
+      xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
+      className='form-group a-form-group'
+      alignItems='baseline'
     >
-      <div key={`form-${props.id}`} className='form-group a-form-group'>
-        {noLabelComponents.includes(props.type) ?
-          null
-          :
-          <RenderLabelScoped
-            props={props}
-            passThroughProps={passThroughProps}
-            language={language}
-            texts={texts}
-          />
-        }
-
-        {noLabelComponents.includes(props.type) ?
-          null
-          :
-          <RenderDescription key={`description-${props.id}`} />
-        }
-
+      {!noLabelComponents.includes(props.type) &&
+      <Grid item={true} xs={12}>
+        <RenderLabelScoped
+          props={props}
+          passThroughProps={passThroughProps}
+          language={language}
+          texts={texts}
+        />
+        <RenderDescription key={`description-${props.id}`} />
+      </Grid>
+      }
+      <Grid
+        key={`form-content-${props.id}`}
+        item={true}
+        id={`form-content-${props.id}`}
+        xs={props.grid?.innerGrid?.xs || 12}
+        sm={props.grid?.innerGrid?.sm || false}
+        md={props.grid?.innerGrid?.md || false}
+        lg={props.grid?.innerGrid?.lg || false}
+        xl={props.grid?.innerGrid?.xl || false}
+      >
         <RenderComponent
           {...componentProps}
         />
@@ -243,7 +250,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         {isSimple && hasValidationMessages &&
           renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
         }
-      </div>
+      </Grid>
     </Grid>
   );
 }

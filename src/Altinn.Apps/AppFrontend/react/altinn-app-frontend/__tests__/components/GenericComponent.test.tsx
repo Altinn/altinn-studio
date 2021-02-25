@@ -29,7 +29,21 @@ describe('>>> components/GenericComponent.tsx', () => {
             required: false,
             disabled: false,
             textResourceBindings: {},
-            triggers:[]
+            triggers: [],
+            grid: {
+              xs: 12,
+              sm: 10,
+              md: 8,
+              lg: 6,
+              xl: 4,
+              innerGrid: {
+                xs: 11,
+                sm: 9,
+                md: 7,
+                lg: 5,
+                xl: 3,
+              },
+            },
           },
         ],
       },
@@ -63,15 +77,16 @@ describe('>>> components/GenericComponent.tsx', () => {
     const wrapper = mount(
       <Provider store={mockStore}>
         <GenericComponent
-          id={'mockId'}
-          type={'Input'}
+          id='mockId'
+          type='Input'
           textResourceBindings={{}}
           dataModelBindings={{}}
           readOnly={false}
           required={false}
           triggers={[]}
         />
-      </Provider>);
+      </Provider>,
+    );
     expect(wrapper.exists('#mockId')).toBe(true);
   });
 
@@ -81,5 +96,4 @@ describe('>>> components/GenericComponent.tsx', () => {
     expect(valid).toBe(true);
     expect(invalid).toBe(false);
   });
-
 });
