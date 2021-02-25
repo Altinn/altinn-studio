@@ -40,6 +40,8 @@ option {
   font-weight: 300;
   line-height: 2.4rem;
   margin-bottom: 1.2rem;
+  word-break: break-all;
+  text-overflow: ellipsis;
 }
 
 .a-form-label.description-label p {
@@ -56,7 +58,8 @@ option {
 .a-form-label.title-label {
   font-weight: 500;
   margin-bottom: 1.2rem;
-  margin-top: 2.4rem;
+  word-break: break-all;
+  text-overflow: ellipsis;
 }
 
 .a-form-label.title-label p {
