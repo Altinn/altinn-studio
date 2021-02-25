@@ -45,6 +45,9 @@ public class PdfContext {
   @Nullable
   private UserProfile userProfile;
 
+  @ApiModelProperty(notes = "The language to generate the pdf in. Two-letter ISO standard")
+  private String language;
+
   @ApiModelProperty(notes = "The dictionary containing all option sets")
   @Nullable
   private Map<String, Map<String,String>> optionsDictionary;
@@ -90,6 +93,10 @@ public class PdfContext {
   public void setUserProfile(@Nullable UserProfile userProfile) {
     this.userProfile = userProfile;
   }
+
+  public String getLanguage() { return language; }
+
+  public void setLanguage(String language) { this.language = language; }
 
   @Nullable
   public SortedMap<String, FormLayout> getFormLayouts() { return formLayouts; }
