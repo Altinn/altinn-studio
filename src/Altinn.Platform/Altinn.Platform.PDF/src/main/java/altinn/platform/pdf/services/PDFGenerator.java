@@ -319,8 +319,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    String language = (this.userProfile != null) ? userProfile.getProfileSettingPreference().getLanguage() : "nb";
-    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), language) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources));
+    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), getLanguage()) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources));
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;
