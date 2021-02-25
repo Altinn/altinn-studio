@@ -66,5 +66,11 @@ namespace Altinn.App.Services.Models
         /// </summary>
         [JsonProperty(PropertyName = "userProfile")]
         public UserProfile UserProfile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the preferred language
+        /// </summary>
+        [JsonProperty(PropertyName = "language")]
+        public string Language { get; set; }
     }
 }
