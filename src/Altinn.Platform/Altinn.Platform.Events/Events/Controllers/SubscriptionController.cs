@@ -98,6 +98,11 @@ namespace Altinn.Platform.Events.Controllers
         {
             EventsSubscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
+            if (!AuthorizeAccessToSubscription(subscription))
+            {
+                return Unauthorized();
+            }
+
             // TODO Authorize
             return Ok(subscription);
         }
@@ -109,6 +114,14 @@ namespace Altinn.Platform.Events.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<string>> Delete(int id)
         {
+            EventsSubscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            if (!AuthorizeAccessToSubscription(subscription))
+            {
+                return Unauthorized();
+            }
+
+            await _eventsSubscriptionService.DeleteSubscription(id);
             return Ok();
         }
 
@@ -265,6 +278,31 @@ namespace Altinn.Platform.Events.Controllers
                     eventsSubscription.CreatedBy = "/organization/" + organization;
                 }
             }
+        }
+
+        private bool AuthorizeAccessToSubscription(EventsSubscription eventsSubscription)
+        {
+            string currentIdenity = string.Empty;
+
+            if (!string.IsNullOrEmpty(HttpContext.User.GetOrg()))
+            {
+                currentIdenity = "/org/" + HttpContext.User.GetOrg();
+            }
+            else if (!string.IsNullOrEmpty(HttpContext.User.GetOrgNumber()))
+            {
+                currentIdenity = "/organization/" + HttpContext.User.GetOrgNumber();
+            }
+            else if (HttpContext.User.GetUserIdAsInt().HasValue)
+            {
+                currentIdenity = "/user/" + HttpContext.User.GetUserIdAsInt().Value;
+            }
+
+            if (eventsSubscription.CreatedBy.Equals(currentIdenity))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

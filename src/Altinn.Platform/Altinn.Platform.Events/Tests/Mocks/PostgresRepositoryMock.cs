@@ -37,7 +37,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         public Task DeleteSubscription(int id)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -99,7 +99,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         public Task<EventsSubscription> GetSubscription(int id)
         {
-            return Task.FromResult(new EventsSubscription() { Id = id, AlternativeSubjectFilter = "/orgnr/123123" });
+            return Task.FromResult(new EventsSubscription() { Id = id, AlternativeSubjectFilter = "/organization/950474084", CreatedBy = "/organization/950474084" });
         }
 
         private string GetEventsPath()

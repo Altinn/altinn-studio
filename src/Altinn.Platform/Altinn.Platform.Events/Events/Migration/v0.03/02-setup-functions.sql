@@ -11,3 +11,17 @@ return query
 
 END;
 $BODY$;
+
+------------------
+CREATE OR REPLACE PROCEDURE events.deletesubscription(_id integer)
+RETURNS void
+    LANGUAGE 'plpgsql'
+    
+AS $BODY$
+BEGIN
+  DELETE 
+	FROM events.eventssubscription s
+  where s.id = _id;
+
+END;
+$BODY$;

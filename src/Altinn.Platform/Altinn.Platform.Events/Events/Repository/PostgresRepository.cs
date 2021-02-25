@@ -25,6 +25,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
         private readonly string insertEventsSubscriptionSql = "call events.insert_eventssubcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @v_id)";
         private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
+        private readonly string deleteSubscription = "call events.deletesubscription(@_id)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgresRepository"/> class.
@@ -124,9 +125,25 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public Task DeleteSubscription(int id)
+        public async Task DeleteSubscription(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _conn.OpenAsync();
+                NpgsqlCommand pgcom = new NpgsqlCommand(deleteSubscription, _conn);
+                pgcom.Parameters.AddWithValue("_id", id);
+             
+                await pgcom.ExecuteNonQueryAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("PostgresRepository // Create // Exception", e);
+                throw;
+            }
+            finally
+            {
+                await _conn.CloseAsync();
+            }
         }
 
         /// <inheritdoc/>

@@ -61,7 +61,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenValidCloudEventSubscription_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/subscription";
+                string requestUri = $"{BasePath}/subscriptions";
                 EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
  
                 HttpClient client = GetTestClient();
@@ -93,7 +93,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_OrgSubscriptionWithMissing_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/subscription";
+                string requestUri = $"{BasePath}/subscriptions";
                 EventsSubscription cloudEventSubscription = GetEventsSubscription(string.Empty, null, "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
@@ -122,7 +122,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenInvalidValidCloudEventSubscriptionUser_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/subscription";
+                string requestUri = $"{BasePath}/subscriptions";
                 EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
@@ -151,7 +151,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenSubscriptionOrganizationWithInvalidSubject_ReturnsNotAuthorized()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/subscription";
+                string requestUri = $"{BasePath}/subscriptions";
                 EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
@@ -179,7 +179,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/subscription";
+                string requestUri = $"{BasePath}/subscriptions";
                 EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
@@ -196,8 +196,14 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             }
 
+            /// <summary>
+            /// Gets a specific subscription
+            /// Expected result:
+            /// Returns HttpStatus ok
+            /// Scenario: 
+            /// </summary>
             [Fact]
-            public async void Get_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
+            public async void Get_GivenSubscriptionOrganizationWithValidSubject_ReturnsOk()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/12";
@@ -213,6 +219,77 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Deletes a subscription that user is authorized for
+            /// Expected result:
+            /// Return httpStatus ok
+            /// </summary>
+            [Fact]
+            public async void Delete_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions/16";
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "950474084"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri)
+                {
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Gets a specific subscription
+            /// Expected result:
+            /// Returns HttpStatus ok
+            /// Scenario: 
+            /// </summary>
+            [Fact]
+            public async void Get_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnauthorizd()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions/12";
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "897069652"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri)
+                {
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Deletes a subscription that user is authorized for
+            /// Expected result:
+            /// Return httpStatus ok
+            /// </summary>
+            [Fact]
+            public async void Delete_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnAuthorized()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions/16";
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "897069652"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri)
+                {
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             }
 
             private HttpClient GetTestClient()
