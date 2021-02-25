@@ -20,7 +20,14 @@ import { createRepeatingGroupComponents } from './formLayout';
 const JsonPointer = require('jsonpointer');
 
 export function createValidator(schema: any): ISchemaValidator {
-  const ajv = new Ajv({ allErrors: true, coerceTypes: true, jsPropertySyntax: true });
+  const ajv = new Ajv({
+    allErrors: true,
+    coerceTypes: true,
+    jsPropertySyntax: true,
+    strict: false,
+    strictTypes: false,
+    strictTuples: false,
+  });
   addFormats(ajv);
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
