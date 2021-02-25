@@ -5,7 +5,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
-    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-item"
   >
     <label
       className="a-form-label title-label"
@@ -23,7 +23,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
-    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-item"
   >
     <label
       className="a-form-label title-label"
@@ -41,7 +41,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
-    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-item"
   >
     <label
       className="a-form-label title-label"
@@ -59,7 +59,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
-    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-item"
   >
     <label
       className="a-form-label title-label"
@@ -77,7 +77,7 @@ exports[`>>> features/form/components/Label.tsx +++ should render optional 1`] =
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
-    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-item"
   >
     <label
       className="a-form-label title-label"
