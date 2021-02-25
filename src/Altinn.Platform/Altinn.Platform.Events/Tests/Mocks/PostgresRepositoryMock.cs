@@ -99,7 +99,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         public Task<EventsSubscription> GetSubscription(int id)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new EventsSubscription() { Id = id, AlternativeSubjectFilter = "/orgnr/123123" });
         }
 
         private string GetEventsPath()
