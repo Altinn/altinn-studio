@@ -25,7 +25,7 @@ CREATE OR REPLACE PROCEDURE events.insert_subcsription(
   endpointurl character varying,
   createdby character varying,
   validated boolean,
-  inout v_id bigint)
+  inout subscription_id bigint)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE currentTime timestamptz; 
@@ -35,7 +35,7 @@ BEGIN
   currentTime := NOW();
 
 INSERT INTO events.subscription(sourcefilter, subjectfilter, typefilter, consumer, endpointurl, createdby, "time", validated)
-	VALUES ($1, $2, $3, $4, $5, $6, currentTime, $7) RETURNING (id) into v_id;
+	VALUES ($1, $2, $3, $4, $5, $6, currentTime, $7) RETURNING (id) into subscription_id;
 END;
 $BODY$;
 

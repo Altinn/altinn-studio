@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size);
 
         /// <summary>
-        /// Creates an cloud event in repository
+        /// Creates an subscription in repository
         /// </summary>
         Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription);
 

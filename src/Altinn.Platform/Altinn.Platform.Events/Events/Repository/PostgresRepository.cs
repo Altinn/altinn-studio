@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly ILogger _logger;
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
-        private readonly string insertSubscriptionSql = "call events.insert_subcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @v_id)";
+        private readonly string insertSubscriptionSql = "call events.insert_subcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @subscription_id)";
         private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
         private readonly string deleteSubscription = "call events.deletesubscription(@_id)";
 
@@ -101,13 +101,13 @@ namespace Altinn.Platform.Events.Repository
                 pgcom.Parameters.AddWithValue("endpointurl", eventsSubscription.EndPoint);
                 pgcom.Parameters.AddWithValue("createdby", eventsSubscription.CreatedBy);
                 pgcom.Parameters.AddWithValue("validated", false);
-                pgcom.Parameters.AddWithValue("v_id", vid);
+                pgcom.Parameters.AddWithValue("subscription_id", vid);
              
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        eventsSubscription.Id = int.Parse(reader["v_id"].ToString());
+                        eventsSubscription.Id = int.Parse(reader["subscription_id"].ToString());
                     }
                 }
 
@@ -115,7 +115,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // Create // Exception", e);
+                _logger.LogError("PostgresRepository // CreateSubscription // Exception", e);
                 throw;
             }
             finally
@@ -137,7 +137,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // Create // Exception", e);
+                _logger.LogError("PostgresRepository // DeleteSubscription // Exception", e);
                 throw;
             }
             finally
@@ -219,7 +219,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                Console.WriteLine($" PostgresRepository // Get // Exception {JsonSerializer.Serialize(e)}");
+                Console.WriteLine($" PostgresRepository // GetSubscription // Exception {JsonSerializer.Serialize(e)}");
                 throw;
             }
             finally
