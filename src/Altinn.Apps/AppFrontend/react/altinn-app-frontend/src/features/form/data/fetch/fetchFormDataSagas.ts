@@ -11,13 +11,13 @@ import FormActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import { FETCH_DATA_MODEL_FULFILLED, FETCH_JSON_SCHEMA_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
+import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
@@ -77,13 +77,11 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     if (!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {
       yield all([
         take(GET_INSTANCEDATA_FULFILLED),
-        take(FETCH_DATA_MODEL_FULFILLED),
-        take(FETCH_JSON_SCHEMA_FULFILLED),
+        take(fetchJsonSchemaFulfilled),
       ]);
     } else {
       yield all([
-        take(FETCH_DATA_MODEL_FULFILLED),
-        take(FETCH_JSON_SCHEMA_FULFILLED),
+        take(fetchJsonSchemaFulfilled),
       ]);
     }
     yield call(fetchFormDataInitialSaga);
