@@ -139,6 +139,7 @@ namespace Altinn.Platform.Events
             });
 
             services.AddHttpClient<IRegisterService, RegisterService>();
+            services.AddHttpClient<IProfile, ProfileService>();
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<ISubscriptionService, SubscriptionService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();

@@ -148,6 +148,35 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
+            public async void Post_GivenValidValidCloudEventSubscriptionUser_ReturnsCreated()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions";
+                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/person/01039012345", "https://www.skatteetaten.no/hook");
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEventSubscription.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post an invalid eventssubscription for organization 950474084. 
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest because it is mismatch between subject and identity
+            /// Success criteria:
+            ///   The response has correct status
+            /// </summary>
+            [Fact]
             public async void Post_GivenSubscriptionOrganizationWithInvalidSubject_ReturnsNotAuthorized()
             {
                 // Arrange
@@ -300,6 +329,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton<IRegisterService, RegisterServiceMock>();
+                        services.AddSingleton<IProfile, ProfileMockSI>();
 
                         services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
 

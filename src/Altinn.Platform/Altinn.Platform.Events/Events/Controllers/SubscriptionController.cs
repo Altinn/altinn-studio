@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.PEP.Interfaces;
@@ -5,6 +6,7 @@ using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platorm.Events.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +25,7 @@ namespace Altinn.Platform.Events.Controllers
     {
         private readonly ISubscriptionService _eventsSubscriptionService;
         private readonly IRegisterService _registerService;
+        private readonly IProfile _profileService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
@@ -30,6 +33,7 @@ namespace Altinn.Platform.Events.Controllers
 
         private const string OrganizationPrefix = "/organization/";
         private const string PersonPrefix = "/person/";
+        private const string UserPrefix = "/user/";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
@@ -40,7 +44,8 @@ namespace Altinn.Platform.Events.Controllers
             IOptions<GeneralSettings> settings,
             ILogger<EventsController> logger,
             IPDP pdp,
-            IOptions<AccessTokenSettings> accessTokenSettings)
+            IOptions<AccessTokenSettings> accessTokenSettings,
+            IProfile profileService)
         {
             _registerService = registerService;
             _logger = logger;
@@ -48,6 +53,7 @@ namespace Altinn.Platform.Events.Controllers
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
             _authorizationHelper = new AuthorizationHelper(pdp);
             _accessTokenSettings = accessTokenSettings.Value;
+            _profileService = profileService;
         }
 
         /// <summary>
@@ -74,14 +80,14 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest(message);
             }
 
-            if (!AuthorizeIdenityForConsumer(eventsSubscription, out message))
+            if (!await AuthorizeIdentityForConsumer(eventsSubscription))
             {
-                return Unauthorized(message);
+                return Unauthorized("Not authorized to create a subscription on behalf of " + eventsSubscription.Consumer);
             }
 
-            if (!AuthorizeSubjectForConsumer(eventsSubscription, out message))
+            if (!await AuthorizeSubjectForConsumer(eventsSubscription))
             {
-                return Unauthorized(message);
+                return Unauthorized("Not authorized to create a subscription with subject " + eventsSubscription.AlternativeSubjectFilter);
             }
 
             int id = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
@@ -173,16 +179,13 @@ namespace Altinn.Platform.Events.Controllers
         /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
         /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
         /// </summary>
-        private bool AuthorizeIdenityForConsumer(EventsSubscription eventsSubscription, out string message)
+        private async Task<bool> AuthorizeIdentityForConsumer(EventsSubscription eventsSubscription)
         {
-            // First version require that 
             if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
             {
-                message = "Not authorized to create a subscription on behalf of " + eventsSubscription.Consumer;
                 return false;
             }
 
-            message = null;
             return true;
         }
 
@@ -190,15 +193,25 @@ namespace Altinn.Platform.Events.Controllers
         /// Validates that the identity (user, organization or org) is authorized to create subscriptions for a given subject.
         /// Currently the subject needs to match the identity.  Org does not need subject.
         /// </summary>
-        private bool AuthorizeSubjectForConsumer(EventsSubscription eventsSubscription, out string message)
+        private async Task<bool> AuthorizeSubjectForConsumer(EventsSubscription eventsSubscription)
         {
-            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter) && !eventsSubscription.AlternativeSubjectFilter.Equals(eventsSubscription.Consumer))
+            // First version require that created and consumer is the same
+            if (eventsSubscription.CreatedBy.StartsWith(UserPrefix))
             {
-                message = "Not authorized to create a subscription with subject " + eventsSubscription.AlternativeSubjectFilter;
+                int userId = Convert.ToInt32(eventsSubscription.CreatedBy.Replace(UserPrefix, string.Empty));
+                UserProfile profile = await _profileService.GetUserProfile(userId);
+                string ssn = PersonPrefix + profile.Party.SSN;
+
+                if (!ssn.Equals(eventsSubscription.AlternativeSubjectFilter))
+                {
+                    return false;
+                }
+            }
+            else if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter) && !eventsSubscription.AlternativeSubjectFilter.Equals(eventsSubscription.Consumer))
+            {
                 return false;
             }
 
-            message = null;
             return true;
         }
 
@@ -213,7 +226,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else if (alternativeSubject.StartsWith(PersonPrefix))
             {
-                string persnoNo = alternativeSubject.Replace(OrganizationPrefix, string.Empty);
+                string persnoNo = alternativeSubject.Replace(PersonPrefix, string.Empty);
                 partyId = await _registerService.PartyLookup(null, persnoNo);
             }
 
