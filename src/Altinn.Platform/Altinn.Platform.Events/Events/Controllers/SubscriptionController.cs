@@ -26,10 +26,6 @@ namespace Altinn.Platform.Events.Controllers
         private readonly ISubscriptionService _eventsSubscriptionService;
         private readonly IRegisterService _registerService;
         private readonly IProfile _profileService;
-        private readonly ILogger _logger;
-        private readonly string _eventsBaseUri;
-        private readonly AuthorizationHelper _authorizationHelper;
-        private readonly AccessTokenSettings _accessTokenSettings;
 
         private const string OrganizationPrefix = "/organization/";
         private const string PersonPrefix = "/person/";
@@ -41,18 +37,10 @@ namespace Altinn.Platform.Events.Controllers
         public SubscriptionController(
             ISubscriptionService eventsSubscriptionService,
             IRegisterService registerService,
-            IOptions<GeneralSettings> settings,
-            ILogger<EventsController> logger,
-            IPDP pdp,
-            IOptions<AccessTokenSettings> accessTokenSettings,
             IProfile profileService)
         {
             _registerService = registerService;
-            _logger = logger;
             _eventsSubscriptionService = eventsSubscriptionService;
-            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
-            _authorizationHelper = new AuthorizationHelper(pdp);
-            _accessTokenSettings = accessTokenSettings.Value;
             _profileService = profileService;
         }
 

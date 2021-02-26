@@ -18,14 +18,14 @@ CREATE TABLE IF NOT EXISTS events.subscription
 TABLESPACE pg_default;
 
 CREATE OR REPLACE PROCEDURE events.insert_subcsription(
-	sourcefilter character varying,
-	subjectfilter character varying,
-	typefilter character varying,
-	consumer character varying,
-  endpointurl character varying,
-  createdby character varying,
-  validated boolean,
-  inout subscription_id bigint)
+	  sourcefilter character varying,
+	  subjectfilter character varying,
+	  typefilter character varying,
+	  consumer character varying,
+    endpointurl character varying,
+    createdby character varying,
+    validated boolean,
+    inout subscription_id bigint)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE currentTime timestamptz; 

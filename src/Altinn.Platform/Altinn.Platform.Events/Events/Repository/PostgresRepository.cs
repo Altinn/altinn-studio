@@ -96,12 +96,12 @@ namespace Altinn.Platform.Events.Repository
                     pgcom.Parameters.AddWithValue("typefilter", DBNull.Value);
                 }
 
-                int vid = 0;
+                int subscriptionid = 0; // To be able to get value out
                 pgcom.Parameters.AddWithValue("consumer", eventsSubscription.Consumer);
                 pgcom.Parameters.AddWithValue("endpointurl", eventsSubscription.EndPoint);
                 pgcom.Parameters.AddWithValue("createdby", eventsSubscription.CreatedBy);
                 pgcom.Parameters.AddWithValue("validated", false);
-                pgcom.Parameters.AddWithValue("subscription_id", vid);
+                pgcom.Parameters.AddWithValue("subscription_id", subscriptionid);
              
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
