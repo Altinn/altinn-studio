@@ -43,17 +43,10 @@ export interface IFetchRemainingSessionFulfilled {
   remainingMinutes: number;
 }
 
-export interface IFetchRemainingSessionRejected {
-  error: Error;
-}
-
 export interface IKeepAliveSessionFulfilled {
   addedMinutes: number;
 }
 
-export interface IKeepAliveSessionRejected {
-  error: Error;
-}
 
 const moduleName = 'user';
 const userSlice = createSlice({
@@ -80,7 +73,7 @@ const userSlice = createSlice({
       state.session.remainingMinutes = remainingMinutes;
     },
     fetchRemainingSessionRejected: (
-      state: IUserState, action: PayloadAction<IFetchRemainingSessionRejected>,
+      state: IUserState, action: PayloadAction<IUserActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -92,7 +85,7 @@ const userSlice = createSlice({
       state.session.remainingMinutes = (state.session.remainingMinutes + addedMinutes);
     },
     keepAliveSessionRejected: (
-      state: IUserState, action: PayloadAction<IKeepAliveSessionRejected>,
+      state: IUserState, action: PayloadAction<IUserActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
