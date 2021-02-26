@@ -293,7 +293,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else if (HttpContext.User.GetUserIdAsInt().HasValue)
             {
-                currentIdenity = Use + HttpContext.User.GetUserIdAsInt().Value;
+                currentIdenity = UserPrefix + HttpContext.User.GetUserIdAsInt().Value;
             }
 
             if (eventsSubscription.CreatedBy.Equals(currentIdenity))

@@ -14,7 +14,6 @@ $BODY$;
 
 ------------------
 CREATE OR REPLACE PROCEDURE events.deletesubscription(_id integer)
-RETURNS void
     LANGUAGE 'plpgsql'
     
 AS $BODY$
