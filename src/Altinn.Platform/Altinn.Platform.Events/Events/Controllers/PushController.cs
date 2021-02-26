@@ -73,5 +73,10 @@ namespace Altinn.Platform.Events.Controllers
 
             return Ok();
         }
+
+        private async Task<bool> AuthorizePushOfEvents(CloudEvent cloudEvent)
+        {
+            return true;
+        }
     }
 }
