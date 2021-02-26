@@ -5,7 +5,7 @@ import Common from '../../pageobjects/common';
 import * as texts from '../../fixtures/texts.json'
 
 const appName = Cypress.env('localTestAppName');
-const af = new AppFrontend();
+const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
@@ -16,51 +16,47 @@ describe('Validation', () => {
     cy.preserveCookies();
   });
 
-  //Tests display of error message when required field is not hopped over
-  it('Required field validation', () => {
-    cy.get(af.changeOfName.newFirstName).focus().blur();
-    cy.get(af.fieldValidationError.replace('field', af.changeOfName.newFirstName.substr(1)))
+  it('Required field validation on blur', () => {
+    cy.get(appFrontend.changeOfName.newFirstName).focus().blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substr(1)))
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.requiredField)
-      .find(af.errorExclamation).should('be.visible');
+      .find(appFrontend.errorExclamation).should('be.visible');
   });
 
-  //Tests display of error messages triggerd from validationHandler in the app
   it('Custom field validation - error', () => {
-    cy.get(af.changeOfName.newFirstName).type('test').blur();
-    cy.get(af.fieldValidationError.replace('field', af.changeOfName.newFirstName.substr(1)))
+    cy.get(appFrontend.changeOfName.newFirstName).type('test').blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substr(1)))
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.customValidationInvalid)
-      .find(af.errorExclamation).should('be.visible');
+      .find(appFrontend.errorExclamation).should('be.visible');
   });
 
-  //Tests display of warning message triggerd from validationHandler in the app
   it('Custom field validation - warning', () => {
-    cy.get(af.changeOfName.newMiddleName).type('test').blur();
-    cy.get(af.fieldValidationWarning.replace('field', af.changeOfName.newMiddleName.substr(1)))
+    cy.get(appFrontend.changeOfName.newMiddleName).type('test').blur();
+    cy.get(appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substr(1)))
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.customValidationInvalid)
       .should('have.css', 'background-color', 'rgb(239, 239, 239)');
   });
 
-  //Tests display of error report on top of the page when clicking next button
   it('Page validation on clicking next', () => {
-    cy.get(af.changeOfName.newFirstName).clear();
-    cy.get(af.changeOfName.newMiddleName).clear();
-    cy.get(mui.button).click();
-    cy.get(af.errorReport)
+    cy.get(appFrontend.changeOfName.newFirstName).clear().type('name');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
+    cy.get(mui.button).should('be.visible').click();
+    cy.get(appFrontend.errorReport)
       .should('exist')
       .should('be.visible')
+      .should('be.focused')
       .should('contain.text', texts.errorReport);
   });
 
-  //Tests validation error on uploading a attachment of wrong type
-  it('Validation on attachment type', () => {
-    cy.get(af.changeOfName.upload).attachFile('test.png');
-    cy.get(af.fieldValidationError.replace('field', af.changeOfName.upload.substr(1)))
+  it('Validation on uploaded attachment type', () => {
+    cy.get(appFrontend.changeOfName.upload).attachFile('test.png');
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.upload.substr(1)))
       .should('exist')
       .should('be.visible')
       .should('contain.text', texts.attachmentError);

@@ -4,5 +4,8 @@
   ],
   "extends": [
     "plugin:cypress/recommended"
-  ]
+  ],
+  "rules": {
+    "eol-last": "error"
+  }
 }
