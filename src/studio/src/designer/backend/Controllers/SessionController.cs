@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Extends the duration current session 
+        /// Extends the duration current session
         /// </summary>
         /// <returns>200 ok if session is extended.</returns>
         [HttpGet]
@@ -91,7 +91,7 @@ namespace Altinn.Studio.Designer.Controllers
                   AllowRefresh = false,
               });
 
-            return Ok();
+            return Ok(_sessingExtensionInMinutes);
         }
     }
 }

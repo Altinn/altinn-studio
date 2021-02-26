@@ -38,3 +38,19 @@ export const getSaveDataModelUrl = (modelName: string) => {
 export const getFetchDeployPermissionsUrl = () => {
   return `${origin}/designer/api/v1/${org}/${app}/deployments/permissions`;
 };
+
+export const getRemainingSessionTimeUrl = () => {
+  return `${origin}/designer/api/v1/session/remaining`;
+}
+
+export const getKeepAliveUrl = () => {
+  return `${origin}/designer/api/v1/session/keepalive`;
+}
+
+export const getGiteaSignOutUrl = () => {
+  return `${origin}/repos/user/logout`;
+}
+
+export const getStudioSignOutUrl = () => {
+  return `${origin}/Home/Logout`;
+}
