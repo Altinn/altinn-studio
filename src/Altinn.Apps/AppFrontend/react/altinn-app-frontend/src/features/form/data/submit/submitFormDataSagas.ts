@@ -89,7 +89,12 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
         }
         // data has no validation errors, we complete the current step
         yield call(ProcessDispatcher.completeProcess);
-        yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+
+        if (layoutState.uiConfig.currentViewCacheKey) {
+          // Reset cache for current page when ending process task
+          localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
+          yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+        }
       }
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {

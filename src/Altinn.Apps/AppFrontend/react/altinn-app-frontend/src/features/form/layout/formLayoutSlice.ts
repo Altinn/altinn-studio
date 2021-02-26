@@ -68,7 +68,6 @@ const formLayoutSlice = createSlice({
     },
     setCurrentViewCacheKey: (state, action: PayloadAction<LayoutTypes.ISetCurrentViewCacheKey>) => {
       const { key } = action.payload;
-      console.log('setCurrentViewCacheKey: ', key);
       state.uiConfig.currentViewCacheKey = key;
     },
     updateAutoSave: (state, action: PayloadAction<LayoutTypes.IUpdateAutoSave>) => {
