@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 
 namespace Altinn.Platform.Events.Services.Interfaces
 {
     /// <summary>
-    /// Interface for 
+    /// Interface for subscription service
     /// </summary>
     public interface ISubscriptionService
     {
@@ -15,7 +13,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// Operation to create a subscription
         /// </summary>
         /// <param name="eventsSubcrition">The event subscription</param>
-        public Task<int> CreateSubscription(EventsSubscription eventsSubcrition);
+        public Task<int> CreateSubscription(Subscription eventsSubcrition);
 
         /// <summary>
         /// Operation to delete a given subscriptions
@@ -25,13 +23,12 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <summary>
         /// Opeation to list all events 
         /// </summary>
-        public List<EventsSubscription> FindSubscriptions(string receiver, string source, string org);
+        public List<Subscription> FindSubscriptions(string receiver, string source, string org);
 
         /// <summary>
         /// Get a given subscription
         /// </summary>
         /// <param name="id">The subcription Id</param>
-        /// <returns></returns>
-        public Task<EventsSubscription> GetSubscription(int id);
+        public Task<Subscription> GetSubscription(int id);
     }
 }

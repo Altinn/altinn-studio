@@ -9,12 +9,12 @@ namespace Altinn.Platform.Events.Models
     /// <summary>
     /// Class that describes a events subscriptions
     /// </summary>
-    public class EventsSubscription
+    public class Subscription
     {
         /// <summary>
         /// Endpoint to receive matching events
         /// </summary>
-        public string EndPoint { get; set; }
+        public Uri EndPoint { get; set; }
 
         /// <summary>
         /// Subscription Id
@@ -66,12 +66,12 @@ namespace Altinn.Platform.Events.Models
         }
 
         /// <summary>
-        /// Deserializes the cloud event to a JSON string.
+        /// Deserializes the subscriont to from JSON string.
         /// </summary>
         /// <returns>Cloud event</returns>
-        public static CloudEvent Deserialize(string jsonString)
+        public static Subscription Deserialize(string jsonString)
         {
-            return JsonSerializer.Deserialize<CloudEvent>(jsonString, new JsonSerializerOptions { });
+            return JsonSerializer.Deserialize<Subscription>(jsonString, new JsonSerializerOptions { });
         }
     }
 }

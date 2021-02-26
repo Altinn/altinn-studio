@@ -62,7 +62,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
  
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription(string.Empty, null, "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription(string.Empty, null, "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
@@ -123,7 +123,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", null, "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/person/01039012345", "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/person/01039012345", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
@@ -181,7 +181,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "923609016"));
@@ -209,7 +209,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                EventsSubscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organization/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "950474084"));
@@ -343,11 +343,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private EventsSubscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
+            private Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
             {
-                EventsSubscription subscription = new EventsSubscription()
+                Subscription subscription = new Subscription()
                 {
-                    EndPoint = endpoint,
+                    EndPoint = new Uri(endpoint),
                     AlternativeSubjectFilter = alternativeSubjectFilter,
                     SourceFilter = sourceFilter
                 };

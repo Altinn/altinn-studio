@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Events.Services
 {
     /// <summary>
-    /// App implementation of the profile service, for app development.
+    /// Client service for profile
     /// </summary>
     public class ProfileService : IProfile
     {

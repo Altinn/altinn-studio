@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Common.AccessToken.Configuration;
-using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Services
 {
@@ -25,7 +21,7 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateSubscription(EventsSubscription eventsSubcrition)
+        public async Task<int> CreateSubscription(Subscription eventsSubcrition)
         {
             return await _repository.CreateEventsSubscription(eventsSubcrition);
         }
@@ -37,13 +33,13 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public List<EventsSubscription> FindSubscriptions(string receiver, string source, string org)
+        public List<Subscription> FindSubscriptions(string receiver, string source, string org)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async Task<EventsSubscription> GetSubscription(int id)
+        public async Task<Subscription> GetSubscription(int id)
         {
             return await _repository.GetSubscription(id);
         }

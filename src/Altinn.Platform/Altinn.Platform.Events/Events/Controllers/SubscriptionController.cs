@@ -27,9 +27,10 @@ namespace Altinn.Platform.Events.Controllers
         private readonly IRegisterService _registerService;
         private readonly IProfile _profileService;
 
-        private const string OrganizationPrefix = "/organization/";
+        private const string OrganisationPrefix = "/organisation/";
         private const string PersonPrefix = "/person/";
         private const string UserPrefix = "/user/";
+        private const string OrgPrefix = "/org/";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
@@ -56,7 +57,7 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<string>> Post([FromBody] EventsSubscription eventsSubscription)
+        public async Task<ActionResult<string>> Post([FromBody] Subscription eventsSubscription)
         {
             await EnrichSubject(eventsSubscription);
 
@@ -91,7 +92,7 @@ namespace Altinn.Platform.Events.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> Get(int id)
         {
-            EventsSubscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+            Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
             if (!AuthorizeAccessToSubscription(subscription))
             {
@@ -109,7 +110,7 @@ namespace Altinn.Platform.Events.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<string>> Delete(int id)
         {
-            EventsSubscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+            Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
             if (!AuthorizeAccessToSubscription(subscription))
             {
@@ -123,7 +124,7 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Enriches the subject filter with party information based on alternative subject
         /// </summary>
-        private async Task EnrichSubject(EventsSubscription eventsSubscription)
+        private async Task EnrichSubject(Subscription eventsSubscription)
         {
             if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
                 && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
@@ -132,7 +133,7 @@ namespace Altinn.Platform.Events.Controllers
             }
         }
 
-        private bool ValidateSubscription(EventsSubscription eventsSubscription, out string message)
+        private bool ValidateSubscription(Subscription eventsSubscription, out string message)
         {
             if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
                 && string.IsNullOrEmpty(HttpContext.User.GetOrg()))
@@ -168,7 +169,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
         /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
         /// </summary>
-        private async Task<bool> AuthorizeIdentityForConsumer(EventsSubscription eventsSubscription)
+        private async Task<bool> AuthorizeIdentityForConsumer(Subscription eventsSubscription)
         {
             if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
             {
@@ -182,7 +183,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Validates that the identity (user, organization or org) is authorized to create subscriptions for a given subject.
         /// Currently the subject needs to match the identity.  Org does not need subject.
         /// </summary>
-        private async Task<bool> AuthorizeSubjectForConsumer(EventsSubscription eventsSubscription)
+        private async Task<bool> AuthorizeSubjectForConsumer(Subscription eventsSubscription)
         {
             // First version require that created and consumer is the same
             if (eventsSubscription.CreatedBy.StartsWith(UserPrefix))
@@ -208,15 +209,15 @@ namespace Altinn.Platform.Events.Controllers
         {
             int partyId = 0;
 
-            if (alternativeSubject.StartsWith(OrganizationPrefix))
+            if (alternativeSubject.StartsWith(OrganisationPrefix))
             {
-                string orgNo = alternativeSubject.Replace(OrganizationPrefix, string.Empty);
+                string orgNo = alternativeSubject.Replace(OrganisationPrefix, string.Empty);
                 partyId = await _registerService.PartyLookup(orgNo, null);
             }
             else if (alternativeSubject.StartsWith(PersonPrefix))
             {
-                string persnoNo = alternativeSubject.Replace(PersonPrefix, string.Empty);
-                partyId = await _registerService.PartyLookup(null, persnoNo);
+                string personNo = alternativeSubject.Replace(PersonPrefix, string.Empty);
+                partyId = await _registerService.PartyLookup(null, personNo);
             }
 
             if (partyId != 0)
@@ -227,72 +228,72 @@ namespace Altinn.Platform.Events.Controllers
             return null;
         }
 
-        private void EnrichConsumer(EventsSubscription eventsSubscription)
+        private void EnrichConsumer(Subscription eventsSubscription)
         {
             if (string.IsNullOrEmpty(eventsSubscription.Consumer))
             {
                 string org = HttpContext.User.GetOrg();
                 if (!string.IsNullOrEmpty(org))
                 {
-                    eventsSubscription.Consumer = "/org/" + org;
+                    eventsSubscription.Consumer = OrgPrefix + org;
                     return;
                 }
 
                 int? userId = HttpContext.User.GetUserIdAsInt();
                 if (userId.HasValue)
                 {
-                    eventsSubscription.Consumer = "/user/" + userId.Value;
+                    eventsSubscription.Consumer = UserPrefix + userId.Value;
                     return;
                 }
 
                 string organization = HttpContext.User.GetOrgNumber();
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    eventsSubscription.Consumer = "/organization/" + organization;
+                    eventsSubscription.Consumer = OrganisationPrefix + organization;
                     return;
                 }
             }
         }
 
-        private void SetCreatedBy(EventsSubscription eventsSubscription)
+        private void SetCreatedBy(Subscription eventsSubscription)
         {
             string org = HttpContext.User.GetOrg();
             if (!string.IsNullOrEmpty(org))
             {
-                eventsSubscription.CreatedBy = "/org/" + org;
+                eventsSubscription.CreatedBy = OrgPrefix + org;
                 return;
             }
 
             int? userId = HttpContext.User.GetUserIdAsInt();
             if (userId.HasValue)
             {
-                eventsSubscription.CreatedBy = "/user/" + userId.Value;
+                eventsSubscription.CreatedBy = UserPrefix + userId.Value;
                 return;
             }
 
             string organization = HttpContext.User.GetOrgNumber();
             if (!string.IsNullOrEmpty(organization))
             {
-                eventsSubscription.CreatedBy = "/organization/" + organization;
+                eventsSubscription.CreatedBy = OrganisationPrefix + organization;
                 return;
             }
         }
 
-        private bool AuthorizeAccessToSubscription(EventsSubscription eventsSubscription)
+        private bool AuthorizeAccessToSubscription(Subscription eventsSubscription)
         {
             string currentIdenity = string.Empty;
 
             if (!string.IsNullOrEmpty(HttpContext.User.GetOrg()))
             {
-                currentIdenity = "/org/" + HttpContext.User.GetOrg();
+                currentIdenity = OrgPrefix + HttpContext.User.GetOrg();
             }
             else if (!string.IsNullOrEmpty(HttpContext.User.GetOrgNumber()))
             {
-                currentIdenity = "/organization/" + HttpContext.User.GetOrgNumber();
+                currentIdenity = OrganisationPrefix + HttpContext.User.GetOrgNumber();
             }
             else if (HttpContext.User.GetUserIdAsInt().HasValue)
             {
-                currentIdenity = "/user/" + HttpContext.User.GetUserIdAsInt().Value;
+                currentIdenity = Use + HttpContext.User.GetUserIdAsInt().Value;
             }
 
             if (eventsSubscription.CreatedBy.Equals(currentIdenity))

@@ -28,7 +28,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return Task.FromResult(cloudEvent.Id);
         }
 
-        public Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription)
+        public Task<int> CreateEventsSubscription(Subscription eventsSubscription)
         {
             Random rnd = new Random();
             eventsSubscription.Id = rnd.Next(1, int.MaxValue); 
@@ -97,9 +97,9 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return null;
         }
 
-        public Task<EventsSubscription> GetSubscription(int id)
+        public Task<Subscription> GetSubscription(int id)
         {
-            return Task.FromResult(new EventsSubscription() { Id = id, AlternativeSubjectFilter = "/organization/950474084", CreatedBy = "/organization/950474084" });
+            return Task.FromResult(new Subscription() { Id = id, AlternativeSubjectFilter = "/organization/950474084", CreatedBy = "/organization/950474084" });
         }
 
         private string GetEventsPath()

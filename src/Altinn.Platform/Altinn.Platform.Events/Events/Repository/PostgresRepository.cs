@@ -69,7 +69,7 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateEventsSubscription(EventsSubscription eventsSubscription)
+        public async Task<int> CreateEventsSubscription(Subscription eventsSubscription)
         {
             try
             {
@@ -189,9 +189,9 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<EventsSubscription> GetSubscription(int id)
+        public async Task<Subscription> GetSubscription(int id)
         {
-            EventsSubscription subscription = null;
+            Subscription subscription = null;
             try
             {
                 await _conn.OpenAsync();
@@ -203,13 +203,13 @@ namespace Altinn.Platform.Events.Repository
                 {
                     while (reader.Read())
                     {
-                        subscription = new EventsSubscription();
+                        subscription = new Subscription();
                         subscription.Id = Convert.ToInt32(reader["id"].ToString());
                         subscription.SourceFilter = reader["sourcefilter"].ToString();
                         subscription.SubjectFilter = reader["subjectfilter"].ToString();
                         subscription.TypeFilter = reader["typefilter"].ToString();
                         subscription.Consumer = reader["consumer"].ToString();
-                        subscription.EndPoint = reader["endpointurl"].ToString();
+                        subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
                         subscription.CreatedBy = reader["createdby"].ToString();
                         subscription.Created = DateTime.Parse(reader["time"].ToString());
                     }
