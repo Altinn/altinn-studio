@@ -6,7 +6,7 @@ AS $BODY$
 BEGIN
 return query 
 	SELECT s.id, s.sourcefilter, s.subjectfilter, s.typefilter, s.consumer, s.endpointurl, s.createdby, s.validated, s."time"
-	FROM events.eventssubscription s
+	FROM events.subscription s
   where s.id = _id;
 
 END;
@@ -20,7 +20,7 @@ RETURNS void
 AS $BODY$
 BEGIN
   DELETE 
-	FROM events.eventssubscription s
+	FROM events.subscription s
   where s.id = _id;
 
 END;

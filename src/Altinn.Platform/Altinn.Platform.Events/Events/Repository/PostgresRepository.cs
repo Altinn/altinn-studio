@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly ILogger _logger;
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
-        private readonly string insertEventsSubscriptionSql = "call events.insert_eventssubcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @v_id)";
+        private readonly string insertSubscriptionSql = "call events.insert_subcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @v_id)";
         private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
         private readonly string deleteSubscription = "call events.deletesubscription(@_id)";
 
@@ -75,7 +75,7 @@ namespace Altinn.Platform.Events.Repository
             {
                 await _conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertEventsSubscriptionSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(insertSubscriptionSql, _conn);
                 pgcom.Parameters.AddWithValue("sourcefilter", eventsSubscription.SourceFilter);
 
                 if (eventsSubscription.SubjectFilter != null)

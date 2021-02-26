@@ -1,6 +1,6 @@
--- Table: events.eventssubscription
+-- Table: events.subscription
 
-CREATE TABLE IF NOT EXISTS events.eventssubscription
+CREATE TABLE IF NOT EXISTS events.subscription
 (
     id BIGSERIAL,
     sourcefilter character varying COLLATE pg_catalog."default",
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS events.eventssubscription
 
 TABLESPACE pg_default;
 
-CREATE OR REPLACE PROCEDURE events.insert_eventssubcsription(
+CREATE OR REPLACE PROCEDURE events.insert_subcsription(
 	sourcefilter character varying,
 	subjectfilter character varying,
 	typefilter character varying,
@@ -34,7 +34,7 @@ BEGIN
   SET TIME ZONE UTC;
   currentTime := NOW();
 
-INSERT INTO events.eventssubscription(sourcefilter, subjectfilter, typefilter, consumer, endpointurl, createdby, "time", validated)
+INSERT INTO events.subscription(sourcefilter, subjectfilter, typefilter, consumer, endpointurl, createdby, "time", validated)
 	VALUES ($1, $2, $3, $4, $5, $6, currentTime, $7) RETURNING (id) into v_id;
 END;
 $BODY$;

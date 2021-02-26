@@ -251,19 +251,17 @@ namespace Altinn.Platform.Events.Controllers
                 }
 
                 int? userId = HttpContext.User.GetUserIdAsInt();
+                if (userId.HasValue)
                 {
-                    if (userId.HasValue)
-                    {
-                        eventsSubscription.Consumer = "/user/" + userId.Value;
-                    }
+                    eventsSubscription.Consumer = "/user/" + userId.Value;
+                    return;
                 }
 
                 string organization = HttpContext.User.GetOrgNumber();
+                if (!string.IsNullOrEmpty(organization))
                 {
-                    if (!string.IsNullOrEmpty(organization))
-                    {
-                        eventsSubscription.Consumer = "/organization/" + organization;
-                    }
+                    eventsSubscription.Consumer = "/organization/" + organization;
+                    return;
                 }
             }
         }
@@ -278,19 +276,17 @@ namespace Altinn.Platform.Events.Controllers
             }
 
             int? userId = HttpContext.User.GetUserIdAsInt();
+            if (userId.HasValue)
             {
-                if (userId.HasValue)
-                {
-                    eventsSubscription.CreatedBy = "/user/" + userId.Value;
-                }
+                eventsSubscription.CreatedBy = "/user/" + userId.Value;
+                return;
             }
 
             string organization = HttpContext.User.GetOrgNumber();
+            if (!string.IsNullOrEmpty(organization))
             {
-                if (!string.IsNullOrEmpty(organization))
-                {
-                    eventsSubscription.CreatedBy = "/organization/" + organization;
-                }
+                eventsSubscription.CreatedBy = "/organization/" + organization;
+                return;
             }
         }
 
