@@ -2,6 +2,7 @@ import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducer
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import Ajv from 'ajv';
+import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/formLayoutReducer';
