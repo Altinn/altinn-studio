@@ -57,7 +57,8 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Method to register an event
+        /// Method to register an subscription for events.
+        /// Requires information about endpoint to post events for subscribers.
         /// </summary>
         /// <param name="eventsSubscription">The subscription details</param>
         /// <returns></returns>
@@ -114,7 +115,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// API to delete a given event
+        /// API to delete a given subscription
         /// </summary>
         [Authorize]
         [HttpDelete("{id}")]
@@ -132,7 +133,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Enriches the 
+        /// Enriches the subject filter with party information based on alternative subject
         /// </summary>
         private async Task EnrichSubject(EventsSubscription eventsSubscription)
         {
