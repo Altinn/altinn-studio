@@ -3,7 +3,7 @@ import { Action, Reducer } from 'redux';
 import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
 import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
-import * as LayoutActionTypes from '../layout/formLayoutActionTypes';
+import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
 import * as ProcessActionTypes from '../../../shared/resources/process/processActionTypes';
 
@@ -157,7 +157,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
       });
     }
 
-    case LayoutActionTypes.UPDATE_CURRENT_VIEW: {
+    case FormLayoutActions.updateCurrentView.type: {
       return Immutable<IFormDataState>(state, {
         hasSubmitted: {
           $set: true,
@@ -165,7 +165,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
       });
     }
 
-    case LayoutActionTypes.UPDATE_CURRENT_VIEW_FULFILLED: {
+    case FormLayoutActions.updateCurrentViewFulfilled.type: {
       return Immutable<IFormDataState>(state, {
         hasSubmitted: {
           $set: false,

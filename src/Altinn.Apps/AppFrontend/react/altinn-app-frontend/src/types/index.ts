@@ -5,7 +5,7 @@ import ajv from 'ajv';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/formLayoutReducer';
+import { ILayoutState } from '../features/form/layout/formLayoutSlice';
 import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
@@ -243,6 +243,7 @@ export interface IValidationIssue {
 export interface IUiConfig {
   autoSave: boolean;
   currentView: string;
+  currentViewCacheKey?: string;
   returnToView?: string;
   focus: string;
   hiddenFields: string[];

@@ -5,7 +5,7 @@ import React from 'react';
 import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -14,7 +14,7 @@ import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
-import FormLayoutActions from '../layout/formLayoutActions';
+import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 
@@ -155,6 +155,7 @@ export function GroupContainer({
   components,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
@@ -207,7 +208,7 @@ export function GroupContainer({
   }, [validations, currentView, id]);
 
   const onClickAdd = () => {
-    FormLayoutActions.updateRepeatingGroups(id);
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     setEditIndex(repeatinGroupIndex + 1);
   };
 
@@ -238,7 +239,11 @@ export function GroupContainer({
 
   const onClickRemove = (groupIndex: number) => {
     setEditIndex(-1);
-    FormLayoutActions.updateRepeatingGroups(id, true, groupIndex);
+    dispatch(FormLayoutActions.updateRepeatingGroups({
+      layoutElementId: id,
+      remove: true,
+      index: groupIndex,
+    }));
   };
 
   const onClickEdit = (groupIndex: number) => {

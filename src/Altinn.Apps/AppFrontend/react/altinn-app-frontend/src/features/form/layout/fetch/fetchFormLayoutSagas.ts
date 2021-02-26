@@ -1,11 +1,10 @@
 import { SagaIterator } from 'redux-saga';
-import { call, all, take, select, takeLatest } from 'redux-saga/effects';
+import { call, all, put, take, select, takeLatest } from 'redux-saga/effects';
 import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
-import Actions from '../formLayoutActions';
-import * as ActionTypes from '../formLayoutActionTypes';
+import { FormLayoutActions as Actions } from '../formLayoutSlice';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
@@ -20,7 +19,7 @@ const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
 const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
-function* fetchFormLayoutSaga(): SagaIterator {
+function* fetchLayoutSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
@@ -47,7 +46,11 @@ function* fetchFormLayoutSaga(): SagaIterator {
         formDataState.formData);
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
-      firstLayoutKey = orderedLayoutKeys[0];
+
+      // use instance id as cache key for current page
+      const currentViewCacheKey = instance.id;
+      yield put(Actions.setCurrentViewCacheKey({ key: currentViewCacheKey }));
+      firstLayoutKey = localStorage.getItem(currentViewCacheKey) || orderedLayoutKeys[0];
 
       orderedLayoutKeys.forEach((key) => {
         layouts[key] = layoutResponse[key].data.layout;
@@ -60,29 +63,29 @@ function* fetchFormLayoutSaga(): SagaIterator {
       });
     }
 
-    yield call(Actions.fetchFormLayoutFulfilled, layouts, navigationConfig);
-    yield call(Actions.updateAutoSave, autoSave);
-    yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
-    yield call(Actions.updateCurrentView, firstLayoutKey);
-  } catch (err) {
-    yield call(Actions.fetchFormLayoutRejected, err);
-    yield call(QueueActions.dataTaskQueueError, err);
+    yield put(Actions.fetchLayoutFulfilled({ layouts, navigationConfig }));
+    yield put(Actions.updateAutoSave({ autoSave }));
+    yield put(Actions.updateRepeatingGroupsFulfilled({ repeatingGroups }));
+    yield put(Actions.updateCurrentView({ newView: firstLayoutKey }));
+  } catch (error) {
+    yield put(Actions.fetchLayoutRejected({ error }));
+    yield call(QueueActions.dataTaskQueueError, error);
   }
 }
 
 export function* watchFetchFormLayoutSaga(): SagaIterator {
   while (true) {
     yield all([
-      take(ActionTypes.FETCH_FORM_LAYOUT),
+      take(Actions.fetchLayout),
       take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
       take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
-      take(ActionTypes.FETCH_FORM_LAYOUTSETS_FULFILLED),
+      take(Actions.fetchLayoutSetsFulfilled),
     ]);
-    yield call(fetchFormLayoutSaga);
+    yield call(fetchLayoutSaga);
   }
 }
 
-export function* fetchFormLayoutSettingsSaga(): SagaIterator {
+export function* fetchLayoutSettingsSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
@@ -94,13 +97,13 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
       layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
     }
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
-    yield call(Actions.fetchFormLayoutSettingsFulfilled, settings);
+    yield put(Actions.fetchLayoutSettingsFulfilled({ settings }));
   } catch (error) {
     if (error?.response?.status === 404) {
       // We accept that the app does not have a settings.json as this is not default
-      yield call(Actions.fetchFormLayoutSettingsFulfilled, null);
+      yield put(Actions.fetchLayoutSettingsFulfilled({ settings: null }));
     } else {
-      yield call(Actions.fetchFormLayoutSettingsRejected, error);
+      yield put(Actions.fetchLayoutSettingsRejected({ error }));
     }
   }
 }
@@ -108,27 +111,27 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
 export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
   while (true) {
     yield all([
-      take(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS),
-      take(ActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
+      take(Actions.fetchLayoutSettings),
+      take(Actions.fetchLayoutFulfilled),
     ]);
-    yield call(fetchFormLayoutSettingsSaga);
+    yield call(fetchLayoutSettingsSaga);
   }
 }
 
-export function* fetchFormLayoutSetsSaga(): SagaIterator {
+export function* fetchLayoutSetsSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield call(get, getLayoutSetsUrl());
-    yield call(Actions.fetchFormLayoutSetsFulfilled, layoutSets);
+    yield put(Actions.fetchLayoutSetsFulfilled({ layoutSets }));
   } catch (error) {
     if (error?.response?.status === 404) {
       // We accept that the app does not have a layout sets as this is not default
-      yield call(Actions.fetchFormLayoutSetsFulfilled, null);
+      yield put(Actions.fetchLayoutSetsFulfilled({ layoutSets: null }));
     } else {
-      yield call(Actions.fetchFormLayoutSetsRejected, error);
+      yield put(Actions.fetchLayoutSetsRejected({ error }));
     }
   }
 }
 
 export function* watchFetchFormLayoutSetsSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.FETCH_FORM_LAYOUTSETS, fetchFormLayoutSetsSaga);
+  yield takeLatest(Actions.fetchLayoutSets, fetchLayoutSetsSaga);
 }

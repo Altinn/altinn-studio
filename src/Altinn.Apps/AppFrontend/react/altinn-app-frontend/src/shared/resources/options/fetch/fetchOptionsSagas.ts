@@ -6,7 +6,7 @@ import { ILayouts } from 'src/features/form/layout';
 import { IOption } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/urlHelper';
-import * as formLayoutActionTypes from '../../../../features/form/layout/formLayoutActionTypes';
+import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
 
@@ -40,7 +40,7 @@ export function* fetchSpecificOptionSaga(optionsId: string): SagaIterator {
 }
 
 export function* watchInitialFetchOptionSaga(): SagaIterator {
-  yield takeLatest(formLayoutActionTypes.FETCH_FORM_LAYOUT_FULFILLED, OptionsActions.fetchOptions);
+  yield takeLatest(FormLayoutActions.fetchLayoutFulfilled, OptionsActions.fetchOptions);
 }
 
 export function* watchFetchOptionsSaga(): SagaIterator {

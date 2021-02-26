@@ -5,10 +5,10 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { componentHasValidationMessages,
   getComponentValidations,
   getDisplayFormDataForComponent } from 'src/utils/formComponentUtils';
-import { shallowEqual, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { IGrid, ILayoutComponent } from 'src/features/form/layout';
-import FormLayoutActions from '../../features/form/layout/formLayoutActions';
+import { FormLayoutActions } from '../../features/form/layout/formLayoutSlice';
 import { IComponentValidations, IRuntimeState } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
@@ -44,6 +44,7 @@ const useStyles = makeStyles({
 
 export function SummaryComponent(props: ISummaryComponent) {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const {
     pageRef,
     id,
@@ -87,7 +88,11 @@ export function SummaryComponent(props: ISummaryComponent) {
   });
 
   const onChangeClick = () => {
-    FormLayoutActions.updateCurrentView(pageRef, null, summaryPageName);
+    dispatch(FormLayoutActions.updateCurrentView({
+      newView: pageRef,
+      runValidations: null,
+      returnToView: summaryPageName,
+    }));
   };
 
   React.useEffect(() => {

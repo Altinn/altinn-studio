@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
 import { IAltinnWindow } from 'src/types';
 import FormDataActions from '../../../../features/form/data/formDataActions';
-import FormLayoutActions from '../../../../features/form/layout/formLayoutActions';
+import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import QueueActions from '../queueActions';
 import { START_INITIAL_DATA_TASK_QUEUE } from './dataTaskQueueActionTypes';
 import DataModelActions from '../../../../features/form/datamodel/formDatamodelActions';
@@ -12,9 +12,9 @@ export function* startInitialDataTaskQueue(): SagaIterator {
   yield call(FormDataActions.fetchFormDataInitial);
   yield call(DataModelActions.fetchJsonSchema);
   yield call(DataModelActions.fetchDataModel, `${window.location.origin}/${org}/${app}/api/metadata/ServiceMetaData`);
-  yield call(FormLayoutActions.fetchFormLayoutSets);
-  yield call(FormLayoutActions.fetchFormLayout);
-  yield call(FormLayoutActions.fetchFormLayoutSettings);
+  yield put(FormLayoutActions.fetchLayoutSets());
+  yield put(FormLayoutActions.fetchLayout());
+  yield put(FormLayoutActions.fetchLayoutSettings());
 
   yield call(
     QueueActions.startInitialDataTaskQueueFulfilled,
