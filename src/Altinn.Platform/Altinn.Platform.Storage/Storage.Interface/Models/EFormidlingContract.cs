@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 using Newtonsoft.Json;
 
@@ -37,7 +35,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Process { get; set; }
 
         /// <summary>
-        /// Id for all data types to include in the shipment.
+        /// List of ids for the data types to include in the shipment.
         /// </summary>
         public List<string> DataTypes { get; set; }
     }
