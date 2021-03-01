@@ -21,6 +21,20 @@ namespace Altinn.Platform.Events.Tests.Mocks
             _partiesCollection = partiesCollection;
         }
 
+        public async Task<Party> GetParty(int partyId)
+        {
+            string partyPath = GetPartyPath(partyId);
+            if (File.Exists(partyPath))
+            {
+                string content = System.IO.File.ReadAllText(partyPath);
+                Party party = JsonConvert.DeserializeObject<Party>(content);
+                
+                return party;
+            }
+
+            return null;
+        }
+
         public async Task<int> PartyLookup(string orgNo, string person)
         {
             string eventsPath = Path.Combine(GetPartiesPath(), $@"{_partiesCollection}.json");
@@ -49,8 +63,14 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         private string GetPartiesPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterServiceMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\parties");
+        }
+
+        private string GetPartyPath(int partyId)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterServiceMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Party", partyId.ToString() + ".json");
         }
     }
 }

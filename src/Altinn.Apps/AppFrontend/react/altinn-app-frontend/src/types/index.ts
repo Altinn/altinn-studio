@@ -1,7 +1,7 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
-import ajv from 'ajv';
+import Ajv from 'ajv';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -217,7 +217,7 @@ export interface ISchemaValidator {
   rootElement: any;
   rootElementPath: string;
   schema: any;
-  validator: ajv.Ajv;
+  validator: Ajv;
 }
 
 export interface ITextResource {
