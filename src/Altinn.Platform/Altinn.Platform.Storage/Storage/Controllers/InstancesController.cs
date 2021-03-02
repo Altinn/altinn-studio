@@ -25,7 +25,9 @@ using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
+
 using Substatus = Altinn.Platform.Storage.Interface.Models.Substatus;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -579,6 +581,44 @@ namespace Altinn.Platform.Storage.Controllers
 
             await DispatchEvent(InstanceEventType.SubstatusUpdated, updatedInstance);
             return Ok(updatedInstance);
+        }
+
+        /// <summary>
+        /// Updates the presentation fields of an instance
+        /// </summary>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationFields")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPut]
+        public async Task<Instance> UpdatePresentationFields(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] Dictionary<string, string> presentationFields)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Dictionary<string, string> existing = instance.PresentationFields;
+
+            if (existing == null)
+            {
+                instance.PresentationFields = new Dictionary<string, string>();
+            }
+
+            foreach (KeyValuePair<string, string> entry in presentationFields)
+            {
+                if (string.IsNullOrEmpty(entry.Value))
+                {
+                    instance.PresentationFields.Remove(entry.Key);
+                }
+                else
+                {
+                    instance.PresentationFields[entry.Key] = entry.Value;
+                }
+            }
+
+            await _instanceRepository.Update(instance);
+            return instance;
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -26,7 +27,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Moq;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
@@ -947,6 +950,177 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Add presentation fields to an instance that doesn't have any existing presentation fields
+        /// Result:
+        /// Presentation fields are succesfully added and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdatePresentationFields_NoPreviousFieldsSet_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+
+            int expectedCount = 2;
+
+            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            {
+                { "key1", "value1" },
+                { "key2", "value2" }
+            };
+
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(expectedCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Update an existing presentation field 
+        /// Result:
+        /// Presentation field are succesfully updated, other fields are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdatePresentationFields_UpdateAnExistingPresentationField_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+
+            int expectedCount = 2;
+            string expectedValue = "updatedvalue1";
+            string expectedContainingKey = "key2";
+
+            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            {
+                { "key1", "updatedvalue1" },
+            };
+
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+
+            // Assert
+            Assert.Equal(expectedCount, actual.Keys.Count);
+            Assert.True(actual.ContainsKey(expectedContainingKey));
+            Assert.Equal(expectedValue, actual["key1"]);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Delete an existing presentation field 
+        /// Result:
+        /// Presentation field is succesfully removed, other fields are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdatePresentationFields_RemoveAnExistingPresentationField_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+
+            int expectedCount = 1;
+            string removedKey = "key1";
+
+            string expectedContainingKey = "key2";
+
+            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            {
+                { removedKey, string.Empty },
+            };
+
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+
+            // Assert
+            Assert.Equal(expectedCount, actual.Keys.Count);
+            Assert.True(actual.ContainsKey(expectedContainingKey));
+            Assert.False(actual.ContainsKey(removedKey));
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Add a new presentation field to an already existing collection of presentation fields
+        /// Result:
+        /// Presentation field is succesfully added to existing collection and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdatePresentationFields_AddNewPresentationFieldToExistingCollection_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+
+            int expectedCount = 3;
+
+            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            {
+                { "key3", "value3" },
+            };
+
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+
+            // Assert
+            Assert.Equal(expectedCount, actual.Keys.Count);
         }
 
         private HttpClient GetTestClient()
