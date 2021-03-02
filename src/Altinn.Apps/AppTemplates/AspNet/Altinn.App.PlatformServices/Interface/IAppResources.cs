@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Altinn.App.Common.Models;
@@ -34,6 +35,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The ServiceMetadata for an app.</returns>
+        [Obsolete("GetModelMetaDataJSON is no longer used by app frontend. Use GetModelJsonSchema.")]
         string GetModelMetaDataJSON(string org, string app);
 
         /// <summary>
