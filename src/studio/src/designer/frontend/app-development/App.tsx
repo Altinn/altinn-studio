@@ -135,7 +135,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public keepAliveSession = () => {
     const timeNow = Date.now();
-    if ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS) {
+    if ((this.state.remainingSessionMinutes > 10) && ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
       this.setState(_x => ({
         lastKeepAliveTimestamp: timeNow,
       }));
@@ -174,7 +174,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     } else {
       // user clicked outside the popover or pressed "continue", keep signed in
       this.props.dispatch(keepAliveSession());
-
+      this.setState(_x => ({
+        lastKeepAliveTimestamp: Date.now(),
+      }));
     }
   }
 
