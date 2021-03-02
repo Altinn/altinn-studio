@@ -30,8 +30,8 @@ Cypress.Commands.add("createapp", (orgName, appName) => {
  * Delete all the added components in ux-editor
  */
 Cypress.Commands.add("deletecomponents", () => {
-  cy.get(designer.dragToArea).parent().siblings().find(designer.draggable).then(($component) => {    
-    if ($component.length > 0  && $component.text().indexOf('Tomt, dra noe inn her...') === -1) {
+  cy.get(designer.dragToArea).parent().siblings().find(designer.draggable).then(($component) => {
+    if ($component.length > 0 && $component.text().indexOf('Tomt, dra noe inn her...') === -1) {
       cy.get($component).each(($el) => {
         cy.wrap($el).click();
       });
