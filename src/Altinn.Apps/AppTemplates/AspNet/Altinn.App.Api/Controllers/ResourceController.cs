@@ -109,6 +109,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model metadata</returns>
         [HttpGet]
         [Route("{org}/{app}/api/metadata/{id}")]
+        [Obsolete("Metadata endpoint is obsolete. Use jsonschema endpoint.")]
         public ActionResult GetModelMetadata([FromRoute] string org, [FromRoute] string app)
         {
             string metadata = _appResourceService.GetModelMetaDataJSON(org, app);

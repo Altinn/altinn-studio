@@ -28,6 +28,18 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return Task.FromResult(cloudEvent.Id);
         }
 
+        public Task<int> CreateEventsSubscription(Subscription eventsSubscription)
+        {
+            Random rnd = new Random();
+            eventsSubscription.Id = rnd.Next(1, int.MaxValue); 
+            return Task.FromResult(eventsSubscription.Id);
+        }
+
+        public Task DeleteSubscription(int id)
+        {
+            return Task.CompletedTask;
+        }
+
         /// <inheritdoc/>
         public Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
         {
@@ -85,10 +97,21 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return null;
         }
 
+        public Task<Subscription> GetSubscription(int id)
+        {
+            return Task.FromResult(new Subscription() { Id = id, AlternativeSubjectFilter = "/organisation/950474084", CreatedBy = "/organisation/950474084" });
+        }
+
         private string GetEventsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\events");
+        }
+
+        private string GetEventsSubscriptionPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\eventssubscriptions");
         }
     }
 }
