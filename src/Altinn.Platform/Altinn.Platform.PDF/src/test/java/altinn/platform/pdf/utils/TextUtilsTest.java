@@ -1,13 +1,10 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.TextResourceElement;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class TextUtilsTest extends TestCase {
