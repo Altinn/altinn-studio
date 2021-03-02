@@ -67,7 +67,7 @@ Follow the steps below to start localtest, app frontend, app and the tests.
 
 2. Clone the app (frontend-test) to be tested and update config in `package.json` with the paths.
 
-3. Start localtest, app frontend, app.
+3. Start localtest, app frontend, app. (Hop over to step 4 if the solutions are already running)
 ```cmd
     npm run before:appfrontend
 ```
