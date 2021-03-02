@@ -4,6 +4,7 @@ import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
 import com.google.gson.Gson;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -39,6 +40,24 @@ public class TextUtils {
       }
     }
     return key;
+  }
+
+  /**
+   * Removes illegal chars that pdf-generation does not handle
+   * @param raw the unfiltered string
+   * @return the filtered string
+   */
+  public static String removeIllegalChars(String raw) {
+    if (raw == null) {
+      return "";
+    }
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < raw.length(); i++) {
+        if (WinAnsiEncoding.INSTANCE.contains(raw.charAt(i)) ) {
+            builder.append(raw.charAt(i));
+        }
+    }
+    return builder.toString();
   }
 
   /**
