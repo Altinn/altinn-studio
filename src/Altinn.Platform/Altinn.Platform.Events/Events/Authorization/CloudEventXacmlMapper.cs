@@ -6,6 +6,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Events.Models;
+using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Platform.Events.Authorization
 {
@@ -19,6 +20,14 @@ namespace Altinn.Platform.Events.Authorization
         private const string SubjectId = "s";
         private const string ActionId = "a";
         private const string ResourceId = "r";
+
+        private const string UserPrefix = "/user/";
+        private const string OrgPrefix = "/org/";
+        private const string PartyPrefix = "/party/";
+
+        private const string ClaimUserId = "urn:altinn:userid";
+        private const string ClaimPartyID = "urn:altinn:partyid";
+        private const string ClaimOrg = "urn:altinn:org";
 
         /// <summary>
         /// Create XACML request for multiple 
@@ -48,6 +57,120 @@ namespace Altinn.Platform.Events.Authorization
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
             return jsonRequest;
+        }
+
+        /// <summary>
+        /// Create a decision Request based on a cloud event and subject
+        /// </summary>
+        public static XacmlJsonRequestRoot CreateDecisionRequest(CloudEvent events, string subject)
+        {
+            XacmlJsonRequest request = new XacmlJsonRequest();
+            request.AccessSubject = new List<XacmlJsonCategory>();
+            request.Action = new List<XacmlJsonCategory>();
+            request.Resource = new List<XacmlJsonCategory>();
+
+            string org = null;
+            string app = null;
+            string instanceOwnerPartyId = null;
+            string instanceGuid = null;
+
+            string[] pathParams = events.Source.AbsolutePath.Split("/");
+
+            if (pathParams.Count() > 3)
+            {
+                org = pathParams[1];
+                app = pathParams[2];
+                instanceOwnerPartyId = pathParams[4];
+                instanceGuid = pathParams[5];
+            }
+
+            request.AccessSubject.Add(CreateSubjectCategory(subject));
+            request.Action.Add(CreateActionCategory("read"));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
+
+            XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
+
+            return jsonRequest;
+        }
+
+        private static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
+        {
+            XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
+            actionAttributes.Attribute = new List<XacmlJsonAttribute>();
+            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
+            return actionAttributes;
+        }
+
+        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
+        {
+            XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
+            resourceCategory.Attribute = new List<XacmlJsonAttribute>();
+
+            if (!string.IsNullOrWhiteSpace(instanceOwnerPartyId))
+            {
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer, includeResult));
+            }
+
+            if (!string.IsNullOrWhiteSpace(instanceGuid) && !string.IsNullOrWhiteSpace(instanceOwnerPartyId))
+            {
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
+            }
+
+            if (!string.IsNullOrWhiteSpace(org))
+            {
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+            }
+
+            if (!string.IsNullOrWhiteSpace(app))
+            {
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
+            }
+
+            return resourceCategory;
+        }
+
+        private static XacmlJsonCategory CreateSubjectCategory(string consumer)
+        {
+            XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
+            subjectAttributes.Attribute = CreateSubjectAttributes(consumer);
+
+            return subjectAttributes;
+        }
+
+        private static List<XacmlJsonAttribute> CreateSubjectAttributes(string consumer)
+        {
+            List<XacmlJsonAttribute> attributes = new List<XacmlJsonAttribute>();
+
+            if (consumer.StartsWith(UserPrefix))
+            {
+                string value = consumer.Replace(UserPrefix, string.Empty);
+                attributes.Add(CreateXacmlJsonAttribute(ClaimUserId, value, ClaimValueTypes.String, DefaultIssuer));
+            }
+            else if (consumer.StartsWith(OrgPrefix))
+            {
+                string value = consumer.Replace(UserPrefix, string.Empty);
+                attributes.Add(CreateXacmlJsonAttribute(ClaimOrg, value, ClaimValueTypes.String, DefaultIssuer));
+            }
+            else if (consumer.StartsWith(PartyPrefix))
+            {
+                string value = consumer.Replace(PartyPrefix, string.Empty);
+                attributes.Add(CreateXacmlJsonAttribute(ClaimPartyID, value, ClaimValueTypes.Integer32, DefaultIssuer));
+            }
+
+            return attributes;
+        }
+
+        private static XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer, bool includeResult = false)
+        {
+            XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();
+
+            xacmlJsonAttribute.AttributeId = attributeId;
+            xacmlJsonAttribute.Value = value;
+            xacmlJsonAttribute.DataType = dataType;
+            xacmlJsonAttribute.Issuer = issuer;
+            xacmlJsonAttribute.IncludeInResult = includeResult;
+
+            return xacmlJsonAttribute;
         }
 
         private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
