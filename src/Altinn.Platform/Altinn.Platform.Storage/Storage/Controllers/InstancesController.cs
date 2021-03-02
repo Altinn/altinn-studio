@@ -589,7 +589,6 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationFields")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPut]
         public async Task<Instance> UpdatePresentationFields(
             [FromRoute] int instanceOwnerPartyId,
