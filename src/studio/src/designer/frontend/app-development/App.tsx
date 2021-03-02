@@ -75,7 +75,10 @@ export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
   sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
   remainingSessionMinutes: number;
+  lastKeepAliveTimestamp: number;
 }
+
+const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
   constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
@@ -84,6 +87,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       forceRepoStatusCheckComplete: true,
       sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
       remainingSessionMinutes: _props.remainingSessionMinutes,
+      lastKeepAliveTimestamp: 0,
     };
   }
 
@@ -109,11 +113,13 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
     this.props.dispatch(fetchRemainingSession());
     this.checkForMergeConflict();
+    this.setUpEventListeners();
     window.addEventListener('message', this.windowEventReceived);
   }
 
   public componentWillUnmount() {
     window.removeEventListener('message', this.windowEventReceived);
+    this.removeEventListeners();
   }
 
   public checkForMergeConflict = () => {
@@ -125,6 +131,30 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       org,
       repo: app,
     }));
+  }
+
+  public keepAliveSession = () => {
+    const timeNow = Date.now();
+    if ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS) {
+      this.setState(_x => ({
+        lastKeepAliveTimestamp: timeNow,
+      }));
+      this.props.dispatch((keepAliveSession()));
+    }
+  }
+
+  public setUpEventListeners = () => {
+    window.addEventListener('mousemove', this.keepAliveSession);
+    window.addEventListener('scroll', this.keepAliveSession);
+    window.addEventListener('onfocus', this.keepAliveSession);
+    window.addEventListener('keydown', this.keepAliveSession);
+  }
+
+  public removeEventListeners = () => {
+    window.removeEventListener('mousemove', this.keepAliveSession);
+    window.removeEventListener('scroll', this.keepAliveSession);
+    window.removeEventListener('onfocus', this.keepAliveSession);
+    window.removeEventListener('keydown', this.keepAliveSession);
   }
 
   public windowEventReceived = (event: any) => {
