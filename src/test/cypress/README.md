@@ -71,6 +71,10 @@ Follow the steps below to start localtest, app frontend, app and the tests.
 ```cmd
     npm run before:appfrontend
 ```
+If one has the frontend dependencies installed from  before, run the below command.
+```cmd
+    npm run before:appfrontend-no-deps
+```
 
 4. Start the app frontend tests from a new git bash terminal.
 ```cmd
