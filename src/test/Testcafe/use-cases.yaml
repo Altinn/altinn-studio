@@ -26,7 +26,7 @@ steps:
 
 - script: |
    set ENV=$(environment)
-   set autoTestUserPwd=$(userPassword)
+   set useCaseUserPwd=$(userPassword)
    testcafe "chrome:headless" ./usecase/usecase.js --disable-screenshots --assertion-timeout 5000 -u -e --reporter junit > testresult.xml
   
   workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'   
