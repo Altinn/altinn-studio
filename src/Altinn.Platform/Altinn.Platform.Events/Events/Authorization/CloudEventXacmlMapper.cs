@@ -86,7 +86,7 @@ namespace Altinn.Platform.Events.Authorization
 
             request.AccessSubject.Add(CreateSubjectCategory(subject));
             request.Action.Add(CreateActionCategory("read"));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
+            request.Resource.Add(CreateEventsResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
@@ -97,34 +97,36 @@ namespace Altinn.Platform.Events.Authorization
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
             actionAttributes.Attribute = new List<XacmlJsonAttribute>();
-            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
+            actionAttributes.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
             return actionAttributes;
         }
 
-        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
+        private static XacmlJsonCategory CreateEventsResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
         {
             XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
             resourceCategory.Attribute = new List<XacmlJsonAttribute>();
 
             if (!string.IsNullOrWhiteSpace(instanceOwnerPartyId))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer, includeResult));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer, includeResult));
             }
 
             if (!string.IsNullOrWhiteSpace(instanceGuid) && !string.IsNullOrWhiteSpace(instanceOwnerPartyId))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
             }
 
             if (!string.IsNullOrWhiteSpace(org))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
             }
 
             if (!string.IsNullOrWhiteSpace(app))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
             }
+
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppResource, "events", DefaultType, DefaultIssuer));
 
             return resourceCategory;
         }
@@ -144,33 +146,20 @@ namespace Altinn.Platform.Events.Authorization
             if (consumer.StartsWith(UserPrefix))
             {
                 string value = consumer.Replace(UserPrefix, string.Empty);
-                attributes.Add(CreateXacmlJsonAttribute(ClaimUserId, value, ClaimValueTypes.String, DefaultIssuer));
+                attributes.Add(DecisionHelper.CreateXacmlJsonAttribute(ClaimUserId, value, ClaimValueTypes.String, DefaultIssuer));
             }
             else if (consumer.StartsWith(OrgPrefix))
             {
                 string value = consumer.Replace(UserPrefix, string.Empty);
-                attributes.Add(CreateXacmlJsonAttribute(ClaimOrg, value, ClaimValueTypes.String, DefaultIssuer));
+                attributes.Add(DecisionHelper.CreateXacmlJsonAttribute(ClaimOrg, value, ClaimValueTypes.String, DefaultIssuer));
             }
             else if (consumer.StartsWith(PartyPrefix))
             {
                 string value = consumer.Replace(PartyPrefix, string.Empty);
-                attributes.Add(CreateXacmlJsonAttribute(ClaimPartyID, value, ClaimValueTypes.Integer32, DefaultIssuer));
+                attributes.Add(DecisionHelper.CreateXacmlJsonAttribute(ClaimPartyID, value, ClaimValueTypes.Integer32, DefaultIssuer));
             }
 
             return attributes;
-        }
-
-        private static XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer, bool includeResult = false)
-        {
-            XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();
-
-            xacmlJsonAttribute.AttributeId = attributeId;
-            xacmlJsonAttribute.Value = value;
-            xacmlJsonAttribute.DataType = dataType;
-            xacmlJsonAttribute.Issuer = issuer;
-            xacmlJsonAttribute.IncludeInResult = includeResult;
-
-            return xacmlJsonAttribute;
         }
 
         private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)

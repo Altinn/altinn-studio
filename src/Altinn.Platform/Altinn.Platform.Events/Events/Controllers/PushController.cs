@@ -79,14 +79,5 @@ namespace Altinn.Platform.Events.Controllers
 
             return Ok();
         }
-
-        /// <summary>
-        /// Method to authorize access to an Altinn App event
-        /// </summary>
-        private async Task<bool> AuthorizeConsumerForAltinnAppEvent(CloudEvent cloudEvent, string consumer)
-        {
-            return true;
-        }
-
     }
 }
