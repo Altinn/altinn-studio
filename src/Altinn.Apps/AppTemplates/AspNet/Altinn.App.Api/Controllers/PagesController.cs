@@ -36,10 +36,12 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("order")]
         public async Task<List<string>> GetPageOrder(
             string currentPage,
+            [FromRoute] string org,
+            [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-          return await _altinnApp.GetPageOrder($"{instanceOwnerPartyId}/{instanceGuid}");
+          return await _altinnApp.GetPageOrder(currentPage,org, app, instanceOwnerPartyId, instanceGuid);
         }
     }
 }
