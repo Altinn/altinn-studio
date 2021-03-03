@@ -122,7 +122,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="app">The ap.</param>
         /// <param name="instanceOwnerId">The instance owner partyId</param>
         /// <param name="instanceGuid">The instanceGuid</param>
-        /// <returns>A list of the pages in sorted order.</returns>
+        /// <returns> The pages in sorted order.</returns>
         virtual async Task<List<string>> GetPageOrder(string currentPage, string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             return await Task.FromResult(new List<string>());
