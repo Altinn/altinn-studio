@@ -88,8 +88,14 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the the layouts settings
         /// </summary>
+        /// <returns>The layout settings as a JSON string</returns>
+        string GetLayoutSettingsString();
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
         /// <returns>The layout settings</returns>
-        string GetLayoutSettings();
+        LayoutSettings GetLayoutSettings();
 
         /// <summary>
         /// Gets the the layout sets

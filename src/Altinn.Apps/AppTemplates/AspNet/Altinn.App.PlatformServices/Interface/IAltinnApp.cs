@@ -115,6 +115,15 @@ namespace Altinn.App.Services.Interface
         Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <summary>
+        /// Gets the current page order of the app
+        /// </summary>
+        /// <returns>A list of the pages in sorted order.</returns>
+        virtual async Task<List<string>> GetPageOrder(string instanceId)
+        {
+            return await Task.FromResult(new List<string>());
+        }
+
+        /// <summary>
         /// Event where app developers can add logic. 
         /// </summary>
         /// <param name="taskId">The taskId</param>

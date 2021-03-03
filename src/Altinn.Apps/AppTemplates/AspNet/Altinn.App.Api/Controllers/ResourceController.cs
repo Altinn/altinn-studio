@@ -168,7 +168,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings")]
         public ActionResult GetLayoutSettings(string org, string app)
         {
-            string settings = _appResourceService.GetLayoutSettings();
+            string settings = _appResourceService.GetLayoutSettingsString();
             return Ok(settings);
         }
 
