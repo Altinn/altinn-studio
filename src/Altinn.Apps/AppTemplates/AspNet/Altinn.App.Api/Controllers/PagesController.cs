@@ -41,7 +41,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-          return await _altinnApp.GetPageOrder(currentPage,org, app, instanceOwnerPartyId, instanceGuid);
+            return await _altinnApp.GetPageOrder(currentPage, org, app, instanceOwnerPartyId, instanceGuid);
         }
     }
 }
