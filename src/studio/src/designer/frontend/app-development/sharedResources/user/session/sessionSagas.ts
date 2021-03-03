@@ -13,7 +13,10 @@ export function* fetchRemainingSessionSaga(): SagaIterator {
       throw Error("negative remaining session time");
     }
     yield put(fetchRemainingSessionFulfilled({ remainingMinutes }));
-    if (remainingMinutes > 10) {
+    if (remainingMinutes > 30) {
+      yield delay((remainingMinutes - 30) * 60 * 1000);
+      yield put(fetchRemainingSession());
+    } else if (remainingMinutes > 10) {
       yield delay((remainingMinutes - 10) * 60 * 1000);
       yield put(fetchRemainingSession());
     }
