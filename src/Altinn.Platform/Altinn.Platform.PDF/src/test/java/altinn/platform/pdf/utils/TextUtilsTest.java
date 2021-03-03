@@ -72,4 +72,17 @@ public class TextUtilsTest extends TestCase {
       assertEquals("Bustadnummer", languages.get("nn").get("house_number"));
       assertEquals("Bolignummer", languages.get("nb").get("house_number"));
     }
+
+    public void testRemoveIllegalCharsShouldRemoveIllegalChars() {
+      String unfiltered = "\u0600\u0601\u0602\u0603\u0604\u0605\u061C\u06DD\u070F\u180E\u200B\u200C\u200D\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u2060\u2061this is ok";
+      String filtered = TextUtils.removeIllegalChars(unfiltered);
+      String expected = "this is ok";
+      assertEquals(expected, filtered);
+    }
+
+    public void testRemoveIllegalCharsShouldLeaveValidCharsUntouched() {
+      String unfiltered = "Dette er en tekst som bør gå helt fint og ingenting skal være i veien med noe slikt.";
+      String filtered = TextUtils.removeIllegalChars(unfiltered);
+      assertEquals(unfiltered, filtered);
+    }
 }

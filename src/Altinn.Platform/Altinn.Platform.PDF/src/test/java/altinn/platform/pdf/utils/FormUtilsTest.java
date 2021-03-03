@@ -18,7 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FormUtilsTest extends TestCase {
   public FormUtilsTest( String testName )
