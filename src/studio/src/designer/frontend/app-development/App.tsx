@@ -135,7 +135,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public keepAliveSession = () => {
     const timeNow = Date.now();
-    if ((this.state.remainingSessionMinutes > 10) && ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
+    if (
+      (this.state.remainingSessionMinutes > 10) &&
+      (this.state.remainingSessionMinutes < 30) &&
+      ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
       this.setState(_x => ({
         lastKeepAliveTimestamp: timeNow,
       }));
