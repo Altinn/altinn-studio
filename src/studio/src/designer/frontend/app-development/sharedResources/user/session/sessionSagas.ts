@@ -29,8 +29,12 @@ export function* watchFetchRemainingSessionSaga(): SagaIterator {
 export function* keepAliveSessionSaga(): SagaIterator {
   try {
     const url = getKeepAliveUrl();
-    const addedMinutes = yield call(get, url);
-    yield put(keepAliveSessionFulfilled({ addedMinutes}));
+    const remainingMinutes = yield call(get, url);
+    yield put(keepAliveSessionFulfilled({ remainingMinutes }));
+    if (remainingMinutes > 10) {
+      yield delay((remainingMinutes - 10) * 60 * 1000);
+      yield put(fetchRemainingSession());
+    }
   } catch (error) {
     if (error.response && error.response.status === 401) {
       yield put(signOutUser());
