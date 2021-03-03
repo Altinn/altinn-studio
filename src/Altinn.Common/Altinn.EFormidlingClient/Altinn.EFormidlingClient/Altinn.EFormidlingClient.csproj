@@ -39,7 +39,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <NoWarn>1701;1702;1587</NoWarn>
-	  <DocumentationFile>Altinn.EFormidlingClient\Altinn.EFormidlingClient\Altinn.EFormidlingClient.xml</DocumentationFile>
+	  <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>
 
 </Project>
