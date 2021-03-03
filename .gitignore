@@ -372,3 +372,5 @@ nb-configuration.xml
 .idea
 src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.iml
+
+src/Altinn.Common/Altinn.EFormidlingClient/Altinn.EFormidlingClient/Altinn.EFormidlingClient/Altinn.EFormidlingClient/Altinn.EFormidlingClient.xml

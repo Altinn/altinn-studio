@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -19,10 +19,10 @@ namespace Altinn.EFormidlingClient
     /// <summary>
     /// Represents an implementation of <see cref="IFormidlingClient"/> using a HttpClient.
     /// </summary>
-    public class FormidlingClient : IFormidlingClient
+    public class EFormidlingClient : IEFormidlingClient
     {
         private readonly HttpClient _client;
-        private readonly ILogger<FormidlingClient> _logger;
+        private readonly ILogger<EFormidlingClient> _logger;
         private readonly IOptions<EFormidlingClientSettings> _appSettings;
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Altinn.EFormidlingClient
         /// <param name="client">A HttpClient provided by a HttpClientFactory.</param>
         /// <param name="appSettings">The settings configured for eFormidling package</param>
         /// <param name="logger">Logging</param>
-        public FormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> appSettings, ILogger<FormidlingClient> logger = null)
+        public EFormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> appSettings, ILogger<EFormidlingClient> logger = null)
         {
             _client = client ?? throw new ArgumentNullException("httpClient");
             _appSettings = appSettings ?? throw new ArgumentNullException("appSettings");

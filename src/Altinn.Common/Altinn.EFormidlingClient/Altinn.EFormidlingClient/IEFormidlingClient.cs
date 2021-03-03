@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.EFormidlingClient.Models;
 using Altinn.EFormidlingClient.Models.SBD;
@@ -9,7 +9,7 @@ namespace Altinn.EFormidlingClient
     /// Interface for actions related to the eFormidling Integration Point(IP) API.
     /// Ref: https://docs.digdir.no/eformidling_nm_restdocs.html
     /// </summary>
-    public interface IFormidlingClient
+    public interface IEFormidlingClient
     {
         /// <summary>
         /// Subscribes to IP API with callback URL allowing to get push notifcation for message status

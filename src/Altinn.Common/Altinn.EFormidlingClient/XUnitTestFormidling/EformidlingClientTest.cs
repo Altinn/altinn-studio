@@ -42,7 +42,7 @@ namespace IntTestFormidling
                  });
 
             serviceCollection.AddTransient<HttpClient>();
-            serviceCollection.AddTransient<IFormidlingClient, FormidlingClient>();
+            serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
             ServiceProvider = serviceCollection.BuildServiceProvider();
 
             Guid obj = Guid.NewGuid();
@@ -66,7 +66,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Get_Capabilities() 
         {        
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             var result = await myService.GetCapabilities("984661185");
 
             Assert.Equal(typeof(Capabilities), result.GetType());
@@ -76,7 +76,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Get_Capabilities_Invalid_ParameterInput()
         {
-            var service = _serviceProvider.GetService<IFormidlingClient>();
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
             var result = await service.GetCapabilities("984661185");
 
             ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(""));
@@ -85,7 +85,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Send_Standard_Business_Document()
         {       
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json")); 
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
 
@@ -112,7 +112,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Get_Conversation_By_Id()
         {
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             Conversation conversation = await myService.GetConversationByMessageId(_guid);
 
             Assert.NotNull(conversation);
@@ -121,7 +121,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Send_Attachment_Arkivmelding()
         {
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
 
@@ -157,7 +157,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Send_Invalid_Standard_Business_Document()
         {
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbdInvalid.json"));
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
           
@@ -178,7 +178,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Send_Attachment_Binary()
         {
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             string filename = "test.pdf";
             bool sendBinaryFile = false;
 
@@ -196,7 +196,7 @@ namespace IntTestFormidling
         [Fact]
         public async void Send_Message()
         {
-            var myService = _serviceProvider.GetService<IFormidlingClient>();
+            var myService = _serviceProvider.GetService<IEFormidlingClient>();
             var completeSending = await myService.SendMessage(_guid);
 
             Assert.True(completeSending);
