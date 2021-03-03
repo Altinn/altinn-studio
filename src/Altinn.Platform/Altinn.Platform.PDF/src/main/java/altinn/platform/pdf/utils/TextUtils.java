@@ -57,7 +57,7 @@ public class TextUtils {
             builder.append(raw.charAt(i));
         }
     }
-    return builder.toString();
+    return builder.toString().replaceAll("\\p{Cntrl}", "");
   }
 
   /**
