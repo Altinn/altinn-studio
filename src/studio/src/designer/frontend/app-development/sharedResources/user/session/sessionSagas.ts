@@ -34,7 +34,7 @@ export function* keepAliveSessionSaga(): SagaIterator {
     const url = getKeepAliveUrl();
     const remainingMinutes = yield call(get, url);
     yield put(keepAliveSessionFulfilled({ remainingMinutes }));
-    yield delay(15 * 60 * 1000);
+    yield delay(10 * 60 * 1000);
     yield put(fetchRemainingSession());
   } catch (error) {
     if (error.response && error.response.status === 401) {
