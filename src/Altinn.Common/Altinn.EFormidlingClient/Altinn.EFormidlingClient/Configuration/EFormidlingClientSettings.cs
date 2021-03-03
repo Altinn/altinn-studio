@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,7 +10,7 @@ namespace Altinn.EFormidlingClient.Configuration
     public class EFormidlingClientSettings
     {
         /// <summary>
-        /// BaseUrl for eFormidling IP API
+        /// BaseUrl for eFormidling integration point API
         /// </summary>
         public string BaseUrl { get; set; }
 
