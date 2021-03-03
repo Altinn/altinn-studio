@@ -17,52 +17,28 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace IntTestFormidling
-{ 
-    public class Fixture
-    {   
-        public Fixture()
-        {
-            var serviceCollection = new ServiceCollection();
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false)
-                .AddEnvironmentVariables()
-                .Build();
-
-            serviceCollection.Configure<EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
-            serviceCollection.AddLogging(config =>
-            {
-                config.AddDebug(); 
-                config.AddConsole(); 
-            })
-                 .Configure<LoggerFilterOptions>(options =>
-                 {
-                     options.AddFilter<DebugLoggerProvider>(null /* category*/ , LogLevel.Debug /* min level */);
-                     options.AddFilter<ConsoleLoggerProvider>(null  /* category*/ , LogLevel.Debug /* min level */);
-                 });
-
-            serviceCollection.AddTransient<HttpClient>();
-            serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
-            ServiceProvider = serviceCollection.BuildServiceProvider();
-
-            Guid obj = Guid.NewGuid();
-            CustomGuid = obj.ToString();
-        }
-
-        public ServiceProvider ServiceProvider { get; private set; }
-        public string CustomGuid { get; private set; }
-    }
-
-    public class EformidlingClientTest : IClassFixture<Fixture>
+{
+    /// <summary>
+    /// Represents a collection of int test, testing the<see cref="EFormidlingClientTest"/> class.
+    /// </summary>
+    public class EFormidlingClientTest : IClassFixture<EFormidlingClientTest.Fixture>
     {
         private ServiceProvider _serviceProvider;
         private string _guid;
-        public EformidlingClientTest(Fixture fixture)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EFormidlingClientTest"/> class.
+        /// </summary>
+        /// <param name="fixture">Fixture for setup</param>
+        public EFormidlingClientTest(Fixture fixture)
         {
             _serviceProvider = fixture.ServiceProvider;
             _guid = fixture.CustomGuid;        
         }
 
+        /// <summary>
+        /// Tests retrieving capabilities
+        /// </summary>
         [Fact]
         public async void Get_Capabilities() 
         {        
@@ -73,15 +49,21 @@ namespace IntTestFormidling
             Assert.IsType<Capabilities>(result);
         }
 
+        /// <summary>
+        /// Tests retrieving capabilities with invalid parameter input
+        /// </summary>
         [Fact]
         public async void Get_Capabilities_Invalid_ParameterInput()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
             var result = await service.GetCapabilities("984661185");
 
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(""));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(string.Empty));
         }
-       
+
+        /// <summary>
+        /// Tests sending Standard Business Document
+        /// </summary>
         [Fact]
         public async void Send_Standard_Business_Document()
         {       
@@ -109,6 +91,9 @@ namespace IntTestFormidling
             Assert.Equal(JsonConvert.SerializeObject(sbdVerified), JsonConvert.SerializeObject(sbd));
         }
 
+        /// <summary>
+        /// Tests retrieving the conversation by id
+        /// </summary>
         [Fact]
         public async void Get_Conversation_By_Id()
         {
@@ -118,6 +103,9 @@ namespace IntTestFormidling
             Assert.NotNull(conversation);
         }
 
+        /// <summary>
+        /// Tests sending arkivmelding
+        /// </summary>
         [Fact]
         public async void Send_Attachment_Arkivmelding()
         {
@@ -154,6 +142,9 @@ namespace IntTestFormidling
             Assert.True(sendArkivmelding);
         }
 
+        /// <summary>
+        /// Tests sending Invalid Standard Business Document
+        /// </summary>
         [Fact]
         public async void Send_Invalid_Standard_Business_Document()
         {
@@ -175,6 +166,9 @@ namespace IntTestFormidling
             WebException ex = await Assert.ThrowsAsync<WebException>(async () => await myService.CreateMessage(sbd));
         }
 
+        /// <summary>
+        /// Tests sending Binary Attachment
+        /// </summary>
         [Fact]
         public async void Send_Attachment_Binary()
         {
@@ -193,6 +187,9 @@ namespace IntTestFormidling
             Assert.True(sendBinaryFile);
         }
 
+        /// <summary>
+        /// Tests sending message
+        /// </summary>
         [Fact]
         public async void Send_Message()
         {
@@ -200,6 +197,54 @@ namespace IntTestFormidling
             var completeSending = await myService.SendMessage(_guid);
 
             Assert.True(completeSending);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Fixture"/> class.
+        /// </summary>
+        public class Fixture
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Fixture"/> class.
+            /// </summary>
+            public Fixture()
+            {
+                var serviceCollection = new ServiceCollection();
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false)
+                    .AddEnvironmentVariables()
+                    .Build();
+
+                serviceCollection.Configure<EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
+                serviceCollection.AddLogging(config =>
+                {
+                    config.AddDebug();
+                    config.AddConsole();
+                })
+                     .Configure<LoggerFilterOptions>(options =>
+                     {
+                         options.AddFilter<DebugLoggerProvider>(null, LogLevel.Debug);
+                         options.AddFilter<ConsoleLoggerProvider>(null, LogLevel.Debug);
+                     });
+
+                serviceCollection.AddTransient<HttpClient>();
+                serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
+                ServiceProvider = serviceCollection.BuildServiceProvider();
+
+                Guid obj = Guid.NewGuid();
+                CustomGuid = obj.ToString();
+            }
+
+            /// <summary>
+            ///  Gets the ServiceProvider
+            /// </summary>
+            public ServiceProvider ServiceProvider { get; private set; }
+
+            /// <summary>
+            ///  Gets the CustomGuid
+            /// </summary>
+            public string CustomGuid { get; private set; }
         }
 
     }
