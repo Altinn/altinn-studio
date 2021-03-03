@@ -31,10 +31,8 @@ export function* keepAliveSessionSaga(): SagaIterator {
     const url = getKeepAliveUrl();
     const remainingMinutes = yield call(get, url);
     yield put(keepAliveSessionFulfilled({ remainingMinutes }));
-    if (remainingMinutes > 10) {
-      yield delay((remainingMinutes - 10) * 60 * 1000);
-      yield put(fetchRemainingSession());
-    }
+    yield delay(15 * 60 * 1000);
+    yield put(fetchRemainingSession());
   } catch (error) {
     if (error.response && error.response.status === 401) {
       yield put(signOutUser());
