@@ -150,7 +150,7 @@ namespace Altinn.Platform.Events.Authorization
             }
             else if (consumer.StartsWith(OrgPrefix))
             {
-                string value = consumer.Replace(UserPrefix, string.Empty);
+                string value = consumer.Replace(OrgPrefix, string.Empty);
                 attributes.Add(DecisionHelper.CreateXacmlJsonAttribute(ClaimOrg, value, ClaimValueTypes.String, DefaultIssuer));
             }
             else if (consumer.StartsWith(PartyPrefix))
