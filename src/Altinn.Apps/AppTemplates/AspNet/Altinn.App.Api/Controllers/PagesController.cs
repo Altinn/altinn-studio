@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.App.Services.Interface;
@@ -35,13 +34,14 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The pages sorted in the correct order</returns>
         [HttpGet("order")]
         public async Task<List<string>> GetPageOrder(
-            string currentPage,
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string currentPage,
+            [FromQuery] string dataTypeId)
         {
-            return await _altinnApp.GetPageOrder(currentPage, org, app, instanceOwnerPartyId, instanceGuid);
+            return await _altinnApp.GetPageOrder(org, app, instanceOwnerPartyId, instanceGuid, currentPage, dataTypeId);
         }
     }
 }

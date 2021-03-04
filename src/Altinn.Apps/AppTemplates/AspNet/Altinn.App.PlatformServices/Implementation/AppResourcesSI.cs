@@ -334,9 +334,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public string GetLayoutSettingsForSet(string id)
+        public string GetLayoutSettingsStringForSet(string dataTypeId)
         {
-            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.FormLayoutSettingsFileName);
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, dataTypeId, _settings.FormLayoutSettingsFileName);
             string filedata = null;
             if (File.Exists(filename))
             {
@@ -344,6 +344,20 @@ namespace Altinn.App.Services.Implementation
             }
 
             return filedata;
+        }
+
+        /// <inheritdoc />
+        public LayoutSettings GetLayoutSettingsForSet(string dataTypeId)
+        {
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, dataTypeId, _settings.FormLayoutSettingsFileName);
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata);
+            return layoutSettings;
         }
 
         /// <inheritdoc />

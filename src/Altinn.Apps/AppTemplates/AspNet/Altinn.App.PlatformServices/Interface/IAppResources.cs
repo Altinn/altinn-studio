@@ -106,14 +106,22 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the layouts for av given layoutset
         /// </summary>
+        /// <param name="dataTypeId">The data type id</param>
         /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-        string GetLayoutsForSet(string id);
+        string GetLayoutsForSet(string dataTypeId);
+
+        /// <summary>
+        /// Gets the the layouts settings for a layoutset
+        /// </summary>
+        /// <param name="dataTypeId">The data type id</param>
+        /// <returns>The layout settings as a JSON string</returns>
+        string GetLayoutSettingsStringForSet(string dataTypeId);
 
         /// <summary>
         /// Gets the the layouts settings for a layoutset
         /// </summary>
         /// <returns>The layout settings</returns>
-        string GetLayoutSettingsForSet(string id);
+        LayoutSettings GetLayoutSettingsForSet(string id);
 
         /// <summary>
         /// Gets the ruleconfiguration for av given layoutset

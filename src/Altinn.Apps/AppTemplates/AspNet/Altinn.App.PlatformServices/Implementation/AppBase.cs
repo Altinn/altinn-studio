@@ -240,9 +240,18 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual async Task<List<string>> GetPageOrder(string currentPage, string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string currentPage, string dataTypeId)
         {
-            LayoutSettings layoutSettings = _resourceService.GetLayoutSettings();
+            LayoutSettings layoutSettings = null;
+
+            if (string.IsNullOrEmpty(dataTypeId))
+            {
+                layoutSettings = _resourceService.GetLayoutSettings();
+            }
+            else
+            {
+                layoutSettings = _resourceService.GetLayoutSettingsForSet(dataTypeId);
+            }
 
             return await Task.FromResult(layoutSettings.Pages.Order);
         }
@@ -263,7 +272,7 @@ namespace Altinn.App.Services.Implementation
                 layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
-            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsStringForSet(layoutSet.Id);
 
             LayoutSettings layoutSettings = null;
             if (!string.IsNullOrEmpty(layoutSettingsFileContent))
