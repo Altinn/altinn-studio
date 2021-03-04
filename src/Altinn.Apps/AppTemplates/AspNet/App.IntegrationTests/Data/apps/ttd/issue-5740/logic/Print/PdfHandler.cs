@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
 
-namespace Altinn.App.AppLogic.Print
+namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
 {
     /// <summary>
     /// Handler for formatting PDF. 

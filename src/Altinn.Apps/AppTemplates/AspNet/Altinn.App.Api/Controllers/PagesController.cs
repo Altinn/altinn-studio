@@ -38,10 +38,11 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
+            [FromQuery] string layoutSetId,
             [FromQuery] string currentPage,
             [FromQuery] string dataTypeId)
         {
-            return await _altinnApp.GetPageOrder(org, app, instanceOwnerPartyId, instanceGuid, currentPage, dataTypeId);
+            return await _altinnApp.GetPageOrder(org, app, instanceOwnerPartyId, instanceGuid, layoutSetId, currentPage, dataTypeId);
         }
     }
 }

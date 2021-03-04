@@ -118,13 +118,14 @@ namespace Altinn.App.Services.Interface
         /// Gets the current page order of the app
         /// </summary>
         /// <param name="org">The app owner.</param>
-        /// <param name="app">The ap.</param>
+        /// <param name="app">The app.</param>
         /// <param name="instanceOwnerId">The instance owner partyId</param>
         /// <param name="instanceGuid">The instanceGuid</param>
+        /// <param name="layoutSetId">The layout set id</param>
         /// <param name="currentPage">The current page of the instance.</param>
         ///<param name="dataTypeId">The data type id of the current layout.</param>
         /// <returns> The pages in sorted order.</returns>
-        virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string currentPage, string dataTypeId)
+        virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId)
         {
             return await Task.FromResult(new List<string>());
         }

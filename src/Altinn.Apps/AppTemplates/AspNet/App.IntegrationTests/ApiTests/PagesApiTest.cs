@@ -96,5 +96,31 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expected, actual);
         }
+        /// <summary>
+        /// Scenario: Get page order for an app with layout set. No custom implementation in app.
+        /// Successful: Pages retrieved from correct layout settings and returned without manipulation.
+        /// </summary>
+        [Fact]
+        public async Task GetPageOrder_NoCustomConfigurationLayoutSet_PageOrderIsRetrievedFromAppBaseAndReturned()
+        {
+            string org = "ttd";
+            string app = "frontend-test";
+            List<string> expected = new List<string> { "formLayout", "summary" };
+
+            // Using default app here to not reference App.cs in the app repo.
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            List<string> actual = JsonConvert.DeserializeObject<List<string>>(responseContent);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expected, actual);
+        }
     }
 }
