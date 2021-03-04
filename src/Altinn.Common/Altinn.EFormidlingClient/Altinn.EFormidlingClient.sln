@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.EFormidlingClient", "Altinn.EFormidlingClient\Altinn.EFormidlingClient.csproj", "{3EE9F578-0CB0-4884-9A68-DF50D1957FE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.EFormidlingClient.Tests", "XUnitTestFormidling\Altinn.EFormidlingClient.Tests.csproj", "{090C4A90-4E9F-4FBF-AD9D-891CD9BDFD96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.EFormidlingClient.Tests", "Altinn.EFormidlingClient.Tests\Altinn.EFormidlingClient.Tests.csproj", "{090C4A90-4E9F-4FBF-AD9D-891CD9BDFD96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
