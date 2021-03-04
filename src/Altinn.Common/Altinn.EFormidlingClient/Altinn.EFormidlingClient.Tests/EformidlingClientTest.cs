@@ -66,7 +66,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         [Fact]
         public async void Send_Standard_Business_Document()
         {       
-            var myService = _serviceProvider.GetService<IEFormidlingClient>();
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json")); 
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
 
@@ -86,7 +86,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;        
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
             
-            StandardBusinessDocument sbdVerified = await myService.CreateMessage(sbd);     
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);     
             Assert.Equal(JsonConvert.SerializeObject(sbdVerified), JsonConvert.SerializeObject(sbd));
         }
 
@@ -108,7 +108,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         [Fact]
         public async void Send_Attachment_Arkivmelding()
         {
-            var myService = _serviceProvider.GetService<IEFormidlingClient>();
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
 
@@ -125,7 +125,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
 
-            StandardBusinessDocument sbdVerified = await myService.CreateMessage(sbd);
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
        
             string filename = "arkivmelding.xml";
             bool sendArkivmelding = false;
@@ -134,7 +134,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             {
                 if (fs.Length > 3)
                 {
-                    sendArkivmelding = await myService.UploadAttachment(fs, _guid, filename);
+                    sendArkivmelding = await service.UploadAttachment(fs, _guid, filename);
                 }
             }
 
@@ -147,7 +147,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         [Fact]
         public async void Send_Invalid_Standard_Business_Document()
         {
-            var myService = _serviceProvider.GetService<IEFormidlingClient>();
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
             JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbdInvalid.json"));
             StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
           
@@ -162,7 +162,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
 
-            WebException ex = await Assert.ThrowsAsync<WebException>(async () => await myService.CreateMessage(sbd));
+            WebException ex = await Assert.ThrowsAsync<WebException>(async () => await service.CreateMessage(sbd));
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         [Fact]
         public async void Send_Attachment_Binary()
         {
-            var myService = _serviceProvider.GetService<IEFormidlingClient>();
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
             string filename = "test.pdf";
             bool sendBinaryFile = false;
 
@@ -179,7 +179,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             {
                 if (fs.Length > 3)
                 {
-                    sendBinaryFile = await myService.UploadAttachment(fs, _guid, filename);
+                    sendBinaryFile = await service.UploadAttachment(fs, _guid, filename);
                 }
             }
 
@@ -192,8 +192,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         [Fact]
         public async void Send_Message()
         {
-            var myService = _serviceProvider.GetService<IEFormidlingClient>();
-            var completeSending = await myService.SendMessage(_guid);
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
+            var completeSending = await service.SendMessage(_guid);
 
             Assert.True(completeSending);
         }
