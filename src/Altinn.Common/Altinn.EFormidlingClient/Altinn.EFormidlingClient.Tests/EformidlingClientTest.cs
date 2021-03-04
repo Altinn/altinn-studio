@@ -172,6 +172,27 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Attachment_Binary()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
+            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
+            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+
+            string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
+            string type = "arkivmelding";
+
+            DateTime currentCreationTime = DateTime.Now;
+            DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
+
+            Guid obj = Guid.NewGuid();
+            _guid = obj.ToString();
+
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().Identifier = process;
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
+
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
+
             string filename = "test.pdf";
             bool sendBinaryFile = false;
 
