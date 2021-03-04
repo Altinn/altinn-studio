@@ -91,7 +91,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// <summary>
         /// Run data validation event to perform custom validations on data
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
@@ -101,7 +100,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// <summary>
         /// Run task validation event to perform custom validations on instance
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
@@ -129,7 +127,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// <summary>
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
-        /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
            await _instantiationHandler.DataCreation(instance, data);

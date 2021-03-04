@@ -315,11 +315,11 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public string GetLayoutsForSet(string id)
+        public string GetLayoutsForSet(string layoutSetId)
         {
             Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-            string layoutsPath = _settings.AppBasePath + _settings.UiFolder + id + "/layouts/";
+            string layoutsPath = _settings.AppBasePath + _settings.UiFolder + layoutSetId + "/layouts/";
             if (Directory.Exists(layoutsPath))
             {
                 foreach (string file in Directory.GetFiles(layoutsPath))
