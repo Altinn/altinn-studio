@@ -107,6 +107,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "klareringsportalen":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
                             break;
+                        case "issue-5740":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.issue5740.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
