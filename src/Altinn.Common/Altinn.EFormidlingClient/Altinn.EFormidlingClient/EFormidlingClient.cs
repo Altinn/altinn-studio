@@ -268,7 +268,6 @@ namespace Altinn.EFormidlingClient
             }
             else
             {
-                _logger.LogError($"{responseBody} - {response.StatusCode} - {response.ReasonPhrase}.");
                 throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
             }       
         }
@@ -281,7 +280,6 @@ namespace Altinn.EFormidlingClient
                 throw new ArgumentNullException();
             }
 
-            //var jsonContent = JsonConvert.SerializeObject(sbd)
             var serializerSettings = new JsonSerializerSettings();
             serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             var jsonContent = JsonConvert.SerializeObject(sbd, serializerSettings);
@@ -305,9 +303,8 @@ namespace Altinn.EFormidlingClient
 
                 return sbdVerified;
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException)
             {
-                _logger.LogError("Message :{0} ", e.Message);
                 throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
             }
             catch (Exception ex)
@@ -349,10 +346,9 @@ namespace Altinn.EFormidlingClient
                     return true;
                 }
             }
-            catch (HttpRequestException e)
-            {
-                _logger.LogError("Message :{0} StatusCode :{1}", e.Message, response.StatusCode);
-                throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
+            catch (HttpRequestException)
+            {           
+                throw new WebException($"The remote server returned unexpected status code: {response.StatusCode} - {responseBody}.");
             }
 
             return false;
