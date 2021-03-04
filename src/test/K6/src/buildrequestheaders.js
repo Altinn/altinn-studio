@@ -1,4 +1,4 @@
-let subscriptionKey = __ENV.subskey;
+let appsAccessSubscriptionKey = __ENV.appsaccesskey;
 let environment = (__ENV.env).toLowerCase();
 let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
@@ -21,7 +21,7 @@ export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCooki
             }
         };
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -30,7 +30,7 @@ export function buildHearderWithRuntime(altinnStudioRuntimeCookie, api) {
     var params = {
         headers: { "Authorization": "Bearer " + altinnStudioRuntimeCookie }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -51,7 +51,7 @@ export function buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, api) {
             "Content-Type": "application/json"
         }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -60,7 +60,7 @@ export function buildHeaderWithAspxAuth(aspxauthCookie, api) {
     var params = {
         cookies: { ".ASPXAUTH": aspxauthCookie }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -71,7 +71,7 @@ export function buildHeaderWithJson(api) {
             "Content-Type": "application/json"
         }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -82,14 +82,14 @@ export function buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, api) {
             "AltinnStudioRuntime": altinnStudioRuntimeCookie
         }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
 //Function to build a request header only with subscription key
 export function buildHeaderWithSubsKey(api) {
     var params = {};
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -106,7 +106,7 @@ export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, a
             "Content-Type": 'multipart/form-data; boundary="abcdefg"'
         }
     };
-    params = addSubscriptionKey(params, subscriptionKey, api);
+    params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
     return params;
 };
 
@@ -118,12 +118,13 @@ export function isGuid(stringToTest) {
 
 //Function to add subscription key to the header when sent as env variable from command line
 //and env is YT01 or TT02 and endpoint is a platform endpoint
-function addSubscriptionKey(params, subscriptionKey, api) {
-    if ((environment == "at21" || environment == "yt01" || environment == "tt02" || environment == "prod") && subscriptionKey != null && api == "platform") {
+function addSubscriptionKey(params, appsAccessSubscriptionKey, api) {
+    var supportsApim = ["at21", "at22", "yt01", "tt02", "prod"];
+    if ((supportsApim.includes(environment)) && appsAccessSubscriptionKey != null && api == "platform") {
         if (params["headers"] == null) {
             params["headers"] = {};
         };
-        params.headers["Ocp-Apim-Subscription-Key"] = subscriptionKey;
+        params.headers["Ocp-Apim-Subscription-Key"] = appsAccessSubscriptionKey;
     };
     return params;
 };

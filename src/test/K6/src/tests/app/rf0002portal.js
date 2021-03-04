@@ -9,7 +9,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv 
-  /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+  /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=***
 */
 
 import { check, sleep } from "k6";

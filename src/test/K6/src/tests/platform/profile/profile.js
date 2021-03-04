@@ -1,6 +1,7 @@
 /* 
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run src/tests/platform/profile/profile.js -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
+    Command: docker-compose run k6 run /src/tests/platform/profile/profile.js 
+    -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";

@@ -1,7 +1,8 @@
 /* 
   This test is to create an instance with form data xml using multipart request body.
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run src/tests/app/multipartdata.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+  command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js 
+  -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
 import { check } from "k6";

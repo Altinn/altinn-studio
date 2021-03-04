@@ -1,6 +1,7 @@
 /* 
     Test data required: username and password
-    Command: docker-compose run k6 run src/tests/platform/authentication/authentication.js -e env=*** -e username=*** -e userpwd=*** -e subskey=***
+    Command: docker-compose run k6 run /src/tests/platform/authentication/authentication.js 
+    -e env=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
 import * as setUpData from "../../../setup.js";

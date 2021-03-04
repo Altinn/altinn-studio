@@ -11,7 +11,7 @@
   Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
   parameter attachmentdistribution among small, medium and large attachment.
   example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+  -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e attachmentdistribution="60;30;10"
 */
 
 import { check } from "k6";

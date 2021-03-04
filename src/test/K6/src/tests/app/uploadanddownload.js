@@ -4,7 +4,7 @@
   parameter attachmentdistribution among small, medium and large attachment.
 
   example: k6 run -i 20 -u 10 --logformat raw --console-output=./src/data/instances.csv 
-  /src/tests/app/rf0002withattachment.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+  /src/tests/app/rf0002withattachment.js -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e attachmentdistribution="60;30;10"
 
    Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
   [

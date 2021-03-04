@@ -8,8 +8,8 @@
     Test data required: username and password, deployed app with two tasks that requires level 2 login 
     (reference app: ttd/two-task-app) to find the party id of the user to create an instance
     and maskinporten token
-    Command: docker-compose run k6 run src/tests/app/appowner/instances.js 
-    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
+    Command: docker-compose run k6 run /src/tests/app/appowner/instances.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";

@@ -13,7 +13,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/sirius.js 
-  -e env=test -e org=ttd -e level2app=sirius -e subskey=*** -e maskinporten=token -e wait=5
+  -e env=test -e org=ttd -e level2app=sirius -e appsaccesskey=*** -e maskinporten=token -e wait=5
 */
 
 import { check, sleep, group } from "k6";

@@ -1,6 +1,7 @@
 /*
   Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
-  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js -e env=test -e org=ttd -e level2app=apps-test -e subskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
+  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js 
+  -e env=test -e org=ttd -e level2app=apps-test -e appsaccesskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
 */
 
 import { check } from "k6";

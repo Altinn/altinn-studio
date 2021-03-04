@@ -9,7 +9,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/e2erf0002.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e archive=true -e delete=true -e harddelete=true
+  -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e archive=true -e delete=true -e harddelete=true
 */
 
 import { check } from "k6";

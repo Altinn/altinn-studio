@@ -1,6 +1,7 @@
 /* 
   This test requires an user name and password and an app
-  command to run the test: docker-compose run k6 run src/tests/platform/negativetests/withoutauthentication.js -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
+  command to run the test: docker-compose run k6 run /src/tests/platform/negativetests/withoutauthentication.js 
+  -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
 import { check } from "k6";

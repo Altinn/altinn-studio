@@ -7,8 +7,8 @@
     This test script is a negative test where app owner should be forbidden to write to instance without write access
     Test data required: username and password, deployed app that requires level 2 login 
     (reference app: ttd/apps-test) to find the party id of the user and maskinporten token
-    Command: docker-compose run k6 run src/tests/app/negativetests/appowner-writewithoutaccess.js 
-    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
+    Command: docker-compose run k6 run /src/tests/app/negativetests/appowner-writewithoutaccess.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";

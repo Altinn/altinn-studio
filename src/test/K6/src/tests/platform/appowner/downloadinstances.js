@@ -5,7 +5,7 @@
 
     This test script can only be run with virtual users and iterations count and not based on duration.
     example: k6 run -i 20 -u 10 /src/tests/platform/storage/appowner/downloadinstances.js -e env=test -e org=ttd 
-    -e level2app=rf-0002 -e subskey=*** -e maskinporten=token
+    -e level2app=rf-0002 -e appsaccesskey=*** -e maskinporten=token -e appsaccesskey=***
 */
 
 import { check } from "k6";
