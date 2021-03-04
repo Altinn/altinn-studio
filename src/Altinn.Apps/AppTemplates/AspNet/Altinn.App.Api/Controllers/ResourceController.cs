@@ -168,7 +168,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings")]
         public ActionResult GetLayoutSettings(string org, string app)
         {
-            string settings = _appResourceService.GetLayoutSettings();
+            string settings = _appResourceService.GetLayoutSettingsString();
             return Ok(settings);
         }
 
@@ -183,7 +183,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings/{id}")]
         public ActionResult GetLayoutSettings(string org, string app, string id)
         {
-            string settings = _appResourceService.GetLayoutSettingsForSet(id);
+            string settings = _appResourceService.GetLayoutSettingsStringForSet(id);
             return Ok(settings);
         }
 
@@ -219,28 +219,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return StatusCode(404);
-        }
-
-        /// <summary>
-        /// Get the ruleconfiguration.
-        /// </summary>
-        /// <param name="org">The application owner short name</param>
-        /// <param name="app">The application name</param>
-        /// <param name="id">The layoutset id</param>
-        /// <returns>The settings in the form of a string.</returns>
-        [HttpGet]
-        [Route("{org}/{app}/api/ruleconfiguration/{id}")]
-        public ActionResult GetRuleConfiguration(string org, string app, string id)
-        {
-            byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
-
-            if (fileContent == null)
-            {
-                // frontend will fail witout content
-                fileContent = new byte[0];
-            }
-
-            return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
-        }
+        }        
     }
 }

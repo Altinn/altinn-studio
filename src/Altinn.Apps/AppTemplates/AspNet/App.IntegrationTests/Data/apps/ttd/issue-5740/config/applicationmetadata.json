@@ -1,0 +1,41 @@
+﻿{
+  "id": "ttd/issue-5740",
+  "org": "ttd",
+  "title": {
+    "nb": "issue-5740"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "default",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Skjema"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2021-03-03T16:16:59.6023111Z",
+  "createdBy": "steph",
+  "lastChanged": "2021-03-03T16:16:59.6024412Z",
+  "lastChangedBy": "steph"
+}
