@@ -148,10 +148,15 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
-            if (string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
-                && string.IsNullOrEmpty(eventsSubscription.SourceFilter))
+            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsoluteUri))
             {
-                message = "Source is required when subject is not defined";
+                message = "Source is required";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsolutePath) || eventsSubscription.SourceFilter.AbsolutePath.Split("/").Length < 3)
+            {
+                message = "A valid app id is required in Source filter {environment}/{org}/{app}";
                 return false;
             }
 

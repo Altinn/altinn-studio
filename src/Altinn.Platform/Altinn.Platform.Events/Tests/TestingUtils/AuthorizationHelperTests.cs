@@ -62,5 +62,28 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             // Assert.
             Assert.True(result);
         }
+
+        /// <summary>
+        /// Test access to event for user for org.Not authorized
+        /// </summary>
+        [Fact]
+        public async Task AuthorizeOrgAccessToEventForUserNotAuthorized()
+        {
+            PepWithPDPAuthorizationMockSI pdp = new PepWithPDPAuthorizationMockSI();
+            AuthorizationHelper authzHelper = new AuthorizationHelper(pdp);
+
+            CloudEvent cloudEvent = new CloudEvent()
+            {
+                Source = new Uri("https://skd.apps.altinn.no/ttd/endring-av-navn-v2/instances/1337/6fb3f738-6800-4f29-9f3e-1c66862656cd"),
+                Subject = "/party/1337"
+            };
+
+            // Act
+
+            bool result = await authzHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, "/org/nav");
+
+            // Assert.
+            Assert.False(result);
+        }
     }
 }
