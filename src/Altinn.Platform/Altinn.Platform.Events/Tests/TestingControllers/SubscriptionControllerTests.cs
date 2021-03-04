@@ -184,7 +184,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/", "/organisation/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "923609016"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "897069651"));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
                 {
                     Content = new StringContent(cloudEventSubscription.Serialize(), Encoding.UTF8, "application/json")

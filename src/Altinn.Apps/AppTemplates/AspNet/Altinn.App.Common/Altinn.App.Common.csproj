@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.2" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.5" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

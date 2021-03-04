@@ -24,7 +24,7 @@ public class InstanceUtils {
 
     for (Data data: instance.getData()) {
       if (id.equals(data.getDataType())) {
-        list.add(data.getFilename());
+        list.add(TextUtils.removeIllegalChars(data.getFilename()));
       }
     }
     return list;

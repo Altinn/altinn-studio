@@ -31,6 +31,7 @@ namespace Altinn.Platform.Events.Controllers
         private const string PersonPrefix = "/person/";
         private const string UserPrefix = "/user/";
         private const string OrgPrefix = "/org/";
+        private const string PartyPrefix = "/party/";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
@@ -61,8 +62,8 @@ namespace Altinn.Platform.Events.Controllers
         {
             await EnrichSubject(eventsSubscription);
 
-            SetCreatedBy(eventsSubscription);
-            EnrichConsumer(eventsSubscription);
+            await SetCreatedBy(eventsSubscription);
+            await EnrichConsumer(eventsSubscription);
 
             string message = null;
             if (!ValidateSubscription(eventsSubscription, out message))
@@ -197,7 +198,7 @@ namespace Altinn.Platform.Events.Controllers
                     return false;
                 }
             }
-            else if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter) && !eventsSubscription.AlternativeSubjectFilter.Equals(eventsSubscription.Consumer))
+            else if (!string.IsNullOrEmpty(eventsSubscription.SubjectFilter) && !eventsSubscription.SubjectFilter.Equals(eventsSubscription.Consumer))
             {
                 return false;
             }
@@ -228,7 +229,7 @@ namespace Altinn.Platform.Events.Controllers
             return null;
         }
 
-        private void EnrichConsumer(Subscription eventsSubscription)
+        private async Task EnrichConsumer(Subscription eventsSubscription)
         {
             if (string.IsNullOrEmpty(eventsSubscription.Consumer))
             {
@@ -249,13 +250,14 @@ namespace Altinn.Platform.Events.Controllers
                 string organization = HttpContext.User.GetOrgNumber();
                 if (!string.IsNullOrEmpty(organization))
                 {
-                    eventsSubscription.Consumer = OrganisationPrefix + organization;
+                    int partyId = await _registerService.PartyLookup(organization, null);
+                    eventsSubscription.Consumer = PartyPrefix + partyId;
                     return;
                 }
             }
         }
 
-        private void SetCreatedBy(Subscription eventsSubscription)
+        private async Task SetCreatedBy(Subscription eventsSubscription)
         {
             string org = HttpContext.User.GetOrg();
             if (!string.IsNullOrEmpty(org))
@@ -274,7 +276,8 @@ namespace Altinn.Platform.Events.Controllers
             string organization = HttpContext.User.GetOrgNumber();
             if (!string.IsNullOrEmpty(organization))
             {
-                eventsSubscription.CreatedBy = OrganisationPrefix + organization;
+                int partyId = await _registerService.PartyLookup(organization, null);
+                eventsSubscription.CreatedBy = PartyPrefix + partyId;
                 return;
             }
         }
