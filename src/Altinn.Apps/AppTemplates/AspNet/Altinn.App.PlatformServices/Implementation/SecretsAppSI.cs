@@ -45,10 +45,10 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<JsonWebKey> GetKeyAsync(string keyNamee)
+        public async Task<JsonWebKey> GetKeyAsync(string keyName)
         {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
-            KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyNamee);
+            KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyName);
 
             return kb.Key;
         }
