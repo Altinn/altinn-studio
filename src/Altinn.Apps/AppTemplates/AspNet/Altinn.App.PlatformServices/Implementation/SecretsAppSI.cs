@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
@@ -33,19 +36,19 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<byte[]> GetCertificateAsync(string certificateId)
-        {         
+        public async Task<byte[]> GetCertificateAsync(string certificateName)
+        {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
-            CertificateBundle cert = await client.GetCertificateAsync(certificateId);
+            CertificateBundle cert = await client.GetCertificateAsync(_vaultUri, certificateName);
 
             return cert.Cer;
         }
 
         /// <inheritdoc />
-        public async Task<JsonWebKey> GetKeyAsync(string keyId)
+        public async Task<JsonWebKey> GetKeyAsync(string keyName)
         {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
-            KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyId);
+            KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyName);
 
             return kb.Key;
         }
@@ -58,10 +61,10 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<string> GetSecretAsync(string secretId)
+        public async Task<string> GetSecretAsync(string secretName)
         {
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
-            SecretBundle sb = await client.GetSecretAsync(_vaultUri, secretId);
+            SecretBundle sb = await client.GetSecretAsync(_vaultUri, secretName);
 
             return sb.Value;
         }
