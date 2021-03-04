@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Altinn.EFormidlingClient.Models;
 using Altinn.EFormidlingClient.Models.SBD;
 
-namespace Altinn.EFormidlingClient
+namespace Altinn.Common.EFormidlingClient
 {
     /// <summary>
     /// Interface for actions related to the eFormidling Integration Point(IP) API.
