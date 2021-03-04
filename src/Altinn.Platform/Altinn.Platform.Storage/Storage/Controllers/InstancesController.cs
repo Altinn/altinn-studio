@@ -589,7 +589,6 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationFields")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPut]
         public async Task<Instance> UpdatePresentationFields(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
@@ -597,9 +596,8 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            Dictionary<string, string> existing = instance.PresentationFields;
 
-            if (existing == null)
+            if (instance.PresentationFields == null)
             {
                 instance.PresentationFields = new Dictionary<string, string>();
             }
@@ -616,8 +614,8 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
-            await _instanceRepository.Update(instance);
-            return instance;
+            Instance updatedInstance = await _instanceRepository.Update(instance);
+            return updatedInstance;
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
