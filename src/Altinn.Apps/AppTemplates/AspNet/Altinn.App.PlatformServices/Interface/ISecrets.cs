@@ -27,9 +27,9 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the latest version of a certificate from key vault.
         /// </summary>
-        /// <param name="certificateId">The id of the certificate.</param>
+        /// <param name="certificateName">The name of certificate.</param>
         /// <returns>The certificate as a byte array.</returns>
-        Task<byte[]> GetCertificateAsync(string certificateId);
+        Task<byte[]> GetCertificateAsync(string certificateName);
 
         /// <summary>
         /// Gets the key vault client.
