@@ -39,10 +39,10 @@ test('Error messages when app does not exist', async () => {
   appName = appName.split("/");
   appName = appName[1];
   await t
-    .expect(dash.appsList.child('div').count).gte(1, 'Apps not loaded', { timeout: 120000 }) //To wait until the apps are loaded
+    .expect(dash.appsList.child('div').count).gte(1, 'Apps not loaded', { timeout: 60000 }) //To wait until the apps are loaded
     .click(dash.appSearch)
     .typeText(dash.appSearch, "cannotfindapp")
     .pressKey("enter")
-    .expect(Selector('p').withText(t.ctx.ingenSkriveApper).exists).ok({ timeout: 120000 })
-    .expect(Selector('p').withText(t.ctx.ingenLeseApper).exists).ok({ timeout: 120000 })
+    .expect(Selector('p').withText(t.ctx.ingenSkriveApper).exists).ok()
+    .expect(Selector('p').withText(t.ctx.ingenLeseApper).exists).ok()
 });
