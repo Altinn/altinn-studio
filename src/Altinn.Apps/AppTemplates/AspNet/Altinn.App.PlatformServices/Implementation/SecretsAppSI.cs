@@ -36,7 +36,7 @@ namespace Altinn.App.PlatformServices.Implementation
         public async Task<byte[]> GetCertificateAsync(string certificateId)
         {         
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
-            CertificateBundle cert = await client.GetCertificateAsync(certificateId);
+            CertificateBundle cert = await client.GetCertificateAsync(_vaultUri, certificateId);
 
             return cert.Cer;
         }
