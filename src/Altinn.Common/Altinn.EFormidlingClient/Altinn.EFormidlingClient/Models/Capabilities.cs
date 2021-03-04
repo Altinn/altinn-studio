@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
-namespace Altinn.EFormidlingClient.Models
+namespace Altinn.Common.EFormidlingClient.Models
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Capabilities"/> class.

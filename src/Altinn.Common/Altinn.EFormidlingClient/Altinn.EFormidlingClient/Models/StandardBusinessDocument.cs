@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
-namespace Altinn.EFormidlingClient.Models.SBD
+namespace Altinn.Common.EFormidlingClient.Models.SBD
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="StandardBusinessDocument"/> class.

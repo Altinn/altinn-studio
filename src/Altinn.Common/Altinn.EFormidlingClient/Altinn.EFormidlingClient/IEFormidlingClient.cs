@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.EFormidlingClient.Models;
-using Altinn.EFormidlingClient.Models.SBD;
+using Altinn.Common.EFormidlingClient.Models;
+using Altinn.Common.EFormidlingClient.Models.SBD;
 
 namespace Altinn.Common.EFormidlingClient
 {

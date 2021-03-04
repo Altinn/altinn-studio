@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Altinn.EFormidlingClient.Configuration
+namespace Altinn.Common.EFormidlingClient.Configuration
 {
     /// <summary>
     /// Settings for EFormidling Client

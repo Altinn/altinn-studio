@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using Altinn.EFormidlingClient.Configuration;
-using Altinn.EFormidlingClient.Models;
-using Altinn.EFormidlingClient.Models.SBD;
+using Altinn.Common.EFormidlingClient.Configuration;
+using Altinn.Common.EFormidlingClient.Models;
+using Altinn.Common.EFormidlingClient.Models.SBD;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace Altinn.EFormidlingClient.Tests.ClientTest
+namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 {
     /// <summary>
     /// Represents a collection of int test, testing the<see cref="EFormidlingClientTest"/> class.

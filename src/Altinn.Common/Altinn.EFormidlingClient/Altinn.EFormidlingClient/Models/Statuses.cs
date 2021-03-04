@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace Altinn.EFormidlingClient.Models
+namespace Altinn.Common.EFormidlingClient.Models
 {
     /// <summary>
     /// Entity representing Statuses. Initializes a new instance of the <see cref="Statuses"/> class.

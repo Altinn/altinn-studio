@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Xml.Serialization;
 
-namespace Altinn.EFormidlingClient.Models
+namespace Altinn.Common.EFormidlingClient.Models
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ArkivmeldingMetadata"/> class.
