@@ -40,7 +40,7 @@ option {
   font-weight: 300;
   line-height: 2.4rem;
   margin-bottom: 1.2rem;
-  word-break: break-all;
+  word-break: break-word;
   text-overflow: ellipsis;
 }
 
