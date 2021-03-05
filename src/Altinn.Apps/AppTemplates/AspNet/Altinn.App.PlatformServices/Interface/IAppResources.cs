@@ -88,8 +88,14 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the the layouts settings
         /// </summary>
+        /// <returns>The layout settings as a JSON string</returns>
+        string GetLayoutSettingsString();
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
         /// <returns>The layout settings</returns>
-        string GetLayoutSettings();
+        LayoutSettings GetLayoutSettings();
 
         /// <summary>
         /// Gets the the layout sets
@@ -100,14 +106,22 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the layouts for av given layoutset
         /// </summary>
+        /// <param name="layoutSetId">The layot set id</param>
         /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-        string GetLayoutsForSet(string id);
+        string GetLayoutsForSet(string layoutSetId);
+
+        /// <summary>
+        /// Gets the the layouts settings for a layoutset
+        /// </summary>
+        /// <param name="layoutSetId">The layot set id</param>
+        /// <returns>The layout settings as a JSON string</returns>
+        string GetLayoutSettingsStringForSet(string layoutSetId);
 
         /// <summary>
         /// Gets the the layouts settings for a layoutset
         /// </summary>
         /// <returns>The layout settings</returns>
-        string GetLayoutSettingsForSet(string id);
+        LayoutSettings GetLayoutSettingsForSet(string layoutSetId);
 
         /// <summary>
         /// Gets the ruleconfiguration for av given layoutset
