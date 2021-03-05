@@ -1,6 +1,6 @@
 import http from "k6/http";
-import * as config from "../../config.js";
-import * as header from "../../buildrequestheaders.js"
+import * as config from "../../../config.js";
+import * as header from "../../../buildrequestheaders.js"
 
 //Api call to Platform:Storage to upload a data to an instance and returns the response
 export function postData(altinnStudioRuntimeCookie, partyId, instanceId, dataType, instanceData) {

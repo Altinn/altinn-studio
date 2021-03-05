@@ -5,7 +5,7 @@
 */
 
 import { check } from "k6";
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import { addErrorCount } from "../../../errorcounter.js";
 

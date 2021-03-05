@@ -6,7 +6,7 @@
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as platformInstances from "../../../api/storage/instances.js"
+import * as platformInstances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;

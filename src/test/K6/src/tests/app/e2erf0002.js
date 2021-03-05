@@ -17,8 +17,8 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
-import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
+import { deleteSblInstance } from "../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 const appOwner = __ENV.org;

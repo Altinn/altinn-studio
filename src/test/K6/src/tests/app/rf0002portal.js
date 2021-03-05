@@ -17,7 +17,7 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
 import * as setUpData from "../../setup.js";
 import * as appInstantiation from "../../api/app/instantiation.js"
 import * as appResources from "../../api/app/resources.js"

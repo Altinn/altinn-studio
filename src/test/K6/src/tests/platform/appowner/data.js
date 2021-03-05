@@ -12,9 +12,9 @@
 */
 
 import { check } from "k6";
-import * as apps from "../../../api/storage/applications.js"
-import * as instances from "../../../api/storage/instances.js"
-import * as instanceData from "../../../api/storage/data.js"
+import * as apps from "../../../api/platform/storage/applications.js"
+import * as instances from "../../../api/platform/storage/instances.js"
+import * as instanceData from "../../../api/platform/storage/data.js"
 import * as setUpData from "../../../setup.js";
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import { addErrorCount } from "../../../errorcounter.js";

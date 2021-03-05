@@ -1,6 +1,6 @@
 import http from "k6/http";
-import * as config from "../../config.js";
-import * as header from "../../buildrequestheaders.js"
+import * as config from "../../../config.js";
+import * as header from "../../../buildrequestheaders.js"
 
 //Api call to Storage:Applications to get an app texts of a specific language and returns response
 export function getAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {

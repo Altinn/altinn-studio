@@ -1,7 +1,7 @@
 import http from "k6/http";
-import * as config from "../../config.js";
-import * as header from "../../buildrequestheaders.js"
-import * as support from "../../support.js";
+import * as config from "../../../config.js";
+import * as header from "../../../buildrequestheaders.js"
+import * as support from "../../../support.js";
 
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function getSblInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) {

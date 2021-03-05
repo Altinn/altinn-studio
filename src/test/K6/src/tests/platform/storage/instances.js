@@ -6,9 +6,9 @@
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as instances from "../../../api/storage/instances.js"
+import * as instances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;

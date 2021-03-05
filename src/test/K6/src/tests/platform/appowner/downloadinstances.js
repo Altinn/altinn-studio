@@ -10,8 +10,8 @@
 
 import { check } from "k6";
 import { addErrorCount, printResponseToConsole } from "../../../errorcounter.js";
-import * as storageInstances from "../../../api/storage/instances.js"
-import * as storageData from "../../../api/storage/data.js"
+import * as storageInstances from "../../../api/platform/storage/instances.js"
+import * as storageData from "../../../api/platform/storage/data.js"
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
 import * as support from "../../../support.js";
