@@ -7,6 +7,9 @@ using Altinn.App.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace Altinn.App.Api.Controllers
 {
     /// <summary>
@@ -33,6 +36,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>The pages sorted in the correct order</returns>
         [HttpGet("order")]
+        [DisableFormValueModelBinding]
         public async Task<List<string>> GetPageOrder(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -40,9 +44,10 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromQuery] string layoutSetId,
             [FromQuery] string currentPage,
-            [FromQuery] string dataTypeId)
+            [FromQuery] string dataTypeId,
+            [FromBody] dynamic formData)
         {
-            return await _altinnApp.GetPageOrder(org, app, instanceOwnerPartyId, instanceGuid, layoutSetId, currentPage, dataTypeId);
+            return await _altinnApp.GetPageOrder(org, app, instanceOwnerPartyId, instanceGuid, layoutSetId, currentPage, dataTypeId, formData.ToString());
         }
     }
 }
