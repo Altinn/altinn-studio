@@ -36,7 +36,6 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>The pages sorted in the correct order</returns>
         [HttpGet("order")]
-        [DisableFormValueModelBinding]
         public async Task<List<string>> GetPageOrder(
             [FromRoute] string org,
             [FromRoute] string app,
