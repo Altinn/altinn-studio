@@ -39,7 +39,7 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -61,7 +61,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
             httpRequestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -88,7 +88,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
             httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -116,7 +116,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=default");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=message");
             httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

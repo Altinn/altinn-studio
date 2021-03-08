@@ -86,10 +86,10 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Issue5740
         }
 
         /// <inheritdoc />
-        public override async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, string formData)
+        public override async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
         {
             List<string> pageOrder = new List<string> { "Side4", "Side2", "Side1", "Side3" };
-            Skjema skjema = JsonConvert.DeserializeObject<Skjema>(formData);
+            Skjema skjema = (Skjema)formData;
 
             pageOrder.Add(skjema.Skjemanummer.ToString());
             await Task.CompletedTask;
