@@ -51,8 +51,8 @@ namespace Altinn.Platform.Events.Services
             List<Subscription> searchresult = await _repository.GetSubscriptionsByConsumer("/org/%");
             return searchresult.Where(s =>
                 s.SourceFilter.Equals(source) &&
-                s.SubjectFilter.Equals(subject) &&
-                (s.TypeFilter == null || type.StartsWith(s.TypeFilter))).ToList();
+                (s.SubjectFilter == null || s.SubjectFilter.Equals(subject)) &&
+                (s.TypeFilter == null || s.TypeFilter.Equals(type))).ToList();
         }
 
         /// <inheritdoc/>
