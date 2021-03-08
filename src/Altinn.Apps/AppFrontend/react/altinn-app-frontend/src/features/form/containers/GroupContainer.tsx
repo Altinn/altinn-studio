@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   table: {
     tableLayout: 'fixed',
     marginBottom: '12px',
-    wordBreak: 'break-all',
+    wordBreak: 'break-word',
   },
   tableHeader: {
     borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,

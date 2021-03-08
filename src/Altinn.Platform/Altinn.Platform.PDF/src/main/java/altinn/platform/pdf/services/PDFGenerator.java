@@ -89,7 +89,7 @@ public class PDFGenerator {
     this.layoutSettings = pdfContext.getLayoutSettings();
     try {
       this.formData = FormUtils.parseXml(pdfContext.getData());
-      this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
+      this.textResources.setResources(parseAndCleanTextResources(this.textResources.getResources(), this.formData));
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.toString());
     }
@@ -535,10 +535,11 @@ public class PDFGenerator {
     currentContent.beginMarkedContent(name, PDPropertyList.create(currentMarkedContentDictionary));
   }
 
-  private List<TextResourceElement> parseTextResources(List<TextResourceElement> resources, Document formData) {
+  private List<TextResourceElement> parseAndCleanTextResources(List<TextResourceElement> resources, Document formData) {
     List<String> replaceValues = new ArrayList<>();
 
     for (TextResourceElement res : resources) {
+      res.setValue(TextUtils.removeIllegalChars(res.getValue()));
       replaceValues.clear();
       if (res.getVariables() != null) {
         for (TextResourceVariableElement variable : res.getVariables()) {

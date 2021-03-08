@@ -1,13 +1,14 @@
 /* 
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run src/tests/platform/storage/instances.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    Command: docker-compose run k6 run /src/tests/platform/storage/instances.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as instances from "../../../api/storage/instances.js"
+import * as instances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;

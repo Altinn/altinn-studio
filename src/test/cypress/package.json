@@ -3,14 +3,33 @@
   "version": "1.0.0",
   "description": "studio tests",
   "main": "index.js",
+  "config": {
+    "localtestPath": "C:/Repos/altinn-studio/src/development",
+    "appPath": "C:/Repos/apps/frontend-test/App",
+    "frontendPath": "C:/Repos/altinn-studio/src/Altinn.Apps/AppFrontend/react"
+  },
   "scripts": {
-    "cypress:open": "cypress open",
+    "cy:open": "cypress open",
     "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
-    "test": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'"
+    "test:studio": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'",
+    "create:testfiles": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
+    "delete:reports": "rm reports/* || true",
+    "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
+    "start:app": "cd %npm_package_config_appPath% && dotnet run",
+    "start:frontend": "cd %npm_package_config_frontendPath% && npm ci && npm run install-deps && cd altinn-app-frontend && npm start",
+    "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && npm start",
+    "before:appfrontend": "run-p start:localtest start:app start:frontend",
+    "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
+    "test:appfrontend": "npm run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
-    "cypress": "^6.1.0",
-    "faker": "^5.1.0"
+    "cypress": "^6.6.0",
+    "cypress-file-upload": "^5.0.2",
+    "cypress-plugin-tab": "^1.0.5",
+    "eslint": "^7.21.0",
+    "eslint-plugin-cypress": "^2.11.2",
+    "faker": "^5.4.0",
+    "npm-run-all": "^4.1.5"
   }
 }

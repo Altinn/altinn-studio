@@ -72,6 +72,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         public bool AutoDeleteOnProcessEnd { get; set; }
 
         /// <summary>
+        /// Gets or sets the presentation fields of the application.
+        /// </summary>
+        public List<PresentationField> PresentationFields { get; set; }
+
+        /// <summary>
         /// Gets or sets the definition of eFormidling shipments related to the app.
         /// </summary>
         [JsonProperty(PropertyName = "eFormidlingContract")]

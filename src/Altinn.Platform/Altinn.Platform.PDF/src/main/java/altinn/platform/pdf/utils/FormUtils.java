@@ -43,7 +43,8 @@ public class FormUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    return getValueOfEndNode(rootElement, keySplit, 0);
+    String value = getValueOfEndNode(rootElement, keySplit, 0);
+    return TextUtils.removeIllegalChars(value);
   }
 
   /**

@@ -7,14 +7,14 @@
     This test script upload data to app instance as an app owner.
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     and maskinporten token
-    Command: docker-compose run k6 run src/tests/platform/storage/appowner/uploaddata.js 
-    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    Command: docker-compose run k6 run /src/tests/platform/storage/appowner/uploaddata.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
 
 import { check } from "k6";
-import * as apps from "../../../api/storage/applications.js"
-import * as instances from "../../../api/storage/instances.js"
-import * as instanceData from "../../../api/storage/data.js"
+import * as apps from "../../../api/platform/storage/applications.js"
+import * as instances from "../../../api/platform/storage/instances.js"
+import * as instanceData from "../../../api/platform/storage/data.js"
 import * as setUpData from "../../../setup.js";
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import { addErrorCount } from "../../../errorcounter.js";

@@ -13,7 +13,10 @@ export function* fetchRemainingSessionSaga(): SagaIterator {
       throw Error("negative remaining session time");
     }
     yield put(fetchRemainingSessionFulfilled({ remainingMinutes }));
-    if (remainingMinutes > 10) {
+    if (remainingMinutes > 30) {
+      yield delay((remainingMinutes - 30) * 60 * 1000);
+      yield put(fetchRemainingSession());
+    } else if (remainingMinutes > 10) {
       yield delay((remainingMinutes - 10) * 60 * 1000);
       yield put(fetchRemainingSession());
     }
@@ -29,8 +32,10 @@ export function* watchFetchRemainingSessionSaga(): SagaIterator {
 export function* keepAliveSessionSaga(): SagaIterator {
   try {
     const url = getKeepAliveUrl();
-    const addedMinutes = yield call(get, url);
-    yield put(keepAliveSessionFulfilled({ addedMinutes}));
+    const remainingMinutes = yield call(get, url);
+    yield put(keepAliveSessionFulfilled({ remainingMinutes }));
+    yield delay(10 * 60 * 1000);
+    yield put(fetchRemainingSession());
   } catch (error) {
     if (error.response && error.response.status === 401) {
       yield put(signOutUser());
