@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable max-len */
 import * as React from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
@@ -25,7 +25,7 @@ import { getFormDataForComponent,
   getTextResource,
   isComponentValid,
   selectComponentTexts } from '../utils/formComponentUtils';
-import FormLayoutActions from '../features/form/layout/formLayoutActions';
+import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 
 export interface IGenericComponentProps {
@@ -47,6 +47,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     id,
     ...passThroughProps
   } = props;
+  const dispatch = useDispatch();
 
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
@@ -107,7 +108,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const handleFocusUpdate = (componentId: string, step?: number) => {
-    FormLayoutActions.updateFocus(componentId, step || 0);
+    dispatch(FormLayoutActions.updateFocus({ currentComponentId: componentId, step: step || 0 }));
   };
 
   const getValidationsForInternalHandling = () => {

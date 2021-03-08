@@ -1,0 +1,65 @@
+import { ILayoutSettings, INavigationConfig, ILayoutSets } from 'src/types';
+import { ILayouts } from '.';
+
+export interface IFormLayoutActionRejected {
+  error: Error;
+}
+
+export interface IFetchLayoutFulfilled {
+  layouts: ILayouts;
+  navigationConfig?: INavigationConfig;
+}
+
+export interface IFetchLayoutSetsFulfilled {
+  layoutSets: ILayoutSets;
+}
+
+export interface IFetchLayoutSettingsFulfilled {
+  settings: ILayoutSettings;
+}
+
+export interface ISetCurrentViewCacheKey {
+  key: string;
+}
+
+export interface IUpdateAutoSave {
+  autoSave: boolean;
+}
+
+export interface IUpdateAutoSaveFulfilled {
+  autoSave: boolean;
+}
+
+export interface IUpdateCurrentView {
+  newView: string;
+  returnToView?: string;
+  runValidations?: 'allPages' | 'page';
+}
+
+export interface IUpdateCurrentViewFulfilled {
+  newView: string;
+  returnToView?: string;
+}
+
+export interface IUpdateFocus {
+  currentComponentId: string;
+  step?: number;
+}
+
+export interface IUpdateFocusFulfilled {
+  focusComponentId: string;
+}
+
+export interface IUpdateHiddenComponents {
+  componentsToHide: string[];
+}
+
+export interface IUpdateRepeatingGroups {
+  layoutElementId: string;
+  remove?: boolean;
+  index?: number;
+}
+
+export interface IUpdateRepeatingGroupsFulfilled {
+  repeatingGroups: any;
+}
