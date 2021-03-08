@@ -151,14 +151,14 @@ export function* updateCurrentViewSaga({ payload: {
       }
       yield call(FormValidationActions.updateValidations, validations);
       if (state.formLayout.uiConfig.returnToView) {
-        if (skipPageCaching) {
+        if (!skipPageCaching) {
           localStorage.setItem(currentViewCacheKey, newView);
         }
         yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView }));
       } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield put(FormLayoutActions.updateCurrentViewRejected({ error: null }));
       } else {
-        if (skipPageCaching) {
+        if (!skipPageCaching) {
           localStorage.setItem(currentViewCacheKey, newView);
         }
         yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }));
