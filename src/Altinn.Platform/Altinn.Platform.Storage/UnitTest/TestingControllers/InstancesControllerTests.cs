@@ -965,8 +965,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            int expectedCount = 2;
-
             Dictionary<string, string> presentationFields = new Dictionary<string, string>
             {
                 { "key1", "value1" },
@@ -990,6 +988,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Dictionary<string, string> actual = updatedInstance.PresentationFields;
 
             // Assert
+            const int expectedCount = 2;
+
             Assert.NotNull(actual);
             Assert.Equal(expectedCount, actual.Keys.Count);
         }
@@ -1006,10 +1006,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Arrange
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
-
-            int expectedCount = 2;
-            string expectedValue = "updatedvalue1";
-            string expectedContainingKey = "key2";
 
             Dictionary<string, string> presentationFields = new Dictionary<string, string>
             {
@@ -1033,6 +1029,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Dictionary<string, string> actual = updatedInstance.PresentationFields;
 
             // Assert
+            const int expectedCount = 2;
+            const string expectedValue = "updatedvalue1";
+            const string expectedContainingKey = "key2";
+
             Assert.Equal(expectedCount, actual.Keys.Count);
             Assert.True(actual.ContainsKey(expectedContainingKey));
             Assert.Equal(expectedValue, actual["key1"]);
@@ -1051,10 +1051,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            int expectedCount = 1;
-            string removedKey = "key1";
-
-            string expectedContainingKey = "key2";
+            const string removedKey = "key1";
 
             Dictionary<string, string> presentationFields = new Dictionary<string, string>
             {
@@ -1078,7 +1075,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Dictionary<string, string> actual = updatedInstance.PresentationFields;
 
             // Assert
-            Assert.Equal(expectedCount, actual.Keys.Count);
+            const string expectedContainingKey = "key2";
+
+            Assert.Single(actual.Keys);
             Assert.True(actual.ContainsKey(expectedContainingKey));
             Assert.False(actual.ContainsKey(removedKey));
         }
@@ -1096,7 +1095,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            int expectedCount = 3;
+            const int expectedCount = 3;
 
             Dictionary<string, string> presentationFields = new Dictionary<string, string>
             {
