@@ -2,14 +2,14 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-restricted-syntax */
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
 import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessTaskType, ITextResource } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
-import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/process-step/Header';
 import NavBar from '../../components/process-step/NavBar';
@@ -22,6 +22,7 @@ export interface IProcessStepProvidedProps {
 }
 
 const ProcessStepComponent = (props) => {
+  const dispatch = useDispatch();
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
@@ -41,9 +42,9 @@ const ProcessStepComponent = (props) => {
 
   const handleBackArrowButton = () => {
     if (returnToView) {
-      FormLayoutActions.updateCurrentView(returnToView, 'allPages');
+      dispatch(FormLayoutActions.updateCurrentView({ newView: returnToView, runValidations: 'allPages' }));
     } else if (props.step === ProcessTaskType.Data) {
-      FormLayoutActions.updateCurrentView(previousFormPage);
+      dispatch(FormLayoutActions.updateCurrentView({ newView: previousFormPage }));
     }
   };
 

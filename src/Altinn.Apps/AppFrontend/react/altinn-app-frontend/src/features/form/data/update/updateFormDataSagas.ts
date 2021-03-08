@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { actionChannel, call, select, take } from 'redux-saga/effects';
+import { actionChannel, call, put, select, take } from 'redux-saga/effects';
 import { IRuntimeState, IValidationResult } from 'src/types';
 import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
 import { createValidator, validateComponentFormData } from '../../../../utils/validation';
@@ -8,7 +8,7 @@ import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { IUpdateFormData } from './updateFormDataActions';
-import FormLayoutActions from '../../layout/formLayoutActions';
+import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 import { getKeyWithoutIndex } from '../../../../utils/databindings';
 
@@ -64,7 +64,7 @@ function* updateFormDataSaga({
     }
 
     if (focus && focus !== '' && componentId !== focus) {
-      yield call(FormLayoutActions.updateFocus, '');
+      yield put(FormLayoutActions.updateFocus({ currentComponentId: '' }));
     }
   } catch (err) {
     console.error(err);

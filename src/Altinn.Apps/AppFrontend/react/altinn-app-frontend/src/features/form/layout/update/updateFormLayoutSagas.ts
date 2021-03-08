@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
+import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
@@ -10,10 +11,8 @@ import { getValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
-import FormLayoutActions from '../formLayoutActions';
-import * as ActionTypes from '../formLayoutActionTypes';
-import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups, IUpdateCurrentView } from './updateFormLayoutActions';
-import { ILayoutState } from '../formLayoutReducer';
+import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
+import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView } from '../formLayoutTypes';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
@@ -22,7 +21,7 @@ import FormValidationActions from '../../validation/validationActions';
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
 
-function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator {
+function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     if (currentComponentId) {
@@ -31,28 +30,20 @@ function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator 
         .findIndex((component: ILayoutComponent) => component.id === currentComponentId);
       const focusComponentIndex = step ? currentComponentIndex + step : currentComponentIndex;
       const focusComponentId = focusComponentIndex > 0 ? layout[focusComponentIndex].id : null;
-      yield call(FormLayoutActions.updateFocusFulfilled, focusComponentId);
+      yield put(FormLayoutActions.updateFocusFulfilled({ focusComponentId }));
     } else {
-      yield call(FormLayoutActions.updateFocusFulfilled, null);
+      yield put(FormLayoutActions.updateFocusFulfilled({ focusComponentId: null }));
     }
-  } catch (err) {
-    yield call(FormLayoutActions.updateFocusRejected, err);
+  } catch (error) {
+    yield put(FormLayoutActions.updateFocusRejected({ error }));
   }
 }
 
-function* updateAutoSaveSaga({ autoSave }: IUpdateAutoSave): SagaIterator {
-  try {
-    yield call(FormLayoutActions.updateAutoSaveFulfilled, autoSave);
-  } catch (err) {
-    yield call(FormLayoutActions.updateAutoSaveRejected, err);
-  }
-}
-
-function* updateRepeatingGroupsSaga({
+function* updateRepeatingGroupsSaga({ payload: {
   layoutElementId,
   remove,
   index,
-}: IUpdateRepeatingGroups) {
+} }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
@@ -81,7 +72,7 @@ function* updateRepeatingGroupsSaga({
       }
     });
 
-    yield call(FormLayoutActions.updateRepeatingGroupsFulfilled, updatedRepeatingGroups);
+    yield put(FormLayoutActions.updateRepeatingGroupsFulfilled({ repeatingGroups: updatedRepeatingGroups }));
 
     if (remove) {
       // Remove the form data associated with the group
@@ -95,19 +86,27 @@ function* updateRepeatingGroupsSaga({
     }
 
     yield call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun);
-  } catch (err) {
-    yield call(FormLayoutActions.updateRepeatingGroupsRejected, err);
+  } catch (error) {
+    yield put(FormLayoutActions.updateRepeatingGroupsRejected({ error }));
   }
 }
 
-export function* updateCurrentViewSaga({
-  newView, runValidations, returnToView,
-}: IUpdateCurrentView): SagaIterator {
+export function* updateCurrentViewSaga({ payload: {
+  newView,
+  runValidations,
+  returnToView,
+} }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
+    const state: IRuntimeState = yield select();
+    let currentViewCacheKey: string = state.formLayout.uiConfig.currentViewCacheKey;
+    if (!currentViewCacheKey) {
+      currentViewCacheKey = state.instanceData.instance.id;
+      yield put(FormLayoutActions.setCurrentViewCacheKey({ key: currentViewCacheKey }));
+    }
     if (!runValidations) {
-      yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
+      localStorage.setItem(currentViewCacheKey, newView);
+      yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }));
     } else {
-      const state: IRuntimeState = yield select();
       const currentDataTaskDataTypeId = getDataTaskDataTypeId(
         state.instanceData.instance.process.currentTask.elementId,
         state.applicationMetadata.applicationMetadata.dataTypes,
@@ -149,30 +148,28 @@ export function* updateCurrentViewSaga({
       }
       yield call(FormValidationActions.updateValidations, validations);
       if (state.formLayout.uiConfig.returnToView) {
-        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView);
+        localStorage.setItem(currentViewCacheKey, newView);
+        yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView }));
       } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
-        yield call(FormLayoutActions.updateCurrentViewRejected, null);
+        yield put(FormLayoutActions.updateCurrentViewRejected({ error: null }));
       } else {
-        yield call(FormLayoutActions.updateCurrentViewFulfilled, newView, returnToView);
+        localStorage.setItem(currentViewCacheKey, newView);
+        yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }));
       }
     }
-  } catch (err) {
-    yield call(FormLayoutActions.updateCurrentViewRejected, err);
+  } catch (error) {
+    yield put(FormLayoutActions.updateCurrentViewRejected({ error }));
   }
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
-  yield takeEvery(ActionTypes.UPDATE_CURRENT_VIEW, updateCurrentViewSaga);
+  yield takeEvery(FormLayoutActions.updateCurrentView, updateCurrentViewSaga);
 }
 
 export function* watchUpdateFocusSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.UPDATE_FOCUS, updateFocus);
-}
-
-export function* watchUpdateAutoSave(): SagaIterator {
-  yield takeLatest(ActionTypes.UPDATE_AUTO_SAVE, updateAutoSaveSaga);
+  yield takeLatest(FormLayoutActions.updateFocus, updateFocus);
 }
 
 export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.UPDATE_REPEATING_GROUPS, updateRepeatingGroupsSaga);
+  yield takeLatest(FormLayoutActions.updateRepeatingGroups, updateRepeatingGroupsSaga);
 }
