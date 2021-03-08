@@ -273,7 +273,7 @@ public class SignererEkstraArkivDatodatadef34752{
     [BindNever]
 public decimal orid {get; set;} = 34752;
     [XmlText()]
-public DateTime value { get; set; }
+public String value { get; set; }
 }
 public class SignererEkstraTidspunktdatadef34753{
 [Range(1,Int32.MaxValue)]
