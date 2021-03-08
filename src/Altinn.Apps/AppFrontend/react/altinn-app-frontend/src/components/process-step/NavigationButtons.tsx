@@ -60,7 +60,7 @@ export function NavigationButtons(props: INavigationButtons) {
     const runAllValidations = returnToView || (props.triggers && props.triggers.includes('validateAllPages'));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
     if (props.triggers?.includes('calculatePageOrder')) {
-      FormLayoutActions.calculatePageOrderAndMoveToNextPage(validations);
+      dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ validations }));
     } else {
       const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
       if (goToView) {

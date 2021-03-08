@@ -11,7 +11,7 @@ import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
 import { ILayouts } from '../index';
-import { getLayouytsetForDataElement } from '../../../../utils/layout';
+import { getLayoutsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
@@ -30,7 +30,7 @@ function* fetchLayoutSaga(): SagaIterator {
 
     let layoutSetId: string = null;
     if (layoutSets != null) {
-      layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
+      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
     }
     const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
     const layouts: ILayouts = {};
@@ -94,7 +94,7 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
       aplicationMetadataState.dataTypes);
     let layoutSetId: string = null;
     if (layoutSets != null) {
-      layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
+      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
     }
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
     yield put(Actions.fetchLayoutSettingsFulfilled({ settings }));

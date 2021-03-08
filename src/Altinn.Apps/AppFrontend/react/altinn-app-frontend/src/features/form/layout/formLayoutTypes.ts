@@ -63,3 +63,11 @@ export interface IUpdateRepeatingGroups {
 export interface IUpdateRepeatingGroupsFulfilled {
   repeatingGroups: any;
 }
+
+export interface ICalculatePageOrderAndMoveToNextPage {
+  runValidations?: 'allPages' | 'page';
+}
+
+export interface ICalculatePageOrderAndMoveToNextPageFulfilled {
+    order: string[];
+}

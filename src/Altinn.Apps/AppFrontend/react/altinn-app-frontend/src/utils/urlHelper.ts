@@ -155,5 +155,5 @@ export function getRulehandlerUrl(layoutset: string) {
 }
 
 export function getCalculatePageOrderUrl() {
-  return `${appPath}/api/rulehandler/`;
+  return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
 }

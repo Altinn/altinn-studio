@@ -8,7 +8,7 @@ import { IFetchServiceConfig } from './fetchFormDynamicsActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { IRuntimeState, ILayoutSets } from '../../../../types';
-import { getLayouytsetForDataElement } from '../../../../utils/layout';
+import { getLayoutsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
@@ -25,7 +25,7 @@ function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
       aplicationMetadataState.dataTypes);
     let apiUrl: string = url;
     if (layoutSets != null) {
-      const layoutSetId: string = getLayouytsetForDataElement(instance, dataType, layoutSets);
+      const layoutSetId: string = getLayoutsetForDataElement(instance, dataType, layoutSets);
       apiUrl = `${window.location.origin}/${org}/${app}/api/ruleconfiguration/${layoutSetId}`;
     }
     const result: any = yield call(get, apiUrl);
