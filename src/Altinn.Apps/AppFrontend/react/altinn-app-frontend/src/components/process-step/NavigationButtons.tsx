@@ -10,9 +10,6 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 
 const useStyles = makeStyles({
-  root: {
-    paddingTop: '2.4em',
-  },
   backButton: {
     marginRight: '1.2em',
   },
@@ -59,12 +56,16 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
-    const runPageValidations = !returnToView && props.triggers && (props.triggers.indexOf('validatePage') > -1);
-    const runAllValidations = returnToView || (props.triggers && (props.triggers.indexOf('validateAllPages') > -1));
+    const runPageValidations = !returnToView && props.triggers && props.triggers.includes('validatePage');
+    const runAllValidations = returnToView || (props.triggers && props.triggers.includes('validateAllPages'));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
-    if (goToView) {
-      dispatch(FormLayoutActions.updateCurrentView({ newView: goToView, runValidations: validations }));
+    if (props.triggers?.includes('calculatePageOrder')) {
+      FormLayoutActions.calculatePageOrderAndMoveToNextPage(validations);
+    } else {
+      const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+      if (goToView) {
+        dispatch(FormLayoutActions.updateCurrentView({ newView: goToView, runValidations: validations }));
+      }
     }
   };
 
@@ -72,7 +73,6 @@ export function NavigationButtons(props: INavigationButtons) {
     <Grid
       container={true}
       justify='space-between'
-      className={classes.root}
     >
       <Grid item={true} xs={10}>
         {!disableBack && props.showBackButton &&

@@ -12,7 +12,7 @@ import { createValidator, validateFormData, validateFormComponents, validateEmpt
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
-import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView } from '../formLayoutTypes';
+import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
@@ -160,6 +160,24 @@ export function* updateCurrentViewSaga({ payload: {
   } catch (error) {
     yield put(FormLayoutActions.updateCurrentViewRejected({ error }));
   }
+}
+
+export function* calculatePageOrderAndMoveToNextPageSaga({ runValidations } : ICalculatePageOrderAndMoveToNextPage): SagaIterator {
+  try {
+    const state: IRuntimeState = yield select();
+    // const model: any = convertDataBindingToModel(state.formData.formData);
+    let layoutOrder;
+    // yield call(get, )
+    const returnToView = state.formLayout.uiConfig.returnToView;
+    const newView = returnToView || layoutOrder[layoutOrder.indexOf(state.formLayout.uiConfig.currentView) + 1];
+    yield put(FormLayoutActions.updateCurrentView({ newView, runValidations }));
+  } catch (error) {
+    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({ error }));
+  }
+}
+
+export function* watchCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
+  yield takeLatest(FormLayoutActions.calculatePageOrderAndMoveToNextPage, calculatePageOrderAndMoveToNextPageSaga);
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
