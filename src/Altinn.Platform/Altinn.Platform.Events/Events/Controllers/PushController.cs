@@ -33,7 +33,6 @@ namespace Altinn.Platform.Events.Controllers
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
         private readonly AccessTokenSettings _accessTokenSettings;
-        
 
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";

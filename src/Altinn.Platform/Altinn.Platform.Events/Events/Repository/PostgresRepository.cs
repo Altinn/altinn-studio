@@ -249,7 +249,7 @@ namespace Altinn.Platform.Events.Repository
                     {
                         Subscription subscription = new Subscription();
                         subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = reader["sourcefilter"].ToString();
+                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
                         subscription.SubjectFilter = reader["subjectfilter"].ToString();
                         subscription.TypeFilter = reader["typefilter"].ToString();
                         subscription.Consumer = reader["consumer"].ToString();
@@ -264,7 +264,6 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-
                 _logger.LogError("PostgresRepository // GetSubscriptionsExcludeOrg // Exception", e);
                 throw;
             }
@@ -291,7 +290,7 @@ namespace Altinn.Platform.Events.Repository
                     {
                         Subscription subscription = new Subscription();
                         subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = reader["sourcefilter"].ToString();
+                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
                         subscription.SubjectFilter = reader["subjectfilter"].ToString();
                         subscription.TypeFilter = reader["typefilter"].ToString();
                         subscription.Consumer = reader["consumer"].ToString();
