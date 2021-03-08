@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
@@ -65,6 +66,26 @@ namespace Altinn.Platform.Events.Authorization
             }
 
             return authorizedEventsList;
+        }
+
+        /// <summary>
+        /// Method to authorize access to an Altinn App event
+        /// </summary>
+        public async Task<bool> AuthorizeConsumerForAltinnAppEvent(CloudEvent cloudEvent, string consumer)
+        {
+            XacmlJsonRequestRoot xacmlJsonRequest = CloudEventXacmlMapper.CreateDecisionRequest(cloudEvent, consumer);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+            return ValidateResult(response);
+        }
+
+        private bool ValidateResult(XacmlJsonResponse response)
+        {
+            if (response.Response[0].Decision.Equals(XacmlContextDecision.Permit.ToString()))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.PEP.Constants;
+using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
@@ -31,6 +34,9 @@ namespace Altinn.Platform.Events.Controllers
         private readonly AuthorizationHelper _authorizationHelper;
         private readonly AccessTokenSettings _accessTokenSettings;
         
+
+        private const string DefaultIssuer = "Altinn";
+        private const string DefaultType = "string";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PushController"/> class.

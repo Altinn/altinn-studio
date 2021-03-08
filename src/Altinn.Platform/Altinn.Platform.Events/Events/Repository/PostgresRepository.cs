@@ -78,7 +78,7 @@ namespace Altinn.Platform.Events.Repository
                 await _conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(insertSubscriptionSql, _conn);
-                pgcom.Parameters.AddWithValue("sourcefilter", eventsSubscription.SourceFilter);
+                pgcom.Parameters.AddWithValue("sourcefilter", eventsSubscription.SourceFilter.AbsoluteUri);
 
                 if (eventsSubscription.SubjectFilter != null)
                 {
@@ -207,7 +207,7 @@ namespace Altinn.Platform.Events.Repository
                     {
                         subscription = new Subscription();
                         subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = reader["sourcefilter"].ToString();
+                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
                         subscription.SubjectFilter = reader["subjectfilter"].ToString();
                         subscription.TypeFilter = reader["typefilter"].ToString();
                         subscription.Consumer = reader["consumer"].ToString();
