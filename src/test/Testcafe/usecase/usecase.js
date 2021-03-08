@@ -1,4 +1,4 @@
-import { t, ClientFunction, Selector } from 'testcafe';
+import { t, ClientFunction, Selector, RequestLogger } from 'testcafe';
 import DesignerPage from '../page-objects/designerPage';
 import { UseCaseUser } from '../TestData';
 import config from '../config.json';
@@ -8,6 +8,7 @@ let app = new App();
 let designerPage = new DesignerPage();
 let environment = (process.env.ENV).toLowerCase();
 let appName = config[environment].deployApp;
+const logger = RequestLogger(/.*designerapi\/Repository\/Pull.*/);
 
 const getLocation = ClientFunction(() => document.location.href);
 
@@ -37,7 +38,9 @@ test('Navigation', async () => {
 //Gitea connection
 test('Gitea connection - Pull changes', async () => {
   await t
+    .addRequestHooks(logger)
     .click(designerPage.pullChanges)
+    .expect(logger.contains(r => r.response.statusCode === 200)).ok({ timeoutSeconds: 15 })
     .expect(Selector('h3').withText("Appen din er oppdatert til siste versjon").visible).ok();
 });
 
