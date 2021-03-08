@@ -1,21 +1,26 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Threading.Tasks;
-using Altinn.App.AppLogic.Print;
-using Altinn.App.Services.Interface;
-using Microsoft.Extensions.Logging;
-using Altinn.App.Services.Implementation;
+
 using Altinn.App.Common.Enums;
-using Altinn.App.AppLogic.Validation;
-using Altinn.App.AppLogic.Calculation;
+using Altinn.App.Common.Models;
+
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
+
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.App.Common.Models;
-using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Http;
-using Altinn.App.Services.Configuration;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+
+using Microsoft.Extensions.Options;
+
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+namespace App.IntegrationTests.Mocks.Apps.Tdd.Frontendtest
+#pragma warning restore SA1300 // Element should begin with upper-case letter
+
 {
     public class App : AppBase, IAltinnApp
     {

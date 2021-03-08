@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
@@ -38,7 +39,7 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -60,7 +61,8 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
+            httpRequestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -80,13 +82,14 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             string org = "ttd";
             string app = "issue-5740";
-            List<string> expected = new List<string> { "Side4", "Side2", "Side1", "Side3" };
+            List<string> expected = new List<string> { "Side4", "Side2", "Side1", "Side3", "1337" };
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
+            httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -96,6 +99,7 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expected, actual);
         }
+
         /// <summary>
         /// Scenario: Get page order for an app with layout set. No custom implementation in app.
         /// Successful: Pages retrieved from correct layout settings and returned without manipulation.
@@ -112,7 +116,8 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename");
+                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=message");
+            httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();

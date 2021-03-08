@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "ttd/issue-5740",
   "org": "ttd",
   "title": {
@@ -20,7 +20,7 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema"
+        "classRef": "App.IntegrationTests.Mocks.Apps.Ttd.Issue5740.Skjema"
       },
       "taskId": "Task_1",
       "maxCount": 1,
