@@ -1,6 +1,6 @@
 import http from "k6/http";
-import * as config from "../../config.js"
-import * as header from "../../buildrequestheaders.js"
+import * as config from "../../../config.js"
+import * as header from "../../../buildrequestheaders.js"
 
 //API call to edit the process of an instance
 export function putProcess(runtimeToken, partyId, instanceId, processJson) {

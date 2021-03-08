@@ -4,7 +4,7 @@
   parameter attachmentdistribution among small, medium and large attachment.
 
   example: k6 run -i 20 -u 10 --logformat raw --console-output=./src/data/instances.csv 
-  /src/tests/app/rf0002withattachment.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+  /src/tests/app/rf0002withattachment.js -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e attachmentdistribution="60;30;10"
 
    Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
   [
@@ -22,10 +22,10 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
-import * as apps from "../../api/storage/applications.js"
-import * as storageData from "../../api/storage/data.js"
-import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
+import * as apps from "../../api/platform/storage/applications.js"
+import * as storageData from "../../api/platform/storage/data.js"
+import { deleteSblInstance } from "../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 const instanceFormDataXml = open("../../data/" + level2App + ".xml");

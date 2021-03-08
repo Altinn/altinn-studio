@@ -1,6 +1,7 @@
 /* 
   This test requires an user credentials with level 2 or lower login and an app available only for users with login level 3 and above
-  command to run the test: docker-compose run k6 run src/tests/app/negativetests/lowersecuritylevellogin.js -e env=*** -e org=*** -e level3app=*** -e username=*** -e userpwd=***
+  command to run the test: docker-compose run k6 run /src/tests/app/negativetests/lowersecuritylevellogin.js 
+  -e env=*** -e org=*** -e level3app=*** -e username=*** -e userpwd=***
 */
 
 import { check } from "k6";

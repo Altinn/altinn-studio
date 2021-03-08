@@ -18,7 +18,7 @@
 
 import { check } from "k6";
 import { Trend, Counter } from 'k6/metrics';
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import { addErrorCount } from "../../../errorcounter.js";
 import { k6scenarios } from "../../../scenarios.js";

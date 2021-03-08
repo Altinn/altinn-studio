@@ -7,8 +7,8 @@
     This test script is a negative test where app owner should be forbidden to write to instance without write access
     Test data required: username and password, deployed app that requires level 2 login 
     (reference app: ttd/apps-test) to find the party id of the user and maskinporten token
-    Command: docker-compose run k6 run src/tests/app/negativetests/appowner-writewithoutaccess.js 
-    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
+    Command: docker-compose run k6 run /src/tests/app/negativetests/appowner-writewithoutaccess.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
@@ -17,8 +17,8 @@ import { convertMaskinPortenToken } from "../../../api/platform/authentication.j
 import * as appInstances from "../../../api/app/instances.js"
 import * as appData from "../../../api/app/data.js"
 import * as appProcess from "../../../api/app/process.js"
-import * as apps from "../../../api/storage/applications.js"
-import * as storageInstances from "../../../api/storage/instances.js"
+import * as apps from "../../../api/platform/storage/applications.js"
+import * as storageInstances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;

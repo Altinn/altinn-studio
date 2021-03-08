@@ -1,6 +1,6 @@
 import http from "k6/http";
-import * as config from "../../config.js";
-import * as header from "../../buildrequestheaders.js"
+import * as config from "../../../config.js";
+import * as header from "../../../buildrequestheaders.js"
 
 //Api call to Storage:Applications for an Org and returns response
 export function getAllApplications(altinnStudioRuntimeCookie, appOwner) {

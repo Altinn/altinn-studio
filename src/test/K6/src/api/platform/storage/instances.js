@@ -1,8 +1,8 @@
 import http from "k6/http";
-import * as config from "../../config.js";
-import * as header from "../../buildrequestheaders.js"
-import { printResponseToConsole } from "../../errorcounter.js";
-import * as support from "../../support.js";
+import * as config from "../../../config.js";
+import * as header from "../../../buildrequestheaders.js"
+import { printResponseToConsole } from "../../../errorcounter.js";
+import * as support from "../../../support.js";
 
 /**
  * Api call to Storage:Instances to create an app instance and returns response
