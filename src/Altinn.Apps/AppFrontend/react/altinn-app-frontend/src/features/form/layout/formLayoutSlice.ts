@@ -56,7 +56,8 @@ const formLayoutSlice = createSlice({
       if (settings && settings.pages && settings.pages.order) {
         state.uiConfig.layoutOrder = settings.pages.order;
         if (state.uiConfig.currentViewCacheKey) {
-          state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey);
+          state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
+            || settings.pages.order[0];
         } else {
           state.uiConfig.currentView = settings.pages.order[0];
         }
