@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 //// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
-namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Issue5740
 {
     /// <summary>
     /// Represents a business logic class responsible for running validation at different steps of a process.

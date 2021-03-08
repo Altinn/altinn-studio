@@ -1,11 +1,12 @@
+using System.Threading.Tasks;
+
 using Altinn.App.Models;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
-using System.Threading.Tasks;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
+namespace App.IntegrationTests.Mocks.Apps.Tdd.Frontendtest
 {
     public class InstantiationHandler
     {
@@ -15,8 +16,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// <summary>
         /// Set up access to profile and register services
         /// </summary>
-        /// <param name="profileService"></param>
-        /// <param name="registerService"></param>
         public InstantiationHandler(IProfile profileService, IRegister registerService)
         {
             _profileService = profileService;
@@ -33,7 +32,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// }
         /// return null;
         /// </example>
-        /// <param name="instance"></param>
         /// <returns>The validation result object (null if no errors) </returns>
         public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
@@ -49,27 +47,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.frontendtest
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
         public async Task DataCreation(Instance instance, object data)
-        {
-           if (data.GetType() == typeof(Skjema))
-            {
-                Skjema model = (Skjema)data;
-                int partyId;
-                if (int.TryParse(instance.InstanceOwner.PartyId, out partyId))
-                {
-                    Party party = await _registerService.GetParty(partyId);
-                    model.Innledninggrp9309 = new Innledninggrp9309()
-                    {
-                        Kontaktinformasjongrp9311 = new Kontaktinformasjongrp9311()
-                        {
-                            MelderFultnavn = new MelderFultnavn()
-                            {
-                                value = party.Name
-                            }
-                        }
-                    };
-                }
-            }
-
+        {           
             await Task.CompletedTask;
         }
     }

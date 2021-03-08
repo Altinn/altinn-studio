@@ -18,8 +18,10 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using Newtonsoft.Json;
+
 #pragma warning disable SA1300 // Element should begin with upper-case letter
-namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Issue5740
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     /// <summary>
@@ -31,6 +33,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
+        private readonly IInstance _instanceService;
         private readonly PdfHandler _pdfHandler;
 
         /// <summary>
@@ -79,13 +82,18 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
             _pdfHandler = new PdfHandler();
+            _instanceService = instanceService;
         }
 
         /// <inheritdoc />
-        public override async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId)
+        public override async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
         {
+            List<string> pageOrder = new List<string> { "Side4", "Side2", "Side1", "Side3" };
+            Skjema skjema = (Skjema)formData;
+
+            pageOrder.Add(skjema.Skjemanummer.ToString());
             await Task.CompletedTask;
-            return new List<string> { "Side4", "Side2", "Side1", "Side3" };
+            return pageOrder;
         }
 
         /// <inheritdoc />

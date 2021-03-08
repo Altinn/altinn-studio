@@ -5,7 +5,9 @@ using Altinn.Platform.Storage.Interface.Models;
 
 //// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
-namespace App.IntegrationTests.Mocks.Apps.ttd.issue5740
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Issue5740
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     /// <summary>
     /// Represents a business logic class responsible for running logic related to instantiation.

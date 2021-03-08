@@ -36,6 +36,7 @@
   
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+
   </PropertyGroup>
 
   <PropertyGroup>
