@@ -30,5 +30,21 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// </summary>
         /// <param name="id">The subcription Id</param>
         public Task<Subscription> GetSubscription(int id);
+
+        /// <summary>
+        /// Get a list of matching org subscriptions
+        /// </summary>
+        /// <param name="source">The subcription Source</param>
+        /// <param name="subject">The subcription Subject</param>
+        /// <param name="type">The subcription Type</param>
+        public Task<List<Subscription>> GetOrgSubscriptions(string source, string subject, string type);
+
+        /// <summary>
+        /// Get a list of matching subscriptions, orgs excluded
+        /// </summary>
+        /// <param name="source">The subcription Source</param>
+        /// <param name="subject">The subcription Subject</param>
+        /// <param name="type">The subcription Type</param>
+        public Task<List<Subscription>> GetSubscriptions(string source, string subject, string type);
     }
 }

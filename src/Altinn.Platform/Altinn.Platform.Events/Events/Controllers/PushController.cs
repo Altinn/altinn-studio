@@ -23,18 +23,20 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class PushController : ControllerBase
     {
-        private readonly IEventsService _eventsService;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly IRegisterService _registerService;
+
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
         private readonly AccessTokenSettings _accessTokenSettings;
+        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PushController"/> class.
         /// </summary>
         public PushController(
-        IEventsService eventsService,
+        ISubscriptionService subscriptionService,
         IRegisterService registerService,
         IOptions<GeneralSettings> settings,
         ILogger<EventsController> logger,
@@ -43,7 +45,7 @@ namespace Altinn.Platform.Events.Controllers
         {
             _registerService = registerService;
             _logger = logger;
-            _eventsService = eventsService;
+            _subscriptionService = subscriptionService;
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
             _authorizationHelper = new AuthorizationHelper(pdp);
             _accessTokenSettings = accessTokenSettings.Value;
@@ -62,6 +64,22 @@ namespace Altinn.Platform.Events.Controllers
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
             // TODO Needs to validate event. (does it contain enough to push). Is it relevant? What to do if not? No point adding it to queue
+            string sourceFilter = GetSourceFilter(cloudEvent.Source);
+
+            if (!string.IsNullOrEmpty(sourceFilter))
+            {
+                List<Subscription> orgSubscriptions = await MatchOrgSubscriptions(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
+                foreach (Subscription subscription in orgSubscriptions)
+                {
+                    // Authorize, push
+                }
+
+                List<Subscription> subscriptions = await MatchSubscriptionExcludeOrgs(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
+                foreach (Subscription subscription in subscriptions)
+                {
+                    // Authorize, push
+                }
+            }
 
             // Idenitfy any matching org subscriptions
 
@@ -77,6 +95,35 @@ namespace Altinn.Platform.Events.Controllers
         private async Task<bool> AuthorizePushOfEvents(CloudEvent cloudEvent)
         {
             return true;
+        }
+
+        private async Task<List<Subscription>> MatchOrgSubscriptions(string source, string subject, string type)
+        {
+            return await _subscriptionService.GetOrgSubscriptions(
+                source,
+                subject,
+                type);
+
+        }
+
+        private async Task<List<Subscription>> MatchSubscriptionExcludeOrgs(string source, string subject, string type)
+        {
+            return await _subscriptionService.GetSubscriptions(
+                source,
+                subject,
+                type);
+        }
+
+        private string GetSourceFilter(Uri source)
+        {
+            if (source.DnsSafeHost.Contains("apps.altinn.no"))
+            {
+                return source.OriginalString.Substring(0, source.OriginalString.IndexOf(source.Segments[3]));
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 }
