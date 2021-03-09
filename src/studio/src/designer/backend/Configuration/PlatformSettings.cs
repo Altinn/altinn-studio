@@ -32,6 +32,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string SubscriptionKeyAT22 { get; set; }
 
         /// <summary>
+        /// API Management subscription key for platform in AT24.
+        /// </summary>
+        public string SubscriptionKeyAT24 { get; set; }
+
+        /// <summary>
         /// API Management subscription key for platform in TT02.
         /// </summary>
         public string SubscriptionKeyTT02 { get; set; }
