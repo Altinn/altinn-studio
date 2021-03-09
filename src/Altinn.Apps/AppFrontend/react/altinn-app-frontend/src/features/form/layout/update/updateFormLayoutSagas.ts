@@ -191,6 +191,7 @@ export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidat
         },
       },
     );
+    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({ order: layoutOrder }));
     const returnToView = state.formLayout.uiConfig.returnToView;
     const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
     yield put(FormLayoutActions.updateCurrentView({ newView, runValidations }));
