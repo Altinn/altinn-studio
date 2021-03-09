@@ -32,13 +32,14 @@ export function NavigationButtons(props: INavigationButtons) {
   const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const language = useSelector((state: IRuntimeState) => state.language.language);
+  const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const { next, previous } = useSelector(
     (state: IRuntimeState) => getNavigationConfigForCurrentView(
       state.formLayout.uiConfig.navigationConfig,
       state.formLayout.uiConfig.currentView,
     ),
   );
-
+  const triggers = props.triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : props.textResourceBindings?.next || 'next';
   const backTextKey = props.textResourceBindings?.back || 'back';
 
@@ -56,10 +57,10 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const runPageValidations = !returnToView && props.triggers && props.triggers.includes('validatePage');
-    const runAllValidations = returnToView || (props.triggers && props.triggers.includes('validateAllPages'));
+    const runPageValidations = !returnToView && triggers && triggers.includes('validatePage');
+    const runAllValidations = returnToView || (triggers && triggers.includes('validateAllPages'));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
-    if (props.triggers?.includes('calculatePageOrder')) {
+    if (triggers?.includes('calculatePageOrder')) {
       dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ validations }));
     } else {
       const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];

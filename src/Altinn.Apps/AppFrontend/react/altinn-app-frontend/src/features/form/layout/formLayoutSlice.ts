@@ -23,6 +23,7 @@ const initialState: ILayoutState = {
     currentView: 'FormLayout',
     navigationConfig: {},
     layoutOrder: null,
+    pageTriggers: [],
   },
   layoutsets: null,
 };
@@ -54,13 +55,16 @@ const formLayoutSlice = createSlice({
     },
     fetchLayoutSettingsFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>) => {
       const { settings } = action.payload;
-      if (settings && settings.pages && settings.pages.order) {
-        state.uiConfig.layoutOrder = settings.pages.order;
-        if (state.uiConfig.currentViewCacheKey) {
-          state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
-            || settings.pages.order[0];
-        } else {
-          state.uiConfig.currentView = settings.pages.order[0];
+      if (settings && settings.pages) {
+        state.uiConfig.pageTriggers = settings.pages.triggers;
+        if (settings.pages.order) {
+          state.uiConfig.layoutOrder = settings.pages.order;
+          if (state.uiConfig.currentViewCacheKey) {
+            state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
+              || settings.pages.order[0];
+          } else {
+            state.uiConfig.currentView = settings.pages.order[0];
+          }
         }
       }
     },
