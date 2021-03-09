@@ -15,5 +15,12 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <param name="content">The content to push to the queue in string format</param>
         /// <returns>Returns a boolean to indicate success</returns>
         public Task<PushQueueReceipt> PushToQueue(string content);
+
+        /// <summary>
+        /// Pushes the provided content to the queue
+        /// </summary>
+        /// <param name="content">The content to push to the queue in string format</param>
+        /// <returns>Returns a boolean to indicate success</returns>
+        public Task<PushQueueReceipt> PushToOutboundQueue(string content);
     }
 }

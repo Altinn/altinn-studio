@@ -67,6 +67,8 @@ namespace Altinn.Platform.Events.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
+            List<Subscription> subscriptions = new List<Subscription>();
+
             // TODO Needs to validate event. (does it contain enough to push). Is it relevant? What to do if not? No point adding it to queue
 
             // Idenitfy any matching org subscriptions
@@ -77,7 +79,31 @@ namespace Altinn.Platform.Events.Controllers
 
             // Foreach other subscriptions matchine authorize access and if authorized push to outgoing queue. Unsure if caching has any effect
 
+            foreach (Subscription subscription in subscriptions)
+            {
+                await AuthorizeAndPush(cloudEvent, subscription);
+            }
+
             return Ok();
+        }
+
+        private async Task AuthorizeAndPush(CloudEvent cloudEvent, Subscription subscription)
+        {
+           if (await _authorizationHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, subscription.Consumer))
+           {
+                CloudEventEnvelope cloudEventEnvelope = MapToEnvelope(cloudEvent, subscription);
+                await _eventsService.PushToConsumer(cloudEventEnvelope);
+            }
+        }
+
+        private CloudEventEnvelope MapToEnvelope(CloudEvent cloudEvent, Subscription subscription)
+        {
+            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope() { CloudEvent = cloudEvent };
+            cloudEventEnvelope.Consumer = subscription.Consumer;
+            cloudEventEnvelope.Pushed = DateTime.Now;
+            cloudEventEnvelope.SubscriptionId = subscription.Id;
+            cloudEventEnvelope.Endpoint = subscription.EndPoint;
+            return cloudEventEnvelope;
         }
     }
 }
