@@ -34,6 +34,7 @@ export interface IUpdateCurrentView {
   newView: string;
   returnToView?: string;
   runValidations?: 'allPages' | 'page';
+  skipPageCaching?: boolean;
 }
 
 export interface IUpdateCurrentViewFulfilled {

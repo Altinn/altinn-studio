@@ -66,7 +66,7 @@ function* fetchLayoutSaga(): SagaIterator {
     yield put(Actions.fetchLayoutFulfilled({ layouts, navigationConfig }));
     yield put(Actions.updateAutoSave({ autoSave }));
     yield put(Actions.updateRepeatingGroupsFulfilled({ repeatingGroups }));
-    yield put(Actions.updateCurrentView({ newView: firstLayoutKey }));
+    yield put(Actions.updateCurrentView({ newView: firstLayoutKey, skipPageCaching: true }));
   } catch (error) {
     yield put(Actions.fetchLayoutRejected({ error }));
     yield call(QueueActions.dataTaskQueueError, error);
