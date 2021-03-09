@@ -251,7 +251,7 @@ export interface IUiConfig {
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
-  pageTriggers: string[];
+  pageTriggers?: string[];
 }
 
 export interface IValidationResult {
