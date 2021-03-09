@@ -95,6 +95,7 @@ export function* updateCurrentViewSaga({ payload: {
   newView,
   runValidations,
   returnToView,
+  skipPageCaching,
 } }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -104,7 +105,9 @@ export function* updateCurrentViewSaga({ payload: {
       yield put(FormLayoutActions.setCurrentViewCacheKey({ key: currentViewCacheKey }));
     }
     if (!runValidations) {
-      localStorage.setItem(currentViewCacheKey, newView);
+      if (!skipPageCaching) {
+        localStorage.setItem(currentViewCacheKey, newView);
+      }
       yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }));
     } else {
       const currentDataTaskDataTypeId = getDataTaskDataTypeId(
@@ -148,12 +151,16 @@ export function* updateCurrentViewSaga({ payload: {
       }
       yield call(FormValidationActions.updateValidations, validations);
       if (state.formLayout.uiConfig.returnToView) {
-        localStorage.setItem(currentViewCacheKey, newView);
+        if (!skipPageCaching) {
+          localStorage.setItem(currentViewCacheKey, newView);
+        }
         yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView }));
       } else if (!canFormBeSaved({ validations: { [currentView]: validations[currentView] }, invalidDataTypes: false }, 'Complete')) {
         yield put(FormLayoutActions.updateCurrentViewRejected({ error: null }));
       } else {
-        localStorage.setItem(currentViewCacheKey, newView);
+        if (!skipPageCaching) {
+          localStorage.setItem(currentViewCacheKey, newView);
+        }
         yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }));
       }
     }
