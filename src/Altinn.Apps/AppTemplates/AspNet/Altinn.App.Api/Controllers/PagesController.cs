@@ -43,7 +43,7 @@ namespace Altinn.App.Api.Controllers
         /// Get the page order based on the current state of the instance
         /// </summary>
         /// <returns>The pages sorted in the correct order</returns>
-        [HttpGet("order")]
+        [HttpPost("order")]
         public async Task<List<string>> GetPageOrder(
             [FromRoute] string org,
             [FromRoute] string app,
