@@ -28,6 +28,7 @@ namespace Altinn.Platform.Events.Controllers
     {
         private readonly ISubscriptionService _subscriptionService;
         private readonly IRegisterService _registerService;
+        private readonly IEventsService _eventsService;
 
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
@@ -41,6 +42,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Initializes a new instance of the <see cref="PushController"/> class.
         /// </summary>
         public PushController(
+        IEventsService eventsService,
         ISubscriptionService subscriptionService,
         IRegisterService registerService,
         IOptions<GeneralSettings> settings,
@@ -48,6 +50,7 @@ namespace Altinn.Platform.Events.Controllers
         IPDP pdp,
         IOptions<AccessTokenSettings> accessTokenSettings)
         {
+            _eventsService = eventsService;
             _registerService = registerService;
             _logger = logger;
             _subscriptionService = subscriptionService;
@@ -68,9 +71,6 @@ namespace Altinn.Platform.Events.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
-            List<Subscription> subscriptions = new List<Subscription>();
-
-            // TODO Needs to validate event. (does it contain enough to push). Is it relevant? What to do if not? No point adding it to queue
             string sourceFilter = GetSourceFilter(cloudEvent.Source);
 
             if (!string.IsNullOrEmpty(sourceFilter))
@@ -78,35 +78,17 @@ namespace Altinn.Platform.Events.Controllers
                 List<Subscription> orgSubscriptions = await MatchOrgSubscriptions(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
                 foreach (Subscription subscription in orgSubscriptions)
                 {
-                    // Authorize, push
+                    await AuthorizeAndPush(cloudEvent, subscription);
                 }
 
                 List<Subscription> subscriptions = await MatchSubscriptionExcludeOrgs(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
                 foreach (Subscription subscription in subscriptions)
                 {
-                    // Authorize, push
+                    await AuthorizeAndPush(cloudEvent, subscription);
                 }
             }
 
-            // Idenitfy any matching org subscriptions
-
-            // Identity any matching other subscriptions based on subject
-
-            // Foreach org subscription matching authorize access and if authorized push to outgoing queue. Important to cache authorization decision.
-
-            // Foreach other subscriptions matchine authorize access and if authorized push to outgoing queue. Unsure if caching has any effect
-
-            foreach (Subscription subscription in subscriptions)
-            {
-                await AuthorizeAndPush(cloudEvent, subscription);
-            }
-
             return Ok();
-        }
-
-        private async Task<bool> AuthorizePushOfEvents(CloudEvent cloudEvent)
-        {
-            return true;
         }
 
         private async Task<List<Subscription>> MatchOrgSubscriptions(string source, string subject, string type)
