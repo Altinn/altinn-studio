@@ -119,7 +119,7 @@ export function isGuid(stringToTest) {
 //Function to add subscription key to the header when sent as env variable from command line
 //and env is YT01 or TT02 and endpoint is a platform endpoint
 function addSubscriptionKey(params, appsAccessSubscriptionKey, api) {
-    var supportsApim = ["at21", "at22", "yt01", "tt02", "prod"];
+    var supportsApim = ["at21", "at22", "at24", "yt01", "tt02", "prod"];
     if ((supportsApim.includes(environment)) && appsAccessSubscriptionKey != null && api == "platform") {
         if (params["headers"] == null) {
             params["headers"] = {};
