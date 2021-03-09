@@ -69,7 +69,8 @@ export var platformStorage = {
 //Platform events
 export var platformEvents = {
     "events": "https://platform." + baseUrl + "/events/api/v1/app/",
-    "eventsByParty": "https://platform." + baseUrl + "/events/api/v1/app/party/"
+    "eventsByParty": "https://platform." + baseUrl + "/events/api/v1/app/party/",
+    "subscriptions": "https://platform." + baseUrl + "/events/api/v1/subscriptions"
 };
 
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
