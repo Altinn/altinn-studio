@@ -44,7 +44,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>The pages sorted in the correct order</returns>
         [HttpPost("order")]
-        public async Task<List<string>> GetPageOrder(
+        public async Task<ActionResult<List<string>>> GetPageOrder(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
@@ -54,6 +54,11 @@ namespace Altinn.App.Api.Controllers
             [FromQuery] string dataTypeId,
             [FromBody] dynamic formData)
         {
+            if (string.IsNullOrEmpty(dataTypeId))
+            {
+                return BadRequest("Query parameter `dataTypeId` must be defined");
+            }
+
             string classRef = _resources.GetClassRefForLogicDataType(dataTypeId);
 
             object data = JsonConvert.DeserializeObject(formData.ToString(), _altinnApp.GetAppModelType(classRef));
