@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Altinn.Common\Altinn.EFormidlingClient\Altinn.EFormidlingClient\Altinn.EFormidlingClient.csproj" />
     <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
   </ItemGroup>
 
