@@ -22,7 +22,7 @@ namespace Altinn.Common.EFormidlingClient.Models
         public Capabilities(List<Capability> capabilities)
         {
             Capability = capabilities;
-        }     
+        }
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ namespace Altinn.Common.EFormidlingClient.Models
     /// Initializes a new instance of the <see cref="Capability"/> class.
     /// </summary>
     public class Capability
-        {
+    {
         /// <summary>
         ///  Gets or sets the Standard
         /// </summary>
