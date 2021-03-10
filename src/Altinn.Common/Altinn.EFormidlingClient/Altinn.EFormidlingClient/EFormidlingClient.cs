@@ -23,23 +23,23 @@ namespace Altinn.Common.EFormidlingClient
     {
         private readonly HttpClient _client;
         private readonly ILogger<EFormidlingClient> _logger;
-        private readonly IOptions<EFormidlingClientSettings> _appSettings;
+        private readonly IOptions<EFormidlingClientSettings> _eformidlingSettings;
 
         /// <summary>
         /// Initializes a new instance of the IFormidlingClient class with the given HttpClient, lSettings and Logger.
         /// </summary>
         /// <param name="client">A HttpClient provided by a HttpClientFactory.</param>
-        /// <param name="appSettings">The settings configured for eFormidling package</param>
+        /// <param name="eformidlingSettings">The settings configured for eFormidling package</param>
         /// <param name="logger">Logging</param>
-        public EFormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> appSettings, ILogger<EFormidlingClient> logger = null)
+        public EFormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
         {
             _client = client ?? throw new ArgumentNullException("httpClient");
-            _appSettings = appSettings ?? throw new ArgumentNullException("appSettings");
+            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("appSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.BaseAddress = new Uri(appSettings.Value.BaseUrl);
+            _client.BaseAddress = new Uri(_eformidlingSettings.Value.BaseUrl);
         }
 
         /// <inheritdoc/>
