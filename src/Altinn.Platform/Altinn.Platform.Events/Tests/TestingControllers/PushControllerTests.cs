@@ -58,11 +58,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The event is pushed to two subscribers
             /// </summary>
             [Fact]
-            public async void Post_GivenValidCloudEventSubscription_ReturnsStatusCreatedAndCorrectData()
+            public async void Post_TwoMatchingAndValidSubscriptions_AddedToqueue()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/push";
-                CloudEvent cloudEvent = GetCloudEvent(new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/instances/1337/123124"), "/party/1337/", "instances.created");
+                CloudEvent cloudEvent = GetCloudEvent(new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/instances/1337/123124"), "/party/1337/", "app.instance.process.completed");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
@@ -78,6 +78,37 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.True(QueueServiceMock.OutboundQue.ContainsKey(cloudEvent.Id));
                 Assert.Equal(2, QueueServiceMock.OutboundQue[cloudEvent.Id].Count);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post an event for outbound push. Two subscriptions are matching and is authorized
+            /// Expected result:
+            ///   The event are pushed to two different subscribers
+            /// Success criteria:
+            ///   The event is pushed to two subscribers
+            /// </summary>
+            [Fact]
+            public async void Post_OneMatchingAndValidSubscriptions_AddedToqueue()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/push";
+                CloudEvent cloudEvent = GetCloudEvent(new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/instances/1337/123124"), "/party/1337/", "app.instance.process.movedTo.task_1");
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.True(QueueServiceMock.OutboundQue.ContainsKey(cloudEvent.Id));
+                Assert.Single(QueueServiceMock.OutboundQue[cloudEvent.Id]);
             }
 
             private HttpClient GetTestClient()
