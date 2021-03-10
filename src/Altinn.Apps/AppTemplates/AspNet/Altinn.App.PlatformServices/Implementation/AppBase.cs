@@ -242,6 +242,23 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
         }
 
+        /// <inheritdoc />
+        public virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
+        {
+            LayoutSettings layoutSettings = null;
+
+            if (string.IsNullOrEmpty(layoutSetId))
+            {
+                layoutSettings = _resourceService.GetLayoutSettings();
+            }
+            else
+            {
+                layoutSettings = _resourceService.GetLayoutSettingsForSet(layoutSetId);
+            }
+
+            return await Task.FromResult(layoutSettings.Pages.Order);
+        }
+
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
@@ -258,7 +275,7 @@ namespace Altinn.App.Services.Implementation
                 layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
-            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsStringForSet(layoutSet.Id);
 
             LayoutSettings layoutSettings = null;
             if (!string.IsNullOrEmpty(layoutSettingsFileContent))

@@ -1,10 +1,10 @@
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as instances from "../../../api/storage/instances.js"
-import * as instanceData from "../../../api/storage/data.js"
+import * as instances from "../../../api/platform/storage/instances.js"
+import * as instanceData from "../../../api/platform/storage/data.js"
 import * as setUpData from "../../../setup.js";
-import * as apps from "../../../api/storage/applications.js"
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as apps from "../../../api/platform/storage/applications.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 import { postPartieslookup } from "../../../api/platform/register.js"
 
 const appOwner = __ENV.org;

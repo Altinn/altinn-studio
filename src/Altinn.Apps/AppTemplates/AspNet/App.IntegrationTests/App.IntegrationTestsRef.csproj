@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.11" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-    <PackageReference Include="Moq" Version="4.16.0" />
+    <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -36,6 +36,7 @@
   
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+
   </PropertyGroup>
 
   <PropertyGroup>
@@ -192,6 +193,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\apps\ttd\issue-5740\logic\Validation\" />
     <Folder Include="Data\Instances\ttd\model-validation\1337\8fab6615-3c57-484b-bd32-3065be958a1e\blob\" />
   </ItemGroup>
 

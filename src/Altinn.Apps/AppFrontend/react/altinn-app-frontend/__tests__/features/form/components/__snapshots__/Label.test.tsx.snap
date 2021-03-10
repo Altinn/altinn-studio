@@ -2,7 +2,7 @@
 
 exports[`>>> features/form/components/Label.tsx +++ should not render optional because labelSettings.optionalIndicator is false 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+  className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
     className="MuiGrid-root MuiGrid-item"
@@ -20,7 +20,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 
 exports[`>>> features/form/components/Label.tsx +++ should not render optional because readOnly 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+  className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
     className="MuiGrid-root MuiGrid-item"
@@ -38,7 +38,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 
 exports[`>>> features/form/components/Label.tsx +++ should not render optional because required 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+  className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
     className="MuiGrid-root MuiGrid-item"
@@ -56,7 +56,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 
 exports[`>>> features/form/components/Label.tsx +++ should not render optional because required is true even when labelSettings.optionalIndicator is true 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+  className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
     className="MuiGrid-root MuiGrid-item"
@@ -74,7 +74,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 
 exports[`>>> features/form/components/Label.tsx +++ should render optional 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+  className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
   <div
     className="MuiGrid-root MuiGrid-item"

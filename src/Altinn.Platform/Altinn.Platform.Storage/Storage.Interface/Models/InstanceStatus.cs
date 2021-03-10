@@ -64,6 +64,7 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// <summary>
     /// The read status
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ReadStatus
     {
         /// <summary>

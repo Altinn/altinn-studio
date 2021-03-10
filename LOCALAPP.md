@@ -101,7 +101,7 @@ Currently we have not been able to provide a 100% common setup between Windows a
    - Change the setting `LocalTestingStaticTestDataPath` to the full path of the altinn-studio repository.
      For example:  
      ```json
-     "C:/repos/altinn-studio/src/development/TestData"
+     "C:/repos/altinn-studio/src/development/TestData/"
      ```
    - Save the file.
 4. Start the local platform services (make sure you are in the LocalTest folder)

@@ -49,6 +49,28 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
+        public async Task<Party> GetParty(int partyId)
+        {
+            Party party = null;
+
+            string endpointUrl = $"parties/{partyId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _generalSettings.JwtCookieName);
+            string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events");
+
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, accessToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                party = await response.Content.ReadAsAsync<Party>();
+            }
+            else
+            {
+                _logger.LogError($"// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+            }
+
+            return party;
+        }
+
+        /// <inheritdoc/>
         public async Task<int> PartyLookup(string orgNo, string person)
         {
             string endpointUrl = "parties/lookup";

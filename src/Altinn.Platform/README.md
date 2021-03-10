@@ -14,11 +14,18 @@ These instructions will get you a copy of the platform solution up and running o
 
 ### Prerequisites
 
+Note that Platform PDF is a Java application and requires other prerequisites. 
+This is documented in the sub section.
+
 1. [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
 2. Code editor of your choice
 3. Newest [Git](https://git-scm.com/downloads)
 4. [Docker CE](https://www.docker.com/get-docker)
 5. Solution is cloned
+
+#### Platform PDF
+1. [Java 15](https://openjdk.java.net/projects/jdk/15/)
+2. [Maven](https://maven.apache.org/download.cgi)
 
 ### Running Altinn Platform Register in container
 
@@ -143,3 +150,23 @@ dotnet run
 ```
 
 The authorization solution is now available locally at http://localhost:5050.
+
+
+
+#### Running Altinn Platform PDF locally
+
+The PDF components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
+
+Stop the container running PDF
+
+```cmd
+docker stop altinn-pdf
+```
+
+Navigate to `altinn-studio/src/Altinn.Platform/Altinn.Platform.PDF`, and build and run the code from there, or run the solution using you selected code editor
+
+```cmd
+ mvn spring-boot:run
+```
+
+The pdf solution is now available locally at http://localhost:5070.

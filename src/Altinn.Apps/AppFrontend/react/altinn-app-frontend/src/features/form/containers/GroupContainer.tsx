@@ -5,7 +5,7 @@ import React from 'react';
 import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -14,7 +14,7 @@ import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
-import FormLayoutActions from '../layout/formLayoutActions';
+import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 
@@ -52,10 +52,18 @@ const useStyles = makeStyles({
     display: 'inline-block',
     border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     padding: '12px',
+    width: '100%',
+  },
+  deleteItem: {
+    paddingBottom: '0px !important',
+  },
+  saveItem: {
+    paddingTop: '0px !important',
   },
   table: {
     tableLayout: 'fixed',
     marginBottom: '12px',
+    wordBreak: 'break-word',
   },
   tableHeader: {
     borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
@@ -147,6 +155,7 @@ export function GroupContainer({
   components,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
@@ -199,7 +208,7 @@ export function GroupContainer({
   }, [validations, currentView, id]);
 
   const onClickAdd = () => {
-    FormLayoutActions.updateRepeatingGroups(id);
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     setEditIndex(repeatinGroupIndex + 1);
   };
 
@@ -230,7 +239,11 @@ export function GroupContainer({
 
   const onClickRemove = (groupIndex: number) => {
     setEditIndex(-1);
-    FormLayoutActions.updateRepeatingGroups(id, true, groupIndex);
+    dispatch(FormLayoutActions.updateRepeatingGroups({
+      layoutElementId: id,
+      remove: true,
+      index: groupIndex,
+    }));
   };
 
   const onClickEdit = (groupIndex: number) => {
@@ -267,9 +280,13 @@ export function GroupContainer({
   }
 
   return (
-    <>
+    <Grid
+      container={true}
+      item={true}
+    >
       <Grid
         container={true}
+        item={true}
         data-testid={`group-${id}`}
         id={`group-${id}`}
       >
@@ -322,11 +339,13 @@ export function GroupContainer({
         </TableContainer>}
         {mobileView &&
         <Grid
-          container={true} direction='column'
+          container={true}
+          item={true}
+          direction='column'
           className={classes.mobileContainer}
         >
           {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-            const rowHasErrors = components.some((component: ILayoutComponent | ILayoutGroup) => {
+            const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
               return childElementHasErrors(component, repeatingGroupIndex);
             });
             return (
@@ -406,15 +425,20 @@ export function GroupContainer({
       </Grid>
       }
       {(editIndex >= 0) &&
-      <Grid container={true} className={classes.editContainer}>
+      <div className={classes.editContainer}>
         <Grid
           container={true}
+          item={true}
+          direction='row'
+          spacing={3}
         >
           <Grid
             item={true}
             container={true}
             direction='column'
             alignItems='flex-end'
+            spacing={3}
+            className={classes.deleteItem}
           >
             <Grid item={true}>
               <IconButton
@@ -426,10 +450,19 @@ export function GroupContainer({
               </IconButton>
             </Grid>
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid
+            container={true}
+            alignItems='flex-start'
+            item={true}
+            spacing={3}
+          >
             { repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => { return renderGenericComponent(component, layout, editIndex); }) }
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid
+            item={true}
+            spacing={3}
+            className={classes.saveItem}
+          >
             <AltinnButton
               btnText={getLanguageFromKey('general.save', language)}
               onClickFunction={() => setEditIndex(-1)}
@@ -437,7 +470,7 @@ export function GroupContainer({
             />
           </Grid>
         </Grid>
-      </Grid>}
+      </div>}
       {tableHasErrors &&
       <Grid
         container={true}
@@ -460,6 +493,6 @@ export function GroupContainer({
         />
       </Grid>
       }
-    </>
+    </Grid>
   );
 }

@@ -4,6 +4,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
@@ -19,7 +20,15 @@ import { createRepeatingGroupComponents } from './formLayout';
 const JsonPointer = require('jsonpointer');
 
 export function createValidator(schema: any): ISchemaValidator {
-  const ajv = new Ajv({ allErrors: true, coerceTypes: true });
+  const ajv = new Ajv({
+    allErrors: true,
+    coerceTypes: true,
+    jsPropertySyntax: true,
+    strict: false,
+    strictTypes: false,
+    strictTuples: false,
+  });
+  addFormats(ajv);
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');

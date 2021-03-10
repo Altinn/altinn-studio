@@ -5,10 +5,10 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { componentHasValidationMessages,
   getComponentValidations,
   getDisplayFormDataForComponent } from 'src/utils/formComponentUtils';
-import { shallowEqual, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { ILayoutComponent } from 'src/features/form/layout';
-import FormLayoutActions from '../../features/form/layout/formLayoutActions';
+import { IGrid, ILayoutComponent } from 'src/features/form/layout';
+import { FormLayoutActions } from '../../features/form/layout/formLayoutSlice';
 import { IComponentValidations, IRuntimeState } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
@@ -24,6 +24,7 @@ export interface ISummaryComponent {
   largeGroup?: boolean;
   index?: number;
   formData?: any;
+  grid?: IGrid;
 }
 
 const useStyles = makeStyles({
@@ -43,6 +44,7 @@ const useStyles = makeStyles({
 
 export function SummaryComponent(props: ISummaryComponent) {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const {
     pageRef,
     id,
@@ -86,7 +88,11 @@ export function SummaryComponent(props: ISummaryComponent) {
   });
 
   const onChangeClick = () => {
-    FormLayoutActions.updateCurrentView(pageRef, null, summaryPageName);
+    dispatch(FormLayoutActions.updateCurrentView({
+      newView: pageRef,
+      runValidations: null,
+      returnToView: summaryPageName,
+    }));
   };
 
   React.useEffect(() => {
@@ -145,34 +151,43 @@ export function SummaryComponent(props: ISummaryComponent) {
   }
 
   return (
-    <Grid container={true} className={classes.row}>
-      {renderSummaryComponent()}
-      {hasValidationMessages &&
-        <Grid
-          container={true}
-          style={{ paddingTop: '12px' }}
-          spacing={2}
-        >
-          {Object.keys(componentValidations).map((binding: string) => {
-            return componentValidations[binding]?.errors?.map((validationText: string) => {
-              return (
-                <ErrorPaper
-                  message={validationText}
-                />
-              );
-            });
-          })}
-          <Grid item={true} xs={12}>
-            <button
-              className={classes.link}
-              onClick={onChangeClick}
-              type='button'
-            >
-              {goToCorrectPageLinkText}
-            </button>
+    <Grid
+      item={true}
+      xs={props.grid?.xs || 12}
+      sm={props.grid?.sm || false}
+      md={props.grid?.md || false}
+      lg={props.grid?.lg || false}
+      xl={props.grid?.xl || false}
+    >
+      <Grid container={true} className={classes.row}>
+        {renderSummaryComponent()}
+        {hasValidationMessages &&
+          <Grid
+            container={true}
+            style={{ paddingTop: '12px' }}
+            spacing={2}
+          >
+            {Object.keys(componentValidations).map((binding: string) => {
+              return componentValidations[binding]?.errors?.map((validationText: string) => {
+                return (
+                  <ErrorPaper
+                    message={validationText}
+                  />
+                );
+              });
+            })}
+            <Grid item={true} xs={12}>
+              <button
+                className={classes.link}
+                onClick={onChangeClick}
+                type='button'
+              >
+                {goToCorrectPageLinkText}
+              </button>
+            </Grid>
           </Grid>
-        </Grid>
-      }
+        }
+      </Grid>
     </Grid>
   );
 }

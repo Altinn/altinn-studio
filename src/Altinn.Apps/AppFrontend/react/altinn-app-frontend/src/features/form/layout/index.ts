@@ -1,3 +1,4 @@
+import { GridSize } from '@material-ui/core';
 import { IOption, Triggers } from '../../../types';
 
 export interface ILayouts {
@@ -27,6 +28,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   textResourceBindings: ITextResourceBindings;
   triggers?: Triggers[];
   formData?: any;
+  grid?: IGrid;
 }
 export interface IDataModelBindings {
   [id: string]: string;
@@ -51,6 +53,18 @@ export interface IFileuploadProps extends ILayoutComponent {
   displayMode: any;
   hasCustomFileEndings: boolean;
   validFileEndings: any;
+}
+
+export interface IGrid extends IGridStyling {
+  innerGrid?: IGridStyling;
+}
+
+export interface IGridStyling {
+  xs?: GridSize;
+  sm?: GridSize;
+  md?: GridSize;
+  lg?: GridSize;
+  xl?: GridSize;
 }
 
 declare enum HeaderSize {

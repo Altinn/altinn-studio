@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
@@ -15,7 +15,7 @@ import { canFormBeSaved,
   validateEmptyFields,
   validateFormComponents,
   validateFormData } from '../../../../utils/validation';
-import { ILayoutState } from '../../layout/formLayoutReducer';
+import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import { ISubmitDataAction } from './submitFormDataActions';
@@ -89,6 +89,12 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
         }
         // data has no validation errors, we complete the current step
         yield call(ProcessDispatcher.completeProcess);
+
+        if (layoutState.uiConfig.currentViewCacheKey) {
+          // Reset cache for current page when ending process task
+          localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
+          yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+        }
       }
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {
