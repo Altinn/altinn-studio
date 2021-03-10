@@ -92,20 +92,7 @@ namespace Altinn.App
 
             // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
-            services.AddHttpClient<IApplication, ApplicationAppSI>();
-            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
-            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
-            services.AddHttpClient<IData, DataAppSI>();
-            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
-            services.AddHttpClient<IER, RegisterERAppSI>();
-            services.AddHttpClient<IInstance, InstanceAppSI>();
-            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
-            services.AddHttpClient<IEvents, EventsAppSI>();
-            services.AddHttpClient<IPDF, PDFSI>();
-            services.AddHttpClient<IProcess, ProcessAppSI>();
-            services.AddHttpClient<IProfile, ProfileAppSI>();
-            services.AddHttpClient<IRegister, RegisterAppSI>();
-            services.AddHttpClient<IText, TextAppSI>();
+            services.AddPlatformServices(Configuration, _env);            
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();

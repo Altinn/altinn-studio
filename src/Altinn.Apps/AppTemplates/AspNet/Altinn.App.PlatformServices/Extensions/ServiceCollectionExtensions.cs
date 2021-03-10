@@ -1,6 +1,10 @@
 using Altinn.App.PlatformServices.Implementation;
+using Altinn.App.PlatformServices.Interface;
+using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +34,28 @@ namespace Altinn.App.PlatformServices.Extensions
             {
                 services.AddSingleton<ISecrets, SecretsLocalAppSI>();
             }
+        }
+
+        /// <summary>
+        /// Adds all http clients for platform functionality.
+        /// </summary>
+        public static void AddPlatformServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+        {
+            // Registered as HttpClients so default HttpClientFactory is used
+            services.AddHttpClient<IApplication, ApplicationAppSI>();
+            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
+            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
+            services.AddHttpClient<IData, DataAppSI>();
+            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
+            services.AddHttpClient<IER, RegisterERAppSI>();
+            services.AddHttpClient<IInstance, InstanceAppSI>();
+            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
+            services.AddHttpClient<IEvents, EventsAppSI>();
+            services.AddHttpClient<IPDF, PDFSI>();
+            services.AddHttpClient<IProcess, ProcessAppSI>();
+            services.AddHttpClient<IProfile, ProfileAppSI>();
+            services.AddHttpClient<IRegister, RegisterAppSI>();
+            services.AddHttpClient<IText, TextAppSI>();
         }
     }
 }
