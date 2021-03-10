@@ -139,7 +139,6 @@ namespace Altinn.App
 
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
 
-
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
