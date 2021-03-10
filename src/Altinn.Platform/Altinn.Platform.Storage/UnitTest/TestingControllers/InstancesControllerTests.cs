@@ -965,27 +965,30 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            PresentationTexts presentationTexts = new PresentationTexts
             {
-                { "key1", "value1" },
-                { "key2", "value2" }
+                Texts = new Dictionary<string, string>
+                {
+                    { "key1", "value1" },
+                    { "key2", "value2" }
+                }
             };
 
-            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
 
             HttpClient client = GetTestClient();
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string json = await response.Content.ReadAsStringAsync();
             Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
-            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+            Dictionary<string, string> actual = updatedInstance.PresentationTexts;
 
             // Assert
             Assert.NotNull(actual);
@@ -1005,26 +1008,29 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            PresentationTexts presentationTexts = new PresentationTexts
             {
-                { "key1", "updatedvalue1" },
+                Texts = new Dictionary<string, string>
+                {
+                    { "key1", "updatedvalue1" },
+                }
             };
 
-            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
 
             HttpClient client = GetTestClient();
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string json = await response.Content.ReadAsStringAsync();
             Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
-            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+            Dictionary<string, string> actual = updatedInstance.PresentationTexts;
 
             // Assert
             Assert.Equal(2, actual.Keys.Count);
@@ -1047,26 +1053,29 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             const string removedKey = "key1";
 
-            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            PresentationTexts presentationTexts = new PresentationTexts
             {
-                { removedKey, string.Empty },
+                Texts = new Dictionary<string, string>
+                {
+                    { removedKey, string.Empty },
+                }
             };
 
-            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
 
             HttpClient client = GetTestClient();
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string json = await response.Content.ReadAsStringAsync();
             Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
-            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+            Dictionary<string, string> actual = updatedInstance.PresentationTexts;
 
             // Assert
             Assert.Single(actual.Keys);
@@ -1087,26 +1096,29 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
 
-            Dictionary<string, string> presentationFields = new Dictionary<string, string>
+            PresentationTexts presentationTexts = new PresentationTexts
             {
-                { "key3", "value3" },
+                Texts = new Dictionary<string, string>
+                {
+                    { "key3", "value3" },
+                }
             };
 
-            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationFields";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
 
             HttpClient client = GetTestClient();
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationFields), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string json = await response.Content.ReadAsStringAsync();
             Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
-            Dictionary<string, string> actual = updatedInstance.PresentationFields;
+            Dictionary<string, string> actual = updatedInstance.PresentationTexts;
 
             // Assert
             Assert.Equal(3, actual.Keys.Count);

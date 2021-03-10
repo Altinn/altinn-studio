@@ -586,33 +586,37 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Updates the presentation fields of an instance
         /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="presentationTexts">Collection of changes to the presentation texts collection.</param>
+        /// <returns>The instance that was updated with an updated collection of presentation texts.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationFields")]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationtexts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdatePresentationFields(
+        public async Task<Instance> UpdatePresentationTexts(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromBody] Dictionary<string, string> presentationFields)
+            [FromBody] PresentationTexts presentationTexts)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            if (instance.PresentationFields == null)
+            if (instance.PresentationTexts == null)
             {
-                instance.PresentationFields = new Dictionary<string, string>();
+                instance.PresentationTexts = new Dictionary<string, string>();
             }
 
-            foreach (KeyValuePair<string, string> entry in presentationFields)
+            foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
             {
                 if (string.IsNullOrEmpty(entry.Value))
                 {
-                    instance.PresentationFields.Remove(entry.Key);
+                    instance.PresentationTexts.Remove(entry.Key);
                 }
                 else
                 {
-                    instance.PresentationFields[entry.Key] = entry.Value;
+                    instance.PresentationTexts[entry.Key] = entry.Value;
                 }
             }
 
