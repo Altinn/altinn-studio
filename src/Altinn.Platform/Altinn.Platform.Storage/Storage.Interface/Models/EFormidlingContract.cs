@@ -27,6 +27,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Receiver { get; set; }
 
         /// <summary>
+        /// Identifies which task should be completed before the shipment is sent.
+        /// </summary>
+        public string SendAfterTaskId { get; set; }
+
+        /// <summary>
         /// Process type
         /// </summary>
         /// <remarks>
