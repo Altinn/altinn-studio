@@ -46,6 +46,28 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         /// <summary>
+        /// Scenario: Get page order for an app. DataTypeId not specified in query parameters.
+        /// Successful: Bad request is returned..
+        /// </summary>
+        [Fact]
+        public async Task GetPageOrder_DataTypeIdMissing_BadRequestIsReturned()
+        {
+            string org = "ttd";
+            string app = "events";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+            httpRequestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
         /// Scenario: Get page order for an app without layout set. No custom implementation in app.
         /// Successful: Pages retrieved from layout settings and returned without manipulation.
         /// </summary>
