@@ -67,6 +67,7 @@ export interface IUpdateRepeatingGroupsFulfilled {
 
 export interface ICalculatePageOrderAndMoveToNextPage {
   runValidations?: 'allPages' | 'page';
+  skipMoveToNext?: boolean;
 }
 
 export interface ICalculatePageOrderAndMoveToNextPageFulfilled {

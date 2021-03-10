@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchFetchFormLayoutSaga, watchFetchFormLayoutSettingsSaga, watchFetchFormLayoutSetsSaga } from './fetch/fetchFormLayoutSagas';
-import { watchUpdateFocusSaga, watchUpdateRepeatingGroupsSaga, watchUpdateCurrentViewSaga, watchCalculatePageOrderAndMoveToNextPageSaga } from './update/updateFormLayoutSagas';
+import { watchUpdateFocusSaga, watchUpdateRepeatingGroupsSaga, watchUpdateCurrentViewSaga, watchCalculatePageOrderAndMoveToNextPageSaga, watchInitialCalculagePageOrderAndMoveToNextPageSaga } from './update/updateFormLayoutSagas';
 
 // eslint-disable-next-line func-names
 export default function* (): SagaIterator {
@@ -12,4 +12,5 @@ export default function* (): SagaIterator {
   yield fork(watchUpdateCurrentViewSaga);
   yield fork(watchFetchFormLayoutSetsSaga);
   yield fork(watchCalculatePageOrderAndMoveToNextPageSaga);
+  yield fork(watchInitialCalculagePageOrderAndMoveToNextPageSaga);
 }

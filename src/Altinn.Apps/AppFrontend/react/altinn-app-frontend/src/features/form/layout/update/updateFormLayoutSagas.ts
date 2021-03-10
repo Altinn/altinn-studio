@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
@@ -10,6 +10,7 @@ import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
+import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
@@ -170,7 +171,7 @@ export function* updateCurrentViewSaga({ payload: {
   }
 }
 
-export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidations } } : PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
+export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidations, skipMoveToNext } } : PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const layoutSets = state.formLayout.layoutsets;
@@ -199,16 +200,31 @@ export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidat
       },
     );
     yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({ order: layoutOrder }));
+    if (skipMoveToNext) {
+      return;
+    }
     const returnToView = state.formLayout.uiConfig.returnToView;
     const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
     yield put(FormLayoutActions.updateCurrentView({ newView, runValidations }));
   } catch (error) {
-    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({ error }));
+    if (error?.response?.status === 404) {
+      // We accept that the app does noe have defined a calculate page order as this is not default for older apps
+    } else {
+      yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({ error }));
+    }
   }
 }
 
 export function* watchCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
   yield takeEvery(FormLayoutActions.calculatePageOrderAndMoveToNextPage, calculatePageOrderAndMoveToNextPageSaga);
+}
+
+export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIterator {
+  yield all([
+    take(START_INITIAL_DATA_TASK_QUEUE_FULFILLED),
+    take(FormLayoutActions.fetchLayoutFulfilled),
+  ]);
+  yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
