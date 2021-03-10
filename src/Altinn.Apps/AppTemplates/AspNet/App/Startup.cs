@@ -11,6 +11,7 @@ using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Common.EFormidlingClient;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
@@ -106,6 +107,7 @@ namespace Altinn.App
             services.AddHttpClient<IProfile, ProfileAppSI>();
             services.AddHttpClient<IRegister, RegisterAppSI>();
             services.AddHttpClient<IText, TextAppSI>();
+            services.AddHttpClient<IEFormidlingClient, EFormidlingClient>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();

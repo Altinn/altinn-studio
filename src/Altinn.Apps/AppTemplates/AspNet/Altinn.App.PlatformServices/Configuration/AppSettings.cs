@@ -188,5 +188,14 @@ namespace Altinn.App.Services.Configuration
         /// Gets or sets a value indicating whether the eFormidlingIntegration should be enabled.
         /// </summary>
         public bool EnableEFormidling { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the sender of the eFormidling shipment.
+        /// </summary>
+        /// <remarks>
+        /// If overriding for testing purposes, ensure to only update appsettings.Development.
+        /// Integration will not work if value is overrided in staging or prodution.
+        /// </remarks>
+        public string EFormidlingSender { get; set; } = "991825827";
     }
 }

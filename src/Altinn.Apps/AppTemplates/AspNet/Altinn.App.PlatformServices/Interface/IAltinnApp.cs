@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -148,18 +149,20 @@ namespace Altinn.App.Services.Interface
         /// 
         /// </summary>
         /// <returns></returns>
-        virtual async Task<string> GetEFormidlingReceriver()
+        virtual async Task<List<Receiver>> GetEFormidlingReceivers()
         {
-            return await Task.FromResult(string.Empty);
+            await Task.CompletedTask;
+            return null;
         }
 
         /// <summary>
-        /// 
+        /// Generates an archive message to be shipped to eFormidling
         /// </summary>
-        /// <returns></returns>
-        virtual async Task<string> GetEFormidlingArkivmelding()
+        /// <returns>The achive message</returns>
+        virtual async Task<(string, Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
         {
-            return await Task.FromResult(string.Empty);
+            await Task.CompletedTask;
+            return (null, null);
         }
     }
 }
