@@ -61,9 +61,8 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
-            }
-
-            return false;      
+                throw;
+            }    
         }
 
         /// <inheritdoc/>
@@ -85,6 +84,7 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
         }
 
@@ -104,9 +104,9 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
 
-            return null;
         }
 
         /// <inheritdoc/>
@@ -130,10 +130,10 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{Exception} ", e.Message);             
+                _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
 
-            return null;
         }
 
         /// <inheritdoc/>
@@ -152,9 +152,8 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
-
-            return null;
         }
 
         /// <inheritdoc/>
@@ -179,9 +178,9 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
 
-            return null;
         }
 
         /// <inheritdoc/>
@@ -206,9 +205,9 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
 
-            return null;
         }
 
         /// <inheritdoc/>
@@ -233,9 +232,8 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
-            }
-
-            return null;
+                throw;
+            }       
         }
 
         /// <inheritdoc/>
@@ -268,6 +266,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             else
             {
+                _logger.LogError($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
                 throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
             }       
         }
@@ -310,9 +309,8 @@ namespace Altinn.Common.EFormidlingClient
             catch (Exception ex)
             {
                 _logger.LogError("Message :{Exception} ", ex.Message);
+                throw;
             }
-
-            return null;
         }
 
         /// <inheritdoc/>
@@ -346,8 +344,9 @@ namespace Altinn.Common.EFormidlingClient
                     return true;
                 }
             }
-            catch (HttpRequestException)
-            {           
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Message :{Exception} ", ex.Message);
                 throw new WebException($"The remote server returned unexpected status code: {response.StatusCode} - {responseBody}.");
             }
 
@@ -373,6 +372,7 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
+                throw;
             }
 
             return false;
