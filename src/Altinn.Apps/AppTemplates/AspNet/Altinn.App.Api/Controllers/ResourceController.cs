@@ -240,6 +240,7 @@ namespace Altinn.App.Api.Controllers
                 // frontend will fail witout content
                 fileContent = new byte[0];
             }
+
             return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
         }
     }
