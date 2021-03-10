@@ -60,7 +60,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return false;      
@@ -84,7 +84,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
         }
 
@@ -103,7 +103,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return null;
@@ -130,7 +130,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);             
+                _logger.LogError("Message :{Exception} ", e.Message);             
             }
 
             return null;
@@ -151,7 +151,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return null;
@@ -178,7 +178,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return null;
@@ -205,7 +205,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return null;
@@ -232,7 +232,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return null;
@@ -309,7 +309,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (Exception ex)
             {
-                _logger.LogError("Message :{0} ", ex.Message);
+                _logger.LogError("Message :{Exception} ", ex.Message);
             }
 
             return null;
@@ -372,7 +372,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError("Message :{0} ", e.Message);
+                _logger.LogError("Message :{Exception} ", e.Message);
             }
 
             return false;
