@@ -7,7 +7,7 @@
 	  <Authors>Altinn</Authors>
 	  <Company>DigDir</Company>
 	  <OutputType>Library</OutputType>
-	  <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 	
 	<ItemGroup>
