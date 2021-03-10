@@ -11,17 +11,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     public class StandardBusinessDocument
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StandardBusinessDocument"/> class.
-        /// </summary>
-        /// <param name="standardBusinessDocumentHeader">StandardBusinessDocumentHeader</param>
-        /// <param name="arkivmelding">Arkivmelding</param>
-        public StandardBusinessDocument(StandardBusinessDocumentHeader standardBusinessDocumentHeader, Arkivmelding arkivmelding)
-        {
-            StandardBusinessDocumentHeader = standardBusinessDocumentHeader;
-            Arkivmelding = arkivmelding;
-        }
-
-        /// <summary>
         ///  Gets or sets the StandardBusinessDocumentHeader
         /// </summary>
         [JsonPropertyName("standardBusinessDocumentHeader")]
@@ -31,7 +20,18 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         ///  Gets or sets the Arkivmelding
         /// </summary>
         [JsonPropertyName("arkivmelding")]
-        public Arkivmelding Arkivmelding { get; set; }      
+        public Arkivmelding Arkivmelding { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardBusinessDocument"/> class.
+        /// </summary>
+        /// <param name="standardBusinessDocumentHeader">StandardBusinessDocumentHeader</param>
+        /// <param name="arkivmelding">Arkivmelding</param>
+        public StandardBusinessDocument(StandardBusinessDocumentHeader standardBusinessDocumentHeader, Arkivmelding arkivmelding)
+        {
+            StandardBusinessDocumentHeader = standardBusinessDocumentHeader;
+            Arkivmelding = arkivmelding;
+        }
     }
 
     /// <summary>
@@ -39,17 +39,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     /// </summary>
     public class Identifier
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Identifier"/> class.
-        /// </summary>
-        /// <param name="value">Value</param>
-        /// <param name="authority">Authority</param>
-        public Identifier(string value, string authority)
-        {
-            Value = value;
-            Authority = authority;
-        }
-
         /// <summary>
         ///  Gets or sets the Value
         /// </summary>
@@ -61,6 +50,17 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("authority")]
         public string Authority { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Identifier"/> class.
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <param name="authority">Authority</param>
+        public Identifier(string value, string authority)
+        {
+            Value = value;
+            Authority = authority;
+        }
     }
 
     /// <summary>
@@ -68,6 +68,18 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     /// </summary>
     public class Sender
     {
+        /// <summary>
+        ///  Gets or sets the Identifier
+        /// </summary>
+        [JsonPropertyName("identifier")]
+        public Identifier Identifier { get; set; }
+
+        /// <summary>
+        ///  Gets or sets the ContactInformation
+        /// </summary>
+        [JsonPropertyName("contactInformation")]
+        public List<object> ContactInformation { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Sender"/> class.
         /// </summary>
@@ -78,7 +90,13 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
             Identifier = identifier;
             ContactInformation = contactInformation;
         }
+    }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Receiver"/> class.
+    /// </summary>
+    public class Receiver
+    {
         /// <summary>
         ///  Gets or sets the Identifier
         /// </summary>
@@ -90,13 +108,7 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("contactInformation")]
         public List<object> ContactInformation { get; set; }
-    }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Receiver"/> class.
-    /// </summary>
-    public class Receiver
-    {
         /// <summary>
         /// Initializes a new instance of the <see cref="Receiver"/> class.
         /// </summary>
@@ -107,18 +119,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
             Identifier = identifier;
             ContactInformation = contactInformation;
         }
-
-        /// <summary>
-        ///  Gets or sets the Identifier
-        /// </summary>
-        [JsonPropertyName("identifier")]
-        public Identifier Identifier { get; set; }
-
-        /// <summary>
-        ///  Gets or sets the ContactInformation
-        /// </summary>
-        [JsonPropertyName("contactInformation")]
-        public List<object> ContactInformation { get; set; }
     }
 
     /// <summary>
@@ -126,23 +126,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     /// </summary>
     public class DocumentIdentification
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DocumentIdentification"/> class.
-        /// </summary>
-        /// <param name="standard">Standard</param>
-        /// <param name="typeVersion">TypeVersion</param>
-        /// <param name="instanceIdentifier">InstanceIdentifier</param>
-        /// <param name="type">Type</param>
-        /// <param name="creationDateAndTime">CreationDateAndTime</param>
-        public DocumentIdentification(string standard, string typeVersion, string instanceIdentifier, string type, DateTime creationDateAndTime)
-        {
-            Standard = standard;
-            TypeVersion = typeVersion;
-            InstanceIdentifier = instanceIdentifier;
-            Type = type;
-            CreationDateAndTime = creationDateAndTime;
-        }
-
         /// <summary>
         ///  Gets or sets the Standard
         /// </summary>
@@ -172,6 +155,23 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("creationDateAndTime")]
         public DateTime CreationDateAndTime { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DocumentIdentification"/> class.
+        /// </summary>
+        /// <param name="standard">Standard</param>
+        /// <param name="typeVersion">TypeVersion</param>
+        /// <param name="instanceIdentifier">InstanceIdentifier</param>
+        /// <param name="type">Type</param>
+        /// <param name="creationDateAndTime">CreationDateAndTime</param>
+        public DocumentIdentification(string standard, string typeVersion, string instanceIdentifier, string type, DateTime creationDateAndTime)
+        {
+            Standard = standard;
+            TypeVersion = typeVersion;
+            InstanceIdentifier = instanceIdentifier;
+            Type = type;
+            CreationDateAndTime = creationDateAndTime;
+        }
     }
 
     /// <summary>
@@ -180,6 +180,12 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     public class ScopeInformation
     {
         /// <summary>
+        ///  Gets or sets the ExpectedResponseDateTime
+        /// </summary>
+        [JsonPropertyName("expectedResponseDateTime")]
+        public DateTime ExpectedResponseDateTime { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ScopeInformation"/> class.
         /// </summary>
         /// <param name="expectedResponseDateTime">ExpectedResponseDateTime</param>
@@ -187,12 +193,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         {
             ExpectedResponseDateTime = expectedResponseDateTime;
         }
-
-        /// <summary>
-        ///  Gets or sets the ExpectedResponseDateTime
-        /// </summary>
-        [JsonPropertyName("expectedResponseDateTime")]
-        public DateTime ExpectedResponseDateTime { get; set; }
     }
 
     /// <summary>
@@ -200,21 +200,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     /// </summary>
     public class Scope
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Scope"/> class.
-        /// </summary>
-        /// <param name="type">Type</param>
-        /// <param name="instanceIdentifier">InstanceIdentifier</param>
-        /// <param name="identifier">Identifier</param>
-        /// <param name="scopeInformation">ScopeInformation</param>
-        public Scope(string type, string instanceIdentifier, string identifier, List<ScopeInformation> scopeInformation)
-        {
-            Type = type;
-            InstanceIdentifier = instanceIdentifier;
-            Identifier = identifier;
-            ScopeInformation = scopeInformation;
-        }
-
         /// <summary>
         ///  Gets or sets the Type
         /// </summary>
@@ -238,6 +223,21 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("scopeInformation")]
         public List<ScopeInformation> ScopeInformation { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Scope"/> class.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="instanceIdentifier">InstanceIdentifier</param>
+        /// <param name="identifier">Identifier</param>
+        /// <param name="scopeInformation">ScopeInformation</param>
+        public Scope(string type, string instanceIdentifier, string identifier, List<ScopeInformation> scopeInformation)
+        {
+            Type = type;
+            InstanceIdentifier = instanceIdentifier;
+            Identifier = identifier;
+            ScopeInformation = scopeInformation;
+        }
     }
 
     /// <summary>
@@ -246,6 +246,12 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     public class BusinessScope
     {
         /// <summary>
+        ///  Gets or sets the InstanceIdentifier
+        /// </summary>
+        [JsonPropertyName("scope")]
+        public List<Scope> Scope { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BusinessScope"/> class.
         /// </summary>
         /// <param name="scope">Scope</param>
@@ -253,12 +259,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         {
             Scope = scope;
         }
-
-        /// <summary>
-        ///  Gets or sets the InstanceIdentifier
-        /// </summary>
-        [JsonPropertyName("scope")]
-        public List<Scope> Scope { get; set; }
     }
 
     /// <summary>
@@ -266,23 +266,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     /// </summary>
     public class StandardBusinessDocumentHeader
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StandardBusinessDocumentHeader"/> class.
-        /// </summary>
-        /// <param name="headerVersion">HeaderVersion</param>
-        /// <param name="sender">Sender</param>
-        /// <param name="receiver">Receiver</param>
-        /// <param name="documentIdentification">DocumentIdentification</param>
-        /// <param name="businessScope">BusinessScope</param>
-        public StandardBusinessDocumentHeader(string headerVersion, List<Sender> sender, List<Receiver> receiver, DocumentIdentification documentIdentification, BusinessScope businessScope)
-        {
-            HeaderVersion = headerVersion;
-            Sender = sender;
-            Receiver = receiver;
-            DocumentIdentification = documentIdentification;
-            BusinessScope = businessScope;
-        }
-
         /// <summary>
         ///  Gets or sets the InstanceIdentifier
         /// </summary>
@@ -312,6 +295,23 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("businessScope")]
         public BusinessScope BusinessScope { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardBusinessDocumentHeader"/> class.
+        /// </summary>
+        /// <param name="headerVersion">HeaderVersion</param>
+        /// <param name="sender">Sender</param>
+        /// <param name="receiver">Receiver</param>
+        /// <param name="documentIdentification">DocumentIdentification</param>
+        /// <param name="businessScope">BusinessScope</param>
+        public StandardBusinessDocumentHeader(string headerVersion, List<Sender> sender, List<Receiver> receiver, DocumentIdentification documentIdentification, BusinessScope businessScope)
+        {
+            HeaderVersion = headerVersion;
+            Sender = sender;
+            Receiver = receiver;
+            DocumentIdentification = documentIdentification;
+            BusinessScope = businessScope;
+        }
     }
 
     /// <summary>
@@ -320,6 +320,12 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
     public class Arkivmelding
     {
         /// <summary>
+        ///  Gets or sets the InstanceIdentifier
+        /// </summary>
+        [JsonPropertyName("sikkerhetsnivaa")]
+        public string Sikkerhetsnivaa { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Arkivmelding"/> class.
         /// </summary>
         /// <param name="sikkerhetsnivaa">Sikkerhetsnivaa</param>
@@ -327,11 +333,5 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         {
             Sikkerhetsnivaa = sikkerhetsnivaa;
         }
-
-        /// <summary>
-        ///  Gets or sets the InstanceIdentifier
-        /// </summary>
-        [JsonPropertyName("sikkerhetsnivaa")]
-        public string Sikkerhetsnivaa { get; set; }
     }
 }
