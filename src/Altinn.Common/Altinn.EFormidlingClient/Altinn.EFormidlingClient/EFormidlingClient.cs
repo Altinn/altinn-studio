@@ -17,7 +17,7 @@ using Newtonsoft.Json.Serialization;
 namespace Altinn.Common.EFormidlingClient
 {
     /// <summary>
-    /// Represents an implementation of <see cref="IFormidlingClient"/> using a HttpClient.
+    /// Represents an implementation of <see cref="EFormidlingClient"/> using a HttpClient.
     /// </summary>
     public class EFormidlingClient : IEFormidlingClient
     {
