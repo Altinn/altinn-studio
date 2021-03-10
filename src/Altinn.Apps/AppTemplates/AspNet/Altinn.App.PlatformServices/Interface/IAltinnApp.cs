@@ -143,5 +143,23 @@ namespace Altinn.App.Services.Interface
         /// Format layoutsettings
         /// </summary>
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        virtual async Task<string> GetEFormidlingReceriver()
+        {
+            return await Task.FromResult(string.Empty);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        virtual async Task<string> GetEFormidlingArkivmelding()
+        {
+            return await Task.FromResult(string.Empty);
+        }
     }
 }

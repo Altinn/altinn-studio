@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using Altinn.App.Services.Models;
 
 using Newtonsoft.Json;
@@ -182,5 +183,10 @@ namespace Altinn.App.Services.Configuration
         /// Gets or sets a value indicating whether the app should send events to the Events component.
         /// </summary>
         public bool RegisterEventsWithEventsComponent { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the eFormidlingIntegration should be enabled.
+        /// </summary>
+        public bool EnableEFormidling { get; set; } = false;
     }
 }

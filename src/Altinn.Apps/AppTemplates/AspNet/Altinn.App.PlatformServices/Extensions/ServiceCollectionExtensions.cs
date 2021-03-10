@@ -31,5 +31,15 @@ namespace Altinn.App.PlatformServices.Extensions
                 services.AddSingleton<ISecrets, SecretsLocalAppSI>();
             }
         }
+
+        public static void AddEFormidling(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+        {
+            bool enableEFormidling = configuration.GetValue<bool>("appSettings.EnableEFormidling");
+
+            if (enableEFormidling)
+            {
+
+            }
+        }
     }
 }

@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{C9ABF5DB-928C-4280-B587-13E6DCE010BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.PlatformServices.Tests", "Altinn.App.PlatformServices.Tests\Altinn.App.PlatformServices.Tests.csproj", "{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices.Tests", "Altinn.App.PlatformServices.Tests\Altinn.App.PlatformServices.Tests.csproj", "{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.EFormidlingClient", "..\..\..\Altinn.Common\Altinn.EFormidlingClient\Altinn.EFormidlingClient\Altinn.EFormidlingClient.csproj", "{F2B5F1FF-D93E-4D7C-B6C8-85687F0160E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2B5F1FF-D93E-4D7C-B6C8-85687F0160E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B5F1FF-D93E-4D7C-B6C8-85687F0160E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B5F1FF-D93E-4D7C-B6C8-85687F0160E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2B5F1FF-D93E-4D7C-B6C8-85687F0160E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
