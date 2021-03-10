@@ -76,7 +76,7 @@ namespace Altinn.Platform.Events.Authorization
 
             string[] pathParams = events.Source.AbsolutePath.Split("/");
 
-            if (pathParams.Count() > 3)
+            if (pathParams.Count() > 5)
             {
                 org = pathParams[1];
                 app = pathParams[2];

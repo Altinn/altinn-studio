@@ -2,18 +2,17 @@
   {
     "Id": "1",
     "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
-    "Subjectfilter": "/party/1337",
-    "Consumer": "/org/98765432",
-    "CreatedBy": "/party/1337",
+    "Consumer": "/org/ttd",
+    "CreatedBy": "/org/ttd",
     "EndPoint": "https://www.ttd.no/webhook",
     "Time": "2020-10-13T11:50:29.463221+00"
   },
   {
     "Id": "2",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1/",
     "Subjectfilter": "/party/1336",
-    "Consumer": "/org/98765419",
-    "CreatedBy": "/party/1336",
+    "Consumer": "/org/ttd",
+    "CreatedBy": "/org/ttd",
     "EndPoint": "https://www.ttd.no/webhook",
     "Time": "2020-10-13T11:50:29.463221+00"
   },
@@ -21,7 +20,7 @@
     "Id": "3",
     "Sourcefilter": "https://ttd.apps.altinn.no/ttd/test-app/",
     "Subjectfilter": "/party/1337",
-    "Consumer": "/org/98765432",
+    "Consumer": "/org/ttd",
     "CreatedBy": "/party/1337",
     "EndPoint": "https://www.ttd.no/webhook",
     "Time": "2020-10-13T11:50:29.463221+00"
@@ -32,6 +31,15 @@
     "Subjectfilter": "/party/1337",
     "Consumer": "/user/12345678",
     "CreatedBy": "/party/1337",
+    "EndPoint": "https://www.ttd.no/webhook",
+    "Time": "2020-10-13T11:50:29.463221+00"
+  },
+  {
+    "Id": "5",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Subjectfilter": "/party/1337",
+    "Consumer": "/user/1337",
+    "CreatedBy": "/user/1337",
     "EndPoint": "https://www.ttd.no/webhook",
     "Time": "2020-10-13T11:50:29.463221+00"
   }

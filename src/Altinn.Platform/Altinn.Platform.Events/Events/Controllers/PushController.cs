@@ -22,7 +22,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Controller responsible for pushing eventsto subscribers
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("events/api/v1/push")]
     [ApiController]
     public class PushController : ControllerBase
     {
@@ -63,7 +63,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <returns>The application metadata object.</returns>
-        [Authorize(Policy = "PlatformAccess")]
+        [Authorize]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
