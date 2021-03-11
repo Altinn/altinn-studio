@@ -282,8 +282,13 @@ namespace Altinn.App.Services.Implementation
         public virtual async Task<List<Receiver>> GetEFormidlingReceivers()
         {
             await Task.CompletedTask;
-            Identifier identifier = new Identifier(_appMetadata.EFormidlingContract.Receiver, "iso6523-actorid-upis");
-            Receiver receiver = new Receiver(identifier, null);
+            Identifier identifier = new Identifier
+            {
+                Value = _appMetadata.EFormidlingContract.Receiver,
+                Authority = "iso6523-actorid-upis"
+            };
+
+            Receiver receiver = new Receiver { Identifier = identifier };
 
             return new List<Receiver> { receiver };
         }
@@ -468,12 +473,14 @@ namespace Altinn.App.Services.Implementation
             // Filter by datatypes
             foreach (DataElement dataElement in instance.Data)
             {
-                string fileName = dataElement.Id;
-
-                if (dataElement.Filename != null)
+                if (!_appMetadata.EFormidlingContract.DataTypes.Contains( dataElement.DataType))
                 {
-                    fileName = dataElement.Filename;
+                    break;
                 }
+
+                bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
+
+                string fileName = appLogic ? $"{_appMetadata.Title["nb"]}.xml" : dataElement.Filename;
 
                 using (Stream stream = _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id)).Result)
                 {
@@ -482,41 +489,57 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string documentHeader, Arkivmelding arkivmelding, Instance instance)
+        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(Arkivmelding arkivmelding, Instance instance)
         {
-            string headerVersion = "1.0";
-            List<Receiver> receivers = await GetEFormidlingReceivers();
-            Sender digdirSender = new Sender(new Identifier(_appSettings.EFormidlingSender, "iso6523-actorid-upis"), null);
-            List<Sender> sender = new List<Sender> { digdirSender };
-            DocumentIdentification documentIdentification = null;
-            BusinessScope businessScope = null;
-
-            StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader(headerVersion, sender, receivers, documentIdentification, businessScope);
-
-            StandardBusinessDocument sbd = new StandardBusinessDocument(sbdHeader, arkivmelding);
-
-
-            return null;
-        }
-
-        private StandardBusinessDocument ConfigureStandardBusinessDocument(Instance instance)
-        {
-            // File is used to test with - replace with "ConstructStandardBusinessDocument"
-           / JObject sbdJson = JObject.Parse(File.ReadAllText(@"<PATH_TO_SBD.json>"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(sbdJson.ToString());
-
-            // StandardBusinessDocument sbd = ConstructStandardBusinessDocument(instance);
-            DateTime currentCreationTime = DateTime.Now;
-            DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
-
             string instanceGuid = Guid.Parse(instance.Id.Split("/")[1]).ToString();
+            DateTime completedTime = DateTime.Now;
 
-            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().Identifier = _appMetadata.EFormidlingContract.Process;
-            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = instanceGuid;
-            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
-            sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = _appMetadata.EFormidlingContract.DataTypes.First();
-            sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = instanceGuid;
-            sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
+            Sender digdirSender = new Sender
+            {
+                Identifier = new Identifier
+                {
+                    Value = _appSettings.EFormidlingSender,
+                    Authority = "iso6523-actorid-upis"
+                }
+            };
+
+            DocumentIdentification documentIdentification = new DocumentIdentification
+            {
+                InstanceIdentifier = Guid.NewGuid().ToString(),
+                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding", // kan denne hardkodes?
+                TypeVersion = "2.0", //bør kanskje ikke hardkodes dersom apputvikler selv skal følge ny standard senere?
+                CreationDateAndTime = completedTime,
+                Type = "arkivmelding" // usikker på om denne er rett
+            };
+
+            BusinessScope businessScope = new BusinessScope();
+            businessScope.Scope.Add(
+                new Scope
+                {
+                    Identifier = _appMetadata.EFormidlingContract.Process,
+                    InstanceIdentifier = instanceGuid, // obs skal denne være unik?
+                    Type = "ConversationId",
+                    ScopeInformation = new List<ScopeInformation> {
+                        new ScopeInformation {
+                            ExpectedResponseDateTime = completedTime.AddHours(2)
+                        }
+                    },
+                });
+
+            StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
+            {
+                HeaderVersion = "1.0",
+                BusinessScope = businessScope,
+                DocumentIdentification = documentIdentification,
+                Receiver = await GetEFormidlingReceivers(),
+                Sender = new List<Sender> { digdirSender }
+            };
+
+            StandardBusinessDocument sbd = new StandardBusinessDocument
+            {
+                StandardBusinessDocumentHeader = sbdHeader,
+                Arkivmelding = arkivmelding,
+            };
 
             return sbd;
         }
@@ -527,7 +550,7 @@ namespace Altinn.App.Services.Implementation
 
             (string arkivMeldingName, Arkivmelding arkivmelding) = await GetEFormidlingArkivmelding(instance);
 
-            StandardBusinessDocument sbd = ConstructStandardBusinessDocument(instance);
+            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(arkivmelding, instance);
 
             StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
             RetrieveAndSendBinaryAttachments(instance);
