@@ -439,6 +439,7 @@ describe('>>> utils/validations.ts', () => {
       validation.validateFormComponents(
         mockFormAttachments.attachments,
         mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
         mockFormData,
         mockLanguage.language,
         [],
@@ -465,6 +466,7 @@ describe('>>> utils/validations.ts', () => {
     const componentSpesificValidations = validation.validateFormComponents(
       mockFormAttachments.attachments,
       mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
       mockFormData,
       mockLanguage.language,
       [],
@@ -500,6 +502,7 @@ describe('>>> utils/validations.ts', () => {
       validation.validateFormComponents(
         mockFormAttachments.attachments,
         mockLayout,
+        Object.keys(mockLayout),
         mockFormData,
         mockLanguage.language,
         [],
@@ -525,7 +528,7 @@ describe('>>> utils/validations.ts', () => {
       ],
     };
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, ['componentId_4']);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, Object.keys(mockLayout), mockFormData, mockLanguage.language, ['componentId_4']);
 
     const mockResult = {
       FormLayout: {},
@@ -544,6 +547,7 @@ describe('>>> utils/validations.ts', () => {
       validation.validateEmptyFields(
         mockFormData,
         mockLayout,
+        Object.keys(mockLayout),
         mockLanguage.language,
         [],
         repeatingGroups,
@@ -564,6 +568,7 @@ describe('>>> utils/validations.ts', () => {
       validation.validateEmptyFields(
         mockFormData,
         mockLayout,
+        Object.keys(mockLayout),
         mockLanguage.language,
         ['componentId_4-0'],
         repeatingGroups,
@@ -613,6 +618,7 @@ describe('>>> utils/validations.ts', () => {
     const mockResult = validation.validateFormData(
       mockFormData,
       mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage.language,
     );
@@ -624,6 +630,7 @@ describe('>>> utils/validations.ts', () => {
     const mockResult = validation.validateFormData(
       mockValidFormData,
       mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage,
     );
@@ -635,7 +642,7 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_1: 'abc',
     };
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(data, mockLayoutState.layouts, mockValidator, mockLanguage);
+    const mockResult = validation.validateFormData(data, mockLayoutState.layouts, Object.keys(mockLayoutState.layouts), mockValidator, mockLanguage);
     expect(mockResult.invalidDataTypes).toBeTruthy();
   });
 

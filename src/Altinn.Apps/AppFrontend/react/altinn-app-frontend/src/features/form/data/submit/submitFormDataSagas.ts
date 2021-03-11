@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
@@ -36,14 +37,16 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
-    const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
+    const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
+    const validationResult = validateFormData(model, state.formLayout.layouts, layoutOrder, validator, state.language.language);
     let validations = validationResult.validations;
     const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
+      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
     const emptyFieldsValidations = validateEmptyFields(
       state.formData.formData,
       state.formLayout.layouts,
+      layoutOrder,
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
       state.formLayout.uiConfig.repeatingGroups,
