@@ -223,6 +223,7 @@ export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIter
   yield all([
     take(START_INITIAL_DATA_TASK_QUEUE_FULFILLED),
     take(FormLayoutActions.fetchLayoutFulfilled),
+    take(FormLayoutActions.fetchLayoutSettingsFulfilled),
   ]);
   yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
 }
