@@ -212,6 +212,6 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         ///  Gets or sets the InstanceIdentifier
         /// </summary>
         [JsonPropertyName("sikkerhetsnivaa")]
-        public string Sikkerhetsnivaa { get; set; }
+        public int Sikkerhetsnivaa { get; set; }
     }
 }
