@@ -77,6 +77,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
+            services.Configure<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
 
             if (!env.IsDevelopment())
             {
@@ -97,16 +98,6 @@ namespace Altinn.App.PlatformServices.Extensions
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-            }
-        }
-
-        public static void AddEFormidling(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
-        {
-            bool enableEFormidling = configuration.GetValue<bool>("appSettings.EnableEFormidling");
-
-            if (enableEFormidling)
-            {
-
             }
         }
     }

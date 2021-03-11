@@ -13,6 +13,5 @@ namespace Altinn.Common.EFormidlingClient.Configuration
         /// BaseUrl for eFormidling integration point API
         /// </summary>
         public string BaseUrl { get; set; }
-
     }
 }

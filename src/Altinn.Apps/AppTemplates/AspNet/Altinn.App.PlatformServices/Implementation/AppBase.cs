@@ -241,7 +241,8 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            if (_appSettings.EnableEFormidling) // TODO: add check for taskID from appmetadata.
+            // TODO: add check for taskID from appmetadata.
+            if (_appSettings.EnableEFormidling)
             {
                 SendEFormidlingShipment(instance, taskId);
             }
@@ -275,7 +276,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual async Task<(string, Arkivmelding)> GetEFormidlingArkivmelding(Instance instance)
+        public virtual async Task<(string, Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
         {
             await Task.CompletedTask;
             return (null, null);
@@ -295,8 +296,6 @@ namespace Altinn.App.Services.Implementation
 
             return new List<Receiver> { receiver };
         }
-
-
 
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
@@ -470,33 +469,14 @@ namespace Altinn.App.Services.Implementation
             return dictionary;
         }
 
-        private async void RetrieveSchemaData(Instance instance, string taskId)
+        private async void SendInstanceData(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
-            foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
-            {
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    if (dataElement.Filename == null)
-                    {
-                        Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
-                        object data = await _dataService.GetFormData(instanceGuid, dataElementType, instance.Org, instance.AppId, instanceOwnerPartyId, new Guid(dataElement.Id));
-                    }
-                }
-            }
-        }
-
-        private async void RetrieveAndSendBinaryAttachments(Instance instance)
-        {
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-
-            // Filter by datatypes
             foreach (DataElement dataElement in instance.Data)
             {
-                if (!_appMetadata.EFormidlingContract.DataTypes.Contains( dataElement.DataType))
+                if (!_appMetadata.EFormidlingContract.DataTypes.Contains(dataElement.DataType))
                 {
                     break;
                 }
@@ -505,9 +485,14 @@ namespace Altinn.App.Services.Implementation
 
                 string fileName = appLogic ? $"{_appMetadata.Title["nb"]}.xml" : dataElement.Filename;
 
-                using (Stream stream = _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id)).Result)
+                using (Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id)))
                 {
-                    var sendBinary = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
+                    bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
+
+                    if (!successful)
+                    {
+                        _logger.LogError("// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed.", dataElement.Id, instance.Id);
+                    }
                 }
             }
         }
@@ -542,8 +527,10 @@ namespace Altinn.App.Services.Implementation
                     Identifier = _appMetadata.EFormidlingContract.Process,
                     InstanceIdentifier = instanceGuid, // obs skal denne være unik?
                     Type = "ConversationId",
-                    ScopeInformation = new List<ScopeInformation> {
-                        new ScopeInformation {
+                    ScopeInformation = new List<ScopeInformation>
+                    {
+                        new ScopeInformation
+                        {
                             ExpectedResponseDateTime = completedTime.AddHours(2)
                         }
                     },
@@ -571,23 +558,23 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceGuid = instance.Id.Split("/")[1];
 
-            (string arkivMeldingName, Arkivmelding arkivmelding) = await GetEFormidlingArkivmelding(instance);
-
+            (string arkivMeldingName, Arkivmelding arkivmelding) = await GenerateEFormidlingArkivmelding(instance);
             StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(arkivmelding, instance);
-
             StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
-            RetrieveAndSendBinaryAttachments(instance);
 
-            // RetrieveSchemaData(instance, taskId);
-            string filename = "arkivmelding.xml";
+            SendInstanceData(instance);
 
-            // Retrieve constructed arkivmelding dto
-            using (FileStream fs2 = File.OpenRead(@"<PATH_TO_ARKIVMELDING.xml>"))
+            using (Stream stream = new MemoryStream())
             {
-                if (fs2.Length > 3)
-                {
-                    await _eFormidlingClient.UploadAttachment(fs2, instanceGuid, filename);
-                }
+                var stringwriter = new StringWriter();
+                var serializer = new XmlSerializer(typeof(Arkivmelding));
+                serializer.Serialize(stringwriter, arkivmelding);
+
+                var writer = new StreamWriter(stream);
+                writer.Write(stringwriter.ToString());
+                writer.Flush();
+                stream.Position = 0;
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, arkivMeldingName);
             }
 
             bool shiptmentResult = await _eFormidlingClient.SendMessage(instanceGuid);

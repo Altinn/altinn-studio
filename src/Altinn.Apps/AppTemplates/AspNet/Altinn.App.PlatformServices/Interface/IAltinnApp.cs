@@ -146,9 +146,8 @@ namespace Altinn.App.Services.Interface
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <summary>
-        /// 
+        /// Gets a list of recerivers
         /// </summary>
-        /// <returns></returns>
         virtual async Task<List<Receiver>> GetEFormidlingReceivers()
         {
             await Task.CompletedTask;
