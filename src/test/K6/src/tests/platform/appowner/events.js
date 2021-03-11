@@ -1,7 +1,7 @@
 /* 
     Test script to platform events api with app owner token
-    Command: docker-compose run k6 run src/tests/platform/appowner/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
-    -e maskinpoten=***
+    Command: docker-compose run k6 run /src/tests/platform/appowner/events.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e maskinpoten=***  -e appsaccesskey=***
 */
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";

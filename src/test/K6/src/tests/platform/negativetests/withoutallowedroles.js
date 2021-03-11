@@ -1,11 +1,12 @@
 /* 
   This test requires two user names and password and an app
-  command to run the test: docker-compose run k6 run src/tests/platform/negativetests/withoutallowedroles.js -e env=*** -e org=*** -e level1app=*** -e username=*** -e userpwd=*** -e level1user=***
+  command to run the test: docker-compose run k6 run /src/tests/platform/negativetests/withoutallowedroles.js 
+  -e env=*** -e org=*** -e level1app=*** -e username=*** -e userpwd=*** -e level1user=*** -e appsaccesskey=***
 */
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as platformInstances from "../../../api/storage/instances.js"
+import * as platformInstances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;

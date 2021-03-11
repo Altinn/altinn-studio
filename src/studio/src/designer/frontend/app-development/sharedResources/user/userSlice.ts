@@ -44,7 +44,7 @@ export interface IFetchRemainingSessionFulfilled {
 }
 
 export interface IKeepAliveSessionFulfilled {
-  addedMinutes: number;
+  remainingMinutes: number;
 }
 
 
@@ -81,8 +81,8 @@ const userSlice = createSlice({
     keepAliveSessionFulfilled: (
       state: IUserState, action: PayloadAction<IKeepAliveSessionFulfilled>,
     ) => {
-      const { addedMinutes } = action.payload;
-      state.session.remainingMinutes = (state.session.remainingMinutes + addedMinutes);
+      const { remainingMinutes } = action.payload;
+      state.session.remainingMinutes = remainingMinutes;
     },
     keepAliveSessionRejected: (
       state: IUserState, action: PayloadAction<IUserActionRejected>,

@@ -11,7 +11,7 @@
   Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
   parameter attachmentdistribution among small, medium and large attachment.
   example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+  -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e attachmentdistribution="60;30;10"
 */
 
 import { check } from "k6";
@@ -19,9 +19,9 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
-import * as apps from "../../api/storage/applications.js"
-import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
+import * as apps from "../../api/platform/storage/applications.js"
+import { deleteSblInstance } from "../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 const appOwner = __ENV.org;

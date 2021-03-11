@@ -1,11 +1,10 @@
 import { SagaIterator } from 'redux-saga';
-import { all, call, select, take, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState, IValidations, IUiConfig } from 'src/types';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import { IFormData } from '../../data/formDataReducer';
-import FormLayoutActions from '../../layout/formLayoutActions';
-import * as FormLayoutActionTypes from '../../layout/formLayoutActionTypes';
+import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import { IConditionalRenderingRules } from '../types';
@@ -31,7 +30,7 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     );
 
     if (shouldHidddenFieldsUpdate(uiConfig.hiddenFields, componentsToHide)) {
-      FormLayoutActions.updateHiddenComponents(componentsToHide);
+      yield put(FormLayoutActions.updateHiddenComponents({ componentsToHide }));
       componentsToHide.forEach((componentId) => {
         if (formValidations[componentId]) {
           const newFormValidations = formValidations;
@@ -52,7 +51,7 @@ export function* watchCheckIfConditionalRulesShouldRunSaga(): SagaIterator {
 export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterator {
   while (true) {
     yield all([
-      take(FormLayoutActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
+      take(FormLayoutActions.fetchLayoutFulfilled),
       take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
       take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
       take(RulesActionTypes.FETCH_RULE_MODEL_FULFILLED),
