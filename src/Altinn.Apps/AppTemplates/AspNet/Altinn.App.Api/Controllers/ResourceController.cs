@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using System.IO;
+
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -139,8 +141,8 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layouts")]
         public ActionResult GetLayouts(string org, string app)
         {
-          string layouts = _appResourceService.GetLayouts();
-          return Ok(layouts);
+            string layouts = _appResourceService.GetLayouts();
+            return Ok(layouts);
         }
 
         /// <summary>
@@ -219,6 +221,27 @@ namespace Altinn.App.Api.Controllers
             }
 
             return StatusCode(404);
-        }        
+        }
+
+        /// <summary>
+        /// Get the ruleconfiguration.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">The layoutset id</param>
+        /// <returns>The settings in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/ruleconfiguration/{id}")]
+        public ActionResult GetRuleConfiguration(string org, string app, string id)
+        {
+            byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
+            if (fileContent == null)
+            {
+                // frontend will fail witout content
+                fileContent = new byte[0];
+            }
+
+            return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
+        }
     }
 }

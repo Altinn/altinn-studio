@@ -74,6 +74,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Gets or sets the presentation fields of the application.
         /// </summary>
+        [JsonProperty(PropertyName = "presentationFields")]
         public List<PresentationField> PresentationFields { get; set; }
 
         /// <summary>
