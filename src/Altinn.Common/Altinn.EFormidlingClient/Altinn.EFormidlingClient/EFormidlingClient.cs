@@ -4,15 +4,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
+using Altinn.EFormidlingClient.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace Altinn.Common.EFormidlingClient
 {
@@ -96,7 +95,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"statuses");
                 responseBody = await response.Content.ReadAsStringAsync();
-                Statuses allMessageStatuses = JsonConvert.DeserializeObject<Statuses>(responseBody);
+                Statuses allMessageStatuses = JsonSerializer.Deserialize<Statuses>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return allMessageStatuses;
@@ -123,7 +122,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"capabilities/{orgId}");
                 responseBody = await response.Content.ReadAsStringAsync();
-                Capabilities capabilities = JsonConvert.DeserializeObject<Capabilities>(responseBody);
+                Capabilities capabilities = JsonSerializer.Deserialize<Capabilities>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return capabilities;
@@ -144,7 +143,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"conversations");
                 responseBody = await response.Content.ReadAsStringAsync();
-                Conversation conversations = JsonConvert.DeserializeObject<Conversation>(responseBody);
+                Conversation conversations = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return conversations;
@@ -170,7 +169,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"conversations/{id}");
                 responseBody = await response.Content.ReadAsStringAsync();
-                Conversation conversation = JsonConvert.DeserializeObject<Conversation>(responseBody);
+                Conversation conversation = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return conversation;
@@ -197,7 +196,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"conversations/messageId/{id}");
                 responseBody = await response.Content.ReadAsStringAsync();
-                Conversation conversation = JsonConvert.DeserializeObject<Conversation>(responseBody);
+                Conversation conversation = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return conversation;
@@ -224,7 +223,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 HttpResponseMessage response = await _client.GetAsync($"statuses?messageId={id}");            
                 responseBody = await response.Content.ReadAsStringAsync();
-                Statuses status = JsonConvert.DeserializeObject<Statuses>(responseBody);
+                Statuses status = JsonSerializer.Deserialize<Statuses>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return status;
@@ -279,9 +278,10 @@ namespace Altinn.Common.EFormidlingClient
                 throw new ArgumentNullException();
             }
 
-            var serializerSettings = new JsonSerializerSettings();
-            serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            var jsonContent = JsonConvert.SerializeObject(sbd, serializerSettings);
+            //var serializerSettings = new JsonSerializerSettings();
+            //serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+           // var jsonContent = JsonSerializer..SerializeObject(sbd, serializerSettings);
+            var jsonContent = JsonSerializer.Serialize(sbd);
 
             byte[] buffer = Encoding.UTF8.GetBytes(jsonContent);
             ByteArrayContent byteContent = new ByteArrayContent(buffer);
@@ -297,7 +297,7 @@ namespace Altinn.Common.EFormidlingClient
                 response = await _client.PostAsync("messages/out", byteContent);     
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
-                StandardBusinessDocument sbdVerified = JsonConvert.DeserializeObject<StandardBusinessDocument>(responseBody);
+                StandardBusinessDocument sbdVerified = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
                 _logger.LogDebug(responseBody);
 
                 return sbdVerified;
@@ -314,9 +314,9 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter)
+        public async Task<bool> SubscribeeFormidling(CreateSubscription subscription)
         {         
-            if (string.IsNullOrEmpty(pushEndpoint) || string.IsNullOrEmpty(resource) || string.IsNullOrEmpty(@event))
+            if (subscription == null)
             {
                 throw new ArgumentNullException();
             }
@@ -325,14 +325,14 @@ namespace Altinn.Common.EFormidlingClient
             HttpResponseMessage response = null;
 
             try
-            {               
-                dynamic obj = new JObject();
-                obj.name = name;
-                obj.pushEndpoint = pushEndpoint;
-                obj.resource = resource;
-                obj.@event = @event;
+            {
+                //dynamic obj = new JsonDocument(""); //JObject();
+                //obj.name = name;
+                //obj.pushEndpoint = pushEndpoint;
+                //obj.resource = resource;
+                //obj.@event = @event;
 
-                var jsonString = JsonConvert.SerializeObject(obj);
+                var jsonString = JsonSerializer.Serialize(subscription);
                 var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
    
                 response = await _client.PostAsync($"subscriptions", stringContent);        
