@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
@@ -11,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging.Debug;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
@@ -67,8 +66,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Standard_Business_Document()
         {       
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json")); 
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+            var jsonString = File.ReadAllText(@"TestData\sbd.json"); 
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
@@ -87,7 +86,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
             
             StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);     
-            Assert.Equal(JsonConvert.SerializeObject(sbdVerified), JsonConvert.SerializeObject(sbd));
+            Assert.Equal(JsonSerializer.Serialize(sbdVerified), JsonSerializer.Serialize(sbd));
         }
 
         /// <summary>
@@ -109,8 +108,12 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Attachment_Arkivmelding()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+
+            // var o1 = JsonDocument.Parse(File.ReadAllText(@"TestData\sbd.json"));
+            // StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(o1.ToString());
+
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
@@ -148,9 +151,9 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Invalid_Standard_Business_Document()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbdInvalid.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
-          
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
+
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
@@ -172,8 +175,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Attachment_Binary()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
@@ -266,6 +269,5 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             /// </summary>
             public string CustomGuid { get; private set; }
         }
-
     }
 }
