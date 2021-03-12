@@ -19,7 +19,7 @@ export interface ILayoutGroup extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
-  type: string;
+  type: IComponentTypes;
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
   readOnly: boolean;
@@ -30,6 +30,24 @@ export interface ILayoutComponent extends ILayoutEntry {
   formData?: any;
   grid?: IGrid;
 }
+
+export enum IComponentTypes {
+  AddressComponent = 'AddressComponent',
+  AttachmentList = 'AttachmentList',
+  Button = 'Button',
+  Checkboxes = 'Checkboxes',
+  Datepicker = 'Datepicker',
+  Dropdown = 'Dropdown',
+  FileUpload = 'FileUpload',
+  Header = 'Header',
+  Input = 'Input',
+  NavigationButtons = 'NavigationButtons',
+  Paragraph = 'Paragraph',
+  RadioButtons = 'RadioButtons',
+  Summary = 'Summary',
+  TextArea = 'TextArea'
+}
+
 export interface IDataModelBindings {
   [id: string]: string;
 }

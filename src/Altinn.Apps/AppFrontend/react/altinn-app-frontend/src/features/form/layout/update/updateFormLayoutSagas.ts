@@ -2,7 +2,7 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
-import { IRepeatingGroups, IRuntimeState } from 'src/types';
+import { IRepeatingGroups, IRuntimeState, Triggers } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
@@ -11,7 +11,7 @@ import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper'
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
-import { ILayoutComponent, ILayoutGroup } from '..';
+import { ILayoutComponent, IComponentTypes, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
 import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
@@ -228,7 +228,20 @@ export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIter
     take(FormLayoutActions.fetchLayoutSettingsFulfilled),
   ]);
   const state: IRuntimeState = yield select();
-  if (state.formLayout.uiConfig.layoutOrder.length > 1) {
+  const layouts = state.formLayout.layouts;
+  const pageTriggers = state.formLayout.uiConfig.pageTriggers;
+  const appHasCalculateTrigger = pageTriggers?.includes(Triggers.CalculatePageOrder) || Object.keys(layouts).some((layout) => {
+    return layouts[layout].some((element) => {
+      if (element.type === IComponentTypes.NavigationButtons) {
+        const layoutComponent = element as ILayoutComponent;
+        if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  });
+  if (appHasCalculateTrigger) {
     yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
   }
 }
