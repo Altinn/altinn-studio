@@ -241,7 +241,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            if (_appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
+            if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
                 SendEFormidlingShipment(instance, taskId);
             }
