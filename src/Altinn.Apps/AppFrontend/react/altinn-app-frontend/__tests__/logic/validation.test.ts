@@ -537,6 +537,24 @@ describe('>>> utils/validations.ts', () => {
     expect(componentSpesificValidations).toEqual(mockResult);
   });
 
+  it('+++ validateFormComponents should not return error if element is part of layout not present in layoutOrder (sporvalg)', () => {
+    mockLayout = {
+      FormLayout: [
+        {
+          type: 'FileUpload',
+          id: 'componentId_4',
+          dataModelBindings: {},
+          maxNumberOfAttachments: '1',
+          minNumberOfAttachments: '0',
+        },
+      ],
+    };
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, [], mockFormData, mockLanguage.language, []);
+
+    expect(componentSpesificValidations).toEqual({});
+  });
+
   it('+++ validateEmptyFields should return error if empty fields are required', () => {
     const repeatingGroups = {
       group1: {
@@ -577,6 +595,25 @@ describe('>>> utils/validations.ts', () => {
     const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } }, componentId_6: { address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] } } } };
 
     expect(componentSpesificValidations).toEqual(mockResult);
+  });
+
+  it('+++ validateEmptyFields should not return error if component is not part of layout order (sporvalg)', () => {
+    const repeatingGroups = {
+      group1: {
+        count: 0,
+      },
+    };
+    const componentSpesificValidations =
+      validation.validateEmptyFields(
+        mockFormData,
+        mockLayout,
+        [],
+        mockLanguage.language,
+        [],
+        repeatingGroups,
+      );
+
+    expect(componentSpesificValidations).toEqual({});
   });
 
   it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
@@ -644,6 +681,18 @@ describe('>>> utils/validations.ts', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(data, mockLayoutState.layouts, Object.keys(mockLayoutState.layouts), mockValidator, mockLanguage);
     expect(mockResult.invalidDataTypes).toBeTruthy();
+  });
+
+  it('+++ validateFormData should not return error if form data is part of layout not present in layoutOrder (sporvalg)', () => {
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockResult = validation.validateFormData(
+      mockFormData,
+      mockLayoutState.layouts,
+      [],
+      mockValidator,
+      mockLanguage.language,
+    );
+    expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
   });
 
   it('+++ getIndex should return null for field not in repeating group', () => {
