@@ -110,6 +110,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "issue-5740":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
                             break;
+                        case "eFormidling-app":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
