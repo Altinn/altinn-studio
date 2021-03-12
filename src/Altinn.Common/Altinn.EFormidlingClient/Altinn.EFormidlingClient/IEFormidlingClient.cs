@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
+using Altinn.EFormidlingClient.Models;
 
 namespace Altinn.Common.EFormidlingClient
 {
@@ -14,13 +15,9 @@ namespace Altinn.Common.EFormidlingClient
         /// <summary>
         /// Subscribes to IP API with callback URL allowing to get push notifcation for message status
         /// </summary>
-        /// <param name="name"> Name of the subscription to be created.</param>
-        /// <param name="pushEndpoint"> Callback URL the IP will post status to.</param>
-        /// <param name="resource">Type of subscription e.g. 'messages'.</param>
-        /// <param name="event">Type of event e.g. 'status' </param>
-        /// <param name="filter">Filter parameters for status e.g. 'status=INNKOMMENDE_MOTTAT&direction=INCOMING'</param>
+        /// <param name="subscription"> Object that is used to create subscription.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter);
+        Task<bool> SubscribeeFormidling(CreateSubscription subscription);
 
         /// <summary>
         /// Deletes subscription by id
@@ -101,6 +98,5 @@ namespace Altinn.Common.EFormidlingClient
         /// <param name="id"> Message Id</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         Task<bool> SendMessage(string id);
-
     }
 }

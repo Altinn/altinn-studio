@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
@@ -11,25 +12,23 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging.Debug;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 {
     /// <summary>
-    /// Represents a collection of int test, testing the<see cref="EFormidlingClientTest"/> class.
+    /// Represents a collection of int test, testing the<see cref="EFormidlingClientIntTest"/> class.
     /// </summary>
-    public class EFormidlingClientTest : IClassFixture<EFormidlingClientTest.Fixture>
+    public class EFormidlingClientIntTest : IClassFixture<EFormidlingClientIntTest.Fixture>
     {
-        private ServiceProvider _serviceProvider;
+        private readonly ServiceProvider _serviceProvider;
         private string _guid;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EFormidlingClientTest"/> class.
+        /// Initializes a new instance of the <see cref="EFormidlingClientIntTest"/> class.
         /// </summary>
         /// <param name="fixture">Fixture for setup</param>
-        public EFormidlingClientTest(Fixture fixture)
+        public EFormidlingClientIntTest(Fixture fixture)
         {
             _serviceProvider = fixture.ServiceProvider;
             _guid = fixture.CustomGuid;        
@@ -67,8 +66,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Standard_Business_Document()
         {       
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json")); 
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+            var jsonString = File.ReadAllText(@"TestData\sbd.json"); 
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
@@ -87,7 +86,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
             
             StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);     
-            Assert.Equal(JsonConvert.SerializeObject(sbdVerified), JsonConvert.SerializeObject(sbd));
+            Assert.Equal(JsonSerializer.Serialize(sbdVerified), JsonSerializer.Serialize(sbd));
         }
 
         /// <summary>
@@ -109,8 +108,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Attachment_Arkivmelding()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
@@ -124,9 +123,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
+            _ = await service.CreateMessage(sbd);
 
-            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
-       
             string filename = "arkivmelding.xml";
             bool sendArkivmelding = false;
 
@@ -148,16 +146,15 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Invalid_Standard_Business_Document()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbdInvalid.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
-          
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
+
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
           
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
-            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
@@ -172,15 +169,15 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Attachment_Binary()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            JObject o1 = JObject.Parse(File.ReadAllText(@"TestData\sbd.json"));
-            StandardBusinessDocument sbd = JsonConvert.DeserializeObject<StandardBusinessDocument>(o1.ToString());
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
-
+            
             Guid obj = Guid.NewGuid();
             _guid = obj.ToString();
 
@@ -190,8 +187,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
-
-            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
+            _ = await service.CreateMessage(sbd);
 
             string filename = "test.pdf";
             bool sendBinaryFile = false;
@@ -266,6 +262,5 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             /// </summary>
             public string CustomGuid { get; private set; }
         }
-
     }
 }
