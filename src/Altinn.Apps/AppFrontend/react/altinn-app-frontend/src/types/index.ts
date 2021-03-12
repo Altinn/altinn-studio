@@ -148,6 +148,7 @@ export interface ILayoutSettings {
 
 export interface IPagesSettings {
   order: string[];
+  triggers?: string[];
 }
 
 export interface ILayoutNavigation {
@@ -250,6 +251,7 @@ export interface IUiConfig {
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
+  pageTriggers?: string[];
 }
 
 export interface IValidationResult {

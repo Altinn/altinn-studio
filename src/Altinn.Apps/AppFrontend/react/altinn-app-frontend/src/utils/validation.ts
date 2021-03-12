@@ -103,14 +103,17 @@ export const errorMessageKeys = {
 export function validateEmptyFields(
   formData: any,
   layouts: ILayouts,
+  layoutOrder: string[],
   language: any,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ) {
   const validations = {};
   Object.keys(layouts).forEach((id) => {
-    const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
-    validations[id] = result;
+    if (layoutOrder.includes(id)) {
+      const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
+      validations[id] = result;
+    }
   });
   return validations;
 }
@@ -262,14 +265,17 @@ export function validateEmptyField(
 export function validateFormComponents(
   attachments: any,
   layouts: any,
+  layoutOrder: string[],
   formData: any,
   language: any,
   hiddenFields: string[],
 ) {
   const validations: any = {};
   Object.keys(layouts).forEach((id) => {
-    const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
-    validations[id] = result;
+    if (layoutOrder.includes(id)) {
+      const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
+      validations[id] = result;
+    }
   });
 
   return validations;
@@ -473,6 +479,7 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
 export function validateFormData(
   formData: any,
   layouts: ILayouts,
+  layoutOrder: string[],
   schemaValidator: ISchemaValidator,
   language: any,
 ): IValidationResult {
@@ -480,10 +487,12 @@ export function validateFormData(
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
-    const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
-    validations = result.validations;
-    if (!invalidDataTypes) {
-      invalidDataTypes = result.invalidDataTypes;
+    if (layoutOrder.includes(id)) {
+      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
+      validations = result.validations;
+      if (!invalidDataTypes) {
+        invalidDataTypes = result.invalidDataTypes;
+      }
     }
   });
 

@@ -64,3 +64,12 @@ export interface IUpdateRepeatingGroups {
 export interface IUpdateRepeatingGroupsFulfilled {
   repeatingGroups: any;
 }
+
+export interface ICalculatePageOrderAndMoveToNextPage {
+  runValidations?: 'allPages' | 'page';
+  skipMoveToNext?: boolean;
+}
+
+export interface ICalculatePageOrderAndMoveToNextPageFulfilled {
+    order: string[];
+}
