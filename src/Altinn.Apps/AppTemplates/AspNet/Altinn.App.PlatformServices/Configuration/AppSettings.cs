@@ -196,6 +196,6 @@ namespace Altinn.App.Services.Configuration
         /// If overriding for testing purposes, ensure to only update appsettings.Development.
         /// Integration will not work if value is overrided in staging or prodution.
         /// </remarks>
-        public string EFormidlingSender { get; set; } = "991825827";
+        public string EFormidlingSender { get; set; } = "0192:910075918";
     }
 }

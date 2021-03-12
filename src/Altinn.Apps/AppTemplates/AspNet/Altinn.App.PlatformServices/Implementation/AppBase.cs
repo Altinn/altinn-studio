@@ -275,7 +275,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual async Task<(string, Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        public virtual async Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
         {
             await Task.CompletedTask;
             return (null, null);
@@ -496,7 +496,7 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(Arkivmelding arkivmelding, Instance instance)
+        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(Instance instance)
         {
             string instanceGuid = Guid.Parse(instance.Id.Split("/")[1]).ToString();
             DateTime completedTime = DateTime.Now;
@@ -505,35 +505,39 @@ namespace Altinn.App.Services.Implementation
             {
                 Identifier = new Identifier
                 {
-                    Value = _appSettings.EFormidlingSender,
-                    Authority = "iso6523-actorid-upis"
+                    Value = _appSettings.EFormidlingSender, // prefiks her.. er den konstant? skal vi definere den i config og be apputvikler gjøre det samme?
+                    Authority = "iso6523-actorid-upis" // hardkodes? alltid konstant? 
                 }
             };
 
-            DocumentIdentification documentIdentification = new DocumentIdentification
+            Scope scope =
+            new Scope
             {
-                InstanceIdentifier = Guid.NewGuid().ToString(),
-                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding", // kan denne hardkodes?
-                TypeVersion = "2.0", //bør kanskje ikke hardkodes dersom apputvikler selv skal følge ny standard senere?
-                CreationDateAndTime = completedTime,
-                Type = "arkivmelding" // usikker på om denne er rett
-            };
-
-            BusinessScope businessScope = new BusinessScope();
-            businessScope.Scope.Add(
-                new Scope
-                {
-                    Identifier = _appMetadata.EFormidling.Process,
-                    InstanceIdentifier = instanceGuid, // obs skal denne være unik?
-                    Type = "ConversationId",
-                    ScopeInformation = new List<ScopeInformation>
+                Identifier = _appMetadata.EFormidling.Process,
+                InstanceIdentifier = instanceGuid, // obs skal denne være unik?
+                Type = "ConversationId",
+                ScopeInformation = new List<ScopeInformation>
                     {
                         new ScopeInformation
                         {
                             ExpectedResponseDateTime = completedTime.AddHours(2)
                         }
                     },
-                });
+            };
+
+            BusinessScope businessScope = new BusinessScope
+            {
+                Scope = new List<Scope> { scope }
+            };
+
+            DocumentIdentification documentIdentification = new DocumentIdentification
+            {
+                InstanceIdentifier = instanceGuid, // samme guid som for andre ting her?
+                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding", // kan denne hardkodes?
+                TypeVersion = "2.0", //bør kanskje ikke hardkodes dersom apputvikler selv skal følge ny standard senere?
+                CreationDateAndTime = completedTime,
+                Type = "arkivmelding" // usikker på om denne er rett
+            };
 
             StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
             {
@@ -544,10 +548,11 @@ namespace Altinn.App.Services.Implementation
                 Sender = new List<Sender> { digdirSender }
             };
 
+            // Skal sikkerhetsnivå kunne konfigureres i appen? 
             StandardBusinessDocument sbd = new StandardBusinessDocument
             {
                 StandardBusinessDocumentHeader = sbdHeader,
-                Arkivmelding = arkivmelding,
+                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = "3" },
             };
 
             return sbd;
@@ -555,10 +560,12 @@ namespace Altinn.App.Services.Implementation
 
         private async void SendEFormidlingShipment(Instance instance, string taskId)
         {
+            // Can we validate the message in any way? 
+            (string arkivMeldingName, Altinn.Common.EFormidlingClient.Models.Arkivmelding arkivmelding) = await GenerateEFormidlingArkivmelding(instance);
+
             string instanceGuid = instance.Id.Split("/")[1];
 
-            (string arkivMeldingName, Arkivmelding arkivmelding) = await GenerateEFormidlingArkivmelding(instance);
-            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(arkivmelding, instance);
+            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instance);
             StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
 
             SendInstanceData(instance);
@@ -566,7 +573,7 @@ namespace Altinn.App.Services.Implementation
             using (Stream stream = new MemoryStream())
             {
                 var stringwriter = new StringWriter();
-                var serializer = new XmlSerializer(typeof(Arkivmelding));
+                var serializer = new XmlSerializer(typeof(Altinn.Common.EFormidlingClient.Models.Arkivmelding));
                 serializer.Serialize(stringwriter, arkivmelding);
 
                 var writer = new StreamWriter(stream);

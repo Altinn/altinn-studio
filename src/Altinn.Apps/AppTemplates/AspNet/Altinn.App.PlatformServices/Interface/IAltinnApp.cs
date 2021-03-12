@@ -158,7 +158,7 @@ namespace Altinn.App.Services.Interface
         /// Generates an archive message to be shipped to eFormidling
         /// </summary>
         /// <returns>The achive message</returns>
-        virtual async Task<(string, Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        virtual async Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
         {
             await Task.CompletedTask;
             return (null, null);
