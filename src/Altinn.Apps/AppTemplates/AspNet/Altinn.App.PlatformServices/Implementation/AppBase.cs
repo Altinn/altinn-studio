@@ -97,7 +97,7 @@ namespace Altinn.App.Services.Implementation
             _profileService = profileService;
             _textService = textService;
             _httpContextAccessor = httpContextAccessor;
-            _appSettings = appSettings.Value;
+            _appSettings = appSettings?.Value;
             _eFormidlingClient = eFormidlingClient;
         }
 
@@ -552,7 +552,7 @@ namespace Altinn.App.Services.Implementation
             StandardBusinessDocument sbd = new StandardBusinessDocument
             {
                 StandardBusinessDocumentHeader = sbdHeader,
-                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = "3" },
+                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
             };
 
             return sbd;

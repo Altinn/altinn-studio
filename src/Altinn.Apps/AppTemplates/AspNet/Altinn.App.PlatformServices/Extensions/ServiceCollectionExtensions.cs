@@ -71,7 +71,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddTransient<IPrefill, PrefillSI>();
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
-            services.AddHttpClient<IEFormidlingClient, EFormidlingClient>();
+            services.AddHttpClient<IEFormidlingClient, Altinn.Common.EFormidlingClient.EFormidlingClient>();
             services.AddSingleton<IAppResources, AppResourcesSI>();
 
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));

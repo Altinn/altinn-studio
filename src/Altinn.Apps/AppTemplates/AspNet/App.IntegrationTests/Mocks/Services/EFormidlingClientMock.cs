@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
+using Altinn.EFormidlingClient.Models;
 
 namespace App.IntegrationTestsRef.Mocks.Services
 {
@@ -56,6 +57,11 @@ namespace App.IntegrationTestsRef.Mocks.Services
         }
 
         public Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> SubscribeeFormidling(CreateSubscription subscription)
         {
             throw new NotImplementedException();
         }
