@@ -227,7 +227,10 @@ export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIter
     take(FormLayoutActions.fetchLayoutFulfilled),
     take(FormLayoutActions.fetchLayoutSettingsFulfilled),
   ]);
-  yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
+  const state: IRuntimeState = yield select();
+  if (state.formLayout.uiConfig.layoutOrder.length > 1) {
+    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
+  }
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
