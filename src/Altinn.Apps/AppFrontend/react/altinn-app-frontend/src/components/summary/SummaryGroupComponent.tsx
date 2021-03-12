@@ -187,6 +187,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
     for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
       const groupContainer: ILayoutGroup = {
         id: `${groupComponent.id}-${i}-summary`,
+        type: 'Group',
         children: [],
         maxCount: 0,
         textResourceBindings: {
