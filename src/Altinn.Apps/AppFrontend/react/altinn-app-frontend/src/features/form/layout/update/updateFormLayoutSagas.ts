@@ -173,7 +173,7 @@ export function* updateCurrentViewSaga({ payload: {
   }
 }
 
-export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidations, skipMoveToNext } } : PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
+export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidations, skipMoveToNext } }: PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const layoutSets = state.formLayout.layoutsets;
@@ -222,27 +222,29 @@ export function* watchCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
 }
 
 export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIterator {
-  yield all([
-    take(START_INITIAL_DATA_TASK_QUEUE_FULFILLED),
-    take(FormLayoutActions.fetchLayoutFulfilled),
-    take(FormLayoutActions.fetchLayoutSettingsFulfilled),
-  ]);
-  const state: IRuntimeState = yield select();
-  const layouts = state.formLayout.layouts;
-  const pageTriggers = state.formLayout.uiConfig.pageTriggers;
-  const appHasCalculateTrigger = pageTriggers?.includes(Triggers.CalculatePageOrder) || Object.keys(layouts).some((layout) => {
-    return layouts[layout].some((element) => {
-      if (element.type === IComponentTypes.NavigationButtons) {
-        const layoutComponent = element as ILayoutComponent;
-        if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
-          return true;
+  while (true) {
+    yield all([
+      take(START_INITIAL_DATA_TASK_QUEUE_FULFILLED),
+      take(FormLayoutActions.fetchLayoutFulfilled),
+      take(FormLayoutActions.fetchLayoutSettingsFulfilled),
+    ]);
+    const state: IRuntimeState = yield select();
+    const layouts = state.formLayout.layouts;
+    const pageTriggers = state.formLayout.uiConfig.pageTriggers;
+    const appHasCalculateTrigger = pageTriggers?.includes(Triggers.CalculatePageOrder) || Object.keys(layouts).some((layout) => {
+      return layouts[layout].some((element) => {
+        if (element.type === IComponentTypes.NavigationButtons) {
+          const layoutComponent = element as ILayoutComponent;
+          if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
+            return true;
+          }
         }
-      }
-      return false;
+        return false;
+      });
     });
-  });
-  if (appHasCalculateTrigger) {
-    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
+    if (appHasCalculateTrigger) {
+      yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
+    }
   }
 }
 
