@@ -105,7 +105,6 @@ namespace Altinn.Common.EFormidlingClient
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
             }
-
         }
 
         /// <inheritdoc/>
@@ -132,7 +131,6 @@ namespace Altinn.Common.EFormidlingClient
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
             }
-
         }
 
         /// <inheritdoc/>
@@ -179,7 +177,6 @@ namespace Altinn.Common.EFormidlingClient
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
             }
-
         }
 
         /// <inheritdoc/>
@@ -206,7 +203,6 @@ namespace Altinn.Common.EFormidlingClient
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
             }
-
         }
 
         /// <inheritdoc/>
@@ -244,9 +240,11 @@ namespace Altinn.Common.EFormidlingClient
             }
 
             var streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
-            streamContent.Headers.ContentDisposition.Name = "attachment";
-            streamContent.Headers.ContentDisposition.FileName = filename;
+            streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                Name = "attachment",
+                FileName = filename
+            };
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
           
             HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent);
@@ -278,11 +276,7 @@ namespace Altinn.Common.EFormidlingClient
                 throw new ArgumentNullException();
             }
 
-            //var serializerSettings = new JsonSerializerSettings();
-            //serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-           // var jsonContent = JsonSerializer..SerializeObject(sbd, serializerSettings);
             var jsonContent = JsonSerializer.Serialize(sbd);
-
             byte[] buffer = Encoding.UTF8.GetBytes(jsonContent);
             ByteArrayContent byteContent = new ByteArrayContent(buffer);
 
@@ -326,12 +320,6 @@ namespace Altinn.Common.EFormidlingClient
 
             try
             {
-                //dynamic obj = new JsonDocument(""); //JObject();
-                //obj.name = name;
-                //obj.pushEndpoint = pushEndpoint;
-                //obj.resource = resource;
-                //obj.@event = @event;
-
                 var jsonString = JsonSerializer.Serialize(subscription);
                 var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
    
