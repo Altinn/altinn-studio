@@ -241,8 +241,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            // TODO: add check for taskID from appmetadata.
-            if (_appSettings.EnableEFormidling)
+            if (_appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
                 SendEFormidlingShipment(instance, taskId);
             }
@@ -288,7 +287,7 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
             Identifier identifier = new Identifier
             {
-                Value = _appMetadata.EFormidlingContract.Receiver,
+                Value = _appMetadata.EFormidling.Receiver,
                 Authority = "iso6523-actorid-upis"
             };
 
@@ -476,7 +475,7 @@ namespace Altinn.App.Services.Implementation
 
             foreach (DataElement dataElement in instance.Data)
             {
-                if (!_appMetadata.EFormidlingContract.DataTypes.Contains(dataElement.DataType))
+                if (!_appMetadata.EFormidling.DataTypes.Contains(dataElement.DataType))
                 {
                     break;
                 }
@@ -524,7 +523,7 @@ namespace Altinn.App.Services.Implementation
             businessScope.Scope.Add(
                 new Scope
                 {
-                    Identifier = _appMetadata.EFormidlingContract.Process,
+                    Identifier = _appMetadata.EFormidling.Process,
                     InstanceIdentifier = instanceGuid, // obs skal denne være unik?
                     Type = "ConversationId",
                     ScopeInformation = new List<ScopeInformation>
