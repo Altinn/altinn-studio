@@ -19,17 +19,17 @@ namespace Altinn.Common.EFormidlingClient.Models
         public Pageable Pageable { get; set; }
 
         /// <summary>
-        ///  Gets or sets the TotalElements
+        ///  Gets or sets the TotalElements. The total number of elements
         /// </summary>
         public int TotalElements { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Last
+        ///  Gets or sets the Last. A boolean value indicating if this is the last page or not.
         /// </summary>
         public bool Last { get; set; }
 
         /// <summary>
-        ///  Gets or sets the TotalPages
+        ///  Gets or sets the TotalPages. The total number of pages
         /// </summary>
         public int TotalPages { get; set; }
 
@@ -39,27 +39,27 @@ namespace Altinn.Common.EFormidlingClient.Models
         public Sort Sort { get; set; }
 
         /// <summary>
-        ///  Gets or sets the NumberOfElements
+        ///  Gets or sets the NumberOfElements. Number of elements returned in the page.
         /// </summary>
         public int NumberOfElements { get; set; }
 
         /// <summary>
-        ///  Gets or sets the First
+        ///  Gets or sets the First. A boolean value indicating if this is the first page or not.   
         /// </summary>
         public bool First { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Size
+        ///  Gets or sets the Size. The page size
         /// </summary>
         public int Size { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Number
+        ///  Gets or sets the Number. The page number
         /// </summary>
         public int Number { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Empty
+        ///  Gets or sets the Empty. True if the page is empty. False if not.
         /// </summary>
         public bool Empty { get; set; }     
     }
@@ -70,17 +70,17 @@ namespace Altinn.Common.EFormidlingClient.Models
     public class Content
     {
         /// <summary>
-        ///  Gets or sets the Id
+        ///  Gets or sets the Id. The numeric message status ID.
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        ///  Gets or sets the LastUpdate
+        ///  Gets or sets the LastUpdate. Date and time of status.
         /// </summary>
         public DateTime LastUpdate { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Status
+        ///  Gets or sets the Status. The message status. Can be one of: OPPRETTET, SENDT, MOTTATT, LEVERT, LEST, FEIL, ANNET, INNKOMMENDE_MOTTATT, INNKOMMENDE_LEVERT, LEVETID_UTLOPT.
         /// </summary>
         public string Status { get; set; }
 
@@ -90,17 +90,17 @@ namespace Altinn.Common.EFormidlingClient.Models
         public string Description { get; set; }
 
         /// <summary>
-        ///  Gets or sets the ConvId
+        ///  Gets or sets the ConvId. The numeric conversation ID.
         /// </summary>
         public int ConvId { get; set; }
 
         /// <summary>
-        ///  Gets or sets the ConversationId
+        ///  Gets or sets the ConversationId. The numeric conversation ID.
         /// </summary>
         public string ConversationId { get; set; }
 
         /// <summary>
-        ///  Gets or sets the MessageId
+        ///  Gets or sets the MessageId. The messageId. Typically an UUID.
         /// </summary>
         public string MessageId { get; set; }    
     }
@@ -111,17 +111,17 @@ namespace Altinn.Common.EFormidlingClient.Models
     public class Sort
     {
         /// <summary>
-        ///  Gets or sets the Sorted
+        ///  Gets or sets the Sorted. True if the result set is sorted. False otherwise.
         /// </summary>
         public bool Sorted { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Unsorted
+        ///  Gets or sets the Unsorted. True if the result set is unsorted. False otherwise.
         /// </summary>
         public bool Unsorted { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Empty
+        ///  Gets or sets the Empty. True if no sorting. False otherwise
         /// </summary>
         public bool Empty { get; set; }
     }
@@ -147,7 +147,7 @@ namespace Altinn.Common.EFormidlingClient.Models
         public int PageSize { get; set; }
 
         /// <summary>
-        ///  Gets or sets the Offset
+        ///  Gets or sets the Offset. The offset to be taken according to the underlying page and page size.
         /// </summary>
         public int Offset { get; set; }
 
