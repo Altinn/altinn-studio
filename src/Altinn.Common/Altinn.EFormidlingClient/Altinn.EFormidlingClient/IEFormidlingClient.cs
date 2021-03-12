@@ -98,6 +98,5 @@ namespace Altinn.Common.EFormidlingClient
         /// <param name="id"> Message Id</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         Task<bool> SendMessage(string id);
-
     }
 }
