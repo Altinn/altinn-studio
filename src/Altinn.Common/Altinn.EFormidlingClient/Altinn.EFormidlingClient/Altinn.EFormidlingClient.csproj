@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-	  <PackageId>Test</PackageId>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <PackageId>Test</PackageId>
 	  <Version>1.0.0</Version>
 	  <Authors>Altinn</Authors>
 	  <Company>DigDir</Company>
@@ -16,11 +17,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.12" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="18.4.0.43" />
+    <PackageReference Include="System.Text.Json" Version="5.0.1" />
   </ItemGroup>
 	
 	<ItemGroup Condition="'$(Configuration)'=='Debug'">
