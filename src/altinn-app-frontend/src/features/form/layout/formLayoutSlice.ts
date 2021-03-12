@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ILayoutSets, IUiConfig } from 'src/types';
@@ -22,6 +23,7 @@ const initialState: ILayoutState = {
     currentView: 'FormLayout',
     navigationConfig: {},
     layoutOrder: null,
+    pageTriggers: [],
   },
   layoutsets: null,
 };
@@ -53,13 +55,16 @@ const formLayoutSlice = createSlice({
     },
     fetchLayoutSettingsFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>) => {
       const { settings } = action.payload;
-      if (settings && settings.pages && settings.pages.order) {
-        state.uiConfig.layoutOrder = settings.pages.order;
-        if (state.uiConfig.currentViewCacheKey) {
-          state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
-            || settings.pages.order[0];
-        } else {
-          state.uiConfig.currentView = settings.pages.order[0];
+      if (settings && settings.pages) {
+        state.uiConfig.pageTriggers = settings.pages.triggers;
+        if (settings.pages.order) {
+          state.uiConfig.layoutOrder = settings.pages.order;
+          if (state.uiConfig.currentViewCacheKey) {
+            state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
+              || settings.pages.order[0];
+          } else {
+            state.uiConfig.currentView = settings.pages.order[0];
+          }
         }
       }
     },
@@ -104,10 +109,19 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    calculatePageOrderAndMoveToNextPageFulfilled: (state, action: PayloadAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>) => {
+      const { order } = action.payload;
+      state.uiConfig.layoutOrder = order;
+    },
+    calculatePageOrderAndMoveToNextPageRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
   },
 });
 
 const actions = {
+  calculatePageOrderAndMoveToNextPage: createAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>(`${moduleName}/calculatePageOrderAndMoveToNextPage`),
   fetchLayout: createAction(`${moduleName}/fetchLayout`),
   fetchLayoutSets: createAction(`${moduleName}/fetchLayoutSets`),
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),

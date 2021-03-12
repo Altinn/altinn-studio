@@ -1,18 +1,20 @@
 /* eslint-disable max-len */
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
-import { get } from 'altinn-shared/utils';
+import { get, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
+import { getLayoutsetForDataElement } from 'src/utils/layout';
+import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
 import { ILayoutComponent, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
-import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView } from '../formLayoutTypes';
+import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
@@ -114,17 +116,19 @@ export function* updateCurrentViewSaga({ payload: {
         state.instanceData.instance.process.currentTask.elementId,
         state.applicationMetadata.applicationMetadata.dataTypes,
       );
+      const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
       const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
       const validator = createValidator(schema);
       const model = convertDataBindingToModel(state.formData.formData);
-      const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
+      const validationResult = validateFormData(model, state.formLayout.layouts, layoutOrder, validator, state.language.language);
       let validations = validationResult.validations;
       const componentSpecificValidations =
-        validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
+        validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
           state.language.language, state.formLayout.uiConfig.hiddenFields);
       const emptyFieldsValidations = validateEmptyFields(
         state.formData.formData,
         state.formLayout.layouts,
+        layoutOrder,
         state.language.language,
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
@@ -167,6 +171,63 @@ export function* updateCurrentViewSaga({ payload: {
   } catch (error) {
     yield put(FormLayoutActions.updateCurrentViewRejected({ error }));
   }
+}
+
+export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidations, skipMoveToNext } } : PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
+  try {
+    const state: IRuntimeState = yield select();
+    const layoutSets = state.formLayout.layoutsets;
+    const currentView = state.formLayout.uiConfig.currentView;
+    const instance = state.instanceData.instance;
+    const dataTypeId: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
+      state.applicationMetadata.applicationMetadata.dataTypes);
+    let layoutSetId: string = null;
+    if (layoutSets != null) {
+      layoutSetId = getLayoutsetForDataElement(instance, dataTypeId, layoutSets);
+    }
+    const formData: any = convertDataBindingToModel(state.formData.formData);
+    const layoutOrder = yield call(
+      post,
+      getCalculatePageOrderUrl(),
+      formData,
+      {
+        params: {
+          currentPage: currentView,
+          layoutSetId,
+          dataTypeId,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({ order: layoutOrder }));
+    if (skipMoveToNext) {
+      return;
+    }
+    const returnToView = state.formLayout.uiConfig.returnToView;
+    const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
+    yield put(FormLayoutActions.updateCurrentView({ newView, runValidations }));
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      // We accept that the app does noe have defined a calculate page order as this is not default for older apps
+    } else {
+      yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({ error }));
+    }
+  }
+}
+
+export function* watchCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
+  yield takeEvery(FormLayoutActions.calculatePageOrderAndMoveToNextPage, calculatePageOrderAndMoveToNextPageSaga);
+}
+
+export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIterator {
+  yield all([
+    take(START_INITIAL_DATA_TASK_QUEUE_FULFILLED),
+    take(FormLayoutActions.fetchLayoutFulfilled),
+    take(FormLayoutActions.fetchLayoutSettingsFulfilled),
+  ]);
+  yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ skipMoveToNext: true }));
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
