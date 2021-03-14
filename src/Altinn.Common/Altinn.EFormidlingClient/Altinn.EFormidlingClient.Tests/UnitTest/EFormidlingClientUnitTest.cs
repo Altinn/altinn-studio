@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Xunit;
+using Arkivmelding = Altinn.Common.EFormidlingClient.Models.Arkivmelding;
 
 namespace Altinn.EFormidlingClient.Tests.UnitTest
 {
@@ -47,10 +48,10 @@ namespace Altinn.EFormidlingClient.Tests.UnitTest
         {
             using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(Models.Arkivmelding2.Arkivmelding));
-                Models.Arkivmelding2.Arkivmelding ark = (Models.Arkivmelding2.Arkivmelding)serializer.Deserialize(fs);
-
-                Assert.NotNull(ark);
+                XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
+                Arkivmelding arkivmelding = (Arkivmelding)serializer.Deserialize(fs);
+                Assert.NotNull(arkivmelding);
+                Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
             }
         }
 
