@@ -12,13 +12,13 @@ namespace Altinn.Common.EFormidlingClient.Models
     public class Arkivmelding
     {
         /// <summary>
-        ///  Gets or sets the System
+        ///  Gets or sets the AntallFiler
         /// </summary>
         [XmlElement(ElementName = "antallFiler", Namespace = "http://www.arkivverket.no/standarder/noark5/arkivmelding")]
-        public string AntallFiler { get; set; }
+        public int AntallFiler { get; set; }
 
         /// <summary>
-        ///  Gets or sets the System
+        ///  Gets or sets the Mappe
         /// </summary>
         [XmlElement(ElementName = "mappe")]
         public List<Mappe> Mappe { get; set; }
@@ -94,7 +94,7 @@ namespace Altinn.Common.EFormidlingClient.Models
         ///  Gets or sets the ReferanseDokumentfil
         /// </summary>
         [XmlElement(ElementName = "referanseDokumentfil")]
-        public string ReferanseDokumentfil { get; set; }
+        public List<string> ReferanseDokumentfil { get; set; }
     }
 
     /// <summary>
