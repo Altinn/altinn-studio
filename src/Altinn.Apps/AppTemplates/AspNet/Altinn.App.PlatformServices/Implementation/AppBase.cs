@@ -275,7 +275,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        public virtual Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
         {
             throw new Exception("No method available for generating arkivmelding for eFormidling shipment.");
         }
@@ -504,8 +504,9 @@ namespace Altinn.App.Services.Implementation
             {
                 Identifier = new Identifier
                 {
-                    Value = _appSettings.EFormidlingSender, // prefiks her.. er den konstant? skal vi definere den i config og be apputvikler gjøre det samme?
-                    Authority = "iso6523-actorid-upis" // hardkodes? alltid konstant? 
+                    // 0192 prefix for all Norwegian organisations.
+                    Value = $"0192:{_appSettings.EFormidlingSender}",
+                    Authority = "iso6523-actorid-upis" 
                 }
             };
 
@@ -513,7 +514,7 @@ namespace Altinn.App.Services.Implementation
             new Scope
             {
                 Identifier = _appMetadata.EFormidling.Process,
-                InstanceIdentifier = instanceGuid, // obs skal denne være unik?
+                InstanceIdentifier = Guid.NewGuid().ToString(),
                 Type = "ConversationId",
                 ScopeInformation = new List<ScopeInformation>
                     {
@@ -531,7 +532,7 @@ namespace Altinn.App.Services.Implementation
 
             DocumentIdentification documentIdentification = new DocumentIdentification
             {
-                InstanceIdentifier = instanceGuid, // samme guid som for andre ting her?
+                InstanceIdentifier = instanceGuid, 
                 Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding", // kan denne hardkodes?
                 TypeVersion = "2.0", //bør kanskje ikke hardkodes dersom apputvikler selv skal følge ny standard senere?
                 CreationDateAndTime = completedTime,
@@ -559,28 +560,19 @@ namespace Altinn.App.Services.Implementation
 
         private async void SendEFormidlingShipment(Instance instance, string taskId)
         {
-            // Can we validate the message in any way? 
-            (string arkivMeldingName, Altinn.Common.EFormidlingClient.Models.Arkivmelding arkivmelding) = await GenerateEFormidlingArkivmelding(instance);
-
             string instanceGuid = instance.Id.Split("/")[1];
+
+            (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
+
+            using (stream)
+            {
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName);
+            }
 
             StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instance);
             StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
 
             SendInstanceData(instance);
-
-            using (Stream stream = new MemoryStream())
-            {
-                var stringwriter = new StringWriter();
-                var serializer = new XmlSerializer(typeof(Altinn.Common.EFormidlingClient.Models.Arkivmelding));
-                serializer.Serialize(stringwriter, arkivmelding);
-
-                var writer = new StreamWriter(stream);
-                writer.Write(stringwriter.ToString());
-                writer.Flush();
-                stream.Position = 0;
-                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, arkivMeldingName);
-            }
 
             bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
 

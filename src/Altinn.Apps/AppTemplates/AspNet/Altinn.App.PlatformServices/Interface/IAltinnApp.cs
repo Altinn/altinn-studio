@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
@@ -157,8 +158,8 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Generates an archive message to be shipped to eFormidling
         /// </summary>
-        /// <returns>The achive message</returns>
-        virtual async Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
+        virtual async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
         {
             await Task.CompletedTask;
             return (null, null);
