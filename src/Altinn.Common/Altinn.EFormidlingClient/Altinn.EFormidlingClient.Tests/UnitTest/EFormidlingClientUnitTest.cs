@@ -48,10 +48,10 @@ namespace Altinn.EFormidlingClient.Tests.UnitTest
         {
             using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
             {
-               XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
-               Arkivmelding ark = (Arkivmelding)serializer.Deserialize(fs);
-
-               Assert.NotNull(ark);
+                XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
+                Arkivmelding arkivmelding = (Arkivmelding)serializer.Deserialize(fs);
+                Assert.NotNull(arkivmelding);
+                Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
             }
         }
 
