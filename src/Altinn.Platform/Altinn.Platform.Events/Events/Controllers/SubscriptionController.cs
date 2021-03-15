@@ -148,7 +148,7 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
-            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsoluteUri))
+            if (eventsSubscription.SourceFilter == null)
             {
                 message = "Source is required";
                 return false;

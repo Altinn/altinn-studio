@@ -24,7 +24,7 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<int> CreateSubscription(Subscription eventsSubcrition)
         {
-            return await _repository.CreateEventsSubscription(eventsSubcrition);
+            return await _repository.CreateSubscription(eventsSubcrition);
         }
 
         /// <inheritdoc/>

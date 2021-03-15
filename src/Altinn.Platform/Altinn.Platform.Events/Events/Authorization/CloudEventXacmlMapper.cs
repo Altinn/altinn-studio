@@ -62,7 +62,7 @@ namespace Altinn.Platform.Events.Authorization
         /// <summary>
         /// Create a decision Request based on a cloud event and subject
         /// </summary>
-        public static XacmlJsonRequestRoot CreateDecisionRequest(CloudEvent events, string subject)
+        public static XacmlJsonRequestRoot CreateDecisionRequest(CloudEvent cloudEvent, string subject)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -74,7 +74,7 @@ namespace Altinn.Platform.Events.Authorization
             string instanceOwnerPartyId = null;
             string instanceGuid = null;
 
-            string[] pathParams = events.Source.AbsolutePath.Split("/");
+            string[] pathParams = cloudEvent.Source.AbsolutePath.Split("/");
 
             if (pathParams.Count() > 5)
             {

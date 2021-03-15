@@ -71,7 +71,7 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateEventsSubscription(Subscription eventsSubscription)
+        public async Task<int> CreateSubscription(Subscription eventsSubscription)
         {
             try
             {

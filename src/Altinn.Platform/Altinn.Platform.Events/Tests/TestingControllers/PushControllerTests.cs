@@ -76,8 +76,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.True(QueueServiceMock.OutboundQue.ContainsKey(cloudEvent.Id));
-                Assert.Equal(2, QueueServiceMock.OutboundQue[cloudEvent.Id].Count);
+                Assert.True(QueueServiceMock.OutboundQueue.ContainsKey(cloudEvent.Id));
+                Assert.Equal(2, QueueServiceMock.OutboundQueue[cloudEvent.Id].Count);
             }
 
             /// <summary>
@@ -107,8 +107,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.True(QueueServiceMock.OutboundQue.ContainsKey(cloudEvent.Id));
-                Assert.Single(QueueServiceMock.OutboundQue[cloudEvent.Id]);
+                Assert.True(QueueServiceMock.OutboundQueue.ContainsKey(cloudEvent.Id));
+                Assert.Single(QueueServiceMock.OutboundQueue[cloudEvent.Id]);
             }
 
             private HttpClient GetTestClient()

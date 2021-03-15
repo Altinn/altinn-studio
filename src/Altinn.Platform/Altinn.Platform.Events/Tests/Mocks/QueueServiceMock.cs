@@ -13,24 +13,24 @@ namespace Altinn.Platform.Events.Tests.Mocks
     {
         public QueueServiceMock()
         {
-            OutboundQue = new Dictionary<string, List<CloudEventEnvelope>>();
+            OutboundQueue = new Dictionary<string, List<CloudEventEnvelope>>();
         }
 
         /// <summary>
         /// Quee
         /// </summary>
-        public static Dictionary<string, List<CloudEventEnvelope>> OutboundQue { get; set; }
+        public static Dictionary<string, List<CloudEventEnvelope>> OutboundQueue { get; set; }
 
         public Task<PushQueueReceipt> PushToOutboundQueue(string content)
         {
             CloudEventEnvelope cloudEventEnvelope = JsonSerializer.Deserialize<CloudEventEnvelope>(content);
 
-            if (!OutboundQue.ContainsKey(cloudEventEnvelope.CloudEvent.Id))
+            if (!OutboundQueue.ContainsKey(cloudEventEnvelope.CloudEvent.Id))
             {
-                OutboundQue.Add(cloudEventEnvelope.CloudEvent.Id, new List<CloudEventEnvelope>());
+                OutboundQueue.Add(cloudEventEnvelope.CloudEvent.Id, new List<CloudEventEnvelope>());
             }
 
-            OutboundQue[cloudEventEnvelope.CloudEvent.Id].Add(cloudEventEnvelope);
+            OutboundQueue[cloudEventEnvelope.CloudEvent.Id].Add(cloudEventEnvelope);
 
             return Task.FromResult(new PushQueueReceipt { Success = true });
         }

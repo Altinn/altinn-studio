@@ -20,7 +20,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Events.Controllers
 {
     /// <summary>
-    /// Controller responsible for pushing eventsto subscribers
+    /// Controller responsible for pushing events to subscribers
     /// </summary>
     [Route("events/api/v1/push")]
     [ApiController]
@@ -34,6 +34,7 @@ namespace Altinn.Platform.Events.Controllers
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
         private readonly AccessTokenSettings _accessTokenSettings;
+        private readonly PlatformSettings _platformSettings;
 
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
@@ -48,7 +49,8 @@ namespace Altinn.Platform.Events.Controllers
         IOptions<GeneralSettings> settings,
         ILogger<EventsController> logger,
         IPDP pdp,
-        IOptions<AccessTokenSettings> accessTokenSettings)
+        IOptions<AccessTokenSettings> accessTokenSettings,
+        IOptions<PlatformSettings> platformSettings)
         {
             _eventsService = eventsService;
             _registerService = registerService;
@@ -57,41 +59,44 @@ namespace Altinn.Platform.Events.Controllers
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
             _authorizationHelper = new AuthorizationHelper(pdp);
             _accessTokenSettings = accessTokenSettings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <summary>
-        /// Inserts a new event.
+        /// Allert push controller about a new event
         /// </summary>
-        /// <returns>The application metadata object.</returns>
+        /// <returns>Http status</returns>
         [Authorize]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+        public async Task<ActionResult> Post([FromBody] CloudEvent cloudEvent)
         {
             string sourceFilter = GetSourceFilter(cloudEvent.Source);
 
             if (!string.IsNullOrEmpty(sourceFilter))
             {
-                List<Subscription> orgSubscriptions = await MatchOrgSubscriptions(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
-                foreach (Subscription subscription in orgSubscriptions)
-                {
-                    await AuthorizeAndPush(cloudEvent, subscription);
-                }
+                List<Subscription> orgSubscriptions = await GetOrgSubscriptions(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
+                await AuthorizeAndPush(cloudEvent, orgSubscriptions);
 
-                List<Subscription> subscriptions = await MatchSubscriptionExcludeOrgs(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
-                foreach (Subscription subscription in subscriptions)
-                {
-                    await AuthorizeAndPush(cloudEvent, subscription);
-                }
+                List<Subscription> subscriptions = await GetSubscriptionExcludeOrgs(sourceFilter, cloudEvent.Subject, cloudEvent.Type);
+                await AuthorizeAndPush(cloudEvent, subscriptions);
             }
 
             return Ok();
         }
 
-        private async Task<List<Subscription>> MatchOrgSubscriptions(string source, string subject, string type)
+        private async Task AuthorizeAndPush(CloudEvent cloudEvent, List<Subscription> subscriptions)
+        {
+            foreach (Subscription subscription in subscriptions)
+            {
+                await AuthorizeAndPush(cloudEvent, subscription);
+            }
+        }
+
+        private async Task<List<Subscription>> GetOrgSubscriptions(string source, string subject, string type)
         {
             return await _subscriptionService.GetOrgSubscriptions(
                 source,
@@ -100,7 +105,7 @@ namespace Altinn.Platform.Events.Controllers
 
         }
 
-        private async Task<List<Subscription>> MatchSubscriptionExcludeOrgs(string source, string subject, string type)
+        private async Task<List<Subscription>> GetSubscriptionExcludeOrgs(string source, string subject, string type)
         {
             return await _subscriptionService.GetSubscriptions(
                 source,
@@ -110,7 +115,7 @@ namespace Altinn.Platform.Events.Controllers
 
         private string GetSourceFilter(Uri source)
         {
-            if (source.DnsSafeHost.Contains("apps.altinn.no"))
+            if (source.DnsSafeHost.Contains(_platformSettings.AppsDomain))
             {
                 return source.OriginalString.Substring(0, source.OriginalString.IndexOf(source.Segments[3]));
             }
