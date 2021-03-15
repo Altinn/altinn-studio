@@ -47,6 +47,7 @@ const styles = createStyles({
   },
 });
 
+export const appNameRegex = /^(?!datamodels$)[a-z]+[a-z0-9\-]+[a-z0-9]$/;
 export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
   public _isMounted = false;
 
@@ -127,7 +128,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
 
   public validateRepoName = (repoName: string) => {
     // eslint-disable-next-line no-useless-escape
-    return /^(?!datamodels$).[a-z]+[a-z0-9\-]+[a-z0-9]$/.test(repoName);
+    return appNameRegex.test(repoName);
   }
 
   public validateService = () => {
