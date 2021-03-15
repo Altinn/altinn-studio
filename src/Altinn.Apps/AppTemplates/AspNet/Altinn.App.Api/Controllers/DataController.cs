@@ -684,22 +684,5 @@ namespace Altinn.App.Api.Controllers
 
             return true;
         }
-
-        private string GetFilenameFromContentDisposition(string contentdisposition)
-        {
-            string keyWord = "filename=";
-
-            if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return string.Empty;
-            }
-
-            int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
-            string remainder = contentdisposition.Substring(splitIndex);
-            int endIndex = remainder.IndexOf(';');
-            string filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
-
-            return filename;
-        }
     }
 }
