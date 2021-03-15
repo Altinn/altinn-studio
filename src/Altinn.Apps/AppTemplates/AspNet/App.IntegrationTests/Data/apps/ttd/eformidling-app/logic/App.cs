@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.Calculation;
@@ -88,17 +91,31 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         }
 
         /// <inheritdoc />
-        public override async Task<(string, Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        public override async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
         {
             Arkivmelding arkivmelding = new Arkivmelding
             {
-                AntallFiler = 1,
-                Tidspunkt = DateTime.Now,
+                AntallFiler = "1",
+                Tidspunkt = DateTime.Now.ToString(),
                 MeldingId = Guid.NewGuid().ToString(),
                 System = "LandLord",
+                Mappe = new List<Mappe>
+                {
+                    new Mappe
+                {
+                    SystemID = Guid.NewGuid().ToString(),
+                    Tittel = "Dette er en tittel",
+                    OpprettetDato = DateTime.Now.ToString()
+                }
+                }
             };
 
-            return await Task.FromResult(("arkivmelding.xml", arkivmelding));
+            string content = System.Text.Json.JsonSerializer.Serialize(arkivmelding);
+
+            byte[] byteArray = Encoding.ASCII.GetBytes(content);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            return await Task.FromResult(("arkivmelding.xml", stream));
         }
 
         /// <inheritdoc />
