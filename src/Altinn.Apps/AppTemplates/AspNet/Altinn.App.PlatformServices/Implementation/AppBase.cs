@@ -275,10 +275,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual async Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
+        public virtual Task<(string, Altinn.Common.EFormidlingClient.Models.Arkivmelding)> GenerateEFormidlingArkivmelding(Instance instance)
         {
-            await Task.CompletedTask;
-            return (null, null);
+            throw new Exception("No method available for generating arkivmelding for eFormidling shipment.");
         }
 
         /// <inheritdoc />
@@ -583,9 +582,9 @@ namespace Altinn.App.Services.Implementation
                 await _eFormidlingClient.UploadAttachment(stream, instanceGuid, arkivMeldingName);
             }
 
-            bool shiptmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
+            bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
 
-            if (!shiptmentResult)
+            if (!shipmentResult)
             {
                 _logger.LogError("// AppBase // SendEFormidlingShipment // Shipment of instance {InstanceId} failed.", instance.Id);
             }

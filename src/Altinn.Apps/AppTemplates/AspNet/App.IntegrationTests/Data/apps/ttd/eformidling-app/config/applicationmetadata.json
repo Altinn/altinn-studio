@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "ttd/eformidling-app",
   "org": "ttd",
   "title": {
@@ -20,7 +20,7 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema"
+        "classRef": "Altinn.App.IntegrationTests.Mocks.Ttd.EFormidling.Skjema"
       },
       "taskId": "Task_1",
       "maxCount": 1,
