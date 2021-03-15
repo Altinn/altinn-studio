@@ -397,7 +397,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     }
     layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
 
-    yield put(FormLayoutActions.addLayoutFulfilled({ layouts: layoutsCopy }));
+    yield put(FormLayoutActions.addLayoutFulfilled({ layouts: layoutsCopy, layoutOrder: [...layoutOrder, layout] }));
 
     if (Object.keys(layoutsCopy).length > 1) {
       const NavigationButtonComponent = {
