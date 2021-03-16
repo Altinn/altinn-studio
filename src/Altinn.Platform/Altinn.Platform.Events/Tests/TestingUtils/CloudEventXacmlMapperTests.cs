@@ -66,7 +66,7 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
         }
 
         private ClaimsPrincipal GetPrincipal(int userId, int partyId)
-            {
+        {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, issuer));

@@ -13,7 +13,7 @@ using Xunit;
 namespace Altinn.Platform.Events.Tests.TestingUtils
 {
     /// <summary>
-    /// /
+    /// Tests to verify authorization helper
     /// </summary>
     public class AuthorizationHelperTests
     {
