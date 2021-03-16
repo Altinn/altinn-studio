@@ -378,7 +378,7 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
             TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
             string token = PrincipalUtil.GetOrgToken("nav", "160694123");
-            string expectedMsg = "Invalid data provided. Error: Conent-Disposition header containing 'filename' must be included in request.";
+            string expectedMsg = "Invalid data provided. Error: The request must include a Content-Disposition header";
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -406,7 +406,7 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
             TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
             string token = PrincipalUtil.GetOrgToken("nav", "160694123");
-            string expectedMsg = "Invalid data provided. Error: Content-Disposition header must contain 'filename'.";
+            string expectedMsg = "Invalid data provided. Error: The Content-Disposition header must contain a filename";
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -529,7 +529,35 @@ namespace App.IntegrationTests.ApiTests
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
             HttpContent content = new StringContent(string.Empty);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=appsettings.development.json");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with validfiletype and complex filename
+        /// Expected: Ok. Attachment uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidFileNameStar_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"; filename*=UTF-8''appsettings.staging.json");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
