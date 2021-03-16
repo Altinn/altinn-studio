@@ -7,11 +7,9 @@ import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { useDispatch } from 'react-redux';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { setupGroupComponents } from '../../../utils/layout';
 import { ITextResource, IRepeatingGroups, IValidations, IOption, IOptions } from '../../../types';
-import { FormLayoutActions } from '../layout/formLayoutSlice';
 
 export interface IRepeatingGroupTableProps {
   id: string;
@@ -120,7 +118,6 @@ export function RepeatingGroupTable({
   setEditIndex,
 }: IRepeatingGroupTableProps): JSX.Element {
   const classes = useStyles();
-  const dispatch = useDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
 
   const tableHeaderComponents = container.tableHeaders || container.children || [];
@@ -162,14 +159,8 @@ export function RepeatingGroupTable({
   const onClickEdit = (groupIndex: number) => {
     if (groupIndex === editIndex) {
       setEditIndex(-1);
-      if (container.edit?.persistIndex) {
-        dispatch(FormLayoutActions.setEditIndex({ index: -1, id: container.id }));
-      }
     } else {
       setEditIndex(groupIndex);
-      if (container.edit?.persistIndex) {
-        dispatch(FormLayoutActions.setEditIndex({ index: groupIndex, id: container.id }));
-      }
     }
   };
 

@@ -44,7 +44,6 @@ export function GroupContainer({
   const GetHiddenSelector = makeGetHidden();
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
-  const presetEditIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[container.id]?.editIndex);
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -63,13 +62,6 @@ export function GroupContainer({
     hiddenFields,
   );
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
-
-  React.useEffect(() => {
-    console.log('editIndex: ', presetEditIndex);
-    if (presetEditIndex !== undefined && presetEditIndex > -1) {
-      setEditIndex(presetEditIndex);
-    }
-  }, [presetEditIndex]);
 
   React.useEffect(() => {
     if (container.edit?.mode !== 'showAll' && container.edit?.rules && container.edit.rules.length > 0) {
@@ -103,9 +95,6 @@ export function GroupContainer({
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     if (container.edit?.mode !== 'showAll') {
       setEditIndex(repeatinGroupIndex + 1);
-      if (container.edit?.persistIndex) {
-        dispatch(FormLayoutActions.setEditIndex({ index: repeatinGroupIndex + 1, id: container.id }));
-      }
     }
   };
 
