@@ -63,7 +63,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Allert push controller about a new event
+        /// Alert push controller about a new event
         /// </summary>
         /// <returns>Http status</returns>
         [Authorize]
@@ -102,7 +102,6 @@ namespace Altinn.Platform.Events.Controllers
                 source,
                 subject,
                 type);
-
         }
 
         private async Task<List<Subscription>> GetSubscriptionExcludeOrgs(string source, string subject, string type)

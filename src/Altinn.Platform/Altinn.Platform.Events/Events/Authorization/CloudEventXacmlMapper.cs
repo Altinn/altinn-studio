@@ -76,7 +76,7 @@ namespace Altinn.Platform.Events.Authorization
 
             string[] pathParams = cloudEvent.Source.AbsolutePath.Split("/");
 
-            if (pathParams.Count() > 5)
+            if (pathParams.Length > 5)
             {
                 org = pathParams[1];
                 app = pathParams[2];

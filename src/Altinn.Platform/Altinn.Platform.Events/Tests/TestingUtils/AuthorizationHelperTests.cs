@@ -33,7 +33,6 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             };
 
             // Act
-
             bool result = await authzHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, "/user/1337");
 
             // Assert.
@@ -56,7 +55,6 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             };
 
             // Act
-
             bool result = await authzHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, "/org/ttd");
 
             // Assert.
@@ -79,7 +77,6 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             };
 
             // Act
-
             bool result = await authzHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, "/org/nav");
 
             // Assert.

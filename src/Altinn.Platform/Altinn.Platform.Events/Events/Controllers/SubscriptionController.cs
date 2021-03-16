@@ -70,7 +70,7 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest(message);
             }
 
-            if (!await AuthorizeIdentityForConsumer(eventsSubscription))
+            if (!AuthorizeIdentityForConsumer(eventsSubscription))
             {
                 return Unauthorized("Not authorized to create a subscription on behalf of " + eventsSubscription.Consumer);
             }
@@ -190,7 +190,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
         /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
         /// </summary>
-        private async Task<bool> AuthorizeIdentityForConsumer(Subscription eventsSubscription)
+        private bool AuthorizeIdentityForConsumer(Subscription eventsSubscription)
         {
             if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
             {

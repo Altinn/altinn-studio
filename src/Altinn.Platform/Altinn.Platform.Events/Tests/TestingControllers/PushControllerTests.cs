@@ -32,7 +32,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
     public partial class IntegrationTests
     {
         /// <summary>
-        /// Represents a collection of integration tests of the <see cref="EventsController"/>.
+        /// Represents a collection of integration tests of the <see cref="PushController"/>.
         /// </summary>
         public class PushControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
@@ -82,7 +82,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Post an event for outbound push. Two subscriptions are matching and is authorized
+            ///   Post an event for outbound push. One subscriptions are matching and is authorized
             /// Expected result:
             ///   The event are pushed to two different subscribers
             /// Success criteria:
