@@ -276,7 +276,8 @@ namespace Altinn.Common.EFormidlingClient.Models
         /// <summary>
         ///  Gets or sets the Type
         /// </summary>
-        [XmlAttribute(AttributeName = "type")]
+        //[XmlAttribute(AttributeName = "type")]
+        [XmlAttribute(AttributeName = "type", Namespace = "http://www.w3.org/2001/XMLSchema-instance")]
         public string Type { get; set; }
 
         /// <summary>
