@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 using Altinn.App.AppLogic.Calculation;
 using Altinn.App.AppLogic.Print;
@@ -110,12 +113,16 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                 }
             };
 
-            string content = System.Text.Json.JsonSerializer.Serialize(arkivmelding);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
+                serializer.Serialize(stream, arkivmelding);
+                stream.Position = 0;
+                StreamContent streamContent = new StreamContent(stream);
+                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-            byte[] byteArray = Encoding.ASCII.GetBytes(content);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            return await Task.FromResult(("arkivmelding.xml", stream));
+                return await Task.FromResult(("arkivmelding.xml", stream));
+            }
         }
 
         /// <inheritdoc />

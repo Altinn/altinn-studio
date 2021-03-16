@@ -286,7 +286,7 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
             Identifier identifier = new Identifier
             {
-                Value = _appMetadata.EFormidling.Receiver,
+                Value = $"0192:{_appMetadata.EFormidling.Receiver.Trim()}",
                 Authority = "iso6523-actorid-upis"
             };
 
@@ -495,9 +495,8 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(Instance instance)
+        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid)
         {
-            string instanceGuid = Guid.Parse(instance.Id.Split("/")[1]).ToString();
             DateTime completedTime = DateTime.Now;
 
             Sender digdirSender = new Sender
@@ -506,9 +505,11 @@ namespace Altinn.App.Services.Implementation
                 {
                     // 0192 prefix for all Norwegian organisations.
                     Value = $"0192:{_appSettings.EFormidlingSender}",
-                    Authority = "iso6523-actorid-upis" 
+                    Authority = "iso6523-actorid-upis"
                 }
             };
+
+            List<Receiver> receivers = await GetEFormidlingReceivers();
 
             Scope scope =
             new Scope
@@ -532,11 +533,11 @@ namespace Altinn.App.Services.Implementation
 
             DocumentIdentification documentIdentification = new DocumentIdentification
             {
-                InstanceIdentifier = instanceGuid, 
-                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding", // kan denne hardkodes?
-                TypeVersion = "2.0", //bør kanskje ikke hardkodes dersom apputvikler selv skal følge ny standard senere?
+                InstanceIdentifier = instanceGuid,
+                Standard = _appMetadata.EFormidling.Standard,
+                TypeVersion = _appMetadata.EFormidling.TypeVersion,
                 CreationDateAndTime = completedTime,
-                Type = "arkivmelding" // usikker på om denne er rett
+                Type = _appMetadata.EFormidling.Type
             };
 
             StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
@@ -544,7 +545,7 @@ namespace Altinn.App.Services.Implementation
                 HeaderVersion = "1.0",
                 BusinessScope = businessScope,
                 DocumentIdentification = documentIdentification,
-                Receiver = await GetEFormidlingReceivers(),
+                Receiver = receivers,
                 Sender = new List<Sender> { digdirSender }
             };
 
@@ -562,15 +563,15 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceGuid = instance.Id.Split("/")[1];
 
+            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid);
+            StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
+
             (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
 
             using (stream)
             {
                 await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName);
             }
-
-            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instance);
-            StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
 
             SendInstanceData(instance);
 

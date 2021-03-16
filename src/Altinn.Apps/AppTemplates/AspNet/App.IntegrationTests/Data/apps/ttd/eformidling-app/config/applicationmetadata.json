@@ -38,7 +38,10 @@
     "process": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
     "dataTypes": [ "default" ],
     "sendAfterTaskId": "Task_1",
-    "receiver": "0192:910075918"
+    "receiver": "910075918",
+    "standard": "urn:no:difi:arkivmelding:xsd::arkivmelding",
+    "type": "arkivmelding",
+    "typeVersion": "2.0"
   },
   "autoDeleteOnProcessEnd": false,
   "created": "2021-03-11T14:28:14.9013111Z",
