@@ -109,7 +109,7 @@ export function setupGroupComponents(components: (ILayoutComponent | ILayoutGrou
   return childComponents;
 }
 
-export function getLayouytsetForDataElement(instance: IInstance, datatype: string, layoutsets: ILayoutSets) {
+export function getLayoutsetForDataElement(instance: IInstance, datatype: string, layoutsets: ILayoutSets) {
   const currentTaskId = instance.process.currentTask.elementId;
   const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {

@@ -55,6 +55,10 @@
       "lastChanged": "2020-04-29T13:53:09.0214218Z"
     }
   ],
+  "presentationTexts": {
+    "key1": "value1",
+    "key2": "value2"
+  },
   "visibleAfter": "2020-04-29T13:53:02.2836971Z",
   "created": "2020-04-29T13:53:02.2836971Z",
   "createdBy": "1337",
