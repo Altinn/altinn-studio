@@ -7,7 +7,7 @@ export interface ILayouts {
 
 export interface ILayoutEntry {
   id: string;
-  type: IGroupTypes | IComponentTypes | string;
+  type: IGroupTypes | IComponentTypes;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
