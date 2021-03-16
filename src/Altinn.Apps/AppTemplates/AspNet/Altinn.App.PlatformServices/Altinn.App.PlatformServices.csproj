@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>4.0.0.1-alpha</Version>
+    <Version>4.0.1</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>4.0.0.1</AssemblyVersion>
+    <AssemblyVersion>4.0.1</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>4.0.0.1</FileVersion>
+    <FileVersion>4.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

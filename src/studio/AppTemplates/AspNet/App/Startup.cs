@@ -4,20 +4,11 @@ using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Implementation;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.Common.AccessTokenClient.Configuration;
-using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
-using Altinn.Common.PEP.Implementation;
-using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,19 +25,34 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.App
 {
+    /// <summary>
+    /// This class is responsible for configuration of the built in service provider and setting up all middleware.
+    /// </summary>
     public class Startup
     {
         private readonly IWebHostEnvironment _env;
 
+        /// <summary>
+        /// Initialize a new instance of the <see cref="Startup"/> class with the given configuration
+        /// and host environment information.
+        /// </summary>
+        /// <param name="configuration">The current configuration.</param>
+        /// <param name="env">Information about the host environment.</param>
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _env = env;
         }
 
+        /// <summary>
+        /// Gets the application configuration object.
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// Adds any configuration to the service provider.
+        /// </summary>
+        /// <param name="services">The current service provider.</param>
         public void ConfigureServices(IServiceCollection services)
         {
             // Add API controllers from Altinn.App.Api
@@ -62,35 +68,12 @@ namespace Altinn.App
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            // Internal Application services
-            services.AddSingleton<IAppResources, AppResourcesSI>();
-            services.AddAppSecrets(Configuration, _env);
-
-            // Services for Altinn Platform components
-            services.AddTransient<IPDP, PDPAppSI>();
-            services.AddTransient<IValidation, ValidationAppSI>();
-            services.AddTransient<IPrefill, PrefillSI>();
-            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
-            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();              
 
             // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
-            services.AddHttpClient<IApplication, ApplicationAppSI>();
-            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
-            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
-            services.AddHttpClient<IData, DataAppSI>();
-            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
-            services.AddHttpClient<IER, RegisterERAppSI>();
-            services.AddHttpClient<IInstance, InstanceAppSI>();
-            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
-            services.AddHttpClient<IEvents, EventsAppSI>();
-            services.AddHttpClient<IPDF, PDFSI>();
-            services.AddHttpClient<IProcess, ProcessAppSI>();
-            services.AddHttpClient<IProfile, ProfileAppSI>();
-            services.AddHttpClient<IRegister, RegisterAppSI>();
-            services.AddHttpClient<IText, TextAppSI>();
+            services.AddAppServices(Configuration, _env);
+            services.AddPlatformServices(Configuration, _env);            
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();
@@ -98,15 +81,7 @@ namespace Altinn.App
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
-            });
-
-            // Application Settings
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-            services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
-            services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-            services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+            });           
 
             services.ConfigureDataProtection();
 
@@ -155,14 +130,6 @@ namespace Altinn.App
 
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
 
-            // Set up application insights
-            string applicationInsightsKey = GetApplicationInsightsKey();
-            if (!string.IsNullOrEmpty(applicationInsightsKey))
-            {
-                services.AddApplicationInsightsTelemetry(applicationInsightsKey);   // Enables Application Insights
-                services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-            }
-
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
@@ -171,7 +138,11 @@ namespace Altinn.App
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// Configure the Http request pipeline middleware.
+        /// </summary>
+        /// <param name="app">The current application builder.</param>
+        /// <param name="env">The current host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -190,7 +161,7 @@ namespace Altinn.App
                     c.RoutePrefix = applicationId + "/swagger";
                 });
             }
-            
+
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -201,17 +172,7 @@ namespace Altinn.App
             });
         }
 
-        private string GetApplicationInsightsKey()
-        {
-            if (_env.IsDevelopment())
-            {
-                return Configuration["ApplicationInsights:InstrumentationKey"];
-            }
-
-            return Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
-        }
-
-                private void IncludeXmlComments(SwaggerGenOptions options)
+        private void IncludeXmlComments(SwaggerGenOptions options)
         {
             try
             {
