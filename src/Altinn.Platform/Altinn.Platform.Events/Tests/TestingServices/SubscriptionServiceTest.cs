@@ -14,14 +14,14 @@ namespace Tests.TestingServices
     public class SubscriptionServiceTest
     {
         [Fact]
-        public async Task GetOrgSubscriptions_One_Match()
+        public async Task GetOrgSubscriptions_Three_Match()
         {
             SubscriptionService subscriptionService = new SubscriptionService(new PostgresRepositoryMock());
             List<Subscription> result = await subscriptionService.GetOrgSubscriptions(
                 "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
                 "/party/1337",
-                null);
-            Assert.True(result.Count == 1);
+                "app.instance.process.completed");
+            Assert.True(result.Count == 2);
         }
 
         [Fact]

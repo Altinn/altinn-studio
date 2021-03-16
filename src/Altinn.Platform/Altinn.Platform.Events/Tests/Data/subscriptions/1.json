@@ -56,10 +56,9 @@
   {
     "Id": "7",
     "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
-    "Subjectfilter": "/party/1336",
     "Consumer": "/org/ttd",
     "CreatedBy": "/org/ttd",
-    "Typefilter": "app.instance.process.completed",
+    "Typefilter": "app.instance.process.started",
     "EndPoint": "https://www.ttd.no/webhook",
     "Time": "2020-10-13T11:50:29.463221+00"
   }
