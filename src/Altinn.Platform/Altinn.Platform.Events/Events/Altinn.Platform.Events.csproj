@@ -45,7 +45,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\" />
     <Folder Include="Migration\_erase\" />
     <Folder Include="Migration\_draft\" />
     <Folder Include="Migration\_init\" />
