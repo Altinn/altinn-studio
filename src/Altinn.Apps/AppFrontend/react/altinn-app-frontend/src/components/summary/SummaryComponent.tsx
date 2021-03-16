@@ -82,7 +82,7 @@ export function SummaryComponent(props: ISummaryComponent) {
   const title = useSelector((state: IRuntimeState) => {
     const titleKey = formComponent.textResourceBindings?.title;
     if (titleKey) {
-      return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
+      return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], false);
     }
     return undefined;
   });
