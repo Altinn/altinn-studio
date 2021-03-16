@@ -139,6 +139,82 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
             var service = _serviceProvider.GetService<IEFormidlingClient>();
             ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SubscribeeFormidling(null));
         }
+
+        /// <summary>
+        /// Tests that a custom created arkivmelding is valid according to its model
+        /// </summary>
+        [Fact]
+        public async void Verify_Akrivmelding_Build()
+        {
+            var files = new List<string>();
+            files.Add("skjema.xml");
+
+            Arkivmelding arkivmelding = new Arkivmelding
+            {
+                AntallFiler = 1,
+                Tidspunkt = DateTime.Now.ToString(),
+                MeldingId = Guid.NewGuid().ToString(),
+                System = "LandLord",
+                Mappe = new List<Mappe>
+                {
+                    new Mappe
+                    {
+                        SystemID = Guid.NewGuid().ToString(),
+                        Tittel = "Dette er en tittel",
+                        OpprettetDato = DateTime.Now.ToString(),
+                        Type = "saksmappe",
+                        Basisregistrering = new Basisregistrering
+                         {
+                            Type = "journalpost",
+                            SystemID = Guid.NewGuid().ToString(),
+                            OpprettetDato = DateTime.UtcNow,
+                            OpprettetAv = "LandLord",
+                            ArkivertDato = DateTime.Now,
+                            ArkivertAv = "LandLord",
+                            Dokumentbeskrivelse = new Dokumentbeskrivelse
+                            {
+                                SystemID = Guid.NewGuid().ToString(),
+                                Dokumenttype = "Bestilling",
+                                Dokumentstatus = "Dokumentet er ferdigstilt",
+                                Tittel = "Hei",
+                                OpprettetDato = DateTime.UtcNow,
+                                OpprettetAv = "LandLord",
+                                TilknyttetRegistreringSom = "hoveddokument",
+                                Dokumentnummer = 1,
+                                TilknyttetDato = DateTime.Now,
+                                TilknyttetAv = "Landlord",
+                                Dokumentobjekt = new Dokumentobjekt
+                                {
+                                    Versjonsnummer = 1,
+                                    Variantformat = "Produksjonsformat",
+                                    OpprettetDato = DateTime.UtcNow,
+                                    OpprettetAv = "LandLord",
+                                    ReferanseDokumentfil = files,
+                                },
+                            },
+                            Tittel = "Nye lysrør",
+                            OffentligTittel = "Nye lysrør",
+                            Journalposttype = "Utgående dokument",
+                            Journalstatus = "Journalført",
+                            Journaldato = DateTime.Now,
+                         },
+                    },
+                },
+            };
+
+            MemoryStream stream = new MemoryStream();
+            XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
+            serializer.Serialize(stream, arkivmelding);
+
+            using (MemoryStream ms = stream)
+            {               
+                stream.Seek(0, SeekOrigin.Begin);
+                var verifiedArkivmelding = serializer.Deserialize(stream) as Arkivmelding;
+
+                Assert.NotNull(arkivmelding);
+                Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
+            }
+        }
     }
 
     /// <summary>
