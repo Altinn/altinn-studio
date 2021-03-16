@@ -94,6 +94,11 @@ namespace Altinn.Platform.Events.Controllers
         {
             Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
             if (!AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
@@ -111,6 +116,11 @@ namespace Altinn.Platform.Events.Controllers
         public async Task<ActionResult<string>> Delete(int id)
         {
             Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
 
             if (!AuthorizeAccessToSubscription(subscription))
             {
