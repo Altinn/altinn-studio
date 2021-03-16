@@ -59,13 +59,7 @@ namespace Altinn.Platform.Events.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post([FromBody] Subscription eventsSubscription)
         {
-            try
-            {
-                await EnrichSubject(eventsSubscription);
-            }
-            catch
-            {                
-            }
+            await EnrichSubject(eventsSubscription);
 
             SetCreatedBy(eventsSubscription);
             EnrichConsumer(eventsSubscription);
@@ -142,10 +136,16 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         private async Task EnrichSubject(Subscription eventsSubscription)
         {
-            if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
-                && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
+            try
             {
-                eventsSubscription.SubjectFilter = await GetPartyFromAlternativeSubject(eventsSubscription.AlternativeSubjectFilter);
+                if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
+                    && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
+                {
+                    eventsSubscription.SubjectFilter = await GetPartyFromAlternativeSubject(eventsSubscription.AlternativeSubjectFilter);
+                }
+            }
+            catch
+            {
             }
         }
 
