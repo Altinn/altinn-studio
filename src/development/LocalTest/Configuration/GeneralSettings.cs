@@ -87,18 +87,7 @@ namespace LocalTest.Configuration
         /// <summary>
         /// Gets or sets the hostname
         /// </summary>
-        public string HostName { get; set; }
-
-        /// <summary>
-        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
-        /// </summary>
-        public string GetHostName
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? HostName;
-            }
-        }
+        public string Hostname { get; set; }
 
         /// <summary>
         /// Gets or sets the BaseUrl
