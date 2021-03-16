@@ -286,6 +286,7 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
             Identifier identifier = new Identifier
             {
+                // 0192 prefix for all Norwegian organisations.
                 Value = $"0192:{_appMetadata.EFormidling.Receiver.Trim()}",
                 Authority = "iso6523-actorid-upis"
             };

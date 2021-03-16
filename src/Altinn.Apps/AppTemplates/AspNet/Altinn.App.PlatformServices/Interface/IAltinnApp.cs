@@ -156,8 +156,11 @@ namespace Altinn.App.Services.Interface
         }
 
         /// <summary>
-        /// Generates an archive message to be shipped to eFormidling
+        /// Generates the metadata document for the eFormidling shipment. e.g. arkivmelding.
         /// </summary>
+        /// <remarks>
+        /// The metadata file should be parsed to XML before assigning it to the stream.
+        /// </remarks>
         /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
         virtual async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
         {
