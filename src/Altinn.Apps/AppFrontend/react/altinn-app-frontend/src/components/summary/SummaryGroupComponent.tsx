@@ -44,9 +44,16 @@ const useStyles = makeStyles({
   label: {
     fontWeight: 500,
     fontSize: '1.8rem',
+    '& p': {
+      fontWeight: 500,
+      fontSize: '1.8rem',
+    },
   },
   labelWithError: {
     color: appTheme.altinnPalette.primary.red,
+    '& p': {
+      color: appTheme.altinnPalette.primary.red,
+    },
   },
   link: {
     background: 'none',

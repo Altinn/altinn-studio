@@ -12,6 +12,7 @@ import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { getTextResource } from 'src/utils/formComponentUtils';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
@@ -71,6 +72,12 @@ const useStyles = makeStyles({
       fontSize: '1.4rem',
       padding: '0px',
       paddingLeft: '6px',
+      '& p': {
+        fontWeight: 500,
+        fontSize: '1.4rem',
+        padding: '0px',
+        paddingLeft: '6px',
+      },
     },
   },
   tableBody: {
@@ -121,6 +128,9 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+    '& p': {
+      fontWeight: 500,
+    },
   },
   mobileValueText: {
     whiteSpace: 'nowrap',
@@ -297,7 +307,7 @@ export function GroupContainer({
               <TableRow>
                 {componentTitles.map((title: string) => (
                   <TableCell align='left' key={title}>
-                    {getTextResourceByKey(title, textResources)}
+                    {getTextResource(title, textResources)}
                   </TableCell>
                 ))}
                 <TableCell/>
@@ -373,7 +383,7 @@ export function GroupContainer({
                   return (
                     <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                       <div className={classes.mobileText}>
-                        {`${getTextResourceByKey(title, textResources)}`}
+                        {getTextResource(title, textResources)}
                       </div>
                       <div
                         className={classes.mobileValueText}
