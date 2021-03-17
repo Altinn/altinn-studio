@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.AccessToken.Configuration;
-using Altinn.Common.PEP.Constants;
-using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
@@ -27,17 +23,10 @@ namespace Altinn.Platform.Events.Controllers
     public class PushController : ControllerBase
     {
         private readonly ISubscriptionService _subscriptionService;
-        private readonly IRegisterService _registerService;
         private readonly IEventsService _eventsService;
 
-        private readonly ILogger _logger;
-        private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
-        private readonly AccessTokenSettings _accessTokenSettings;
         private readonly PlatformSettings _platformSettings;
-
-        private const string DefaultIssuer = "Altinn";
-        private const string DefaultType = "string";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PushController"/> class.
@@ -45,20 +34,12 @@ namespace Altinn.Platform.Events.Controllers
         public PushController(
         IEventsService eventsService,
         ISubscriptionService subscriptionService,
-        IRegisterService registerService,
-        IOptions<GeneralSettings> settings,
-        ILogger<EventsController> logger,
         IPDP pdp,
-        IOptions<AccessTokenSettings> accessTokenSettings,
         IOptions<PlatformSettings> platformSettings)
         {
             _eventsService = eventsService;
-            _registerService = registerService;
-            _logger = logger;
             _subscriptionService = subscriptionService;
-            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
             _authorizationHelper = new AuthorizationHelper(pdp);
-            _accessTokenSettings = accessTokenSettings.Value;
             _platformSettings = platformSettings.Value;
         }
 
