@@ -19,7 +19,7 @@ export interface ILayoutGroup extends ILayoutEntry {
   edit?: IGroupEditProperties;
 }
 
-export interface ILayoutComponent extends ILayoutEntry {
+export interface ILayoutBaseComponent extends ILayoutEntry {
   type: string;
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
@@ -31,6 +31,19 @@ export interface ILayoutComponent extends ILayoutEntry {
   formData?: any;
   grid?: IGrid;
 }
+
+export type ILayoutComponent = ILayoutBaseComponent
+  | ISelectionComponentProps
+  | IDatepickerProps
+  | IFileuploadProps
+  | IHeaderProps
+  | IInputProps
+  | INavigationButtonProps
+  | IParagraphProps
+  | IRadioButtonsProps
+  | IAdressComponent
+  | ITextAreaProps
+
 export interface IDataModelBindings {
   [id: string]: string;
 }
@@ -41,14 +54,14 @@ export interface ITextResourceBindings {
 
 export type ILayout = Array<ILayoutComponent | ILayoutGroup>;
 
-export interface ISelectionComponentProps extends ILayoutComponent {
+export interface ISelectionComponentProps extends ILayoutBaseComponent {
   options?: IOption[];
   optionsId?: string;
 }
 
-export interface IDatepickerProps extends ILayoutComponent { }
+export interface IDatepickerProps extends ILayoutBaseComponent { }
 
-export interface IFileuploadProps extends ILayoutComponent {
+export interface IFileuploadProps extends ILayoutBaseComponent {
   maxNumberOfAttachments: number;
   maxFileSizeInMB: number;
   displayMode: any;
@@ -74,7 +87,7 @@ declare enum HeaderSize {
   L,
 }
 
-export interface IHeaderProps extends ILayoutComponent {
+export interface IHeaderProps extends ILayoutBaseComponent {
   size: HeaderSize;
 }
 
@@ -84,25 +97,25 @@ declare enum InputFieldType {
   password,
 }
 
-export interface IInputProps extends ILayoutComponent {
+export interface IInputProps extends ILayoutBaseComponent {
   inputType: InputFieldType;
 }
 
-export interface INavigationButtonProps extends ILayoutComponent {
+export interface INavigationButtonProps extends ILayoutBaseComponent {
   next?: string;
   previous?: string;
 }
 
-export interface IParagraphProps extends ILayoutComponent { }
+export interface IParagraphProps extends ILayoutBaseComponent { }
 
-export interface IRadioButtonsProps extends ILayoutComponent {
+export interface IRadioButtonsProps extends ILayoutBaseComponent {
   options: IOption[];
   preselectedOptionIndex: number;
 }
 
-export interface ITextAreaProps extends ILayoutComponent { }
+export interface ITextAreaProps extends ILayoutBaseComponent { }
 
-export interface IAdressComponent extends ILayoutComponent {
+export interface IAdressComponent extends ILayoutBaseComponent {
   addressTextResourceBinding: string;
   areaCodeTextResourceBinding: string;
   coTextResourceBinding: string;
