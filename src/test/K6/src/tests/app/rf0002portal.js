@@ -9,7 +9,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv 
-  /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+  /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=***
 */
 
 import { check, sleep } from "k6";
@@ -17,7 +17,7 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
 import * as setUpData from "../../setup.js";
 import * as appInstantiation from "../../api/app/instantiation.js"
 import * as appResources from "../../api/app/resources.js"

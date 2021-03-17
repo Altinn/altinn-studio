@@ -72,6 +72,7 @@ export interface IAddLayoutAction {
 
 export interface IAddLayoutFulfilledAction {
   layouts: IFormLayouts;
+  layoutOrder: string[];
 }
 
 export interface IAddWidgetAction {

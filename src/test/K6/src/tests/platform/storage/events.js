@@ -4,9 +4,9 @@
 */
 
 import { check } from "k6";
-import * as instances from "../../../api/storage/instances.js"
-import * as events from "../../../api/storage/events.js"
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as instances from "../../../api/platform/storage/instances.js"
+import * as events from "../../../api/platform/storage/events.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import { addErrorCount } from "../../../errorcounter.js";
 

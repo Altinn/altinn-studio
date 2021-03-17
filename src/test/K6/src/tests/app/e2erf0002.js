@@ -9,7 +9,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/e2erf0002.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e archive=true -e delete=true -e harddelete=true
+  -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e archive=true -e delete=true -e harddelete=true
 */
 
 import { check } from "k6";
@@ -17,8 +17,8 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
-import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
+import { deleteSblInstance } from "../../api/platform/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 const appOwner = __ENV.org;

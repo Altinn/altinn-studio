@@ -14,6 +14,7 @@ using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Helpers;
 
@@ -93,6 +94,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
+            services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);

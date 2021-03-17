@@ -3,7 +3,7 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import FormDataSagas from '../features/form/data/formDataSagas';
-import FormDataModelSagas from '../features/form/datamodel/formDatamodelSagas';
+import FormDataModelSagas from '../features/form/datamodel/datamodelSagas';
 import FormDynamicsSagas from '../features/form/dynamics/formDynamicsSagas';
 import FormLayoutSagas from '../features/form/layout/formLayoutSagas';
 import FormRulesSagas from '../features/form/rules/rulesSagas';

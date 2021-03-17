@@ -1,6 +1,5 @@
 import { Selector, t } from 'testcafe';
 
-
 export default class LoginPage {
   constructor() {
     this.welcomeLoginButton = Selector('input');
@@ -9,4 +8,13 @@ export default class LoginPage {
     this.loginButton = Selector('button');
   }
 
-}
+  async login(userName, userPassword) {
+    await t
+      .click(this.welcomeLoginButton)
+      .typeText(this.userInput, userName);
+    await t
+      .typeText(this.passwordInput, userPassword)
+      .click(this.loginButton);
+  };
+
+};

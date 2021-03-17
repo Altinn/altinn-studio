@@ -2,10 +2,10 @@ import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducer
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import Ajv from 'ajv';
+import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
 import { IFormDataState } from '../features/form/data/formDataReducer';
-import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/formLayoutReducer';
+import { ILayoutState } from '../features/form/layout/formLayoutSlice';
 import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
@@ -148,6 +148,7 @@ export interface ILayoutSettings {
 
 export interface IPagesSettings {
   order: string[];
+  triggers?: string[];
 }
 
 export interface ILayoutNavigation {
@@ -243,12 +244,14 @@ export interface IValidationIssue {
 export interface IUiConfig {
   autoSave: boolean;
   currentView: string;
+  currentViewCacheKey?: string;
   returnToView?: string;
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
+  pageTriggers?: string[];
 }
 
 export interface IValidationResult {

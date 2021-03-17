@@ -5,12 +5,13 @@
 
     This test script sets complete confirmation as app owner on all the instances from a csv file.
     The iteration is shared between the virtual users and each VU runs exactly same number of iternations (maxIter).
-    example: k6 run /src/tests/platform/storage/appowner/completeconfirmation.js -e env=test -e subskey=*** -e maskinporten=token -e vus=**(number of virtual users)
+    example: k6 run /src/tests/platform/storage/appowner/completeconfirmation.js 
+    -e env=test -e appsaccesskey=*** -e maskinporten=token -e vus=**(number of virtual users)
 */
 
 import { check } from "k6";
 import { printResponseToConsole } from "../../../errorcounter.js";
-import * as storageInstances from "../../../api/storage/instances.js"
+import * as storageInstances from "../../../api/platform/storage/instances.js"
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
 import Papa from "https://jslib.k6.io/papaparse/5.1.1/index.js";

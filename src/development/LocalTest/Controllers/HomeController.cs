@@ -162,12 +162,16 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<ActionResult> GetTestOrgToken(string id)
+        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = "")
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "altinn3local.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            if (!string.IsNullOrEmpty(orgNumber))
+            {
+                claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
+            }
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);
@@ -308,7 +312,7 @@ namespace LocalTest.Controllers
                 HttpOnly = true,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
-                Domain = _generalSettings.HostName,
+                Domain = _generalSettings.Hostname,
                 Expiration = new TimeSpan(0, 1337, 0)
             };
 

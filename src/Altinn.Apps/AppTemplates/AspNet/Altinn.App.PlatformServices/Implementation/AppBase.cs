@@ -2,17 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
@@ -239,6 +242,23 @@ namespace Altinn.App.Services.Implementation
             await Task.CompletedTask;
         }
 
+        /// <inheritdoc />
+        public virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
+        {
+            LayoutSettings layoutSettings = null;
+
+            if (string.IsNullOrEmpty(layoutSetId))
+            {
+                layoutSettings = _resourceService.GetLayoutSettings();
+            }
+            else
+            {
+                layoutSettings = _resourceService.GetLayoutSettingsForSet(layoutSetId);
+            }
+
+            return await Task.FromResult(layoutSettings.Pages.Order);
+        }
+
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
@@ -255,7 +275,7 @@ namespace Altinn.App.Services.Implementation
                 layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
-            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettings() : _resourceService.GetLayoutSettingsForSet(layoutSet.Id);
+            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsStringForSet(layoutSet.Id);
 
             LayoutSettings layoutSettings = null;
             if (!string.IsNullOrEmpty(layoutSettingsFileContent))
@@ -276,14 +296,34 @@ namespace Altinn.App.Services.Implementation
             await stream.ReadAsync(dataAsBytes);
             string encodedXml = Convert.ToBase64String(dataAsBytes);
 
-            UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
-            UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
+            string language = "nb";
+            Party actingParty = null;
+            ClaimsPrincipal user = _httpContextAccessor.HttpContext.User;
 
-            // If layoutst exist pick correctr layotFiles
+            int? userId = user.GetUserIdAsInt();
+
+            if (userId != null)
+            {
+                UserProfile userProfile = await _profileService.GetUserProfile((int)userId);
+                actingParty = userProfile.Party;
+
+                if (!string.IsNullOrEmpty(userProfile.ProfileSettingPreference?.Language))
+                {
+                    language = userProfile.ProfileSettingPreference.Language;
+                }
+            }
+            else
+            {
+                string orgNumber = user.GetOrgNumber().ToString();
+                actingParty = await _registerService.LookupParty(new PartyLookup { OrgNo = orgNumber });
+            }
+
+            // If layoutset exists pick correct layotFiles
             string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
 
-            TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
-            if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb"))
+            TextResource textResource = await _textService.GetText(org, app, language);
+
+            if (textResource == null && language != "nb")
             {
                 // fallback to norwegian if texts does not exist
                 textResource = await _textService.GetText(org, app, "nb");
@@ -301,8 +341,8 @@ namespace Altinn.App.Services.Implementation
                 OptionsDictionary = optionsDictionary,
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
-                UserProfile = userProfile,
-                UserParty = userProfile.Party
+                UserParty = actingParty,
+                Language = language
             };
 
             Stream pdfContent = await _pdfService.GeneratePDF(pdfContext);
@@ -385,7 +425,7 @@ namespace Altinn.App.Services.Implementation
                     }
 
                     dictionary.Add(optionsId, options);
-                }          
+                }
             }
 
             return dictionary;

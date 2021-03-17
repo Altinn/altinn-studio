@@ -153,3 +153,7 @@ export function getRulehandlerUrl(layoutset: string) {
   }
   return `${appPath}/api/rulehandler/${layoutset}`;
 }
+
+export function getCalculatePageOrderUrl() {
+  return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
+}
