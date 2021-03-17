@@ -205,15 +205,7 @@ namespace Altinn.Platform.Events.Repository
                 {
                     while (reader.Read())
                     {
-                        subscription = new Subscription();
-                        subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
-                        subscription.SubjectFilter = reader["subjectfilter"].ToString();
-                        subscription.TypeFilter = reader["typefilter"].ToString();
-                        subscription.Consumer = reader["consumer"].ToString();
-                        subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
-                        subscription.CreatedBy = reader["createdby"].ToString();
-                        subscription.Created = DateTime.Parse(reader["time"].ToString());
+                        subscription = GetSubscription(reader);
                     }
                 }
 
@@ -247,16 +239,7 @@ namespace Altinn.Platform.Events.Repository
                 {
                     while (reader.Read())
                     {
-                        Subscription subscription = new Subscription();
-                        subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
-                        subscription.SubjectFilter = reader["subjectfilter"].ToString();
-                        subscription.TypeFilter = reader["typefilter"].ToString();
-                        subscription.Consumer = reader["consumer"].ToString();
-                        subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
-                        subscription.CreatedBy = reader["createdby"].ToString();
-                        subscription.Created = DateTime.Parse(reader["time"].ToString());
-                        searchResult.Add(subscription);
+                        searchResult.Add(GetSubscription(reader));
                     }
                 }
 
@@ -288,16 +271,7 @@ namespace Altinn.Platform.Events.Repository
                 {
                     while (reader.Read())
                     {
-                        Subscription subscription = new Subscription();
-                        subscription.Id = Convert.ToInt32(reader["id"].ToString());
-                        subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
-                        subscription.SubjectFilter = reader["subjectfilter"].ToString();
-                        subscription.TypeFilter = reader["typefilter"].ToString();
-                        subscription.Consumer = reader["consumer"].ToString();
-                        subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
-                        subscription.CreatedBy = reader["createdby"].ToString();
-                        subscription.Created = DateTime.Parse(reader["time"].ToString());
-                        searchResult.Add(subscription);
+                        searchResult.Add(GetSubscription(reader));
                     }
                 }
 
@@ -312,6 +286,20 @@ namespace Altinn.Platform.Events.Repository
             {
                 await _conn.CloseAsync();
             }
+        }
+
+        private static Subscription GetSubscription(NpgsqlDataReader reader)
+        {
+            Subscription subscription = new Subscription();
+            subscription.Id = Convert.ToInt32(reader["id"].ToString());
+            subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
+            subscription.SubjectFilter = reader["subjectfilter"].ToString();
+            subscription.TypeFilter = reader["typefilter"].ToString();
+            subscription.Consumer = reader["consumer"].ToString();
+            subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
+            subscription.CreatedBy = reader["createdby"].ToString();
+            subscription.Created = DateTime.Parse(reader["time"].ToString());
+            return subscription;
         }
     }
 }
