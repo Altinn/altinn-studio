@@ -146,6 +146,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             catch
             {
+                // The values is not valid. To protect against washing ssn we hide it and later give a warning about invalid subject
             }
         }
 

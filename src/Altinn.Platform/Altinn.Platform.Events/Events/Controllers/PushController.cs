@@ -77,6 +77,15 @@ namespace Altinn.Platform.Events.Controllers
             }
         }
 
+        private async Task AuthorizeAndPush(CloudEvent cloudEvent, Subscription subscription)
+        {
+            if (await _authorizationHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, subscription.Consumer))
+            {
+                CloudEventEnvelope cloudEventEnvelope = MapToEnvelope(cloudEvent, subscription);
+                await _eventsService.PushToConsumer(cloudEventEnvelope);
+            }
+        }
+
         private async Task<List<Subscription>> GetOrgSubscriptions(string source, string subject, string type)
         {
             return await _subscriptionService.GetOrgSubscriptions(
@@ -102,15 +111,6 @@ namespace Altinn.Platform.Events.Controllers
             else
             {
                 return string.Empty;
-            }
-        }
-
-        private async Task AuthorizeAndPush(CloudEvent cloudEvent, Subscription subscription)
-        {
-           if (await _authorizationHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, subscription.Consumer))
-           {
-                CloudEventEnvelope cloudEventEnvelope = MapToEnvelope(cloudEvent, subscription);
-                await _eventsService.PushToConsumer(cloudEventEnvelope);
             }
         }
 
