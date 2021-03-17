@@ -7,10 +7,12 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { Form } from '../../../../src/features/form/containers/Form';
 import { getInitialStateMock, getFormLayoutStateMock } from '../../../../__mocks__/mocks';
+import { ILayoutState } from '../../../../src/features/form/layout/formLayoutSlice';
+import { ILayoutGroup } from '../../../../src/features/form/layout';
 
 describe('>>> features/form/components/Form.tsx', () => {
   let mockStore: any;
-  let mockLayout: any;
+  let mockLayout: ILayoutState;
   let mockComponents: any;
   let mockGroupId: string;
 
@@ -86,7 +88,7 @@ describe('>>> features/form/components/Form.tsx', () => {
               'field2',
               'field3',
             ],
-          },
+          } as ILayoutGroup,
         ].concat(mockComponents),
       },
     });
