@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -629,21 +630,22 @@ namespace Altinn.App.Api.Controllers
         {
             errorMessage = string.Empty;
 
-            if (!Request.Headers.ContainsKey("Content-Disposition"))
+            if (!Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
             {
-                errorMessage = "Conent-Disposition header containing 'filename' must be included in request.";
+                errorMessage = "The request must include a Content-Disposition header";
                 return false;
             }
 
-            Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
-            string filename = GetFilenameFromContentDisposition(headerValues.ToString());
+            ContentDispositionHeaderValue contentDisposition = ContentDispositionHeaderValue.Parse(headerValues);
+            string filename = contentDisposition.FileNameStar ?? contentDisposition.FileName;
 
             if (string.IsNullOrEmpty(filename))
             {
-                errorMessage = "Content-Disposition header must contain 'filename'.";
+                errorMessage = "The Content-Disposition header must contain a filename";
                 return false;
             }
 
+            filename = filename.Trim('\"');
             string[] splitFilename = filename.Split('.');
 
             if (splitFilename.Length < 2)
@@ -652,7 +654,6 @@ namespace Altinn.App.Api.Controllers
                 return false;
             }
 
-            // no restrictions on data type
             if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
             {
                 return true;
@@ -661,14 +662,13 @@ namespace Altinn.App.Api.Controllers
             string filetype = splitFilename[splitFilename.Length - 1];
             string mimeType = MimeTypeMap.GetMimeType(filetype);
 
-            if (!Request.Headers.ContainsKey("Content-Type"))
+            if (!Request.Headers.TryGetValue("Content-Type", out StringValues contentType))
             {
                 errorMessage = "Content-Type header must be included in request.";
                 return false;
             }
 
             // Verify that file mime type matches content type in request
-            Request.Headers.TryGetValue("Content-Type", out StringValues contentType);
             if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
             {
                 errorMessage = $"Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file.";
@@ -683,23 +683,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return true;
-        }
-
-        private string GetFilenameFromContentDisposition(string contentdisposition)
-        {
-            string keyWord = "filename=";
-
-            if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return string.Empty;
-            }
-
-            int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
-            string remainder = contentdisposition.Substring(splitIndex);
-            int endIndex = remainder.IndexOf(';');
-            string filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
-
-            return filename;
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _instanceEventRepository = instanceEventRepository;
             _logger = logger;
-            _storageBaseAndHost = $"{generalSettings.Value.GetHostName}/storage/api/v1/";
+            _storageBaseAndHost = $"{generalSettings.Value.Hostname}/storage/api/v1/";
         }
 
         /// <summary>

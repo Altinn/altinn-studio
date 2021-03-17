@@ -135,9 +135,9 @@ const formLayoutSlice = createSlice({
       state.error = error;
     },
     addLayoutFulfilled: (state, action: PayloadAction<FormLayoutTypes.IAddLayoutFulfilledAction>) => {
-      const { layouts } = action.payload;
+      const { layouts, layoutOrder } = action.payload;
       state.layouts = layouts;
-      state.layoutSettings.pages.order = Object.keys(layouts);
+      state.layoutSettings.pages.order = layoutOrder;
     },
     addLayoutRejected: (state, action: PayloadAction<FormLayoutTypes.IFormDesignerActionRejected>) => {
       const { error } = action.payload;

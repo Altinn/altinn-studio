@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
-using LocalTest.Configuration;
+using LocalTest.Helpers;
 using LocalTest.Services.Localtest.Interface;
-using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -49,7 +49,7 @@ namespace Altinn.Platform.Storage.Repository
 
         private string GetTextPath(string language)
         {
-            return _localTestAppSelectionService.GetAppPath() + $"config/texts/resource.{language}.json";
+            return _localTestAppSelectionService.GetAppPath() + $"config/texts/resource.{language.AsFileName()}.json";
         }
 
         /// <inheritdoc/>
