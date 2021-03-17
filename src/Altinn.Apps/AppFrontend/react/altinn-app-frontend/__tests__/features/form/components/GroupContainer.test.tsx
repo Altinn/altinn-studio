@@ -10,7 +10,7 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { getInitialStateMock } from '../../../../__mocks__/mocks';
-import { IGroupTypes, ILayoutGroup } from '../../../../src/features/form/layout';
+import { ILayoutGroup } from '../../../../src/features/form/layout';
 
 describe('>>> features/form/components/Group.tsx', () => {
   let mockStore: any;
@@ -122,7 +122,7 @@ describe('>>> features/form/components/Group.tsx', () => {
 
     mockContainer = {
       id: 'mock-container-id',
-      type: IGroupTypes.Group,
+      type: 'Group',
       children: [
         'field1',
         'field2',

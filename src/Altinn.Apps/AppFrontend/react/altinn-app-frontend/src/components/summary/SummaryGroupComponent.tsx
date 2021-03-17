@@ -2,7 +2,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import { IGroupTypes, ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import { IRepeatingGroups, IRuntimeState, IValidations } from 'src/types';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -194,7 +194,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
     for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
       const groupContainer: ILayoutGroup = {
         id: `${groupComponent.id}-${i}-summary`,
-        type: IGroupTypes.Group,
+        type: 'Group',
         children: [],
         maxCount: 0,
         textResourceBindings: {
