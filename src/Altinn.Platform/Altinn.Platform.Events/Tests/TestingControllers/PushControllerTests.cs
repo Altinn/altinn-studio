@@ -41,7 +41,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             private readonly WebApplicationFactory<Startup> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
+            /// Initializes a new instance of the <see cref="PushControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
             /// </summary>
             /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
             public PushControllerTests(WebApplicationFactory<Startup> factory)

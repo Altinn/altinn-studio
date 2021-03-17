@@ -17,7 +17,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
         }
 
         /// <summary>
-        /// Quee
+        /// Queumock for unit test
         /// </summary>
         public static Dictionary<string, List<CloudEventEnvelope>> OutboundQueue { get; set; }
 

@@ -38,7 +38,7 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         Task DeleteSubscription(int id);
 
         /// <summary>
-        /// Gets subscriptions by source
+        /// Gets subscriptions by source excluding orgs
         /// </summary>
         Task<List<Subscription>> GetSubscriptionsExcludeOrg(string source, string subject, string type);
 
