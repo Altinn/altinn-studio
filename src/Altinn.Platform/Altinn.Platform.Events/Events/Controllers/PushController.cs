@@ -135,11 +135,15 @@ namespace Altinn.Platform.Events.Controllers
 
         private CloudEventEnvelope MapToEnvelope(CloudEvent cloudEvent, Subscription subscription)
         {
-            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope() { CloudEvent = cloudEvent };
-            cloudEventEnvelope.Consumer = subscription.Consumer;
-            cloudEventEnvelope.Pushed = DateTime.Now;
-            cloudEventEnvelope.SubscriptionId = subscription.Id;
-            cloudEventEnvelope.Endpoint = subscription.EndPoint;
+            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope()
+            {
+                CloudEvent = cloudEvent,
+                Consumer = subscription.Consumer,
+                Pushed = DateTime.Now,
+                SubscriptionId = subscription.Id,
+                Endpoint = subscription.EndPoint
+            };
+
             return cloudEventEnvelope;
         }
     }
