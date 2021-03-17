@@ -98,7 +98,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         {
             Arkivmelding arkivmelding = new Arkivmelding
             {
-                AntallFiler = "1",
+                AntallFiler = 1,
                 Tidspunkt = DateTime.Now.ToString(),
                 MeldingId = Guid.NewGuid().ToString(),
                 System = "LandLord",

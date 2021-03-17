@@ -243,7 +243,7 @@ namespace Altinn.App.Services.Implementation
 
             if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
-                SendEFormidlingShipment(instance, taskId);
+                SendEFormidlingShipment(instance);
             }
 
             if (_appMetadata.AutoDeleteOnProcessEnd)
@@ -482,7 +482,7 @@ namespace Altinn.App.Services.Implementation
 
                 bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
 
-                string fileName = appLogic ? $"{_appMetadata.Title["nb"]}.xml" : dataElement.Filename;
+                string fileName = appLogic ? $"{dataElement.Id}.xml" : dataElement.Filename;
 
                 using (Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id)))
                 {
@@ -560,7 +560,7 @@ namespace Altinn.App.Services.Implementation
             return sbd;
         }
 
-        private async void SendEFormidlingShipment(Instance instance, string taskId)
+        private async void SendEFormidlingShipment(Instance instance)
         {
             string instanceGuid = instance.Id.Split("/")[1];
 
