@@ -3,7 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
@@ -216,6 +219,93 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         }
 
         /// <summary>
+        /// Tests sending Binary Attachment
+        /// </summary>
+        [Fact]
+        public async void Verify_Sent_Attachments()
+        {
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
+
+            string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
+            string type = "arkivmelding";
+
+            DateTime currentCreationTime = DateTime.Now;
+            DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
+
+            Guid obj = Guid.NewGuid();
+            _guid = obj.ToString();
+           
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().Identifier = process;
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
+            sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
+
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
+
+            string filename = "arkivmelding.xml";
+            bool sendArkivmelding = false;
+
+            using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
+            {
+                if (fs.Length > 3)
+                {
+                    sendArkivmelding = await service.UploadAttachment(fs, _guid, filename);
+                }
+            }
+
+            string filenameAttachment = "test.pdf";
+            bool sendBinaryFile = false;
+
+            using (FileStream fs = File.OpenRead(@"TestData\test.pdf"))
+            {
+                if (fs.Length > 3)
+                {
+                    sendBinaryFile = await service.UploadAttachment(fs, _guid, filenameAttachment);
+                }
+            }
+
+            await service.SendMessage(_guid);
+            Thread.Sleep(20000);
+
+            var httpClient = new HttpClient();
+            var messageId = _guid;
+            try
+            {
+                HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:9093/api/messages/in/peek?serviceIdentifier=DPO");
+                string responseBody = await response.Content.ReadAsStringAsync();
+                StandardBusinessDocument sbdLocked = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
+                response = await httpClient.GetAsync($"http://localhost:9093/api/messages/in/pop/{messageId}");        
+
+                try
+                {               
+                    using (var stream = response.Content.ReadAsStreamAsync().Result)
+                    {
+                        var fileInfo = new FileInfo("sent_package.zip");
+                        using (var fileStream = fileInfo.OpenWrite()) 
+                        {
+                            await stream.CopyToAsync(fileStream);                         
+                        }
+                    }
+                }
+                catch (IOException)
+                {
+                    throw;
+                }
+
+                response = await httpClient.DeleteAsync($"http://localhost:9093/api/messages/in/{messageId}");
+                responseBody = await response.Content.ReadAsStringAsync();
+            }
+            catch (HttpRequestException)
+            {
+                throw;
+            }                
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Fixture"/> class.
         /// </summary>
         public class Fixture
@@ -231,7 +321,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                     .AddJsonFile("appsettings.json", optional: false)
                     .AddEnvironmentVariables()
                     .Build();
-
+                
                 serviceCollection.Configure<EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
                 serviceCollection.AddLogging(config =>
                 {
@@ -247,7 +337,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                 serviceCollection.AddTransient<HttpClient>();
                 serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
                 ServiceProvider = serviceCollection.BuildServiceProvider();
-
+      
                 Guid obj = Guid.NewGuid();
                 CustomGuid = obj.ToString();
             }
