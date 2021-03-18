@@ -234,7 +234,7 @@ export function GroupContainer({
     }
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
       if (selectionComponent?.options) {
@@ -243,6 +243,23 @@ export function GroupContainer({
         label = options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formData[replaced])?.label;
       }
       return getTextResourceByKey(label, textResources) || '';
+    }
+    if (component.type === 'Checkboxes') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string = '';
+      const data: string = formData[replaced];
+      const split = data?.split(',');
+      split?.forEach((value: string) => {
+        if (selectionComponent?.options) {
+          label += getTextResourceByKey(selectionComponent.options.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        } else if (selectionComponent.optionsId) {
+          label += getTextResourceByKey(options[selectionComponent.optionsId]?.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        }
+        if (split.indexOf(value) < (split.length - 1)) {
+          label += ', ';
+        }
+      });
+      return label;
     }
     return formData[replaced] || '';
   };
