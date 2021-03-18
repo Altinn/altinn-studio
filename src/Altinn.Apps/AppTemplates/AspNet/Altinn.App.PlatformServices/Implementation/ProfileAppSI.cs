@@ -34,7 +34,9 @@ namespace Altinn.App.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
-        /// <param name="httpClientAccessor">The http client accessor </param>
+        /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
+        /// <param name="appResources">An instance of the AppResources service.</param>
+        /// <param name="accessTokenGenerator">An instance of the AccessTokenGenerator service.</param>
         public ProfileAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<ProfileAppSI> logger,

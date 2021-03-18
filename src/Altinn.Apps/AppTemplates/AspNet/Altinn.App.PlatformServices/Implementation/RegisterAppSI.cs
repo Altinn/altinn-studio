@@ -36,14 +36,15 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
         /// </summary>
+        /// <param name="platformSettings">The current platform settings.</param>
         /// <param name="dsf">The dsf</param>
         /// <param name="er">The er</param>
         /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
-        ///<param name="httpClient">The http client</param>
-        ///<param name="appResources">The app resources service</param>
-        ///<param name="accessTokenGenerator">The platform access token generator</param>
+        /// <param name="httpClient">The http client</param>
+        /// <param name="appResources">The app resources service</param>
+        /// <param name="accessTokenGenerator">The platform access token generator</param>
         public RegisterAppSI(
             IOptions<PlatformSettings> platformSettings,
             IDSF dsf,
@@ -118,8 +119,7 @@ namespace Altinn.App.Services.Implementation
             {
                 RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
                 Method = HttpMethod.Post,
-                Content = content,
-
+                Content = content
             };
 
             request.Headers.Add("Authorization", "Bearer " + token);
