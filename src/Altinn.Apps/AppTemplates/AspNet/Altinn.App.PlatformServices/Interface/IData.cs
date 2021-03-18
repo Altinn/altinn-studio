@@ -69,7 +69,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="instanceGuid">The instanceid</param>
         /// <param name="dataId">the data id</param>
-        Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);
+        Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, string token = null);
 
         /// <summary>
         /// Method that gets metadata on form attachments ordered by attachmentType

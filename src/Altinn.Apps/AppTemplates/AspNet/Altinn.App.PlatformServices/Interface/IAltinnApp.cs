@@ -147,9 +147,12 @@ namespace Altinn.App.Services.Interface
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <summary>
-        /// Gets a list of recerivers
+        /// Gets a list of eFormidling shipment receivers
         /// </summary>
-        virtual async Task<List<Receiver>> GetEFormidlingReceivers()
+        /// <remarks>
+        /// Note that the identifier value property on the receiver objects should be prefixed with `0192:` for Norwegian organisations.
+        /// </remarks>
+        virtual async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
         {
             await Task.CompletedTask;
             return null;

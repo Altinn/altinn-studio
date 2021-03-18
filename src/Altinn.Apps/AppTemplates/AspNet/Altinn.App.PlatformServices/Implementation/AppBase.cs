@@ -20,6 +20,8 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
+using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -243,7 +245,8 @@ namespace Altinn.App.Services.Implementation
 
             if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
-                SendEFormidlingShipment(instance);
+                string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+                SendEFormidlingShipment(instance, token);
             }
 
             if (_appMetadata.AutoDeleteOnProcessEnd)
@@ -281,7 +284,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual async Task<List<Receiver>> GetEFormidlingReceivers()
+        public virtual async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
         {
             await Task.CompletedTask;
             Identifier identifier = new Identifier
@@ -468,7 +471,7 @@ namespace Altinn.App.Services.Implementation
             return dictionary;
         }
 
-        private async void SendInstanceData(Instance instance)
+        private async void SendInstanceData(Instance instance, string token)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
@@ -477,14 +480,16 @@ namespace Altinn.App.Services.Implementation
             {
                 if (!_appMetadata.EFormidling.DataTypes.Contains(dataElement.DataType))
                 {
-                    break;
+                    continue;
                 }
 
                 bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
 
-                string fileName = appLogic ? $"{dataElement.Id}.xml" : dataElement.Filename;
+                string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
 
-                using (Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id)))
+                Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id), token);
+
+                using (stream)
                 {
                     bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
 
@@ -496,7 +501,7 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid)
+        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid, Instance instance)
         {
             DateTime completedTime = DateTime.Now;
 
@@ -510,7 +515,7 @@ namespace Altinn.App.Services.Implementation
                 }
             };
 
-            List<Receiver> receivers = await GetEFormidlingReceivers();
+            List<Receiver> receivers = await GetEFormidlingReceivers(instance);
 
             Scope scope =
             new Scope
@@ -560,11 +565,11 @@ namespace Altinn.App.Services.Implementation
             return sbd;
         }
 
-        private async void SendEFormidlingShipment(Instance instance)
+        private async void SendEFormidlingShipment(Instance instance, string token)
         {
             string instanceGuid = instance.Id.Split("/")[1];
 
-            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid);
+            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
             StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
 
             (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
@@ -574,7 +579,7 @@ namespace Altinn.App.Services.Implementation
                 await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName);
             }
 
-            SendInstanceData(instance);
+            SendInstanceData(instance, token);
 
             bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
 
