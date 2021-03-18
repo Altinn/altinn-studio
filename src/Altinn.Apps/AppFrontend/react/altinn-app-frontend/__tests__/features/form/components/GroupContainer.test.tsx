@@ -122,6 +122,7 @@ describe('>>> features/form/components/Group.tsx', () => {
 
     mockContainer = {
       id: 'mock-container-id',
+      type: 'Group',
       children: [
         'field1',
         'field2',

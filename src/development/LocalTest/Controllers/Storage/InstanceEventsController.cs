@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,12 +45,12 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<string>> Post(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] InstanceEvent instanceEvent)
         {
-            if (instanceEvent == null || instanceEvent.InstanceId == null)
+            if (instanceEvent?.InstanceId == null)
             {
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
 
-            instanceEvent.Created = instanceEvent.Created == null ? DateTime.UtcNow : instanceEvent.Created.Value.ToUniversalTime();
+            instanceEvent.Created = instanceEvent.Created?.ToUniversalTime() ?? DateTime.UtcNow;
 
             InstanceEvent result = await _repository.InsertInstanceEvent(instanceEvent);
             if (result == null)
@@ -146,42 +148,6 @@ namespace Altinn.Platform.Storage.Controllers
             InstanceEventList instanceEventList = new InstanceEventList { InstanceEvents = instanceEvents };
 
             return Ok(instanceEventList);
-        }
-
-        /// <summary>
-        /// Deletes all events related to an instance.
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance that the event(s) is associated with.</param>
-        /// <returns>A message containing the number of events that were deleted.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpDelete]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Produces("application/json")]
-        public async Task<ActionResult<string>> Delete(int instanceOwnerPartyId, Guid instanceGuid)
-        {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            if (string.IsNullOrEmpty(instanceId))
-            {
-                return BadRequest("Unable to perform query.");
-            }
-
-            int result = await _repository.DeleteAllInstanceEvents(instanceId);
-
-            if (result > 0)
-            {
-                return Ok($"{result} instance events were succesfully deleted from the database.");
-            }
-            else if (result == 0)
-            {
-                return Ok($"No instance events related to instance {instanceId} were found in the database.");
-            }
-            else
-            {
-                return BadRequest("Unable to perform query.");
-            }
         }
     }
 }

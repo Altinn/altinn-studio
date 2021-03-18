@@ -4,7 +4,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
-import { call, delay, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import { all, call, delay, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
@@ -397,7 +397,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     }
     layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
 
-    yield put(FormLayoutActions.addLayoutFulfilled({ layouts: layoutsCopy }));
+    yield put(FormLayoutActions.addLayoutFulfilled({ layouts: layoutsCopy, layoutOrder: [...layoutOrder, layout] }));
 
     if (Object.keys(layoutsCopy).length > 1) {
       const NavigationButtonComponent = {
@@ -465,7 +465,11 @@ export function* fetchFormLayoutSettingSaga(): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
-  yield takeLatest(FormLayoutActions.fetchLayoutSettings, fetchFormLayoutSettingSaga);
+  yield all([
+    take(FormLayoutActions.fetchFormLayoutFulfilled),
+    take(FormLayoutActions.fetchLayoutSettings),
+  ]);
+  yield call(fetchFormLayoutSettingSaga);
 }
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {
