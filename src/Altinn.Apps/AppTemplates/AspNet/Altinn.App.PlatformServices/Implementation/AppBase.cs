@@ -555,11 +555,10 @@ namespace Altinn.App.Services.Implementation
                 Sender = new List<Sender> { digdirSender }
             };
 
-            // Skal sikkerhetsnivå kunne konfigureres i appen? 
             StandardBusinessDocument sbd = new StandardBusinessDocument
             {
                 StandardBusinessDocumentHeader = sbdHeader,
-                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = _appMetadata.EFormidling.SecurityLevel },
             };
 
             return sbd;
