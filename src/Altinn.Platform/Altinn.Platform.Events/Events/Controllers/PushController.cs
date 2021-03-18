@@ -46,7 +46,7 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Alert push controller about a new event
         /// </summary>
-        /// <returns>Http status</returns>
+        /// <returns>Returns the result of the request in the form og a HTTP status code./returns>
         [Authorize]
         [HttpPost]
         [Consumes("application/json")]
