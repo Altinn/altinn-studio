@@ -22,6 +22,8 @@ namespace Altinn.Platform.Events.Services
 
         private QueueClient _inboundQueueClient;
 
+        private QueueClient _outboundQueueClient;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueService"/> class.
         /// </summary>
@@ -52,6 +54,27 @@ namespace Altinn.Platform.Events.Services
             return new PushQueueReceipt { Success = true };
         }
 
+        /// <inheritdoc/>
+        public async Task<PushQueueReceipt> PushToOutboundQueue(string content)
+        {
+            if (!_settings.EnablePushToQueue)
+            {
+                return new PushQueueReceipt { Success = true };
+            }
+
+            try
+            {
+                QueueClient client = await GetOutboundQueueClient();
+                await client.SendMessageAsync(content);
+            }
+            catch (Exception e)
+            {
+                return new PushQueueReceipt { Success = false, Exception = e };
+            }
+
+            return new PushQueueReceipt { Success = true };
+        }
+
         private async Task<QueueClient> GetInboundQueueClient()
         {
             if (_inboundQueueClient == null)
@@ -61,6 +84,17 @@ namespace Altinn.Platform.Events.Services
             }
 
             return _inboundQueueClient;
+        }
+
+        private async Task<QueueClient> GetOutboundQueueClient()
+        {
+            if (_outboundQueueClient == null)
+            {
+                _outboundQueueClient = new QueueClient(_settings.ConnectionString, _settings.OutboundQueueName);
+                await _outboundQueueClient.CreateIfNotExistsAsync();
+            }
+
+            return _outboundQueueClient;
         }
     }
 }

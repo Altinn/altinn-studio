@@ -312,7 +312,7 @@ namespace LocalTest.Controllers
                 HttpOnly = true,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
-                Domain = _generalSettings.HostName,
+                Domain = _generalSettings.Hostname,
                 Expiration = new TimeSpan(0, 1337, 0)
             };
 

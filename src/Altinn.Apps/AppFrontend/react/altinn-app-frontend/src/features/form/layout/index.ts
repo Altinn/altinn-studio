@@ -7,7 +7,7 @@ export interface ILayouts {
 
 export interface ILayoutEntry {
   id: string;
-  type?: string;
+  type: GroupTypes | ComponentTypes;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
@@ -19,17 +19,37 @@ export interface ILayoutGroup extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
-  type: string;
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
-  readOnly: boolean;
+  readOnly?: boolean;
   disabled?: boolean;
-  required: boolean;
+  required?: boolean;
   textResourceBindings: ITextResourceBindings;
   triggers?: Triggers[];
   formData?: any;
   grid?: IGrid;
 }
+
+export type GroupTypes =
+  'Group' |
+  'group';
+
+export type ComponentTypes =
+  'AddressComponent' |
+  'AttachmentList' |
+  'Button' |
+  'Checkboxes' |
+  'Datepicker' |
+  'Dropdown' |
+  'FileUpload' |
+  'Header' |
+  'Input' |
+  'NavigationButtons' |
+  'Paragraph' |
+  'RadioButtons' |
+  'Summary' |
+  'TextArea';
+
 export interface IDataModelBindings {
   [id: string]: string;
 }

@@ -148,7 +148,7 @@ export interface ILayoutSettings {
 
 export interface IPagesSettings {
   order: string[];
-  triggers?: string[];
+  triggers?: Triggers[];
 }
 
 export interface ILayoutNavigation {
@@ -251,7 +251,7 @@ export interface IUiConfig {
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
-  pageTriggers?: string[];
+  pageTriggers?: Triggers[];
 }
 
 export interface IValidationResult {
@@ -289,6 +289,9 @@ export enum Severity {
 
 export enum Triggers {
   Validation = 'validation',
+  CalculatePageOrder = 'calculatePageOrder',
+  ValidatePage = 'validatePage',
+  ValidateAllPages = 'validateAllPages'
 }
 
 export interface ILabelSettings {
