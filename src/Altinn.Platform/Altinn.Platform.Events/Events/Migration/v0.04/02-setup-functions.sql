@@ -8,9 +8,9 @@ return query
 	SELECT s.id, s.sourcefilter, s.subjectfilter, s.typefilter, s.consumer, s.endpointurl, s.createdby, s.validated, s."time"
 	FROM events.subscription s
   WHERE (s.subjectfilter = subject)
-  and (s.sourcefilter = source)
-  and (s.typefilter is null or s.typefilter = type)
-  and s.consumer not like '/org/%';
+  AND (s.sourcefilter = source)
+  AND (s.typefilter is NULL OR s.typefilter = type)
+  AND s.consumer not LIKE '/org/%';
 
 END;
 $BODY$;
@@ -24,7 +24,7 @@ BEGIN
 return query 
 	SELECT s.id, s.sourcefilter, s.subjectfilter, s.typefilter, s.consumer, s.endpointurl, s.createdby, s.validated, s."time"
 	FROM events.subscription s
-  WHERE s.consumer like _consumer;
+  WHERE s.consumer LIKE _consumer;
 
 END;
 $BODY$;
