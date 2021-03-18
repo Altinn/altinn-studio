@@ -153,7 +153,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         /// Expected: Created arkivmelding object is instance of Arkivmelding dto 
         /// </summary>
         [Fact]
-        public void Verify_Akrivmelding_Build()
+        public void Verify_Arkivmelding_Build()
         {
             var files = new List<string>
             {
