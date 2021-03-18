@@ -8,6 +8,7 @@ import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
+import {getParsedLanguageFromKey } from 'app-shared/utils/language';
 
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
@@ -30,7 +31,11 @@ const useStyles = makeStyles(
   }),
 );
 
-export default function DataModelingContainer(): JSX.Element {
+export interface IDataModelingContainerProps {
+  language: any;
+}
+
+export default function DataModelingContainer(props: IDataModelingContainerProps): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
@@ -116,7 +121,7 @@ export default function DataModelingContainer(): JSX.Element {
           anchorEl={deleteButtonAnchor}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           btnCancelText="Nei"
-          descriptionText={`Er du sikker på at du vil slette ${selectedDataModelName}?`}
+          descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
           btnConfirmText="Ja"
           btnPrimaryId='deployPopover'
           btnClick={onDeleteConfirmClick}

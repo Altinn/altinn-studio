@@ -10,22 +10,6 @@ import DataModelingContainer from '../../features/dataModeling/containers/DataMo
 
 describe('DataModeling', () => {
 
-/*
-
- {
-          id: 'test',
-          allowedContentTypes: [
-            'application/xml'
-          ],
-          appLogic: {
-            autoCreate: true,
-            classRef: 'Altinn.App.Models.Foretak'
-          },
-          maxCount: 1,
-          minCount: 1
-        }
-
-        */
   const initialState = {
     applicationMetadataState: {
       applicationMetadata: {
