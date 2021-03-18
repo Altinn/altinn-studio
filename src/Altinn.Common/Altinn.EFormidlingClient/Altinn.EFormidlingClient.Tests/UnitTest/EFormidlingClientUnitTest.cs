@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Xml.Serialization;
 using Altinn.Common.EFormidlingClient;
@@ -38,30 +36,34 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Test valid sbd json from file
+        /// Expected: Not null after deserialization from valid json file
         /// </summary>
         [Fact]
         public void Is_Valid_Json()
         {
             var jsonString = File.ReadAllText(@"TestData\sbd.json");
-            var json = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
-            Assert.NotNull(json);
+            Assert.NotNull(sbd);
         }
 
         /// <summary>
-        /// Test invalid sbd json from file
+        /// Test invalid sbd json from file where Arkivmelding & StandardBusinessDocumentHeader are incorrect
+        /// Expected: StandardBusinessDocumentHeader and Arkivmelding null 
         /// </summary>
         [Fact]
         public void Is_Not_Valid_Json()
         {
             var jsonString = File.ReadAllText(@"TestData\sbdInvalid.json");
-            var json = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
+            StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
-            Assert.NotNull(json);
+            Assert.Null(sbd.Arkivmelding);
+            Assert.Null(sbd.StandardBusinessDocumentHeader);
         }
 
         /// <summary>
         /// Test valid xml arkivmelding from file
+        /// Expected: Serialized arkivmelding is type of Arkivmelding dto
         /// </summary>
         [Fact]
         public void Is_Valid_Xml()
@@ -77,6 +79,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests not empty file arkivmelding
+        /// Expected: FileStream content is not empty after reading arkivmelding testdata
         /// </summary>
         [Fact]
         public void Read_Not_Empty_XML_Test_Data()
@@ -89,6 +92,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests valid config in appsettings
+        /// Expected: BaseUrl from config is set to localhost
         /// </summary>
         [Fact]
         public void Check_Valid_AppConfig()
@@ -102,6 +106,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests invalid input to GetCapabilities()
+        /// Expected: ArgumentNullException is thrown when input parameters are null
         /// </summary>
         [Fact]
         public async void Get_Capabilities_Invalid_Input()
@@ -112,6 +117,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests invald input to UploadAttachment()
+        /// Expected: ArgumentNullException is thrown when input parameters are null
         /// </summary>
         [Fact]
         public async void Upload_Attachment_Invalid_Input()
@@ -122,6 +128,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests invalid input to CreateMessage()
+        /// Expected: ArgumentNullException is thrown when input parameters are null
         /// </summary>
         [Fact]
         public async void Create_Message_Invalid_Input()
@@ -132,6 +139,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests invalid input to SubscribeeFormiding()
+        /// Expected: ArgumentNullException is thrown when input parameters are null
         /// </summary>
         [Fact]
         public async void SubscribeeFormidling_Invalid_Input()
@@ -142,6 +150,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
 
         /// <summary>
         /// Tests that a custom created arkivmelding is valid according to its model
+        /// Expected: Created arkivmelding object is instance of Arkivmelding dto 
         /// </summary>
         [Fact]
         public void Verify_Akrivmelding_Build()
@@ -220,7 +229,8 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FixtureUnit"/> class.
+    /// Initializes a new instance of the <see cref="FixtureUnit"/> class
+    /// Mocking DI
     /// </summary>
     public class FixtureUnit
     {
@@ -245,7 +255,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
                 .AddJsonFile("appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
-
+            
             serviceCollection.Configure<EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
             serviceCollection.AddLogging(config =>
             {
