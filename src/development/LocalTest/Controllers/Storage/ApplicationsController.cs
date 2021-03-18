@@ -121,7 +121,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="appId">The unique identification of the application to be added. Format: '{org}/{app}'</param>
         /// <param name="application">The application metadata object to store.</param>
         /// <returns>The applicaiton metadata object.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -129,6 +129,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Application>> Post(string appId, [FromBody] Application application)
         {
+            // TODO Validate only Designer can call this.
             if (!IsValidAppId(appId))
             {
                 return BadRequest("AppId is not valid.");
@@ -242,7 +243,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">The name of the application.</param>
         /// <param name="application">The application metadata object to store.</param>
         /// <returns>The updated application metadata.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPut("{org}/{app}")]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -292,8 +293,8 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.Title = application.Title;
             existingApplication.ProcessId = application.ProcessId;
             existingApplication.DataTypes = application.DataTypes;
-
             existingApplication.PartyTypesAllowed = application.PartyTypesAllowed ?? new PartyTypesAllowed();
+            existingApplication.AutoDeleteOnProcessEnd = application.AutoDeleteOnProcessEnd;
 
             try
             {
@@ -325,7 +326,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="hard">Controls whether the application should be deleted permanently.</param>
         /// <returns>The application metadata of the deleted application.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpDelete("{org}/{app}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

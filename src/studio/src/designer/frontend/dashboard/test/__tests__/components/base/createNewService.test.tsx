@@ -4,7 +4,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as networking from 'app-shared/utils/networking';
-import { CreateNewServiceComponent } from '../../../../features/createService/createNewService';
+import { appNameRegex, CreateNewServiceComponent } from '../../../../features/createService/createNewService';
 
 describe('>>> components/base/createNewService.tsx', () => {
   let mockSelectableUser: any;
@@ -297,6 +297,20 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance._isMounted).toBe(true);
     instance.componentWillUnmount();
     expect(instance._isMounted).toBe(false);
+  });
 
+  it('+++ app name regex should return false on capital letters', () => {
+    expect(appNameRegex.test('An-app')).toBe(false);
+    expect(appNameRegex.test('an-APp')).toBe(false);
+    expect(appNameRegex.test('an-apP')).toBe(false);
+  });
+
+  it('+++ app name regex should return false on names that start with "datamodels"', () => {
+    expect(appNameRegex.test('datamodels')).toBe(false);
+    expect(appNameRegex.test('datamodelsAPP')).toBe(false);
+  });
+
+  it('+++ app name regex should return OK on valid app name', () => {
+    expect(appNameRegex.test('app-name')).toBe(true);
   });
 });

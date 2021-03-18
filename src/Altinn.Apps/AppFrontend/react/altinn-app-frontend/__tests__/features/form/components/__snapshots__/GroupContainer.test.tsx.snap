@@ -1,9 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = `
-Array [
+<div
+  className="MuiGrid-root MuiGrid-container MuiGrid-item"
+>
   <div
-    className="MuiGrid-root MuiGrid-container"
+    className="MuiGrid-root MuiGrid-container MuiGrid-item"
     data-testid="group-testGroupId"
     id="group-testGroupId"
   >
@@ -11,11 +13,11 @@ Array [
       className="MuiGrid-root MuiTableContainer-root"
     >
       <table
-        className="MuiTable-root makeStyles-table-4"
+        className="MuiTable-root makeStyles-table-6"
         role={null}
       >
         <thead
-          className="MuiTableHead-root makeStyles-tableHeader-5"
+          className="MuiTableHead-root makeStyles-tableHeader-7"
           role={null}
         >
           <tr
@@ -58,15 +60,15 @@ Array [
           </tr>
         </thead>
         <tbody
-          className="MuiTableBody-root makeStyles-tableBody-6"
+          className="MuiTableBody-root makeStyles-tableBody-8"
           role={null}
         />
       </table>
     </div>
-  </div>,
+  </div>
   <div
     className="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-flex-end"
-  />,
+  />
   <div
     className="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-center"
   >
@@ -81,7 +83,7 @@ Array [
         className="MuiGrid-root MuiGrid-item"
       >
         <i
-          className="fa fa-exit makeStyles-addIcon-9"
+          className="fa fa-exit makeStyles-addIcon-11"
         />
       </div>
       <div
@@ -95,6 +97,6 @@ Array [
         </span>
       </div>
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;

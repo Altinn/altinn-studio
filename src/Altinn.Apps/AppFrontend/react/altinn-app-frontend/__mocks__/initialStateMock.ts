@@ -30,7 +30,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     formData: getFormDataStateMock(),
     formDataModel: {
-      dataModel: [],
       error: null,
       schemas: null,
     },

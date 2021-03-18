@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable max-len */
 import * as React from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
@@ -11,7 +11,7 @@ import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
+import { IDataModelBindings, IGrid, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
 import ValidationActions from '../features/form/validation/validationActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
@@ -25,7 +25,7 @@ import { getFormDataForComponent,
   getTextResource,
   isComponentValid,
   selectComponentTexts } from '../utils/formComponentUtils';
-import FormLayoutActions from '../features/form/layout/formLayoutActions';
+import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 
 export interface IGenericComponentProps {
@@ -34,9 +34,10 @@ export interface IGenericComponentProps {
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
   componentValidations?: IComponentValidations;
-  readOnly: boolean;
-  required: boolean;
+  readOnly?: boolean;
+  required?: boolean;
   labelSettings?: ILabelSettings;
+  grid?: IGrid;
   triggers?: Triggers[];
   hidden?: boolean;
 }
@@ -46,6 +47,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     id,
     ...passThroughProps
   } = props;
+  const dispatch = useDispatch();
 
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
@@ -106,7 +108,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const handleFocusUpdate = (componentId: string, step?: number) => {
-    FormLayoutActions.updateFocus(componentId, step || 0);
+    dispatch(FormLayoutActions.updateFocus({ currentComponentId: componentId, step: step || 0 }));
   };
 
   const getValidationsForInternalHandling = () => {
@@ -211,27 +213,37 @@ export function GenericComponent(props: IGenericComponentProps) {
   return (
     <Grid
       item={true}
-      xs={12}
+      container={true}
+      xs={props.grid?.xs || 12}
+      sm={props.grid?.sm || false}
+      md={props.grid?.md || false}
+      lg={props.grid?.lg || false}
+      xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
+      className='form-group a-form-group'
+      alignItems='baseline'
     >
-      <div key={`form-${props.id}`} className='form-group a-form-group'>
-        {noLabelComponents.includes(props.type) ?
-          null
-          :
-          <RenderLabelScoped
-            props={props}
-            passThroughProps={passThroughProps}
-            language={language}
-            texts={texts}
-          />
-        }
-
-        {noLabelComponents.includes(props.type) ?
-          null
-          :
-          <RenderDescription key={`description-${props.id}`} />
-        }
-
+      {!noLabelComponents.includes(props.type) &&
+      <Grid item={true} xs={12}>
+        <RenderLabelScoped
+          props={props}
+          passThroughProps={passThroughProps}
+          language={language}
+          texts={texts}
+        />
+        <RenderDescription key={`description-${props.id}`} />
+      </Grid>
+      }
+      <Grid
+        key={`form-content-${props.id}`}
+        item={true}
+        id={`form-content-${props.id}`}
+        xs={props.grid?.innerGrid?.xs || 12}
+        sm={props.grid?.innerGrid?.sm || false}
+        md={props.grid?.innerGrid?.md || false}
+        lg={props.grid?.innerGrid?.lg || false}
+        xl={props.grid?.innerGrid?.xl || false}
+      >
         <RenderComponent
           {...componentProps}
         />
@@ -239,7 +251,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         {isSimple && hasValidationMessages &&
           renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
         }
-      </div>
+      </Grid>
     </Grid>
   );
 }

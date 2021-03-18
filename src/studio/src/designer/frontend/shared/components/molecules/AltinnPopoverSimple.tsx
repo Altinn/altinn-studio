@@ -85,8 +85,8 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
 
   const classes = useStyles(props);
 
-  const handleClose = () => {
-    props.handleClose();
+  const handleButtonClose = () => {
+    props.handleClose('close');
   };
 
   const btnClickedHandler = () => {
@@ -100,7 +100,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
       <Popover
         open={props.anchorEl ? true : false}
         anchorEl={props.anchorEl}
-        onClose={handleClose}
+        onClose={props.handleClose}
         anchorOrigin={anchorOrigin}
         transformOrigin={transformOrigin}
         anchorReference='anchorEl'
@@ -131,7 +131,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                 id={props.btnSecondaryId}
                 color='primary'
                 className={classes.buttonCancel}
-                onClick={props.handleClose}
+                onClick={handleButtonClose}
               >
                 <span className={classes.borderBottom}>
                   {props.btnCancelText}

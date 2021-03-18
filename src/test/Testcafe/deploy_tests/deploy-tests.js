@@ -91,11 +91,11 @@ test('App cannot build due to compilation error', async() => {
     .click(designer.deployNavigationTab)
     .typeText(designer.versionNumber, buildVersion)
     .typeText(designer.versionDescription, "Testcafe compilation error build", { replace: true })
-    .expect(designer.buildButton.exists).ok({ timeout: 120000 })
+    .expect(designer.buildButton.exists).ok({ timeout: 60000 })
     .click(designer.buildButton)
     .wait(5000)
   await t
-    .expect(designer.latestBuildStatusInprogress.exists).ok({ timeout: 300000 })
+    .expect(designer.latestBuildStatusInprogress.exists).ok({ timeout: 60000 })
     .expect(designer.latestBuildStatusFailure.exists).ok({ timeout: 300000 })
     .click(designer.deployVersionDropDown);
   var lastbuildVersion = await designer.getlatestBuildVersion(t);

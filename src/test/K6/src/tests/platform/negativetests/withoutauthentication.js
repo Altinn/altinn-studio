@@ -1,6 +1,7 @@
 /* 
   This test requires an user name and password and an app
-  command to run the test: docker-compose run k6 run src/tests/platform/negativetests/withoutauthentication.js -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
+  command to run the test: docker-compose run k6 run /src/tests/platform/negativetests/withoutauthentication.js 
+  -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
 import { check } from "k6";
@@ -8,8 +9,8 @@ import { addErrorCount } from "../../../errorcounter.js";
 import * as profile from "../../../api/platform/profile.js"
 import * as authz from "../../../api/platform/authorization.js";
 import * as register from "../../../api/platform/register.js";
-import * as instances from "../../../api/storage/instances.js"
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as instances from "../../../api/platform/storage/instances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
 import * as events from "../../../api/platform/events.js"
 import * as setUpData from "../../../setup.js";
 

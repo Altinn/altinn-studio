@@ -4,6 +4,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
@@ -19,7 +20,15 @@ import { createRepeatingGroupComponents } from './formLayout';
 const JsonPointer = require('jsonpointer');
 
 export function createValidator(schema: any): ISchemaValidator {
-  const ajv = new Ajv({ allErrors: true, coerceTypes: true });
+  const ajv = new Ajv({
+    allErrors: true,
+    coerceTypes: true,
+    jsPropertySyntax: true,
+    strict: false,
+    strictTypes: false,
+    strictTuples: false,
+  });
+  addFormats(ajv);
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
@@ -94,14 +103,17 @@ export const errorMessageKeys = {
 export function validateEmptyFields(
   formData: any,
   layouts: ILayouts,
+  layoutOrder: string[],
   language: any,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ) {
   const validations = {};
   Object.keys(layouts).forEach((id) => {
-    const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
-    validations[id] = result;
+    if (layoutOrder.includes(id)) {
+      const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
+      validations[id] = result;
+    }
   });
   return validations;
 }
@@ -253,14 +265,17 @@ export function validateEmptyField(
 export function validateFormComponents(
   attachments: any,
   layouts: any,
+  layoutOrder: string[],
   formData: any,
   language: any,
   hiddenFields: string[],
 ) {
   const validations: any = {};
   Object.keys(layouts).forEach((id) => {
-    const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
-    validations[id] = result;
+    if (layoutOrder.includes(id)) {
+      const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
+      validations[id] = result;
+    }
   });
 
   return validations;
@@ -464,6 +479,7 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
 export function validateFormData(
   formData: any,
   layouts: ILayouts,
+  layoutOrder: string[],
   schemaValidator: ISchemaValidator,
   language: any,
 ): IValidationResult {
@@ -471,10 +487,12 @@ export function validateFormData(
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
-    const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
-    validations = result.validations;
-    if (!invalidDataTypes) {
-      invalidDataTypes = result.invalidDataTypes;
+    if (layoutOrder.includes(id)) {
+      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
+      validations = result.validations;
+      if (!invalidDataTypes) {
+        invalidDataTypes = result.invalidDataTypes;
+      }
     }
   });
 

@@ -78,7 +78,7 @@ export function CloneModal(props: ICloneModalProps) {
         </Grid>
         <Grid item={true} className={props.classes.sectionSeparator}>
           <Typography variant={'body1'}>
-            <a href={altinnDocsUrl} target={'_blank'}>
+            <a href={altinnDocsUrl} target={'_blank'} rel={'noopener noreferrer'}>
               {getLanguageFromKey('sync_header.favourite_tool_link', props.language)}
             </a>
           </Typography>

@@ -3,16 +3,13 @@
 import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
 import { Grid, makeStyles } from '@material-ui/core';
-import { useSelector } from 'react-redux';
-import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
+import { useDispatch, useSelector } from 'react-redux';
+import { IRuntimeState, INavigationConfig, ILayoutNavigation, Triggers } from 'src/types';
 import classNames from 'classnames';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 
 const useStyles = makeStyles({
-  root: {
-    paddingTop: '2.4em',
-  },
   backButton: {
     marginRight: '1.2em',
   },
@@ -22,11 +19,12 @@ export interface INavigationButtons {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
-  triggers?: string[];
+  triggers?: Triggers[];
 }
 
 export function NavigationButtons(props: INavigationButtons) {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
@@ -34,13 +32,14 @@ export function NavigationButtons(props: INavigationButtons) {
   const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const language = useSelector((state: IRuntimeState) => state.language.language);
+  const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const { next, previous } = useSelector(
     (state: IRuntimeState) => getNavigationConfigForCurrentView(
       state.formLayout.uiConfig.navigationConfig,
       state.formLayout.uiConfig.currentView,
     ),
   );
-
+  const triggers = props.triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : props.textResourceBindings?.next || 'next';
   const backTextKey = props.textResourceBindings?.back || 'back';
 
@@ -53,17 +52,21 @@ export function NavigationButtons(props: INavigationButtons) {
   const onClickPrevious = () => {
     const goToView = previous || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) - 1];
     if (goToView) {
-      FormLayoutActions.updateCurrentView(goToView);
+      dispatch(FormLayoutActions.updateCurrentView({ newView: goToView }));
     }
   };
 
   const OnClickNext = () => {
-    const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
-    const runPageValidations = !returnToView && props.triggers && (props.triggers.indexOf('validatePage') > -1);
-    const runAllValidations = returnToView || (props.triggers && (props.triggers.indexOf('validateAllPages') > -1));
+    const runPageValidations = !returnToView && triggers && triggers.includes(Triggers.ValidatePage);
+    const runAllValidations = returnToView || (triggers && triggers.includes(Triggers.ValidateAllPages));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
-    if (goToView) {
-      FormLayoutActions.updateCurrentView(goToView, validations);
+    if (triggers?.includes(Triggers.CalculatePageOrder)) {
+      dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ validations }));
+    } else {
+      const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+      if (goToView) {
+        dispatch(FormLayoutActions.updateCurrentView({ newView: goToView, runValidations: validations }));
+      }
     }
   };
 
@@ -71,7 +74,6 @@ export function NavigationButtons(props: INavigationButtons) {
     <Grid
       container={true}
       justify='space-between'
-      className={classes.root}
     >
       <Grid item={true} xs={10}>
         {!disableBack && props.showBackButton &&

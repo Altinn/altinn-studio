@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using System.IO;
+
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -109,6 +111,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The model metadata</returns>
         [HttpGet]
         [Route("{org}/{app}/api/metadata/{id}")]
+        [Obsolete("Metadata endpoint is obsolete. Use jsonschema endpoint.")]
         public ActionResult GetModelMetadata([FromRoute] string org, [FromRoute] string app)
         {
             string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
@@ -138,8 +141,8 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layouts")]
         public ActionResult GetLayouts(string org, string app)
         {
-          string layouts = _appResourceService.GetLayouts();
-          return Ok(layouts);
+            string layouts = _appResourceService.GetLayouts();
+            return Ok(layouts);
         }
 
         /// <summary>
@@ -167,7 +170,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings")]
         public ActionResult GetLayoutSettings(string org, string app)
         {
-            string settings = _appResourceService.GetLayoutSettings();
+            string settings = _appResourceService.GetLayoutSettingsString();
             return Ok(settings);
         }
 
@@ -182,7 +185,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings/{id}")]
         public ActionResult GetLayoutSettings(string org, string app, string id)
         {
-            string settings = _appResourceService.GetLayoutSettingsForSet(id);
+            string settings = _appResourceService.GetLayoutSettingsStringForSet(id);
             return Ok(settings);
         }
 
@@ -232,7 +235,6 @@ namespace Altinn.App.Api.Controllers
         public ActionResult GetRuleConfiguration(string org, string app, string id)
         {
             byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
-
             if (fileContent == null)
             {
                 // frontend will fail witout content

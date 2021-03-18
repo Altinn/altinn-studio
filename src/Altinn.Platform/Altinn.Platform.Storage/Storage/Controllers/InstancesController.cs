@@ -25,7 +25,9 @@ using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
+
 using Substatus = Altinn.Platform.Storage.Interface.Models.Substatus;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -579,6 +581,47 @@ namespace Altinn.Platform.Storage.Controllers
 
             await DispatchEvent(InstanceEventType.SubstatusUpdated, updatedInstance);
             return Ok(updatedInstance);
+        }
+
+        /// <summary>
+        /// Updates the presentation texts on an instance
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="presentationTexts">Collection of changes to the presentation texts collection.</param>
+        /// <returns>The instance that was updated with an updated collection of presentation texts.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationtexts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public async Task<Instance> UpdatePresentationTexts(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] PresentationTexts presentationTexts)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (instance.PresentationTexts == null)
+            {
+                instance.PresentationTexts = new Dictionary<string, string>();
+            }
+
+            foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
+            {
+                if (string.IsNullOrEmpty(entry.Value))
+                {
+                    instance.PresentationTexts.Remove(entry.Key);
+                }
+                else
+                {
+                    instance.PresentationTexts[entry.Key] = entry.Value;
+                }
+            }
+
+            Instance updatedInstance = await _instanceRepository.Update(instance);
+            return updatedInstance;
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)

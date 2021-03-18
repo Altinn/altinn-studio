@@ -19,7 +19,7 @@ const modelNameState = (state: IServiceDevelopmentState) => state.dataModeling.m
 
 export function* fetchDataModelSaga(): SagaIterator {
   try {
-    const modelName = yield select(modelNameState);
+    const modelName: string = yield select(modelNameState);
     const url = getFetchDataModelUrl(modelName);
     const result = yield call(get, url);
     yield put(fetchDataModelFulfilled({ schema: result }));
@@ -29,7 +29,7 @@ export function* fetchDataModelSaga(): SagaIterator {
 }
 
 export function* watchFetchDataModelSaga(): SagaIterator {
-  while(true) {
+  while (true) {
     yield all([
       take(fetchDataModel.type),
       take(setDataModelName.type),
@@ -41,7 +41,7 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 export function* saveDatamodelSaga(action: IDataModelAction) {
   try {
     const { schema } = action.payload;
-    const modelName = yield select(modelNameState);
+    const modelName: string = yield select(modelNameState);
     const url = getSaveDataModelUrl(modelName);
     yield axiosPut(url, schema);
     yield put(saveDataModelFulfilled({}));

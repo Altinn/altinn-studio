@@ -1,12 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 import { SagaIterator } from 'redux-saga';
-import { fork, take, call, select } from 'redux-saga/effects';
+import { fork, call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { ILayouts } from 'src/features/form/layout';
 import { IOption } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/urlHelper';
-import * as formLayoutActionTypes from '../../../../features/form/layout/formLayoutActionTypes';
+import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
 
@@ -40,11 +40,9 @@ export function* fetchSpecificOptionSaga(optionsId: string): SagaIterator {
 }
 
 export function* watchInitialFetchOptionSaga(): SagaIterator {
-  yield take(formLayoutActionTypes.FETCH_FORM_LAYOUT_FULFILLED);
-  yield call(OptionsActions.fetchOptions);
+  yield takeLatest(FormLayoutActions.fetchLayoutFulfilled, OptionsActions.fetchOptions);
 }
 
 export function* watchFetchOptionsSaga(): SagaIterator {
-  yield take(fetchOptionActionTypes.FETCH_OPTIONS);
-  yield call(fetchOptionsSaga);
+  yield takeLatest(fetchOptionActionTypes.FETCH_OPTIONS, fetchOptionsSaga);
 }

@@ -119,6 +119,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
               <a
                 href={repositoryUrl}
                 target='_blank'
+                rel='noopener noreferrer'
               >
                 Åpne repository
               </a>
@@ -130,6 +131,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
               <a
                 href={altinnStudioDocsUrl}
                 target='_blank'
+                rel='noopener noreferrer'
               >
                 Dokumentasjon
               </a>

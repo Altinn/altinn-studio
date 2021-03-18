@@ -1,9 +1,9 @@
 //Sections in designer
 export const appMenu = {
-    "about": "a[href='#/about']",
-    "edit": "a[href='#/edit']",
-    "texts": "a[href='#/texts']",
-    "deploy": "a[href='#/deploy']"
+  "about": "a[href='#/about']",
+  "edit": "a[href='#/edit']",
+  "texts": "a[href='#/texts']",
+  "deploy": "a[href='#/deploy']"
 };
 
 // App Build and deploy page
@@ -21,9 +21,9 @@ export const appDescription = "#administrationInputDescription_textField";
 export const deleteChanges = "#reset-repo-button";
 
 export const appEditorMenu = {
-    "datamodel": "a[href='#/datamodel']",
-    "uiEditor": "a[href='#/ui-editor']",
-    "accessControl": "a[href='#/accesscontrol']"
+  "datamodel": "a[href='#/datamodel']",
+  "uiEditor": "a[href='#/ui-editor']",
+  "accessControl": "a[href='#/accesscontrol']"
 };
 
 //UI components

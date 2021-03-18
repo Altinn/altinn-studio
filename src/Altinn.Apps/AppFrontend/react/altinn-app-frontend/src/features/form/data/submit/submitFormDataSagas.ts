@@ -1,5 +1,6 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
@@ -15,7 +16,7 @@ import { canFormBeSaved,
   validateEmptyFields,
   validateFormComponents,
   validateFormData } from '../../../../utils/validation';
-import { ILayoutState } from '../../layout/formLayoutReducer';
+import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import { ISubmitDataAction } from './submitFormDataActions';
@@ -36,14 +37,16 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
-    const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
+    const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
+    const validationResult = validateFormData(model, state.formLayout.layouts, layoutOrder, validator, state.language.language);
     let validations = validationResult.validations;
     const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
+      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
     const emptyFieldsValidations = validateEmptyFields(
       state.formData.formData,
       state.formLayout.layouts,
+      layoutOrder,
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
       state.formLayout.uiConfig.repeatingGroups,
@@ -89,6 +92,12 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
         }
         // data has no validation errors, we complete the current step
         yield call(ProcessDispatcher.completeProcess);
+
+        if (layoutState.uiConfig.currentViewCacheKey) {
+          // Reset cache for current page when ending process task
+          localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
+          yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+        }
       }
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {

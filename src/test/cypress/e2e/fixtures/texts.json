@@ -1,0 +1,12 @@
+{
+  "downloadAttachment": "last ned",
+  "requiredField": "Feltet er påkrevd",
+  "customValidationInvalid": "test er ikke en gyldig verdi",
+  "errorReport": "Det er feil i skjema",
+  "attachmentError": "Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse",
+  "dateOfEffect": "Når vil du at navnendringen skal skje?",
+  "backToSummary": "Tilbake til oppsummering",
+  "next": "Neste",
+  "goToRightPage": "Gå til riktig side i skjema",
+  "ttd": "Testdepartementet"
+}

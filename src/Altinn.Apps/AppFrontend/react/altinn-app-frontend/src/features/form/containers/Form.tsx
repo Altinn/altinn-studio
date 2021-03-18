@@ -16,7 +16,9 @@ export function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayou
       return RenderLayoutGroup(layoutComponent as ILayoutGroup, layout);
     }
     case 'Summary': {
-      return <SummaryComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />;
+      return (
+        <SummaryComponent key={layoutComponent.id} {...(layoutComponent as ILayoutComponent)} />
+      );
     }
     default: {
       return (
@@ -87,7 +89,11 @@ export function Form() {
   }, [layout]);
 
   return (
-    <Grid container={true}>
+    <Grid
+      container={true}
+      spacing={3}
+      alignItems='flex-start'
+    >
       {currentView === currentLayout && filteredLayout && filteredLayout.map((component) => {
         return renderLayoutComponent(component, layout);
       })}

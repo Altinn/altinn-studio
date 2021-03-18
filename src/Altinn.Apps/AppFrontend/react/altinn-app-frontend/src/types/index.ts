@@ -1,11 +1,11 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
-import ajv from 'ajv';
+import Ajv from 'ajv';
+import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
 import { IFormDataState } from '../features/form/data/formDataReducer';
-import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/formLayoutReducer';
+import { ILayoutState } from '../features/form/layout/formLayoutSlice';
 import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
@@ -148,6 +148,7 @@ export interface ILayoutSettings {
 
 export interface IPagesSettings {
   order: string[];
+  triggers?: Triggers[];
 }
 
 export interface ILayoutNavigation {
@@ -217,7 +218,7 @@ export interface ISchemaValidator {
   rootElement: any;
   rootElementPath: string;
   schema: any;
-  validator: ajv.Ajv;
+  validator: Ajv;
 }
 
 export interface ITextResource {
@@ -243,12 +244,14 @@ export interface IValidationIssue {
 export interface IUiConfig {
   autoSave: boolean;
   currentView: string;
+  currentViewCacheKey?: string;
   returnToView?: string;
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
+  pageTriggers?: Triggers[];
 }
 
 export interface IValidationResult {
@@ -286,6 +289,9 @@ export enum Severity {
 
 export enum Triggers {
   Validation = 'validation',
+  CalculatePageOrder = 'calculatePageOrder',
+  ValidatePage = 'validatePage',
+  ValidateAllPages = 'validateAllPages'
 }
 
 export interface ILabelSettings {

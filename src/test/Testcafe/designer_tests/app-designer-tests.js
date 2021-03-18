@@ -65,22 +65,12 @@ test('Sync an app with master', async() => {
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.aboutNavigationTab)
-    .click(designer.createNavigationTab)
-    .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
-    .click(designer.pushChanges)
-    .expect(designer.commitMessageBox.exists).ok({ timeout: 120000 })
-    .click(designer.commitMessageBox)
-    .typeText(designer.commitMessageBox, "Sync app automated test", { replace: true })
-    .expect(designer.validateChanges.exists).ok({ timeout: 120000 })
-    .click(designer.validateChanges)
-    .expect(designer.pushChangesBlueButton.exists).ok({ timeout: 120000 })
-    .click(designer.pushChangesBlueButton)
-    .expect(designer.noChanges.exists).ok({ timeout: 120000 })
+    .click(designer.createNavigationTab);
+  await designer.pushAndCommitChanges(t);    
 });
 
 //Tests toverify the functionlaity inside the about page of an app
-test('About page items and editing', async() => {
-  const randNumOne = Math.floor(100 + Math.random() * 900);
+test('About page items and editing', async() => {  
   const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
   var appName = config[environment].designerApp;
@@ -128,7 +118,7 @@ test('Configure and delete rules', async() => {
   await t
     .expect(designer.connectRulesButton.exists).ok()
     .click(designer.connectRulesButton)
-    .expect(designer.rulesConnectionModal.exists).ok({ timeout: 10000 })
+    .expect(designer.rulesConnectionModal.exists).ok()
     .expect(designer.rulesDropDown.exists).ok()
     .click(designer.rulesDropDown)
     .expect(designer.rulesList.withAttribute('value', 'sum').exists).ok()
@@ -156,7 +146,7 @@ test('Add and delete conditional rendering connections', async() => {
   await t
     .expect(designer.connectConditionalRendering.exists).ok()
     .click(designer.connectConditionalRendering)
-    .expect(designer.renderingConnectionModal.exists).ok({ timeout: 10000 })
+    .expect(designer.renderingConnectionModal.exists).ok()
     .expect(designer.conditionalRulesDropDown.exists).ok()
     .click(designer.conditionalRulesDropDown)
     .click(designer.conditionalRulesList.withText('biggerThan10'))
@@ -172,7 +162,7 @@ test('Clone modal functionality', async() => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
-    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .expect(designer.cloneButton.exists).ok()
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
     .expect(designer.readMoreAltinnDocs.exists).ok()
@@ -185,7 +175,7 @@ test('Validation of missing datamodel in clone modal', async() => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .expect(designer.cloneButton.exists).ok()
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
     .expect(designer.dataModellLink.exists).ok()
@@ -204,19 +194,19 @@ test('Delete local app changes', async() => {
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.aboutNavigationTab)
-    .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
-    .expect(designer.deleteLocalChanges.exists).ok({ timeout: 120000 })
-    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).notOk('Delete local changes button not enabled', { timeout: 120000 })
+    .expect(designer.pushChanges.exists).ok({ timeout: 60000 })
+    .expect(designer.deleteLocalChanges.exists).ok({ timeout: 60000 })
+    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).notOk('Delete local changes button not enabled', { timeout: 60000 })
     .click(designer.deleteLocalChanges)
-    .expect(designer.deleteAppRepoName.exists).ok({ timeout: 120000 })
+    .expect(designer.deleteAppRepoName.exists).ok({ timeout: 60000 })
     .typeText(designer.deleteAppRepoName, appName, { replace: true })
-    .expect(designer.confirmDeleteLocalChanges.exists).ok({ timeout: 120000 })
-    .expect(designer.confirmDeleteLocalChanges.hasAttribute('disabled')).notOk('Confirm delete local changes button not enabled', { timeout: 120000 })
+    .expect(designer.confirmDeleteLocalChanges.exists).ok({ timeout: 60000 })
+    .expect(designer.confirmDeleteLocalChanges.hasAttribute('disabled')).notOk('Confirm delete local changes button not enabled', { timeout: 60000 })
     .click(designer.confirmDeleteLocalChanges)
     .wait(4000);
 
   await t.eval(() => location.reload());
   await t
     .wait(5000)
-    .expect(designer.noChanges.exists).ok('Local changes are not deleted', { timeout: 120000 });
+    .expect(designer.noChanges.exists).ok('Local changes are not deleted', { timeout: 60000 });
 });
