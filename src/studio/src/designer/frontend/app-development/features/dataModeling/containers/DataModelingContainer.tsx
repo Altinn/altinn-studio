@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
-import { deleteDataModel, fetchDataModel, newDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
+import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 import { SchemaSelect } from '../schemaSelect';
 import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
 import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
@@ -71,7 +71,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   }
   const onCreateConfirmClick = (e: any) => {
     if (newModelName && newModelName.length > 0) {
-      dispatch(newDataModel({ modelName: newModelName }));
+      dispatch(createNewDataModel({ modelName: newModelName }));
     }
     setCreateButtonAnchor(null);
     setNewModelName(null);
@@ -80,7 +80,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     setDeleteButtonAnchor(event.currentTarget);
   }
   const onDeleteConfirmClick = () => {
-    dispatch(deleteDataModel({}));
+    dispatch(deleteDataModel());
     setDeleteButtonAnchor(null);
   }
   const onCancelDelete = () => {

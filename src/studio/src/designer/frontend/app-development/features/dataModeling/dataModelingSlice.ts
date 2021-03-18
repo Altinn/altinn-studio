@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-param-reassign */
-import { Action, createSlice } from '@reduxjs/toolkit';
+import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -23,6 +23,10 @@ export interface IDataModelingState {
   modelName: string;
   error: Error;
   saving: boolean;
+}
+
+export interface IDeleteDataModelRejected {
+  error: any;
 }
 
 const initialState: IDataModelingState = {
@@ -63,21 +67,21 @@ const dataModelingSlice = createSlice({
       const { modelName } = action.payload;
       state.modelName = modelName;
     },
-    newDataModel(state, action) {
+    createNewDataModel(state, action) {
       const { modelName } = action.payload
       state.modelName = modelName;
       state.error = null;
       state.schema = {};
     },
-    deleteDataModel(state, action) {
+    deleteDataModel(state) {
       state.saving = true;
     },
-    deleteDataModelFulfilled(state, action) {
+    deleteDataModelFulfilled(state) {
       state.saving = false;
       state.schema = {}
       state.modelName = '';
     },
-    deleteDataModelRejected(state, action) {
+    deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
       state.error = action.payload.error;
       state.saving = false;
     }
@@ -92,7 +96,7 @@ export const {
   saveDataModelFulfilled,
   saveDataModelRejected,
   setDataModelName,
-  newDataModel,
+  createNewDataModel,
   deleteDataModel,
   deleteDataModelFulfilled,
   deleteDataModelRejected

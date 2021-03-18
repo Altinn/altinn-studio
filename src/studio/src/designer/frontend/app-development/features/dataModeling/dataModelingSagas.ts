@@ -60,8 +60,8 @@ export function* deleteDataModelSaga(): SagaIterator {
   try {
     const modelName = yield select(modelNameState);
     const url = getDeleteDataModelUrl(modelName);
-    const result = yield call(del, url);
-    yield put(deleteDataModelFulfilled({ schema: result }));
+    yield call(del, url);
+    yield put(deleteDataModelFulfilled());
     yield put(ApplicationMetadataActions.getApplicationMetadata());
   } catch (err) {
     yield put(deleteDataModelRejected({ error: err }));
