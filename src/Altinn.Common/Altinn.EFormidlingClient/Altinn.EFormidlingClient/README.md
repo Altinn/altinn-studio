@@ -89,10 +89,6 @@ In order to test the mock solution and the integration point, navigate to the 't
 
 For more information, consult the README.md in the mock solution.
 
-### Example Usage
-See ... [Altinn Docs] for more information
-
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
