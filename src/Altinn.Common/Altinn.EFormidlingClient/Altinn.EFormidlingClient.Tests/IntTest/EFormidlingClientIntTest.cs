@@ -3,10 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
@@ -39,6 +37,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving capabilities
+        /// Expected: Response is valid Type of Capabilities dto
         /// </summary>
         [Fact]
         public async void Get_Capabilities() 
@@ -52,6 +51,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving capabilities with invalid parameter input
+        /// Expected: ArgumentNullException when passing empty input parameter
         /// </summary>
         [Fact]
         public async void Get_Capabilities_Invalid_ParameterInput()
@@ -63,7 +63,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         }
 
         /// <summary>
-        /// Tests sending Standard Business Document
+        /// Tests sending Standard Business Document. If successful the sbd is returned in response
+        /// Expected: Returned sbd is a valid instance of StandardBusinessDocument dto and equal to the sbd sent.
         /// </summary>
         [Fact]
         public async void Send_Standard_Business_Document()
@@ -94,6 +95,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving the conversation by id
+        /// Expected: Valid instance of Conversation dto and not null
         /// </summary>
         [Fact]
         public async void Get_Conversation_By_Id()
@@ -106,6 +108,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending arkivmelding
+        /// Expected: Return value of send attachment is true
         /// </summary>
         [Fact]
         public async void Send_Attachment_Arkivmelding()
@@ -144,6 +147,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending Invalid Standard Business Document
+        /// Expected: WebException when sending invalid Standard Business Document. In this case expectedResponseDateTime
+        /// is invalid as it is not a future datetime
         /// </summary>
         [Fact]
         public async void Send_Invalid_Standard_Business_Document()
@@ -167,6 +172,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending Binary Attachment
+        /// Expected: True after sending binary attachment
         /// </summary>
         [Fact]
         public async void Send_Attachment_Binary()
@@ -208,6 +214,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending message
+        /// Expected: True after completing send message
         /// </summary>
         [Fact]
         public async void Send_Message()
@@ -225,6 +232,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         /// First perform a peek of the queue, verify that the SBD and InstanceIdentifier is the correct ID. Next, pop the message to retrieve
         /// the ASIC-E. Download the content and write to file, and then delete the message from the queue. Open the file 'sent_package.zip'
         /// and examine the content.
+        /// Expected: True as zip file is created 
         /// </summary>
         [Fact]
         public async void Verify_Sent_Attachments()
