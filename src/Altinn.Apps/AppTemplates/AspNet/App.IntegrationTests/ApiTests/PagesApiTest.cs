@@ -39,10 +39,32 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
+                new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario: Get page order for an app. DataTypeId not specified in query parameters.
+        /// Successful: Bad request is returned..
+        /// </summary>
+        [Fact]
+        public async Task GetPageOrder_DataTypeIdMissing_BadRequestIsReturned()
+        {
+            string org = "ttd";
+            string app = "events";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order");
+            httpRequestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         /// <summary>
@@ -61,7 +83,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
+                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
             httpRequestMessage.Content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -75,7 +97,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
         /// <summary>
         /// Scenario: Get page order for an app without layout set. Custom implementation in app.cs should override AppBase.
-        /// Successful: Pages retrieved from custom app code. 
+        /// Successful: Pages retrieved from custom app code.
         /// </summary>
         [Fact]
         public async Task GetPageOrder_CustomConfiguration_PageOrderIsRetrievedFromAppAndReturned()
@@ -88,7 +110,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
+                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
             httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -116,7 +138,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=message");
+                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=message");
             httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

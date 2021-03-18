@@ -33,6 +33,7 @@ export function App() {
     dispatch(fetchRuleModel());
     dispatch(fetchLanguage({ languageCode }));
     dispatch(fetchWidgetSettings());
+    dispatch(FormLayoutActions.fetchLayoutSettings());
     dispatch(fetchWidgets());
   };
 

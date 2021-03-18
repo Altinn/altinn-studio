@@ -43,6 +43,28 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             Assert.Single(xacmlJsonProfile.Request.AccessSubject);
         }
 
+        /// <summary>
+        /// Test creaton of one request
+        /// </summary>
+        [Fact]
+        public void CreateSingleEventRequestForConsumer()
+        {
+            CloudEvent cloudEvent = new CloudEvent()
+            {
+                Source = new Uri("https://skd.apps.altinn.no/skd/skattemelding/instances/1234324/6fb3f738-6800-4f29-9f3e-1c66862656cd"),
+                Subject = "/party/1234324"
+            };
+
+            // Act
+            XacmlJsonRequestRoot xacmlJsonProfile = CloudEventXacmlMapper.CreateDecisionRequest(cloudEvent, "/party/2");
+
+            // Assert.
+            Assert.NotNull(xacmlJsonProfile);
+            Assert.Single(xacmlJsonProfile.Request.Resource);
+            Assert.Single(xacmlJsonProfile.Request.Action);
+            Assert.Single(xacmlJsonProfile.Request.AccessSubject);
+        }
+
         private ClaimsPrincipal GetPrincipal(int userId, int partyId)
         {
             List<Claim> claims = new List<Claim>();

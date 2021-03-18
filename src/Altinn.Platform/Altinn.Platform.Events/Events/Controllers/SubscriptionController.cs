@@ -71,7 +71,7 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest(message);
             }
 
-            if (!await AuthorizeIdentityForConsumer(eventsSubscription))
+            if (!AuthorizeIdentityForConsumer(eventsSubscription))
             {
                 return Unauthorized("Not authorized to create a subscription on behalf of " + eventsSubscription.Consumer);
             }
@@ -95,6 +95,11 @@ namespace Altinn.Platform.Events.Controllers
         {
             Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
             if (!AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
@@ -113,6 +118,11 @@ namespace Altinn.Platform.Events.Controllers
         {
             Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
             if (!AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
@@ -127,10 +137,17 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         private async Task EnrichSubject(Subscription eventsSubscription)
         {
-            if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
-                && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
+            try
             {
-                eventsSubscription.SubjectFilter = await GetPartyFromAlternativeSubject(eventsSubscription.AlternativeSubjectFilter);
+                if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
+                    && !string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter))
+                {
+                    eventsSubscription.SubjectFilter = await GetPartyFromAlternativeSubject(eventsSubscription.AlternativeSubjectFilter);
+                }
+            }
+            catch
+            {
+                // The values is not valid. To protect against washing ssn we hide it and later give a warning about invalid subject
             }
         }
 
@@ -149,10 +166,15 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
-            if (string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
-                && string.IsNullOrEmpty(eventsSubscription.SourceFilter))
+            if (eventsSubscription.SourceFilter == null)
             {
-                message = "Source is required when subject is not defined";
+                message = "Source is required";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsolutePath) || eventsSubscription.SourceFilter.AbsolutePath.Split("/").Length < 3)
+            {
+                message = "A valid app id is required in Source filter {environment}/{org}/{app}";
                 return false;
             }
 
@@ -170,7 +192,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
         /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
         /// </summary>
-        private async Task<bool> AuthorizeIdentityForConsumer(Subscription eventsSubscription)
+        private bool AuthorizeIdentityForConsumer(Subscription eventsSubscription)
         {
             if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
             {

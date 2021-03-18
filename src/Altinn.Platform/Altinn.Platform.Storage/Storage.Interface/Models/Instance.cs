@@ -79,9 +79,10 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<DataElement> Data { get; set; }
 
         /// <summary>
-        /// Gets or sets the presentation fields of the instance.
+        /// Gets or sets the presentation texts for the instance.
         /// </summary>
-        public Dictionary<string, string> PresentationFields { get; set; }
+        [JsonProperty(PropertyName = "presentationTexts")]
+        public Dictionary<string, string> PresentationTexts { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

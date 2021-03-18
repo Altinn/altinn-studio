@@ -54,6 +54,19 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
+        public async Task PushToConsumer(CloudEventEnvelope cloudEventEnvelope)
+        {
+            PushQueueReceipt receipt = await _queue.PushToOutboundQueue(JsonSerializer.Serialize(cloudEventEnvelope));
+            string cloudEventId = cloudEventEnvelope.CloudEvent.Id;
+            int subscriptionId = cloudEventEnvelope.SubscriptionId;
+
+            if (!receipt.Success)
+            {
+                _logger.LogError("// EventsService // StoreCloudEvent // Failed to push event envelope {EventId} to queue. Exception {Exception}", cloudEventId, subscriptionId, receipt.Exception);
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, int partyId, List<string> source, List<string> type, int size = 50)
         {
             string subject = partyId == 0 ? string.Empty : $"/party/{partyId}";

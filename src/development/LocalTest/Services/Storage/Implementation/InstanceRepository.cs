@@ -62,12 +62,17 @@ namespace LocalTest.Services.Storage.Implementation
             string path = GetInstancePath(instanceId.Replace("/","_"));
             if (File.Exists(path))
             {
-                string content = System.IO.File.ReadAllText(path);
+                string content = File.ReadAllText(path);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                 await PostProcess(instance);
                 return instance;
             }
             return null;
+        }
+
+        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<Instance> Update(Instance instance)

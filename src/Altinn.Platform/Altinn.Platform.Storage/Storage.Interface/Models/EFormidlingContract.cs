@@ -27,12 +27,37 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Receiver { get; set; }
 
         /// <summary>
+        /// Identifies which task should be completed before the shipment is sent.
+        /// </summary>
+        public string SendAfterTaskId { get; set; }
+
+        /// <summary>
         /// Process type
         /// </summary>
         /// <remarks>
         /// Receiver must be able to support the process type. This is defined in receiver's capabilities.
         /// </remarks>
         public string Process { get; set; }
+
+        /// <summary>
+        /// The document standard. E.g. urn:no:difi:arkivmelding:xsd::arkivmelding
+        /// </summary>
+        public string Standard { get; set; }
+
+        /// <summary>
+        /// Version of the document type
+        /// </summary>
+        public string TypeVersion { get; set; }
+
+        /// <summary>
+        /// The document type e.g. "arkivmelding"
+        /// </summary>
+        public string Type { get; set; }
+
+        /// <summary>
+        /// The security level to be set for the standard business document
+        /// </summary>
+        public int SecurityLevel { get; set; }
 
         /// <summary>
         /// List of ids for the data types to include in the shipment.
