@@ -144,10 +144,12 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         /// Tests that a custom created arkivmelding is valid according to its model
         /// </summary>
         [Fact]
-        public async void Verify_Akrivmelding_Build()
+        public void Verify_Akrivmelding_Build()
         {
-            var files = new List<string>();
-            files.Add("skjema.xml");
+            var files = new List<string>
+            {
+                "skjema.xml"
+            };
 
             Arkivmelding arkivmelding = new Arkivmelding
             {
@@ -207,7 +209,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
             serializer.Serialize(stream, arkivmelding);
 
             using (MemoryStream ms = stream)
-            {               
+            {
                 stream.Seek(0, SeekOrigin.Begin);
                 var verifiedArkivmelding = serializer.Deserialize(stream) as Arkivmelding;
 
