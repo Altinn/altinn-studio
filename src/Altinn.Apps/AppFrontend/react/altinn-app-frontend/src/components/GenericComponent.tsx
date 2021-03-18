@@ -34,8 +34,8 @@ export interface IGenericComponentProps {
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
   componentValidations?: IComponentValidations;
-  readOnly: boolean;
-  required: boolean;
+  readOnly?: boolean;
+  required?: boolean;
   labelSettings?: ILabelSettings;
   grid?: IGrid;
   triggers?: Triggers[];

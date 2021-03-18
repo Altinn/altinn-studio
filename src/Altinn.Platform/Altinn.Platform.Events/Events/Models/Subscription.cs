@@ -24,7 +24,7 @@ namespace Altinn.Platform.Events.Models
         /// <summary>
         /// Filter on source
         /// </summary>
-        public string SourceFilter { get; set; }
+        public Uri SourceFilter { get; set; }
 
         /// <summary>
         /// Filter on subject
