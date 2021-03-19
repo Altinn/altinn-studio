@@ -94,7 +94,7 @@ namespace Altinn.Common.EFormidlingClient.Models
         ///  Gets or sets the ReferanseDokumentfil
         /// </summary>
         [XmlElement(ElementName = "referanseDokumentfil")]
-        public List<string> ReferanseDokumentfil { get; set; }
+        public string ReferanseDokumentfil { get; set; }
     }
 
     /// <summary>
