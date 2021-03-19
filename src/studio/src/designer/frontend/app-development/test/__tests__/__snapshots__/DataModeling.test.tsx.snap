@@ -2,42 +2,29 @@
 
 exports[`DataModeling Should match snapshot 1`] = `
 <div
-  className="makeStyles-root-1"
+  class="makeStyles-root-1"
 >
   <div
-    className="MuiGrid-root MuiGrid-container"
+    class="MuiGrid-root MuiGrid-container"
   >
     <div
-      className="MuiGrid-root MuiGrid-item"
+      class="MuiGrid-root MuiGrid-item"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
-        disabled={false}
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
         id="new-button"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex={0}
+        tabindex="0"
         type="button"
       >
         <span
-          className="MuiButton-label"
+          class="MuiButton-label"
         >
           <span
-            className="MuiButton-startIcon MuiButton-iconSizeMedium"
+            class="MuiButton-startIcon MuiButton-iconSizeMedium"
           >
             <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -49,114 +36,76 @@ exports[`DataModeling Should match snapshot 1`] = `
           New
         </span>
         <span
-          className="MuiTouchRipple-root"
+          class="MuiTouchRipple-root"
         />
       </button>
     </div>
     <div
-      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-9"
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-9"
     >
       <div
-        className="makeStyles-select-5 css-2b097c-container"
+        class="makeStyles-select-5 css-2b097c-container"
         id="schema-select-schema"
-        onKeyDown={[Function]}
       >
         <span
           aria-atomic="false"
           aria-live="polite"
           aria-relevant="additions text"
-          className="css-1f43avz-a11yText-A11yText"
+          class="css-1f43avz-a11yText-A11yText"
         />
         <div
-          className=" css-yk16xz-control"
-          onMouseDown={[Function]}
-          onTouchEnd={[Function]}
+          class=" css-yk16xz-control"
         >
           <div
-            className=" css-g1d714-ValueContainer"
+            class=" css-g1d714-ValueContainer"
           >
             <div
-              className=" css-1uccc91-singleValue"
+              class=" css-1uccc91-singleValue"
             >
               test
             </div>
             <div
-              className="css-b8ldur-Input"
+              class="css-b8ldur-Input"
             >
               <div
-                className=""
-                style={
-                  Object {
-                    "display": "inline-block",
-                  }
-                }
+                class=""
+                style="display: inline-block;"
               >
                 <input
                   aria-autocomplete="list"
-                  autoCapitalize="none"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  disabled={false}
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
                   id="react-select-2-input"
-                  onBlur={[Function]}
-                  onChange={[Function]}
-                  onFocus={[Function]}
-                  spellCheck="false"
-                  style={
-                    Object {
-                      "background": 0,
-                      "border": 0,
-                      "boxSizing": "content-box",
-                      "color": "inherit",
-                      "fontSize": "inherit",
-                      "label": "input",
-                      "opacity": 1,
-                      "outline": 0,
-                      "padding": 0,
-                      "width": "1px",
-                    }
-                  }
-                  tabIndex="0"
+                  spellcheck="false"
+                  style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
+                  tabindex="0"
                   type="text"
                   value=""
                 />
                 <div
-                  style={
-                    Object {
-                      "height": 0,
-                      "left": 0,
-                      "overflow": "scroll",
-                      "position": "absolute",
-                      "top": 0,
-                      "visibility": "hidden",
-                      "whiteSpace": "pre",
-                    }
-                  }
-                >
-                  
-                </div>
+                  style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
+                />
               </div>
             </div>
           </div>
           <div
-            className=" css-1hb7zxy-IndicatorsContainer"
+            class=" css-1hb7zxy-IndicatorsContainer"
           >
             <span
-              className=" css-1okebmr-indicatorSeparator"
+              class=" css-1okebmr-indicatorSeparator"
             />
             <div
               aria-hidden="true"
-              className=" css-tlfecz-indicatorContainer"
-              onMouseDown={[Function]}
-              onTouchEnd={[Function]}
+              class=" css-tlfecz-indicatorContainer"
             >
               <svg
                 aria-hidden="true"
-                className="css-tj5bde-Svg"
+                class="css-tj5bde-Svg"
                 focusable="false"
-                height={20}
+                height="20"
                 viewBox="0 0 20 20"
-                width={20}
+                width="20"
               >
                 <path
                   d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
@@ -168,36 +117,23 @@ exports[`DataModeling Should match snapshot 1`] = `
       </div>
     </div>
     <div
-      className="MuiGrid-root MuiGrid-item"
+      class="MuiGrid-root MuiGrid-item"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
-        disabled={false}
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
         id="delete-button"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex={0}
+        tabindex="0"
         type="button"
       >
         <span
-          className="MuiButton-label"
+          class="MuiButton-label"
         >
           <span
-            className="MuiButton-startIcon MuiButton-iconSizeMedium"
+            class="MuiButton-startIcon MuiButton-iconSizeMedium"
           >
             <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -209,7 +145,7 @@ exports[`DataModeling Should match snapshot 1`] = `
           Delete
         </span>
         <span
-          className="MuiTouchRipple-root"
+          class="MuiTouchRipple-root"
         />
       </button>
     </div>
@@ -218,12 +154,11 @@ exports[`DataModeling Should match snapshot 1`] = `
     id="schema-editor-container"
   >
     <div
-      className="makeStyles-root-19"
+      class="makeStyles-root-19"
       id="schema-editor"
     >
       <button
-        className="makeStyles-button-20"
-        onClick={[Function]}
+        class="makeStyles-button-20"
       >
         Add root item
       </button>

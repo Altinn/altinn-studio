@@ -1,17 +1,15 @@
 /* tslint:disable:jsx-wrap-multiline */
-// import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-
+import { act } from 'react-dom/test-utils';
 import DataModelingContainer from '../../features/dataModeling/containers/DataModelingContainer';
 import { mount } from 'enzyme';
 
 describe('DataModeling', () => {
 
-  const mockLanguage = { administration: {} };
+  const language = { administration: {} };
   const initialState = {
     applicationMetadataState: {
       applicationMetadata: {
@@ -33,52 +31,76 @@ describe('DataModeling', () => {
       saving: false,
     }
   }
-  let mockStore: any;
+  let store: any;
   const dispatchMock = () => Promise.resolve({});
   beforeEach(() => {
-    mockStore = configureStore()(initialState);
-    mockStore.dispatch = jest.fn(dispatchMock);
+    store = configureStore()(initialState);
+    store.dispatch = jest.fn(dispatchMock);
 
   });
 
   it('Should match snapshot', () => {
-    const wrapper = renderer.create(
-      <Provider store={mockStore}>
-        <DataModelingContainer language={mockLanguage} />
-      </Provider>
-    );
-    expect(wrapper).toMatchSnapshot();
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
+        </Provider>
+      );
+    });
+    expect(wrapper.getDOMNode()).toMatchSnapshot();
   });
 
 
   it('dispatches correctly when clicking new', () => {
     let wrapper: any = null;
-    // act(() => {
-     wrapper = mount(
-        <Provider store={mockStore}>
-          <DataModelingContainer language={mockLanguage} />
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
         </Provider>,
-        { context: { store: mockStore } }
+        { context: { store: store } }
       );
-    // });
-    
+    });
     expect(wrapper).not.toBeNull();
 
     expect(wrapper.find('input').length).toBe(1);
     expect(wrapper.find('button').length).toBe(3);
     wrapper.find('#new-button').at(0).simulate('click');
     expect(wrapper.find('input').length).toBe(2);
-    
-    wrapper.find('input').last().simulate('change', { target: { value: 'test' }});
-    expect(wrapper.find('button').length).toBe(4);
 
+    wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
+    expect(wrapper.find('button').length).toBe(4);
     wrapper.find('#newModelInput').find('button').simulate('click')
-    
-    expect(mockStore.dispatch).toHaveBeenCalledWith({
+
+    expect(store.dispatch).toHaveBeenCalledWith({
       type: "dataModeling/createNewDataModel",
       payload: {
         modelName: 'test'
       }
+    });
+
+  });
+
+
+  it('dispatches correctly when clicking delete', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
+        </Provider>,
+        { context: { store: store } }
+      );
+    });
+    expect(wrapper).not.toBeNull();
+
+    wrapper.find('#delete-button').at(0).simulate('click');
+    wrapper.find('#confirm-delete-button').at(0).simulate('click');
+
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: "dataModeling/deleteDataModel",
+      payload: undefined
     });
   });
 

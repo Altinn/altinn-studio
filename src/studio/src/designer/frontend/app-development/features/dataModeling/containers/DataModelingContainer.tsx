@@ -125,7 +125,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
           btnCancelText="Nei"
           descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
           btnConfirmText="Ja"
-          btnPrimaryId='deployPopover'
+          btnPrimaryId='confirm-delete-button'
           btnClick={onDeleteConfirmClick}
           handleClose={onCancelDelete}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
