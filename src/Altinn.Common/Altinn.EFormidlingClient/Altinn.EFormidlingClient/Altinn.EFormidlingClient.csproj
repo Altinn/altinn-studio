@@ -5,10 +5,13 @@
     <LangVersion>8.0</LangVersion>
     <PackageId>Altinn.Common.EFormidlingClient</PackageId>
 	  <Version>1.0.0</Version>
-	  <Authors>Altinn</Authors>
-	  <Company>DigDir</Company>
+	  <Authors>EFormidling Client Contributors</Authors>
+	  <Company>Altinn</Company>
 	  <OutputType>Library</OutputType>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <Description>Altinn.Common.EFormidlingClient is a package for sending messages via eFormidling to receiver</Description>
+	  <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+	  <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 	
 	<ItemGroup>
