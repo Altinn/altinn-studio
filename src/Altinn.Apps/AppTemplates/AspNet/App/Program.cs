@@ -22,7 +22,8 @@ namespace Altinn.App
             telemetryConfiguration.InstrumentationKey =
                     System.Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey") ?? string.Empty;
 
-            var telemetryClient = new TelemetryClient(telemetryConfiguration);
+            TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
+
             try
             {
                 CreateHostBuilder(args).Build().Run();
@@ -31,11 +32,9 @@ namespace Altinn.App
             {
                 telemetryClient.TrackException(ex);
 
-                throw;
-            }
-            finally
-            {
                 telemetryClient.Flush();
+
+                throw;
             }
         }
 
