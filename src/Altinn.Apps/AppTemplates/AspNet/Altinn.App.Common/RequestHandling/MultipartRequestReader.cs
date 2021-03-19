@@ -85,11 +85,15 @@ namespace Altinn.App.Common.RequestHandling
                         }
 
                         string sectionName = contentDisposition.Name.HasValue ? contentDisposition.Name.Value : null;
-                        string contentFileName = contentDisposition.FileNameStar.HasValue
-                            ? contentDisposition.FileNameStar.Value
-                            : contentDisposition.FileName.HasValue
-                                ? contentDisposition.FileName.Value
-                                : null;
+                        string contentFileName = null;
+                        if (contentDisposition.FileNameStar.HasValue)
+                        {
+                            contentFileName = contentDisposition.FileNameStar.Value;
+                        }
+                        else if (contentDisposition.FileName.HasValue)
+                        {
+                            contentFileName = contentDisposition.FileName.Value;
+                        }
 
                         // We actively remove quotes because we don't want them replaced with '_'.
                         // Quotes around filename in Content-Disposition is valid, but not as part of the filename.
