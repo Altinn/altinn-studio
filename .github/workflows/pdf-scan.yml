@@ -1,0 +1,25 @@
+name: PDF Scan
+
+on:
+  schedule:
+  - cron: '0 8 * * 1,4'
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build src/Altinn.Platform/Altinn.Platform.PDF --file src/Altinn.Platform/Altinn.Platform.PDF/Dockerfile --tag altinn-pdf:${{github.sha}}
+      
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: altinn-pdf:${{ github.sha }}
