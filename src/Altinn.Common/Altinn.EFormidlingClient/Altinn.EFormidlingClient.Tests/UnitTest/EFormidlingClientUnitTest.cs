@@ -154,12 +154,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         /// </summary>
         [Fact]
         public void Verify_Arkivmelding_Build()
-        {
-            var files = new List<string>
-            {
-                "skjema.xml"
-            };
-
+        {        
             Arkivmelding arkivmelding = new Arkivmelding
             {
                 AntallFiler = 1,
@@ -200,7 +195,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
                                     Variantformat = "Produksjonsformat",
                                     OpprettetDato = DateTime.UtcNow,
                                     OpprettetAv = "LandLord",
-                                    ReferanseDokumentfil = files,
+                                    ReferanseDokumentfil =  "skjema.xml",
                                 },
                             },
                             Tittel = "Nye lysrør",
