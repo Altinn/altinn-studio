@@ -1,9 +1,10 @@
 using System;
-using Altinn.Platform.Storage.Extensions;
+
+using Altinn.App.Common.Helpers.Extensions;
 
 using Xunit;
 
-namespace Altinn.Platform.Storage.UnitTest.Extensions
+namespace Altinn.App.IntegrationTests.CommonTests.Helpers.Extensions
 {
     public class StringExtensionsTests
     {
