@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
@@ -645,7 +646,9 @@ namespace Altinn.App.Api.Controllers
                 return false;
             }
 
-            filename = filename.Trim('\"');
+            // We actively remove quotes because we don't want them replaced with '_'.
+            // Quotes around filename in Content-Disposition is valid, but not as part of the filename.
+            filename = filename.Trim('\"').AsFileName(false);
             string[] splitFilename = filename.Split('.');
 
             if (splitFilename.Length < 2)

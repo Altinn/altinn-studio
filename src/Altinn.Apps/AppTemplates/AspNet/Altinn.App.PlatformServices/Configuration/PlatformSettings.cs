@@ -29,12 +29,12 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// Gets or sets the url for the Authorization API endpoint.
         /// </summary>
-        public string ApiAuthorizationEndpoint{ get; set; }
+        public string ApiAuthorizationEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the url for the Events API endpoint.
         /// </summary>
-        public string ApiEventsEndpoint{ get; set; }
+        public string ApiEventsEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the the url for the PDF API endpoint.
