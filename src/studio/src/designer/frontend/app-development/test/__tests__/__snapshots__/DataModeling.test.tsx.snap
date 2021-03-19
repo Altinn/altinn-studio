@@ -60,6 +60,12 @@ exports[`DataModeling Should match snapshot 1`] = `
         id="schema-select-schema"
         onKeyDown={[Function]}
       >
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          className="css-1f43avz-a11yText-A11yText"
+        />
         <div
           className=" css-yk16xz-control"
           onMouseDown={[Function]}
