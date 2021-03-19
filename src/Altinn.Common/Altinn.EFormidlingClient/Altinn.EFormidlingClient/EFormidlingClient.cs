@@ -27,12 +27,12 @@ namespace Altinn.Common.EFormidlingClient
         /// <summary>
         /// Initializes a new instance of the IFormidlingClient class with the given HttpClient, lSettings and Logger.
         /// </summary>
-        /// <param name="client">A HttpClient provided by a HttpClientFactory.</param>
+        /// <param name="httpClient">A HttpClient provided by a HttpClientFactory.</param>
         /// <param name="eformidlingSettings">The settings configured for eFormidling package</param>
         /// <param name="logger">Logging</param>
-        public EFormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
+        public EFormidlingClient(HttpClient httpClient, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
         {
-            _client = client ?? throw new ArgumentNullException("httpClient");
+            _client = httpClient ?? throw new ArgumentNullException("httpClient");
             _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("appSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
@@ -286,6 +286,7 @@ namespace Altinn.Common.EFormidlingClient
 
             string responseBody = null;
             HttpResponseMessage response = null;
+
             try
             {
                 response = await _client.PostAsync("messages/out", byteContent);     
@@ -298,7 +299,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException)
             {
-                throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
+                throw new WebException($"The remote server returned an unexpcted error: {responseBody}.");
             }
             catch (Exception ex)
             {
@@ -335,7 +336,7 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException ex)
             {
                 _logger.LogError("Message :{Exception} ", ex.Message);
-                throw new WebException($"The remote server returned unexpected status code: {response.StatusCode} - {responseBody}.");
+                throw new WebException($"The remote server returned an unexpected error: {responseBody}.");
             }
 
             return false;
