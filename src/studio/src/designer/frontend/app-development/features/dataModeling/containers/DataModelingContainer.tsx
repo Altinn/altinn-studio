@@ -96,6 +96,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
       <Grid container>
         <Grid item>
           <Button
+            id="new-button"
             variant="contained"
             className={classes.button}
             startIcon={<AddCircleOutline />}
@@ -109,6 +110,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
         </Grid>
         <Grid item>
           <Button
+            id="delete-button"
             variant="contained"
             className={classes.button}
             startIcon={<DeleteOutline />}

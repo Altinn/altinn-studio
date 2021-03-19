@@ -13,6 +13,7 @@ exports[`DataModeling Should match snapshot 1`] = `
       <button
         className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
         disabled={false}
+        id="new-button"
         onBlur={[Function]}
         onClick={[Function]}
         onDragLeave={[Function]}
@@ -172,6 +173,7 @@ exports[`DataModeling Should match snapshot 1`] = `
       <button
         className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
         disabled={false}
+        id="delete-button"
         onBlur={[Function]}
         onClick={[Function]}
         onDragLeave={[Function]}
