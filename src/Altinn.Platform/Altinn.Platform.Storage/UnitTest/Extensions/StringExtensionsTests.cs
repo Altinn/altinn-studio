@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.UnitTest.Extensions
             string cleanFilename = inputFilename.AsFileName(false);
 
             // Assert
-            Assert.Equal("noinvalid-characters.txt", cleanFilename);
+            Assert.Equal("noinvalid_characters.txt", cleanFilename);
         }
 
         [Fact]

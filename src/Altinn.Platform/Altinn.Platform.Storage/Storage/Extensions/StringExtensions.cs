@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Extensions
         /// Sanitize the input as a file name.
         /// </summary>
         /// <param name="input">The input variable to be sanitized.</param>
-        /// <param name="throwExceptionOnInvalidCharacters">Throw exception instead of replacing invalid characters with '-'.</param>
+        /// <param name="throwExceptionOnInvalidCharacters">Throw exception instead of replacing invalid characters with '_'.</param>
         /// <returns>A filename cleaned of any impurities.</returns>
         public static string AsFileName(this string input, bool throwExceptionOnInvalidCharacters = true)
         {
@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Extensions
                 return input;
             }
 
-            return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '-'));
+            return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '_'));
         }
     }
 }

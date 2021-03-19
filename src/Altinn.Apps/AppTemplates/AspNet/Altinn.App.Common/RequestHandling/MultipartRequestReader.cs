@@ -93,7 +93,7 @@ namespace Altinn.App.Common.RequestHandling
 
                         // We actively remove quotes because we don't want them replaced with '_'.
                         // Quotes around filename in Content-Disposition is valid, but not as part of the filename.
-                        contentFileName = contentFileName.Trim('\"', '\'').AsFileName(false);
+                        contentFileName = contentFileName?.Trim('\"').AsFileName(false);
 
                         long fileSize = contentDisposition.Size ?? 0;
 
