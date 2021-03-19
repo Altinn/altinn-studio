@@ -105,6 +105,9 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type) {
         case "substatus":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/substatus";
             break;
+        case "presentationtexts":
+            value = `${platformStorage["instances"]}/${instanceOwnerId}/${instanceId}/presentationtexts`;
+            break;
     };
     return value;
 };

@@ -2,3 +2,6 @@
 **/data/users*.json
 **/data/*.csv
 **/data/xml*.xml
+
+#Junit reports
+**/reports/*.xml
