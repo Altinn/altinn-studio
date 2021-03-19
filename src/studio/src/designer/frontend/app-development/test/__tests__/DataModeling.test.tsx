@@ -10,6 +10,7 @@ import DataModelingContainer from '../../features/dataModeling/containers/DataMo
 
 describe('DataModeling', () => {
 
+  const mockLanguage = {administration: {}};
   const initialState = {
     applicationMetadataState: {
       applicationMetadata: {
@@ -40,7 +41,7 @@ describe('DataModeling', () => {
   it('Should match snapshot', () => {
     const wrapper = renderer.create(
       <Provider store={mockStore}>
-        <DataModelingContainer/>
+        <DataModelingContainer language={mockLanguage} />
       </Provider>
     );
     expect(wrapper).toMatchSnapshot();
