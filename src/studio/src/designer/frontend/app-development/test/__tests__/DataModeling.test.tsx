@@ -103,7 +103,4 @@ describe('DataModeling', () => {
       payload: undefined
     });
   });
-
 });
-
-
