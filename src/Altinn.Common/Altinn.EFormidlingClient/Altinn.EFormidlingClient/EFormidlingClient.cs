@@ -33,7 +33,7 @@ namespace Altinn.Common.EFormidlingClient
         public EFormidlingClient(HttpClient httpClient, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
         {
             _client = httpClient ?? throw new ArgumentNullException("httpClient");
-            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("appSettings");
+            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("eformidlingSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
             _client.DefaultRequestHeaders.Clear();
@@ -43,18 +43,15 @@ namespace Altinn.Common.EFormidlingClient
 
         /// <inheritdoc/>
         public async Task<bool> SendMessage(string id)
-        {
-            string responseBody;
+        {         
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
            
             try
             {
                 HttpResponseMessage response = await _client.PostAsync($"messages/out/{id}", null);
-                responseBody = await response.Content.ReadAsStringAsync();
-
                 return true;
             }
             catch (HttpRequestException e)
@@ -71,7 +68,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(serviceIdentifier))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(serviceIdentifier));
             }
 
             try
@@ -114,7 +111,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(orgId))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(orgId));
             }
 
             try
@@ -160,7 +157,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -186,7 +183,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -212,7 +209,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -234,10 +231,9 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UploadAttachment(Stream stream, string id, string filename)
         {
-            if (stream == null || string.IsNullOrEmpty(id) || string.IsNullOrEmpty(filename))
-            {
-                throw new ArgumentNullException();
-            }
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
@@ -273,7 +269,7 @@ namespace Altinn.Common.EFormidlingClient
         {   
             if (sbd == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(sbd));
             }
 
             var jsonContent = JsonSerializer.Serialize(sbd);
@@ -313,7 +309,7 @@ namespace Altinn.Common.EFormidlingClient
         {         
             if (subscription == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(subscription));
             }
 
             string responseBody = null;
