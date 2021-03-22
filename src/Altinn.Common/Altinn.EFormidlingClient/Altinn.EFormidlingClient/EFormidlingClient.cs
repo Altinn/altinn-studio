@@ -348,6 +348,11 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UnSubscribeeFormidling(int id)
         {
+            if (id <= 0)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
             string responseBody;
 
             try
