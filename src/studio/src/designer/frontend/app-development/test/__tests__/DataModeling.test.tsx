@@ -21,6 +21,10 @@ describe('DataModeling', () => {
             maxCount: 0,
             minCount: 0,
           },
+          {
+            id: 'some-existing-model',
+            appLogic: {},
+          },
         ],
       },
     },
@@ -47,6 +51,31 @@ describe('DataModeling', () => {
       );
     });
     expect(wrapper.getDOMNode()).toMatchSnapshot();
+  });
+
+  it('fetches model on mount', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
+        </Provider>,
+        { context: { store } },
+      );
+    });
+    expect(wrapper).not.toBeNull();
+    wrapper.mount();
+
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: 'dataModeling/setDataModelName',
+      payload: {
+        modelName: 'some-existing-model',
+      },
+    });
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: 'dataModeling/fetchDataModel',
+      payload: {},
+    });
   });
 
   it('dispatches correctly when clicking new', () => {
@@ -96,6 +125,25 @@ describe('DataModeling', () => {
     expect(store.dispatch).toHaveBeenCalledWith({
       type: 'dataModeling/deleteDataModel',
       payload: undefined,
+    });
+  });
+
+  it('does not dispatch create when name is missing', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
+        </Provider>,
+        { context: { store } },
+      );
+    });
+    expect(wrapper).not.toBeNull();
+    wrapper.find('#new-button').at(0).simulate('click');
+
+    wrapper.find('#newModelInput').find('button').simulate('click');
+    expect(store.dispatch).not.toHaveBeenCalledWith({
+      type: 'dataModeling/createNewDataModel',
     });
   });
 });
