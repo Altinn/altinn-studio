@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Altinn.Common.EFormidlingClient.Models
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Conversation"/> class.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Conversation
     {
         /// <summary>

@@ -1,15 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
-    <PackageId>Altinn.EFormidlingClient</PackageId>
-    <Version>1.0.1</Version>
-    <Authors>Altinn</Authors>
-    <Company>DigDir</Company>
-    <IsPackable>true</IsPackable>
-    <OutputType>Library</OutputType>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Altinn.Common.EFormidlingClient</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>EFormidling Client Contributors</Authors>
+	  <Company>Altinn</Company>
+	  <OutputType>Library</OutputType>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <Description>Altinn.Common.EFormidlingClient is a package for sending messages via eFormidling to receiver</Description>
+	  <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+	  <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,10 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
-    <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="18.4.0.43" />
     <PackageReference Include="System.Text.Json" Version="5.0.1" />
   </ItemGroup>
 

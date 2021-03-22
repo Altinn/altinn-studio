@@ -3,10 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
@@ -39,6 +37,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving capabilities
+        /// Expected: Response is valid Type of Capabilities dto
         /// </summary>
         [Fact]
         public async void Get_Capabilities() 
@@ -52,6 +51,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving capabilities with invalid parameter input
+        /// Expected: ArgumentNullException when passing empty input parameter
         /// </summary>
         [Fact]
         public async void Get_Capabilities_Invalid_ParameterInput()
@@ -63,7 +63,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         }
 
         /// <summary>
-        /// Tests sending Standard Business Document
+        /// Tests sending Standard Business Document. If successful the sbd is returned in response
+        /// Expected: Returned sbd is a valid instance of StandardBusinessDocument dto and equal to the sbd sent.
         /// </summary>
         [Fact]
         public async void Send_Standard_Business_Document()
@@ -94,6 +95,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests retrieving the conversation by id
+        /// Expected: Valid instance of Conversation dto and not null
         /// </summary>
         [Fact]
         public async void Get_Conversation_By_Id()
@@ -106,6 +108,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending arkivmelding
+        /// Expected: Return value of send attachment is true
         /// </summary>
         [Fact]
         public async void Send_Attachment_Arkivmelding()
@@ -144,6 +147,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending Invalid Standard Business Document
+        /// Expected: WebException when sending invalid Standard Business Document. In this case expectedResponseDateTime
+        /// is invalid as it is not a future datetime
         /// </summary>
         [Fact]
         public async void Send_Invalid_Standard_Business_Document()
@@ -167,6 +172,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending Binary Attachment
+        /// Expected: True after sending binary attachment
         /// </summary>
         [Fact]
         public async void Send_Attachment_Binary()
@@ -208,6 +214,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
         /// <summary>
         /// Tests sending message
+        /// Expected: True after completing send message
         /// </summary>
         [Fact]
         public async void Send_Message()
@@ -219,7 +226,13 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         }
 
         /// <summary>
-        /// Tests sending Binary Attachment
+        /// Tests that the message sent contains the correct data in its content. An ASIC-E container is wrapping the data
+        /// content. The container is built after sending the data to the IP. In order to verify that the container content is correct,
+        /// send a message to the same receiver id as sender, i.e. to self. This will make the container availble in the incomming queue.
+        /// First perform a peek of the queue, verify that the SBD and InstanceIdentifier is the correct ID. Next, pop the message to retrieve
+        /// the ASIC-E. Download the content and write to file, and then delete the message from the queue. Open the file 'sent_package.zip'
+        /// and examine the content.
+        /// Expected: True as zip file is created 
         /// </summary>
         [Fact]
         public async void Verify_Sent_Attachments()
@@ -247,24 +260,20 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
 
             string filename = "arkivmelding.xml";
-            bool sendArkivmelding = false;
-
             using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
             {
                 if (fs.Length > 3)
                 {
-                    sendArkivmelding = await service.UploadAttachment(fs, _guid, filename);
+                    _ = await service.UploadAttachment(fs, _guid, filename);
                 }
             }
 
             string filenameAttachment = "test.pdf";
-            bool sendBinaryFile = false;
-
             using (FileStream fs = File.OpenRead(@"TestData\test.pdf"))
             {
                 if (fs.Length > 3)
                 {
-                    sendBinaryFile = await service.UploadAttachment(fs, _guid, filenameAttachment);
+                    _ = await service.UploadAttachment(fs, _guid, filenameAttachment);
                 }
             }
 
@@ -273,36 +282,29 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
             var httpClient = new HttpClient();
             var messageId = _guid;
-            try
-            {
-                HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:9093/api/messages/in/peek?serviceIdentifier=DPO");
-                string responseBody = await response.Content.ReadAsStringAsync();
-                StandardBusinessDocument sbdLocked = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
-                response = await httpClient.GetAsync($"http://localhost:9093/api/messages/in/pop/{messageId}");        
+            var appsetting = _serviceProvider.GetService<IConfiguration>().GetSection("EFormidlingClientSettings:BaseUrl");
+            var baseUrl = appsetting.Value;
 
-                try
-                {               
-                    using (var stream = response.Content.ReadAsStreamAsync().Result)
-                    {
-                        var fileInfo = new FileInfo("sent_package.zip");
-                        using (var fileStream = fileInfo.OpenWrite()) 
-                        {
-                            await stream.CopyToAsync(fileStream);                         
-                        }
-                    }
-                }
-                catch (IOException)
+            HttpResponseMessage response = await httpClient.GetAsync($"{baseUrl}messages/in/peek?serviceIdentifier=DPO");
+            string responseBody = await response.Content.ReadAsStringAsync();
+            StandardBusinessDocument sbdLocked = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
+            response = await httpClient.GetAsync($"{baseUrl}messages/in/pop/{messageId}");
+
+            FileInfo fileInfo;
+                            
+            using (var stream = response.Content.ReadAsStreamAsync().Result)
+            {
+                fileInfo = new FileInfo("sent_package.zip");
+                using (var fileStream = fileInfo.OpenWrite()) 
                 {
-                    throw;
+                    await stream.CopyToAsync(fileStream);                         
                 }
-
-                response = await httpClient.DeleteAsync($"http://localhost:9093/api/messages/in/{messageId}");
-                responseBody = await response.Content.ReadAsStringAsync();
             }
-            catch (HttpRequestException)
-            {
-                throw;
-            }                
+                           
+            response = await httpClient.DeleteAsync($"{baseUrl}messages/in/{messageId}");
+            _ = await response.Content.ReadAsStringAsync();
+
+            Assert.True(fileInfo.Exists);              
         }
 
         /// <summary>
@@ -310,6 +312,16 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         /// </summary>
         public class Fixture
         {
+            /// <summary>
+            ///  Gets the ServiceProvider
+            /// </summary>
+            public ServiceProvider ServiceProvider { get; private set; }
+
+            /// <summary>
+            ///  Gets the CustomGuid
+            /// </summary>
+            public string CustomGuid { get; private set; }
+
             /// <summary>
             /// Initializes a new instance of the <see cref="Fixture"/> class.
             /// </summary>
@@ -321,7 +333,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                     .AddJsonFile("appsettings.json", optional: false)
                     .AddEnvironmentVariables()
                     .Build();
-                
+
                 serviceCollection.Configure<EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
                 serviceCollection.AddLogging(config =>
                 {
@@ -334,6 +346,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                          options.AddFilter<ConsoleLoggerProvider>(null, LogLevel.Debug);
                      });
 
+                serviceCollection.AddScoped<IConfiguration>(_ => configuration);
                 serviceCollection.AddTransient<HttpClient>();
                 serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
                 ServiceProvider = serviceCollection.BuildServiceProvider();
@@ -341,16 +354,6 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                 Guid obj = Guid.NewGuid();
                 CustomGuid = obj.ToString();
             }
-
-            /// <summary>
-            ///  Gets the ServiceProvider
-            /// </summary>
-            public ServiceProvider ServiceProvider { get; private set; }
-
-            /// <summary>
-            ///  Gets the CustomGuid
-            /// </summary>
-            public string CustomGuid { get; private set; }
         }
     }
 }

@@ -27,13 +27,13 @@ namespace Altinn.Common.EFormidlingClient
         /// <summary>
         /// Initializes a new instance of the IFormidlingClient class with the given HttpClient, lSettings and Logger.
         /// </summary>
-        /// <param name="client">A HttpClient provided by a HttpClientFactory.</param>
+        /// <param name="httpClient">A HttpClient provided by a HttpClientFactory.</param>
         /// <param name="eformidlingSettings">The settings configured for eFormidling package</param>
         /// <param name="logger">Logging</param>
-        public EFormidlingClient(HttpClient client, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
+        public EFormidlingClient(HttpClient httpClient, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
         {
-            _client = client ?? throw new ArgumentNullException("httpClient");
-            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("appSettings");
+            _client = httpClient ?? throw new ArgumentNullException("httpClient");
+            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("eformidlingSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
             _client.DefaultRequestHeaders.Clear();
@@ -43,18 +43,15 @@ namespace Altinn.Common.EFormidlingClient
 
         /// <inheritdoc/>
         public async Task<bool> SendMessage(string id)
-        {
-            string responseBody;
+        {         
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
            
             try
             {
-                HttpResponseMessage response = await _client.PostAsync($"messages/out/{id}", null);
-                responseBody = await response.Content.ReadAsStringAsync();
-
+                await _client.PostAsync($"messages/out/{id}", null);
                 return true;
             }
             catch (HttpRequestException e)
@@ -71,7 +68,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(serviceIdentifier))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(serviceIdentifier));
             }
 
             try
@@ -114,7 +111,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(orgId))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(orgId));
             }
 
             try
@@ -160,7 +157,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -186,7 +183,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -212,7 +209,7 @@ namespace Altinn.Common.EFormidlingClient
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
             }
 
             try
@@ -234,9 +231,19 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UploadAttachment(Stream stream, string id, string filename)
         {
-            if (stream == null || string.IsNullOrEmpty(id) || string.IsNullOrEmpty(filename))
+            if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(filename))
+            {
+                throw new ArgumentNullException(nameof(filename));
+            }
+
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
             }
 
             var streamContent = new StreamContent(stream);
@@ -273,7 +280,7 @@ namespace Altinn.Common.EFormidlingClient
         {   
             if (sbd == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(sbd));
             }
 
             var jsonContent = JsonSerializer.Serialize(sbd);
@@ -285,10 +292,9 @@ namespace Altinn.Common.EFormidlingClient
             _logger.LogDebug(jsonContent);
 
             string responseBody = null;
-            HttpResponseMessage response = null;
             try
             {
-                response = await _client.PostAsync("messages/out", byteContent);     
+                HttpResponseMessage response = await _client.PostAsync("messages/out", byteContent);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
                 StandardBusinessDocument sbdVerified = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
@@ -298,7 +304,7 @@ namespace Altinn.Common.EFormidlingClient
             }
             catch (HttpRequestException)
             {
-                throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
+                throw new WebException($"The remote server returned an unexpcted error: {responseBody}.");
             }
             catch (Exception ex)
             {
@@ -312,18 +318,16 @@ namespace Altinn.Common.EFormidlingClient
         {         
             if (subscription == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(subscription));
             }
 
             string responseBody = null;
-            HttpResponseMessage response = null;
-
             try
             {
                 var jsonString = JsonSerializer.Serialize(subscription);
                 var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
-   
-                response = await _client.PostAsync($"subscriptions", stringContent);        
+
+                HttpResponseMessage response = await _client.PostAsync($"subscriptions", stringContent);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
 
@@ -335,7 +339,7 @@ namespace Altinn.Common.EFormidlingClient
             catch (HttpRequestException ex)
             {
                 _logger.LogError("Message :{Exception} ", ex.Message);
-                throw new WebException($"The remote server returned unexpected status code: {response.StatusCode} - {responseBody}.");
+                throw new WebException($"The remote server returned an unexpected error: {responseBody}.");
             }
 
             return false;

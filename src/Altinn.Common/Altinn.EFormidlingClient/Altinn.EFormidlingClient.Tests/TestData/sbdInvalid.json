@@ -1,5 +1,5 @@
 {
-  "standardBusinessDocumentHeader": {
+  "standardBusinessDocumentHeaderTest": {
     "headerVersion": "1.0",
     "sender": [
       {
@@ -41,7 +41,7 @@
       ]
     }
   },
-  "arkivmelding": {
+  "arkivmeldingTest": {
     "sikkerhetsnivaa": 3
   }
 }

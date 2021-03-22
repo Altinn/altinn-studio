@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -8,6 +9,7 @@ namespace Altinn.EFormidlingClient.Models
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateSubscription"/> class.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class CreateSubscription
     {
         /// <summary>
