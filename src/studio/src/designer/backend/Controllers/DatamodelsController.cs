@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -8,6 +9,7 @@ using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json;
@@ -82,6 +84,12 @@ namespace Altinn.Studio.Designer.Controllers
                 MemoryStream jsonstream = new MemoryStream(byteArray);
                 await _repository.WriteData(org, app, $"{filePath}.schema.json", jsonstream);
 
+                // update meta data
+                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, jsonSchemas);
+                ModelMetadata modelMetadata = converter.GetModelMetadata();
+                string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
+                _repository.UpdateApplicationWithAppLogicModel(org, app, modelName, "Altinn.App.Models." + root);
+
                 // Convert to XML Schema and store in repository
                 JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
                 XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(jsonSchemas);
@@ -150,6 +158,37 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NotFound();
             }
+        }
+
+        /// <summary>
+        /// Deletes datamodel by name
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="repository">the repository</param>
+        /// <param name="modelName">The name of the data model.</param>
+        [Authorize]
+        [HttpDelete]
+        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        public IActionResult DeleteDatamodel(string org, string repository, string modelName)
+        {
+            try
+            {
+                modelName = modelName.AsFileName();
+            }
+            catch
+            {
+                return BadRequest("Invalid model name value.");
+            }
+
+            if (_repository.DeleteMetadataForAttachment(org, repository, modelName))
+            {
+                string filePath = $"App/models/{modelName}";
+                _repository.DeleteData(org, repository, $"{filePath}.schema.json");
+                _repository.DeleteData(org, repository, $"{filePath}.xsd");
+                return Ok();
+            }
+
+            return BadRequest();
         }
     }
 }

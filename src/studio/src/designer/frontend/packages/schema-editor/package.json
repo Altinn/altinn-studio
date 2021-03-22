@@ -72,12 +72,6 @@
     "test": "jest",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
