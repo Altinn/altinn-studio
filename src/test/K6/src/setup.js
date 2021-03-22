@@ -3,7 +3,7 @@ import { check } from "k6";
 import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import { getParties } from "./api/platform/authorization.js";
-import { addErrorCount, printResponseToConsole } from "./errorcounter.js"
+import { addErrorCount, stopIterationOnFail } from "./errorcounter.js"
 import * as support from "./support.js";
 
 let environment = (__ENV.env).toLowerCase();
@@ -20,7 +20,7 @@ export function authenticateUser(userName, userPassword) {
         "Authentication towards Altinn 2 Success:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Authentication towards Altinn 2 Failed:", success, res);
+    stopIterationOnFail("Authentication towards Altinn 2 Failed:", success, res);
 
     const cookieName = ".ASPXAUTH"
     var cookieValue = (res.cookies[cookieName])[0].value;
@@ -36,7 +36,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
         "T3.0 Authentication Success:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("T3.0 Authentication Failed:", success, res);
+    stopIterationOnFail("T3.0 Authentication Failed:", success, res);
     return (res.body);
 };
 
@@ -49,7 +49,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
         "Get User data:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Get User data failed:", success, res);
+    stopIterationOnFail("Get User data failed:", success, res);
     res = JSON.parse(res.body);
 
     var userData = {
@@ -64,7 +64,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
         "Get User data:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Get User data failed:", success, res);
+    stopIterationOnFail("Get User data failed:", success, res);
 
     res = JSON.parse(res.body);
     for (var i = 0; i < res.length; i++) {
