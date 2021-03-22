@@ -231,9 +231,9 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UploadAttachment(Stream stream, string id, string filename)
         {
-            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (string.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+            if (string.IsNullOrEmpty(filename)) { throw new ArgumentNullException(nameof(filename)); }
+            if (stream == null) { throw new ArgumentNullException(nameof(stream)); }
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
