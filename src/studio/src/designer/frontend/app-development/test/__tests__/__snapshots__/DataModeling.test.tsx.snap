@@ -159,6 +159,7 @@ exports[`DataModeling Should match snapshot 1`] = `
     >
       <button
         class="makeStyles-button-20"
+        type="button"
       >
         Add root item
       </button>
