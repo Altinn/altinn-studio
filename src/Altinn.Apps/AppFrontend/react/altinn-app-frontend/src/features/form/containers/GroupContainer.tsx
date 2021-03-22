@@ -16,13 +16,14 @@ import { getTextResource } from 'src/utils/formComponentUtils';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
+import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption, Triggers } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[]
+  components: (ILayoutComponent | ILayoutGroup)[];
+  triggers?: Triggers[];
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -177,7 +178,7 @@ export function GroupContainer({
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const editIndex: number = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[id].editIndex);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
@@ -186,7 +187,7 @@ export function GroupContainer({
     }
     return -1;
   };
-  const repeatinGroupIndex = getRepeatingGroupIndex(id);
+  const repeatingGroupIndex = getRepeatingGroupIndex(id);
   const tableHeaderComponents = container.tableHeaders || container.children || [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const componentTitles: string[] = [];
@@ -199,7 +200,7 @@ export function GroupContainer({
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
     container,
     renderComponents,
-    repeatinGroupIndex,
+    repeatingGroupIndex,
     textResources,
     hiddenFields,
   );
@@ -219,7 +220,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    setEditIndex(repeatinGroupIndex + 1);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: (repeatingGroupIndex + 1) }));
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -265,7 +266,7 @@ export function GroupContainer({
   };
 
   const onClickRemove = (groupIndex: number) => {
-    setEditIndex(-1);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));
     dispatch(FormLayoutActions.updateRepeatingGroups({
       layoutElementId: id,
       remove: true,
@@ -275,10 +276,15 @@ export function GroupContainer({
 
   const onClickEdit = (groupIndex: number) => {
     if (groupIndex === editIndex) {
-      setEditIndex(-1);
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));
     } else {
-      setEditIndex(groupIndex);
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: groupIndex }));
     }
+  };
+
+  const onClickSave = () => {
+    const validate: boolean = container.triggers?.includes(Triggers.Validation);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1, validate }));
   };
 
   const childElementHasErrors = (element: ILayoutGroup | ILayoutComponent, index: number) => {
@@ -331,25 +337,25 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-                const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
-                  return childElementHasErrors(component, repeatingGroupIndex);
+              {(repeatingGroupIndex >= 0) && [...Array(repeatingGroupIndex + 1)].map((_x: any, index: number) => {
+                const rowHasErrors = repeatingGroupDeepCopyComponents[index].some((component: ILayoutComponent | ILayoutGroup) => {
+                  return childElementHasErrors(component, index);
                 });
                 return (
-                  <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={repeatingGroupIndex}>
+                  <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={index}>
                     {components.map((component: ILayoutComponent) => {
                       const childId = (component as any).baseComponentId || component.id;
                       if (!tableHeaderComponents.includes(childId)) {
                         return null;
                       }
                       return (
-                        <TableCell key={`${component.id} ${repeatingGroupIndex}`}>
-                          {getFormDataForComponent(component, repeatingGroupIndex)}
+                        <TableCell key={`${component.id} ${index}`}>
+                          {getFormDataForComponent(component, index)}
                         </TableCell>
                       );
                     })}
-                    <TableCell align='right' key={`delete-${repeatingGroupIndex}`}>
-                      <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(repeatingGroupIndex)}>
+                    <TableCell align='right' key={`delete-${index}`}>
+                      <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(index)}>
                         {rowHasErrors ?
                           getLanguageFromKey('general.edit_alt_error', language) :
                           getLanguageFromKey('general.edit_alt', language)}
@@ -371,9 +377,9 @@ export function GroupContainer({
           direction='column'
           className={classes.mobileContainer}
         >
-          {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-            const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
-              return childElementHasErrors(component, repeatingGroupIndex);
+          {(repeatingGroupIndex >= 0) && [...Array(repeatingGroupIndex + 1)].map((_x: any, index: number) => {
+            const rowHasErrors = repeatingGroupDeepCopyComponents[index].some((component: ILayoutComponent | ILayoutGroup) => {
+              return childElementHasErrors(component, index);
             });
             return (
               <Grid
@@ -385,7 +391,7 @@ export function GroupContainer({
                   <IconButton
                     style={{
                       color: 'black', padding: '0px', paddingLeft: '6px',
-                    }} onClick={() => onClickEdit(repeatingGroupIndex)}
+                    }} onClick={() => onClickEdit(index)}
                   >
                     {rowHasErrors ?
                       getLanguageFromKey('general.edit_alt_error', language) :
@@ -396,7 +402,7 @@ export function GroupContainer({
                     />
                   </IconButton>
                 </Grid>
-                {componentTitles.map((title: string, index: number) => {
+                {componentTitles.map((title: string, titleIndex: number) => {
                   return (
                     <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                       <div className={classes.mobileText}>
@@ -405,7 +411,7 @@ export function GroupContainer({
                       <div
                         className={classes.mobileValueText}
                       >
-                        {`: ${getFormDataForComponent(components[index], repeatingGroupIndex)}`}
+                        {`: ${getFormDataForComponent(components[titleIndex], titleIndex)}`}
                       </div>
                     </Grid>
                   );
@@ -420,7 +426,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {((editIndex < 0) && ((repeatinGroupIndex + 1) < container.maxCount)) &&
+      {((editIndex < 0) && ((repeatingGroupIndex + 1) < container.maxCount)) &&
       <Grid
         container={true}
         direction='row'
@@ -492,7 +498,7 @@ export function GroupContainer({
           >
             <AltinnButton
               btnText={getLanguageFromKey('general.save', language)}
-              onClickFunction={() => setEditIndex(-1)}
+              onClickFunction={onClickSave}
               id={`add-button-grp-${id}`}
             />
           </Grid>

@@ -3,7 +3,7 @@ import * as actionTypes from '../formDataActionTypes';
 
 export interface ISubmitDataAction extends Action {
   url: string;
-  apiMode?: string;
+  apiMode?: 'Complete';
   stopWithWarnings?: boolean;
 }
 
@@ -13,7 +13,7 @@ export function saveFormdata(): Action {
   };
 }
 
-export function submitFormData(url: string, apiMode?: string, stopWithWarnings?: boolean): ISubmitDataAction {
+export function submitFormData(url: string, apiMode?: 'Complete', stopWithWarnings?: boolean): ISubmitDataAction {
   return {
     type: actionTypes.SUBMIT_FORM_DATA,
     url,

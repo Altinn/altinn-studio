@@ -2,19 +2,19 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
-import { IRepeatingGroups, IRuntimeState, Triggers } from 'src/types';
+import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
+import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, validateGroup } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
 import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
-import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
+import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage, IUpdateRepeatingGroupsEditIndex } from '../formLayoutTypes';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
@@ -70,6 +70,7 @@ function* updateRepeatingGroupsSaga({ payload: {
         updatedRepeatingGroups[groupId] = {
           count: -1,
           baseGroupId: group.id,
+          editIndex: -1,
         };
       }
     });
@@ -258,4 +259,39 @@ export function* watchUpdateFocusSaga(): SagaIterator {
 
 export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.updateRepeatingGroups, updateRepeatingGroupsSaga);
+}
+
+export function* updateRepeatingGroupEditIndexSaga({ payload: { group, index, validate } }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
+  try {
+    if (validate) {
+      const state: IRuntimeState = yield select();
+      const validations: IValidations = state.formValidations.validations;
+      const currentView = state.formLayout.uiConfig.currentView;
+      const frontendValidations: IValidations = validateGroup(group, state);
+      const options: AxiosRequestConfig = {
+        headers: {
+          ComponentId: group,
+        },
+      };
+      const serverValidations: IValidationIssue[] = yield call(get, getValidationUrl(state.instanceData.instance.id), options);
+      const mappedServerValidations: IValidations = mapDataElementValidationToRedux(serverValidations, state.formLayout.layouts, state.textResources.resources);
+      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
+      if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
+        yield put(FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({ group, index }));
+      } else {
+        yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error: null }));
+        // only overwrite validtions specific to the group - leave all other untouched
+        const newValidations = { ...validations, [currentView]: { ...validations[currentView], ...combinedValidations[currentView] } };
+        yield call(FormValidationActions.updateValidations, newValidations);
+      }
+    } else {
+      yield put(FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({ group, index }));
+    }
+  } catch (error) {
+    yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }));
+  }
+}
+
+export function* watchUpdateRepeatingGroupsEditIndexSaga(): SagaIterator {
+  yield takeLatest(FormLayoutActions.updateRepeatingGroupsEditIndex, updateRepeatingGroupEditIndexSaga);
 }
