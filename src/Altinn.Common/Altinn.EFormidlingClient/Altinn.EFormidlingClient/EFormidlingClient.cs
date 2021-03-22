@@ -51,7 +51,7 @@ namespace Altinn.Common.EFormidlingClient
            
             try
             {
-                HttpResponseMessage response = await _client.PostAsync($"messages/out/{id}", null);
+                await _client.PostAsync($"messages/out/{id}", null);
                 return true;
             }
             catch (HttpRequestException e)
