@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SchemaEditorApp from '@altinn/schema-editor/SchemaEditorApp';
-import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
-import { SchemaSelect } from '../schemaSelect';
 import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
 import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
-import {getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { SchemaSelect } from '../schemaSelect';
+import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 
 function getDataModelTypeName(applicationMetadata: any) {
   if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
@@ -23,11 +23,11 @@ const useStyles = makeStyles(
       marginLeft: 80,
     },
     schema: {
-      marginTop: 4
+      marginTop: 4,
     },
     button: {
-      margin: 4
-    }
+      margin: 4,
+    },
   }),
 );
 
@@ -46,11 +46,11 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   const fetchModel = (name: string) => {
     dispatch(setDataModelName({ modelName: name }));
     dispatch(fetchDataModel({}));
-  }
+  };
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
   const [newModelName, setNewModelName] = React.useState(null);
-  
+
   React.useEffect(() => {
     if (dataModelName) {
       fetchModel(dataModelName);
@@ -59,59 +59,62 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
 
   const onSchemaSelected = (id: string, schema: any) => {
     fetchModel(schema.id);
-  }
+  };
   const onSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema }));
   };
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
-  }
+  };
   const onNewModelNameChanged = (e: any) => {
     setNewModelName(e.target.value);
-  }
-  const onCreateConfirmClick = (e: any) => {
+  };
+  const onCreateConfirmClick = () => {
     if (newModelName && newModelName.length > 0) {
       dispatch(createNewDataModel({ modelName: newModelName }));
     }
     setCreateButtonAnchor(null);
     setNewModelName(null);
-  }
+  };
   const onDeleteClick = (event: any) => {
     setDeleteButtonAnchor(event.currentTarget);
-  }
+  };
   const onDeleteConfirmClick = () => {
     dispatch(deleteDataModel());
     setDeleteButtonAnchor(null);
-  }
+  };
   const onCancelDelete = () => {
     setDeleteButtonAnchor(null);
-  }
+  };
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
     setNewModelName(null);
-  }
+  };
 
   return (
     <div className={classes.root}>
       <Grid container>
         <Grid item>
           <Button
-            id="new-button"
-            variant="contained"
+            id='new-button'
+            variant='contained'
             className={classes.button}
             startIcon={<AddCircleOutline />}
             onClick={onCreateClick}
           >
             New
-        </Button>
+          </Button>
         </Grid>
         <Grid item xs={9}>
-          <SchemaSelect id="schema" value={selectedDataModelName} onChange={onSchemaSelected} />
+          <SchemaSelect
+            id='schema' value={selectedDataModelName}
+            onChange={onSchemaSelected}
+          />
         </Grid>
         <Grid item>
           <Button
-            id="delete-button"
-            variant="contained"
+            id='delete-button'
+            variant='contained'
             className={classes.button}
             startIcon={<DeleteOutline />}
             onClick={onDeleteClick}
@@ -122,9 +125,9 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
         <AltinnPopover
           anchorEl={deleteButtonAnchor}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText="Nei"
+          btnCancelText='Nei'
           descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
-          btnConfirmText="Ja"
+          btnConfirmText='Ja'
           btnPrimaryId='confirm-delete-button'
           btnClick={onDeleteConfirmClick}
           handleClose={onCancelDelete}
@@ -139,13 +142,13 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
           }}
         >
           <AltinnInputField
-            id="newModelInput"
-            placeholder="Name"
-            btnText="Ok"
+            id='newModelInput'
+            placeholder='Name'
+            btnText='Ok'
             inputFieldStyling={{ width: '250px' }}
             onChangeFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
-          ></AltinnInputField>
+          />
 
         </AltinnPopoverSimple>
       </Grid>

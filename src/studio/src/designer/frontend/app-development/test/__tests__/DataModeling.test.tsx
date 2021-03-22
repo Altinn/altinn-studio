@@ -4,11 +4,10 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
-import DataModelingContainer from '../../features/dataModeling/containers/DataModelingContainer';
 import { mount } from 'enzyme';
+import DataModelingContainer from '../../features/dataModeling/containers/DataModelingContainer';
 
 describe('DataModeling', () => {
-
   const language = { administration: {} };
   const initialState = {
     applicationMetadataState: {
@@ -17,26 +16,25 @@ describe('DataModeling', () => {
           {
             id: 'ref-data-as-pdf',
             allowedContentTypes: [
-              'application/pdf'
+              'application/pdf',
             ],
             maxCount: 0,
-            minCount: 0
-          }
-        ]
-      }
+            minCount: 0,
+          },
+        ],
+      },
     },
     dataModeling: {
       schema: {},
       modelName: 'test',
       saving: false,
-    }
-  }
+    },
+  };
   let store: any;
   const dispatchMock = () => Promise.resolve({});
   beforeEach(() => {
     store = configureStore()(initialState);
     store.dispatch = jest.fn(dispatchMock);
-
   });
 
   it('Should match snapshot', () => {
@@ -45,12 +43,11 @@ describe('DataModeling', () => {
       wrapper = mount(
         <Provider store={store}>
           <DataModelingContainer language={language} />
-        </Provider>
+        </Provider>,
       );
     });
     expect(wrapper.getDOMNode()).toMatchSnapshot();
   });
-
 
   it('dispatches correctly when clicking new', () => {
     let wrapper: any = null;
@@ -59,7 +56,7 @@ describe('DataModeling', () => {
         <Provider store={store}>
           <DataModelingContainer language={language} />
         </Provider>,
-        { context: { store: store } }
+        { context: { store } },
       );
     });
     expect(wrapper).not.toBeNull();
@@ -71,17 +68,15 @@ describe('DataModeling', () => {
 
     wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
     expect(wrapper.find('button').length).toBe(4);
-    wrapper.find('#newModelInput').find('button').simulate('click')
+    wrapper.find('#newModelInput').find('button').simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({
-      type: "dataModeling/createNewDataModel",
+      type: 'dataModeling/createNewDataModel',
       payload: {
-        modelName: 'test'
-      }
+        modelName: 'test',
+      },
     });
-
   });
-
 
   it('dispatches correctly when clicking delete', () => {
     let wrapper: any = null;
@@ -90,7 +85,7 @@ describe('DataModeling', () => {
         <Provider store={store}>
           <DataModelingContainer language={language} />
         </Provider>,
-        { context: { store: store } }
+        { context: { store } },
       );
     });
     expect(wrapper).not.toBeNull();
@@ -99,8 +94,8 @@ describe('DataModeling', () => {
     wrapper.find('#confirm-delete-button').at(0).simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({
-      type: "dataModeling/deleteDataModel",
-      payload: undefined
+      type: 'dataModeling/deleteDataModel',
+      payload: undefined,
     });
   });
 });
