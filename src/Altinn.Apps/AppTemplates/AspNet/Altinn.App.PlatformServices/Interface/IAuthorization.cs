@@ -14,7 +14,7 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="userId">The userId.</param>
         /// <returns>List of parties.</returns>
-       Task<List<Party>> GetPartyList(int userId);
+        Task<List<Party>> GetPartyList(int userId);
 
         /// <summary>
         /// Verifies that the selected party is contained in the user's party list.
