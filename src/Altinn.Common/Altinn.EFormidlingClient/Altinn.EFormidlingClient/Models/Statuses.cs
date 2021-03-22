@@ -6,6 +6,7 @@ namespace Altinn.Common.EFormidlingClient.Models
     /// <summary>
     /// Entity representing Statuses. Initializes a new instance of the <see cref="Statuses"/> class.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Statuses
     {
         /// <summary>
