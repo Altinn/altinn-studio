@@ -145,6 +145,22 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
+        public async void OnTaskEnd_EFormidlingEnabled_GenerateMetadataNotImplemented()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "eformidling-app-invalid");
+
+            Instance instance = await CreateInstance("ttd", "eformidling-app-invalid");
+
+            string instancePath = $"/ttd/eformidling-app/instances/{instance.Id}";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            await Assert.ThrowsAsync<NotImplementedException>(async () => await client.SendAsync(httpRequestMessage));
+        }
+
+        [Fact]
         public async void OnProcessEnd_InstanceIsArchived()
         {
             string token = PrincipalUtil.GetToken(1337);
