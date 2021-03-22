@@ -8,7 +8,6 @@ namespace Altinn.Common.EFormidlingClient.Models
     /// <summary>
     /// Initializes a new instance of the <see cref="Capabilities"/> class.
     /// </summary>
-    [ExcludeFromCodeCoverage]
     public class Capabilities
     {
         /// <summary>
