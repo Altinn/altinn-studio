@@ -138,6 +138,17 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         }
 
         /// <summary>
+        /// Tests invalid input to SendMessage()
+        /// Expected: ArgumentNullException is thrown when input parameters are null
+        /// </summary>
+        [Fact]
+        public async void Send_Message_Invalid_Input()
+        {
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SendMessage(null));
+        }
+
+        /// <summary>
         /// Tests invalid input to SubscribeeFormiding()
         /// Expected: ArgumentNullException is thrown when input parameters are null
         /// </summary>
@@ -146,6 +157,17 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
             ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SubscribeeFormidling(null));
+        }
+
+        /// <summary>
+        /// Tests invalid input to UnSubscribeeFormiding()
+        /// Expected: ArgumentNullException is thrown when input parameters are 0 or negative
+        /// </summary>
+        [Fact]
+        public async void UnSubscribeeFormidling_Invalid_Input()
+        {
+            var service = _serviceProvider.GetService<IEFormidlingClient>();
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.UnSubscribeeFormidling(0));
         }
 
         /// <summary>
