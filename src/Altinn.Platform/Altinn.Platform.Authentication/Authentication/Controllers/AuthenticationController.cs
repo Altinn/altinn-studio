@@ -499,7 +499,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             string scope = originalPrincipal.FindFirstValue("scope");
 
-            if(scope.Contains("altinn:serviceowner"))
+            if (scope.Contains("altinn:serviceowner"))
             {
                 return true; 
             }
