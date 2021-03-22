@@ -136,14 +136,14 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                                     Variantformat = "Produksjonsformat",
                                     OpprettetDato = DateTime.UtcNow,
                                     OpprettetAv = "LandLord",
-                                    ReferanseDokumentfil = new List<string> { "skjema.xml" },
+                                    ReferanseDokumentfil = "skjema.xml"
                                 },
                             },
                             Tittel = "Nye lysrør",
                             OffentligTittel = "Nye lysrør",
                             Journalposttype = "Utgående dokument",
                             Journalstatus = "Journalført",
-                            Journaldato = DateTime.Now,
+                            Journaldato = DateTime.Now
                         },
                     },
                 },

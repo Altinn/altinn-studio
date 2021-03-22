@@ -485,7 +485,6 @@ namespace Altinn.App.Services.Implementation
                 bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
 
                 string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
-                string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
                 Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
 
                 using (stream)
