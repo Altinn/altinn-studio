@@ -231,9 +231,20 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UploadAttachment(Stream stream, string id, string filename)
         {
-            if (string.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
-            if (string.IsNullOrEmpty(filename)) { throw new ArgumentNullException(nameof(filename)); }
-            if (stream == null) { throw new ArgumentNullException(nameof(stream)); }
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(filename))
+            {
+                throw new ArgumentNullException(nameof(filename));
+            }
+
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
@@ -281,11 +292,9 @@ namespace Altinn.Common.EFormidlingClient
             _logger.LogDebug(jsonContent);
 
             string responseBody = null;
-            HttpResponseMessage response = null;
-
             try
             {
-                response = await _client.PostAsync("messages/out", byteContent);     
+                HttpResponseMessage response = await _client.PostAsync("messages/out", byteContent);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
                 StandardBusinessDocument sbdVerified = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
@@ -313,14 +322,12 @@ namespace Altinn.Common.EFormidlingClient
             }
 
             string responseBody = null;
-            HttpResponseMessage response = null;
-
             try
             {
                 var jsonString = JsonSerializer.Serialize(subscription);
                 var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
-   
-                response = await _client.PostAsync($"subscriptions", stringContent);        
+
+                HttpResponseMessage response = await _client.PostAsync($"subscriptions", stringContent);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
 
