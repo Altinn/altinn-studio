@@ -326,7 +326,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         org = "ttd";
                     }
 
-                    if(!string.IsNullOrEmpty(org))
+                    if (!string.IsNullOrEmpty(org))
                     {
                         claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
                     }
