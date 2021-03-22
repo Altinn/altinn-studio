@@ -563,7 +563,7 @@ namespace Altinn.App.Services.Implementation
             string instanceGuid = instance.Id.Split("/")[1];
 
             StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
-            StandardBusinessDocument sbdVerified = await _eFormidlingClient.CreateMessage(sbd);
+            await _eFormidlingClient.CreateMessage(sbd);
 
             (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
 
