@@ -4,7 +4,7 @@ export async function get(url: string, options?: any): Promise<any> {
   try {
     const response: AxiosResponse = await axios.get(
       url,
-      options ? options : null,
+      options || null,
     );
     return response.data ? response.data : null;
   } catch (err) {
@@ -18,7 +18,7 @@ export async function post(
   options?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    const response: AxiosResponse = await axios.post(url, data ? data : null, options ? options : null);
+    const response: AxiosResponse = await axios.post(url, data || null, options || null);
     return response.data ? response.data : null;
   } catch (err) {
     throw err;
@@ -31,7 +31,7 @@ export async function put(
   config?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    const response = await axios.put(url, data, config ? config : null);
+    const response = await axios.put(url, data, config || null);
     return response.data;
   } catch (err) {
     throw err;
@@ -43,7 +43,7 @@ export async function del(
   config?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    const response = await axios.delete(url, config ? config : null);
+    const response = await axios.delete(url, config || null);
     return response.data;
   } catch (err) {
     throw err;

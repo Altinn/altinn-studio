@@ -8,10 +8,10 @@ import { fetchDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
   setDataModelName,
-  IDataModelAction, 
+  IDataModelAction,
   deleteDataModel,
   deleteDataModelFulfilled,
-  deleteDataModelRejected} from './dataModelingSlice';
+  deleteDataModelRejected } from './dataModelingSlice';
 import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
 import { ApplicationMetadataActions } from '../../sharedResources/applicationMetadata/applicationMetadataSlice';
 
@@ -54,7 +54,6 @@ export function* saveDatamodelSaga(action: IDataModelAction) {
 export function* watchSaveDataModelSaga(): SagaIterator {
   yield takeLatest(saveDataModel.type, saveDatamodelSaga);
 }
-
 
 export function* deleteDataModelSaga(): SagaIterator {
   try {
