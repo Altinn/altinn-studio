@@ -128,7 +128,7 @@ namespace App.IntegrationTestsRef.AppBase
             string instancePath = $"/ttd/eformidling-app/instances/{instance.Id}";
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             DeleteInstance(instance);
@@ -153,11 +153,20 @@ namespace App.IntegrationTestsRef.AppBase
 
             Instance instance = await CreateInstance("ttd", "eformidling-app-invalid");
 
-            string instancePath = $"/ttd/eformidling-app/instances/{instance.Id}";
+            string instancePath = $"/ttd/eformidling-app-invalid/instances/{instance.Id}";
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
-            await Assert.ThrowsAsync<NotImplementedException>(async () => await client.SendAsync(httpRequestMessage));
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
+
+            try
+            {
+                await client.SendAsync(httpRequestMessage);
+            }
+            catch (NotImplementedException e)
+            {
+                DeleteInstance(instance);
+                Assert.NotNull(e);
+            }
         }
 
         [Fact]
@@ -262,6 +271,5 @@ namespace App.IntegrationTestsRef.AppBase
         {
             TestDataUtil.DeleteInstanceAndData(instance.Org, instance.AppId.Split("/")[1], int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split('/')[1]));
         }
-
     }
 }
