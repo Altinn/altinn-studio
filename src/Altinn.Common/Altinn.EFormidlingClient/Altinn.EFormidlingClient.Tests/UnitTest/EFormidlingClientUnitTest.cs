@@ -195,7 +195,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
                                     Variantformat = "Produksjonsformat",
                                     OpprettetDato = DateTime.UtcNow,
                                     OpprettetAv = "LandLord",
-                                    ReferanseDokumentfil =  "skjema.xml",
+                                    ReferanseDokumentfil = "skjema.xml",
                                 },
                             },
                             Tittel = "Nye lysrør",
