@@ -4,7 +4,7 @@ import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
 import { Grid, makeStyles } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
+import { IRuntimeState, INavigationConfig, ILayoutNavigation, Triggers } from 'src/types';
 import classNames from 'classnames';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -19,7 +19,7 @@ export interface INavigationButtons {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
-  triggers?: string[];
+  triggers?: Triggers[];
 }
 
 export function NavigationButtons(props: INavigationButtons) {
@@ -57,10 +57,10 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const runPageValidations = !returnToView && triggers && triggers.includes('validatePage');
-    const runAllValidations = returnToView || (triggers && triggers.includes('validateAllPages'));
+    const runPageValidations = !returnToView && triggers && triggers.includes(Triggers.ValidatePage);
+    const runAllValidations = returnToView || (triggers && triggers.includes(Triggers.ValidateAllPages));
     const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
-    if (triggers?.includes('calculatePageOrder')) {
+    if (triggers?.includes(Triggers.CalculatePageOrder)) {
       dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ validations }));
     } else {
       const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];

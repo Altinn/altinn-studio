@@ -33,13 +33,14 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
+        /// </summary>
         /// <param name="logger">The logger</param>
         /// <param name="authorization">the authorization service handler</param>
         /// <param name="profileService">the profile service</param>
         /// <param name="registerService">the register service</param>
         /// <param name="application">The repository service</param>
         /// <param name="settings">The general settings</param>
-        /// </summary>
+        /// <param name="appResourcesService">The app resources service</param>
         public PartiesController(
                     ILogger<PartiesController> logger,
                     IAuthorization authorization,
@@ -94,7 +95,7 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            UserProfile user = await  _profile.GetUserProfile(userContext.UserId);
+            UserProfile user = await _profile.GetUserProfile(userContext.UserId);
             List<Party> partyList = await _authorization.GetPartyList(userContext.UserId);
             Application application = _appResourcesService.GetApplication();
 

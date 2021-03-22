@@ -53,12 +53,9 @@ namespace Altinn.Platform.Storage.Helpers
                 return new List<MessageBoxInstance>();
             }
 
-            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
-            List<string> actionTypes = new List<string> { "read", "write" };
+            List<MessageBoxInstance> authorizedInstanceList = new List<MessageBoxInstance>();
+            List<string> actionTypes = new List<string> { "read", "write", "delete" };
 
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // User: {user}");
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Instances count: {instances.Count()}");
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Action types: {actionTypes}");
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
 
             _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
@@ -91,39 +88,51 @@ namespace Altinn.Platform.Storage.Helpers
                     }
 
                     // Find the instance that has been validated to add it to the list of authorized instances.
-                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
+                    Instance authorizedInstance = instances.First(i => i.Id == instanceId);
 
                     // Checks if the instance has already been authorized
-                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
+                    if (authorizedInstanceList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
                     {
-                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                        if (actiontype.Equals("write"))
+                        switch (actiontype)
                         {
-                            authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                            case "write":
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = true);
+                                break;
+                            case "delete":
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AllowDelete = true);
+                                break;
+                            case "read":
+                                break;
                         }
                     }
                     else
                     {
                         MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(authorizedInstance);
 
-                        if (actiontype.Equals("write"))
+                        switch (actiontype)
                         {
-                            messageBoxInstance.AuthorizedForWrite = true;
-                            messageBoxInstance.AllowDelete = true;
+                            case "write":
+                                messageBoxInstance.AuthorizedForWrite = true;
+                                break;
+                            case "delete":
+                                messageBoxInstance.AllowDelete = true;
+                                break;
+                            case "read":
+                                break;
                         }
 
-                        authorizedInstanceeList.Add(messageBoxInstance);
+                        authorizedInstanceList.Add(messageBoxInstance);
                     }
                 }
             }
 
-            return authorizedInstanceeList;
+            return authorizedInstanceList;
         }
 
         /// <summary>
         /// Authorizes a given action on an instance.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>true if the user is authorized.</returns>
         public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action)
         {
             string org = instance.Org;
@@ -223,11 +232,49 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
+        /// Replaces Resource attributes with data from instance. Add all relevant values so PDP have it all
+        /// </summary>
+        /// <param name="jsonRequest">The JSON Request</param>
+        /// <param name="instance">The instance</param>
+        public static void EnrichXacmlJsonRequest(XacmlJsonRequestRoot jsonRequest, Instance instance)
+        {
+            XacmlJsonCategory resourceCategory = new XacmlJsonCategory { Attribute = new List<XacmlJsonAttribute>() };
+
+            string instanceId = instance.Id;
+            string task = instance.Process?.CurrentTask?.ElementId;
+            string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+
+            if (task != null)
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
+            }
+            else if (instance.Process?.EndEvent != null)
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, instance.Process.EndEvent, DefaultType, DefaultIssuer));
+            }
+
+            if (!string.IsNullOrWhiteSpace(instanceId))
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceId, DefaultType, DefaultIssuer, true));
+            }
+
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
+
+            // Replaces the current Resource attributes
+            jsonRequest.Request.Resource = new List<XacmlJsonCategory>();
+            jsonRequest.Request.Resource.Add(resourceCategory);
+        }
+
+        /// <summary>
         /// Verifies that org string matches org in user claims.
         /// </summary>
         /// <param name="org">Organisation to match in claims.</param>
         /// <param name="user">Claim principal from http context.</param>
-        /// <returns></returns>
+        /// <returns>true if the given ClaimsPrincipal contains the given org.</returns>
         public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
         {
             Console.WriteLine($"AuthzHelper // VerifyOrg // Trying to verify org in claims.");
@@ -239,6 +286,36 @@ namespace Altinn.Platform.Storage.Helpers
             if (org.Equals(orgClaim, StringComparison.CurrentCultureIgnoreCase))
             {
                 return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Verifies a scope claim based on claimsprincipal.
+        /// </summary>
+        /// <param name="requiredScope">Requiered scope.</param>
+        /// <param name="user">Claim principal from http context.</param>
+        /// <returns>true if the given ClaimsPrincipal or on of its identities have contains the given scope.</returns>
+        public bool ContainsRequiredScope(List<string> requiredScope, ClaimsPrincipal user)
+        {
+            string contextScope = user.Identities?
+               .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
+               ?.Claims
+               .Where(c => c.Type.Equals("urn:altinn:scope"))
+               ?.Select(c => c.Value).FirstOrDefault();
+
+            contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(contextScope))
+            {
+                foreach (string scope in requiredScope)
+                {
+                    if (contextScope.Contains(scope, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;

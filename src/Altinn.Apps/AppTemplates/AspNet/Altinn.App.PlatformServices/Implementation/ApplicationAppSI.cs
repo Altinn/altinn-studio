@@ -24,12 +24,13 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationAppSI"/> class.
         /// </summary>
-        /// <param name="logger">the logger</param>
-        /// <param name="httpClientAccessor">The Http client accessor </param>
+        /// <param name="platformSettings">The current platform settings.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
         public ApplicationAppSI(
-           IOptions<PlatformSettings> platformSettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<ApplicationAppSI> logger,
-           HttpClient httpClient)
+            HttpClient httpClient)
         {
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);

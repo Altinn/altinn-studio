@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
@@ -378,12 +379,7 @@ namespace Altinn.App.Services.Implementation
 
         private string GetValidFileName(string fileName)
         {
-            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-            {
-                fileName = fileName.Replace(c, '_');
-            }
-
-            fileName = Uri.EscapeDataString(fileName);
+            fileName = Uri.EscapeDataString(fileName.AsFileName(false));
             return fileName;
         }
 

@@ -7,7 +7,7 @@ export interface ILayouts {
 
 export interface ILayoutEntry {
   id: string;
-  type?: string;
+  type: GroupTypes | ComponentTypes;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
@@ -19,30 +19,37 @@ export interface ILayoutGroup extends ILayoutEntry {
   edit?: IGroupEditProperties;
 }
 
-export interface ILayoutBaseComponent extends ILayoutEntry {
-  type: string;
+export interface ILayoutComponent extends ILayoutEntry {
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
-  readOnly: boolean;
+  readOnly?: boolean;
   disabled?: boolean;
-  required: boolean;
+  required?: boolean;
   textResourceBindings: ITextResourceBindings;
   triggers?: Triggers[];
   formData?: any;
   grid?: IGrid;
 }
 
-export type ILayoutComponent = ILayoutBaseComponent
-  | ISelectionComponentProps
-  | IDatepickerProps
-  | IFileuploadProps
-  | IHeaderProps
-  | IInputProps
-  | INavigationButtonProps
-  | IParagraphProps
-  | IRadioButtonsProps
-  | IAdressComponent
-  | ITextAreaProps
+export type GroupTypes =
+  'Group' |
+  'group';
+
+export type ComponentTypes =
+  'AddressComponent' |
+  'AttachmentList' |
+  'Button' |
+  'Checkboxes' |
+  'Datepicker' |
+  'Dropdown' |
+  'FileUpload' |
+  'Header' |
+  'Input' |
+  'NavigationButtons' |
+  'Paragraph' |
+  'RadioButtons' |
+  'Summary' |
+  'TextArea';
 
 export interface IDataModelBindings {
   [id: string]: string;
@@ -54,14 +61,14 @@ export interface ITextResourceBindings {
 
 export type ILayout = Array<ILayoutComponent | ILayoutGroup>;
 
-export interface ISelectionComponentProps extends ILayoutBaseComponent {
+export interface ISelectionComponentProps extends ILayoutComponent {
   options?: IOption[];
   optionsId?: string;
 }
 
-export interface IDatepickerProps extends ILayoutBaseComponent { }
+export interface IDatepickerProps extends ILayoutComponent { }
 
-export interface IFileuploadProps extends ILayoutBaseComponent {
+export interface IFileuploadProps extends ILayoutComponent {
   maxNumberOfAttachments: number;
   maxFileSizeInMB: number;
   displayMode: any;
@@ -87,7 +94,7 @@ declare enum HeaderSize {
   L,
 }
 
-export interface IHeaderProps extends ILayoutBaseComponent {
+export interface IHeaderProps extends ILayoutComponent {
   size: HeaderSize;
 }
 
@@ -97,25 +104,25 @@ declare enum InputFieldType {
   password,
 }
 
-export interface IInputProps extends ILayoutBaseComponent {
+export interface IInputProps extends ILayoutComponent {
   inputType: InputFieldType;
 }
 
-export interface INavigationButtonProps extends ILayoutBaseComponent {
+export interface INavigationButtonProps extends ILayoutComponent {
   next?: string;
   previous?: string;
 }
 
-export interface IParagraphProps extends ILayoutBaseComponent { }
+export interface IParagraphProps extends ILayoutComponent { }
 
-export interface IRadioButtonsProps extends ILayoutBaseComponent {
+export interface IRadioButtonsProps extends ILayoutComponent {
   options: IOption[];
   preselectedOptionIndex: number;
 }
 
-export interface ITextAreaProps extends ILayoutBaseComponent { }
+export interface ITextAreaProps extends ILayoutComponent { }
 
-export interface IAdressComponent extends ILayoutBaseComponent {
+export interface IAdressComponent extends ILayoutComponent {
   addressTextResourceBinding: string;
   areaCodeTextResourceBinding: string;
   coTextResourceBinding: string;

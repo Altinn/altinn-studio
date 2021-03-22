@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.TestingControllers
@@ -288,11 +288,29 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal("Invalid model name value.", responsestringPut);
         }
 
+        [Fact]
+        public async Task Delete_Datamodel_Ok()
+        {
+            HttpClient client = GetTestClient();
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/DeleteDatamodel?modelName=41111";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData)
+            {
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
 
             Program.ConfigureSetupLogging();
+
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
@@ -308,10 +326,30 @@ namespace Designer.Tests.TestingControllers
 
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
+                Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
+                repositoryMock
+                    .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Verifiable();
+
+                repositoryMock.
+                    Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
+                    Returns<string, string, string>(async (org, repo, path) =>
+                    {
+                        string repopath = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+                        repopath += @$"testUser\{org}\{repo}\";
+
+                        Stream fs = File.OpenRead(repopath + path);
+                        return await Task.FromResult(fs);
+                    });
+                repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();
+                repositoryMock.Setup(r => r.WriteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>())).Verifiable();
+                repositoryMock.Setup(r => r.DeleteMetadataForAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
                     services.AddSingleton<IGitea, IGiteaMock>();
+
+                    services.AddSingleton<IRepository>(repositoryMock.Object);
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;

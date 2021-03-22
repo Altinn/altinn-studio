@@ -9,7 +9,7 @@ export interface IFormLegendProps {
   labelText: string;
   descriptionText: string;
   language: any;
-  required: boolean;
+  required?: boolean;
   labelSettings?: ILabelSettings;
   helpText: string;
   id: string;
