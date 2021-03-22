@@ -22,7 +22,7 @@ namespace Altinn.App.Api.Controllers
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
         /// <param name="logger">The logger</param>
         /// <param name="authorization">the authorization service handler</param>
-        /// <param name="application">The application service handler</param>
+        /// <param name="appResources">The app resources service</param>
         /// </summary>
         public ApplicationMetadataController(
             ILogger<ApplicationMetadataController> logger,

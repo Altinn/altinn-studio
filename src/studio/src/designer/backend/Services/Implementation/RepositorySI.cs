@@ -1032,8 +1032,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">The app</param>
         /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
         /// <param name="classRef">The class ref</param>
-        /// <returns></returns>
-        private bool UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
+        public void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
         {
             PlatformStorageModels.Application application = GetApplication(org, app);
             if (application.DataTypes == null)
@@ -1059,8 +1058,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             logicElement.AppLogic = new PlatformStorageModels.ApplicationLogic { AutoCreate = true, ClassRef = classRef };
             UpdateApplication(org, app, application);
-
-            return true;
         }
 
         /// <summary>

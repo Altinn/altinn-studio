@@ -31,7 +31,9 @@ export interface ISchemaEditor {
   rootItemId?: string;
 }
 
-export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor) => {
+export const SchemaEditor = ({
+  schema, onSaveSchema, rootItemId,
+}: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
@@ -44,7 +46,7 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
 
   React.useEffect(() => {
-    dispatch(setRootName({rootName: rootItemId}))
+    dispatch(setRootName({ rootName: rootItemId }));
   }, [dispatch, rootItemId]);
 
   React.useEffect(() => {
@@ -53,25 +55,25 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
       setRootItem(item);
     }
   }, [uiSchema, rootItemName]);
-  
+
   React.useEffect(() => {
-    if (jsonSchema && Object.keys(jsonSchema).length > 0) {
+    if (jsonSchema) {
       dispatch(setUiSchema({ rootElementPath: rootItemId }));
     }
   }, [dispatch, jsonSchema, rootItemId]);
 
   React.useEffect(() => {
-    dispatch(setJsonSchema({schema}));
+    dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
   const onClickSaveJsonSchema = () => {
-    dispatch(updateJsonSchema({onSaveSchema}));
+    dispatch(updateJsonSchema({ onSaveSchema }));
   };
 
   const onAddPropertyClick = (path: string) => {
     setAddPropertyPath(path);
     setAddPropertyModalOpen(true);
-  }
+  };
 
   const onCloseAddPropertyModal = (property: any) => {
     if (property) {
@@ -85,12 +87,12 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
     }
 
     setAddPropertyModalOpen(false);
-  }
+  };
 
   const onAddRootItemClick = () => {
     setAddPropertyPath('#/');
     setAddPropertyModalOpen(true);
-  }
+  };
 
   const onCloseAddRootItemModal = (property: any) => {
     if (property) {
@@ -98,13 +100,17 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
       dispatch(addRootItem({ itemsToAdd: itemTree }));
       setAddPropertyModalOpen(false);
     }
-  }
+  };
 
   return (
     <>
-    {uiSchema && uiSchema.length > 0 &&
+      {uiSchema && uiSchema.length > 0 &&
       <div id='schema-editor' className={classes.root}>
-        <button className={classes.button} onClick={onClickSaveJsonSchema}>Save data model</button>
+        <button
+          type='button' className={classes.button}
+          onClick={onClickSaveJsonSchema}
+        >Save data model
+        </button>
         <AddPropertyModal
           isOpen={addPropertyModalOpen}
           path={addPropertyPath}
@@ -118,40 +124,44 @@ export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor
           defaultCollapseIcon={<ArrowDropDownIcon />}
           defaultExpandIcon={<ArrowRightIcon />}
         >
-          {rootItem ? 
+          {rootItem ?
             <SchemaItem
               item={rootItem}
               nodeId={rootItem.id}
               onAddPropertyClick={onAddPropertyClick}
             />
-          :
-          uiSchema.map((item) => {
-            return (
-              <SchemaItem
-                key={item.id}
-                item={item}
-                nodeId={item.id}
-                onAddPropertyClick={onAddPropertyClick}
-              />
-            );
-          })}
+            :
+            uiSchema.map((item) => {
+              return (
+                <SchemaItem
+                  key={item.id}
+                  item={item}
+                  nodeId={item.id}
+                  onAddPropertyClick={onAddPropertyClick}
+                />
+              );
+            })}
         </TreeView>
       </div>
-    }
-    {uiSchema && uiSchema.length === 0 &&
-    <div id='schema-editor' className={classes.root}>
-      <button className={classes.button} onClick={onAddRootItemClick}>Add root item</button>
-      <AddPropertyModal
+      }
+      {uiSchema && uiSchema.length === 0 &&
+      <div id='schema-editor' className={classes.root}>
+        <button
+          type='button' className={classes.button}
+          onClick={onAddRootItemClick}
+        >Add root item
+        </button>
+        <AddPropertyModal
           isOpen={addPropertyModalOpen}
           path={addPropertyPath}
           onClose={onCloseAddRootItemModal}
           sharedTypes={sharedItems}
           title='Add root item'
         />
-    </div>
-    }
+      </div>
+      }
     </>
-  )
-}
+  );
+};
 
 export default SchemaEditor;

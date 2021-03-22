@@ -1,26 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{D9F6DAB7-E921-44B6-A1A6-5796DCAE0D07}</ProjectGuid>
+    <AssemblyVersion>2.5.10.0</AssemblyVersion>
+    <FileVersion>2.5.10.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>2.5.9</Version>
-    <Description>Altinn.Platform.Storage.Interface is a package for models used by platform storage</Description>
-    <PackageTags>Altinn Studio, Altinn.Platform, Altinn.Platform.Storage.Interface</PackageTags>
+    <!-- NuGet package properties -->
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
-    <Company>Altinn</Company>
-    <Product>StorageInterface</Product>
+    <PackageVersion>2.5.10</PackageVersion>
+    <PackageTags>Altinn;Studio;Platform;Storage;Models</PackageTags>
+    <Description>
+      This class library holds the models exposed by the external endpoints of the Altinn 3 Storage component.
+    </Description>
+    <PackageReleaseNotes>
+      https://docs.altinn.studio/teknologi/altinnstudio/changelog/storage-interfaces/
+    </PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <AssemblyVersion>2.5.9.0</AssemblyVersion>
-    <FileVersion>2.5.9.0</FileVersion>
-    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
-    <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -35,22 +35,26 @@ export const getSaveDataModelUrl = (modelName: string) => {
   return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
 
+export const getDeleteDataModelUrl = (modelName: string) => {
+  return `${origin}/designer/api/${org}/${app}/datamodels/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;
+};
+
 export const getFetchDeployPermissionsUrl = () => {
   return `${origin}/designer/api/v1/${org}/${app}/deployments/permissions`;
 };
 
 export const getRemainingSessionTimeUrl = () => {
   return `${origin}/designer/api/v1/session/remaining`;
-}
+};
 
 export const getKeepAliveUrl = () => {
   return `${origin}/designer/api/v1/session/keepalive`;
-}
+};
 
 export const getGiteaSignOutUrl = () => {
   return `${origin}/repos/user/logout`;
-}
+};
 
 export const getStudioSignOutUrl = () => {
   return `${origin}/Home/Logout`;
-}
+};
