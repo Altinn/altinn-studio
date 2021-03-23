@@ -3,9 +3,9 @@ import '@testing-library/jest-dom/extend-expect';
 import 'jest';
 import * as React from 'react';
 import { render } from '@testing-library/react';
-import { RepeatingGroupsAddButton } from '../../../src/features/form/components/RepeatingGroupsAddButton';
-import { ILayoutGroup } from '../../../src/features/form/layout';
-import { ITextResource } from '../../../src/types';
+import { RepeatingGroupAddButton } from '../../../../src/features/form/components/RepeatingGroupAddButton';
+import { ILayoutGroup } from '../../../../src/features/form/layout';
+import { ITextResource } from '../../../../src/types';
 
 describe('components/base/InputComponent.tsx', () => {
   let mockContainer: ILayoutGroup;
@@ -32,7 +32,7 @@ describe('components/base/InputComponent.tsx', () => {
 
   test('components/form/RepeatingGroupsAddButton -- should match snapshot', () => {
     const { asFragment } = render(
-      <RepeatingGroupsAddButton
+      <RepeatingGroupAddButton
         container={mockContainer}
         language={mockLanguage}
         textResources={mockTextResources}
