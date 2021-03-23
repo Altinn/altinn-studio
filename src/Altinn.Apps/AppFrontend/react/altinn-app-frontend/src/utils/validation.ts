@@ -993,6 +993,5 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const emptyFieldsValidations: ILayoutValidations = validateEmptyFieldsForLayout(formData, filteredLayout, language, hiddenFields, repeatingGroups);
   const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
   const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language).validations;
-  const result = mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
-  return result;
+  return mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
 }
