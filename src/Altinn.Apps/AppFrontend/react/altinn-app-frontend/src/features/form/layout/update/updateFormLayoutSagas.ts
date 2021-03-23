@@ -261,7 +261,9 @@ export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.updateRepeatingGroups, updateRepeatingGroupsSaga);
 }
 
-export function* updateRepeatingGroupEditIndexSaga({ payload: { group, index, validate } }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
+export function* updateRepeatingGroupEditIndexSaga({ payload: {
+  group, index, validate,
+} }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     if (validate) {
       const state: IRuntimeState = yield select();

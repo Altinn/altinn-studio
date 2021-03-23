@@ -962,8 +962,8 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const groups = currentLayout.filter((layoutElement) => layoutElement.type.toLowerCase() === 'group');
 
   const childGroups: string[] = [];
-  groups.forEach((group: ILayoutGroup) => {
-    group?.children?.forEach((childId: string) => {
+  groups.forEach((groupCandidate: ILayoutGroup) => {
+    groupCandidate?.children?.forEach((childId: string) => {
       currentLayout
         .filter(((element) => (element.id === childId && element.type.toLowerCase() === 'group')))
         .forEach((childGroup) => childGroups.push(childGroup.id));
@@ -994,6 +994,5 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
   const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language).validations;
   const result = mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
-  console.log('result', result);
   return result;
 }

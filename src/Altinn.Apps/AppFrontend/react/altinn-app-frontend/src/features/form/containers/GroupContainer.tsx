@@ -276,15 +276,21 @@ export function GroupContainer({
 
   const onClickEdit = (groupIndex: number) => {
     if (groupIndex === editIndex) {
-      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+        group: id, index: -1,
+      }));
     } else {
-      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: groupIndex }));
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+        group: id, index: groupIndex,
+      }));
     }
   };
 
   const onClickSave = () => {
     const validate: boolean = container.triggers?.includes(Triggers.Validation);
-    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1, validate }));
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+      group: id, index: -1, validate,
+    }));
   };
 
   const childElementHasErrors = (element: ILayoutGroup | ILayoutComponent, index: number) => {
