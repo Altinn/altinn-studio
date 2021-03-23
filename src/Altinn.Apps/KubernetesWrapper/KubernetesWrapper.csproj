@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- 4.0.19 breaks the app deploy page -->
     <PackageReference Include="KubernetesClient" Version="4.0.13" />
   </ItemGroup>
 

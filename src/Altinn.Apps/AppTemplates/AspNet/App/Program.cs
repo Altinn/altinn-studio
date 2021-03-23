@@ -1,5 +1,7 @@
+using System;
 using Altinn.App.PlatformServices.Extensions;
-
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -16,7 +18,24 @@ namespace Altinn.App
         /// <param name="args">The command line arguments used when starting the application.</param>
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.CreateDefault();
+            telemetryConfiguration.InstrumentationKey =
+                    System.Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey") ?? string.Empty;
+
+            TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
+
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                telemetryClient.TrackException(ex);
+
+                telemetryClient.Flush();
+
+                throw;
+            }
         }
 
         /// <summary>

@@ -25,9 +25,10 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationAppSI"/> class
         /// </summary>
+        /// <param name="platformSettings">The current platform settings.</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="httpClientAccessor">The http client accessor </param>
+        /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
         public AuthenticationAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<AuthenticationAppSI> logger,

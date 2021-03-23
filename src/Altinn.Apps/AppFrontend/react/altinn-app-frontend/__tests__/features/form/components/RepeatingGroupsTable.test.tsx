@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { render } from '@testing-library/react';
 import { RepeatingGroupTable } from '../../../../src/features/form/containers/RepeatingGroupTable';
-import { ILayoutComponent, ILayoutGroup } from '../../../../src/features/form/layout';
+import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../../../../src/features/form/layout';
 import { IOption, ITextResource } from '../../../../src/types';
 import { ILayoutState } from '../../../../src/features/form/layout/formLayoutSlice';
 
@@ -73,10 +73,11 @@ describe('components/base/InputComponent.tsx', () => {
         required: false,
         disabled: false,
         options: mockOptions,
-      },
+      } as ISelectionComponentProps,
     ];
 
     mockContainer = {
+      type: 'Group',
       id: 'mock-container-id',
       children: [
         'field1',

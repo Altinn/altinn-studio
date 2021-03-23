@@ -7,6 +7,7 @@ import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { getTextResource } from 'src/utils/formComponentUtils';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { setupGroupComponents } from '../../../utils/layout';
 import { ITextResource, IRepeatingGroups, IValidations, IOption, IOptions } from '../../../types';
@@ -43,6 +44,12 @@ const useStyles = makeStyles({
       fontSize: '1.4rem',
       padding: '0px',
       paddingLeft: '6px',
+      '& p': {
+        fontWeight: 500,
+        fontSize: '1.4rem',
+        padding: '0px',
+        paddingLeft: '6px',
+      },
     },
   },
   tableBody: {
@@ -84,6 +91,9 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+    '& p': {
+      fontWeight: 500,
+    },
   },
   mobileValueText: {
     whiteSpace: 'nowrap',
@@ -143,7 +153,7 @@ export function RepeatingGroupTable({
     }
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
       if (selectionComponent?.options) {
@@ -152,6 +162,23 @@ export function RepeatingGroupTable({
         label = options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formData[replaced])?.label;
       }
       return getTextResourceByKey(label, textResources) || '';
+    }
+    if (component.type === 'Checkboxes') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string = '';
+      const data: string = formData[replaced];
+      const split = data?.split(',');
+      split?.forEach((value: string) => {
+        if (selectionComponent?.options) {
+          label += getTextResourceByKey(selectionComponent.options.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        } else if (selectionComponent.optionsId) {
+          label += getTextResourceByKey(options[selectionComponent.optionsId]?.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        }
+        if (split.indexOf(value) < (split.length - 1)) {
+          label += ', ';
+        }
+      });
+      return label;
     }
     return formData[replaced] || '';
   };
@@ -199,7 +226,7 @@ export function RepeatingGroupTable({
             <TableRow>
               {componentTitles.map((title: string) => (
                 <TableCell align='left' key={title}>
-                  {getTextResourceByKey(title, textResources)}
+                  {getTextResource(title, textResources)}
                 </TableCell>
               ))}
               <TableCell/>
@@ -275,7 +302,7 @@ export function RepeatingGroupTable({
                 return (
                   <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                     <div className={classes.mobileText}>
-                      {`${getTextResourceByKey(title, textResources)}`}
+                      {getTextResource(title, textResources)}
                     </div>
                     <div
                       className={classes.mobileValueText}

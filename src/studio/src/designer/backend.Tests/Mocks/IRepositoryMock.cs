@@ -341,5 +341,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

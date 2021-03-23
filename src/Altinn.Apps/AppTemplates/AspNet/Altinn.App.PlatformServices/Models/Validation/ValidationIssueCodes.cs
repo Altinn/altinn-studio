@@ -19,9 +19,8 @@ namespace Altinn.App.Services.Models.Validation
             /// Gets a value that represents a validation issue where an instance have fewer elements of a given type than the application requires.
             /// </summary>
             public static string TooFewDataElementsOfType => nameof(TooFewDataElementsOfType);
-
         }
-        
+
         /// <summary>
         /// Represents unique codes for validation issues on the data element level. 
         /// </summary>

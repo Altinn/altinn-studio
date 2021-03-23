@@ -55,6 +55,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Type { get; set; }
 
         /// <summary>
+        /// The security level to be set for the standard business document
+        /// </summary>
+        public int SecurityLevel { get; set; }
+
+        /// <summary>
         /// List of ids for the data types to include in the shipment.
         /// </summary>
         public List<string> DataTypes { get; set; }
