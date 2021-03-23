@@ -77,6 +77,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
+            currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
 
             Guid obj = Guid.NewGuid();
@@ -121,6 +122,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
+            currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
 
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().Identifier = process;
@@ -185,6 +187,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
+            currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
             
             Guid obj = Guid.NewGuid();
@@ -245,6 +248,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
+            currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
 
             Guid obj = Guid.NewGuid();
@@ -287,6 +291,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
             HttpResponseMessage response = await httpClient.GetAsync($"{baseUrl}messages/in/peek?serviceIdentifier=DPO");
             string responseBody = await response.Content.ReadAsStringAsync();
+
             StandardBusinessDocument sbdLocked = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
             response = await httpClient.GetAsync($"{baseUrl}messages/in/pop/{messageId}");
 
