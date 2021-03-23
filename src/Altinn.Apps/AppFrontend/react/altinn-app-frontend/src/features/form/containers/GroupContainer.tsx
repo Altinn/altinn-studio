@@ -16,7 +16,7 @@ import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
-import { RepeatingGroupsAddButton } from '../components/RepeatingGroupsAddButton';
+import { RepeatingGroupsAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
 
 export interface IGroupProps {
