@@ -8,7 +8,7 @@ import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayoutGroup } from '../layout';
 import { ITextResource } from '../../../types';
 
-export interface IRepeatingGroupsAddButton {
+export interface IRepeatingGroupAddButton {
   container: ILayoutGroup;
   language: any;
   textResources: ITextResource[];
@@ -47,13 +47,13 @@ const useStyles = makeStyles({
   },
 });
 
-export function RepeatingGroupsAddButton({
+export function RepeatingGroupAddButton({
   container,
   language,
   textResources,
   onClickAdd,
   onKeypressAdd,
-}: IRepeatingGroupsAddButton): JSX.Element {
+}: IRepeatingGroupAddButton): JSX.Element {
   const classes = useStyles();
 
   return (

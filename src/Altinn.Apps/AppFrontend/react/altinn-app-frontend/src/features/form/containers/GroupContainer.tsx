@@ -16,7 +16,7 @@ import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
-import { RepeatingGroupsAddButton } from '../components/RepeatingGroupAddButton';
+import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
 
 export interface IGroupProps {
@@ -147,7 +147,7 @@ export function GroupContainer({
         justify='flex-end'
       />
       {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatinGroupIndex + 1) < container.maxCount))) &&
-        <RepeatingGroupsAddButton
+        <RepeatingGroupAddButton
           container={container}
           language={language}
           onClickAdd={onClickAdd}
@@ -195,7 +195,7 @@ export function GroupContainer({
         })
       }
       {(container.edit?.mode === 'showAll' && ((repeatinGroupIndex + 1) < container.maxCount)) &&
-        <RepeatingGroupsAddButton
+        <RepeatingGroupAddButton
           container={container}
           language={language}
           onClickAdd={onClickAdd}
