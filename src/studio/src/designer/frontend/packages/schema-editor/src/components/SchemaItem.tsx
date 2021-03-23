@@ -1,18 +1,19 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
+import { useDispatch, useSelector } from 'react-redux';
+import { IconButton, TextField } from '@material-ui/core';
+import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
 import { InputField } from './InputField';
 import { setKey,
   setFieldValue,
   addField,
   deleteProperty,
-  setPropertyName, 
-  deleteField} from '../features/editor/schemaEditorSlice';
-import { useDispatch, useSelector } from 'react-redux';
+  setPropertyName,
+  deleteField } from '../features/editor/schemaEditorSlice';
 import ConstItem from './ConstItem';
-import { IconButton, TextField } from '@material-ui/core';
-import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -52,12 +53,12 @@ const useStyles = makeStyles({
     '&:hover': {
       backgroundColor: '#1EAEF7',
       color: 'white',
-    }
+    },
   },
   button: {
     background: 'none',
     border: 'none',
-  }
+  },
 });
 
 const getRefItems = (schema: any[], id: string): any[] => {
@@ -75,13 +76,15 @@ const getRefItems = (schema: any[], id: string): any[] => {
     }
   }
   return result;
-}
+};
 
 function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const {item, ...other} = props;
-  let { id, $ref, fields, properties } = item;
+  const { item, onAddPropertyClick, ...other } = props;
+  const {
+    id, $ref, fields, properties,
+  } = item;
 
   const [constItem, setConstItem] = React.useState<boolean>(false);
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
@@ -91,7 +94,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
   React.useEffect(() => {
-    if (fields  && fields.find((v: any) => v.key === 'const')) {
+    if (fields && fields.find((v: any) => v.key === 'const')) {
       setConstItem(true);
     }
     if (refItems && refItems.length > 0) {
@@ -100,11 +103,9 @@ function SchemaItem(props: StyledTreeItemProps) {
     }
   }, [fields, refItems]);
 
-  const onAddPropertyClick = (event: any) => {
+  const onAddPropertyClicked = (event: any) => {
     const path = definitionItem?.id || id;
-
-    props.onAddPropertyClick(path);
-
+    onAddPropertyClick(path);
     event.preventDefault();
   };
 
@@ -113,22 +114,22 @@ function SchemaItem(props: StyledTreeItemProps) {
     dispatch(addField({
       path,
       key: 'key',
-      value: 'value'
+      value: 'value',
     }));
     event.preventDefault();
   };
 
-  const onDeleteObjectClick = (event: any) => {
-    dispatch(deleteProperty({path: id}));
+  const onDeleteObjectClick = () => {
+    dispatch(deleteProperty({ path: id }));
   };
 
   const onDeleteFieldClick = (path: string, key: string) => {
-    dispatch(deleteField({path, key}));
+    dispatch(deleteField({ path, key }));
   };
 
   const onToggleEditLabel = (event: any) => {
     if (editLabel) {
-      dispatch(setPropertyName({path: id, name: label}));
+      dispatch(setPropertyName({ path: id, name: label }));
     }
     setEditLabel(!editLabel);
     event.stopPropagation();
@@ -145,20 +146,21 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
-      path, 
-      value: isNaN(value) ? value : +value,
+      path,
+      value: Number.isNaN(value) ? value : +value,
       key,
-    }
+    };
     dispatch(setFieldValue(data));
   };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
-    dispatch(setKey({path, oldKey, newKey}))
+    dispatch(setKey({
+      path, oldKey, newKey,
+    }));
   };
 
   const RenderProperties = (itemProperties: any[]) => {
-    if (itemProperties && itemProperties.length > 0)
-    {
+    if (itemProperties && itemProperties.length > 0) {
       return (
         itemProperties.map((property: any) => {
           return (
@@ -168,7 +170,7 @@ function SchemaItem(props: StyledTreeItemProps) {
               nodeId={property.id}
               onAddPropertyClick={props.onAddPropertyClick}
             />
-          )
+          );
         })
       );
     }
@@ -176,7 +178,6 @@ function SchemaItem(props: StyledTreeItemProps) {
   };
 
   const RenderFields = (itemFields: Field[], path: string) => {
-
     if (itemFields && itemFields.length > 0) {
       return (
         <div>
@@ -184,21 +185,21 @@ function SchemaItem(props: StyledTreeItemProps) {
             if (field.key.startsWith('@xsd')) {
               return null;
             }
-              return (
-                <InputField
-                  key={`field-${path}-${field.key}`}
-                  value={field.value}
-                  label={field.key}
-                  fullPath={path}
-                  onChangeValue={onChangeValue}
-                  onChangeKey={onChangeKey}
-                  onDeleteField={onDeleteFieldClick}
-                />
-              );
-            })
+            return (
+              <InputField
+                key={`field-${path}-${field.key}`}
+                value={field.value}
+                label={field.key}
+                fullPath={path}
+                onChangeValue={onChangeValue}
+                onChangeKey={onChangeKey}
+                onDeleteField={onDeleteFieldClick}
+              />
+            );
+          })
           }
         </div>
-        );
+      );
     }
     return null;
   };
@@ -207,15 +208,15 @@ function SchemaItem(props: StyledTreeItemProps) {
     if (refItems && refItems.length > 0) {
       let typeStr = '';
       refItems.forEach((refItem, index) => {
-        typeStr = `${typeStr} ${refItem.id.replace('#/definitions/', '')} ${index < refItems.length - 1 ? '-->' : ''}`
-      })
+        typeStr = `${typeStr} ${refItem.id.replace('#/definitions/', '')} ${index < refItems.length - 1 ? '-->' : ''}`;
+      });
       return (
         <>
           <Typography>Type: {typeStr}</Typography>
           {RenderProperties(definitionItem?.properties)}
           {RenderFields(definitionItem?.fields, definitionItem?.id)}
         </>
-      )
+      );
     }
     return null;
   };
@@ -224,16 +225,17 @@ function SchemaItem(props: StyledTreeItemProps) {
     return (
       <div className={classes.labelRoot}>
         {editLabel ?
-        <TextField
-          className={classes.label}
-          value={label}
-          onChange={onChangeLabel}
-          onClick={onClickEditLabel}
-          autoFocus={true}
-        />
-        : <Typography className={classes.label} variant='body1'>
-          {props.item.name || id.replace('#/definitions/', '')}
-        </Typography>}
+          <TextField
+            className={classes.label}
+            value={label}
+            onChange={onChangeLabel}
+            onClick={onClickEditLabel}
+            autoFocus={true}
+          />
+          :
+          <Typography className={classes.label} variant='body1'>
+            {props.item.name || id.replace('#/definitions/', '')}
+          </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}
         </IconButton>
@@ -241,31 +243,31 @@ function SchemaItem(props: StyledTreeItemProps) {
         <>
           <IconButton
             aria-label='Add property'
-            onClick={onAddPropertyClick}
+            onClick={onAddPropertyClicked}
           >
             <AddCircleOutline/>
           </IconButton>
         </>
         }
-          <IconButton
-            aria-label='Delete object'
-            onClick={onDeleteObjectClick}
-          >
-            <DeleteOutline/>
-          </IconButton>
+        <IconButton
+          aria-label='Delete object'
+          onClick={onDeleteObjectClick}
+        >
+          <DeleteOutline/>
+        </IconButton>
       </div>
     );
   };
 
   if (constItem || item.value) {
     return (
-      <TreeItem 
+      <TreeItem
         label={
           <ConstItem item={item}/>
         }
         {...other}
       />
-    )
+    );
   }
 
   return (
@@ -276,8 +278,16 @@ function SchemaItem(props: StyledTreeItemProps) {
       {RenderRefItems()}
       {RenderProperties(properties)}
       {RenderFields(fields, id)}
-      <Typography className={classes.buttonRoot} variant="button" color="inherit">
-        <button className={classes.button} title='AddSib' onClick={onAddFieldClick}>Add field</button>
+      <Typography
+        className={classes.buttonRoot} variant='button'
+        color='inherit'
+      >
+        <button
+          type='button'
+          className={classes.button} title='AddSib'
+          onClick={onAddFieldClick}
+        >Add field
+        </button>
       </Typography>
     </TreeItem>
   );
