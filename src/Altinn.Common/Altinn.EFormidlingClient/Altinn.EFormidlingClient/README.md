@@ -8,7 +8,7 @@ These instructions will get help you setup eFormidlingClient package in your sol
 The client package is written in C# and targets .Net Standard 2.1. The API solution which the package communicates with, i.e. the integration point, is written in Java. The integration point is possible to run locally with mock settings for testing purposes, requiring minimum Java 8 SDK. Ref test section.
 
 #### eFormidlingClient package
-1. [.NET Standard 2.1](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
+1. [.NET Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
 2. Code editor of your choice
 3. Newest [Git](https://git-scm.com/downloads)
 4. Solution is cloned
