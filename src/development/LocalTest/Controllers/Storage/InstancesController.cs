@@ -6,6 +6,7 @@ using System.Web;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,6 +23,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
+using Substatus = Altinn.Platform.Storage.Interface.Models.Substatus;
+
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
@@ -31,11 +34,18 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
+        private readonly List<string> _instanceReadScope = new List<string>()
+        {
+            "altinn:serviceowner/instances.read"
+        };
+
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IPartiesWithInstancesClient _partiesWithInstancesClient;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly AuthorizationHelper _authzHelper;
         private readonly string _storageBaseAndHost;
         private readonly GeneralSettings _generalSettings;
 
@@ -45,23 +55,29 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="partiesWithInstancesClient">An implementation of <see cref="IPartiesWithInstancesClient"/> that can be used to send information to SBL.</param>
         /// <param name="logger">the logger</param>
+        /// <param name="authzLogger">the logger for the authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="settings">the general settings.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
+            IPartiesWithInstancesClient partiesWithInstancesClient,
             ILogger<InstancesController> logger,
+            ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp,
             IOptions<GeneralSettings> settings)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
+            _partiesWithInstancesClient = partiesWithInstancesClient;
             _pdp = pdp;
             _logger = logger;
-            _storageBaseAndHost = $"{settings.Value.GetHostName}/storage/api/v1/";
+            _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
+            _authzHelper = new AuthorizationHelper(pdp, authzLogger);
             _generalSettings = settings.Value;
         }
 
@@ -79,11 +95,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="created">Created time.</param>
         /// <param name="visibleAfter">The visible after date time.</param>
         /// <param name="dueBefore">The due before date time.</param>
+        /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
+        /// <param name="isSoftDeleted">Is the instance soft deleted.</param>
+        /// <param name="isArchived">Is the instance archived.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
         /// <returns>List of all instances for given instance owner.</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_INSTANCE_READ)]
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -100,6 +119,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
+            [FromQuery] string excludeConfirmedBy,
             [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
             [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
@@ -108,18 +128,43 @@ namespace Altinn.Platform.Storage.Controllers
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
 
-            if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+            bool isOrgQuerying = false;
+
+            // if user is org
+            string orgClaim = User.GetOrg();
+            int? userId = User.GetUserIdAsInt();
+
+            if (orgClaim != null)
             {
-                return BadRequest("Org or AppId must be defined.");
+                isOrgQuerying = true;
+
+                if (!_authzHelper.ContainsRequiredScope(_instanceReadScope, User))
+                {
+                    return Forbid();
+                }
+
+                if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+                {
+                    return BadRequest("Org or AppId must be defined.");
+                }
+
+                org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+
+                if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return Forbid();
+                }
             }
-
-            org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
-
-            _logger.LogInformation($" // InstancesController // GetInstances // Tyring to get instances for org: {org}");
-
-            if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
+            else if (userId != null)
             {
-                return Forbid();
+                if (instanceOwnerPartyId == null)
+                {
+                    return BadRequest("InstanceOwnerPartyId must be defined.");
+                }
+            }
+            else
+            {
+                return BadRequest();
             }
 
             if (!string.IsNullOrEmpty(continuationToken))
@@ -130,19 +175,23 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            string host = $"https://{_generalSettings.GetHostName}";
+            string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
             string query = Request.QueryString.Value;
 
-            _logger.LogInformation($"uri = {url}{query}");
-
             try
             {
-                InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesFromQuery(queryParams, continuationToken, pageSize);
 
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
                     return BadRequest(result.Exception);
+                }
+
+                if (!isOrgQuerying)
+                {
+                    result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
+                    result.Count = result.Instances.Count;
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
@@ -152,7 +201,6 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
-                    TotalHits = result.TotalHits ?? 0
                 };
 
                 if (continuationToken == null)
@@ -172,7 +220,7 @@ namespace Altinn.Platform.Storage.Controllers
                     response.Self = selfUrl;
                 }
 
-                if (nextContinuationToken != null)
+                if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
                     string nextQueryString = BuildQueryStringWithOneReplacedParameter(
                         queryParams,
@@ -275,10 +323,13 @@ namespace Altinn.Platform.Storage.Controllers
                 string userId = GetUserId();
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
+
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+
+                await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
 
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
@@ -299,7 +350,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
-        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribute set to current date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
@@ -308,7 +359,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, bool? hard)
+        public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] bool hard)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -335,49 +386,37 @@ namespace Altinn.Platform.Storage.Controllers
 
             DateTime now = DateTime.UtcNow;
 
-            instance.Status ??= new InstanceStatus();
+            if (instance.Status == null)
+            {
+                instance.Status = new InstanceStatus();
+            }
 
-
-            if (hard.HasValue && hard == true)
+            if (hard)
             {
                 instance.Status.IsHardDeleted = true;
                 instance.Status.IsSoftDeleted = true;
                 instance.Status.HardDeleted = now;
                 instance.Status.SoftDeleted ??= now;
-
-                instance.LastChangedBy = GetUserId();
-                instance.LastChanged = now;
-
-                try
-                {
-                    Instance deletedInstance = await _instanceRepository.Update(instance);
-
-                    return Ok(deletedInstance);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
-                    return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
-                }
             }
             else
             {
                 instance.Status.IsSoftDeleted = true;
                 instance.Status.SoftDeleted = now;
-                instance.LastChangedBy = GetUserId();
-                instance.LastChanged = now;
+            }
 
-                try
-                {
-                    Instance softDeletedInstance = await _instanceRepository.Update(instance);
+            instance.LastChangedBy = GetUserId();
+            instance.LastChanged = now;
 
-                    return Ok(softDeletedInstance);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
-                    return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
-                }
+            try
+            {
+                Instance deletedInstance = await _instanceRepository.Update(instance);
+
+                return Ok(deletedInstance);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
             }
         }
 
@@ -539,6 +578,47 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(updatedInstance);
         }
 
+        /// <summary>
+        /// Updates the presentation texts on an instance
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="presentationTexts">Collection of changes to the presentation texts collection.</param>
+        /// <returns>The instance that was updated with an updated collection of presentation texts.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationtexts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public async Task<Instance> UpdatePresentationTexts(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] PresentationTexts presentationTexts)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (instance.PresentationTexts == null)
+            {
+                instance.PresentationTexts = new Dictionary<string, string>();
+            }
+
+            foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
+            {
+                if (string.IsNullOrEmpty(entry.Value))
+                {
+                    instance.PresentationTexts.Remove(entry.Key);
+                }
+                else
+                {
+                    instance.PresentationTexts[entry.Key] = entry.Value;
+                }
+            }
+
+            Instance updatedInstance = await _instanceRepository.Update(instance);
+            return updatedInstance;
+        }
+
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
@@ -621,9 +701,9 @@ namespace Altinn.Platform.Storage.Controllers
             items.RemoveAll(x => x.Key == queryParamName);
 
             var qb = new QueryBuilder(items)
-            {
-                { queryParamName, newParamValue }
-            };
+                        {
+                            { queryParamName, newParamValue }
+                        };
 
             string nextQueryString = qb.ToQueryString().Value;
 

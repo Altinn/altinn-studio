@@ -25,6 +25,10 @@ namespace Altinn.Studio.Designer.Helpers
             {
                 httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT22);
             }
+            else if (uri.Host.Contains("at24", StringComparison.InvariantCultureIgnoreCase))
+            {
+                httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT24);
+            }
             else if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
                 httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyTT02);

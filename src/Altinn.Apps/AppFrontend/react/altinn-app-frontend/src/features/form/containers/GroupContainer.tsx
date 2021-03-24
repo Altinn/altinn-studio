@@ -5,16 +5,17 @@ import React from 'react';
 import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { getTextResource } from 'src/utils/formComponentUtils';
 import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
-import FormLayoutActions from '../layout/formLayoutActions';
+import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 
@@ -63,7 +64,7 @@ const useStyles = makeStyles({
   table: {
     tableLayout: 'fixed',
     marginBottom: '12px',
-    wordBreak: 'break-all',
+    wordBreak: 'break-word',
   },
   tableHeader: {
     borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
@@ -71,6 +72,12 @@ const useStyles = makeStyles({
       fontSize: '1.4rem',
       padding: '0px',
       paddingLeft: '6px',
+      '& p': {
+        fontWeight: 500,
+        fontSize: '1.4rem',
+        padding: '0px',
+        paddingLeft: '6px',
+      },
     },
   },
   tableBody: {
@@ -121,6 +128,9 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+    '& p': {
+      fontWeight: 500,
+    },
   },
   mobileValueText: {
     whiteSpace: 'nowrap',
@@ -155,6 +165,7 @@ export function GroupContainer({
   components,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
@@ -207,7 +218,7 @@ export function GroupContainer({
   }, [validations, currentView, id]);
 
   const onClickAdd = () => {
-    FormLayoutActions.updateRepeatingGroups(id);
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     setEditIndex(repeatinGroupIndex + 1);
   };
 
@@ -223,7 +234,7 @@ export function GroupContainer({
     }
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
       if (selectionComponent?.options) {
@@ -233,12 +244,33 @@ export function GroupContainer({
       }
       return getTextResourceByKey(label, textResources) || '';
     }
+    if (component.type === 'Checkboxes') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string = '';
+      const data: string = formData[replaced];
+      const split = data?.split(',');
+      split?.forEach((value: string) => {
+        if (selectionComponent?.options) {
+          label += getTextResourceByKey(selectionComponent.options.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        } else if (selectionComponent.optionsId) {
+          label += getTextResourceByKey(options[selectionComponent.optionsId]?.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        }
+        if (split.indexOf(value) < (split.length - 1)) {
+          label += ', ';
+        }
+      });
+      return label;
+    }
     return formData[replaced] || '';
   };
 
   const onClickRemove = (groupIndex: number) => {
     setEditIndex(-1);
-    FormLayoutActions.updateRepeatingGroups(id, true, groupIndex);
+    dispatch(FormLayoutActions.updateRepeatingGroups({
+      layoutElementId: id,
+      remove: true,
+      index: groupIndex,
+    }));
   };
 
   const onClickEdit = (groupIndex: number) => {
@@ -292,7 +324,7 @@ export function GroupContainer({
               <TableRow>
                 {componentTitles.map((title: string) => (
                   <TableCell align='left' key={title}>
-                    {getTextResourceByKey(title, textResources)}
+                    {getTextResource(title, textResources)}
                   </TableCell>
                 ))}
                 <TableCell/>
@@ -368,7 +400,7 @@ export function GroupContainer({
                   return (
                     <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                       <div className={classes.mobileText}>
-                        {`${getTextResourceByKey(title, textResources)}`}
+                        {getTextResource(title, textResources)}
                       </div>
                       <div
                         className={classes.mobileValueText}

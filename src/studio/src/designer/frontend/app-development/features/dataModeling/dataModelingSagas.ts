@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, select, all, take, put } from 'redux-saga/effects';
-import { get, put as axiosPut } from 'app-shared/utils/networking';
+import { get, put as axiosPut, del } from 'app-shared/utils/networking';
 import { fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
@@ -8,14 +8,18 @@ import { fetchDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
   setDataModelName,
-  IDataModelAction } from './dataModelingSlice';
-import { getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
+  IDataModelAction,
+  deleteDataModel,
+  deleteDataModelFulfilled,
+  deleteDataModelRejected } from './dataModelingSlice';
+import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../utils/urlHelper';
+import { ApplicationMetadataActions } from '../../sharedResources/applicationMetadata/applicationMetadataSlice';
 
 const modelNameState = (state: IServiceDevelopmentState) => state.dataModeling.modelName;
 
 export function* fetchDataModelSaga(): SagaIterator {
   try {
-    const modelName = yield select(modelNameState);
+    const modelName: string = yield select(modelNameState);
     const url = getFetchDataModelUrl(modelName);
     const result = yield call(get, url);
     yield put(fetchDataModelFulfilled({ schema: result }));
@@ -25,7 +29,7 @@ export function* fetchDataModelSaga(): SagaIterator {
 }
 
 export function* watchFetchDataModelSaga(): SagaIterator {
-  while(true) {
+  while (true) {
     yield all([
       take(fetchDataModel.type),
       take(setDataModelName.type),
@@ -37,10 +41,11 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 export function* saveDatamodelSaga(action: IDataModelAction) {
   try {
     const { schema } = action.payload;
-    const modelName = yield select(modelNameState);
+    const modelName: string = yield select(modelNameState);
     const url = getSaveDataModelUrl(modelName);
     yield axiosPut(url, schema);
     yield put(saveDataModelFulfilled({}));
+    yield put(ApplicationMetadataActions.getApplicationMetadata());
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
   }
@@ -48,4 +53,20 @@ export function* saveDatamodelSaga(action: IDataModelAction) {
 
 export function* watchSaveDataModelSaga(): SagaIterator {
   yield takeLatest(saveDataModel.type, saveDatamodelSaga);
+}
+
+export function* deleteDataModelSaga(): SagaIterator {
+  try {
+    const modelName = yield select(modelNameState);
+    const url = getDeleteDataModelUrl(modelName);
+    yield call(del, url);
+    yield put(deleteDataModelFulfilled());
+    yield put(ApplicationMetadataActions.getApplicationMetadata());
+  } catch (err) {
+    yield put(deleteDataModelRejected({ error: err }));
+  }
+}
+
+export function* watchDeleteDataModelSaga(): SagaIterator {
+  yield takeLatest(deleteDataModel.type, deleteDataModelSaga);
 }

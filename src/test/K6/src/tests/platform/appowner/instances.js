@@ -7,14 +7,14 @@
     This test script is to create instance of an app as an appowner for a party id
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
     and maskinporten token
-    Command: docker-compose run k6 run src/tests/platform/storage/appowner/createinstance.js 
-    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
+    Command: docker-compose run k6 run /src/tests/platform/appowner/instances.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
-import * as instances from "../../../api/storage/instances.js"
+import * as instances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;

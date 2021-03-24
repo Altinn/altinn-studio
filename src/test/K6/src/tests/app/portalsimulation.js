@@ -1,6 +1,7 @@
 /*
   Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
-  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js -e env=test -e org=ttd -e level2app=apps-test -e subskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
+  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js 
+  -e env=test -e org=ttd -e level2app=apps-test -e appsaccesskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
 */
 
 import { check } from "k6";
@@ -8,8 +9,8 @@ import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
-import * as platformInstances from "../../api/storage/instances.js"
-import * as platformApps from "../../api/storage/applications.js"
+import * as platformInstances from "../../api/platform/storage/instances.js"
+import * as platformApps from "../../api/platform/storage/applications.js"
 import * as setUpData from "../../setup.js";
 import * as appInstantiation from "../../api/app/instantiation.js"
 import * as appResources from "../../api/app/resources.js"

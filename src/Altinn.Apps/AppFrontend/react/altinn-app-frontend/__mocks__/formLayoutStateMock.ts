@@ -1,4 +1,4 @@
-import { ILayoutState } from '../src/features/form/layout/formLayoutReducer';
+import { ILayoutState } from '../src/features/form/layout/formLayoutSlice';
 
 export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): ILayoutState {
   const mockFormLayoutState: ILayoutState = {

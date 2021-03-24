@@ -9,7 +9,7 @@ import Actions from '../rulesActions';
 import * as ActionTypes from '../rulesActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { IRuntimeState, ILayoutSets } from '../../../../types';
-import { getLayouytsetForDataElement } from '../../../../utils/layout';
+import { getLayoutsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
@@ -29,7 +29,7 @@ function* fetchRuleModelSaga(): SagaIterator {
     let layoutSetId: string = null;
 
     if (layoutSets != null) {
-      layoutSetId = getLayouytsetForDataElement(instance, dataType, layoutSets);
+      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
     }
 
     const ruleModel = yield call(get, getRulehandlerUrl(layoutSetId));

@@ -77,7 +77,6 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             string type = "arkivmelding";
 
             DateTime currentCreationTime = DateTime.Now;
-            currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
 
             Guid obj = Guid.NewGuid();

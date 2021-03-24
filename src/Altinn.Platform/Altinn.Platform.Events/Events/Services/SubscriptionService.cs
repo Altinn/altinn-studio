@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
@@ -23,7 +24,7 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<int> CreateSubscription(Subscription eventsSubcrition)
         {
-            return await _repository.CreateEventsSubscription(eventsSubcrition);
+            return await _repository.CreateSubscription(eventsSubcrition);
         }
 
         /// <inheritdoc/>
@@ -42,6 +43,22 @@ namespace Altinn.Platform.Events.Services
         public async Task<Subscription> GetSubscription(int id)
         {
             return await _repository.GetSubscription(id);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Subscription>> GetOrgSubscriptions(string source, string subject, string type)
+        {
+            List<Subscription> searchresult = await _repository.GetSubscriptionsByConsumer("/org/%");
+            return searchresult.Where(s =>
+                s.SourceFilter.Equals(source) &&
+                (s.SubjectFilter == null || s.SubjectFilter.Equals(subject)) &&
+                (s.TypeFilter == null || s.TypeFilter.Equals(type))).ToList();
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Subscription>> GetSubscriptions(string source, string subject, string type)
+        {
+            return await _repository.GetSubscriptionsExcludeOrg(source, subject, type);
         }
     }
 }

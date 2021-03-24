@@ -149,16 +149,16 @@ export default class DesignerPage {
   //Function to push and commit an app changes from the designer page
   async pushAndCommitChanges(t) {
     await t
-      .expect(this.pushChanges.exists).ok({ timeout: 180000 })
+      .expect(this.pushChanges.exists).ok({ timeout: 60000 })
       .click(this.pushChanges)
       .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
       .click(this.commitMessageBox)
       .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
       .expect(this.validateChanges.exists).ok({ timeout: 60000 })
       .click(this.validateChanges)
-      .expect(this.pushChangesBlueButton.exists).ok({ timeout: 180000 })
+      .expect(this.pushChangesBlueButton.exists).ok({ timeout: 60000 })
       .click(this.pushChangesBlueButton)
-      .expect(this.noChanges.exists).ok({ timeout: 180000 })
+      .expect(this.noChanges.exists).ok({ timeout: 60000 })
   };
 
   //Function to find the last deployed version and return the version number

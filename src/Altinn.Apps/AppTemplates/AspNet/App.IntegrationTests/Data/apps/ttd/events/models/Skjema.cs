@@ -87,16 +87,22 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         [XmlAttribute("gruppeid")]
         [BindNever]
         public decimal gruppeid { get; set; } = 8855;
+
         [XmlElement("AnsattNavn-datadef-1223")]
         public AnsattNavndatadef1223 AnsattNavndatadef1223 { get; set; }
+
         [XmlElement("AnsattFodselsnummer-datadef-1224")]
         public AnsattFodselsnummerdatadef1224 AnsattFodselsnummerdatadef1224 { get; set; }
+
         [XmlElement("OppgavegiverTelefonnummer-datadef-27335")]
         public OppgavegiverTelefonnummerdatadef27335 OppgavegiverTelefonnummerdatadef27335 { get; set; }
+
         [XmlElement("OppgavegiverEPost-datadef-27334")]
         public OppgavegiverEPostdatadef27334 OppgavegiverEPostdatadef27334 { get; set; }
+
         [XmlElement("AnsattSoknadAFPDato-datadef-33282")]
         public AnsattSoknadAFPDatodatadef33282 AnsattSoknadAFPDatodatadef33282 { get; set; }
+
     }
     public class AnsattNavndatadef1223
     {
@@ -104,6 +110,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         [XmlAttribute("orid")]
         [BindNever]
         public decimal orid { get; set; } = 1223;
+
         [MinLength(1)]
         [MaxLength(35)]
         [XmlText()]
@@ -115,6 +122,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         [XmlAttribute("orid")]
         [BindNever]
         public decimal orid { get; set; } = 1224;
+
         [XmlText()]
         public string value { get; set; }
     }
@@ -124,6 +132,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         [XmlAttribute("orid")]
         [BindNever]
         public decimal orid { get; set; } = 27335;
+
         [MinLength(1)]
         [MaxLength(11, ErrorMessage = "ERROR: Max length is 11")]
         [XmlText()]
@@ -135,11 +144,13 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         [XmlAttribute("orid")]
         [BindNever]
         public decimal orid { get; set; } = 27334;
+
         [MinLength(1)]
         [MaxLength(50)]
         [XmlText()]
         public string value { get; set; }
     }
+
     public class AnsattSoknadAFPDatodatadef33282
     {
         [Range(1, Int32.MaxValue)]

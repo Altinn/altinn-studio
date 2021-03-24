@@ -25,7 +25,7 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         /// <summary>
         /// Creates an subscription in repository
         /// </summary>
-        Task<int> CreateEventsSubscription(Subscription eventsSubscription);
+        Task<int> CreateSubscription(Subscription eventsSubscription);
 
         /// <summary>
         /// Gets a specific subscription
@@ -36,5 +36,16 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         /// Deletes a given subscription
         /// </summary>
         Task DeleteSubscription(int id);
+
+        /// <summary>
+        /// Gets subscriptions by source excluding orgs
+        /// </summary>
+        Task<List<Subscription>> GetSubscriptionsExcludeOrg(string source, string subject, string type);
+
+        /// <summary>
+        /// Gets subscriptions for a given consumer
+        /// consumer = "/org/%" will return subscriptions for all orgs
+        /// </summary>
+        Task<List<Subscription>> GetSubscriptionsByConsumer(string consumer);
     }
 }

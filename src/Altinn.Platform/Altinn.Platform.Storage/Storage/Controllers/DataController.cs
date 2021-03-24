@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Extensions;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -423,7 +423,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (hasContentDisposition)
                 {
-                    contentFileName = HttpUtility.UrlDecode(contentDisposition.FileName.ToString());
+                    contentFileName = HttpUtility.UrlDecode(contentDisposition.GetFilename());
                     fileSize = contentDisposition.Size ?? 0;
                 }
             }
@@ -432,19 +432,12 @@ namespace Altinn.Platform.Storage.Controllers
                 theStream = request.Body;
                 if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
                 {
-                    string contentDisposition = headerValues.ToString();
-                    List<string> contentDispositionValues = contentDisposition.Split(';').ToList();
+                    bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(headerValues.ToString(), out ContentDispositionHeaderValue contentDisposition);
 
-                    string fileNameValue = contentDispositionValues.FirstOrDefault(x => x.Contains("filename", StringComparison.CurrentCultureIgnoreCase));
-
-                    if (!string.IsNullOrEmpty(fileNameValue))
+                    if (hasContentDisposition)
                     {
-                        string[] valueParts = fileNameValue.Split('=');
-
-                        if (valueParts.Length == 2)
-                        {
-                            contentFileName = HttpUtility.UrlDecode(valueParts[1]);
-                        }
+                        contentFileName = HttpUtility.UrlDecode(contentDisposition.GetFilename());
+                        fileSize = contentDisposition.Size ?? 0;
                     }
                 }
 
