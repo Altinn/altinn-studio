@@ -23,15 +23,11 @@ namespace App.IntegrationTestsRef.Mocks.Services
             byteContent.Headers.Remove("Content-Type");
             byteContent.Headers.Add("Content-Type", "application/json");
 
-            /* Throws two types of exceptions.
-            //HttpRequestException
-            // Exception*/
             return Task.FromResult(sbd);
         }
 
         public Task<bool> UploadAttachment(Stream stream, string id, string filename)
         {
-            // TODO: VERIFY STUFF. 
             return Task.FromResult(true);
         }
 
