@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.13" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
