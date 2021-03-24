@@ -9,7 +9,6 @@ import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@
 import { InputField } from './InputField';
 import { setKey,
   setFieldValue,
-  addField,
   deleteProperty,
   setPropertyName,
   deleteField } from '../features/editor/schemaEditorSlice';
@@ -18,6 +17,7 @@ import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
   item: any;
+  keyPrefix: string;
   onAddPropertyClick: (property: any) => void;
 };
 
@@ -81,7 +81,9 @@ const getRefItems = (schema: any[], id: string): any[] => {
 function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { item, onAddPropertyClick, ...other } = props;
+  const {
+    item, onAddPropertyClick, ...other
+  } = props;
   const {
     id, $ref, fields, properties,
   } = item;
@@ -109,15 +111,15 @@ function SchemaItem(props: StyledTreeItemProps) {
     event.preventDefault();
   };
 
-  const onAddFieldClick = (event: any) => {
-    const path = definitionItem?.id || id;
-    dispatch(addField({
-      path,
-      key: 'key',
-      value: 'value',
-    }));
-    event.preventDefault();
-  };
+  // const onAddFieldClick = (event: any) => {
+  //   const path = definitionItem?.id || id;
+  //   dispatch(addField({
+  //     path,
+  //     key: 'key',
+  //     value: 'value',
+  //   }));
+  //   event.preventDefault();
+  // };
 
   const onDeleteObjectClick = () => {
     dispatch(deleteProperty({ path: id }));
@@ -162,16 +164,20 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        itemProperties.map((property: any) => {
-          return (
-            <SchemaItem
-              key={property.id}
-              item={property}
-              nodeId={property.id}
-              onAddPropertyClick={props.onAddPropertyClick}
-            />
-          );
-        })
+        <TreeItem nodeId={`${props.keyPrefix}-${id}-properties`} label='properties'>
+          { itemProperties.map((property: any) => {
+            return (
+              <SchemaItem
+                keyPrefix={`${props.keyPrefix}-${id}-properties`}
+                key={`${props.keyPrefix}-${property.id}`}
+                item={property}
+                nodeId={`${props.keyPrefix}-prop-${property.id}`}
+                onAddPropertyClick={props.onAddPropertyClick}
+              />
+            );
+          })
+          }
+        </TreeItem>
       );
     }
     return null;
@@ -212,9 +218,19 @@ function SchemaItem(props: StyledTreeItemProps) {
       });
       return (
         <>
-          <Typography>Type: {typeStr}</Typography>
+          {/* <TreeItem nodeId={`ref-${id}`} label={`$ref: ${$ref}`}> */}
+          <SchemaItem
+            keyPrefix={`${props.keyPrefix}-${definitionItem.id}`}
+            key={`${props.keyPrefix}-${definitionItem.id}`}
+            label={`$ref: ${$ref}`}
+            item={definitionItem}
+            nodeId={`${props.keyPrefix}-${definitionItem.id}-ref`}
+            onAddPropertyClick={props.onAddPropertyClick}
+          />
+           {/* </TreeItem> */}
+          {/* <Typography>Type: {typeStr}</Typography>
           {RenderProperties(definitionItem?.properties)}
-          {RenderFields(definitionItem?.fields, definitionItem?.id)}
+          {RenderFields(definitionItem?.fields, definitionItem?.id)} */}
         </>
       );
     }
@@ -234,7 +250,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           />
           :
           <Typography className={classes.label} variant='body1'>
-            {props.item.name || id.replace('#/definitions/', '')}
+            {item.name ?? id.replace('#/definitions/', '')}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}
@@ -278,7 +294,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       {RenderRefItems()}
       {RenderProperties(properties)}
       {RenderFields(fields, id)}
-      <Typography
+      {/* <Typography
         className={classes.buttonRoot} variant='button'
         color='inherit'
       >
@@ -288,7 +304,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           onClick={onAddFieldClick}
         >Add field
         </button>
-      </Typography>
+      </Typography> */}
     </TreeItem>
   );
 }

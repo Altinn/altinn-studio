@@ -2,7 +2,7 @@ import * as React from 'react';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import { TreeView } from '@material-ui/lab';
+import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
@@ -101,7 +101,10 @@ export const SchemaEditor = ({
       setAddPropertyModalOpen(false);
     }
   };
+  console.log(uiSchema);
 
+  const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
+  const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <>
       {uiSchema && uiSchema.length > 0 &&
@@ -120,27 +123,28 @@ export const SchemaEditor = ({
         />
         <TreeView
           className={classes.root}
-          defaultExpanded={['1']}
+          defaultExpanded={['properties']}
           defaultCollapseIcon={<ArrowDropDownIcon />}
           defaultExpandIcon={<ArrowRightIcon />}
         >
-          {rootItem ?
+          <TreeItem nodeId='properties' label='properties'>
             <SchemaItem
-              item={rootItem}
-              nodeId={rootItem.id}
+              keyPrefix='properties'
+              item={item}
+              nodeId={`prop-${item.id}`}
               onAddPropertyClick={onAddPropertyClick}
             />
-            :
-            uiSchema.map((item) => {
-              return (
-                <SchemaItem
-                  key={item.id}
-                  item={item}
-                  nodeId={item.id}
-                  onAddPropertyClick={onAddPropertyClick}
-                />
-              );
-            })}
+          </TreeItem>
+          <TreeItem nodeId='info' label='info' />
+          <TreeItem nodeId='definitions' label='definitions'>
+            { definitions.map((def) => <SchemaItem
+              keyPrefix='definitions'
+              item={def}
+              key={def.id}
+              nodeId={`def-${def.id}`}
+              onAddPropertyClick={onAddPropertyClick}
+            />)}
+          </TreeItem>
         </TreeView>
       </div>
       }
