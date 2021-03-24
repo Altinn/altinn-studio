@@ -14,7 +14,7 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 
 ### Prerequisites
 
-1. Latest [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
 2. [Node.js](https://nodejs.org) (Version 14.*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
