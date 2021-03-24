@@ -1,7 +1,7 @@
 import http from "k6/http";
 import * as config from "../../../config.js";
 import * as header from "../../../buildrequestheaders.js"
-import { printResponseToConsole } from "../../../errorcounter.js";
+import { stopIterationOnFail } from "../../../errorcounter.js";
 import * as support from "../../../support.js";
 
 /**
@@ -79,7 +79,7 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
         };
         allInstances = http.get(allInstances.next, params);
         if (allInstances.status != 200) {
-            printResponseToConsole("Get all instances failed:", false, allInstances);
+            stopIterationOnFail("Get all instances failed:", false, allInstances);
         };
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = buildArrayWithInstanceIds(allInstances.instances);
@@ -141,7 +141,7 @@ export function findAllHardDeletedInstances(altinnStudioRuntimeCookie, appOwner,
     while (allInstances.next !== null) {
         allInstances = http.get(allInstances.next, params);
         if (allInstances.status != 200) {
-            printResponseToConsole("Get all instances failed:", false, allInstances);
+            stopIterationOnFail("Get all instances failed:", false, allInstances);
         };
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = buildArrayWithHardDeletedInstanceIds(allInstances.instances);

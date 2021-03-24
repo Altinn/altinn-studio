@@ -36,7 +36,7 @@ services:
       - k6
     ports:
       - "6565:6565"
-    environment:
-      - K6_OUT=influxdb=http://influxdb:8086/k6
+    #environment:
+    #  - K6_OUT=influxdb=http://influxdb:8086/k6
     volumes:
       - ./src:/src

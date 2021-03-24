@@ -4,4 +4,7 @@
 **/data/xml*.xml
 
 #Junit reports
-**/reports/*.xml
+**/reports/
+
+#Logs
+**/logs/
