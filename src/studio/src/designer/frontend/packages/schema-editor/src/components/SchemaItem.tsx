@@ -18,6 +18,8 @@ import { Field, ISchemaState } from '../types';
 type StyledTreeItemProps = TreeItemProps & {
   item: any;
   keyPrefix: string;
+  // eslint-disable-next-line react/require-default-props
+  refSource?: string;
   onAddPropertyClick: (property: any) => void;
 };
 
@@ -30,12 +32,12 @@ const useStyles = makeStyles({
   labelRoot: {
     display: 'flex',
     alignItems: 'center',
-    padding: 12,
+    padding: 2,
   },
   label: {
-    fontSize: '1.2em',
+    fontSize: '1em',
     paddingRight: 12,
-    lineHeight: 2.4,
+    lineHeight: 1.5,
     flexGrow: 1,
   },
   typeRef: {
@@ -82,7 +84,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
-    item, onAddPropertyClick, ...other
+    item, onAddPropertyClick, refSource, ...other
   } = props;
   const {
     id, $ref, fields, properties,
@@ -164,7 +166,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        <TreeItem nodeId={`${props.keyPrefix}-${id}-properties`} label='properties'>
+        <TreeItem nodeId={`${props.keyPrefix}-${id}-properties`} label={<><i className='fa fa-drop-down' />properties</>}>
           { itemProperties.map((property: any) => {
             return (
               <SchemaItem
@@ -186,7 +188,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderFields = (itemFields: Field[], path: string) => {
     if (itemFields && itemFields.length > 0) {
       return (
-        <div>
+        <TreeItem nodeId={`${props.keyPrefix}-fields`} label={<><i className='fa fa-drop-down' />properties</>}>
           {itemFields.map((field) => {
             if (field.key.startsWith('@xsd')) {
               return null;
@@ -204,7 +206,7 @@ function SchemaItem(props: StyledTreeItemProps) {
             );
           })
           }
-        </div>
+        </TreeItem>
       );
     }
     return null;
@@ -222,7 +224,8 @@ function SchemaItem(props: StyledTreeItemProps) {
           <SchemaItem
             keyPrefix={`${props.keyPrefix}-${definitionItem.id}`}
             key={`${props.keyPrefix}-${definitionItem.id}`}
-            label={`$ref: ${$ref}`}
+            // label={`$ref: ${$ref}`}
+            refSource={$ref}
             item={definitionItem}
             nodeId={`${props.keyPrefix}-${definitionItem.id}-ref`}
             onAddPropertyClick={props.onAddPropertyClick}
@@ -249,8 +252,8 @@ function SchemaItem(props: StyledTreeItemProps) {
             autoFocus={true}
           />
           :
-          <Typography className={classes.label} variant='body1'>
-            {item.name ?? id.replace('#/definitions/', '')}
+          <Typography className={classes.label}>
+            {refSource ? <><i className='fa fa-clone' />{`$ref: ${refSource}`}</> : <><i className='fa fa-info-circle'/>{item.name ?? id.replace('#/definitions/', '')}</>}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}
