@@ -38,7 +38,7 @@ namespace Altinn.EFormidlingClient.Models
 
         /// <summary>
         ///  Gets or sets the Event. A set of filtering criteria. Generally speaking, webhook filters will be a subset of the query parameters available when GETing a list of the target resource.
-        ///  It is an optional property. To add multiple filters, separate them with the "&" symbol. Supported filters are: status, serviceIdentifier, direction.
+        ///  It is an optional property. To add multiple filters, separate them with the "&amp;" symbol. Supported filters are: status, serviceIdentifier, direction.
         /// </summary>
         [JsonPropertyName("filter")]
         public string Filter { get; set; }
