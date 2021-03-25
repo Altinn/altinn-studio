@@ -2,11 +2,30 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.3-alpha</Version>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
     <AssemblyVersion>0.0.0.3</AssemblyVersion>
     <FileVersion>0.0.0.3</FileVersion>
-    <LangVersion>latest</LangVersion>
-    <Description>Attribute Based Access Control library for .Net Core implementing XACML 3.0 xml and JSON Profile. See details at https://docs.altinn.studio</Description>
+    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
+    <ProjectGuid>{D9F6DAB7-E921-44B6-A1A6-5796DCAE0D07}</ProjectGuid>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- NuGet package properties -->
+    <PackageId>Altinn.Authorization.ABAC</PackageId>
+    <PackageVersion>0.0.3-alpha</PackageVersion>
+    <PackageTags>Altinn;Authorization;ABAC</PackageTags>
+    <Description>
+      Attribute Based Access Control library for .Net Core implementing XACML 3.0 xml and JSON Profile.
+      See details at https://docs.altinn.studio.
+    </Description>
+    <PackageReleaseNotes>
+    </PackageReleaseNotes>
+    <Authors>Altinn Platform Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

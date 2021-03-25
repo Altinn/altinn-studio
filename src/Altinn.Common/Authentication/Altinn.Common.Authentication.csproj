@@ -3,21 +3,29 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <!-- SonarCloud needs this -->
-    <ProjectGuid>{3aa4860c-e86b-488f-ae89-b0a28bc1f701}</ProjectGuid>
-    <IsPackable>true</IsPackable>
-    <Version>2.4.1-alpha</Version>
-    <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
-    <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
-    <PackageId>JWTCookieAuthentication</PackageId>
-    <Company>Altinn</Company>
-    <Product>JWTCookieAuthentication</Product>
+    <OutputType>Library</OutputType>
     <AssemblyVersion>2.4.1.0</AssemblyVersion>
     <FileVersion>2.4.1.0</FileVersion>
-    <ApplicationIcon />
-    <OutputType>Library</OutputType>
-    <StartupObject />
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{3aa4860c-e86b-488f-ae89-b0a28bc1f701}</ProjectGuid>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- NuGet package properties -->
+    <PackageId>JWTCookieAuthentication</PackageId>
+    <PackageVersion>2.4.1-alpha</PackageVersion>
+    <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
+    <Description>
+      JWTCookieAuthentication is a package for usage of JWT token for authentication both
+      as bearer token and inside cookie.
+    </Description>
+    <PackageReleaseNotes>
+    </PackageReleaseNotes>
+    <Authors>Altinn Platform Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
