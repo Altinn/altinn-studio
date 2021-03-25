@@ -25,8 +25,12 @@ export const SchemaInspector = (() => {
     if (selectedId) {
       console.log(state.uiSchema);
       // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
-      const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
-      return item?.properties?.find((p) => p.id === selectedId);
+      if (selectedId.includes('/properties/')) {
+        const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
+        return item?.properties?.find((p) => p.id === selectedId);
+      }
+      // selectedId: #/definitions/OrganisasjonsnummerRestriksjon
+      return state.uiSchema.find((i) => i.id === selectedId);
     }
     return null;
   });

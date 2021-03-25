@@ -230,6 +230,7 @@ function SchemaItem(props: StyledTreeItemProps) {
             key={`${keyPrefix}-${definitionItem.id}`}
             // label={`$ref: ${$ref}`}
             refSource={$ref}
+            onClick={() => onItemClick(definitionItem.id)}
             item={definitionItem}
             nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
             onAddPropertyClick={props.onAddPropertyClick}
