@@ -191,7 +191,7 @@ namespace App.IntegrationTests
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
-            //Validate instance
+            // Validate instance
             string url = "/tdd/sirius/instances/" + instance.Id + "/validate";
             HttpResponseMessage responseValidation = await client.GetAsync(url);
             string responseContentValidation = await responseValidation.Content.ReadAsStringAsync();

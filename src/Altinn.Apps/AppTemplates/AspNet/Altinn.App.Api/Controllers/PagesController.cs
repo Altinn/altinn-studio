@@ -32,6 +32,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="altinnApp">The current App Core used to interface with custom logic</param>
         /// <param name="resources">The app resource service</param>
+        /// <param name="logger">A logger provided by the logging framework.</param>
         public PagesController(IAltinnApp altinnApp, IAppResources resources, ILogger<PagesController> logger)
         {
             _altinnApp = altinnApp;

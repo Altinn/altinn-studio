@@ -555,5 +555,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         string GetAppPath(string org, string app);
+
+        /// <summary>
+        ///  Updates application model with new app logic model
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
+        /// <param name="classRef">The class ref</param>
+        void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
     }
 }

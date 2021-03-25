@@ -314,14 +314,24 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = await _organisationService.LookupOrg(orgNumber);
-                if (org == "digdir" && test)
+                string issuer = _generalSettings.PlatformEndpoint;
+
+                string org = null;
+
+                if (HasServiceOwnerScope(originalPrincipal))
                 {
-                    org = "ttd";
+                    org = await _organisationService.LookupOrg(orgNumber);
+                    if (org == "digdir" && test)
+                    {
+                        org = "ttd";
+                    }
+
+                    if (!string.IsNullOrEmpty(org))
+                    {
+                        claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
+                    }
                 }
 
-                string issuer = _generalSettings.PlatformEndpoint;
-                claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
@@ -483,6 +493,18 @@ namespace Altinn.Platform.Authentication.Controllers
 
             string organisationNumber = consumerId.Split(":")[1];
             return organisationNumber;
+        }
+
+        private static bool HasServiceOwnerScope(ClaimsPrincipal originalPrincipal)
+        {
+            string scope = originalPrincipal.FindFirstValue("scope");
+
+            if (scope.Contains("altinn:serviceowner"))
+            {
+                return true; 
+            }
+
+            return false;
         }
 
         /// <summary>

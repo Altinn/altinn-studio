@@ -11,7 +11,7 @@ import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper'
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
-import { ILayoutComponent, IComponentTypes, ILayoutGroup } from '..';
+import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
 import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
@@ -232,8 +232,8 @@ export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIter
     const layouts = state.formLayout.layouts;
     const pageTriggers = state.formLayout.uiConfig.pageTriggers;
     const appHasCalculateTrigger = pageTriggers?.includes(Triggers.CalculatePageOrder) || Object.keys(layouts).some((layout) => {
-      return layouts[layout].some((element) => {
-        if (element.type === IComponentTypes.NavigationButtons) {
+      return layouts[layout].some((element: ILayoutEntry) => {
+        if (element.type === 'NavigationButtons') {
           const layoutComponent = element as ILayoutComponent;
           if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
             return true;
