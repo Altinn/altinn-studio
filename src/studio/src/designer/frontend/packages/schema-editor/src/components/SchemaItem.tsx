@@ -35,9 +35,8 @@ const useStyles = makeStyles({
     padding: 2,
   },
   label: {
-    fontSize: '1em',
     paddingRight: 12,
-    lineHeight: 1.5,
+    lineHeight: '18px',
     flexGrow: 1,
   },
   typeRef: {
@@ -84,7 +83,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
-    item, onAddPropertyClick, refSource, ...other
+    item, onAddPropertyClick, refSource, keyPrefix, ...other
   } = props;
   const {
     id, $ref, fields, properties,
@@ -93,7 +92,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const [constItem, setConstItem] = React.useState<boolean>(false);
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
   const [editLabel, setEditLabel] = React.useState<boolean>(false);
-  const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/'));
+  const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/', ''));
 
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
@@ -166,14 +165,14 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        <TreeItem nodeId={`${props.keyPrefix}-${id}-properties`} label={<><i className='fa fa-drop-down' />properties</>}>
+        <TreeItem nodeId={`${keyPrefix}-${id}-properties`} label={<><i className='fa fa-list' />properties</>}>
           { itemProperties.map((property: any) => {
             return (
               <SchemaItem
-                keyPrefix={`${props.keyPrefix}-${id}-properties`}
-                key={`${props.keyPrefix}-${property.id}`}
+                keyPrefix={`${keyPrefix}-${id}-properties`}
+                key={`${keyPrefix}-${property.id}`}
                 item={property}
-                nodeId={`${props.keyPrefix}-prop-${property.id}`}
+                nodeId={`${keyPrefix}-prop-${property.id}`}
                 onAddPropertyClick={props.onAddPropertyClick}
               />
             );
@@ -188,7 +187,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderFields = (itemFields: Field[], path: string) => {
     if (itemFields && itemFields.length > 0) {
       return (
-        <TreeItem nodeId={`${props.keyPrefix}-fields`} label={<><i className='fa fa-drop-down' />properties</>}>
+        <TreeItem nodeId={`${keyPrefix}-fields`} label={<><i className='fa fa-drop-down' />properties</>}>
           {itemFields.map((field) => {
             if (field.key.startsWith('@xsd')) {
               return null;
@@ -222,12 +221,12 @@ function SchemaItem(props: StyledTreeItemProps) {
         <>
           {/* <TreeItem nodeId={`ref-${id}`} label={`$ref: ${$ref}`}> */}
           <SchemaItem
-            keyPrefix={`${props.keyPrefix}-${definitionItem.id}`}
-            key={`${props.keyPrefix}-${definitionItem.id}`}
+            keyPrefix={`${keyPrefix}-${definitionItem.id}`}
+            key={`${keyPrefix}-${definitionItem.id}`}
             // label={`$ref: ${$ref}`}
             refSource={$ref}
             item={definitionItem}
-            nodeId={`${props.keyPrefix}-${definitionItem.id}-ref`}
+            nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
             onAddPropertyClick={props.onAddPropertyClick}
           />
            {/* </TreeItem> */}
@@ -253,7 +252,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           />
           :
           <Typography className={classes.label}>
-            {refSource ? <><i className='fa fa-clone' />{`$ref: ${refSource}`}</> : <><i className='fa fa-info-circle'/>{item.name ?? id.replace('#/definitions/', '')}</>}
+            {refSource ? <><i className='fa fa-link' />{`$ref: ${refSource}`}</> : <><i className='fa fa-brackets-curly'/>{item.name ?? id.replace('#/definitions/', '')}</>}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}

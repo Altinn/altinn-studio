@@ -4,12 +4,14 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
+import { Grid } from '@material-ui/core';
 import { ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getUiSchemaTreeFromItem } from '../utils';
+import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
   createStyles({
@@ -107,63 +109,70 @@ export const SchemaEditor = ({
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <>
-      {uiSchema && uiSchema.length > 0 &&
-      <div id='schema-editor' className={classes.root}>
-        <button
-          type='button' className={classes.button}
-          onClick={onClickSaveJsonSchema}
-        >Save data model
-        </button>
-        <AddPropertyModal
-          isOpen={addPropertyModalOpen}
-          path={addPropertyPath}
-          onClose={onCloseAddPropertyModal}
-          sharedTypes={sharedItems}
-          title='Add property'
-        />
-        <TreeView
-          className={classes.root}
-          defaultExpanded={['properties']}
-          defaultCollapseIcon={<ArrowDropDownIcon />}
-          defaultExpandIcon={<ArrowRightIcon />}
-        >
-          <TreeItem nodeId='properties' label='properties'>
-            <SchemaItem
-              keyPrefix='properties'
-              item={item}
-              nodeId={`prop-${item.id}`}
-              onAddPropertyClick={onAddPropertyClick}
+      <Grid container={true} direction='row'>
+        <Grid item={true} xs={8}>
+          {uiSchema && uiSchema.length > 0 &&
+          <div id='schema-editor' className={classes.root}>
+            <button
+              type='button' className={classes.button}
+              onClick={onClickSaveJsonSchema}
+            >Save data model
+            </button>
+            <AddPropertyModal
+              isOpen={addPropertyModalOpen}
+              path={addPropertyPath}
+              onClose={onCloseAddPropertyModal}
+              sharedTypes={sharedItems}
+              title='Add property'
             />
-          </TreeItem>
-          <TreeItem nodeId='info' label='info' />
-          <TreeItem nodeId='definitions' label='definitions'>
-            { definitions.map((def) => <SchemaItem
-              keyPrefix='definitions'
-              item={def}
-              key={def.id}
-              nodeId={`def-${def.id}`}
-              onAddPropertyClick={onAddPropertyClick}
-            />)}
-          </TreeItem>
-        </TreeView>
-      </div>
-      }
-      {uiSchema && uiSchema.length === 0 &&
-      <div id='schema-editor' className={classes.root}>
-        <button
-          type='button' className={classes.button}
-          onClick={onAddRootItemClick}
-        >Add root item
-        </button>
-        <AddPropertyModal
-          isOpen={addPropertyModalOpen}
-          path={addPropertyPath}
-          onClose={onCloseAddRootItemModal}
-          sharedTypes={sharedItems}
-          title='Add root item'
-        />
-      </div>
-      }
+            <TreeView
+              className={classes.root}
+              defaultExpanded={['properties']}
+              defaultCollapseIcon={<ArrowDropDownIcon />}
+              defaultExpandIcon={<ArrowRightIcon />}
+            >
+              <TreeItem nodeId='properties' label='properties'>
+                <SchemaItem
+                  keyPrefix='properties'
+                  item={item}
+                  nodeId={`prop-${item.id}`}
+                  onAddPropertyClick={onAddPropertyClick}
+                />
+              </TreeItem>
+              <TreeItem nodeId='info' label='info' />
+              <TreeItem nodeId='definitions' label='definitions'>
+                { definitions.map((def) => <SchemaItem
+                  keyPrefix='definitions'
+                  item={def}
+                  key={def.id}
+                  nodeId={`def-${def.id}`}
+                  onAddPropertyClick={onAddPropertyClick}
+                />)}
+              </TreeItem>
+            </TreeView>
+          </div>
+          }
+          {uiSchema && uiSchema.length === 0 &&
+          <div id='schema-editor' className={classes.root}>
+            <button
+              type='button' className={classes.button}
+              onClick={onAddRootItemClick}
+            >Add root item
+            </button>
+            <AddPropertyModal
+              isOpen={addPropertyModalOpen}
+              path={addPropertyPath}
+              onClose={onCloseAddRootItemModal}
+              sharedTypes={sharedItems}
+              title='Add root item'
+            />
+          </div>
+          }
+        </Grid>
+        <Grid item={true} xs={4}>
+          <SchemaInspector schema={schema} />
+        </Grid>
+      </Grid>
     </>
   );
 };
