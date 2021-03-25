@@ -1,0 +1,56 @@
+version: '3.2'
+
+services:
+  mocks:
+    restart: unless-stopped
+    build: ./mocks
+    command: npm run start
+    environment:
+      DPI_HOST: ${DPI_HOST}
+    ports:
+      - ${MOCK_PORT}:${MOCK_PORT}
+
+  sa-mock:
+    restart: unless-stopped
+    build: ./move-sakarkiv-mock
+    command: npm run start
+    environment:
+      IP_URL: ${IP_URL}
+    ports:
+      - ${SA_MOCK_PORT}:${SA_MOCK_PORT}
+
+  wiremock:
+    restart: unless-stopped
+    build: ./Wiremock
+    ports:
+      - ${WIREMOCK_PORT}:${WIREMOCK_PORT}
+
+  dpimock:
+    restart: unless-stopped
+    build: ./dpimock
+    command:  cd ./dpimock && ./mvnw install dockerfile:build
+    ports:
+      - ${DPI_PORT}:8080
+
+  ip:
+    restart: unless-stopped
+    build: ./ip
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - ${IP_PORT}:9093
+
+  integrationpoint-sender:
+    restart: unless-stopped
+    build: ./integrationpoint
+    environment:
+      SPRING_PROFILES_ACTIVE: mock
+    ports:
+      - 9093:9093
+
+
+
+
+
+
+
