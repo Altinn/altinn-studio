@@ -111,7 +111,7 @@ export const SchemaEditor = ({
   return (
     <>
       <Grid container={true} direction='row'>
-        <Grid item={true} xs={8}>
+        <Grid item={true} xs={6}>
           {uiSchema && uiSchema.length > 0 &&
           <div id='schema-editor' className={classes.root}>
             <button
@@ -170,7 +170,7 @@ export const SchemaEditor = ({
           </div>
           }
         </Grid>
-        <Grid item={true} xs={4}>
+        <Grid item={true} xs={6}>
           <SchemaInspector />
         </Grid>
       </Grid>

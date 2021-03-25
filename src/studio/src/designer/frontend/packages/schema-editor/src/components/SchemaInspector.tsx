@@ -1,27 +1,28 @@
+import { Card, CardContent, CardHeader } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { ISchemaState } from '../types';
-// import { makeStyles, createStyles } from '@material-ui/core/styles';
 
-// const useStyles = makeStyles(
-//   createStyles({
-//     root: {
-//       height: 264,
-//       flexGrow: 1,
-//       maxWidth: 300,
-//       marginTop: 24,
-//     },
-//   }),
-// );
+const useStyles = makeStyles(
+  createStyles({
+    root: {
+      height: 600,
+      flexGrow: 1,
+      margin: 4,
+      padding: 2,
+    },
+  }),
+);
 
 export interface ISchemaInspector {
 }
 
 export const SchemaInspector = (() => {
-  // const classes = useStyles();
+  const classes = useStyles();
   // const dispatch = useDispatch();
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  const selectedDefinition = useSelector((state: ISchemaState) => {
+  const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       console.log(state.uiSchema);
       // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
@@ -35,18 +36,41 @@ export const SchemaInspector = (() => {
     return null;
   });
 
-  const RenderSelectedItem = () => (selectedDefinition ?
+  const RenderSelectedItem = () => (selectedItem ?
     <div>
-      { selectedDefinition.fields?.map((f) => <i>{f.key}: {f.value}</i>)}
+      <table>
+        <tbody>
+          <tr>
+            <td>id</td>
+            <td>{selectedId}</td>
+          </tr>
+          <tr>
+            <td>name</td>
+            <td>{selectedItem.name}</td>
+          </tr>
+          <tr>
+            <td>$ref</td>
+            <td>{selectedItem.$ref}</td>
+          </tr>
+
+          <tr><td><h3>Properties</h3></td></tr>
+          { selectedItem.fields?.map((f) => <tr key={f.key}><td>{f.key}</td><td>{f.value}</td></tr>) }
+          { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
+        </tbody>
+      </table>
+
     </div> : null);
 
   return (
-    <div>
-      <h2>Inspector</h2>
-      <p>{ selectedId }</p>
-
-      { RenderSelectedItem() }
-    </div>
+    <Card
+      elevation={1}
+      className={classes.root}
+    >
+      <CardHeader title='Inspector' />
+      <CardContent>
+        { RenderSelectedItem() }
+      </CardContent>
+    </Card>
   );
 });
 
