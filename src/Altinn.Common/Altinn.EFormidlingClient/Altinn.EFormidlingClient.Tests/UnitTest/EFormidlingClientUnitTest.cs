@@ -48,7 +48,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         }
 
         /// <summary>
-        /// Test invalid sbd json from file where Arkivmelding & StandardBusinessDocumentHeader are incorrect
+        /// Test invalid sbd json from file where Arkivmelding and StandardBusinessDocumentHeader are incorrect
         /// Expected: StandardBusinessDocumentHeader and Arkivmelding null 
         /// </summary>
         [Fact]
