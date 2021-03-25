@@ -54,7 +54,9 @@ export const SchemaEditor = ({
   React.useEffect(() => {
     if (rootItemName && uiSchema && Object.keys(uiSchema).length > 0) {
       const item = uiSchema.find((i) => i.id === rootItemName);
-      setRootItem(item);
+      if (item) {
+        setRootItem(item);
+      }
     }
   }, [uiSchema, rootItemName]);
 
@@ -103,7 +105,6 @@ export const SchemaEditor = ({
       setAddPropertyModalOpen(false);
     }
   };
-  console.log(uiSchema);
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
@@ -170,7 +171,7 @@ export const SchemaEditor = ({
           }
         </Grid>
         <Grid item={true} xs={4}>
-          <SchemaInspector schema={schema} />
+          <SchemaInspector />
         </Grid>
       </Grid>
     </>

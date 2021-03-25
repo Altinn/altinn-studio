@@ -11,7 +11,7 @@ import { setKey,
   setFieldValue,
   deleteProperty,
   setPropertyName,
-  deleteField } from '../features/editor/schemaEditorSlice';
+  deleteField, setSelectedId } from '../features/editor/schemaEditorSlice';
 import ConstItem from './ConstItem';
 import { Field, ISchemaState } from '../types';
 
@@ -161,6 +161,10 @@ function SchemaItem(props: StyledTreeItemProps) {
       path, oldKey, newKey,
     }));
   };
+  const onItemClick = (itemId: string) => {
+    console.log(itemId);
+    dispatch(setSelectedId({ id: itemId }));
+  };
 
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
@@ -174,6 +178,7 @@ function SchemaItem(props: StyledTreeItemProps) {
                 item={property}
                 nodeId={`${keyPrefix}-prop-${property.id}`}
                 onAddPropertyClick={props.onAddPropertyClick}
+                onClick={() => onItemClick(property.id)}
               />
             );
           })

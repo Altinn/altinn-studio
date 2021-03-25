@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { ISchemaState } from '../types';
 // import { makeStyles, createStyles } from '@material-ui/core/styles';
 
 // const useStyles = makeStyles(
@@ -13,21 +15,35 @@ import * as React from 'react';
 // );
 
 export interface ISchemaInspector {
-  schema: any;
 }
 
-export const SchemaInspector = ({
-  schema,
-}: ISchemaInspector) => {
+export const SchemaInspector = (() => {
   // const classes = useStyles();
   // const dispatch = useDispatch();
-  console.log(schema);
+  const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  const selectedDefinition = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      console.log(state.uiSchema);
+      // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
+      const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
+      return item?.properties?.find((p) => p.id === selectedId);
+    }
+    return null;
+  });
+
+  const RenderSelectedItem = () => (selectedDefinition ?
+    <div>
+      { selectedDefinition.fields?.map((f) => <i>{f.key}: {f.value}</i>)}
+    </div> : null);
+
   return (
     <div>
       <h2>Inspector</h2>
-      { schema.id }
+      <p>{ selectedId }</p>
+
+      { RenderSelectedItem() }
     </div>
   );
-};
+});
 
 export default SchemaInspector;
