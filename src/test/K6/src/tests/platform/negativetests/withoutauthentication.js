@@ -11,7 +11,7 @@ import * as authz from "../../../api/platform/authorization.js";
 import * as register from "../../../api/platform/register.js";
 import * as instances from "../../../api/platform/storage/instances.js"
 import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
-import * as events from "../../../api/platform/events.js"
+import * as events from "../../../api/platform/events/events.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;

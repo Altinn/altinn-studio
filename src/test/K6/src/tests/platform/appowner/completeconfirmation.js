@@ -10,7 +10,7 @@
 */
 
 import { check } from "k6";
-import { printResponseToConsole } from "../../../errorcounter.js";
+import { stopIterationOnFail } from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/platform/storage/instances.js"
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
@@ -60,7 +60,7 @@ export default function (data) {
         partyId = instanceId[0];
         instanceId = instanceId[1];
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null);
+        stopIterationOnFail("Testdata missing", false, null);
     }
 
     //Complete confirm the app instance as an appOwner
@@ -68,5 +68,5 @@ export default function (data) {
     success = check(res, {
         "Instance is confirmed complete:": (r) => r.status === 200
     });
-    printResponseToConsole("Instance is not confirmed complete:", success, res);
+    stopIterationOnFail("Instance is not confirmed complete:", success, res);
 };
