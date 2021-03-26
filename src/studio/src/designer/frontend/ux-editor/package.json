@@ -66,7 +66,7 @@
     "babel-jest": "~26.6.3",
     "classnames": "~2.2.6",
     "cross-env": "~7.0.3",
-    "css-loader": "~5.1.4",
+    "css-loader": "~5.2.0",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "~1.15.6",
     "eslint": "~7.22.0",
