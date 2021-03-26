@@ -4,6 +4,7 @@ import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
+import { PayloadAction } from '@reduxjs/toolkit';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
@@ -19,15 +20,14 @@ import { canFormBeSaved,
 import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
-import { ISubmitDataAction } from './submitFormDataActions';
-import * as FormDataActionTypes from '../formDataActionTypes';
+import { ISubmitDataAction } from '../formDataTypes';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 // eslint-disable-next-line consistent-return
-function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): SagaIterator {
+function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadAction<ISubmitDataAction>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const currentDataTaskDataTypeId = getDataTaskDataTypeId(
@@ -66,12 +66,24 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
       );
       try {
         yield call(put, dataElementUrl(defaultDataElementGuid), model);
-      } catch (err) {
-        if ((err.response && err.response.status === 303) || isIE) {
-          // 303 is treated as en error in IE - we try to fetch.
-          yield call(FormDataActions.fetchFormData, dataElementUrl(defaultDataElementGuid));
+      } catch (error) {
+        if ((error.response && error.response.status === 303) || isIE) {
+          if (error.response?.data?.changedFields) {
+            const changedFields = error.response.data.changedFields;
+            // eslint-disable-next-line no-restricted-syntax
+            for (const fieldKey of Object.keys(changedFields)) {
+              yield sagaPut(FormDataActions.updateFormData({
+                data: changedFields[fieldKey],
+                field: fieldKey,
+                skipValidation: true,
+              }));
+            }
+          } else {
+            // 303 is treated as en erroror in IE - we try to fetch.
+            yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+          }
         } else {
-          throw err;
+          throw error;
         }
       }
 
@@ -87,10 +99,10 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
         const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
         const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
         if (hasErrors || (stopWithWarnings && hasWarnings)) {
-          // we have validation errors or warnings that should be shown, do not submit
-          return yield call(FormDataActions.submitFormDataRejected, null);
+          // we have validation errorors or warnings that should be shown, do not submit
+          return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
         }
-        // data has no validation errors, we complete the current step
+        // data has no validation errorors, we complete the current step
         yield call(ProcessDispatcher.completeProcess);
 
         if (layoutState.uiConfig.currentViewCacheKey) {
@@ -99,14 +111,14 @@ function* submitFormSaga({ apiMode, stopWithWarnings }: ISubmitDataAction): Saga
           yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
         }
       }
-      yield call(FormDataActions.submitFormDataFulfilled);
+      yield sagaPut(FormDataActions.submitFormDataFulfilled());
     } else {
       FormValidationActions.updateValidations(validations);
-      return yield call(FormDataActions.submitFormDataRejected, null);
+      return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
     }
-  } catch (err) {
-    console.error(err);
-    yield call(FormDataActions.submitFormDataRejected, err);
+  } catch (error) {
+    console.error(error);
+    yield sagaPut(FormDataActions.submitFormDataRejected({ error }));
   }
 }
 
@@ -126,12 +138,24 @@ function* saveFormDataSaga(): SagaIterator {
 
     try {
       yield call(put, dataElementUrl(defaultDataElementGuid), model);
-    } catch (err) {
-      if ((err.response && err.response.status === 303) || isIE) {
-        // 303 is treated as en error in IE - we try to fetch.
-        yield call(FormDataActions.fetchFormData, dataElementUrl(defaultDataElementGuid));
+    } catch (error) {
+      if ((error.response && error.response.status === 303) || isIE) {
+        if (error.response?.data?.changedFields) {
+          const changedFields = error.response.data.changedFields;
+          // eslint-disable-next-line no-restricted-syntax
+          for (const fieldKey of Object.keys(changedFields)) {
+            yield sagaPut(FormDataActions.updateFormData({
+              data: changedFields[fieldKey],
+              field: fieldKey,
+              skipValidation: true,
+            }));
+          }
+        } else {
+          // 303 is treated as en erroror in IE - we try to fetch.
+          yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+        }
       } else {
-        throw err;
+        throw error;
       }
     }
 
@@ -139,10 +163,10 @@ function* saveFormDataSaga(): SagaIterator {
       yield call(FormValidationActions.runSingleFieldValidation);
     }
 
-    yield call(FormDataActions.submitFormDataFulfilled);
-  } catch (err) {
-    console.error(err);
-    yield call(FormDataActions.submitFormDataRejected, err);
+    yield sagaPut(FormDataActions.submitFormDataFulfilled());
+  } catch (error) {
+    console.error(error);
+    yield sagaPut(FormDataActions.submitFormDataRejected({ error }));
   }
 }
 
@@ -150,18 +174,18 @@ function* autoSaveSaga(): SagaIterator {
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
   if (uiConfig.autoSave !== false) {
     // undefined should default to auto save
-    yield call(FormDataActions.saveFormData);
+    yield sagaPut(FormDataActions.saveFormData());
   }
 }
 
 export function* watchSubmitFormSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.SUBMIT_FORM_DATA, submitFormSaga);
+  yield takeLatest(FormDataActions.submitFormData, submitFormSaga);
 }
 
 export function* watchSaveFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.SAVE_FORM_DATA, saveFormDataSaga);
+  yield takeLatest(FormDataActions.saveFormData, saveFormDataSaga);
 }
 
 export function* watchAutoSaveSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, autoSaveSaga);
+  yield takeLatest(FormDataActions.updateFormDataFulfilled, autoSaveSaga);
 }
