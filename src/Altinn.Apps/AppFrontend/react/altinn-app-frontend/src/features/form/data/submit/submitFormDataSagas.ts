@@ -79,7 +79,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
               }));
             }
           } else {
-            // 303 is treated as en erroror in IE - we try to fetch.
+            // 303 is treated as en error in IE - we try to fetch.
             yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
           }
         } else {
@@ -99,10 +99,10 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
         const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
         const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
         if (hasErrors || (stopWithWarnings && hasWarnings)) {
-          // we have validation errorors or warnings that should be shown, do not submit
+          // we have validation errors or warnings that should be shown, do not submit
           return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
         }
-        // data has no validation errorors, we complete the current step
+        // data has no validation errors, we complete the current step
         yield call(ProcessDispatcher.completeProcess);
 
         if (layoutState.uiConfig.currentViewCacheKey) {
@@ -151,7 +151,7 @@ function* saveFormDataSaga(): SagaIterator {
             }));
           }
         } else {
-          // 303 is treated as en erroror in IE - we try to fetch.
+          // 303 is treated as en error in IE - we try to fetch.
           yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
         }
       } else {
