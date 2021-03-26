@@ -4,13 +4,13 @@ var replacements = {
   '>': '&gt;',
   "'": '&#39;',
   '"': '&quot;',
-}
+};
 
 function escapeHTML(str) {
   return str.replace(/[&<>'"]/g, function (char) {
     return replacements[char]
   })
-}
+};
 
 /**
  * Generate a junit xml string from the summary of a k6 run considering each checks as a test case
@@ -38,4 +38,15 @@ export function generateJUnitXML(data, suiteName) {
     `<testsuite name="${escapeHTML(suiteName)}" tests="${cases.length}" failures="${failures}" ` +
     `time="${time}" timestamp="${new Date().toISOString()}">\n` +
     `${cases.join("\n")}\n</testsuite>\n</testsuites>`);
-}
+};
+
+/**
+ * Returns string that is path to the reports based on the OS where the test in run
+ * @param {String} reportName 
+ * @returns path
+ */
+export function reportPath(reportName) {
+  var path = `src/reports/${reportName}.xml`;
+  if (!(__ENV.OS && __ENV.OS.includes("Windows"))) path = `/${path}`;
+  return path;
+};

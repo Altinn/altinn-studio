@@ -60,10 +60,14 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
 
 //Function to clip out the instance owner id and return only instance id
 export function findInstanceId(responseBody) {
-    var instanceId = (JSON.parse(responseBody)).id;
-    instanceId = instanceId.split('/');
-    instanceId = instanceId[1];
-    return instanceId;
+    try {
+        var instanceId = (JSON.parse(responseBody)).id;
+        instanceId = instanceId.split('/');
+        instanceId = instanceId[1];
+        return instanceId;
+    } catch (error) {
+        stopIterationOnFail("Instance id cannot be retrieved:", false, null);
+    }
 };
 
 //Function to find all the archived app instances created after specific created date time for an appOwner for a specific app and returns instance id as an array
