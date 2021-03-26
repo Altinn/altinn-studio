@@ -2,22 +2,22 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
 import React from 'react';
-import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
-import { AltinnButton } from 'altinn-shared/components';
-import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
+import { Grid } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
-import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { getTextResource } from 'src/utils/formComponentUtils';
-import { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
-import { renderGenericComponent, setupGroupComponents } from '../../../utils/layout';
+import { getHiddenFieldsForGroup } from 'src/utils/layout';
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
+import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
+import { RepeatingGroupTable } from './RepeatingGroupTable';
+import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
+import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
 
 export interface IGroupProps {
   id: string;
@@ -25,149 +25,17 @@ export interface IGroupProps {
   components: (ILayoutComponent | ILayoutGroup)[]
 }
 
-const theme = createMuiTheme(altinnAppTheme);
-
-const useStyles = makeStyles({
-  addButton: {
-    backgroundColor: theme.altinnPalette.primary.white,
-    border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    color: theme.altinnPalette.primary.black,
-    fontWeight: 'bold',
-    width: '100%',
-    '&:hover': {
-      cursor: 'pointer',
-      borderStyle: 'solid',
-    },
-    '&:focus': {
-      outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
-      border: `2px solid ${theme.altinnPalette.primary.blueDark}`,
-      outlineOffset: 0,
-    },
-  },
-  addButtonText: {
-    fontWeight: 400,
-    fontSize: '1.6rem',
-    borderBottom: `2px solid${theme.altinnPalette.primary.blue}`,
-  },
-  editContainer: {
-    display: 'inline-block',
-    border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    padding: '12px',
-    width: '100%',
-  },
-  deleteItem: {
-    paddingBottom: '0px !important',
-  },
-  saveItem: {
-    paddingTop: '0px !important',
-  },
-  table: {
-    tableLayout: 'fixed',
-    marginBottom: '12px',
-    wordBreak: 'break-word',
-  },
-  tableHeader: {
-    borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-    '& th': {
-      fontSize: '1.4rem',
-      padding: '0px',
-      paddingLeft: '6px',
-      '& p': {
-        fontWeight: 500,
-        fontSize: '1.4rem',
-        padding: '0px',
-        paddingLeft: '6px',
-      },
-    },
-  },
-  tableBody: {
-    '& td': {
-      borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-      padding: '0px',
-      paddingLeft: '6px',
-      fontSize: '1.4rem',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-    },
-  },
-  tableRowError: {
-    backgroundColor: '#F9CAD3;',
-  },
-  errorIcon: {
-    fontSize: '2em',
-    minWidth: '0px',
-    minHeight: '0px',
-    width: 'auto',
-  },
-  addIcon: {
-    transform: 'rotate(45deg)',
-    fontSize: '3.4rem',
-    marginRight: '0.7rem',
-  },
-  deleteButton: {
-    padding: '0px',
-    color: 'black',
-  },
-  editIcon: {
-    paddingLeft: '6px',
-  },
-  mobileGrid: {
-    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    paddingLeft: '0.6rem',
-    paddingRight: '0.6rem',
-  },
-  mobileContainer: {
-    borderTop: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-    marginBottom: '1.2rem',
-  },
-  mobileText: {
-    fontWeight: 500,
-    float: 'left',
-    maxWidth: '50%',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    '& p': {
-      fontWeight: 500,
-    },
-  },
-  mobileValueText: {
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    maxWidth: '50%',
-    minWidth: '50%',
-  },
-  textContainer: {
-    width: '100%',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-  },
-});
-
-export function getHiddenFieldsForGroup(hiddenFields: string[], components: (ILayoutGroup | ILayoutComponent)[]) {
-  const result = [];
-  hiddenFields.forEach((fieldKey) => {
-    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
-    if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
-      result.push(fieldKey);
-    }
-  });
-
-  return result;
-}
-
 export function GroupContainer({
   id,
   container,
   components,
 }: IGroupProps): JSX.Element {
-  const classes = useStyles();
   const dispatch = useDispatch();
-  const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
+
+  const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const [groupErrors, setGroupErrors] = React.useState<string>(null);
+
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
@@ -177,7 +45,6 @@ export function GroupContainer({
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const [editIndex, setEditIndex] = React.useState<number>(-1);
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
@@ -187,15 +54,6 @@ export function GroupContainer({
     return -1;
   };
   const repeatinGroupIndex = getRepeatingGroupIndex(id);
-  const tableHeaderComponents = container.tableHeaders || container.children || [];
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const componentTitles: string[] = [];
-  renderComponents.forEach((component: ILayoutComponent) => {
-    const childId = (component as any).baseComponentId || component.id;
-    if (tableHeaderComponents.includes(childId)) {
-      componentTitles.push(component.textResourceBindings?.title || '');
-    }
-  });
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
     container,
     renderComponents,
@@ -204,6 +62,22 @@ export function GroupContainer({
     hiddenFields,
   );
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
+
+  React.useEffect(() => {
+    if (container.edit?.mode !== 'showAll' && container.edit?.rules && container.edit.rules.length > 0) {
+      container.edit.rules.forEach((rule: any) => {
+        const formDataKey = Object.keys(formData).find((key) => {
+          const keyWithoutIndex = key.replace(/\[\d*\]/, '');
+          return keyWithoutIndex === rule.key && formData[key] === rule.value;
+        });
+        if (formDataKey) {
+          const index = formDataKey.replace(container.dataModelBindings.group, '')
+            .substring(1, formDataKey.indexOf(']') + 1);
+          setEditIndex(parseInt(index, 10));
+        }
+      });
+    }
+  }, [formData, container]);
 
   React.useEffect(() => {
     if (validations && validations[currentView] && validations[currentView][id]) {
@@ -219,49 +93,15 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    setEditIndex(repeatinGroupIndex + 1);
+    if (container.edit?.mode !== 'showAll') {
+      setEditIndex(repeatinGroupIndex + 1);
+    }
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
       onClickAdd();
     }
-  };
-
-  const getFormDataForComponent = (component: ILayoutComponent | ILayoutGroup, index: number): string => {
-    if (component.type === 'Group' || component.type === 'Header' || component.type === 'Paragraph') {
-      return '';
-    }
-    const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
-    const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
-      const selectionComponent = component as ISelectionComponentProps;
-      let label: string;
-      if (selectionComponent?.options) {
-        label = selectionComponent.options.find((option: IOption) => option.value === formData[replaced])?.label;
-      } else if (selectionComponent.optionsId) {
-        label = options[selectionComponent.optionsId]?.find((option: IOption) => option.value === formData[replaced])?.label;
-      }
-      return getTextResourceByKey(label, textResources) || '';
-    }
-    if (component.type === 'Checkboxes') {
-      const selectionComponent = component as ISelectionComponentProps;
-      let label: string = '';
-      const data: string = formData[replaced];
-      const split = data?.split(',');
-      split?.forEach((value: string) => {
-        if (selectionComponent?.options) {
-          label += getTextResourceByKey(selectionComponent.options.find((option: IOption) => option.value === value)?.label, textResources) || '';
-        } else if (selectionComponent.optionsId) {
-          label += getTextResourceByKey(options[selectionComponent.optionsId]?.find((option: IOption) => option.value === value)?.label, textResources) || '';
-        }
-        if (split.indexOf(value) < (split.length - 1)) {
-          label += ', ';
-        }
-      });
-      return label;
-    }
-    return formData[replaced] || '';
   };
 
   const onClickRemove = (groupIndex: number) => {
@@ -273,35 +113,6 @@ export function GroupContainer({
     }));
   };
 
-  const onClickEdit = (groupIndex: number) => {
-    if (groupIndex === editIndex) {
-      setEditIndex(-1);
-    } else {
-      setEditIndex(groupIndex);
-    }
-  };
-
-  const childElementHasErrors = (element: ILayoutGroup | ILayoutComponent, index: number) => {
-    if (element.type === 'Group') {
-      return childGroupHasErrors(element as ILayoutGroup, index);
-    }
-    return componentHasValidations(validations, currentView, `${element.id}`);
-  };
-
-  const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
-    const childGroupCount = repeatingGroups[childGroup.id]?.count;
-    const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
-    const childRenderComponents = setupGroupComponents(childGroupComponents, childGroup.dataModelBindings?.group, index);
-    const deepCopyComponents = createRepeatingGroupComponents(
-      childGroup,
-      childRenderComponents,
-      childGroupCount,
-      textResources,
-      hiddenFields,
-    );
-    return repeatingGroupHasValidations(childGroup, deepCopyComponents, validations, currentView, repeatingGroups, layout, hiddenFields);
-  };
-
   if (hidden) {
     return null;
   }
@@ -311,193 +122,87 @@ export function GroupContainer({
       container={true}
       item={true}
     >
-      <Grid
-        container={true}
-        item={true}
-        data-testid={`group-${id}`}
-        id={`group-${id}`}
-      >
-        {!mobileView &&
-        <TableContainer component={Grid}>
-          <Table className={classes.table}>
-            <TableHead className={classes.tableHeader}>
-              <TableRow>
-                {componentTitles.map((title: string) => (
-                  <TableCell align='left' key={title}>
-                    {getTextResource(title, textResources)}
-                  </TableCell>
-                ))}
-                <TableCell/>
-              </TableRow>
-            </TableHead>
-            <TableBody className={classes.tableBody}>
-              {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-                const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
-                  return childElementHasErrors(component, repeatingGroupIndex);
-                });
-                return (
-                  <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={repeatingGroupIndex}>
-                    {components.map((component: ILayoutComponent) => {
-                      const childId = (component as any).baseComponentId || component.id;
-                      if (!tableHeaderComponents.includes(childId)) {
-                        return null;
-                      }
-                      return (
-                        <TableCell key={`${component.id} ${repeatingGroupIndex}`}>
-                          {getFormDataForComponent(component, repeatingGroupIndex)}
-                        </TableCell>
-                      );
-                    })}
-                    <TableCell align='right' key={`delete-${repeatingGroupIndex}`}>
-                      <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(repeatingGroupIndex)}>
-                        {rowHasErrors ?
-                          getLanguageFromKey('general.edit_alt_error', language) :
-                          getLanguageFromKey('general.edit_alt', language)}
-                        <i className={rowHasErrors ?
-                          `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}` :
-                          `fa fa-editing-file ${classes.editIcon}`}
-                        />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>);
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>}
-        {mobileView &&
-        <Grid
-          container={true}
-          item={true}
-          direction='column'
-          className={classes.mobileContainer}
-        >
-          {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
-            const rowHasErrors = repeatingGroupDeepCopyComponents[repeatingGroupIndex].some((component: ILayoutComponent | ILayoutGroup) => {
-              return childElementHasErrors(component, repeatingGroupIndex);
-            });
-            return (
-              <Grid
-                item={true} container={true}
-                justify='flex-end' direction='row'
-                className={`${classes.mobileGrid} ${rowHasErrors ? classes.tableRowError : ''}`}
-              >
-                <Grid item={true}>
-                  <IconButton
-                    style={{
-                      color: 'black', padding: '0px', paddingLeft: '6px',
-                    }} onClick={() => onClickEdit(repeatingGroupIndex)}
-                  >
-                    {rowHasErrors ?
-                      getLanguageFromKey('general.edit_alt_error', language) :
-                      getLanguageFromKey('general.edit_alt', language)}
-                    <i className={rowHasErrors ?
-                      `ai ai-circle-exclamation ${classes.errorIcon}` :
-                      `fa fa-editing-file ${classes.editIcon}`}
-                    />
-                  </IconButton>
-                </Grid>
-                {componentTitles.map((title: string, index: number) => {
-                  return (
-                    <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
-                      <div className={classes.mobileText}>
-                        {getTextResource(title, textResources)}
-                      </div>
-                      <div
-                        className={classes.mobileValueText}
-                      >
-                        {`: ${getFormDataForComponent(components[index], repeatingGroupIndex)}`}
-                      </div>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            );
-          })}
-        </Grid>
-        }
-      </Grid>
+      { (!container.edit?.mode || container.edit?.mode === 'showTable'
+        || (container.edit?.mode === 'hideTable' && editIndex < 0)) &&
+        <RepeatingGroupTable
+          components={components}
+          container={container}
+          currentView={currentView}
+          editIndex={editIndex}
+          formData={formData}
+          hiddenFields={hiddenFields}
+          id={id}
+          language={language}
+          layout={layout}
+          options={options}
+          repeatingGroupIndex={repeatinGroupIndex}
+          repeatingGroups={repeatingGroups}
+          setEditIndex={setEditIndex}
+          textResources={textResources}
+          validations={validations}
+        />
+      }
       <Grid
         container={true}
         justify='flex-end'
       />
-      {((editIndex < 0) && ((repeatinGroupIndex + 1) < container.maxCount)) &&
-      <Grid
-        container={true}
-        direction='row'
-        justify='center'
-      >
-        <Grid
-          item={true}
-          container={true}
-          direction='row'
-          xs={12}
-          className={classes.addButton}
-          role='button'
-          tabIndex={0}
-          onClick={onClickAdd}
-          onKeyPress={(event) => onKeypressAdd(event)}
-          justify='center'
-          alignItems='center'
-        >
-          <Grid item={true}>
-            <i className={`fa fa-exit ${classes.addIcon}`} />
-          </Grid>
-          <Grid item={true}>
-            <span className={classes.addButtonText}>
-              {`${getLanguageFromKey('general.add_new', language)}
-              ${container.textResourceBindings?.add_button ? getTextResourceByKey(container.textResourceBindings.add_button, textResources) : ''}`}
-            </span>
-          </Grid>
-        </Grid>
-      </Grid>
+      {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatinGroupIndex + 1) < container.maxCount))) &&
+        <RepeatingGroupAddButton
+          container={container}
+          language={language}
+          onClickAdd={onClickAdd}
+          onKeypressAdd={onKeypressAdd}
+          textResources={textResources}
+        />
       }
       {(editIndex >= 0) &&
-      <div className={classes.editContainer}>
-        <Grid
-          container={true}
-          item={true}
-          direction='row'
-          spacing={3}
-        >
-          <Grid
-            item={true}
-            container={true}
-            direction='column'
-            alignItems='flex-end'
-            spacing={3}
-            className={classes.deleteItem}
-          >
-            <Grid item={true}>
-              <IconButton
-                classes={{ root: classes.deleteButton }}
-                onClick={() => onClickRemove(editIndex)}
-              >
-                {getLanguageFromKey('general.delete', language)}
-                <i className='ai ai-trash'/>
-              </IconButton>
-            </Grid>
-          </Grid>
-          <Grid
-            container={true}
-            alignItems='flex-start'
-            item={true}
-            spacing={3}
-          >
-            { repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => { return renderGenericComponent(component, layout, editIndex); }) }
-          </Grid>
-          <Grid
-            item={true}
-            spacing={3}
-            className={classes.saveItem}
-          >
-            <AltinnButton
-              btnText={getLanguageFromKey('general.save', language)}
-              onClickFunction={() => setEditIndex(-1)}
-              id={`add-button-grp-${id}`}
+        <RepeatingGroupsEditContainer
+          components={components}
+          container={container}
+          editIndex={editIndex}
+          hiddenFields={hiddenFields}
+          id={id}
+          language={language}
+          layout={layout}
+          onClickRemove={onClickRemove}
+          repeatingGroupIndex={repeatinGroupIndex}
+          setEditIndex={setEditIndex}
+          textResources={textResources}
+          hideSaveButton={container.edit?.saveButton === false}
+          hideDeleteButton={container.edit?.deleteButton === false}
+        />
+      }
+      {container.edit?.mode === 'showAll' &&
+      // Generate array of length repeatingGroupIndex and iterate over indexes
+        Array(repeatinGroupIndex + 1).fill(0).map((v, index) => {
+          return (
+            <RepeatingGroupsEditContainer
+              components={components}
+              container={container}
+              editIndex={index}
+              hiddenFields={hiddenFields}
+              id={id}
+              language={language}
+              layout={layout}
+              onClickRemove={onClickRemove}
+              repeatingGroupIndex={repeatinGroupIndex}
+              setEditIndex={setEditIndex}
+              textResources={textResources}
+              hideSaveButton={true}
+              hideDeleteButton={container.edit?.deleteButton === false}
             />
-          </Grid>
-        </Grid>
-      </div>}
+          );
+        })
+      }
+      {(container.edit?.mode === 'showAll' && ((repeatinGroupIndex + 1) < container.maxCount)) &&
+        <RepeatingGroupAddButton
+          container={container}
+          language={language}
+          onClickAdd={onClickAdd}
+          onKeypressAdd={onKeypressAdd}
+          textResources={textResources}
+        />
+      }
       {tableHasErrors &&
       <Grid
         container={true}
