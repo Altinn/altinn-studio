@@ -56,14 +56,14 @@ RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.201-alpine3.13 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.201-alpine3.12 AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.4-alpine3.13 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.4-alpine3.12 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
