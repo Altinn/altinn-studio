@@ -37,7 +37,7 @@ namespace Altinn.App.Common.Models
         }
 
         /// <summary>
-        /// The data model
+        /// The key-value pair of fields changed by a calculation
         /// </summary>
         public Dictionary<string, object> ChangedFields { get; set; }
 
