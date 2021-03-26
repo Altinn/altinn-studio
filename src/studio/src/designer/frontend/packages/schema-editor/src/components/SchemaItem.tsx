@@ -6,12 +6,9 @@ import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton, TextField } from '@material-ui/core';
 import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
-import { InputField } from './InputField';
-import { setKey,
-  setFieldValue,
-  deleteProperty,
+import { deleteProperty,
   setPropertyName,
-  deleteField, setSelectedId } from '../features/editor/schemaEditorSlice';
+  setSelectedId } from '../features/editor/schemaEditorSlice';
 import ConstItem from './ConstItem';
 import { Field, ISchemaState } from '../types';
 
@@ -32,7 +29,6 @@ const useStyles = makeStyles({
   labelRoot: {
     display: 'flex',
     alignItems: 'center',
-    padding: 2,
   },
   label: {
     paddingRight: 12,
@@ -59,6 +55,17 @@ const useStyles = makeStyles({
   button: {
     background: 'none',
     border: 'none',
+  },
+  field: {
+    marginLeft: 30,
+    marginBottom: 4,
+  },
+  iconContainer: {
+    background: '#022f51',
+    textAlign: 'center',
+    padding: '5px 0px 5px 0px',
+    marginRight: 4,
+    fontSize: '10px',
   },
 });
 
@@ -126,10 +133,6 @@ function SchemaItem(props: StyledTreeItemProps) {
     dispatch(deleteProperty({ path: id }));
   };
 
-  const onDeleteFieldClick = (path: string, key: string) => {
-    dispatch(deleteField({ path, key }));
-  };
-
   const onToggleEditLabel = (event: any) => {
     if (editLabel) {
       dispatch(setPropertyName({ path: id, name: label }));
@@ -147,29 +150,16 @@ function SchemaItem(props: StyledTreeItemProps) {
     event.stopPropagation();
   };
 
-  const onChangeValue = (path: string, value: any, key?: string) => {
-    const data = {
-      path,
-      value: Number.isNaN(value) ? value : +value,
-      key,
-    };
-    dispatch(setFieldValue(data));
-  };
-
-  const onChangeKey = (path: string, oldKey: string, newKey: string) => {
-    dispatch(setKey({
-      path, oldKey, newKey,
-    }));
-  };
   const onItemClick = (itemId: string) => {
     console.log(itemId);
     dispatch(setSelectedId({ id: itemId }));
   };
+  const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: '#c0cbd3', textAlign: 'center' }} /></span>;
 
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        <TreeItem nodeId={`${keyPrefix}-${id}-properties`} label={<><i className='fa fa-list' />properties</>}>
+        <TreeItem nodeId={`${keyPrefix}-${id}-properties`} label={<>{ icon('fa-datamodel-properties') } properties</>}>
           { itemProperties.map((property: any) => {
             return (
               <SchemaItem
@@ -192,25 +182,17 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderFields = (itemFields: Field[], path: string) => {
     if (itemFields && itemFields.length > 0) {
       return (
-        <TreeItem nodeId={`${keyPrefix}-fields`} label={<><i className='fa fa-drop-down' />properties</>}>
+        <>
           {itemFields.map((field) => {
             if (field.key.startsWith('@xsd')) {
               return null;
             }
             return (
-              <InputField
-                key={`field-${path}-${field.key}`}
-                value={field.value}
-                label={field.key}
-                fullPath={path}
-                onChangeValue={onChangeValue}
-                onChangeKey={onChangeKey}
-                onDeleteField={onDeleteFieldClick}
-              />
+              <p className={classes.field} key={`field-${path}-${field.key}`}>{ icon('fa-datamodel-element') }{field.key}: {field.value}</p>
             );
           })
           }
-        </TreeItem>
+        </>
       );
     }
     return null;
@@ -258,7 +240,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           />
           :
           <Typography className={classes.label}>
-            {refSource ? <><i className='fa fa-link' />{`$ref: ${refSource}`}</> : <><i className='fa fa-brackets-curly'/>{item.name ?? id.replace('#/definitions/', '')}</>}
+            {refSource ? <>{ icon('fa-datamodel-ref') }{`$ref: ${refSource}`}</> : <>{ icon('fa-datamodel-object') }{item.name ?? id.replace('#/definitions/', '')}</>}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}

@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { ISchemaState } from '../types';
+import { Field, ISchemaState } from '../types';
+import { InputField } from './InputField';
+import { setFieldValue, setKey, deleteField } from '../features/editor/schemaEditorSlice';
 
 const useStyles = makeStyles(
   createStyles({
@@ -20,7 +22,8 @@ export interface ISchemaInspector {
 
 export const SchemaInspector = (() => {
   const classes = useStyles();
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
+
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -35,6 +38,24 @@ export const SchemaInspector = (() => {
     }
     return null;
   });
+
+  const onChangeValue = (path: string, value: any, key?: string) => {
+    const data = {
+      path,
+      value: Number.isNaN(value) ? value : +value,
+      key,
+    };
+    dispatch(setFieldValue(data));
+  };
+
+  const onChangeKey = (path: string, oldKey: string, newKey: string) => {
+    dispatch(setKey({
+      path, oldKey, newKey,
+    }));
+  };
+  const onDeleteFieldClick = (path: string, key: string) => {
+    dispatch(deleteField({ path, key }));
+  };
 
   const RenderSelectedItem = () => (selectedItem ?
     <div>
@@ -54,11 +75,19 @@ export const SchemaInspector = (() => {
           </tr>
 
           <tr><td><h3>Properties</h3></td></tr>
-          { selectedItem.fields?.map((f) => <tr key={f.key}><td>{f.key}</td><td>{f.value}</td></tr>) }
+          {/* { selectedItem.fields?.map((f) => <tr key={f.key}><td>{f.key}</td><td>{f.value}</td></tr>) } */}
           { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
         </tbody>
       </table>
-
+      { selectedItem.fields?.map((field: Field) => <InputField
+        key={`field-${field.key}`}
+        value={field.value}
+        label={field.key}
+        fullPath={selectedId}
+        onChangeValue={onChangeValue}
+        onChangeKey={onChangeKey}
+        onDeleteField={onDeleteFieldClick}
+      />)}
     </div> : null);
 
   return (
