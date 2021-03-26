@@ -203,8 +203,8 @@ export interface IValidated {
 export interface ITextResource {
   id: string;
   value: string;
-  unparsedValue: string;
-  variables: IVariable[];
+  unparsedValue?: string;
+  variables?: IVariable[];
   repeating?: boolean;
 }
 
