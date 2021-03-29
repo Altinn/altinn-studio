@@ -5,14 +5,15 @@
         "id": "messageTitle",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "messageTitle"
+          "title": "messageTitle",
+          "help": "messageTitleHelp"
         }
       },
       {
         "id": "messageBody",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "messageBody"
+          "title": "messageBody"          
         }
       },
       {

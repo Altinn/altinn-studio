@@ -59,10 +59,10 @@
         "id": "yourChanges",
         "type": "Header",
         "textResourceBindings": {
-          "title": "DineEndringer"
+          "title": "DineEndringer"          
         },
         "dataModelBindings": {},
-        "size": "L"
+        "size": "L"        
       },
       {
         "id": "changeNameFrom",
