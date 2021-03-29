@@ -9,7 +9,6 @@ import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@
 import { deleteProperty,
   setPropertyName,
   setSelectedId } from '../features/editor/schemaEditorSlice';
-import ConstItem from './ConstItem';
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -96,7 +95,6 @@ function SchemaItem(props: StyledTreeItemProps) {
     id, $ref, fields, properties,
   } = item;
 
-  const [constItem, setConstItem] = React.useState<boolean>(false);
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
   const [editLabel, setEditLabel] = React.useState<boolean>(false);
   const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/', ''));
@@ -104,9 +102,9 @@ function SchemaItem(props: StyledTreeItemProps) {
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
   React.useEffect(() => {
-    if (fields && fields.find((v: any) => v.key === 'const')) {
-      setConstItem(true);
-    }
+    // if (fields && fields.find((v: any) => v.key === 'const')) {
+    //   setConstItem(true);
+    // }
     if (refItems && refItems.length > 0) {
       const refItem = refItems[refItems.length - 1];
       setDefinitionItem(refItem);
@@ -184,9 +182,9 @@ function SchemaItem(props: StyledTreeItemProps) {
       return (
         <>
           {itemFields.map((field) => {
-            if (field.key.startsWith('@xsd')) {
-              return null;
-            }
+            // if (field.key.startsWith('@xsd')) {
+            //   return null;
+            // }
             return (
               <p className={classes.field} key={`field-${path}-${field.key}`}>{ icon('fa-datamodel-element') }{field.key}: {field.value}</p>
             );
@@ -200,28 +198,17 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const RenderRefItems = () => {
     if (refItems && refItems.length > 0) {
-      let typeStr = '';
-      refItems.forEach((refItem, index) => {
-        typeStr = `${typeStr} ${refItem.id.replace('#/definitions/', '')} ${index < refItems.length - 1 ? '-->' : ''}`;
-      });
       return (
-        <>
-          {/* <TreeItem nodeId={`ref-${id}`} label={`$ref: ${$ref}`}> */}
-          <SchemaItem
-            keyPrefix={`${keyPrefix}-${definitionItem.id}`}
-            key={`${keyPrefix}-${definitionItem.id}`}
-            // label={`$ref: ${$ref}`}
-            refSource={$ref}
-            onClick={() => onItemClick(definitionItem.id)}
-            item={definitionItem}
-            nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
-            onAddPropertyClick={props.onAddPropertyClick}
-          />
-           {/* </TreeItem> */}
-          {/* <Typography>Type: {typeStr}</Typography>
-          {RenderProperties(definitionItem?.properties)}
-          {RenderFields(definitionItem?.fields, definitionItem?.id)} */}
-        </>
+        <SchemaItem
+          keyPrefix={`${keyPrefix}-${definitionItem.id}`}
+          key={`${keyPrefix}-${definitionItem.id}`}
+          // label={`$ref: ${$ref}`}
+          refSource={$ref}
+          onClick={() => onItemClick(definitionItem.id)}
+          item={definitionItem}
+          nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
+          onAddPropertyClick={props.onAddPropertyClick}
+        />
       );
     }
     return null;
@@ -264,17 +251,6 @@ function SchemaItem(props: StyledTreeItemProps) {
       </div>
     );
   };
-
-  if (constItem || item.value) {
-    return (
-      <TreeItem
-        label={
-          <ConstItem item={item}/>
-        }
-        {...other}
-      />
-    );
-  }
 
   return (
     <TreeItem
