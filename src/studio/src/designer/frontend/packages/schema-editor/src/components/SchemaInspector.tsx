@@ -10,9 +10,11 @@ const useStyles = makeStyles(
   createStyles({
     root: {
       height: 600,
+      minWidth: 300,
       flexGrow: 1,
       margin: 4,
       padding: 2,
+      position: 'fixed',
     },
   }),
 );
@@ -65,15 +67,14 @@ export const SchemaInspector = (() => {
             <td>id</td>
             <td>{selectedId}</td>
           </tr>
-          <tr>
+          {/* <tr>
             <td>name</td>
             <td>{selectedItem.name}</td>
           </tr>
           <tr>
             <td>$ref</td>
             <td>{selectedItem.$ref}</td>
-          </tr>
-
+          </tr> */}
           <tr><td><h3>Properties</h3></td></tr>
           {/* { selectedItem.fields?.map((f) => <tr key={f.key}><td>{f.key}</td><td>{f.value}</td></tr>) } */}
           { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
