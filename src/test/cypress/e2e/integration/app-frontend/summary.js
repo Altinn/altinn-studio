@@ -1,16 +1,16 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common'
 import * as texts from '../../fixtures/texts.json'
 
-const appName = Cypress.env('localTestAppName');
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Summary', () => {
   before(() => {
-    cy.navigateToChangeName(appName);
+    cy.navigateToChangeName();
   });
 
   it('Summary of change name form', () => {
@@ -44,7 +44,7 @@ describe('Summary', () => {
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredField).should('be.visible');
         cy.get(summaryDate).contains('button', texts.goToRightPage).should('be.visible').click();
         cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click().then(() => {
-          cy.get(mui.selectedDate).parent().next().click();
+          cy.get(mui.selectedDate).parent().click();
           cy.contains(mui.button, texts.backToSummary).should('be.visible').click();
         });
       });

@@ -1,16 +1,16 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common'
 import * as texts from '../../fixtures/texts.json'
-const mui = new Common();
 
-const appName = Cypress.env('localTestAppName');
+const mui = new Common();
 const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
   before(() => {
-    cy.navigateToChangeName(appName);
+    cy.navigateToChangeName();
   });
 
   it('Receipt page displays links and attachments', () => {

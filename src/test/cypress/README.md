@@ -78,5 +78,5 @@ If one has the frontend dependencies installed from  before, run the below comma
 
 4. Start the app frontend tests from a new git bash terminal.
 ```cmd
-    npm run test:appfrontend
+    npm run test:appfrontend --env=local
 ```

@@ -1,6 +1,6 @@
 /// <reference types='cypress' />
 
-const baseUrl = Cypress.env('localTestBaseUrl');
+const baseUrl = Cypress.env('localTest');
 
 /**
  * Get AltinnStudioRuntime token for an org

@@ -1,13 +1,13 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 
-const appName = Cypress.env('localTestAppName');
 const appFrontend = new AppFrontend();
 
 describe('Prefill', () => {
   before(() => {
-    cy.navigateToChangeName(appName);
+    cy.navigateToChangeName();
   });
 
   it('Check Prefill from register and readonly input', () => {
