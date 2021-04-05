@@ -45,6 +45,19 @@
       "minCount": 0
     },
     {
+      "id": "nested-group",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.NestedGroup"
+      },
+      "taskId": "Task_3",
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
       "id": "ref-data-as-pdf",
       "allowedContentTypes": [
         "application/pdf"

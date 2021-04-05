@@ -33,6 +33,19 @@ namespace Altinn.App.AppLogic.Validation
                     validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "test er ikke en gyldig verdi");
                 }
             }
+
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                 NestedGroup model = (NestedGroup)data;                
+                 String comments = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788[0]?.nestedgrp1234[0].SkattemeldingEndringEtterFristKommentardatadef37133.value;
+                if (model.Endringsmeldinggrp9786.Avgivergrp9787.OppgavegiverNavndatadef68.value.Contains("test")) {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "Name cannot contain test");              
+                }
+                if (comments.Contains("test"))
+                {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].SkattemeldingEndringEtterFristKommentar-datadef-37133.value", "Comments cannot contain test");              
+                }
+            }
             await Task.CompletedTask;
         }
 

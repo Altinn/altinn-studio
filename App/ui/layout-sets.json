@@ -12,6 +12,13 @@
       "tasks": [
         "Task_2"
       ]
+    },
+    {
+      "id": "group",
+      "dataType": "nested-group",
+      "tasks": [
+        "Task_3"
+      ]
     }
   ]
 }
