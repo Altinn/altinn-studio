@@ -99,8 +99,8 @@
         "id": "nav-page-1",
         "type": "NavigationButtons",
         "textResourceBindings": {
-          "next": "next",
-          "back": "back"
+          "next": "Neste",
+          "back": "Forrige"
         },
         "dataModelBindings": {},
         "showBackButton": false,

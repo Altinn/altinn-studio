@@ -21,8 +21,8 @@
         "id": "nav-page-2",
         "type": "NavigationButtons",
         "textResourceBindings": {
-          "next": "neste",
-          "back": "forrige"
+          "next": "Neste",
+          "back": "Forrige"
         },
         "dataModelBindings": {},
         "showBackButton": true
