@@ -481,16 +481,14 @@ namespace Altinn.App.Services.Implementation
                 bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
 
                 string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
-                Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
 
-                using (stream)
+                using Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
+
+                bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
+
+                if (!successful)
                 {
-                    bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
-
-                    if (!successful)
-                    {
-                        _logger.LogError("// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed.", dataElement.Id, instance.Id);
-                    }
+                    _logger.LogError("// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed.", dataElement.Id, instance.Id);
                 }
             }
         }

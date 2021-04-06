@@ -1,8 +1,8 @@
 {
-  "id": "ttd/eformidling-app",
+  "id": "ttd/eformidling-app-invalid",
   "org": "ttd",
   "title": {
-    "nb": "eformidling-app"
+    "nb": "eformidling-app-invalid"
   },
   "dataTypes": [
     {
