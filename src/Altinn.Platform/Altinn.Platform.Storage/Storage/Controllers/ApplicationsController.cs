@@ -40,6 +40,34 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Get all applications.
+        /// </summary>
+        /// <returns>List of all applications</returns>
+        [Authorize]
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<ApplicationList>> GetAll()
+        {
+            try
+            {
+                List<Application> applications = await repository.FindAll();
+                ApplicationList applicationList = new ApplicationList { Applications = applications };
+                return Ok(applicationList);
+            }
+            catch (DocumentClientException dce)
+            {
+                logger.LogError($"Unable to access document database {dce}");
+                return StatusCode(500, $"Unable to access document database {dce}");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Unable to perform query request {e}");
+                return StatusCode(500, $"Unable to perform query request {e}");
+            }
+        }
+
+        /// <summary>
         /// Get all applications deployed by a given application owner.
         /// </summary>
         /// <param name="org">The id of the application owner.</param>
@@ -58,7 +86,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                List<Application> applications = await repository.ListApplications(org);
+                List<Application> applications = await repository.FindByOrg(org);
 
                 ApplicationList applicationList = new ApplicationList { Applications = applications };
 
