@@ -104,7 +104,7 @@
         },
         "dataModelBindings": {},
         "showBackButton": false,
-        "triggers": ["calculatePageOrder"]       
+        "triggers": ["calculatePageOrder","validatePage"]       
       }
     ]
   }
