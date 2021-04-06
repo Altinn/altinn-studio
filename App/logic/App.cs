@@ -59,6 +59,7 @@ namespace Altinn.App.AppLogic
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
             _pdfHandler = new PdfHandler();
+            _appResources = appResourcesService;
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -162,6 +163,10 @@ namespace Altinn.App.AppLogic
         /// <returns>Layoutsetting with possible hidden fields or pages</returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                UpdatePageOrder(layoutSettings.Pages.Order, (NestedGroup)data);
+            }
             return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
 

@@ -6,7 +6,7 @@
         "type": "Paragraph",
         "componentType": 1,
         "textResourceBindings": {
-          "title": "finish"
+          "title": "Oppsummering av gruppe"
         },
         "dataModelBindings": {}
       },

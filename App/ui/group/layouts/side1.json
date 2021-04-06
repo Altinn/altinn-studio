@@ -103,7 +103,8 @@
           "back": "back"
         },
         "dataModelBindings": {},
-        "showBackButton": false        
+        "showBackButton": false,
+        "triggers": ["calculatePageOrder"]       
       }
     ]
   }
