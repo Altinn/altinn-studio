@@ -1,0 +1,25 @@
+name: Designer Scan
+
+on:
+  schedule:
+  - cron: '0 8 * * 1,4'
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/studio/src/designer/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/studio/src/designer**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build src/studio/ --file  src/studio/src/designer/Dockerfile --tag altinn-designer:${{github.sha}}
+      
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: altinn-designer:${{ github.sha }}
