@@ -14,7 +14,11 @@ function SchemaEditorApp(props: IAppProps) {
   return (
     <div id='schema-editor-container'>
       <Provider store={store}>
-        <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} rootItemId={props.rootItemId}/>
+        <SchemaEditor
+          schema={props.schema}
+          onSaveSchema={props.onSaveSchema}
+          rootItemId={props.rootItemId}
+        />
       </Provider>
     </div>
   );

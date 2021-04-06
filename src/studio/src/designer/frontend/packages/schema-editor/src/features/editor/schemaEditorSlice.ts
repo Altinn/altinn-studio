@@ -124,7 +124,6 @@ const schemaEditorSlice = createSlice({
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
-      console.log(schema);
       state.schema = schema;
     },
     setPropertyName(state, action) {

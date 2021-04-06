@@ -8,7 +8,7 @@ export interface ISchemaState {
   uiSchema: UiSchemaItem[];
   rootName: string;
   saveSchemaUrl: string;
-  selectedId: string;
+  selectedId?: string;
 }
 
 export interface ISetValueAction {

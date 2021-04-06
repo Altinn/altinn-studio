@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import SchemaEditorApp from '../../src/SchemaEditorApp';
-import { dataMock } from '../../src/mockData';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
+import SchemaEditorApp from '../../src/SchemaEditorApp';
+import { dataMock } from '../../src/mockData';
 
 let container: any = null;
 beforeEach(() => {
@@ -25,7 +25,7 @@ test('renders schema editor container', () => {
         schema={dataMock}
         onSaveSchema={() => {}}
         rootItemId='#/properties/melding'
-      />
+      />,
     );
   });
   expect(utils.container.firstChild.getAttribute('id')).toBe('schema-editor-container');

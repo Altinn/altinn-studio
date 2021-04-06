@@ -22,14 +22,14 @@ const useStyles = makeStyles(
 export interface ISchemaInspector {
 }
 
-export const SchemaInspector = (() => {
+const SchemaInspector = (() => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      console.log(state.uiSchema);
+      // console.log(state.uiSchema);
       // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
       if (selectedId.includes('/properties/')) {
         const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
@@ -84,13 +84,14 @@ export const SchemaInspector = (() => {
         key={`field-${field.key}`}
         value={field.value}
         label={field.key}
-        fullPath={selectedId}
+        fullPath={selectedItem.id}
         onChangeValue={onChangeValue}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
       />)}
     </div> : null);
 
+// console.log(`selectedId: ${selectedId}, selectedItem.id: ${selectedItem?.id}`);
   return (
     <Card
       elevation={1}

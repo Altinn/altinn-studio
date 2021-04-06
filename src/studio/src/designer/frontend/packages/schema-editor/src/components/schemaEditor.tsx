@@ -133,12 +133,13 @@ export const SchemaEditor = ({
               defaultExpandIcon={<ArrowRightIcon />}
             >
               <TreeItem nodeId='properties' label='properties'>
+                { item &&
                 <SchemaItem
                   keyPrefix='properties'
                   item={item}
                   nodeId={`prop-${item.id}`}
                   onAddPropertyClick={onAddPropertyClick}
-                />
+                /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
               <TreeItem nodeId='definitions' label='definitions'>
