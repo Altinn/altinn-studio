@@ -14,6 +14,8 @@ using Altinn.App.Common.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Models;
+using System.Collections.Generic;
 
 namespace Altinn.App.AppLogic
 {
@@ -24,6 +26,7 @@ namespace Altinn.App.AppLogic
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
         private readonly PdfHandler _pdfHandler;
+        private readonly IAppResources _appResources;
 
         public App(
         IAppResources appResourcesService,
@@ -50,13 +53,14 @@ namespace Altinn.App.AppLogic
             profileService,
             textService,
             httpContextAccessor)
-            {
-                _logger = logger;
-                _validationHandler = new ValidationHandler(httpContextAccessor);
-                _calculationHandler = new CalculationHandler();
-                _instantiationHandler = new InstantiationHandler(profileService, registerService);
-                _pdfHandler = new PdfHandler();
-            }
+        {
+            _logger = logger;
+            _validationHandler = new ValidationHandler(httpContextAccessor);
+            _calculationHandler = new CalculationHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _pdfHandler = new PdfHandler();
+            _appResources = appResourcesService;
+        }
 
         public override object CreateNewAppModel(string classRef)
         {
@@ -95,7 +99,7 @@ namespace Altinn.App.AppLogic
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-           await _validationHandler.ValidateData(data, validationResults);
+            await _validationHandler.ValidateData(data, validationResults);
         }
 
         /// <summary>
@@ -132,7 +136,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-           await _instantiationHandler.DataCreation(instance, data);
+            await _instantiationHandler.DataCreation(instance, data);
         }
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
@@ -159,7 +163,38 @@ namespace Altinn.App.AppLogic
         /// <returns>Layoutsetting with possible hidden fields or pages</returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                UpdatePageOrder(layoutSettings.Pages.Order, (NestedGroup)data);
+            }
             return await _pdfHandler.FormatPdf(layoutSettings, data);
+        }
+
+        public override async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
+        {
+            List<string> pageOrder = new List<string>();
+
+            if (string.IsNullOrEmpty(layoutSetId))
+            {
+                pageOrder = _appResources.GetLayoutSettings().Pages.Order;
+            }
+            else
+            {
+                pageOrder = _appResources.GetLayoutSettingsForSet(layoutSetId).Pages.Order;
+            }
+            if (formData.GetType() == typeof(NestedGroup))
+            {
+                UpdatePageOrder(pageOrder, (NestedGroup)formData);
+            }
+            return pageOrder;
+        }
+
+        private void UpdatePageOrder(List<string> pageOrder, NestedGroup formdata)
+        {
+            if (formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788[0]?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value > 10)            
+            {
+                pageOrder.Remove("side2");
+            }
         }
     }
 }

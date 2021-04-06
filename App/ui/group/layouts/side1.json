@@ -1,0 +1,111 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "showGroupToContinue",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Åpne repterenede grupper"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
+        },
+        "options": [{
+          "label": "Ja",
+          "value": "Ja"
+        }],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "mainGroup",
+        "type": "Group",
+        "children": [
+          "currentValue",
+          "newValue",
+          "subGroup"
+        ],
+        "maxCount": 999,
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "textResourceBindings": {
+          "title": "Group titel"
+        },
+        "triggers": ["validation"]
+      },
+      {
+        "id": "currentValue",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "newValue",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "subGroup",
+        "type": "Group",
+        "children": [
+          "comments"
+        ],
+        "maxCount": 999,
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
+        },
+        "textResourceBindings": {
+          "title": "Nested group"
+        },
+        "triggers": ["validation"]
+      },
+      {
+        "id": "comments",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "triggers": ["validation"]
+      },
+      {
+        "id": "nav-page-1",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next",
+          "back": "back"
+        },
+        "dataModelBindings": {},
+        "showBackButton": false,
+        "triggers": ["calculatePageOrder"]       
+      }
+    ]
+  }
+}

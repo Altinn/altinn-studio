@@ -4,7 +4,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Altinn.App.Models; // Uncomment this line to refer to app model(s)
-
+using System.Linq;
 
 namespace Altinn.App.AppLogic.Validation
 {
@@ -31,6 +31,21 @@ namespace Altinn.App.AppLogic.Validation
                 if (!string.IsNullOrEmpty(firstName) && firstName.Contains("test"))
                 {
                     validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "test er ikke en gyldig verdi");
+                }
+            }
+
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                NestedGroup model = (NestedGroup)data;
+                String comments = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788.FirstOrDefault()?.nestedgrp1234.FirstOrDefault()?.SkattemeldingEndringEtterFristKommentardatadef37133?.value;
+                String name = model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value;
+                if (!string.IsNullOrEmpty(name) && name.Contains("test"))
+                {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "Name cannot contain test");
+                }
+                if (!string.IsNullOrEmpty(comments) && comments.Contains("test"))
+                {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].SkattemeldingEndringEtterFristKommentar-datadef-37133.value", "Comments cannot contain test");
                 }
             }
             await Task.CompletedTask;
