@@ -8,13 +8,10 @@ let app = new App();
 let dash = new DashBoard();
 let environment = (process.env.ENV).toLowerCase();
 
-fixture('Creating/Reading/Updating/Deleting App')
+fixture('Dashboard tests')
   .page(app.baseUrl)
-  .beforeEach(async t => {
-    t.ctx.newAppName = "testcafe04";
-    t.ctx.existingApp = "autotestdeploy";
-    t.ctx.deltMessage = "Du har delt dine endringer";
-    t.ctx.syncMessage = "Endringene er validert";
+  .beforeEach(async t => {    
+    t.ctx.existingApp = "autotestdeploy";    
     t.ctx.ingenSkriveApper = "Vi fant ingen apper som du har skriverettigheter til";
     t.ctx.ingenLeseApper = "Vi fant ingen apper som du eksplisitt har fått leserettigheter til";
     await t
