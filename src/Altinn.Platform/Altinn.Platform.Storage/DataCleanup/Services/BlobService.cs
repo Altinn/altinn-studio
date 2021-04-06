@@ -34,6 +34,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="sasTokenProvider">The sas token provider</param>
+        /// <param name="keyVaultService">The key vault service</param>
         public BlobService(ILogger<IBlobService> logger, ISasTokenProvider sasTokenProvider, IKeyVaultService keyVaultService)
         {
             _logger = logger;
@@ -89,6 +90,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 _logger.LogError(e, "BlobService // DeleteInstanceBackup // Instance: {InstanceOwnerPartyId}/{InstanceGuid} // Exeption: {Exception}", instanceOwnerPartyId, instanceGuid, e);
                 return false;
             }
+
             return true;
         }
 
@@ -108,6 +110,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 _logger.LogError(e, "BlobService // DeleteInstanceEventsBackup // Instance: {InstanceOwnerPartyId}/{InstanceGuid} // Exeption: {Exception}", instanceOwnerPartyId, instanceGuid, e);
                 return false;
             }
+
             return true;
         }
 
@@ -127,6 +130,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 _logger.LogError(e, "BlobService // DeleteInstanceEventsBackup // Instance: {InstanceGuid} // Exeption: {Exception}", instanceGuid, e);
                 return false;
             }
+
             return true;
         }
 
