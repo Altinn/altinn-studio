@@ -58,7 +58,12 @@ namespace Altinn.Platform.Storage.DataCleanup
 
             foreach (Instance instance in instances)
             {
-                bool dataElementsDeleted, dataElementMetadataDeleted = false;
+                bool dataElementsDeleted = false;
+                bool instanceEventsDeleted = false;
+                bool dataElementMetadataDeleted = false;
+                bool instanceBackupDeleted = false;
+                bool instanceEventsBackupDeleted = false;
+                bool dataElementsBackupDeleted = false;
 
                 try
                 {
@@ -67,9 +72,13 @@ namespace Altinn.Platform.Storage.DataCleanup
                     if (dataElementsDeleted)
                     {
                         dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
+                        dataElementsBackupDeleted = await _blobService.DeleteDataBackup(instance.Id);
                     }
 
-                    bool instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
+                    instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
+                    instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.Id, instance.InstanceOwner.PartyId);
+
+                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.Id, instance.InstanceOwner.PartyId);
 
                     if (dataElementMetadataDeleted && instanceEventsDeleted)
                     {

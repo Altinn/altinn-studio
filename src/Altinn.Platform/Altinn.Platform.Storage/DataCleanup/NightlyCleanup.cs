@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.DataCleanup.Services;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
@@ -52,6 +53,9 @@ namespace Altinn.Platform.Storage.DataCleanup
                 bool dataElementsDeleted = false;
                 bool instanceEventsDeleted = false;
                 bool dataElementMetadataDeleted = false;
+                bool instanceBackupDeleted = false;
+                bool instanceEventsBackupDeleted = false;
+                bool dataElementsBackupDeleted = false;
 
                 try
                 {
@@ -60,14 +64,22 @@ namespace Altinn.Platform.Storage.DataCleanup
                     if (dataElementsDeleted)
                     {
                         dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
+                        dataElementsBackupDeleted = await _blobService.DeleteDataBackup(instance.Id);
                     }
 
                     if (autoDeleteAppIds.Contains(instance.AppId))
                     {
                         instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
+                        instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.Id, instance.InstanceOwner.PartyId);
                     }
 
-                    if (dataElementMetadataDeleted && (!autoDeleteAppIds.Contains(instance.AppId) || instanceEventsDeleted))
+                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.Id, instance.InstanceOwner.PartyId);
+
+                    if (
+                        dataElementMetadataDeleted
+                        && dataElementsBackupDeleted
+                        && instanceBackupDeleted
+                        && (!autoDeleteAppIds.Contains(instance.AppId) || (instanceEventsDeleted && instanceEventsBackupDeleted)))
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
                         successfullyDeleted += 1;
