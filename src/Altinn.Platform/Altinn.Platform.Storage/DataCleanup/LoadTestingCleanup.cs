@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.DataCleanup.Services;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -80,7 +82,11 @@ namespace Altinn.Platform.Storage.DataCleanup
 
                     instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.Id, instance.InstanceOwner.PartyId);
 
-                    if (dataElementMetadataDeleted && instanceEventsDeleted)
+                    if (dataElementMetadataDeleted
+                        && dataElementsBackupDeleted
+                        && instanceEventsDeleted
+                        && instanceEventsBackupDeleted
+                        && instanceBackupDeleted)
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
                         successfullyDeleted += 1;
