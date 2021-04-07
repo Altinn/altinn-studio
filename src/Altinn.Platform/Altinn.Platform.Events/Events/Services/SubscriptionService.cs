@@ -12,12 +12,12 @@ namespace Altinn.Platform.Events.Services
     /// <inheritdoc/>
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly IPostgresRepository _repository;
+        private readonly ISubscriptionRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionService"/> class.
         /// </summary>
-        public SubscriptionService(IPostgresRepository repository)
+        public SubscriptionService(ISubscriptionRepository repository)
         {
             _repository = repository;
         }

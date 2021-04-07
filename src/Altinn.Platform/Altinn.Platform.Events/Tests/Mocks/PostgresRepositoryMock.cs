@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
     /// <summary>
     /// Class that mocks storing and retrieving documents from postgres DB.
     /// </summary>
-    public class PostgresRepositoryMock : IPostgresRepository
+    public class PostgresRepositoryMock : ICloudEventRepository, ISubscriptionRepository
     {
         private readonly int _eventsCollection;
 

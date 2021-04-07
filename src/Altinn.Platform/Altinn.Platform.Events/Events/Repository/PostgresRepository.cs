@@ -19,7 +19,7 @@ namespace Altinn.Platform.Events.Repository
     /// Handles events repository. 
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class PostgresRepository : IPostgresRepository
+    public class PostgresRepository : ICloudEventRepository, ISubscriptionRepository
     {
         private readonly NpgsqlConnection _conn;
         private readonly ILogger _logger;

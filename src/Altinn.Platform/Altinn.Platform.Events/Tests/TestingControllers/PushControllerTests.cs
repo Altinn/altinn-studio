@@ -120,7 +120,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                         services.AddSingleton<IRegisterService, RegisterServiceMock>();
                         services.AddSingleton<IProfile, ProfileMockSI>();
 
-                        services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
+                        services.AddSingleton<ICloudEventRepository, PostgresRepositoryMock>();
+                        services.AddSingleton<ISubscriptionRepository, PostgresRepositoryMock>();
+
                         services.AddSingleton<IQueueService, QueueServiceMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
