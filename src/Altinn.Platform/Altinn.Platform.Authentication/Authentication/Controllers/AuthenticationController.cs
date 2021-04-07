@@ -47,6 +47,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string PidClaimName = "pid";
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
+        private const string IssClaimName = "iss";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
         private readonly IOrganisationsService _organisationService;
@@ -299,6 +300,13 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
                 _logger.LogInformation("Token is valid");
+
+                string issoriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
+                if (issoriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issoriginal))
+                {
+                    _logger.LogInformation("Invalid issuer " + issoriginal);
+                    return Unauthorized();
+                }
 
                 string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
