@@ -74,6 +74,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             return true;
         }
 
+        /// <inheritdoc/>
         public async Task<bool> DeleteInstanceBackup(string instanceOwnerPartyId, string instanceGuid)
         {
             BlobContainerClient container = await CreateBackupBlobClient();
@@ -94,6 +95,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             return true;
         }
 
+        /// <inheritdoc/>
         public async Task<bool> DeleteInstanceEventsBackup(string instanceOwnerPartyId, string instanceGuid)
         {
             BlobContainerClient container = await CreateBackupBlobClient();
@@ -114,6 +116,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             return true;
         }
 
+        /// <inheritdoc/>
         public async Task<bool> DeleteDataBackup(string instanceGuid)
         {
             BlobContainerClient container = await CreateBackupBlobClient();
@@ -144,11 +147,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 return client.GetBlobContainerClient("backup");
             }
 
-            string _backupAccountKey = await _keyVaultService.GetSecretAsync(
+            string backupAccountKey = await _keyVaultService.GetSecretAsync(
             string.Format(_vaultUri, _environment),
             "AzureStorageConfiguration--BackupAccountKey");
 
-            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_backupAccountName, _backupAccountKey);
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_backupAccountName, backupAccountKey);
             Uri storageUrl = new Uri(string.Format(_backupAccountEndpoint, _environment));
 
             BlobServiceClient commonBlobClient = new BlobServiceClient(storageUrl, storageCredentials);
