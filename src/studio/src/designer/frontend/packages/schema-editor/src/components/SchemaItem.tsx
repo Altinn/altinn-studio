@@ -66,6 +66,9 @@ const useStyles = makeStyles({
     marginRight: 4,
     fontSize: '10px',
   },
+  treeItem: {
+    marginLeft: 6,
+  },
 });
 
 const getRefItems = (schema: any[], id: string): any[] => {
@@ -149,7 +152,6 @@ function SchemaItem(props: StyledTreeItemProps) {
   };
 
   const onItemClick = (itemId: string) => {
-    console.log(itemId);
     dispatch(setSelectedId({ id: itemId }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: '#c0cbd3', textAlign: 'center' }} /></span>;
@@ -157,7 +159,10 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        <TreeItem nodeId={`${keyPrefix}-${id}-properties`} label={<>{ icon('fa-datamodel-properties') } properties</>}>
+        <TreeItem
+          classes={{ root: classes.treeItem }} nodeId={`${keyPrefix}-${id}-properties`}
+          label={<>{ icon('fa-datamodel-properties') } properties</>}
+        >
           { itemProperties.map((property: any) => {
             return (
               <SchemaItem
@@ -179,18 +184,22 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const RenderFields = (itemFields: Field[], path: string) => {
     if (itemFields && itemFields.length > 0) {
-      return (
-        <>
-          {itemFields.map((field) => {
-            // if (field.key.startsWith('@xsd')) {
-            //   return null;
-            // }
-            return (
-              <p className={classes.field} key={`field-${path}-${field.key}`}>{ icon('fa-datamodel-element') }{field.key}: {field.value}</p>
-            );
-          })
-          }
-        </>
+      return (itemFields.map((field) => {
+        // if (field.key.startsWith('@xsd')) {
+        //   return null;
+        // }
+        // return (
+        //   <p className={classes.field} key={`field-${path}-${field.key}`}>{ icon('fa-datamodel-element') }{field.key}: {field.value}</p>
+        // );
+        return (
+          <TreeItem
+            nodeId={`${id}-${field.key}`}
+            // className={classes.field}
+            key={`field-${path}-${field.key}`}
+            label={<>{ icon('fa-datamodel-element') }{field.key}: {field.value}</>} 
+          />
+        );
+      })
       );
     }
     return null;
@@ -251,9 +260,10 @@ function SchemaItem(props: StyledTreeItemProps) {
       </div>
     );
   };
-
+console.log(other);
   return (
     <TreeItem
+      classes={{ root: classes.treeItem }}
       label={<RenderLabel/>}
       {...other}
     >
