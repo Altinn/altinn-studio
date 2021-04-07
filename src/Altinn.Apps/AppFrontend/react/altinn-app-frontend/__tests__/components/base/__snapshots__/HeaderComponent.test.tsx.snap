@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/HeaderComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
 <div
-  className="MuiGrid-root MuiGrid-container"
+  className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
 >
   <div
     className="MuiGrid-root MuiGrid-item"

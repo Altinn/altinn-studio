@@ -39,7 +39,11 @@ export function HeaderComponent(props: IHeaderProps) {
   };
 
   return (
-    <Grid container={true} direction='row'>
+    <Grid
+      container={true}
+      direction='row'
+      alignItems='center'
+    >
       <Grid item={true}>
         {renderHeader()}
       </Grid>
