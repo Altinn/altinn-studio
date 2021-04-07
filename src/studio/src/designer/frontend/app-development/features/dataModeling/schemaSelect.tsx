@@ -25,9 +25,15 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
     id, onChange, value,
   } = props;
 
-  const getDataModelTypes = (applicationMetaData: any) => applicationMetaData?.dataTypes?.filter((d: any) => d.appLogic).map((d: any) => ({ value: d, label: d.id })) ?? [];
+  const getDataModelTypes = (applicationMetaData: any) => {
+    return (
+      applicationMetaData?.dataTypes?.filter((d: any) => d.appLogic).map((d: any) => ({ value: d, label: d.id })) ?? []
+    );
+  };
 
-  const dataModels = useSelector((state: IServiceDevelopmentState) => getDataModelTypes(state.applicationMetadataState.applicationMetadata));
+  const dataModels = useSelector(
+    (state: IServiceDevelopmentState) => getDataModelTypes(state.applicationMetadataState.applicationMetadata),
+  );
   const onValueChange = (event: any) => {
     onChange(id, event.value);
   };
