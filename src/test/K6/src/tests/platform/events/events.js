@@ -5,7 +5,7 @@
 */
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import * as events from "../../../api/platform/events.js"
+import * as events from "../../../api/platform/events/events.js"
 import * as appInstances from "../../../api/app/instances.js"
 import * as setUpData from "../../../setup.js";
 

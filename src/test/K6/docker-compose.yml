@@ -6,7 +6,7 @@ networks:
 
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:1.8
     networks:
       - k6
       - grafana
@@ -31,12 +31,12 @@ services:
       - ./grafana-dashboard.yaml/:/etc/grafana/provisioning/dashboards/dashboard.yaml
 
   k6:
-    image: loadimpact/k6:0.30.0
+    image: loadimpact/k6:0.31.1
     networks:
       - k6
     ports:
       - "6565:6565"
-    environment:
-      - K6_OUT=influxdb=http://influxdb:8086/k6
+    #environment:
+    #  - K6_OUT=influxdb=http://influxdb:8086/k6
     volumes:
       - ./src:/src

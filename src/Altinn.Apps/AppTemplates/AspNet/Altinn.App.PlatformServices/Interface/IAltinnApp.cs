@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -143,5 +145,30 @@ namespace Altinn.App.Services.Interface
         /// Format layoutsettings
         /// </summary>
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
+
+        /// <summary>
+        /// Gets a list of eFormidling shipment receivers
+        /// </summary>
+        /// <remarks>
+        /// Note that the identifier value property on the receiver objects should be prefixed with `0192:` for Norwegian organisations.
+        /// </remarks>
+        virtual async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+
+        /// <summary>
+        /// Generates the metadata document for the eFormidling shipment. e.g. arkivmelding.
+        /// </summary>
+        /// <remarks>
+        /// The metadata file should be parsed to XML before assigning it to the stream.
+        /// </remarks>
+        /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
+        virtual async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
+        {
+            await Task.CompletedTask;
+            return (null, null);
+        }
     }
 }
