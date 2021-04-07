@@ -73,7 +73,7 @@ namespace Altinn.Platform.Events.Extensions
                 string strVal = dbValue.ToString();
                 if (strVal.Length > 100)
                 {
-                    strVal = string.Format("{0} (truncated; length={1}).", strVal.Substring(0, 100), strVal.Length);
+                    strVal = string.Format($"{strVal.Substring(0, 100)} (truncated; length={strVal.Length}).");
                 }
 
                 throw new ApplicationException(string.Format(Message, colName, strVal, dbValue.GetType(), typeof(T)), ex);
