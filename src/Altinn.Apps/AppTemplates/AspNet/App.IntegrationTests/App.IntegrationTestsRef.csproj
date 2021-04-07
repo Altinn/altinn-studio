@@ -192,9 +192,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\apps\ttd\issue-5740\logic\Validation\" />
-    <Folder Include="Data\Instances\ttd\model-validation\1337\8fab6615-3c57-484b-bd32-3065be958a1e\blob\" />
-  </ItemGroup>
-
 </Project>

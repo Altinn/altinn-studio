@@ -1,0 +1,25 @@
+name: Repositories Scan
+
+on:
+  schedule:
+  - cron: '0 8 * * 1,4'
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/studio/src/repositories/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/studio/src/repositories/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build src/studio/src/repositories --file src/studio/src/repositories/Dockerfile --tag altinn-repos:${{github.sha}}
+      
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: altinn-repos:${{ github.sha }}
