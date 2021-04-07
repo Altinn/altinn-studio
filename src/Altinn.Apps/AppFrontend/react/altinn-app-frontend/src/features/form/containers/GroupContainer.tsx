@@ -34,7 +34,7 @@ export function GroupContainer({
   const dispatch = useDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
 
-  const editIndex: number = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[id].editIndex);
+  const editIndex: number = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[id].editIndex ?? -1);
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
