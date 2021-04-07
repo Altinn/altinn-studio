@@ -121,7 +121,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                         services.AddSingleton<IProfile, ProfileMockSI>();
 
                         services.AddSingleton<ICloudEventRepository, PostgresRepositoryMock>();
-                        services.AddSingleton<ISubscriptionRepository, PostgresRepositoryMock>();
+                        services.AddSingleton<ISubscriptionRepository, SubscriptionRepositoryMock>();
 
                         services.AddSingleton<IQueueService, QueueServiceMock>();
 

@@ -148,7 +148,7 @@ namespace Altinn.Platform.Events
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<ISubscriptionService, SubscriptionService>();
             services.AddSingleton<ICloudEventRepository, PostgresRepository>();
-            services.AddSingleton<ISubscriptionRepository, PostgresRepository>();
+            services.AddSingleton<ISubscriptionRepository, SubscriptionRepository>();
             services.AddSingleton<IQueueService, QueueService>();
             services.AddSingleton<IPDP, PDPAppSI>();
 
