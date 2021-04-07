@@ -13,7 +13,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.1.0-alpha</PackageVersion>
+    <PackageVersion>4.1.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
