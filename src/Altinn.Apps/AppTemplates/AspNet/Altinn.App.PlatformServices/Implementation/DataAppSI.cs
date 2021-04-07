@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
@@ -15,11 +16,14 @@ using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
@@ -132,8 +136,9 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
+
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-           
+
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
@@ -240,7 +245,7 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
- 
+
             HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)

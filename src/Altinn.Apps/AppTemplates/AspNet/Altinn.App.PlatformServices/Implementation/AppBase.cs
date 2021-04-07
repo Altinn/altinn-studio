@@ -15,9 +15,13 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.EFormidlingClient;
+using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
+using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -47,6 +51,8 @@ namespace Altinn.App.Services.Implementation
         private readonly IProfile _profileService;
         private readonly IText _textService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEFormidlingClient _eFormidlingClient;
+        private readonly AppSettings _appSettings;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
@@ -63,6 +69,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="profileService">the profile service</param>
         /// <param name="textService">The text service</param>
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
+        /// <param name="eFormidlingClient">The eFormidling client</param>
+        /// <param name="appSettings">The appsettings</param>
         protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
@@ -75,7 +83,9 @@ namespace Altinn.App.Services.Implementation
             IOptions<GeneralSettings> settings,
             IProfile profileService,
             IText textService,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IEFormidlingClient eFormidlingClient = null,
+            IOptions<AppSettings> appSettings = null)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -90,6 +100,8 @@ namespace Altinn.App.Services.Implementation
             _profileService = profileService;
             _textService = textService;
             _httpContextAccessor = httpContextAccessor;
+            _appSettings = appSettings?.Value;
+            _eFormidlingClient = eFormidlingClient;
         }
 
         /// <inheritdoc />
@@ -232,6 +244,11 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
+            if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
+            {
+                await SendEFormidlingShipment(instance);
+            }
+
             if (_appMetadata.AutoDeleteOnProcessEnd)
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
@@ -258,6 +275,28 @@ namespace Altinn.App.Services.Implementation
             }
 
             return await Task.FromResult(layoutSettings.Pages.Order);
+        }
+
+        /// <inheritdoc />
+        public virtual Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
+        {
+            throw new NotImplementedException("No method available for generating arkivmelding for eFormidling shipment.");
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
+        {
+            await Task.CompletedTask;
+            Identifier identifier = new Identifier
+            {
+                // 0192 prefix for all Norwegian organisations.
+                Value = $"0192:{_appMetadata.EFormidling.Receiver.Trim()}",
+                Authority = "iso6523-actorid-upis"
+            };
+
+            Receiver receiver = new Receiver { Identifier = identifier };
+
+            return new List<Receiver> { receiver };
         }
 
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
@@ -425,6 +464,120 @@ namespace Altinn.App.Services.Implementation
             }
 
             return dictionary;
+        }
+
+        private async Task SendInstanceData(Instance instance)
+        {
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
+            foreach (DataElement dataElement in instance.Data)
+            {
+                if (!_appMetadata.EFormidling.DataTypes.Contains(dataElement.DataType))
+                {
+                    continue;
+                }
+
+                bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
+
+                string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
+
+                using Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
+
+                bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
+
+                if (!successful)
+                {
+                    _logger.LogError("// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed.", dataElement.Id, instance.Id);
+                }
+            }
+        }
+
+        private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid, Instance instance)
+        {
+            DateTime completedTime = DateTime.Now;
+
+            Sender digdirSender = new Sender
+            {
+                Identifier = new Identifier
+                {
+                    // 0192 prefix for all Norwegian organisations.
+                    Value = $"0192:{_appSettings.EFormidlingSender}",
+                    Authority = "iso6523-actorid-upis"
+                }
+            };
+
+            List<Receiver> receivers = await GetEFormidlingReceivers(instance);
+
+            Scope scope =
+            new Scope
+            {
+                Identifier = _appMetadata.EFormidling.Process,
+                InstanceIdentifier = Guid.NewGuid().ToString(),
+                Type = "ConversationId",
+                ScopeInformation = new List<ScopeInformation>
+                    {
+                        new ScopeInformation
+                        {
+                            ExpectedResponseDateTime = completedTime.AddHours(2)
+                        }
+                    },
+            };
+
+            BusinessScope businessScope = new BusinessScope
+            {
+                Scope = new List<Scope> { scope }
+            };
+
+            DocumentIdentification documentIdentification = new DocumentIdentification
+            {
+                InstanceIdentifier = instanceGuid,
+                Standard = _appMetadata.EFormidling.Standard,
+                TypeVersion = _appMetadata.EFormidling.TypeVersion,
+                CreationDateAndTime = completedTime,
+                Type = _appMetadata.EFormidling.Type
+            };
+
+            StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
+            {
+                HeaderVersion = "1.0",
+                BusinessScope = businessScope,
+                DocumentIdentification = documentIdentification,
+                Receiver = receivers,
+                Sender = new List<Sender> { digdirSender }
+            };
+
+            StandardBusinessDocument sbd = new StandardBusinessDocument
+            {
+                StandardBusinessDocumentHeader = sbdHeader,
+                Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = _appMetadata.EFormidling.SecurityLevel },
+            };
+
+            return sbd;
+        }
+
+        private async Task SendEFormidlingShipment(Instance instance)
+        {
+            string instanceGuid = instance.Id.Split("/")[1];
+
+            StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
+            await _eFormidlingClient.CreateMessage(sbd);
+
+            (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
+
+            using (stream)
+            {
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName);
+            }
+
+            await SendInstanceData(instance);
+
+            bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
+
+            if (!shipmentResult)
+            {
+                _logger.LogError("// AppBase // SendEFormidlingShipment // Shipment of instance {InstanceId} failed.", instance.Id);
+            }
         }
     }
 }

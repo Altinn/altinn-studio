@@ -4,8 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.1.0</AssemblyVersion>
-    <FileVersion>4.1.0</FileVersion>
+    <AssemblyVersion>4.2.0</AssemblyVersion>
+    <FileVersion>4.2.0</FileVersion>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{98E6200A-ED99-418E-B30C-81BA564B509A}</ProjectGuid>
   </PropertyGroup>
@@ -13,7 +13,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.1.0</PackageVersion>
+    <PackageVersion>4.2.0-alpha</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
@@ -35,6 +35,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.6" />
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
+    <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.0.0-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.5" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.10" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.32" />
