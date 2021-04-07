@@ -44,5 +44,20 @@ export default class AppFrontend {
       'reasonRelationship': '#reasonRelationship',
       'summaryNameChanges': '#nameChanges'
     };
+
+    //group - task 3
+    this.group = {
+      'showGroupToContinue': '#showGroupToContinue',
+      'mainGroup': '#group-mainGroup',
+      'subGroup': '[id^="group-subGroup"]',
+      'currentValue': 'input[id^="currentValue"]',
+      'newValue': 'input[id^="newValue"]',
+      'addNewItem': 'div[class*="addButton"]',
+      'comments': 'input[id^="comments"]',
+      'delete': 'button[class*="makeStyles-deleteButton"]',
+      'saveSubGroup': 'button[id*="add-button-grp-subGroup"]',
+      'saveMainGroup': '#add-button-grp-mainGroup',
+      'editContainer': '[class^="makeStyles-editContainer"]',
+    };
   };
 };

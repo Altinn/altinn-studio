@@ -10,14 +10,14 @@ Cypress.Commands.add('startAppInstance', () => {
     cy.get(appFrontend.startButton).click();
   } else {
     authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
-    cy.visit(`https://ttd.apps.${Cypress.config.baseUrl}/ttd/${Cypress.env('localTestAppName')}/`);
+    cy.visit(`https://ttd.apps.${Cypress.env(Cypress.env('environment'))}/ttd/${Cypress.env('localTestAppName')}/`);
   };
 });
 
 function authenticateAltinnII(userName, userPwd) {
   cy.request({
     method: 'POST',
-    url: `https://${Cypress.config.baseUrl}/api/authentication/authenticatewithpassword`,
+    url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
     headers: {
       'Content-Type': 'application/hal+json'
     },

@@ -87,5 +87,11 @@ declare namespace Cypress {
      * @example cy.startAppInstance()
      */
      startAppInstance(): Chainable<Element>;
+
+     /**
+     * Navigate to the task3 of app ttd/frontend-test
+     * @example cy.navigateToTask3()
+     */
+      navigateToTask3(): Chainable<Element>;
   }
 }

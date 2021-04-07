@@ -40,3 +40,12 @@ Cypress.Commands.add('completeChangeNameForm', (firstName, lastName) => {
     cy.contains(mui.button, texts.next).click();
   })
 });
+
+/**
+ * Navigate to the task3 of app ttd/frontend-test
+ */
+Cypress.Commands.add('navigateToTask3', () => {
+  cy.navigateToChangeName();
+  cy.completeChangeNameForm('a', 'a');
+  cy.get(appFrontend.sendinButton).should('be.visible').click();
+});
