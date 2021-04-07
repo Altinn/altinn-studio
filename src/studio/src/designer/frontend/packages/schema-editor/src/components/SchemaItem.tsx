@@ -66,7 +66,7 @@ const useStyles = makeStyles({
     fontSize: '10px',
   },
   treeItem: {
-    marginLeft: 8,
+    marginLeft: 12,
     // "&.Mui-selected > .MuiTreeItem-content": {
     //   color: "red",
     // },
@@ -74,6 +74,12 @@ const useStyles = makeStyles({
       background: '#e0fcfc',
       border: '1px solid #7ec4f5',
     },
+    "&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label": {
+      backgroundColor: 'transparent',
+    },
+    // "&.MuiTreeItem-root > .MuiTreeItem-content:hover .MuiTreeItem-label": {
+    //   backgroundColor: '#c9c9c9',
+    // },
   },
   filler: {
     padding: 6,
