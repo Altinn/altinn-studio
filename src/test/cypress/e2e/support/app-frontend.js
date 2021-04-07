@@ -49,3 +49,24 @@ Cypress.Commands.add('navigateToTask3', () => {
   cy.completeChangeNameForm('a', 'a');
   cy.get(appFrontend.sendinButton).should('be.visible').click();
 });
+
+/**
+ * Fill in and complete task 3 form
+ */
+Cypress.Commands.add('compelteTask3Form', () => {
+  cy.navigateToTask3();
+  cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
+    cy.get(checkbox).should('be.visible')
+      .find('input').check();
+  });
+  cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+  cy.get(appFrontend.group.currentValue).type('1');
+  cy.get(appFrontend.group.newValue).type('2');
+  cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+  cy.get(appFrontend.group.comments).type('automation');
+  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
+  cy.contains(mui.button, texts.next).click();
+  cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
+  cy.contains(mui.button, texts.next).click();
+  cy.get(appFrontend.group.summaryText).should('be.visible');
+});

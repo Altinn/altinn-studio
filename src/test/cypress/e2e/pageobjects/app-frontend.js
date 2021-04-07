@@ -58,6 +58,8 @@ export default class AppFrontend {
       'saveSubGroup': 'button[id*="add-button-grp-subGroup"]',
       'saveMainGroup': '#add-button-grp-mainGroup',
       'editContainer': '[class^="makeStyles-editContainer"]',
+      'sendersName': '#sendersName',
+      'summaryText': '#send-in-text'
     };
   };
 };

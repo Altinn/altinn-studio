@@ -7,7 +7,7 @@ import Common from '../../pageobjects/common'
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
-describe('Summary', () => {
+describe('Group', () => {
   before(() => {
     cy.navigateToTask3();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
@@ -53,6 +53,18 @@ describe('Summary', () => {
       .find(appFrontend.group.delete).should('be.visible').click();
     cy.get(appFrontend.group.saveSubGroup).should('not.exist');
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
+  });
+
+  it('Delete Item from Main Group', () => {
+    cy.get(appFrontend.group.mainGroup).find(mui.tableBody).then((table) => {      
+      cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
+    });
+    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.delete).should('be.visible').click();    
+    cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+    cy.get(appFrontend.group.mainGroup).find(mui.tableBody).then((table) => {
+      cy.get(table).get(mui.tableElement).should('have.length', 0);
+    });
   });
 
 });
