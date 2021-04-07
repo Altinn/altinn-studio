@@ -10,8 +10,13 @@ export function addErrorCount(success) {
     };
 };
 
-//Prints the test name with response code of the request when the success is false
-export function printResponseToConsole(testName, success, res) {
+/**
+ * Stops k6 iteration when success is false and prints test name with response code
+ * @param {String} testName
+ * @param {boolean} success 
+ * @param {JSON} res 
+ */
+export function stopIterationOnFail(testName, success, res) {
     if (!success && res != null) {
         fail(testName + " Response code: " + res.status);
     } else if (!success) {

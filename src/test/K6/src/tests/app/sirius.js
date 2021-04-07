@@ -17,7 +17,7 @@
 */
 
 import { check, sleep, group } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
+import { addErrorCount, stopIterationOnFail } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as apps from "../../api/platform/storage/applications.js"
 import * as appData from "../../api/app/data.js"
@@ -73,7 +73,7 @@ export default function (data) {
         var userPwd = users[userNumber].password;
         var partyId = users[userNumber].partyid;
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null)
+        stopIterationOnFail("Testdata missing", false, null)
     };
 
     group("Authentication", function () {
@@ -89,13 +89,13 @@ export default function (data) {
             "Create Instance status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("Create Instance:", success, res);
+        stopIterationOnFail("Create Instance:", success, res);
 
         try {
             dataId = appData.findDataId(res.body);
             instanceId = platformInstances.findInstanceId(res.body);
         } catch (error) {
-            printResponseToConsole("Instance id and data id not retrieved:", false, null);
+            stopIterationOnFail("Instance id and data id not retrieved:", false, null);
         };
 
         //Test to edit a form data in an instance with App APi and validate the response
@@ -104,7 +104,7 @@ export default function (data) {
             "Edit Data by Id status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("Edit Form Data by Id:", success, res);
+        stopIterationOnFail("Edit Form Data by Id:", success, res);
 
         //upload an XML attachment 1 to an instance with App API
         res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml1, appOwner, appName);
@@ -112,7 +112,7 @@ export default function (data) {
             "Upload attachment 1 in data stage status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("Upload attachment 1 in data stage:", success, res);
+        stopIterationOnFail("Upload attachment 1 in data stage:", success, res);
 
         //upload an XML attachment 2 to an instance with App API
         res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml2, appOwner, appName);
@@ -120,7 +120,7 @@ export default function (data) {
             "Upload attachment 2 in data stage status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("Upload attachment 2 in data stage:", success, res);
+        stopIterationOnFail("Upload attachment 2 in data stage:", success, res);
     });
 
     group("Confirm stage", function () {
@@ -130,7 +130,7 @@ export default function (data) {
             "Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
         });
         addErrorCount(success);
-        printResponseToConsole("Validate Instance validation OK:", success, res);
+        stopIterationOnFail("Validate Instance validation OK:", success, res);
 
         //Test to move the process of an app instance to the confirm stage and verify response code to be 200
         res = appProcess.putNextProcess(userRuntimeToken, partyId, instanceId, null, appOwner, appName);
@@ -138,7 +138,7 @@ export default function (data) {
             "Move process to Confirm stage status is 200:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Move process to Confirm stage:", success, res);
+        stopIterationOnFail("Move process to Confirm stage:", success, res);
 
         //Test to call get instance details and verify the presence of archived date
         res = appInstances.getInstanceById(userRuntimeToken, partyId, instanceId, appOwner, appName);
@@ -146,7 +146,7 @@ export default function (data) {
             "GET instance by id status is 200:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("GET instance by id status is 200:", success, res);
+        stopIterationOnFail("GET instance by id status is 200:", success, res);
     });
 
     group("Feedback stage", function () {
@@ -156,7 +156,7 @@ export default function (data) {
             "Validate Instance in confirm stage validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
         });
         addErrorCount(success);
-        printResponseToConsole("Validate Instance in confirm stage validation OK:", success, res);
+        stopIterationOnFail("Validate Instance in confirm stage validation OK:", success, res);
 
         //Test to move the process of an app instance to the Feedback stage and verify response code to be 200
         res = appProcess.putNextProcess(userRuntimeToken, partyId, instanceId, null, appOwner, appName);
@@ -164,7 +164,7 @@ export default function (data) {
             "Move process to Feedback stage status is 200:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Move process to Feedback stage:", success, res);
+        stopIterationOnFail("Move process to Feedback stage:", success, res);
 
 
         /**
@@ -180,7 +180,7 @@ export default function (data) {
                     "Get Current process status is 200:": (r) => r.status === 200
                 });
                 addErrorCount(success);
-                printResponseToConsole("Get Current process:", success, res);
+                stopIterationOnFail("Get Current process:", success, res);
 
                 sleep(1);
                 sleptSeconds = sleptSeconds + 1;
@@ -194,7 +194,7 @@ export default function (data) {
                         "Get Current process status is 200:": (r) => r.status === 200
                     });
                     addErrorCount(success);
-                    printResponseToConsole("Get Current process:", success, res);
+                    stopIterationOnFail("Get Current process:", success, res);
 
                     stepSleepCounter = stepSleepCounter * 2;
                     sleep(stepSleepCounter);
@@ -212,7 +212,7 @@ export default function (data) {
             "Upload attachment in feedback stage status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("Upload attachment in feedback stage:", success, res);
+        stopIterationOnFail("Upload attachment in feedback stage:", success, res);
 
         //Test to archive an instance in feedback stage as an app owner and verify response code to be 200
         res = appProcess.putNextProcess(orgRuntimeToken, partyId, instanceId, null, appOwner, appName);
@@ -220,7 +220,7 @@ export default function (data) {
             "Archive the instance status is 200:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Archive the instance:", success, res);
+        stopIterationOnFail("Archive the instance:", success, res);
     });
 
     deleteSblInstance(userRuntimeToken, partyId, instanceId, "true");

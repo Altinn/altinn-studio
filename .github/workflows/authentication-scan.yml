@@ -1,0 +1,25 @@
+name: Authentication Scan
+
+on:
+  schedule:
+  - cron: '0 8 * * 1,4'
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.Authentication/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.Authentication/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build src/Altinn.Platform/Altinn.Platform.Authentication --file src/Altinn.Platform/Altinn.Platform.Authentication/Authentication/Dockerfile --tag altinn-authentication:${{github.sha}}
+      
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: altinn-authentication:${{ github.sha }}

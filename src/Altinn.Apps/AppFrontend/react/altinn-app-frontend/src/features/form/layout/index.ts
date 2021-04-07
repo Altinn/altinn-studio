@@ -16,6 +16,7 @@ export interface ILayoutGroup extends ILayoutEntry {
   maxCount: number;
   textResourceBindings?: ITextResourceBindings;
   tableHeaders?: string[];
+  edit?: IGroupEditProperties;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
@@ -126,4 +127,11 @@ export interface IAdressComponent extends ILayoutComponent {
   areaCodeTextResourceBinding: string;
   coTextResourceBinding: string;
   simpleDisplayMode: boolean;
+}
+
+export interface IGroupEditProperties {
+  mode?: 'hideTable' | 'showTable' | 'showAll';
+  rules?: any[];
+  saveButton?: boolean;
+  deleteButton?: boolean;
 }

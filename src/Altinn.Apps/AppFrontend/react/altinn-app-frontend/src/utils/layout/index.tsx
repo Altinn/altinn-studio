@@ -119,3 +119,15 @@ export function getLayoutsetForDataElement(instance: IInstance, datatype: string
   });
   return foundLayout.id;
 }
+
+export function getHiddenFieldsForGroup(hiddenFields: string[], components: (ILayoutGroup | ILayoutComponent)[]) {
+  const result = [];
+  hiddenFields.forEach((fieldKey) => {
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
+      result.push(fieldKey);
+    }
+  });
+
+  return result;
+}
