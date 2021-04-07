@@ -17,6 +17,7 @@ function* updateFormDataSaga({ payload: {
   data,
   componentId,
   skipValidation,
+  skipAutoSave,
 } }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -65,6 +66,9 @@ function* updateFormDataSaga({ payload: {
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
       yield put(FormDataActions.updateFormDataFulfilled({ field, data }));
+      if (state.formLayout.uiConfig.autoSave !== false && !skipAutoSave) {
+        yield put(FormDataActions.saveFormData());
+      }
     }
 
     if (state.formDynamics.conditionalRendering) {

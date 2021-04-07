@@ -2,7 +2,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
-import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import { IRuntimeState, IRuntimeStore } from 'src/types';
 import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
@@ -24,7 +24,6 @@ import { ISubmitDataAction } from '../formDataTypes';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
-const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 // eslint-disable-next-line consistent-return
 function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadAction<ISubmitDataAction>): SagaIterator {
@@ -76,6 +75,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
                 data: changedFields[fieldKey],
                 field: fieldKey,
                 skipValidation: true,
+                skipAutoSave: true,
               }));
             }
           } else {
@@ -148,6 +148,7 @@ function* saveFormDataSaga(): SagaIterator {
               data: changedFields[fieldKey],
               field: fieldKey,
               skipValidation: true,
+              skipAutoSave: true,
             }));
           }
         } else {
@@ -170,22 +171,10 @@ function* saveFormDataSaga(): SagaIterator {
   }
 }
 
-function* autoSaveSaga(): SagaIterator {
-  const uiConfig: IUiConfig = yield select(UIConfigSelector);
-  if (uiConfig.autoSave !== false) {
-    // undefined should default to auto save
-    yield sagaPut(FormDataActions.saveFormData());
-  }
-}
-
 export function* watchSubmitFormSaga(): SagaIterator {
   yield takeLatest(FormDataActions.submitFormData, submitFormSaga);
 }
 
 export function* watchSaveFormDataSaga(): SagaIterator {
   yield takeLatest(FormDataActions.saveFormData, saveFormDataSaga);
-}
-
-export function* watchAutoSaveSaga(): SagaIterator {
-  yield takeLatest(FormDataActions.updateFormDataFulfilled, autoSaveSaga);
 }

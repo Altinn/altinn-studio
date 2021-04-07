@@ -21,6 +21,7 @@ export interface IUpdateFormData {
   data: any;
   componentId?: string;
   skipValidation?: boolean;
+  skipAutoSave?: boolean;
 }
 
 export interface IUpdateFormDataFulfilled {
