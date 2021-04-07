@@ -67,6 +67,13 @@ const useStyles = makeStyles({
   },
   treeItem: {
     marginLeft: 8,
+    // "&.Mui-selected > .MuiTreeItem-content": {
+    //   color: "red",
+    // },
+    "&.Mui-selected": {
+      background: '#e0fcfc',
+      border: '1px solid #7ec4f5',
+    },
   },
   filler: {
     padding: 6,
@@ -191,9 +198,6 @@ function SchemaItem(props: StyledTreeItemProps) {
         // if (field.key.startsWith('@xsd')) {
         //   return null;
         // }
-        // return (
-        //   <p className={classes.field} key={`field-${path}-${field.key}`}>{ icon('fa-datamodel-element') }{field.key}: {field.value}</p>
-        // );
         return (
           <TreeItem
             classes={{ root: classes.treeItem }}
