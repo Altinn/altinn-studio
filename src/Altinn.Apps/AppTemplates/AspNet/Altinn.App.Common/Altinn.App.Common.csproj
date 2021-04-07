@@ -13,7 +13,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.Common</PackageId>
-    <PackageVersion>4.1.0-alpha</PackageVersion>
+    <PackageVersion>4.1.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
       This class library holds classes with logic that is common for the other Altinn.App packages.
