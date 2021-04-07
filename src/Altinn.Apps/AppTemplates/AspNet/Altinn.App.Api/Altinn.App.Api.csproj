@@ -4,16 +4,16 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.1.0</AssemblyVersion>
-    <FileVersion>4.1.0</FileVersion>
+    <AssemblyVersion>4.2.0</AssemblyVersion>
+    <FileVersion>4.2.0</FileVersion>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{D9F6DAB7-E921-44B6-A1A6-5796DCAE0D07}</ProjectGuid>
+    <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>
   </PropertyGroup>
   
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.Api</PackageId>
-    <PackageVersion>4.1.0</PackageVersion>
+    <PackageVersion>4.2.0-alpha</PackageVersion>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
       This class library holds all the API controllers used by a standard Altinn 3 App.
