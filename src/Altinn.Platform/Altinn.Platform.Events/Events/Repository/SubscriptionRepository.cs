@@ -18,6 +18,7 @@ namespace Altinn.Platform.Events.Repository
     /// <summary>
     /// Represents an implementation of <see cref="ISubscriptionRepository"/>.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class SubscriptionRepository : ISubscriptionRepository
     {
         private readonly string insertSubscriptionSql = "select * from events.insert_subscription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated)";
@@ -32,7 +33,7 @@ namespace Altinn.Platform.Events.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionRepository"/> class.
         /// </summary>
-        public SubscriptionRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<PostgresRepository> logger)
+        public SubscriptionRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<SubscriptionRepository> logger)
         {
             string connectionString =
                 string.Format(postgresSettings.Value.ConnectionString, postgresSettings.Value.EventsDbPwd);
