@@ -1,16 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> components/base/ParagraphComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
-<p
-  className="MuiTypography-root MuiTypography-body1"
-  id="mock-id"
-  style={
-    Object {
-      "letterSpacing": "0.3px",
-      "marginTop": "2.4rem",
-    }
-  }
+<div
+  className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
 >
-  Here goes a paragraph
-</p>
+  <div
+    className="MuiGrid-root MuiGrid-item"
+  >
+    <p
+      className="MuiTypography-root makeStyles-spacing-1 makeStyles-typography-2 MuiTypography-body1"
+      id="mock-id"
+    >
+      Here goes a paragraph
+    </p>
+  </div>
+</div>
 `;

@@ -6,11 +6,18 @@ import { mount } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react';
 
 import { HeaderComponent, IHeaderProps } from '../../../src/components/base/HeaderComponent';
+import { ITextResourceBindings } from '../../../src/types';
 
 describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockText: string;
   let mockSize: string;
+  let mockGetTextResource: (key: string) => string;
+  let mockLanguage: any;
+  let mockTextResourceBindings: ITextResourceBindings;
+  mockId = 'mock-id';
+  mockText = 'Here goes a paragraph';
+  mockGetTextResource = (key: string) => key;
 
   beforeEach(() => {
     mockId = 'mock-id';
@@ -24,6 +31,9 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         id={mockId}
         text={mockText}
         size={mockSize}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -35,6 +45,9 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         id={mockId}
         text={mockText}
         size={'L'}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
       />,
     );
     expect(wrapper.find('h2')).toHaveLength(1);
@@ -49,6 +62,9 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         id={mockId}
         text={mockText}
         size={'M'}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
       />,
     );
     expect(wrapper.find('h2')).toHaveLength(0);
@@ -63,6 +79,9 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         id={mockId}
         text={mockText}
         size={'S'}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
       />,
     );
 
@@ -78,16 +97,35 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
       <HeaderComponent
         id={mockId}
         text={mockText}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
       />,
     );
     expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
+  });
+
+  it('+++ should render help text if help text is supplied', () => {
+    const wrapper = mount(
+      <HeaderComponent
+        id={mockId}
+        text={mockText}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={{ help: 'this is the help text'}}
+      />,
+    );
+    expect(wrapper.find('HelpTextContainer')).toHaveLength(1);
   });
 
   function renderHeaderComponent(props?: Partial<IHeaderProps>){
     const defaultProps: IHeaderProps = {
       id: mockId,
       text: mockText,
-      size: mockSize
+      size: mockSize,
+      language: mockLanguage,
+      textResourceBindings: mockTextResourceBindings,
+      getTextResource: mockGetTextResource,
     };
 
     return render(<HeaderComponent {...defaultProps} {...props}/>);
