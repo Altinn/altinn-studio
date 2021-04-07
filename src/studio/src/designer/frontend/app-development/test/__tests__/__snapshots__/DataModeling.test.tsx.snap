@@ -200,7 +200,19 @@ exports[`DataModeling Should match snapshot 1`] = `
                 <div
                   class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                 >
-                  properties
+                  <div
+                    style="padding: 5px 0px 5px 0px;"
+                  >
+                    <span
+                      class="makeStyles-iconContainer-21"
+                    >
+                      <i
+                        class="fa fa-datamodel-properties"
+                        style="color: white; text-align: center;"
+                      />
+                    </span>
+                     properties
+                  </div>
                 </div>
               </div>
               <ul
@@ -216,7 +228,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                   >
                     <li
                       aria-expanded="false"
-                      class="MuiTreeItem-root"
+                      class="MuiTreeItem-root makeStyles-treeItem-42"
                       role="treeitem"
                       tabindex="-1"
                     >
@@ -241,19 +253,20 @@ exports[`DataModeling Should match snapshot 1`] = `
                           class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                         >
                           <div
-                            class="makeStyles-labelRoot-35"
+                            class="makeStyles-labelRoot-36"
                           >
                             <p
-                              class="MuiTypography-root makeStyles-label-36 MuiTypography-body1"
+                              class="MuiTypography-root makeStyles-label-37 MuiTypography-body1"
                             >
                               <span
                                 class="makeStyles-iconContainer-41"
                               >
                                 <i
                                   class="fa fa-datamodel-object"
-                                  style="color: rgb(192, 203, 211); text-align: center;"
+                                  style="color: white; text-align: center;"
                                 />
                               </span>
+                               
                               #/properties/melding
                             </p>
                             <button
@@ -390,7 +403,7 @@ exports[`DataModeling Should match snapshot 1`] = `
         class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
       >
         <div
-          class="MuiPaper-root MuiCard-root makeStyles-root-33 MuiPaper-elevation1 MuiPaper-rounded"
+          class="MuiPaper-root MuiCard-root makeStyles-root-34 MuiPaper-elevation1 MuiPaper-rounded"
         >
           <div
             class="MuiCardHeader-root"
