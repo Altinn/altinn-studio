@@ -76,7 +76,7 @@ namespace Altinn.Platform.Events.Extensions
                     strVal = string.Format($"{strVal.Substring(0, 100)} (truncated; length={strVal.Length}).");
                 }
 
-                throw new ApplicationException(string.Format(Message, colName, strVal, dbValue.GetType(), typeof(T)), ex);
+                throw new InvalidCastException(string.Format(Message, colName, strVal, dbValue.GetType(), typeof(T)), ex);
             }
         }
     }

@@ -112,16 +112,16 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             IDataReader reader = GetDataReader(ColumnName, typeof(long), 1000000L * 1000000L);
             reader.Read();
 
-            ApplicationException actual = null;
+            InvalidCastException actual = null;
 
             // Act
             try
             {
                 _ = reader.GetValue<int>(ColumnName);
             }
-            catch (ApplicationException apex)
+            catch (InvalidCastException icex)
             {
-                actual = apex;
+                actual = icex;
             }
 
             // Assert
@@ -179,16 +179,16 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             var reader = GetDataReader(ColumnName, typeof(string), "NotValid");
             reader.Read();
 
-            ApplicationException actual = null;
+            InvalidCastException actual = null;
 
             // Act
             try
             {
                 _ = reader.GetValue<TestNum>(ColumnName);
             }
-            catch (ApplicationException apex)
+            catch (InvalidCastException icex)
             {
-                actual = apex;
+                actual = icex;
             }
 
             // Assert
