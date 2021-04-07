@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Tests.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks
@@ -28,11 +30,12 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return Task.FromResult(cloudEvent.Id);
         }
 
-        public Task<int> CreateSubscription(Subscription eventsSubscription)
+        public Task<Subscription> CreateSubscription(Subscription eventsSubscription)
         {
             Random rnd = new Random();
             eventsSubscription.Id = rnd.Next(1, int.MaxValue);
-            return Task.FromResult(eventsSubscription.Id);
+            eventsSubscription.Created = DateTime.Now;
+            return Task.FromResult(eventsSubscription);
         }
 
         public Task DeleteSubscription(int id)
@@ -137,18 +140,18 @@ namespace Altinn.Platform.Events.Tests.Mocks
                                 !s.Consumer.StartsWith("/org/") &&
                                 s.SourceFilter.Equals(source) &&
                                 subject.Equals(subject) &&
-                                (string.IsNullOrEmpty(s.TypeFilter) || type.Equals(s.TypeFilter))).ToList() );
+                                (string.IsNullOrEmpty(s.TypeFilter) || type.Equals(s.TypeFilter))).ToList());
         }
 
         private string GetEventsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\events");
         }
 
         private string GetSubscriptionPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\subscriptions");
         }
     }

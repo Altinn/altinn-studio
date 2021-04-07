@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
 
-namespace Altinn.Platform.Events.Repository.Interfaces
+namespace Altinn.Platform.Events.Repository
 {
     /// <summary>
     /// Interface to talk to the events repository
@@ -25,7 +26,7 @@ namespace Altinn.Platform.Events.Repository.Interfaces
         /// <summary>
         /// Creates an subscription in repository
         /// </summary>
-        Task<int> CreateSubscription(Subscription eventsSubscription);
+        Task<Subscription> CreateSubscription(Subscription eventsSubscription);
 
         /// <summary>
         /// Gets a specific subscription

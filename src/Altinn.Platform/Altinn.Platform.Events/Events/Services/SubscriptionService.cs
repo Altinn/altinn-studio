@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 
 namespace Altinn.Platform.Events.Services
@@ -22,7 +23,7 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateSubscription(Subscription eventsSubcrition)
+        public async Task<Subscription> CreateSubscription(Subscription eventsSubcrition)
         {
             return await _repository.CreateSubscription(eventsSubcrition);
         }
