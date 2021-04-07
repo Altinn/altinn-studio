@@ -47,7 +47,6 @@ export interface IKeepAliveSessionFulfilled {
   remainingMinutes: number;
 }
 
-
 const moduleName = 'user';
 const userSlice = createSlice({
   name: moduleName,
@@ -89,7 +88,7 @@ const userSlice = createSlice({
     ) => {
       const { error } = action.payload;
       state.error = error;
-    }
+    },
   },
 });
 
@@ -100,7 +99,6 @@ export const fetchRemainingSession = createAction(`${moduleName}/fetchRemainingS
 export const keepAliveSession = createAction(`${moduleName}/keepAliveSession`);
 
 export const signOutUser = createAction(`${moduleName}/signOutUser`);
-
 
 export const {
   fetchDeployPermissionsFulfilled,

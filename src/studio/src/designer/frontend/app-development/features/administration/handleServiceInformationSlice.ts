@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ICommit, IRepository, IServiceDescription, IServiceId, IServiceName } from '../../types/global';
