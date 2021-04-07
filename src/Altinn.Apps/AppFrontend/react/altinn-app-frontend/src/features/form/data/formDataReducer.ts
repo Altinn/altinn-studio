@@ -1,9 +1,13 @@
 /* eslint-disable no-param-reassign */
 import { AnyAction } from 'redux';
-import { createReducer } from '@reduxjs/toolkit';
+import { createReducer, PayloadAction } from '@reduxjs/toolkit';
 import FormDataActions from './formDataActions';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
 import * as ProcessActionTypes from '../../../shared/resources/process/processActionTypes';
+import { IFetchFormDataFulfilled,
+  IFormDataRejected,
+  ISubmitDataAction,
+  IUpdateFormDataFulfilled } from './formDataTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -38,15 +42,15 @@ const isProcessAction = (action: AnyAction) => {
 
 const FormDataReducer = createReducer(initialState, (builder) => {
   builder
-    .addCase(FormDataActions.fetchFormDataFulfilled, (state, action) => {
+    .addCase(FormDataActions.fetchFormDataFulfilled, (state, action: PayloadAction<IFetchFormDataFulfilled>) => {
       const { formData } = action.payload;
       state.formData = formData;
     })
-    .addCase(FormDataActions.fetchFormDataRejected, (state, action) => {
+    .addCase(FormDataActions.fetchFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
       const { error } = action.payload;
       state.error = error;
     })
-    .addCase(FormDataActions.submitFormData, (state, action) => {
+    .addCase(FormDataActions.submitFormData, (state, action: PayloadAction<ISubmitDataAction>) => {
       const { apiMode } = action.payload;
       state.isSaving = apiMode !== 'Complete';
       state.isSubmitting = apiMode === 'Complete';
@@ -56,7 +60,7 @@ const FormDataReducer = createReducer(initialState, (builder) => {
       state.isSaving = false;
       state.unsavedChanges = false;
     })
-    .addCase(FormDataActions.submitFormDataRejected, (state, action) => {
+    .addCase(FormDataActions.submitFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
       const { error } = action.payload;
       state.error = error;
       state.isSubmitting = false;
@@ -67,7 +71,7 @@ const FormDataReducer = createReducer(initialState, (builder) => {
       state.hasSubmitted = false;
       state.ignoreWarnings = false;
     })
-    .addCase(FormDataActions.updateFormDataFulfilled, (state, action) => {
+    .addCase(FormDataActions.updateFormDataFulfilled, (state, action: PayloadAction<IUpdateFormDataFulfilled>) => {
       const { field, data } = action.payload;
       // Remove if data is null, undefined or empty string
       if (data === undefined || data === null || data === '') {
@@ -77,7 +81,7 @@ const FormDataReducer = createReducer(initialState, (builder) => {
       }
       state.unsavedChanges = true;
     })
-    .addCase(FormDataActions.updateFormDataRejected, (state, action) => {
+    .addCase(FormDataActions.updateFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
       const { error } = action.payload;
       state.error = error;
     })

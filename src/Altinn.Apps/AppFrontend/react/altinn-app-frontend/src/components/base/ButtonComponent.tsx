@@ -61,12 +61,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   };
 
   const saveFormData = () => {
-    const {
-      org, app, instanceId,
-    } = window as Window as IAltinnWindow;
-    dispatch(FormDataActions.submitFormData({
-      url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-    }));
+    dispatch(FormDataActions.submitFormData({}));
   };
 
   const renderLoader = () => {
