@@ -26,6 +26,7 @@
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
