@@ -63,15 +63,17 @@ const useStyles = makeStyles({
     fontSize: '10px',
   },
   treeItem: {
-    marginLeft: 12,
+    marginLeft: 8,
     // "&.Mui-selected > .MuiTreeItem-content": {
     //   color: "red",
     // },
-    "&.Mui-selected": {
-      background: '#e0fcfc',
-      border: '1px solid #7ec4f5',
+    '&.Mui-selected': {
+      background: '#E3F7FF',
+      border: '1px solid #006BD8',
+      boxSizing: 'border-box',
+      borderRadius: '5px',
     },
-    "&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label": {
+    '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
       backgroundColor: 'transparent',
     },
     // "&.MuiTreeItem-root > .MuiTreeItem-content:hover .MuiTreeItem-label": {

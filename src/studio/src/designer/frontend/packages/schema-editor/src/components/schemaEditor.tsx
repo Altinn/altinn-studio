@@ -141,7 +141,7 @@ export const SchemaEditor = ({
             >
               <TreeItem
                 nodeId='properties'
-                label={<div style={{ padding: 6 }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
+                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
               >
                 { item &&
                 <SchemaItem
