@@ -222,7 +222,7 @@ namespace Altinn.Platform.Events.Repository
             subscription.Consumer = reader.GetValue<string>("consumer");
             subscription.EndPoint = new Uri(reader.GetValue<string>("endpointurl"));
             subscription.CreatedBy = reader.GetValue<string>("createdby");
-            subscription.Created = reader.GetValue<DateTime>("time");
+            subscription.Created = reader.GetValue<DateTime>("time").ToUniversalTime();
             return subscription;
         }
     }
