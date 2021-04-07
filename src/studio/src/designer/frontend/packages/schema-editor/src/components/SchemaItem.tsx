@@ -56,7 +56,6 @@ const useStyles = makeStyles({
     border: 'none',
   },
   field: {
-    marginLeft: 30,
     marginBottom: 4,
   },
   iconContainer: {
@@ -67,7 +66,10 @@ const useStyles = makeStyles({
     fontSize: '10px',
   },
   treeItem: {
-    marginLeft: 6,
+    marginLeft: 8,
+  },
+  filler: {
+    padding: 6,
   },
 });
 
@@ -154,14 +156,15 @@ function SchemaItem(props: StyledTreeItemProps) {
   const onItemClick = (itemId: string) => {
     dispatch(setSelectedId({ id: itemId }));
   };
-  const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: '#c0cbd3', textAlign: 'center' }} /></span>;
+  const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
   const RenderProperties = (itemProperties: any[]) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
         <TreeItem
-          classes={{ root: classes.treeItem }} nodeId={`${keyPrefix}-${id}-properties`}
-          label={<>{ icon('fa-datamodel-properties') } properties</>}
+          classes={{ root: classes.treeItem }}
+          nodeId={`${keyPrefix}-${id}-properties`}
+          label={<div className={classes.filler}>{ icon('fa-datamodel-properties') } properties</div>}
         >
           { itemProperties.map((property: any) => {
             return (
@@ -193,10 +196,11 @@ function SchemaItem(props: StyledTreeItemProps) {
         // );
         return (
           <TreeItem
+            classes={{ root: classes.treeItem }}
             nodeId={`${id}-${field.key}`}
-            // className={classes.field}
+            className={classes.field}
             key={`field-${path}-${field.key}`}
-            label={<>{ icon('fa-datamodel-element') }{field.key}: {field.value}</>} 
+            label={<>{ icon('fa-datamodel-element') }{field.key}: {field.value}</>}
           />
         );
       })
@@ -260,7 +264,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       </div>
     );
   };
-console.log(other);
+
   return (
     <TreeItem
       classes={{ root: classes.treeItem }}

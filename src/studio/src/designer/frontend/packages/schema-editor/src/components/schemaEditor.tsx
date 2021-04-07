@@ -24,6 +24,13 @@ const useStyles = makeStyles(
     button: {
       marginLeft: 24,
     },
+    iconContainer: {
+      background: '#022f51',
+      textAlign: 'center',
+      padding: '5px 0px 5px 0px',
+      marginRight: 4,
+      fontSize: '10px',
+    },
   }),
 );
 
@@ -132,7 +139,10 @@ export const SchemaEditor = ({
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
             >
-              <TreeItem nodeId='properties' label='properties'>
+              <TreeItem
+                nodeId='properties'
+                label={<div style={{ padding: 6 }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span>properties</div>}
+              >
                 { item &&
                 <SchemaItem
                   keyPrefix='properties'
