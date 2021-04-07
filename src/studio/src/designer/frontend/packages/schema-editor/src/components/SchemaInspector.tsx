@@ -29,7 +29,6 @@ const SchemaInspector = (() => {
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      // console.log(state.uiSchema);
       // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
       if (selectedId.includes('/properties/')) {
         const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
@@ -44,7 +43,7 @@ const SchemaInspector = (() => {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value: Number.isNaN(value) ? value : +value,
+      value: Number.isNaN(value) ? value : value,
       key,
     };
     dispatch(setFieldValue(data));
@@ -76,7 +75,6 @@ const SchemaInspector = (() => {
             <td>{selectedItem.$ref}</td>
           </tr> */}
           <tr><td><h3>Properties</h3></td></tr>
-          {/* { selectedItem.fields?.map((f) => <tr key={f.key}><td>{f.key}</td><td>{f.value}</td></tr>) } */}
           { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
         </tbody>
       </table>
@@ -91,7 +89,6 @@ const SchemaInspector = (() => {
       />)}
     </div> : null);
 
-// console.log(`selectedId: ${selectedId}, selectedItem.id: ${selectedItem?.id}`);
   return (
     <Card
       elevation={1}
