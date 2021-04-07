@@ -55,9 +55,6 @@ const useStyles = makeStyles({
     background: 'none',
     border: 'none',
   },
-  field: {
-    marginBottom: 4,
-  },
   iconContainer: {
     background: '#022f51',
     textAlign: 'center',
@@ -82,7 +79,8 @@ const useStyles = makeStyles({
     // },
   },
   filler: {
-    padding: 6,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
 });
 
@@ -208,9 +206,9 @@ function SchemaItem(props: StyledTreeItemProps) {
           <TreeItem
             classes={{ root: classes.treeItem }}
             nodeId={`${id}-${field.key}`}
-            className={classes.field}
+            className={classes.filler}
             key={`field-${path}-${field.key}`}
-            label={<>{ icon('fa-datamodel-element') }{field.key}: {field.value}</>}
+            label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value}</>}
           />
         );
       })
@@ -250,7 +248,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           />
           :
           <Typography className={classes.label}>
-            {refSource ? <>{ icon('fa-datamodel-ref') }{`$ref: ${refSource}`}</> : <>{ icon('fa-datamodel-object') }{item.name ?? id.replace('#/definitions/', '')}</>}
+            {refSource ? <>{ icon('fa-datamodel-ref') } {`$ref: ${refSource}`}</> : <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}
