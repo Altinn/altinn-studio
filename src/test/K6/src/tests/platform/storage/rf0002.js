@@ -34,7 +34,7 @@ export default function () {
         var userSSN = users[userNumber].username;
         var userPwd = users[userNumber].password;
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null)
+        stopIterationOnFail("Testdata missing", false, null)
     };
 
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);

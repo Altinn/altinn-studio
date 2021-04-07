@@ -1,12 +1,13 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
+using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
-
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;
@@ -180,6 +181,35 @@ namespace App.IntegrationTests.ApiTests
 
             Assert.Contains("\"journalnummerdatadef33316\":{\"orid\":33316,\"value\":1001}", responseContent);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Data_Put_With_Calculation()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            HttpRequestMessage putRequestMessage = new HttpRequestMessage(HttpMethod.Put, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
+            {
+                Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
+            };
+            response = await client.SendAsync(putRequestMessage);
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
+            responseContent = await response.Content.ReadAsStringAsync();
+            CalculationResult calculationResult = JsonConvert.DeserializeObject<CalculationResult>(responseContent);
+            Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+            Assert.Contains(calculationResult.ChangedFields.Keys, k => k == "OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.TestRepeatinggrp123[0].value");
+            Assert.Equal(555, Convert.ToInt32(calculationResult.ChangedFields["OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.TestRepeatinggrp123[0].value"]));
+            Assert.Equal(1000, Convert.ToInt32(calculationResult.ChangedFields["OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value"]));
+            Assert.Null(calculationResult.ChangedFields["OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317"]);
         }
 
         [Fact]

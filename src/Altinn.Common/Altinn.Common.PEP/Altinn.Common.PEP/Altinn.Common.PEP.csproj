@@ -2,19 +2,34 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <IsPackable>true</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
     <AssemblyVersion>1.0.38.0</AssemblyVersion>
     <FileVersion>1.0.38.0</FileVersion>
-    <Version>1.0.38-alpha</Version>
-    <LangVersion>latest</LangVersion>
-    <Description>Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.</Description>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{92f10f90-79c5-459f-8238-0ec4d02aa93c}</ProjectGuid>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- NuGet package properties -->
+    <PackageId>Altinn.Common.PEP</PackageId>
+    <PackageVersion>1.0.38-alpha</PackageVersion>
+    <PackageTags>Altinn;Studio;Authorization;Policy;Enforcement;Point</PackageTags>
+    <Description>
+      Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.
+    </Description>
+    <PackageReleaseNotes>
+    </PackageReleaseNotes>
+    <Authors>Altinn Platform Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.13" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

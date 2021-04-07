@@ -96,6 +96,52 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             Assert.NotNull(principal);
 
+            Assert.False(principal.HasClaim(c => c.Type == "urn:altinn:org"));
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateOrganisationWithSOScope_RequestTokenWithValidExternalToken_ReturnsNewToken()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:serviceowner/instances.read altinn:serviceowner/instances.write"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string token = await response.Content.ReadAsStringAsync();
+
+            ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+
+            Assert.NotNull(principal);
+
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:org"));
         }
 
@@ -103,7 +149,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
-        public async Task AuthenticateOrganisation_RequestTestTokenWithValidExternalToken_ReturnsNewToken()
+        public async Task AuthenticateOrganisationWithSoScope_RequestTestTokenWithValidExternalToken_ReturnsNewToken()
         {
             // Arrange
             List<Claim> claims = new List<Claim>();
@@ -119,7 +165,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             claims.Add(new Claim("consumer", JsonConvert.SerializeObject(digdirConsumer)));
             claims.Add(new Claim("client_orgno", orgNr));
-            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("scope", "altinn:serviceowner/instances.read altinn:serviceowner/instances.write"));
 
             ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);

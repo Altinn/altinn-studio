@@ -1,15 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Helpers.Extensions;
+using Altinn.App.Common.Models;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
@@ -211,12 +214,13 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
-        /// <returns>The updated data element.</returns>
+        /// <returns>The updated data element, including the changed fields in the event of a calculation that changed data.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{dataGuid:guid}")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
+        [ProducesResponseType(typeof(CalculationResult), 303)]
         public async Task<ActionResult> Put(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -534,6 +538,8 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("No data found in content");
             }
 
+            string serviceModelJsonString = JsonSerializer.Serialize(serviceModel);
+
             // Trigger application business logic
             bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
@@ -555,7 +561,19 @@ namespace Altinn.App.Api.Controllers
 
             if (changedByCalculation)
             {
-                return StatusCode((int)HttpStatusCode.SeeOther, updatedDataElement);
+                string updatedServiceModelString = JsonSerializer.Serialize(serviceModel);
+                CalculationResult calculationResult = new CalculationResult(updatedDataElement);
+                try
+                {
+                    Dictionary<string, object> changedFields = JsonHelper.FindChangedFields(serviceModelJsonString, updatedServiceModelString);
+                    calculationResult.ChangedFields = changedFields;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Unable to determine changed fields");
+                }
+                
+                return StatusCode((int)HttpStatusCode.SeeOther, calculationResult);
             }
 
             return Created(dataUrl, updatedDataElement);

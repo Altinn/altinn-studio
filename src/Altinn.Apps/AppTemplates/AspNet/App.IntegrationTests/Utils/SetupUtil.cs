@@ -11,6 +11,7 @@ using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.Common.EFormidlingClient;
 using Altinn.Platform.Authentication.Maskinporten;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -69,6 +70,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IPDF, PDFMockSI>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddTransient<IText, TextMockSI>();
+                    services.AddTransient<IEFormidlingClient, EFormidlingClientMock>();
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
@@ -109,6 +111,12 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "issue-5740":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
+                            break;
+                        case "eformidling-app":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
+                            break;
+                        case "eformidling-app-invalid":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

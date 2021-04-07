@@ -1,7 +1,7 @@
 import http from "k6/http";
 import * as config from "../../../config.js";
 import * as header from "../../../buildrequestheaders.js"
-import { printResponseToConsole } from "../../../errorcounter.js";
+import { stopIterationOnFail } from "../../../errorcounter.js";
 import * as support from "../../../support.js";
 
 /**
@@ -60,10 +60,14 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
 
 //Function to clip out the instance owner id and return only instance id
 export function findInstanceId(responseBody) {
-    var instanceId = (JSON.parse(responseBody)).id;
-    instanceId = instanceId.split('/');
-    instanceId = instanceId[1];
-    return instanceId;
+    try {
+        var instanceId = (JSON.parse(responseBody)).id;
+        instanceId = instanceId.split('/');
+        instanceId = instanceId[1];
+        return instanceId;
+    } catch (error) {
+        stopIterationOnFail("Instance id cannot be retrieved:", false, null);
+    }
 };
 
 //Function to find all the archived app instances created after specific created date time for an appOwner for a specific app and returns instance id as an array
@@ -79,7 +83,7 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
         };
         allInstances = http.get(allInstances.next, params);
         if (allInstances.status != 200) {
-            printResponseToConsole("Get all instances failed:", false, allInstances);
+            stopIterationOnFail("Get all instances failed:", false, allInstances);
         };
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = buildArrayWithInstanceIds(allInstances.instances);
@@ -141,7 +145,7 @@ export function findAllHardDeletedInstances(altinnStudioRuntimeCookie, appOwner,
     while (allInstances.next !== null) {
         allInstances = http.get(allInstances.next, params);
         if (allInstances.status != 200) {
-            printResponseToConsole("Get all instances failed:", false, allInstances);
+            stopIterationOnFail("Get all instances failed:", false, allInstances);
         };
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = buildArrayWithHardDeletedInstanceIds(allInstances.instances);
