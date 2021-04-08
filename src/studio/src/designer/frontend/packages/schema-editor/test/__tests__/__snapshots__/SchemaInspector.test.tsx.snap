@@ -104,6 +104,7 @@ exports[`Should match snapshot 1`] = `
         <button
           aria-label="Delete field"
           class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-minLength"
           tabindex="0"
           type="button"
         >
@@ -187,6 +188,7 @@ exports[`Should match snapshot 1`] = `
         <button
           aria-label="Delete field"
           class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-maxLength"
           tabindex="0"
           type="button"
         >
@@ -289,6 +291,7 @@ exports[`Should match snapshot 1`] = `
         <button
           aria-label="Delete field"
           class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-type"
           tabindex="0"
           type="button"
         >
@@ -372,6 +375,7 @@ exports[`Should match snapshot 1`] = `
         <button
           aria-label="Delete field"
           class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute1"
           tabindex="0"
           type="button"
         >
@@ -455,6 +459,7 @@ exports[`Should match snapshot 1`] = `
         <button
           aria-label="Delete field"
           class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute2"
           tabindex="0"
           type="button"
         >

@@ -122,6 +122,7 @@ export function InputField(props: IInputFieldProps) {
         </FormControl>
       </span>
       <IconButton
+        id={`${baseId}-delete-${label}`}
         aria-label='Delete field'
         onClick={onClickDelete}
       >

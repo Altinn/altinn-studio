@@ -101,3 +101,23 @@ it('dispatches correctly when changing key', (done) => {
     done();
   });
 });
+
+it('handles delete button', () => {
+  act(() => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector />
+      </Provider>,
+    );
+    expect(wrapper).not.toBeNull();
+
+    wrapper.find('#input-Kommentar2000Restriksjon-delete-minLength').last().simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/deleteField',
+      payload: {
+        key: 'minLength',
+        path: '#/definitions/Kommentar2000Restriksjon',
+      },
+    });
+  });
+});
