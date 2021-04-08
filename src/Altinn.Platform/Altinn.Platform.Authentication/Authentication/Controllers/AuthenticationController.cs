@@ -301,10 +301,10 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
                 _logger.LogInformation("Token is valid");
 
-                string issoriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
-                if (issoriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issoriginal))
+                string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
+                if (issOriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
                 {
-                    _logger.LogInformation("Invalid issuer " + issoriginal);
+                _logger.LogInformation("Invalid issuer " + issOriginal);
                     return Unauthorized();
                 }
 
