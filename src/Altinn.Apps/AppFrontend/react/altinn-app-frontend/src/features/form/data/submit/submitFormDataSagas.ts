@@ -34,6 +34,8 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       state.instanceData.instance.process.currentTask.elementId,
       state.applicationMetadata.applicationMetadata.dataTypes,
     );
+
+    // Run client validations
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
@@ -58,69 +60,88 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       validations = mergeValidationObjects(validations, emptyFieldsValidations);
     }
     validationResult.validations = validations;
-    if (canFormBeSaved(validationResult, apiMode)) {
-      // updates the default data element
-      const defaultDataElementGuid = getCurrentTaskDataElementId(
-        state.applicationMetadata.applicationMetadata,
-        state.instanceData.instance,
-      );
-      try {
-        yield call(put, dataElementUrl(defaultDataElementGuid), model);
-      } catch (error) {
-        if ((error.response && error.response.status === 303) || isIE) {
-          if (error.response?.data?.changedFields) {
-            const changedFields = error.response.data.changedFields;
-            // eslint-disable-next-line no-restricted-syntax
-            for (const fieldKey of Object.keys(changedFields)) {
-              yield sagaPut(FormDataActions.updateFormData({
-                data: changedFields[fieldKey],
-                field: fieldKey,
-                skipValidation: true,
-                skipAutoSave: true,
-              }));
-            }
-          } else {
-            // 303 is treated as en error in IE - we try to fetch.
-            yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
-          }
-        } else {
-          throw error;
-        }
-      }
-
-      if (apiMode === 'Complete') {
-        // run validations against the datamodel
-        const instanceId = state.instanceData.instance.id;
-        const serverValidation: any = yield call(get, getValidationUrl(instanceId));
-        // update validation state
-        const layoutState: ILayoutState = yield select(LayoutSelector);
-        const mappedValidations =
-          mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
-        FormValidationActions.updateValidations(mappedValidations);
-        const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
-        const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
-        if (hasErrors || (stopWithWarnings && hasWarnings)) {
-          // we have validation errors or warnings that should be shown, do not submit
-          return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
-        }
-        // data has no validation errors, we complete the current step
-        yield call(ProcessDispatcher.completeProcess);
-
-        if (layoutState.uiConfig.currentViewCacheKey) {
-          // Reset cache for current page when ending process task
-          localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
-          yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
-        }
-      }
-      yield sagaPut(FormDataActions.submitFormDataFulfilled());
-    } else {
+    if (!canFormBeSaved(validationResult, apiMode)) {
       FormValidationActions.updateValidations(validations);
       return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
     }
+
+    yield call(putFormData, state, model);
+    if (apiMode === 'Complete') {
+      yield call(submitComplete, state, stopWithWarnings);
+    }
+    yield sagaPut(FormDataActions.submitFormDataFulfilled());
   } catch (error) {
     console.error(error);
     yield sagaPut(FormDataActions.submitFormDataRejected({ error }));
   }
+}
+
+function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
+  // run validations against the datamodel
+  const instanceId = state.instanceData.instance.id;
+  const serverValidation: any = yield call(get, getValidationUrl(instanceId));
+  // update validation state
+  const layoutState: ILayoutState = yield select(LayoutSelector);
+  const mappedValidations =
+    mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
+  FormValidationActions.updateValidations(mappedValidations);
+  const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
+  const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
+  if (hasErrors || (stopWithWarnings && hasWarnings)) {
+    // we have validation errors or warnings that should be shown, do not submit
+    return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
+  }
+
+  if (layoutState.uiConfig.currentViewCacheKey) {
+    // Reset cache for current page when ending process task
+    localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
+    yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+  }
+
+  // data has no validation errors, we complete the current step
+  return yield call(ProcessDispatcher.completeProcess);
+}
+
+function* putFormData(state: IRuntimeState, model: any) {
+  // updates the default data element
+  const defaultDataElementGuid = getCurrentTaskDataElementId(
+    state.applicationMetadata.applicationMetadata,
+    state.instanceData.instance,
+  );
+  try {
+    yield call(put, dataElementUrl(defaultDataElementGuid), model);
+  } catch (error) {
+    if (isIE) {
+      // 303 is treated as en error in IE - we try to fetch.
+      yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+    } else if (error.response && error.response.status === 303) {
+      // 303 means that data has been changed by calculation on server. Try to update from response.
+      const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
+      if (!calculationUpdateHandled) {
+        // No changedFields property returned, try to fetch
+        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+      }
+    } else {
+      throw error;
+    }
+  }
+}
+
+function* handleCalculationUpdate(changedFields) {
+  if (!changedFields) {
+    return false;
+  }
+  // eslint-disable-next-line no-restricted-syntax
+  for (const fieldKey of Object.keys(changedFields)) {
+    yield sagaPut(FormDataActions.updateFormData({
+      data: changedFields[fieldKey],
+      field: fieldKey,
+      skipValidation: true,
+      skipAutoSave: true,
+    }));
+  }
+
+  return true;
 }
 
 // eslint-disable-next-line consistent-return
@@ -140,20 +161,14 @@ function* saveFormDataSaga(): SagaIterator {
     try {
       yield call(put, dataElementUrl(defaultDataElementGuid), model);
     } catch (error) {
-      if ((error.response && error.response.status === 303) || isIE) {
-        if (error.response?.data?.changedFields) {
-          const changedFields = error.response.data.changedFields;
-          // eslint-disable-next-line no-restricted-syntax
-          for (const fieldKey of Object.keys(changedFields)) {
-            yield sagaPut(FormDataActions.updateFormData({
-              data: changedFields[fieldKey],
-              field: fieldKey,
-              skipValidation: true,
-              skipAutoSave: true,
-            }));
-          }
-        } else {
-          // 303 is treated as en error in IE - we try to fetch.
+      if (isIE) {
+        // 303 is treated as en error in IE - we try to fetch.
+        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+      } else if (error.response && error.response.status === 303) {
+        // 303 means that data has been changed by calculation on server. Try to update from response.
+        const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
+        if (!calculationUpdateHandled) {
+          // No changedFields property returned, try to fetch
           yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
         }
       } else {
