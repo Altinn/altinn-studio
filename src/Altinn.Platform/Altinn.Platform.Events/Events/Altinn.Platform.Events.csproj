@@ -44,14 +44,6 @@
     <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Migration\_erase\" />
-    <Folder Include="Migration\_draft\" />
-    <Folder Include="Migration\_init\" />
-    <Folder Include="Migration\_post\" />
-    <Folder Include="Migration\_pre\" />
-  </ItemGroup>
-
   <PropertyGroup>
      <GenerateDocumentationFile>true</GenerateDocumentationFile>
      <NoWarn>$(NoWarn);1591</NoWarn>

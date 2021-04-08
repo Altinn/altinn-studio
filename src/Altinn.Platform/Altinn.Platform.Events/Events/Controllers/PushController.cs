@@ -49,7 +49,7 @@ namespace Altinn.Platform.Events.Controllers
         /// This method will then identify any matching subscriptions and authorize if the consumer is authorized
         /// to receive event. If autorized it will put it on a outbound queue
         /// </summary>
-        /// <returns>Returns the result of the request in the form og a HTTP status code./returns>
+        /// <returns>Returns the result of the request in the form og a HTTP status code.</returns>
         [Authorize]
         [HttpPost]
         [Consumes("application/json")]

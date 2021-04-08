@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Tests.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks
@@ -13,11 +15,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
     /// <summary>
     /// Class that mocks storing and retrieving documents from postgres DB.
     /// </summary>
-    public class PostgresRepositoryMock : IPostgresRepository
+    public class CloudEventRepositoryMock : ICloudEventRepository
     {
         private readonly int _eventsCollection;
 
-        public PostgresRepositoryMock(int eventsCollection = 1)
+        public CloudEventRepositoryMock(int eventsCollection = 1)
         {
             _eventsCollection = eventsCollection;
         }
@@ -26,18 +28,6 @@ namespace Altinn.Platform.Events.Tests.Mocks
         public Task<string> Create(CloudEvent cloudEvent)
         {
             return Task.FromResult(cloudEvent.Id);
-        }
-
-        public Task<int> CreateSubscription(Subscription eventsSubscription)
-        {
-            Random rnd = new Random();
-            eventsSubscription.Id = rnd.Next(1, int.MaxValue);
-            return Task.FromResult(eventsSubscription.Id);
-        }
-
-        public Task DeleteSubscription(int id)
-        {
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -97,59 +87,10 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return null;
         }
 
-        public Task<Subscription> GetSubscription(int id)
-        {
-            return Task.FromResult(new Subscription() { Id = id, AlternativeSubjectFilter = "/organisation/950474084", CreatedBy = "/organisation/950474084" });
-        }
-
-        public Task<List<Subscription>> GetSubscriptionsByConsumer(string consumer)
-        {
-            string subscriptionsPath = Path.Combine(GetSubscriptionPath(), "1.json");
-            List<Subscription> subscriptions = null;
-            if (File.Exists(subscriptionsPath))
-            {
-                string content = File.ReadAllText(subscriptionsPath);
-                subscriptions = JsonConvert.DeserializeObject<List<Subscription>>(content);
-            }
-            else
-            {
-                subscriptions = new List<Subscription>();
-            }
-
-            return Task.FromResult(subscriptions.Where(s => s.Consumer.StartsWith("/org/")).ToList());
-        }
-
-        public Task<List<Subscription>> GetSubscriptionsExcludeOrg(string source, string subject, string type)
-        {
-            string subscriptionsPath = Path.Combine(GetSubscriptionPath(), "1.json");
-            List<Subscription> subscriptions = null;
-            if (File.Exists(subscriptionsPath))
-            {
-                string content = File.ReadAllText(subscriptionsPath);
-                subscriptions = JsonConvert.DeserializeObject<List<Subscription>>(content);
-            }
-            else
-            {
-                subscriptions = new List<Subscription>();
-            }
-
-            return Task.FromResult(subscriptions.Where(s => 
-                                !s.Consumer.StartsWith("/org/") &&
-                                s.SourceFilter.Equals(source) &&
-                                subject.Equals(subject) &&
-                                (string.IsNullOrEmpty(s.TypeFilter) || type.Equals(s.TypeFilter))).ToList() );
-        }
-
         private string GetEventsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\events");
-        }
-
-        private string GetSubscriptionPath()
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\subscriptions");
         }
     }
 }
