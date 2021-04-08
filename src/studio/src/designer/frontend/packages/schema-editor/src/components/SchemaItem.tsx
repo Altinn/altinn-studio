@@ -215,6 +215,13 @@ function SchemaItem(props: StyledTreeItemProps) {
     return null;
   };
 
+  const renderLabelText = () => {
+    if (refSource) {
+      return <>{ icon('fa-datamodel-ref') } {`$ref: ${refSource}`}</>;
+    }
+    return <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>;
+  };
+
   const RenderLabel = () => {
     return (
       <div className={classes.labelRoot}>
@@ -228,7 +235,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           />
           :
           <Typography className={classes.label}>
-            {refSource ? <>{ icon('fa-datamodel-ref') } {`$ref: ${refSource}`}</> : <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>}
+            {renderLabelText()}
           </Typography>}
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}

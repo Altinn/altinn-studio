@@ -60,9 +60,9 @@ export const SchemaEditor = ({
 
   React.useEffect(() => {
     if (rootItemName && uiSchema && Object.keys(uiSchema).length > 0) {
-      const item = uiSchema.find((i) => i.id === rootItemName);
-      if (item) {
-        setRootItem(item);
+      const schemaItem = uiSchema.find((i) => i.id === rootItemName);
+      if (schemaItem) {
+        setRootItem(schemaItem);
       }
     }
   }, [uiSchema, rootItemName]);

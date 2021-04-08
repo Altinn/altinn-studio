@@ -83,13 +83,13 @@ export function InputField(props: IInputFieldProps) {
   const toggleEditLabel = () => {
     setEditLabel(!editLabel);
   };
-  const id = `input-${props.fullPath.replace('#/definitions/', '')}`;
+  const baseId = `input-${props.fullPath.replace('#/definitions/', '')}`;
   return (
     <div>
       <span className={classes.inputs}>
         <FormControl>
           <Input
-            id={`${id}-key-${label}`}
+            id={`${baseId}-key-${label}`}
             value={label}
             onChange={onChangeKey}
             onBlur={onBlurKey}
@@ -97,7 +97,7 @@ export function InputField(props: IInputFieldProps) {
             className={classes.rootKey}
             endAdornment={
               <InputAdornment position='end'>
-                <IconButton onClick={toggleEditLabel} id={`${id}-toggle-${label}`}>
+                <IconButton onClick={toggleEditLabel} id={`${baseId}-toggle-${label}`}>
                   {editLabel ? <DoneOutlined /> : <CreateOutlined />}
                 </IconButton>
               </InputAdornment>
@@ -113,7 +113,7 @@ export function InputField(props: IInputFieldProps) {
             />
             :
             <Input
-              id={`${id}-value-${label}`}
+              id={`${baseId}-value-${label}`}
               value={value}
               onChange={onChangeValue}
               className={classes.root}
