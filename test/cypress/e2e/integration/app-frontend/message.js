@@ -1,28 +1,31 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import * as texts from '../../fixtures/texts.json'
 
-const appName = Cypress.env('localTestAppName');
 const appFrontend = new AppFrontend();
 
 describe('Message', () => {
+  let instanceMetadata, instanceId;
   before(() => {
-    cy.visit(Cypress.env('localTestBaseUrl'));
-    cy.get(appFrontend.appSelection).select(appName);
-    cy.get(appFrontend.startButton).click();
+    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
+    cy.startAppInstance();
     cy.get(appFrontend.closeButton).should('be.visible');
   });
 
   it('Attachments List displays correct number of attachments', () => {
     cy.get(appFrontend.message['header']).should('exist');
-    cy.getTokenForOrg('ttd').then(token => {
-      cy.url().then(instance => {
-        instance = instance.split('/');
-        cy.uploadAttachment('ttd', 'frontend-test', instance[instance.length - 2], instance[instance.length - 1], 'fileUpload-message', token)
-          .then(() => cy.reload());
+    cy.wait('@createdInstance').then((xhr) => {
+      instanceMetadata = xhr.response.body;
+      instanceId = instanceMetadata.id.split('/')[1];
+      cy.fixture('attachment.json').then((data) => {
+        data.instanceGuid = instanceId;
+        instanceMetadata.data.push(data);
       });
+      cy.intercept('GET', /[0-9]+\/*[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, instanceMetadata);
     });
+    cy.reload();
     cy.get(appFrontend.message['attachmentList']).siblings('ul').children('a')
       .then((attachments) => {
         cy.get(attachments).should('have.length', 1);

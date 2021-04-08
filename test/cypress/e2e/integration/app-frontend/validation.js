@@ -1,16 +1,16 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common';
 import * as texts from '../../fixtures/texts.json'
 
-const appName = Cypress.env('localTestAppName');
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
   before(() => {
-    cy.navigateToChangeName(appName);
+    cy.navigateToChangeName();
   });
   beforeEach(() => {
     cy.preserveCookies();
