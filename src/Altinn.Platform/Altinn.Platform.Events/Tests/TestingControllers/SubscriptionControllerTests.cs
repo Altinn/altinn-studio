@@ -226,9 +226,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             }
 
             /// <summary>
-            /// Post valid subscription for organization
+            /// Post invalid subscription for organization
             /// Expected result:
-            /// Returns HttpStatus created
+            /// Returns HttpStatus badrequest
             /// Success criteria:
             /// The response has correct status and correct responseId.
             /// </summary>
