@@ -160,6 +160,13 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
+            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
+                && string.IsNullOrEmpty(eventsSubscription.SubjectFilter))
+            {
+                message = "A valid subject to the authenticated is required";
+                return false;
+            }
+
             if (string.IsNullOrEmpty(eventsSubscription.Consumer))
             {
                 message = "Missing event consumer";
