@@ -283,7 +283,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
 
         private string GetRolesPath(int userId, int resourcePartyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
@@ -342,7 +342,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
 
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\" + org + @"\" + app + @"\config\authorization\");
         }
     }

@@ -13,7 +13,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// Operation to create a subscription
         /// </summary>
         /// <param name="eventsSubcrition">The event subscription</param>
-        public Task<int> CreateSubscription(Subscription eventsSubcrition);
+        public Task<Subscription> CreateSubscription(Subscription eventsSubcrition);
 
         /// <summary>
         /// Operation to delete a given subscriptions
