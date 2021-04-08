@@ -64,9 +64,6 @@ const useStyles = makeStyles({
   },
   treeItem: {
     marginLeft: 8,
-    // "&.Mui-selected > .MuiTreeItem-content": {
-    //   color: "red",
-    // },
     '&.Mui-selected': {
       background: '#E3F7FF',
       border: '1px solid #006BD8',
@@ -76,9 +73,6 @@ const useStyles = makeStyles({
     '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
       backgroundColor: 'transparent',
     },
-    // "&.MuiTreeItem-root > .MuiTreeItem-content:hover .MuiTreeItem-label": {
-    //   backgroundColor: '#c9c9c9',
-    // },
   },
   filler: {
     paddingTop: 5,
@@ -120,9 +114,6 @@ function SchemaItem(props: StyledTreeItemProps) {
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
   React.useEffect(() => {
-    // if (fields && fields.find((v: any) => v.key === 'const')) {
-    //   setConstItem(true);
-    // }
     if (refItems && refItems.length > 0) {
       const refItem = refItems[refItems.length - 1];
       setDefinitionItem(refItem);
@@ -134,16 +125,6 @@ function SchemaItem(props: StyledTreeItemProps) {
     onAddPropertyClick(path);
     event.preventDefault();
   };
-
-  // const onAddFieldClick = (event: any) => {
-  //   const path = definitionItem?.id || id;
-  //   dispatch(addField({
-  //     path,
-  //     key: 'key',
-  //     value: 'value',
-  //   }));
-  //   event.preventDefault();
-  // };
 
   const onDeleteObjectClick = () => {
     dispatch(deleteProperty({ path: id }));
@@ -201,9 +182,6 @@ function SchemaItem(props: StyledTreeItemProps) {
   const RenderFields = (itemFields: Field[], path: string) => {
     if (itemFields && itemFields.length > 0) {
       return (itemFields.map((field) => {
-        // if (field.key.startsWith('@xsd')) {
-        //   return null;
-        // }
         return (
           <TreeItem
             classes={{ root: classes.treeItem }}
@@ -284,17 +262,6 @@ function SchemaItem(props: StyledTreeItemProps) {
       {RenderRefItems()}
       {RenderProperties(properties)}
       {RenderFields(fields, id)}
-      {/* <Typography
-        className={classes.buttonRoot} variant='button'
-        color='inherit'
-      >
-        <button
-          type='button'
-          className={classes.button} title='AddSib'
-          onClick={onAddFieldClick}
-        >Add field
-        </button>
-      </Typography> */}
     </TreeItem>
   );
 }

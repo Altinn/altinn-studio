@@ -43,7 +43,7 @@ const SchemaInspector = (() => {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value: Number.isNaN(value) ? value : value,
+      value,
       key,
     };
     dispatch(setFieldValue(data));
