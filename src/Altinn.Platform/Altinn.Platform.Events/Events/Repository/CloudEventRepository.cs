@@ -39,22 +39,22 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<string> Create(CloudEvent item)
+        public async Task<string> Create(CloudEvent cloudEvent)
         {
             try
             {
                 await _conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, _conn);
-                pgcom.Parameters.AddWithValue("id", item.Id);
-                pgcom.Parameters.AddWithValue("source", item.Source.OriginalString);
-                pgcom.Parameters.AddWithValue("subject", item.Subject);
-                pgcom.Parameters.AddWithValue("type", item.Type);
-                pgcom.Parameters.AddWithValue("cloudevent", item.Serialize());
+                pgcom.Parameters.AddWithValue("id", cloudEvent.Id);
+                pgcom.Parameters.AddWithValue("source", cloudEvent.Source.OriginalString);
+                pgcom.Parameters.AddWithValue("subject", cloudEvent.Subject);
+                pgcom.Parameters.AddWithValue("type", cloudEvent.Type);
+                pgcom.Parameters.AddWithValue("cloudevent", cloudEvent.Serialize());
 
                 await pgcom.ExecuteNonQueryAsync();
 
-                return item.Id;
+                return cloudEvent.Id;
             }
             catch (Exception e)
             {
