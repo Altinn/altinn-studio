@@ -54,7 +54,7 @@ exports[`Should match snapshot 1`] = `
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
                 disabled=""
-                id="input-#/definitions/Kommentar2000Restriksjon-key-minLength"
+                id="input-Kommentar2000Restriksjon-key-minLength"
                 type="text"
                 value="minLength"
               />
@@ -63,6 +63,7 @@ exports[`Should match snapshot 1`] = `
               >
                 <button
                   class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-minLength"
                   tabindex="0"
                   type="button"
                 >
@@ -80,9 +81,6 @@ exports[`Should match snapshot 1`] = `
                       />
                     </svg>
                   </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
                 </button>
               </div>
             </div>
@@ -96,6 +94,7 @@ exports[`Should match snapshot 1`] = `
               <input
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-minLength"
                 type="text"
                 value="1"
               />
@@ -122,9 +121,6 @@ exports[`Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div>
@@ -141,7 +137,7 @@ exports[`Should match snapshot 1`] = `
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
                 disabled=""
-                id="input-#/definitions/Kommentar2000Restriksjon-key-maxLength"
+                id="input-Kommentar2000Restriksjon-key-maxLength"
                 type="text"
                 value="maxLength"
               />
@@ -150,6 +146,7 @@ exports[`Should match snapshot 1`] = `
               >
                 <button
                   class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-maxLength"
                   tabindex="0"
                   type="button"
                 >
@@ -167,9 +164,6 @@ exports[`Should match snapshot 1`] = `
                       />
                     </svg>
                   </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
                 </button>
               </div>
             </div>
@@ -183,6 +177,7 @@ exports[`Should match snapshot 1`] = `
               <input
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-maxLength"
                 type="text"
                 value="2000"
               />
@@ -209,9 +204,6 @@ exports[`Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div>
@@ -228,7 +220,7 @@ exports[`Should match snapshot 1`] = `
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
                 disabled=""
-                id="input-#/definitions/Kommentar2000Restriksjon-key-type"
+                id="input-Kommentar2000Restriksjon-key-type"
                 type="text"
                 value="type"
               />
@@ -237,6 +229,7 @@ exports[`Should match snapshot 1`] = `
               >
                 <button
                   class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-type"
                   tabindex="0"
                   type="button"
                 >
@@ -254,9 +247,6 @@ exports[`Should match snapshot 1`] = `
                       />
                     </svg>
                   </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
                 </button>
               </div>
             </div>
@@ -316,9 +306,6 @@ exports[`Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div>
@@ -335,7 +322,7 @@ exports[`Should match snapshot 1`] = `
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
                 disabled=""
-                id="input-#/definitions/Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
+                id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
                 type="text"
                 value="@xsdUnhandledAttribute1"
               />
@@ -344,6 +331,7 @@ exports[`Should match snapshot 1`] = `
               >
                 <button
                   class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute1"
                   tabindex="0"
                   type="button"
                 >
@@ -361,9 +349,6 @@ exports[`Should match snapshot 1`] = `
                       />
                     </svg>
                   </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
                 </button>
               </div>
             </div>
@@ -377,6 +362,7 @@ exports[`Should match snapshot 1`] = `
               <input
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute1"
                 type="text"
                 value="seres:elementtype=Tegnrestriksjon"
               />
@@ -403,9 +389,6 @@ exports[`Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div>
@@ -422,7 +405,7 @@ exports[`Should match snapshot 1`] = `
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
                 disabled=""
-                id="input-#/definitions/Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
+                id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
                 type="text"
                 value="@xsdUnhandledAttribute2"
               />
@@ -431,6 +414,7 @@ exports[`Should match snapshot 1`] = `
               >
                 <button
                   class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute2"
                   tabindex="0"
                   type="button"
                 >
@@ -448,9 +432,6 @@ exports[`Should match snapshot 1`] = `
                       />
                     </svg>
                   </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
                 </button>
               </div>
             </div>
@@ -464,6 +445,7 @@ exports[`Should match snapshot 1`] = `
               <input
                 aria-invalid="false"
                 class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute2"
                 type="text"
                 value="seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Kommentar2000Restriksjon/502246"
               />
@@ -490,9 +472,6 @@ exports[`Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
     </div>
