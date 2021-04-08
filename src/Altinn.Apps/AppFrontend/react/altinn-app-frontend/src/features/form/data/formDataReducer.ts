@@ -40,6 +40,11 @@ const isProcessAction = (action: AnyAction) => {
     || action.type === ProcessActionTypes.COMPLETE_PROCESS_REJECTED;
 };
 
+const isUpdateDataFulfilled = (action: AnyAction) => {
+  return action.type === FormDataActions.updateFormDataFulfilled.type
+    || action.type === FormDataActions.updateFormDataSkipAutosave.type;
+};
+
 const FormDataReducer = createReducer(initialState, (builder) => {
   builder
     .addCase(FormDataActions.fetchFormDataFulfilled, (state, action: PayloadAction<IFetchFormDataFulfilled>) => {
@@ -71,16 +76,6 @@ const FormDataReducer = createReducer(initialState, (builder) => {
       state.hasSubmitted = false;
       state.ignoreWarnings = false;
     })
-    .addCase(FormDataActions.updateFormDataFulfilled, (state, action: PayloadAction<IUpdateFormDataFulfilled>) => {
-      const { field, data } = action.payload;
-      // Remove if data is null, undefined or empty string
-      if (data === undefined || data === null || data === '') {
-        delete state.formData[field];
-      } else {
-        state.formData[field] = data;
-      }
-      state.unsavedChanges = true;
-    })
     .addCase(FormDataActions.updateFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
       const { error } = action.payload;
       state.error = error;
@@ -90,6 +85,16 @@ const FormDataReducer = createReducer(initialState, (builder) => {
     })
     .addCase(FormLayoutActions.updateCurrentViewFulfilled, (state) => {
       state.hasSubmitted = false;
+    })
+    .addMatcher(isUpdateDataFulfilled, (state, action: PayloadAction<IUpdateFormDataFulfilled>) => {
+      const { field, data } = action.payload;
+      // Remove if data is null, undefined or empty string
+      if (data === undefined || data === null || data === '') {
+        delete state.formData[field];
+      } else {
+        state.formData[field] = data;
+      }
+      state.unsavedChanges = true;
     })
     .addMatcher(isProcessAction, (state) => {
       state.isSubmitting = false;

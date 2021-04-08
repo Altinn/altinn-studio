@@ -11,6 +11,9 @@ import { IUpdateFormData } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 import { getKeyWithoutIndex } from '../../../../utils/databindings';
+import { IDataModelState } from '../../datamodel/datamodelSlice';
+import { ILayouts } from '../../layout';
+import { IValidationState } from '../../validation/validationReducer';
 
 function* updateFormDataSaga({ payload: {
   field,
@@ -24,50 +27,20 @@ function* updateFormDataSaga({ payload: {
     const focus = state.formLayout.uiConfig.focus;
 
     if (!skipValidation) {
-      if (!componentId) {
-        yield put(FormDataActions.updateFormDataRejected({ error: new Error('Missing componen ID!') }));
-      }
-      const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+      yield call(runValidations, field, data, componentId,
         state.instanceData.instance.process.currentTask.elementId,
         state.applicationMetadata.applicationMetadata.dataTypes,
-      );
-      const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-      const validator = createValidator(schema);
-      const component = getLayoutComponentById(componentId, state.formLayout.layouts);
-      const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
-      const fieldWithoutIndex = getKeyWithoutIndex(field);
-
-      const validationResult: IValidationResult = validateComponentFormData(
-        layoutId,
-        data,
-        fieldWithoutIndex,
-        component,
-        state.language.language,
-        validator,
-        state.formValidations.validations[componentId],
-        componentId !== component.id ? componentId : null,
-      );
-
-      const componentValidations = validationResult?.validations[layoutId][componentId];
-      const invalidDataComponents = state.formValidations.invalidDataTypes || [];
-      const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
-      if (validationResult?.invalidDataTypes) {
-        updatedInvalidDataComponents.push(field);
-      }
-
-      yield call(
-        FormValidationActions.updateComponentValidations,
-        layoutId,
-        componentValidations,
-        componentId,
-        updatedInvalidDataComponents,
-      );
+        state.formValidations,
+        state.formDataModel,
+        state.formLayout.layouts,
+        state.language.language);
     }
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
-      yield put(FormDataActions.updateFormDataFulfilled({ field, data }));
-      if (state.formLayout.uiConfig.autoSave !== false && !skipAutoSave) {
-        yield put(FormDataActions.saveFormData());
+      if (!skipAutoSave) {
+        yield put(FormDataActions.updateFormDataFulfilled({ field, data }));
+      } else {
+        yield put(FormDataActions.updateFormDataSkipAutosave({ field, data }));
       }
     }
 
@@ -82,6 +55,54 @@ function* updateFormDataSaga({ payload: {
     console.error(error);
     yield put(FormDataActions.updateFormDataRejected({ error }));
   }
+}
+
+function* runValidations(
+  field: string,
+  data: any,
+  componentId: string,
+  taskId: string,
+  dataTypes: any[],
+  formValidations: IValidationState,
+  formDataModel: IDataModelState,
+  layouts: ILayouts,
+  language: any,
+) {
+  if (!componentId) {
+    yield put(FormDataActions.updateFormDataRejected({ error: new Error('Missing componen ID!') }));
+  }
+  const currentDataTaskDataTypeId = getDataTaskDataTypeId(taskId, dataTypes);
+  const schema = formDataModel.schemas[currentDataTaskDataTypeId];
+  const validator = createValidator(schema);
+  const component = getLayoutComponentById(componentId, layouts);
+  const layoutId = getLayoutIdForComponent(componentId, layouts);
+  const fieldWithoutIndex = getKeyWithoutIndex(field);
+
+  const validationResult: IValidationResult = validateComponentFormData(
+    layoutId,
+    data,
+    fieldWithoutIndex,
+    component,
+    language,
+    validator,
+    formValidations.validations[componentId],
+    componentId !== component.id ? componentId : null,
+  );
+
+  const componentValidations = validationResult?.validations[layoutId][componentId];
+  const invalidDataComponents = formValidations.invalidDataTypes || [];
+  const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
+  if (validationResult?.invalidDataTypes) {
+    updatedInvalidDataComponents.push(field);
+  }
+
+  yield call(
+    FormValidationActions.updateComponentValidations,
+    layoutId,
+    componentValidations,
+    componentId,
+    updatedInvalidDataComponents,
+  );
 }
 
 function shouldUpdateFormData(currentData: any, newData: any): boolean {

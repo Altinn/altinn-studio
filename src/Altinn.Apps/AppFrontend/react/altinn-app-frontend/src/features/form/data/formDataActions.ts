@@ -18,6 +18,7 @@ const FormDataActions = {
   submitFormDataRejected: createAction<IFormDataRejected>(`${moduleName}/submitRejected`),
   updateFormData: createAction<IUpdateFormData>(`${moduleName}/update`),
   updateFormDataFulfilled: createAction<IUpdateFormDataFulfilled>(`${moduleName}/updateFulfilled`),
+  updateFormDataSkipAutosave: createAction<IUpdateFormDataFulfilled>(`${moduleName}/updateSkipAutosave`),
   updateFormDataRejected: createAction<IFormDataRejected>(`${moduleName}/updateRejected`),
 };
 
