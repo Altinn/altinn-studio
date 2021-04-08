@@ -96,7 +96,8 @@ const SchemaInspector = (() => {
     >
       <CardHeader title='Inspector' />
       <CardContent>
-        { RenderSelectedItem() }
+        { selectedId && RenderSelectedItem() }
+        { !selectedId && <p>No item selected</p>}
       </CardContent>
     </Card>
   );

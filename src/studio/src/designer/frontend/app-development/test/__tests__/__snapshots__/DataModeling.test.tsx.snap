@@ -420,7 +420,12 @@ exports[`DataModeling Should match snapshot 1`] = `
           </div>
           <div
             class="MuiCardContent-root"
-          />
+          >
+            
+            <p>
+              No item selected
+            </p>
+          </div>
         </div>
       </div>
     </div>
