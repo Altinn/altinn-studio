@@ -12,10 +12,11 @@ const mui = new Common();
 Cypress.Commands.add('navigateToChangeName', () => {
   cy.startAppInstance();
   cy.get(appFrontend.closeButton).should('be.visible');
+  cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
   cy.get(appFrontend.sendinButton).then((button) => {
-    cy.get(button).should('be.visible')
-      .click();
-  })
+    cy.get(button).should('be.visible').click();
+    cy.wait('@getLayoutChangeName');
+  });
 });
 
 /**
@@ -47,7 +48,9 @@ Cypress.Commands.add('completeChangeNameForm', (firstName, lastName) => {
 Cypress.Commands.add('navigateToTask3', () => {
   cy.navigateToChangeName();
   cy.completeChangeNameForm('a', 'a');
+  cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
   cy.get(appFrontend.sendinButton).should('be.visible').click();
+  cy.wait('@getLayoutGroup');
 });
 
 /**
