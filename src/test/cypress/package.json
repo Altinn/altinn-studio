@@ -9,7 +9,7 @@
     "frontendPath": "C:/Repos/altinn-studio/src/Altinn.Apps/AppFrontend/react"
   },
   "scripts": {
-    "cy:open": "cypress open",
+    "cy:open": "cypress open --env environment=%npm_config_env%",
     "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
     "test:studio": "cypress run --headless -b chrome -s 'e2e/integration/studio/*.js'",
@@ -21,15 +21,15 @@
     "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && npm start",
     "before:appfrontend": "run-p start:localtest start:app start:frontend",
     "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
-    "test:appfrontend": "npm run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'"
+    "test:appfrontend": "npm run delete:reports && cypress run --env environment=%npm_config_env% -b chrome -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
-    "cypress": "^6.6.0",
-    "cypress-file-upload": "^5.0.2",
+    "cypress": "^6.8.0",
+    "cypress-file-upload": "^5.0.3",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^7.21.0",
+    "eslint": "^7.23.0",
     "eslint-plugin-cypress": "^2.11.2",
-    "faker": "^5.4.0",
+    "faker": "^5.5.2",
     "npm-run-all": "^4.1.5"
   }
 }

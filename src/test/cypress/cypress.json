@@ -5,14 +5,15 @@
     "userPwd": "Studio@123",
     "testEmail": "test1@test.com",
     "appOwner": "ttd",
-    "localTestBaseUrl": "http://altinn3local.no/",
-    "localTestAppName": "frontend-test"
+    "localTestAppName": "frontend-test",
+    "localTest": "http://altinn3local.no/",
+    "at21": "at21.altinn.cloud"
   },
   "video": false,
   "fixturesFolder": "e2e/fixtures",
   "integrationFolder": "e2e/integration",
   "supportFile": "e2e/support/index.js",
-  "pluginsFile": false,
+  "pluginsFile": "e2e/plugins/index.js",
   "screenshotOnRunFailure": true,
   "screenshotsFolder": "screenshots",
   "trashAssetsBeforeRuns": true,
