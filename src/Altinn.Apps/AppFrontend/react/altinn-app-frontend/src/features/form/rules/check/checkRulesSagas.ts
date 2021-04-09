@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { all, call, select, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../types';
 import { checkIfRuleShouldRun } from '../../../../utils/rules';
 import FormDataActions from '../../data/formDataActions';
@@ -45,7 +45,11 @@ function* checkIfRuleShouldRunSaga({
         }
 
         // eslint-disable-next-line consistent-return
-        return call(FormDataActions.updateFormData, rule.dataBindingName, rule.result, rule.componentId);
+        return put(FormDataActions.updateFormData({
+          componentId: rule.componentId,
+          data: rule.result,
+          field: rule.dataBindingName,
+        }));
       }));
     }
   } catch (err) {
