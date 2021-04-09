@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
 using Moq;
@@ -449,12 +450,15 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string token = await response.Content.ReadAsStringAsync();
 
             ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+            SecurityToken securityToken = JwtTokenMock.GetSecurityToken(token);
+            SecurityToken securityTokenExternal = JwtTokenMock.GetSecurityToken(externalToken);
 
             Assert.NotNull(principal);
 
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:userid"));
             Assert.True(principal.HasClaim(c => c.Type == "pid"));
             Assert.Equal(expectedAuthLevel, principal.FindFirstValue("urn:altinn:authlevel"));
+            Assert.Equal(securityTokenExternal.ValidTo, securityToken.ValidTo);
         }
 
         /// <summary>
