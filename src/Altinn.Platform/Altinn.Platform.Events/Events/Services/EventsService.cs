@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ namespace Altinn.Platform.Events.Services
     /// </summary>
     public class EventsService : IEventsService
     {
-        private readonly IPostgresRepository _repository;
+        private readonly ICloudEventRepository _repository;
         private readonly IQueueService _queue;
         private readonly ILogger<IEventsService> _logger;
 
@@ -28,7 +28,7 @@ namespace Altinn.Platform.Events.Services
         /// Initializes a new instance of the <see cref="EventsService"/> class.
         /// </summary>
         public EventsService(
-            IPostgresRepository repository,
+            ICloudEventRepository repository,
             IQueueService queue,
             ILogger<IEventsService> logger)
         {

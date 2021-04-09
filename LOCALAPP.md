@@ -8,7 +8,7 @@ Currently we have not been able to provide a 100% common setup between Windows a
 
 ### Prerequisites
 
-1. Latest [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))

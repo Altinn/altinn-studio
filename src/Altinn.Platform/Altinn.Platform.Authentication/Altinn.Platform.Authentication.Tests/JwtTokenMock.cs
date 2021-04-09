@@ -143,6 +143,32 @@ namespace Altinn.Platform.Authentication.Tests
         }
 
         /// <summary>
+        /// Converts to security token
+        /// </summary>
+        public static SecurityToken GetSecurityToken(string token)
+        {
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificatePublic.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
+            TokenValidationParameters validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
+
+            SecurityToken securityToken;
+            validator.ValidateToken(token, validationParameters, out securityToken);
+            return securityToken;
+        }
+
+        /// <summary>
         /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
         /// and is included in the integration test project as a separate file.
         /// </summary>

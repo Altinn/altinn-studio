@@ -18,7 +18,7 @@
 */
 
 import { check } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
+import { addErrorCount, stopIterationOnFail } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
@@ -76,7 +76,7 @@ export default function (data) {
         var userSSN = users[userNumber].username;
         var userPwd = users[userNumber].password;
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null);
+        stopIterationOnFail("Testdata missing", false, null);
     };
 
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
@@ -89,7 +89,7 @@ export default function (data) {
         "GET App Metadata": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("GET App Metadata Failed", success, attachmentDataType);
+    stopIterationOnFail("GET App Metadata Failed", success, attachmentDataType);
 
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
     const partyId = users[userNumber].partyid;
@@ -100,13 +100,13 @@ export default function (data) {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App POST Create Instance:", success, res);
+    stopIterationOnFail("E2E App POST Create Instance:", success, res);
 
     try {
         dataId = appData.findDataId(res.body);
         instanceId = platformInstances.findInstanceId(res.body);
     } catch (error) {
-        printResponseToConsole("Instance id and data id not retrieved:", false, null);
+        stopIterationOnFail("Instance id and data id not retrieved:", false, null);
     };
 
 
@@ -116,7 +116,7 @@ export default function (data) {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
-    printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
+    stopIterationOnFail("E2E PUT Edit Data by Id:", success, res);
 
     //dynamically assign attachments - based on the value from the array holding the attachment type
     var attachment = (attachmentTypes[uniqueNum] === 's') ? smallAttachment : ((attachmentTypes[uniqueNum] === 'm') ? mediumAttachment : largeAttachment);
@@ -127,7 +127,7 @@ export default function (data) {
         "E2E POST upload attachment Data status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
-    printResponseToConsole("E2E POST upload attachment Data status:", success, res);
+    stopIterationOnFail("E2E POST upload attachment Data status:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
@@ -135,7 +135,7 @@ export default function (data) {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
+    stopIterationOnFail("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to get next process of an app instance again and verify response code  to be 200
     res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
@@ -143,7 +143,7 @@ export default function (data) {
         "E2E App GET Next process element id:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Unable to get next element id:", success, res);
+    stopIterationOnFail("Unable to get next element id:", success, res);
     var nextElement = (JSON.parse(res.body))[0];
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200
@@ -152,7 +152,7 @@ export default function (data) {
         "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
+    stopIterationOnFail("E2E App PUT Move process to Next element:", success, res);
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
@@ -160,14 +160,14 @@ export default function (data) {
         "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App Instance is not archived:", success, res);
+    stopIterationOnFail("E2E App Instance is not archived:", success, res);
 
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");
 
     try {
         var dataElements = JSON.parse(res.body).data;
     } catch (error) {
-        printResponseToConsole("DataElements not retrieved:", false, null);
+        stopIterationOnFail("DataElements not retrieved:", false, null);
     };
 
     //Loop through the dataelements under an instance and download instance
@@ -177,7 +177,7 @@ export default function (data) {
             "Instance Data is downloaded:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Instance Data is not downloaded:", success, res);
+        stopIterationOnFail("Instance Data is not downloaded:", success, res);
     };
 
     /* write the instance id to console which can be written to a file using --console-output and logformat raw

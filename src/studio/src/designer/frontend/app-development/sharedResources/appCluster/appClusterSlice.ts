@@ -80,7 +80,7 @@ export const {
   getDeployments,
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
- } = actions;
+} = actions;
 
 export const {
   getDeploymentsFulfilled,

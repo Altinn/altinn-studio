@@ -15,8 +15,6 @@ const getLocation = ClientFunction(() => document.location.href);
 
 fixture('Navigating the App designer')
   .page(app.baseUrl)
-  .before(async () => {
-  })
   .beforeEach(async t => {
     t.ctx.at22 = "AT22-miljøet";
     t.ctx.at23 = "AT23-miljøet";
@@ -25,8 +23,6 @@ fixture('Navigating the App designer')
       .maximizeWindow()
       .useRole(AutoTestUser)
       .navigateTo(app.baseUrl + "designer/" + appName + "#/about");
-  })
-  .after(async () => {
   })
 
 //Test to navigate to about page and verify the links

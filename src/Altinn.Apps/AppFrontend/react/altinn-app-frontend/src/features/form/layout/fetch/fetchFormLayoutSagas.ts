@@ -5,7 +5,7 @@ import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
 import { FormLayoutActions as Actions } from '../formLayoutSlice';
-import * as FormDataActionTypes from '../../data/formDataActionTypes';
+import FormDataActions from '../../data/formDataActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
@@ -77,8 +77,8 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   while (true) {
     yield all([
       take(Actions.fetchLayout),
-      take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
-      take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
+      take(FormDataActions.fetchFormDataInitial),
+      take(FormDataActions.fetchFormDataFulfilled),
       take(Actions.fetchLayoutSetsFulfilled),
     ]);
     yield call(fetchLayoutSaga);

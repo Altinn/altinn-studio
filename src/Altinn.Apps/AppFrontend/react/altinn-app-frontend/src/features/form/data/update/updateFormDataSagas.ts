@@ -1,64 +1,40 @@
 import { SagaIterator } from 'redux-saga';
 import { actionChannel, call, put, select, take } from 'redux-saga/effects';
 import { IRuntimeState, IValidationResult } from 'src/types';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
 import { createValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
-import * as FormDataActionTypes from '../formDataActionTypes';
-import { IUpdateFormData } from './updateFormDataActions';
+import { IUpdateFormData } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 import { getKeyWithoutIndex } from '../../../../utils/databindings';
 
-function* updateFormDataSaga({
+function* updateFormDataSaga({ payload: {
   field,
   data,
   componentId,
-}: IUpdateFormData): SagaIterator {
+  skipValidation,
+  skipAutoSave,
+} }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const currentDataTaskDataTypeId = getDataTaskDataTypeId(
-      state.instanceData.instance.process.currentTask.elementId,
-      state.applicationMetadata.applicationMetadata.dataTypes,
-    );
-    const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-    const validator = createValidator(schema);
-    const component = getLayoutComponentById(componentId, state.formLayout.layouts);
-    const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
-    const fieldWithoutIndex = getKeyWithoutIndex(field);
-
     const focus = state.formLayout.uiConfig.focus;
-    const validationResult: IValidationResult = validateComponentFormData(
-      layoutId,
-      data,
-      fieldWithoutIndex,
-      component,
-      state.language.language,
-      validator,
-      state.formValidations.validations[componentId],
-      componentId !== component.id ? componentId : null,
-    );
 
-    const componentValidations = validationResult?.validations[layoutId][componentId];
-    const invalidDataComponents = state.formValidations.invalidDataTypes || [];
-    const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
-    if (validationResult?.invalidDataTypes) {
-      updatedInvalidDataComponents.push(field);
+    if (!skipValidation) {
+      yield call(runValidations, field, data, componentId, state);
     }
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
-      yield call(FormDataActions.updateFormDataFulfilled, field, data);
+      if (!skipAutoSave) {
+        yield put(FormDataActions.updateFormDataFulfilled({ field, data }));
+      } else {
+        yield put(FormDataActions.updateFormDataSkipAutosave({ field, data }));
+      }
     }
 
-    yield call(
-      FormValidationActions.updateComponentValidations,
-      layoutId,
-      componentValidations,
-      componentId,
-      updatedInvalidDataComponents,
-    );
     if (state.formDynamics.conditionalRendering) {
       yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
     }
@@ -66,10 +42,56 @@ function* updateFormDataSaga({
     if (focus && focus !== '' && componentId !== focus) {
       yield put(FormLayoutActions.updateFocus({ currentComponentId: '' }));
     }
-  } catch (err) {
-    console.error(err);
-    yield call(FormDataActions.updateFormDataRejected, err);
+  } catch (error) {
+    console.error(error);
+    yield put(FormDataActions.updateFormDataRejected({ error }));
   }
+}
+
+function* runValidations(
+  field: string,
+  data: any,
+  componentId: string,
+  state: IRuntimeState,
+) {
+  if (!componentId) {
+    yield put(FormDataActions.updateFormDataRejected({ error: new Error('Missing component ID!') }));
+  }
+  const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+    state.instanceData.instance.process.currentTask.elementId,
+    state.applicationMetadata.applicationMetadata.dataTypes,
+  );
+  const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+  const validator = createValidator(schema);
+  const component = getLayoutComponentById(componentId, state.formLayout.layouts);
+  const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
+  const fieldWithoutIndex = getKeyWithoutIndex(field);
+
+  const validationResult: IValidationResult = validateComponentFormData(
+    layoutId,
+    data,
+    fieldWithoutIndex,
+    component,
+    state.language.language,
+    validator,
+    state.formValidations.validations[componentId],
+    componentId !== component.id ? componentId : null,
+  );
+
+  const componentValidations = validationResult?.validations[layoutId][componentId];
+  const invalidDataComponents = state.formValidations.invalidDataTypes || [];
+  const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
+  if (validationResult?.invalidDataTypes) {
+    updatedInvalidDataComponents.push(field);
+  }
+
+  yield call(
+    FormValidationActions.updateComponentValidations,
+    layoutId,
+    componentValidations,
+    componentId,
+    updatedInvalidDataComponents,
+  );
 }
 
 function shouldUpdateFormData(currentData: any, newData: any): boolean {
@@ -85,7 +107,7 @@ function shouldUpdateFormData(currentData: any, newData: any): boolean {
 }
 
 export function* watchUpdateFormDataSaga(): SagaIterator {
-  const requestChan = yield actionChannel(FormDataActionTypes.UPDATE_FORM_DATA);
+  const requestChan = yield actionChannel(FormDataActions.updateFormData);
   while (true) {
     const value = yield take(requestChan);
     yield call(updateFormDataSaga, value);

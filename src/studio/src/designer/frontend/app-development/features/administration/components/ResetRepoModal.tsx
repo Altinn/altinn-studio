@@ -68,7 +68,7 @@ function ResetRepoModal(props: IResetRepoModalProps) {
     } else {
       setCanDelete(false);
     }
-  }, [deleteRepoName]);
+  }, [deleteRepoName, props.repositoryName]);
 
   const onDeleteRepoNameChange = (event: any) => {
     setDeleteRepoName(event.target.value);
