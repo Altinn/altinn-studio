@@ -3,8 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
 import { ISchemaState, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
-const initialState: ISchemaState = {
-  schema: { properties: [], definitions: [] },
+export const initialState: ISchemaState = {
+  schema: { properties: {}, definitions: {} },
   uiSchema: [],
   rootName: '/',
   saveSchemaUrl: '',
@@ -105,6 +105,7 @@ const schemaEditorSlice = createSlice({
       if (schemaItem.fields) {
         const fieldItem = schemaItem.fields.find((field) => field.key === key);
         if (fieldItem) {
+          console.log('field updated');
           fieldItem.value = value;
         }
       }

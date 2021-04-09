@@ -31,6 +31,6 @@ export type UiSchemaItem = {
   name?: string;
 }
 export interface ISchema {
-  properties: UiSchemaItem[];
-  definitions: UiSchemaItem[];
+  properties: { [key: string]: UiSchemaItem };
+  definitions: { [key: string]: UiSchemaItem };
 }

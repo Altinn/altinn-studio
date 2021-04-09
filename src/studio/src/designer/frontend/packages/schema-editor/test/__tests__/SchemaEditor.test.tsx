@@ -23,7 +23,7 @@ beforeEach(() => {
   mockInitialState = {
     rootName: rootPath,
     saveSchemaUrl: '',
-    schema: { properties: [], definitions: [] },
+    schema: { properties: {}, definitions: {} },
     uiSchema: [],
   };
   createStore = configureStore();

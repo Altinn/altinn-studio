@@ -22,7 +22,7 @@ beforeEach(() => {
   mockInitialState = {
     rootName: rootPath,
     saveSchemaUrl: '',
-    schema: { properties: [], definitions: [] },
+    schema: { properties: {}, definitions: {} },
     uiSchema: [],
     selectedId: '#/definitions/Kommentar2000Restriksjon',
   };
