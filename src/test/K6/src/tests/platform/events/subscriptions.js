@@ -7,7 +7,6 @@ import { check } from "k6";
 import { addErrorCount, stopIterationOnFail } from "../../../errorcounter.js";
 import * as subscriptions from "../../../api/platform/events/subscriptions.js"
 import * as setUpData from "../../../setup.js";
-import { generateJUnitXML, reportPath } from "../../../report.js"
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -38,8 +37,8 @@ export default function (data) {
 
     res = subscriptions.postSubscriptions(runtimeToken, ssn, "person", appOwner, appName);
     success = check(res, {
-        "POST create event subscription - status is 201": (r) => r.status === 201,
-        "Created event subscription Id is not null": (r) => r.json("id") != null,
+        "POST create event subscription_status is 201:": (r) => r.status === 201,
+        "Created event subscription Id is not null:": (r) => r.json("id") != null,
     });
     addErrorCount(success);
     stopIterationOnFail("Create event subscription", success, res);
@@ -52,20 +51,14 @@ export default function (data) {
 
     res = subscriptions.getSubscriptionById(runtimeToken, subscriptionId);
     success = check(res, {
-        "GET event subscription by id - status is 200": (r) => r.status === 200,
-        "GET event subscription by id - id matches": (r) => r.json("id") == subscriptionId,
+        "GET event subscription by id_status is 200:": (r) => r.status === 200,
+        "GET event subscription by id_id matches:": (r) => r.json("id") == subscriptionId,
     });
     addErrorCount(success);
 
     res = subscriptions.deleteSubscriptionById(runtimeToken, subscriptionId);
     success = check(res, {
-        "DELETE event subscription by id - status is 200": (r) => r.status === 200,
+        "DELETE event subscription by id_status is 200:": (r) => r.status === 200,
     });
     addErrorCount(success);
-};
-
-export function handleSummary(data) {
-    let result = {};
-    result[reportPath("subscriptions")] = generateJUnitXML(data, "platform-events-subscription");
-    return result;
 };
