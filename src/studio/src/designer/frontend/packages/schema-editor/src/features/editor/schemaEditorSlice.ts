@@ -105,7 +105,6 @@ const schemaEditorSlice = createSlice({
       if (schemaItem.fields) {
         const fieldItem = schemaItem.fields.find((field) => field.key === key);
         if (fieldItem) {
-          console.log('field updated');
           fieldItem.value = value;
         }
       }

@@ -66,14 +66,6 @@ const SchemaInspector = (() => {
             <td>id</td>
             <td>{selectedId}</td>
           </tr>
-          {/* <tr>
-            <td>name</td>
-            <td>{selectedItem.name}</td>
-          </tr>
-          <tr>
-            <td>$ref</td>
-            <td>{selectedItem.$ref}</td>
-          </tr> */}
           <tr><td><h3>Properties</h3></td></tr>
           { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
         </tbody>

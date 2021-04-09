@@ -1,4 +1,4 @@
-import reducer, { initialState, setFieldValue, setJsonSchema, setKey, setUiSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { deleteField, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -9,6 +9,7 @@ describe('SchemaEditorSlice', () => {
     const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
     state = reducer(state1, setUiSchema({ rootElementPath: '#/definitions/RA-0678_M' }));
   });
+
   it('handles setKey action', () => {
     const payload = {
       newKey: 'color',
@@ -16,7 +17,6 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kommentar2000Restriksjon',
     };
     const nextState = reducer(state, setKey(payload));
-    // const item = state.schema.definitions.find((s) => s.id === '#/definitions/Kommentar2000Restriksjon');
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
     if (!item || !item.fields) {
       fail('item not found');
@@ -41,4 +41,42 @@ describe('SchemaEditorSlice', () => {
     }
     expect(field.value).toBe('666');
   });
+
+  it('handles setPropertyName', () => {
+    const payload = {
+      name: 'navn_endret',
+      path: '#/definitions/Kontaktperson/properties/navn',
+    };
+    const nextState = reducer(state, setPropertyName(payload));
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    if (!item || !item.properties) {
+      fail('item not found');
+    }
+    expect(item.properties).toContainEqual({
+      id: '#/definitions/Kontaktperson/properties/navn_endret', name: 'navn_endret', $ref: '#/definitions/NavnSomToken',
+    });
+  });
+
+  it('handles setSelectedId', () => {
+    const payload = {
+      id: '#/definitions/Kommentar2000Restriksjon',
+    };
+    const nextState = reducer(state, setSelectedId(payload));
+    expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
+  });
+  it('handles deleteField', () => {
+    const payload = {
+      path: '#/definitions/Kommentar2000Restriksjon',
+      key: 'maxLength',
+    };
+    const nextState = reducer(state, deleteField(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
+    if (!item || !item.fields) {
+      fail('item not found');
+    }
+
+    expect(item.fields).not.toContainEqual({ key: 'maxLength' });
+  });
 });
+  
