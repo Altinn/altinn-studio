@@ -1,11 +1,13 @@
-import Immutable from 'immutability-helper';
-import { Action, Reducer } from 'redux';
-import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
-import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
-import * as actionTypes from './formDataActionTypes';
+/* eslint-disable no-param-reassign */
+import { AnyAction } from 'redux';
+import { createReducer, PayloadAction } from '@reduxjs/toolkit';
+import FormDataActions from './formDataActions';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
 import * as ProcessActionTypes from '../../../shared/resources/process/processActionTypes';
+import { IFetchFormDataFulfilled,
+  IFormDataRejected,
+  ISubmitDataAction,
+  IUpdateFormDataFulfilled } from './formDataTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -33,150 +35,71 @@ const initialState: IFormDataState = {
   ignoreWarnings: false,
 };
 
-Immutable.extend('$setField', (params: any, original: IFormData) => {
-  // eslint-disable-next-line no-param-reassign
-  original[params.field] = params.data;
-  return original;
-});
-
-const FormDataReducer: Reducer<IFormDataState> = (
-  state: IFormDataState = initialState,
-  action?: Action,
-): IFormDataState => {
-  if (!action) {
-    return state;
-  }
-
-  switch (action.type) {
-    case actionTypes.FETCH_FORM_DATA_FULFILLED: {
-      const { formData } = action as IFetchFormDataFulfilled;
-      return Immutable<IFormDataState>(state, {
-        formData: {
-          $set: formData,
-        },
-      });
-    }
-    case actionTypes.FETCH_FORM_DATA_REJECTED: {
-      const { error } = action as IFetchFormDataRejected;
-      return Immutable<IFormDataState>(state, {
-        error: {
-          $set: error,
-        },
-      });
-    }
-    case actionTypes.UPDATE_FORM_DATA: {
-      return Immutable<IFormDataState>(state, {
-        hasSubmitted: {
-          $set: false,
-        },
-        ignoreWarnings: {
-          $set: false,
-        },
-      });
-    }
-    case actionTypes.UPDATE_FORM_DATA_FULFILLED: {
-      const { field, data } = action as IUpdateFormDataFulfilled;
-      if (!data || data === '') {
-        return Immutable<IFormDataState>(state, {
-          formData: {
-            $unset: [field],
-          },
-        });
-      }
-      return Immutable<IFormDataState>(state, {
-        formData: {
-          $setField: {
-            field,
-            data,
-          },
-        },
-        unsavedChanges: {
-          $set: true,
-        },
-      });
-    }
-
-    case actionTypes.UPDATE_FORM_DATA_REJECTED: {
-      const { error } = action as IUpdateFormDataRejected;
-      return Immutable<IFormDataState>(state, {
-        error: {
-          $set: error,
-        },
-      });
-    }
-    case actionTypes.SUBMIT_FORM_DATA_REJECTED: {
-      const { error } = action as ISubmitFormDataRejected;
-      return Immutable<IFormDataState>(state, {
-        error: {
-          $set: error,
-        },
-        isSubmitting: {
-          $set: false,
-        },
-        isSaving: {
-          $set: false,
-        },
-        ignoreWarnings: {
-          $set: true,
-        },
-      });
-    }
-
-    case actionTypes.SUBMIT_FORM_DATA_FULFILLED: {
-      return Immutable<IFormDataState>(state, {
-        unsavedChanges: {
-          $set: false,
-        },
-        isSaving: {
-          $set: false,
-        },
-      });
-    }
-
-    case actionTypes.SUBMIT_FORM_DATA: {
-      const { apiMode } = action as ISubmitDataAction;
-      return Immutable<IFormDataState>(state, {
-        isSubmitting: {
-          $set: (apiMode === 'Complete'),
-        },
-        hasSubmitted: {
-          $set: (apiMode === 'Complete'),
-        },
-        isSaving: {
-          $set: (apiMode !== 'Complete'),
-        },
-      });
-    }
-
-    case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED:
-    case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
-      return Immutable<IFormDataState>(state, {
-        isSubmitting: {
-          $set: false,
-        },
-      });
-    }
-
-    case FormLayoutActions.updateCurrentView.type: {
-      return Immutable<IFormDataState>(state, {
-        hasSubmitted: {
-          $set: true,
-        },
-      });
-    }
-
-    case FormLayoutActions.updateCurrentViewFulfilled.type: {
-      return Immutable<IFormDataState>(state, {
-        hasSubmitted: {
-          $set: false,
-        },
-      });
-    }
-
-    default: {
-      return state;
-    }
-  }
+const isProcessAction = (action: AnyAction) => {
+  return action.type === ProcessActionTypes.COMPLETE_PROCESS_FULFILLED
+    || action.type === ProcessActionTypes.COMPLETE_PROCESS_REJECTED;
 };
+
+const isUpdateDataFulfilled = (action: AnyAction) => {
+  return action.type === FormDataActions.updateFormDataFulfilled.type
+    || action.type === FormDataActions.updateFormDataSkipAutosave.type;
+};
+
+const FormDataReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(FormDataActions.fetchFormDataFulfilled, (state, action: PayloadAction<IFetchFormDataFulfilled>) => {
+      const { formData } = action.payload;
+      state.formData = formData;
+    })
+    .addCase(FormDataActions.fetchFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    })
+    .addCase(FormDataActions.submitFormData, (state, action: PayloadAction<ISubmitDataAction>) => {
+      const { apiMode } = action.payload;
+      state.isSaving = apiMode !== 'Complete';
+      state.isSubmitting = apiMode === 'Complete';
+      state.hasSubmitted = apiMode === 'Complete';
+    })
+    .addCase(FormDataActions.submitFormDataFulfilled, (state) => {
+      state.isSaving = false;
+      state.unsavedChanges = false;
+    })
+    .addCase(FormDataActions.submitFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+      state.isSubmitting = false;
+      state.isSaving = false;
+      state.ignoreWarnings = true;
+    })
+    .addCase(FormDataActions.updateFormData, (state) => {
+      state.hasSubmitted = false;
+      state.ignoreWarnings = false;
+    })
+    .addCase(FormDataActions.updateFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    })
+    .addCase(FormLayoutActions.updateCurrentView, (state) => {
+      state.hasSubmitted = true;
+    })
+    .addCase(FormLayoutActions.updateCurrentViewFulfilled, (state) => {
+      state.hasSubmitted = false;
+    })
+    .addMatcher(isUpdateDataFulfilled, (state, action: PayloadAction<IUpdateFormDataFulfilled>) => {
+      const { field, data } = action.payload;
+      // Remove if data is null, undefined or empty string
+      if (data === undefined || data === null || data === '') {
+        delete state.formData[field];
+      } else {
+        state.formData[field] = data;
+      }
+      state.unsavedChanges = true;
+    })
+    .addMatcher(isProcessAction, (state) => {
+      state.isSubmitting = false;
+    })
+    .addDefaultCase((state) => state);
+});
 
 export default FormDataReducer;
