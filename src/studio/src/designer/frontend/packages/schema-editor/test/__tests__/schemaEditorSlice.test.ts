@@ -79,4 +79,3 @@ describe('SchemaEditorSlice', () => {
     expect(item.fields).not.toContainEqual({ key: 'maxLength' });
   });
 });
-  
