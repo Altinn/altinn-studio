@@ -5,7 +5,7 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
-import { ISchemaState, UiSchemaItem } from '../types';
+import { ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
@@ -35,7 +35,7 @@ const useStyles = makeStyles(
 );
 
 export interface ISchemaEditor {
-  schema: any;
+  schema: ISchema;
   onSaveSchema: (payload: any) => void;
   rootItemId?: string;
 }

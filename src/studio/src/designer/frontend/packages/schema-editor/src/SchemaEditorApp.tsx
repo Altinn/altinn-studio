@@ -3,9 +3,10 @@ import { Provider } from 'react-redux';
 import './App.css';
 import SchemaEditor from './components/schemaEditor';
 import { store } from './store';
+import { ISchema } from './types';
 
 export interface IAppProps {
-  schema: any;
+  schema: ISchema;
   rootItemId?: string;
   onSaveSchema: (payload: any) => void;
 }
