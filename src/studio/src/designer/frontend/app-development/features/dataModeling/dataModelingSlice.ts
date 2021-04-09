@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-param-reassign */
+import { ISchema } from '@altinn/schema-editor/types';
 import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IDataModelAction {
@@ -17,10 +18,6 @@ export interface IDataModelErrorActionPayload extends Action {
 export interface ISetDataModelFilePathActionPayload extends Action {
   filePath: string;
 }
-export interface ISchema {
-  properties: any[];
-  definitions: any[];
-}
 export interface IDataModelingState {
   schema: ISchema;
   modelName: string;
@@ -33,7 +30,7 @@ export interface IDeleteDataModelRejected {
 }
 
 const initialState: IDataModelingState = {
-  schema: { properties: [], definitions: [] },
+  schema: { properties: {}, definitions: {} },
   modelName: undefined,
   error: null,
   saving: false,
@@ -74,14 +71,14 @@ const dataModelingSlice = createSlice({
       const { modelName } = action.payload;
       state.modelName = modelName;
       state.error = null;
-      state.schema = { properties: [], definitions: [] };
+      state.schema = { properties: {}, definitions: {} };
     },
     deleteDataModel(state) {
       state.saving = true;
     },
     deleteDataModelFulfilled(state) {
       state.saving = false;
-      state.schema = { properties: [], definitions: [] };
+      state.schema = { properties: {}, definitions: {} };
       state.modelName = '';
     },
     deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
