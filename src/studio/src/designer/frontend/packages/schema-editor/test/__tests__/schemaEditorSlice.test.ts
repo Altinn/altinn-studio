@@ -1,4 +1,4 @@
-import reducer, { deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -91,5 +91,27 @@ describe('SchemaEditorSlice', () => {
     }
 
     expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });
+  });
+
+  it('handles addProperty', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      newKey: 'test',
+      content: [
+        {
+          id: '#/definitions/test',
+        },
+      ],
+    };
+    const nextState = reducer(state, addProperty(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    if (!item || !item.properties) {
+      fail('item not found');
+    }
+
+    expect(item.properties).toContainEqual({
+      $ref: '#/definitions/test', id: '#/definitions/Kontaktperson/properties/test', name: 'test',
+    });
   });
 });
