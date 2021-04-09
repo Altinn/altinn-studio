@@ -77,10 +77,10 @@ namespace Altinn.Platform.Storage.DataCleanup
                         dataElementsBackupDeleted = await _blobService.DeleteDataBackup(instance.Id);
                     }
 
-                    instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
-                    instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.Id, instance.InstanceOwner.PartyId);
+                    instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.InstanceOwner.PartyId, instance.Id);
+                    instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.InstanceOwner.PartyId, instance.Id);
 
-                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.Id, instance.InstanceOwner.PartyId);
+                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.InstanceOwner.PartyId, instance.Id);
 
                     if (dataElementMetadataDeleted
                         && dataElementsBackupDeleted
@@ -88,7 +88,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                         && instanceEventsBackupDeleted
                         && instanceBackupDeleted)
                     {
-                        await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
+                        await _cosmosService.DeleteInstanceDocument(instance.InstanceOwner.PartyId, instance.Id);
                         successfullyDeleted += 1;
                         log.LogInformation(
                             "LoadTestingCleanup // Run // Instance deleted: {AppId}/{InstanceId}",

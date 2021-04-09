@@ -69,11 +69,11 @@ namespace Altinn.Platform.Storage.DataCleanup
 
                     if (autoDeleteAppIds.Contains(instance.AppId))
                     {
-                        instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.Id, instance.InstanceOwner.PartyId);
-                        instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.Id, instance.InstanceOwner.PartyId);
+                        instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.InstanceOwner.PartyId, instance.Id);
+                        instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.InstanceOwner.PartyId, instance.Id);
                     }
 
-                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.Id, instance.InstanceOwner.PartyId);
+                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.InstanceOwner.PartyId, instance.Id);
 
                     if (
                         dataElementMetadataDeleted
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                         && instanceBackupDeleted
                         && (!autoDeleteAppIds.Contains(instance.AppId) || (instanceEventsDeleted && instanceEventsBackupDeleted)))
                     {
-                        await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
+                        await _cosmosService.DeleteInstanceDocument(instance.InstanceOwner.PartyId, instance.Id);
                         successfullyDeleted += 1;
                         log.LogInformation(
                             "NightlyCleanup // Run // Instance deleted: {AppId}/{InstanceId}",
