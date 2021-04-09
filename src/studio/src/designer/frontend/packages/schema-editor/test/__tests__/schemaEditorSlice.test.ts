@@ -1,4 +1,4 @@
-import reducer, { addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -113,5 +113,13 @@ describe('SchemaEditorSlice', () => {
     expect(item.properties).toContainEqual({
       $ref: '#/definitions/test', id: '#/definitions/Kontaktperson/properties/test', name: 'test',
     });
+  });
+
+  it('handles updateJsonSchema', () => {
+    const payload = {
+      onSaveSchema: jest.fn(),
+    };
+    reducer(state, updateJsonSchema(payload));
+    expect(payload.onSaveSchema).toBeCalled();
   });
 });
