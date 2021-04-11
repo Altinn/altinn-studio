@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <AssemblyVersion>2.4.1.0</AssemblyVersion>
     <FileVersion>2.4.1.0</FileVersion>
