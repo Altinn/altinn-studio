@@ -47,6 +47,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string PidClaimName = "pid";
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
+        private const string IssClaimName = "iss";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
         private readonly IOrganisationsService _organisationService;
@@ -300,6 +301,13 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
                 _logger.LogInformation("Token is valid");
 
+                string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
+                if (issOriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
+                {
+                _logger.LogInformation("Invalid issuer " + issOriginal);
+                    return Unauthorized();
+                }
+
                 string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
                 if (string.IsNullOrEmpty(orgNumber))
@@ -428,7 +436,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                string serializedToken = await GenerateToken(principal);
+                string serializedToken = await GenerateToken(principal, token.ValidTo);
                 return Ok(serializedToken);
             }
             catch (Exception ex)
@@ -527,8 +535,9 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Generates a token and serialize it to a compact format
         /// </summary>
         /// <param name="principal">The claims principal for the token</param>
+        /// <param name="expires">The Expiry time of the token</param>
         /// <returns>A serialized version of the generated JSON Web Token.</returns>
-        private async Task<string> GenerateToken(ClaimsPrincipal principal)
+        private async Task<string> GenerateToken(ClaimsPrincipal principal, DateTime? expires = null)
         {
             List<X509Certificate2> certificates = await _certificateProvider.GetCertificates();
 
@@ -536,12 +545,16 @@ namespace Altinn.Platform.Authentication.Controllers
                 certificates, _generalSettings.JwtSigningCertificateRolloverDelayHours);
 
             TimeSpan tokenExpiry = new TimeSpan(0, _generalSettings.JwtValidityMinutes, 0);
+            if (expires == null)
+            {
+                expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds);
+            }
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
+                Expires = expires,
                 SigningCredentials = new X509SigningCredentials(certificate)
             };
 

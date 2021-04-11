@@ -1,18 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.Common.AccessToken.Configuration;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Events.Authorization;
-using Altinn.Platform.Events.Configuration;
+
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platorm.Events.Extensions;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -65,8 +61,7 @@ namespace Altinn.Platform.Events.Controllers
             await SetCreatedBy(eventsSubscription);
             await EnrichConsumer(eventsSubscription);
 
-            string message = null;
-            if (!ValidateSubscription(eventsSubscription, out message))
+            if (!ValidateSubscription(eventsSubscription, out string message))
             {
                 return BadRequest(message);
             }
@@ -81,9 +76,9 @@ namespace Altinn.Platform.Events.Controllers
                 return Unauthorized("Not authorized to create a subscription with subject " + eventsSubscription.AlternativeSubjectFilter);
             }
 
-            int id = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
+            Subscription createdSubscription = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
 
-            return Created("/events/api/v1/subscription/" + id, eventsSubscription);
+            return Created("/events/api/v1/subscription/" + createdSubscription.Id, createdSubscription);
         }
 
         /// <summary>

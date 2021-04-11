@@ -83,8 +83,8 @@ function* updateRepeatingGroupsSaga({ payload: {
       const updatedFormData = removeGroupData(formDataState.formData, index,
         layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
 
-      yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
-      yield call(FormDataActions.saveFormData);
+      yield put(FormDataActions.fetchFormDataFulfilled({ formData: updatedFormData }));
+      yield put(FormDataActions.saveFormData());
     }
 
     yield call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun);

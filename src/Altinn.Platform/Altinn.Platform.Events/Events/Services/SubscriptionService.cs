@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 
 namespace Altinn.Platform.Events.Services
@@ -11,18 +12,18 @@ namespace Altinn.Platform.Events.Services
     /// <inheritdoc/>
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly IPostgresRepository _repository;
+        private readonly ISubscriptionRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionService"/> class.
         /// </summary>
-        public SubscriptionService(IPostgresRepository repository)
+        public SubscriptionService(ISubscriptionRepository repository)
         {
             _repository = repository;
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateSubscription(Subscription eventsSubcrition)
+        public async Task<Subscription> CreateSubscription(Subscription eventsSubcrition)
         {
             return await _repository.CreateSubscription(eventsSubcrition);
         }
