@@ -6,6 +6,7 @@ import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
 import DataModelingContainer from '../../features/dataModeling/containers/DataModelingContainer';
+import * as testData from '../__testdata__/schemaTestData.json';
 
 describe('DataModeling', () => {
   const language = { administration: {} };
@@ -29,7 +30,7 @@ describe('DataModeling', () => {
       },
     },
     dataModeling: {
-      schema: {},
+      schema: testData,
       modelName: 'test',
       saving: false,
     },
@@ -91,12 +92,12 @@ describe('DataModeling', () => {
     expect(wrapper).not.toBeNull();
 
     expect(wrapper.find('input').length).toBe(1);
-    expect(wrapper.find('button').length).toBe(3);
+    expect(wrapper.find('button').length).toBe(5);
     wrapper.find('#new-button').at(0).simulate('click');
     expect(wrapper.find('input').length).toBe(2);
 
     wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
-    expect(wrapper.find('button').length).toBe(4);
+    expect(wrapper.find('button').length).toBe(7);
     wrapper.find('#newModelInput').find('button').simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({

@@ -3,12 +3,12 @@ export enum ItemType {
   Value,
   Ref,
 }
-
 export interface ISchemaState {
-  schema: any;
-  uiSchema: any[];
+  schema: ISchema;
+  uiSchema: UiSchemaItem[];
   rootName: string;
   saveSchemaUrl: string;
+  selectedId?: string;
 }
 
 export interface ISetValueAction {
@@ -29,4 +29,8 @@ export type UiSchemaItem = {
   properties?: UiSchemaItem[];
   value?: any;
   name?: string;
+}
+export interface ISchema {
+  properties: { [key: string]: UiSchemaItem };
+  definitions: { [key: string]: UiSchemaItem };
 }
