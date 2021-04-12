@@ -102,6 +102,25 @@ it('dispatches correctly when changing key', (done) => {
   });
 });
 
+it('renders no item if nothing is selected', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: null,
+  });
+  act(() => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector />
+      </Provider>,
+    );
+    expect(wrapper).not.toBeNull();
+
+    expect(wrapper.find('.no-item-selected').last().text()).toBe('No item selected');
+  });
+});
+
 it('handles delete button', () => {
   act(() => {
     const wrapper = mount(
