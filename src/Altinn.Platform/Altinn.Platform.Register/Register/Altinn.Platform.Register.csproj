@@ -3,8 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-      <LangVersion>latest</LangVersion>
-    <!-- SonarCloud needs this -->
+      <!-- SonarCloud needs this -->
     <ProjectGuid>{245b9c40-e4f7-47cb-96c8-e027078fe1b5}</ProjectGuid>
   </PropertyGroup>
 

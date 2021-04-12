@@ -4,7 +4,6 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Altinn.App</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
