@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Common.AccessTokenClient.Services
@@ -14,5 +12,13 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// </summary>
         /// <returns>The signing credentials</returns>
         SigningCredentials GetSigningCredentials();
+
+        /// <summary>
+        /// Returns certificat to be used for signing a JWT
+        /// </summary>
+        /// <param name="keyVaultUri">Uri to KeyVault</param>
+        /// <param name="secretId">Id to certificate in KeyVault</param>
+        /// <returns>The signing credentials</returns>
+        SigningCredentials GetSigningCredentials(string keyVaultUri, string secretId);
     }
 }
