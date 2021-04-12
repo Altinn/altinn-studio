@@ -33,62 +33,14 @@ namespace Altinn.Common.AccessTokenClient.Services
         }
 
         /// <summary>
-        /// Generates a access token for apps in altinn apps or platform components needing to access other platform components.
-        /// </summary>
-        /// <param name="issuer">Can be a app or platform component</param>
-        /// <param name="app">The application creating token (app or component)</param>
-        /// <returns></returns>
-        public string GenerateAccessToken(string issuer, string app)
-        {
-            if (_accessTokenSettings.DisableAccessTokenGeneration)
-            {
-                return null;
-            }
-
-            try
-            {
-                List<Claim> claims = new List<Claim>();
-                if (!string.IsNullOrEmpty(app))
-                {
-                    claims.Add(new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer));
-                }
-
-                ClaimsIdentity identity = new ClaimsIdentity("AccessToken");
-                identity.AddClaims(claims);
-                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(principal.Identity),
-                    Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds),
-                    SigningCredentials = _signingKeysResolver.GetSigningCredentials(),
-                    Audience = "platform.altinn.no",
-                    Issuer = issuer
-                };
-
-                SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-                string tokenstring = tokenHandler.WriteToken(token);
-
-                return tokenstring;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Not able to generate access token");
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Generates a access token for apps/functions needing to access platform components.
+        /// Generates a access token for apps in altinn apps, functions or platform components needing to access other platform components.
         /// </summary>
         /// <param name="issuer">Can be a app or platform component</param>
         /// <param name="app">The application creating token (app or component)</param>
         /// <param name="keyVaultUri">Uri to keyvault</param>
         /// <param name="secretId">Id to the certificate in keyvault</param>
         /// <returns>Accesstoken</returns>
-        public string GenerateAccessToken(string issuer, string app, string keyVaultUri, string secretId)
+        public string GenerateAccessToken(string issuer, string app, string keyVaultUri = null, string secretId = null)
         {
             if (_accessTokenSettings.DisableAccessTokenGeneration)
             {
@@ -112,11 +64,19 @@ namespace Altinn.Common.AccessTokenClient.Services
                 {
                     Subject = new ClaimsIdentity(principal.Identity),
                     Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds),
-                    SigningCredentials = _signingKeysResolver.GetSigningCredentials(keyVaultUri, secretId),
                     Audience = "platform.altinn.no",
                     Issuer = issuer
                 };
 
+                if (!string.IsNullOrEmpty(keyVaultUri) && !string.IsNullOrEmpty(secretId))
+                {
+                    tokenDescriptor.SigningCredentials = _signingKeysResolver.GetSigningCredentials(keyVaultUri, secretId);
+                }
+                else
+                {
+                    tokenDescriptor.SigningCredentials = _signingKeysResolver.GetSigningCredentials();
+                }
+                
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
                 string tokenstring = tokenHandler.WriteToken(token);
 
