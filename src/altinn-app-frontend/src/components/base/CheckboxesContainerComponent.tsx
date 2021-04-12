@@ -7,7 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
