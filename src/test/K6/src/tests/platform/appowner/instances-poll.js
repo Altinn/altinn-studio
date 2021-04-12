@@ -8,7 +8,7 @@
     as an app owner
     Test data required: an app that has instances in task 1 and maskinporten token for appowner
     Command: docker-compose run k6 run --duration 10m /src/tests/platform/appowner/instances-poll.js 
-    -e env=*** -e org=*** -e app=*** -e appsaccesskey=*** -e maskinporten=token -e poll=60 (in seconds)
+    -e env=*** -e org=*** -e app=*** -e maskinporten=token -e poll=60 (in seconds)
 */
 
 import { check, sleep } from "k6";
