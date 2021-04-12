@@ -29,12 +29,10 @@ const SchemaInspector = (() => {
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      // selectedId: #/definitions/Foretak/properties/organisasjonsnummerForetak
       if (selectedId.includes('/properties/')) {
         const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
         return item?.properties?.find((p) => p.id === selectedId);
       }
-      // selectedId: #/definitions/OrganisasjonsnummerRestriksjon
       return state.uiSchema.find((i) => i.id === selectedId);
     }
     return null;

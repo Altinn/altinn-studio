@@ -203,7 +203,6 @@ function SchemaItem(props: StyledTreeItemProps) {
         <SchemaItem
           keyPrefix={`${keyPrefix}-${definitionItem.id}`}
           key={`${keyPrefix}-${definitionItem.id}`}
-          // label={`$ref: ${$ref}`}
           refSource={$ref}
           onClick={() => onItemClick(definitionItem.id)}
           item={definitionItem}

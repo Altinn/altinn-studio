@@ -56,8 +56,6 @@ test('renders schema editor with populated schema', () => {
     expect(utils.findByTestId('schema-editor')).toBeTruthy();
     expect(utils.getByText('Save data model').innerHTML).toBeTruthy();
   });
-
-  // expect(utils.getByRole('button').innerHTML).toEqual('Add root item')
 });
 
 test('renders schema editor with button to add root item when schema is empty', () => {
