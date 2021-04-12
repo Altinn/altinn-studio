@@ -60,6 +60,12 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       iconClass: 'fa fa-archive',
     },
     {
+      displayText: 'Data-Editor',
+      navLink: '/datamodelling',
+      activeLeftMenuSelection: 'Data-Editor',
+      iconClass: 'fa fa-datamodel-object',
+    },
+    {
       displayText: 'UI-Editor',
       navLink: '/ui-editor',
       activeLeftMenuSelection: 'UI-Editor',

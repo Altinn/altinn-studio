@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{35821363-9246-40FF-8312-15AEA130D779}</ProjectGuid>
+    <ProjectGuid>{C219A8A8-B936-453C-AC34-01454A0D1792}</ProjectGuid>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>

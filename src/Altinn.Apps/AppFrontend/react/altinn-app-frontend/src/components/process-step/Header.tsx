@@ -1,7 +1,7 @@
 /* eslint-disable import/first */
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import { useMediaQuery } from '@material-ui/core';
 import { ProcessTaskType } from '../../types';
 

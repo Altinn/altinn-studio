@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{38C5B1A1-B7CF-4F46-B6E1-482168C8D548}</ProjectGuid>
+    <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
