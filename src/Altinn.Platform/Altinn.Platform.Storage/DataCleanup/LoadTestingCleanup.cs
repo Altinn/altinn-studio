@@ -23,16 +23,19 @@ namespace Altinn.Platform.Storage.DataCleanup
     {
         private readonly ICosmosService _cosmosService;
         private readonly IBlobService _blobService;
+        private readonly IBackupBlobService _backupBlobService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoadTestingCleanup"/> class.
         /// </summary>
         /// <param name="cosmosService">The Cosmos DB service.</param>
         /// <param name="blobService">The blob service.</param>
-        public LoadTestingCleanup(ICosmosService cosmosService, IBlobService blobService)
+        /// <param name="backupBlobService">The backup blob service.</param>
+        public LoadTestingCleanup(ICosmosService cosmosService, IBlobService blobService, IBackupBlobService backupBlobService)
         {
             _cosmosService = cosmosService;
             _blobService = blobService;
+            _backupBlobService = backupBlobService;
         }
 
         /// <summary>
@@ -74,13 +77,13 @@ namespace Altinn.Platform.Storage.DataCleanup
                     if (dataElementsDeleted)
                     {
                         dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
-                        dataElementsBackupDeleted = await _blobService.DeleteDataBackup(instance.Id);
+                        dataElementsBackupDeleted = await _backupBlobService.DeleteDataBackup(instance.Id);
                     }
 
                     instanceEventsDeleted = await _cosmosService.DeleteInstanceEventDocuments(instance.InstanceOwner.PartyId, instance.Id);
-                    instanceEventsBackupDeleted = await _blobService.DeleteInstanceEventsBackup(instance.InstanceOwner.PartyId, instance.Id);
+                    instanceEventsBackupDeleted = await _backupBlobService.DeleteInstanceEventsBackup(instance.InstanceOwner.PartyId, instance.Id);
 
-                    instanceBackupDeleted = await _blobService.DeleteInstanceBackup(instance.InstanceOwner.PartyId, instance.Id);
+                    instanceBackupDeleted = await _backupBlobService.DeleteInstanceBackup(instance.InstanceOwner.PartyId, instance.Id);
 
                     if (dataElementMetadataDeleted
                         && dataElementsBackupDeleted
