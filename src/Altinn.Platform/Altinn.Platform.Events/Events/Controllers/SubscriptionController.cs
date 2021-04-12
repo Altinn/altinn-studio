@@ -95,7 +95,7 @@ namespace Altinn.Platform.Events.Controllers
                 return NotFound();
             }
 
-            if (!AuthorizeAccessToSubscription(subscription))
+            if (!await AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
             }
@@ -118,7 +118,7 @@ namespace Altinn.Platform.Events.Controllers
                 return NotFound();
             }
 
-            if (!AuthorizeAccessToSubscription(subscription))
+            if (!await AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
             }
@@ -299,7 +299,7 @@ namespace Altinn.Platform.Events.Controllers
             }
         }
 
-        private bool AuthorizeAccessToSubscription(Subscription eventsSubscription)
+        private async Task<bool> AuthorizeAccessToSubscription(Subscription eventsSubscription)
         {
             string currentIdenity = string.Empty;
 
@@ -309,7 +309,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else if (!string.IsNullOrEmpty(HttpContext.User.GetOrgNumber()))
             {
-                currentIdenity = OrganisationPrefix + HttpContext.User.GetOrgNumber();
+                currentIdenity = PartyPrefix + await _registerService.PartyLookup(HttpContext.User.GetOrgNumber(), null);
             }
             else if (HttpContext.User.GetUserIdAsInt().HasValue)
             {
