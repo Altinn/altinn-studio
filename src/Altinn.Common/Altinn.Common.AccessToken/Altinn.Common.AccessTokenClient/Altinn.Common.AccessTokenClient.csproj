@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{38C5B1A1-B7CF-4F46-B6E1-482168C8D548}</ProjectGuid>
-    <AssemblyVersion>0.5.6.0</AssemblyVersion>
-    <FileVersion>0.5.6.0</FileVersion>
+    <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
-    <PackageVersion>0.5.6</PackageVersion>
+    <PackageVersion>1.0.0-alpha</PackageVersion>
     <PackageTags>Altinn;AccessTokenClient</PackageTags>
     <Description>
       Package to generate access tokens to use against Altinn Platform.
@@ -25,6 +26,7 @@
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{35821363-9246-40FF-8312-15AEA130D779}</ProjectGuid>
-    <AssemblyVersion>0.5.10.0</AssemblyVersion>
-    <FileVersion>0.5.10.0</FileVersion>
+    <ProjectGuid>{C219A8A8-B936-453C-AC34-01454A0D1792}</ProjectGuid>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
   
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessToken</PackageId>
-    <PackageVersion>0.5.10</PackageVersion>
+    <PackageVersion>1.0.0-alpha</PackageVersion>
     <PackageTags>Altinn;AccessToken</PackageTags>
     <Description>
       Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault.
@@ -24,6 +25,7 @@
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
