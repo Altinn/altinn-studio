@@ -1,77 +1,49 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Events.Configuration;
+using Altinn.Platform.Events.Extensions;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Npgsql;
 using NpgsqlTypes;
 
 namespace Altinn.Platform.Events.Repository
 {
     /// <summary>
-    /// Handles events repository. 
+    /// Represents an implementation of <see cref="ISubscriptionRepository"/>.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class PostgresRepository : IPostgresRepository
+    public class SubscriptionRepository : ISubscriptionRepository
     {
-        private readonly NpgsqlConnection _conn;
-        private readonly ILogger _logger;
-        private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
-        private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
-        private readonly string insertSubscriptionSql = "call events.insert_subcsription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated, @subscription_id)";
+        private readonly string insertSubscriptionSql = "select * from events.insert_subscription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated)";
         private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
         private readonly string deleteSubscription = "call events.deletesubscription(@_id)";
         private readonly string getSubscriptionsExcludeOrgsSql = "select * from events.getsubscriptionsexcludeorgs(@source, @subject, @type)";
         private readonly string getSubscriptionByConsumerSql = "select * from events.getsubscriptionsbyconsumer(@_consumer)";
 
+        private readonly NpgsqlConnection _conn;
+        private readonly ILogger _logger;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgresRepository"/> class.
+        /// Initializes a new instance of the <see cref="SubscriptionRepository"/> class.
         /// </summary>
-        public PostgresRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<PostgresRepository> logger)
+        public SubscriptionRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<SubscriptionRepository> logger)
         {
-            string connectionString = string.Format(
-                postgresSettings.Value.ConnectionString,
-                postgresSettings.Value.EventsDbPwd);
+            string connectionString =
+                string.Format(postgresSettings.Value.ConnectionString, postgresSettings.Value.EventsDbPwd);
+
             _conn = new NpgsqlConnection(connectionString);
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public async Task<string> Create(CloudEvent item)
-        {
-            try
-            {
-                await _conn.OpenAsync();
-
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, _conn);
-                pgcom.Parameters.AddWithValue("id", item.Id);
-                pgcom.Parameters.AddWithValue("source", item.Source.OriginalString);
-                pgcom.Parameters.AddWithValue("subject", item.Subject);
-                pgcom.Parameters.AddWithValue("type", item.Type);
-                pgcom.Parameters.AddWithValue("cloudevent", item.Serialize());
-
-                await pgcom.ExecuteNonQueryAsync();
-
-                return item.Id;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("PostgresRepository // Create // Exception", e);
-                throw;
-            }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<int> CreateSubscription(Subscription eventsSubscription)
+        public async Task<Subscription> CreateSubscription(Subscription eventsSubscription)
         {
             try
             {
@@ -98,26 +70,20 @@ namespace Altinn.Platform.Events.Repository
                     pgcom.Parameters.AddWithValue("typefilter", DBNull.Value);
                 }
 
-                int subscriptionid = 0; // To be able to get value out
                 pgcom.Parameters.AddWithValue("consumer", eventsSubscription.Consumer);
                 pgcom.Parameters.AddWithValue("endpointurl", eventsSubscription.EndPoint.AbsoluteUri);
                 pgcom.Parameters.AddWithValue("createdby", eventsSubscription.CreatedBy);
                 pgcom.Parameters.AddWithValue("validated", false);
-                pgcom.Parameters.AddWithValue("subscription_id", subscriptionid);
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
-                    while (reader.Read())
-                    {
-                        eventsSubscription.Id = int.Parse(reader["subscription_id"].ToString());
-                    }
+                    reader.Read();
+                    return GetSubscription(reader);
                 }
-
-                return eventsSubscription.Id;
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // CreateSubscription // Exception", e);
+                _logger.LogError(e, "PostgresRepository // CreateSubscription // Exception");
                 throw;
             }
             finally
@@ -139,49 +105,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // DeleteSubscription // Exception", e);
-                throw;
-            }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
-        {
-            List<CloudEvent> searchResult = new List<CloudEvent>();
-            int index = 0;
-
-            try
-            {
-                await _conn.OpenAsync();
-
-                NpgsqlCommand pgcom = new NpgsqlCommand(getEventSql, _conn);
-                pgcom.Parameters.AddWithValue("_subject", NpgsqlDbType.Varchar, subject);
-                pgcom.Parameters.AddWithValue("_after", NpgsqlDbType.Varchar, after);
-                pgcom.Parameters.AddWithValue("_from", NpgsqlDbType.TimestampTz, from ?? (object)DBNull.Value);
-                pgcom.Parameters.AddWithValue("_to", NpgsqlDbType.TimestampTz, to ?? (object)DBNull.Value);
-                pgcom.Parameters.AddWithValue("_source", NpgsqlDbType.Array | NpgsqlDbType.Text, source ?? (object)DBNull.Value);
-                pgcom.Parameters.AddWithValue("_type", NpgsqlDbType.Array | NpgsqlDbType.Text, type ?? (object)DBNull.Value);
-
-                using (NpgsqlDataReader reader = pgcom.ExecuteReader())
-                {
-                    while (reader.Read() && index < size)
-                    {
-                        CloudEvent cloudEvent = CloudEvent.Deserialize(reader[0].ToString());
-                        cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
-                        searchResult.Add(cloudEvent);
-                        ++index;
-                    }
-                }
-
-                return searchResult;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($" PostgresRepository // Get // Exception {JsonSerializer.Serialize(e)}");
+                _logger.LogError(e, "PostgresRepository // DeleteSubscription // Exception");
                 throw;
             }
             finally
@@ -213,7 +137,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                Console.WriteLine($" PostgresRepository // GetSubscription // Exception {JsonSerializer.Serialize(e)}");
+                _logger.LogError(e, "PostgresRepository // GetSubscription // Exception");
                 throw;
             }
             finally
@@ -247,7 +171,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // GetSubscriptionsExcludeOrg // Exception", e);
+                _logger.LogError(e, "PostgresRepository // GetSubscriptionsExcludeOrg // Exception");
                 throw;
             }
             finally
@@ -279,7 +203,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError("PostgresRepository // GetSubscriptionByConsumer // Exception", e);
+                _logger.LogError(e, "PostgresRepository // GetSubscriptionByConsumer // Exception");
                 throw;
             }
             finally
@@ -291,14 +215,14 @@ namespace Altinn.Platform.Events.Repository
         private static Subscription GetSubscription(NpgsqlDataReader reader)
         {
             Subscription subscription = new Subscription();
-            subscription.Id = Convert.ToInt32(reader["id"].ToString());
-            subscription.SourceFilter = new Uri(reader["sourcefilter"].ToString());
-            subscription.SubjectFilter = reader["subjectfilter"].ToString();
-            subscription.TypeFilter = reader["typefilter"].ToString();
-            subscription.Consumer = reader["consumer"].ToString();
-            subscription.EndPoint = new Uri(reader["endpointurl"].ToString());
-            subscription.CreatedBy = reader["createdby"].ToString();
-            subscription.Created = DateTime.Parse(reader["time"].ToString());
+            subscription.Id = reader.GetValue<int>("id");
+            subscription.SourceFilter = new Uri(reader.GetValue<string>("sourcefilter"));
+            subscription.SubjectFilter = reader.GetValue<string>("subjectfilter");
+            subscription.TypeFilter = reader.GetValue<string>("typefilter");
+            subscription.Consumer = reader.GetValue<string>("consumer");
+            subscription.EndPoint = new Uri(reader.GetValue<string>("endpointurl"));
+            subscription.CreatedBy = reader.GetValue<string>("createdby");
+            subscription.Created = reader.GetValue<DateTime>("time").ToUniversalTime();
             return subscription;
         }
     }

@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState, IValidations, IUiConfig } from 'src/types';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
-import * as FormDataActionTypes from '../../data/formDataActionTypes';
+import FormDataActions from '../../data/formDataActions';
 import { IFormData } from '../../data/formDataReducer';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
@@ -52,7 +52,7 @@ export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterato
   while (true) {
     yield all([
       take(FormLayoutActions.fetchLayoutFulfilled),
-      take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
+      take(FormDataActions.fetchFormDataFulfilled),
       take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
       take(RulesActionTypes.FETCH_RULE_MODEL_FULFILLED),
     ]);

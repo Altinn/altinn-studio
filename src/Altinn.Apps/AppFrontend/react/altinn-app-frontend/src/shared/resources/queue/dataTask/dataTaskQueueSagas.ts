@@ -7,7 +7,7 @@ import QueueActions from '../queueActions';
 import { START_INITIAL_DATA_TASK_QUEUE } from './dataTaskQueueActionTypes';
 
 export function* startInitialDataTaskQueue(): SagaIterator {
-  yield call(FormDataActions.fetchFormDataInitial);
+  yield put(FormDataActions.fetchFormDataInitial());
   yield put(fetchJsonSchema());
   yield put(FormLayoutActions.fetchLayoutSets());
   yield put(FormLayoutActions.fetchLayout());
