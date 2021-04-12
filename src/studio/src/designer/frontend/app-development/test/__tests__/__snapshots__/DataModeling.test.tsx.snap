@@ -422,7 +422,9 @@ exports[`DataModeling Should match snapshot 1`] = `
             class="MuiCardContent-root"
           >
             
-            <p>
+            <p
+              class="no-item-selected"
+            >
               No item selected
             </p>
           </div>
