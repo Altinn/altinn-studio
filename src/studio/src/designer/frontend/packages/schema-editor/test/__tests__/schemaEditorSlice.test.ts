@@ -1,4 +1,4 @@
-import reducer, { addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addProperty, addRootItem, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -121,5 +121,46 @@ describe('SchemaEditorSlice', () => {
     };
     reducer(state, updateJsonSchema(payload));
     expect(payload.onSaveSchema).toBeCalled();
+  });
+
+  it('handles addRootItem', () => {
+    const payload = {
+      itemsToAdd: [
+        {
+          id: '#/definitions/Foretak',
+          properties: [
+            {
+              id: '#/definitions/Foretak/properties/organisasjonsnummerForetak',
+              name: 'organisasjonsnummerForetak',
+              $ref: '#/definitions/Organisasjonsnummer',
+            },
+            {
+              id: '#/definitions/Foretak/properties/navnForetak',
+              name: 'navnForetak',
+              $ref: '#/definitions/Tekst',
+            },
+            {
+              id: '#/definitions/Foretak/properties/adresseForetak',
+              name: 'adresseForetak',
+              $ref: '#/definitions/Besoeksadresse',
+            },
+          ],
+          name: 'Foretak',
+          '@xsdUnhandledAttribute1': 'seres:elementtype=Dataobjekttype',
+          '@xsdUnhandledAttribute2': 'seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Foretak/492157',
+        },
+      ],
+    };
+    const nextState = reducer(state, addRootItem(payload));
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Foretak');
+    expect(item).not.toBeUndefined();
+    if (item == null) {
+      fail('item is null');
+    }
+    expect(item.properties).toContainEqual({
+      id: '#/definitions/Foretak/properties/adresseForetak',
+      name: 'adresseForetak',
+      $ref: '#/definitions/Besoeksadresse',
+    });
   });
 });
