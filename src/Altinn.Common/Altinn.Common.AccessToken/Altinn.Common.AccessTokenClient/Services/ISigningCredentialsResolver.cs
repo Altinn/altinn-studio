@@ -8,17 +8,9 @@ namespace Altinn.Common.AccessTokenClient.Services
     public interface ISigningCredentialsResolver
     {
         /// <summary>
-        /// Returns certificat to be used for signing a JWT
+        /// Returns certificate to be used for signing a JWT
         /// </summary>
         /// <returns>The signing credentials</returns>
         SigningCredentials GetSigningCredentials();
-
-        /// <summary>
-        /// Returns certificate to be used for signing a JWT
-        /// </summary>
-        /// <param name="keyVaultUri">Uri to KeyVault</param>
-        /// <param name="secretId">Id to certificate in KeyVault</param>
-        /// <returns>The signing credentials</returns>
-        SigningCredentials GetSigningCredentials(string keyVaultUri, string secretId);
     }
 }

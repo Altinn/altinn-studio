@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Constants;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <param name="logger">The logger</param>
         /// <param name="accessTokenSettings">Settings for access token</param>
         /// <param name="signingKeysResolver">The signingkeys resolver</param>
-        public AccessTokenGenerator(ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver)
+        public AccessTokenGenerator(ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver = null)
         {
             _accessTokenSettings = accessTokenSettings.Value;
             _signingKeysResolver = signingKeysResolver;
@@ -33,14 +34,29 @@ namespace Altinn.Common.AccessTokenClient.Services
         }
 
         /// <summary>
-        /// Generates a access token for apps in altinn apps, functions or platform components needing to access other platform components.
+        /// Generates a access token for apps in altinn apps or platform components needing to access other platform components.
         /// </summary>
         /// <param name="issuer">Can be a app or platform component</param>
         /// <param name="app">The application creating token (app or component)</param>
-        /// <param name="keyVaultUri">Uri to keyvault</param>
-        /// <param name="secretId">Id to the certificate in keyvault</param>
+        /// <returns></returns>
+        public string GenerateAccessToken(string issuer, string app)
+        {
+            return GenerateAccessToken(issuer, app, _signingKeysResolver.GetSigningCredentials());
+        }
+
+        /// <summary>
+        /// Generates a access token for anyone needing to access other platform components.
+        /// </summary>
+        /// <param name="issuer">Can be a app or platform component</param>
+        /// <param name="app">The application creating token (app or component)</param>
+        /// <param name="certificate">Certificate to generate SigningCredentials</param>
         /// <returns>Accesstoken</returns>
-        public string GenerateAccessToken(string issuer, string app, string keyVaultUri = null, string secretId = null)
+        public string GenerateAccessToken(string issuer, string app, X509Certificate2 certificate)
+        {
+            return GenerateAccessToken(issuer, app, new X509SigningCredentials(certificate, SecurityAlgorithms.RsaSha256));
+        }
+
+        private string GenerateAccessToken(string issuer, string app, SigningCredentials signingCredentials)
         {
             if (_accessTokenSettings.DisableAccessTokenGeneration)
             {
@@ -64,19 +80,11 @@ namespace Altinn.Common.AccessTokenClient.Services
                 {
                     Subject = new ClaimsIdentity(principal.Identity),
                     Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds),
+                    SigningCredentials = signingCredentials,
                     Audience = "platform.altinn.no",
                     Issuer = issuer
                 };
 
-                if (!string.IsNullOrEmpty(keyVaultUri) && !string.IsNullOrEmpty(secretId))
-                {
-                    tokenDescriptor.SigningCredentials = _signingKeysResolver.GetSigningCredentials(keyVaultUri, secretId);
-                }
-                else
-                {
-                    tokenDescriptor.SigningCredentials = _signingKeysResolver.GetSigningCredentials();
-                }
-                
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
                 string tokenstring = tokenHandler.WriteToken(token);
 
