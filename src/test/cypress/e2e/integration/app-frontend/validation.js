@@ -44,7 +44,7 @@ describe('Validation', () => {
   });
 
   it('Page validation on clicking next', () => {
-    cy.get(appFrontend.changeOfName.newFirstName).clear().type('name');
+    cy.get(appFrontend.changeOfName.newFirstName).clear().type('test').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
     cy.get(mui.button).should('be.visible').click();
     cy.get(appFrontend.errorReport)
