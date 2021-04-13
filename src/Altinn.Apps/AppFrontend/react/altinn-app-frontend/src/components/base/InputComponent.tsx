@@ -1,6 +1,6 @@
 import * as React from 'react';
 import '../../styles/shared.css';
-import classNames = require('classnames');
+import classNames from 'classnames';
 
 export interface IInputProps {
   id: string;

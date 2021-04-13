@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {Typography} from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 
-function ConstItem({item}: any) {
+function ConstItem({ item }: any) {
   const getValue = () => {
     if (item.value) {
       return item.value;
@@ -9,13 +9,14 @@ function ConstItem({item}: any) {
     if (item.fields) {
       return item.fields.find((v: any) => v.key === 'const').value;
     }
+    return null;
   };
 
   return (
     <div>
       <Typography>{item.name || item.id}: {getValue()}</Typography>
     </div>
-  )
+  );
 }
 
 export default ConstItem;

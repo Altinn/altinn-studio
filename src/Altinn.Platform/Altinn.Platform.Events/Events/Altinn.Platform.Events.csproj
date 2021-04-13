@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{6599d6d0-228d-4057-87c3-31cd33068bbd}</ProjectGuid>
   </PropertyGroup>

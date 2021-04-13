@@ -102,7 +102,11 @@ export function GenericComponent(props: IGenericComponentProps) {
       ValidationActions.setCurrentSingleFieldValidation(dataModelField);
     }
 
-    FormDataActions.updateFormData(dataModelField, value, props.id);
+    dispatch(FormDataActions.updateFormData({
+      field: dataModelField,
+      data: value,
+      componentId: props.id,
+    }));
 
     RuleActions.checkIfRuleShouldRun(props.id, props.dataModelBindings[key], value);
   };

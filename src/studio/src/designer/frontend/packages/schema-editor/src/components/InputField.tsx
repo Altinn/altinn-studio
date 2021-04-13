@@ -4,7 +4,7 @@ import { makeStyles,
   Input,
   InputAdornment,
   IconButton } from '@material-ui/core';
-import {CreateOutlined, DeleteOutline, DoneOutlined} from '@material-ui/icons';
+import { CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles({
@@ -29,7 +29,7 @@ const useStyles = makeStyles({
   },
   delete: {
     flex: '0 0 auto',
-  }
+  },
 });
 
 export interface IInputFieldProps {
@@ -80,52 +80,54 @@ export function InputField(props: IInputFieldProps) {
     props.onDeleteField(props.fullPath, props.label);
   };
 
-  const toggleEditLabel = (e: any) => {
+  const toggleEditLabel = () => {
     setEditLabel(!editLabel);
   };
-
+  const baseId = `input-${props.fullPath.replace('#/definitions/', '')}`;
   return (
-      <div>
-        <span className={classes.inputs}>
-          <FormControl>
-            <Input
-              id={`input-${props.fullPath}-key-${label}`}
-              value={label}
-              onChange={onChangeKey}
-              onBlur={onBlurKey}
-              disabled={!editLabel}
-              className={classes.rootKey}
-              endAdornment={
-                <InputAdornment position='end'>
-                  <IconButton onClick={toggleEditLabel}>
-                    {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-                  </IconButton>
-                </InputAdornment>
-              }
+    <div>
+      <span className={classes.inputs}>
+        <FormControl>
+          <Input
+            id={`${baseId}-key-${label}`}
+            value={label}
+            onChange={onChangeKey}
+            onBlur={onBlurKey}
+            disabled={!editLabel}
+            className={classes.rootKey}
+            endAdornment={
+              <InputAdornment position='end'>
+                <IconButton onClick={toggleEditLabel} id={`${baseId}-toggle-${label}`}>
+                  {editLabel ? <DoneOutlined /> : <CreateOutlined />}
+                </IconButton>
+              </InputAdornment>
+            }
+          />
+        </FormControl>
+        <FormControl>
+          {label === 'type' ?
+            <TypeSelect
+              itemType={value}
+              id={label}
+              onChange={onChangeType}
             />
-          </FormControl>
-          <FormControl>
-            {label === 'type' ? 
-              <TypeSelect 
-                itemType={value}
-                id={label}
-                onChange={onChangeType}
-              />
             :
-              <Input
-                value={value}
-                onChange={onChangeValue}
-                className={classes.root}
-              />
+            <Input
+              id={`${baseId}-value-${label}`}
+              value={value}
+              onChange={onChangeValue}
+              className={classes.root}
+            />
           }
-          </FormControl>
-        </span>
-        <IconButton
-            aria-label='Delete field'
-            onClick={onClickDelete}
-          >
-            <DeleteOutline/>
-          </IconButton>
-      </div>
-  )
+        </FormControl>
+      </span>
+      <IconButton
+        id={`${baseId}-delete-${label}`}
+        aria-label='Delete field'
+        onClick={onClickDelete}
+      >
+        <DeleteOutline/>
+      </IconButton>
+    </div>
+  );
 }

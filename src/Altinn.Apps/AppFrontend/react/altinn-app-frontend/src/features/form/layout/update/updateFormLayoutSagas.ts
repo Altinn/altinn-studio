@@ -83,12 +83,13 @@ function* updateRepeatingGroupsSaga({ payload: {
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const updatedFormData = removeGroupData(formDataState.formData, index,
         layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
-      yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
-      yield call(FormDataActions.saveFormData);
 
       // Remove the validations associated with the group
       const updatedValidations = removeGroupValidationsByIndex(layoutElementId, index, formLayoutState.uiConfig.currentView, formLayoutState.layouts, formLayoutState.uiConfig.repeatingGroups, state.formValidations.validations);
       yield call(FormValidationActions.updateValidations, updatedValidations);
+
+      yield put(FormDataActions.fetchFormDataFulfilled({ formData: updatedFormData }));
+      yield put(FormDataActions.saveFormData());
     }
 
     yield call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun);

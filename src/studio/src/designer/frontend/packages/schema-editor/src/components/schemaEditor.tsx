@@ -2,14 +2,16 @@ import * as React from 'react';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import { TreeView } from '@material-ui/lab';
+import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { ISchemaState, UiSchemaItem } from '../types';
+import { Grid } from '@material-ui/core';
+import { ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getUiSchemaTreeFromItem } from '../utils';
+import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
   createStyles({
@@ -22,11 +24,18 @@ const useStyles = makeStyles(
     button: {
       marginLeft: 24,
     },
+    iconContainer: {
+      background: '#022f51',
+      textAlign: 'center',
+      padding: '5px 0px 5px 0px',
+      marginRight: 4,
+      fontSize: '10px',
+    },
   }),
 );
 
 export interface ISchemaEditor {
-  schema: any;
+  schema: ISchema;
   onSaveSchema: (payload: any) => void;
   rootItemId?: string;
 }
@@ -51,8 +60,10 @@ export const SchemaEditor = ({
 
   React.useEffect(() => {
     if (rootItemName && uiSchema && Object.keys(uiSchema).length > 0) {
-      const item = uiSchema.find((i) => i.id === rootItemName);
-      setRootItem(item);
+      const schemaItem = uiSchema.find((i) => i.id === rootItemName);
+      if (schemaItem) {
+        setRootItem(schemaItem);
+      }
     }
   }, [uiSchema, rootItemName]);
 
@@ -102,64 +113,78 @@ export const SchemaEditor = ({
     }
   };
 
+  const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
+  const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <>
-      {uiSchema && uiSchema.length > 0 &&
-      <div id='schema-editor' className={classes.root}>
-        <button
-          type='button' className={classes.button}
-          onClick={onClickSaveJsonSchema}
-        >Save data model
-        </button>
-        <AddPropertyModal
-          isOpen={addPropertyModalOpen}
-          path={addPropertyPath}
-          onClose={onCloseAddPropertyModal}
-          sharedTypes={sharedItems}
-          title='Add property'
-        />
-        <TreeView
-          className={classes.root}
-          defaultExpanded={['1']}
-          defaultCollapseIcon={<ArrowDropDownIcon />}
-          defaultExpandIcon={<ArrowRightIcon />}
-        >
-          {rootItem ?
-            <SchemaItem
-              item={rootItem}
-              nodeId={rootItem.id}
-              onAddPropertyClick={onAddPropertyClick}
+      <Grid container={true} direction='row'>
+        <Grid item={true} xs={7}>
+          {uiSchema && uiSchema.length > 0 &&
+          <div id='schema-editor' className={classes.root}>
+            <button
+              type='button' className={classes.button}
+              onClick={onClickSaveJsonSchema}
+            >Save data model
+            </button>
+            <AddPropertyModal
+              isOpen={addPropertyModalOpen}
+              path={addPropertyPath}
+              onClose={onCloseAddPropertyModal}
+              sharedTypes={sharedItems}
+              title='Add property'
             />
-            :
-            uiSchema.map((item) => {
-              return (
+            <TreeView
+              className={classes.root}
+              defaultExpanded={['properties']}
+              defaultCollapseIcon={<ArrowDropDownIcon />}
+              defaultExpandIcon={<ArrowRightIcon />}
+            >
+              <TreeItem
+                nodeId='properties'
+                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
+              >
+                { item &&
                 <SchemaItem
-                  key={item.id}
+                  keyPrefix='properties'
                   item={item}
-                  nodeId={item.id}
+                  nodeId={`prop-${item.id}`}
                   onAddPropertyClick={onAddPropertyClick}
-                />
-              );
-            })}
-        </TreeView>
-      </div>
-      }
-      {uiSchema && uiSchema.length === 0 &&
-      <div id='schema-editor' className={classes.root}>
-        <button
-          type='button' className={classes.button}
-          onClick={onAddRootItemClick}
-        >Add root item
-        </button>
-        <AddPropertyModal
-          isOpen={addPropertyModalOpen}
-          path={addPropertyPath}
-          onClose={onCloseAddRootItemModal}
-          sharedTypes={sharedItems}
-          title='Add root item'
-        />
-      </div>
-      }
+                /> }
+              </TreeItem>
+              <TreeItem nodeId='info' label='info' />
+              <TreeItem nodeId='definitions' label='definitions'>
+                { definitions.map((def) => <SchemaItem
+                  keyPrefix='definitions'
+                  item={def}
+                  key={def.id}
+                  nodeId={`def-${def.id}`}
+                  onAddPropertyClick={onAddPropertyClick}
+                />)}
+              </TreeItem>
+            </TreeView>
+          </div>
+          }
+          {uiSchema && uiSchema.length === 0 &&
+          <div id='schema-editor' className={classes.root}>
+            <button
+              type='button' className={classes.button}
+              onClick={onAddRootItemClick}
+            >Add root item
+            </button>
+            <AddPropertyModal
+              isOpen={addPropertyModalOpen}
+              path={addPropertyPath}
+              onClose={onCloseAddRootItemModal}
+              sharedTypes={sharedItems}
+              title='Add root item'
+            />
+          </div>
+          }
+        </Grid>
+        <Grid item={true} xs={5}>
+          <SchemaInspector />
+        </Grid>
+      </Grid>
     </>
   );
 };

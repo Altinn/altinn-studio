@@ -4,7 +4,6 @@
     <TargetFramework>net5.0</TargetFramework>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>8c2ac76a-d8b4-498d-867a-0ac18639f275</UserSecretsId>
-    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{6E75FF22-28FE-4292-8616-8B60F8399FC5}</ProjectGuid>
   </PropertyGroup>

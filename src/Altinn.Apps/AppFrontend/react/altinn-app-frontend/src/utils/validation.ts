@@ -540,7 +540,7 @@ export function validateFormDataForLayout(
           [errorParams],
         );
 
-        const dataBindingName = processDataPath(error.dataPath);
+        const dataBindingName = processInstancePath(error.instancePath);
         mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
       }
     });
@@ -549,7 +549,7 @@ export function validateFormDataForLayout(
   return result;
 }
 
-export function processDataPath(path: string): string {
+export function processInstancePath(path: string): string {
   let result = path.startsWith('.') ? path.slice(1) : path;
   result = result.replace(/']\['/g, '.').replace(/\['/g, '').replace(/']/g, '');
   return result;

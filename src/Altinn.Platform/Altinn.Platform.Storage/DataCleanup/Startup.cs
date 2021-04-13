@@ -22,6 +22,7 @@ namespace Altinn.Platform.Storage.DataCleanup
         {
             builder.Services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
             builder.Services.AddSingleton<ICosmosService, CosmosService>();
+            builder.Services.AddSingleton<IBackupBlobService, BackupBlobService>();
             builder.Services.AddSingleton<IBlobService, BlobService>();
             builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
             builder.Services.AddSingleton<ISasTokenProvider, SasTokenProvider>();

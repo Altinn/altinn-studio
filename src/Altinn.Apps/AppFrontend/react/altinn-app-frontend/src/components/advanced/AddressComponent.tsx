@@ -10,7 +10,7 @@ import { IDataModelBindings, ITextResourceBindings } from '../../features/form/l
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import classNames = require('classnames');
+import classNames from 'classnames';
 
 export interface IAddressComponentProps {
   id: string;
