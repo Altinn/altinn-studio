@@ -117,8 +117,8 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             string backupAccountKey = await _keyVaultService.GetSecretAsync(
             string.Format(_vaultUri, _environment),
             "AzureStorageConfiguration--BackupAccountKey");
-
-            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_accountName, backupAccountKey);
+    
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(string.Format(_accountName, _environment), backupAccountKey);
             Uri storageUrl = new Uri(string.Format(_accountEndpoint, _environment));
 
             BlobServiceClient commonBlobClient = new BlobServiceClient(storageUrl, storageCredentials);
