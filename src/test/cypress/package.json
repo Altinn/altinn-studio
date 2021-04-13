@@ -26,7 +26,7 @@
     "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
-    "cypress": "^7.0.1",
+    "cypress": "^7.1.0",
     "cypress-file-upload": "^5.0.5",
     "cypress-plugin-tab": "^1.0.5",
     "eslint": "^7.24.0",
