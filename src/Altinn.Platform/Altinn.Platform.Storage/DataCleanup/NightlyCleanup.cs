@@ -32,6 +32,7 @@ namespace Altinn.Platform.Storage.DataCleanup
         {
             _cosmosService = cosmosService;
             _blobService = blobService;
+            _backupBlobService = backupBlobService;
         }
 
         /// <summary>
