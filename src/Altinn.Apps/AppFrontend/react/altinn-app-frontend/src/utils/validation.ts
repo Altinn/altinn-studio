@@ -970,6 +970,9 @@ export function removeGroupValidationsByIndex(
   validations: IValidations,
   shift: boolean = true,
 ): IValidations {
+  if (!validations[currentLayout]) {
+    return validations;
+  }
   let result = JSON.parse(JSON.stringify(validations));
   const indexedId = `${id}-${index}`;
   const repeatingGroup = repeatingGroups[id];
