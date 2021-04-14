@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Controllers;
@@ -58,7 +59,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenValidCloudEventSubscription_ReturnsStatusCreatedAndCorrectData()
+            public async Task Post_GivenValidCloudEventSubscription_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -90,7 +91,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_OrgSubscriptionWithMissing_ReturnsStatusCreatedAndCorrectData()
+            public async Task Post_OrgSubscriptionWithMissing_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -119,7 +120,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenInvalidValidCloudEventSubscriptionUser_ReturnsBadRequest()
+            public async Task Post_GivenInvalidValidCloudEventSubscriptionUser_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -148,7 +149,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenValidValidCloudEventSubscriptionUser_ReturnsCreated()
+            public async Task Post_GivenValidValidCloudEventSubscriptionUser_ReturnsCreated()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -177,7 +178,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status
             /// </summary>
             [Fact]
-            public async void Post_GivenSubscriptionOrganizationWithInvalidSubject_ReturnsNotAuthorized()
+            public async Task Post_GivenSubscriptionOrganizationWithInvalidSubject_ReturnsNotAuthorized()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -205,7 +206,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
+            public async Task Post_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -233,7 +234,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// The response has correct status and correct responseId.
             /// </summary>
             [Fact]
-            public async void Post_GivenSubscriptionOrgWithInValidSubject_ReturnsBadRequest()
+            public async Task Post_GivenSubscriptionOrgWithInValidSubject_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
@@ -260,7 +261,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// Scenario: 
             /// </summary>
             [Fact]
-            public async void Get_GivenSubscriptionOrganizationWithValidSubject_ReturnsOk()
+            public async Task Get_GivenSubscriptionOrganizationWithValidSubject_ReturnsOk()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/12";
@@ -284,7 +285,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// Return httpStatus ok
             /// </summary>
             [Fact]
-            public async void Delete_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
+            public async Task Delete_GivenSubscriptionOrganizationWithValidSubject_ReturnsCreated()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/16";
@@ -308,7 +309,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// Scenario: 
             /// </summary>
             [Fact]
-            public async void Get_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnauthorizd()
+            public async Task Get_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnauthorizd()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/12";
@@ -332,7 +333,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// Return httpStatus ok
             /// </summary>
             [Fact]
-            public async void Delete_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnAuthorized()
+            public async Task Delete_GivenSubscriptionOrganizationWithInvalidCreatedBy_ReturnsUnAuthorized()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/16";
