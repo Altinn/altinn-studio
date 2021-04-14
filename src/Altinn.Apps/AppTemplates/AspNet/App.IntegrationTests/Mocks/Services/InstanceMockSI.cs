@@ -55,13 +55,13 @@ namespace App.IntegrationTests.Mocks.Services
             return await GetInstance(app, org, instanceOwnerId, instanceGuid);
         }
 
-        public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId)
         {
-            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceId);
+            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceId);
 
             if (instance != null)
             {
-                instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
+                instance.Data = GetDataElements(org, app, instanceOwnerPartyId, instanceId);
                 (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
             }
 
@@ -96,10 +96,10 @@ namespace App.IntegrationTests.Mocks.Services
                 return Task.FromResult(storedInstance);
             }
 
-            return null;
+            return Task.FromResult<Instance>(null);
         }
 
-        private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        private static Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instancePath = GetInstancePath(app, org, instanceOwnerId, instanceId);
             if (File.Exists(instancePath))
@@ -112,18 +112,31 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        private string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
+        // Finds the path for the instance based on instanceId. Only works if guid is unique.
+        private static string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            string[] paths = Directory.GetFiles(GetInstancesPath(), instanceGuid + ".json", SearchOption.AllDirectories);
+            paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
+            if (paths.Length == 1)
+            {
+                return paths.First();
+            }
+
+            return string.Empty;
+        }
+
+        private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             return Path.Combine(GetInstancesPath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
         }
 
-        private string GetInstancesPath()
+        private static string GetInstancesPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
         }
 
-        private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+        private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
@@ -143,9 +156,9 @@ namespace App.IntegrationTests.Mocks.Services
             return dataElements;
         }
 
-        private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
@@ -169,7 +182,6 @@ namespace App.IntegrationTests.Mocks.Services
                     break;
                 default:
                     org = string.Empty;
-                    app = string.Empty;
                     instance = new Instance();
                     break;
             }
@@ -269,7 +281,7 @@ namespace App.IntegrationTests.Mocks.Services
                 return Task.FromResult(storedInstance);
             }
 
-            return null;
+            return Task.FromResult<Instance>(null);
         }
 
         public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
@@ -303,19 +315,6 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             return null;
-        }
-
-        // Finds the path for the instance based on instanceId. Only works if guid is unique.
-        private string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
-        {
-            string[] paths = Directory.GetFiles(GetInstancesPath(), instanceGuid + ".json", SearchOption.AllDirectories);
-            paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
-            if (paths.Length == 1)
-            {
-                return paths.First();
-            }
-
-            return string.Empty;
         }
 
         private static (string LastChangedBy, DateTime? LastChanged) FindLastChanged(Instance instance)

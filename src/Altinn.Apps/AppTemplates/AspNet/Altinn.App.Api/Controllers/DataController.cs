@@ -185,7 +185,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -246,7 +246,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -312,7 +312,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -455,7 +455,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private bool? RequiresAppLogic(string org, string app, string dataType)
+        private bool? RequiresAppLogic(string dataType)
         {
             bool? appLogic = false;
 
@@ -547,7 +547,7 @@ namespace Altinn.App.Api.Controllers
             // Trigger application business logic
             bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
-            // Get old form data for comparison to identify changes in presentation fields
+            // Get old form data for comparison to identify changes in presentation texts
             object oldData = await _dataService.GetFormData(
                 instanceGuid,
                 _altinnApp.GetAppModelType(classRef),
@@ -612,7 +612,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private bool InstanceIsActive(Instance i)
+        private static bool InstanceIsActive(Instance i)
         {
             if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
             {

@@ -263,7 +263,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    instanceTemplate.Status = instanceTemplate.Status ?? new InstanceStatus();
+                    instanceTemplate.Status ??= new InstanceStatus();
                     instanceTemplate.Status.ReadStatus = ReadStatus.Read;
                 }
 
@@ -413,17 +413,13 @@ namespace Altinn.App.Api.Controllers
 
             if (exception is PlatformHttpException platformHttpException)
             {
-                switch (platformHttpException.Response.StatusCode)
+                return platformHttpException.Response.StatusCode switch
                 {
-                    case HttpStatusCode.Forbidden:
-                        return Forbid();
-                    case HttpStatusCode.NotFound:
-                        return NotFound();
-                    case HttpStatusCode.Conflict:
-                        return Conflict();
-                    default:
-                        return StatusCode((int)platformHttpException.Response.StatusCode, platformHttpException.Message);
-                }
+                    HttpStatusCode.Forbidden => Forbid(),
+                    HttpStatusCode.NotFound => NotFound(),
+                    HttpStatusCode.Conflict => Conflict(),
+                    _ => StatusCode((int)platformHttpException.Response.StatusCode, platformHttpException.Message),
+                };
             }
 
             if (exception is ServiceException se)
@@ -576,7 +572,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="reader">multipart reader object</param>
         /// <returns>the instance template or null if none is found</returns>
-        private async Task<Instance> ExtractInstanceTemplate(MultipartRequestReader reader)
+        private static async Task<Instance> ExtractInstanceTemplate(MultipartRequestReader reader)
         {
             Instance instanceTemplate = null;
 
