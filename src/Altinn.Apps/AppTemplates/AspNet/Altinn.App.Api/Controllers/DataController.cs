@@ -401,6 +401,8 @@ namespace Altinn.App.Api.Controllers
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);
 
+            await _altinnApp.UpdatePresentationTexts(instance, dataType, null, appModel);
+
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
             DataElement dataElement = await _dataService.InsertFormData(appModel, instanceGuid, _altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
@@ -522,9 +524,11 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string dataType)
         {
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            
+
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
@@ -543,7 +547,16 @@ namespace Altinn.App.Api.Controllers
             // Trigger application business logic
             bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            // Get old form data for comparison to identify changes in presentation fields
+            object oldData = await _dataService.GetFormData(
+                instanceGuid,
+                _altinnApp.GetAppModelType(classRef),
+                org,
+                app,
+                instanceOwnerPartyId,
+                dataGuid);
+
+            await _altinnApp.UpdatePresentationTexts(instance, dataType, oldData, serviceModel);
 
             // Save Formdata to database
             DataElement updatedDataElement = await _dataService.UpdateData(
@@ -572,7 +585,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     _logger.LogError(e, "Unable to determine changed fields");
                 }
-                
+
                 return StatusCode((int)HttpStatusCode.SeeOther, calculationResult);
             }
 

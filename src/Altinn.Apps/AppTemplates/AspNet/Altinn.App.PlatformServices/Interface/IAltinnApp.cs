@@ -147,6 +147,16 @@ namespace Altinn.App.Services.Interface
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <summary>
+        /// Updated the presentation texts on the instance
+        /// </summary>
+        /// <param name="instance">The instance to update.</param>
+        /// <param name="dataType">The data type of the provided data</param>
+        /// <param name="oldData">Old data.</param>
+        /// <param name="updatedData">Updated data.</param>
+        /// <returns></returns>
+        Task UpdatePresentationTexts(Instance instance, string dataType, object oldData, object updatedData);
+
+        /// <summary>
         /// Gets a list of eFormidling shipment receivers
         /// </summary>
         /// <remarks>

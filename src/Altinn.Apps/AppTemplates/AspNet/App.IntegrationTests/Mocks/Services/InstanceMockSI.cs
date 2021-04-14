@@ -236,6 +236,42 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
+        public Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts)
+        {
+            string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+                if (storedInstance.PresentationTexts == null)
+                {
+                    storedInstance.PresentationTexts = new Dictionary<string, string>();
+                }
+
+                foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
+                {
+                    if (string.IsNullOrEmpty(entry.Value))
+                    {
+                        storedInstance.PresentationTexts.Remove(entry.Key);
+                    }
+                    else
+                    {
+                        storedInstance.PresentationTexts[entry.Key] = entry.Value;
+                    }
+                }
+
+                // mock does not set last changed by, but this is set by the platform.
+                storedInstance.LastChangedBy = string.Empty;
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+
+                return Task.FromResult(storedInstance);
+            }
+
+            return null;
+        }
+
         public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
