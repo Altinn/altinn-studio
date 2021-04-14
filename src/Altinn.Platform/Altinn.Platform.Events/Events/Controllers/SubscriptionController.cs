@@ -84,7 +84,7 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Method to get a specific subscription
         /// </summary>
-        [Authorize]
+        [Authorize(Policy = "PlatformAccess")]
         [HttpPut("/validate/{id}")]
         public async Task<ActionResult<string>> Validate(int id)
         {
