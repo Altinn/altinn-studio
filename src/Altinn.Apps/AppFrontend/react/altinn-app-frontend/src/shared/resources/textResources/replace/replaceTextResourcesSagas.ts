@@ -9,6 +9,7 @@ import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSl
 import { FETCH_TEXT_RESOURCES_FULFILLED } from '../fetch/fetchTextResourcesActionTypes';
 import TextResourceActions from '../textResourcesActions';
 import { ITextResourcesState } from '../textResourcesReducer';
+import { REPLACE_TEXT_RESOURCES } from './replaceTextResourcesActionTypes';
 
 export const FormDataSelector: (store: IRuntimeState) => IFormData = (store) => store.formData.formData;
 export const TextResourcesSelector: (store: IRuntimeState) => ITextResourcesState
@@ -40,4 +41,8 @@ export function* watchReplaceTextResourcesSaga(): SagaIterator {
   yield call(replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.fetchFormDataFulfilled, replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.updateFormDataFulfilled, replaceTextResourcesSaga);
+}
+
+export function* watchReplaceTextResourcesSagaDirect(): SagaIterator {
+  yield takeLatest(REPLACE_TEXT_RESOURCES, replaceTextResourcesSaga);
 }
