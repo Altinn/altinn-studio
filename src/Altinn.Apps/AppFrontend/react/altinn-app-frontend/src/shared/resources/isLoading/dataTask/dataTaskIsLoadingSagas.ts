@@ -5,11 +5,11 @@ import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSl
 import { FETCH_RULE_MODEL_FULFILLED } from '../../../../features/form/rules/rulesActionTypes';
 import { FETCH_SERVICE_CONFIG_FULFILLED } from '../../../../features/form/dynamics/formDynamicsActionTypes';
 import IsLoadingActions from '../isLoadingActions';
-import { START_INITIAL_DATA_TASK_QUEUE } from '../../queue/dataTask/dataTaskQueueActionTypes';
+import { startInitialDataTaskQueue } from '../../queue/queueSlice';
 
 export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
   while (true) {
-    yield take(START_INITIAL_DATA_TASK_QUEUE);
+    yield take(startInitialDataTaskQueue);
     yield all([
       take(FormDataActions.fetchFormDataFulfilled),
       take(FormLayoutActions.fetchLayoutFulfilled),

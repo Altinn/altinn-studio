@@ -16,7 +16,7 @@ import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
-import { IQueueState } from '../shared/resources/queue/queueReducer';
+import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 
 export type FormComponentType =
