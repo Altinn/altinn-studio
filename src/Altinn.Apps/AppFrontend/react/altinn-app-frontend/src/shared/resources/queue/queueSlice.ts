@@ -16,7 +16,7 @@ export interface IQueueError {
   error: any;
 }
 
-const initialState: IQueueState = {
+export const initialState: IQueueState = {
   dataTask: {
     isDone: null,
     error: null,
