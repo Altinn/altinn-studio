@@ -61,5 +61,11 @@ namespace Altinn.Platform.Events.Services
         {
             return await _repository.GetSubscriptionsExcludeOrg(source, subject, type);
         }
+
+        /// <inheritdoc/>
+        public async Task SetValidSubscription(int id)
+        {
+            await _repository.SetValidSubscription(id);
+        }
     }
 }

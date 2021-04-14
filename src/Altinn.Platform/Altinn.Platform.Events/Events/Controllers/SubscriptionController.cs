@@ -85,8 +85,8 @@ namespace Altinn.Platform.Events.Controllers
         /// Method to get a specific subscription
         /// </summary>
         [Authorize]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<string>> Get(int id)
+        [HttpPut("/validate/{id}")]
+        public async Task<ActionResult<string>> Validate(int id)
         {
             Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
 
@@ -95,10 +95,7 @@ namespace Altinn.Platform.Events.Controllers
                 return NotFound();
             }
 
-            if (!await AuthorizeAccessToSubscription(subscription))
-            {
-                return Unauthorized();
-            }
+            await _eventsSubscriptionService.SetValidSubscription(id);
 
             // TODO Authorize
             return Ok(subscription);
