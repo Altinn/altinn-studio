@@ -3,7 +3,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState, Triggers } from 'src/types';
-import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
+import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
@@ -11,7 +11,7 @@ import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper'
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
-import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
+import { ILayoutComponent, ILayoutEntry, ILayoutGroup, ILayouts } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
 import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
@@ -22,6 +22,7 @@ import FormValidationActions from '../../validation/validationActions';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
+const selectFormLayouts = (state: IRuntimeState): ILayouts => state.formLayout.layouts;
 
 function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
@@ -258,4 +259,23 @@ export function* watchUpdateFocusSaga(): SagaIterator {
 
 export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.updateRepeatingGroups, updateRepeatingGroupsSaga);
+}
+
+export function* initRepeatingGroupsSaga(): SagaIterator {
+  const formDataState: IFormDataState = yield select(selectFormData);
+  const layouts = yield select(selectFormLayouts);
+  let newGroups = {};
+  Object.keys(layouts).forEach((layoutKey: string) => {
+    newGroups = {
+      ...newGroups,
+      ...getRepeatingGroups(layouts[layoutKey], formDataState.formData),
+    };
+  });
+  yield put(FormLayoutActions.updateRepeatingGroupsFulfilled({ repeatingGroups: newGroups }));
+}
+
+export function* watchInitRepeatingGroupsSaga(): SagaIterator {
+  yield take(FormLayoutActions.fetchLayoutFulfilled);
+  yield call(initRepeatingGroupsSaga);
+  yield takeLatest([FormDataActions.fetchFormDataFulfilled, FormLayoutActions.initRepeatingGroups], initRepeatingGroupsSaga);
 }
