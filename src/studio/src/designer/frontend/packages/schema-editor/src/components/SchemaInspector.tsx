@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef } from '../features/editor/schemaEditorSlice';
 
 const useStyles = makeStyles(
   createStyles({
@@ -73,7 +73,7 @@ const SchemaInspector = (() => {
   const onChangeNodeName = (e: any) => {
     dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
     // as id is also changed, must set the new id as selected
-    dispatch(setSelectedId({ id: `#/definitions/${e.target.value}` }));
+    // dispatch(setSelectedId({ id: `#/definitions/${e.target.value}` }));
   };
 
   const RenderSelectedItem = () => (selectedItem ?

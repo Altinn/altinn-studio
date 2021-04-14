@@ -4,11 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
-import { IconButton, TextField } from '@material-ui/core';
-import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
-import { deleteProperty,
-  setPropertyName,
-  setSelectedId } from '../features/editor/schemaEditorSlice';
+import { setSelectedId } from '../features/editor/schemaEditorSlice';
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -28,6 +24,7 @@ const useStyles = makeStyles({
   labelRoot: {
     display: 'flex',
     alignItems: 'center',
+    padding: 8,
   },
   label: {
     paddingRight: 12,
@@ -101,15 +98,15 @@ function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
-    item, onAddPropertyClick, refSource, keyPrefix, ...other
+    item, refSource, keyPrefix, ...other
   } = props;
   const {
     id, $ref, fields, properties,
   } = item;
 
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
-  const [editLabel, setEditLabel] = React.useState<boolean>(false);
-  const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/', ''));
+  // const [editLabel, setEditLabel] = React.useState<boolean>(false);
+  // const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/', ''));
 
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
@@ -120,32 +117,32 @@ function SchemaItem(props: StyledTreeItemProps) {
     }
   }, [fields, refItems]);
 
-  const onAddPropertyClicked = (event: any) => {
-    const path = definitionItem?.id || id;
-    onAddPropertyClick(path);
-    event.preventDefault();
-  };
+  // const onAddPropertyClicked = (event: any) => {
+  //   const path = definitionItem?.id || id;
+  //   onAddPropertyClick(path);
+  //   event.preventDefault();
+  // };
 
-  const onDeleteObjectClick = () => {
-    dispatch(deleteProperty({ path: id }));
-  };
+  // const onDeleteObjectClick = () => {
+  //   dispatch(deleteProperty({ path: id }));
+  // };
 
-  const onToggleEditLabel = (event: any) => {
-    if (editLabel) {
-      dispatch(setPropertyName({ path: id, name: label }));
-    }
-    setEditLabel(!editLabel);
-    event.stopPropagation();
-  };
+  // const onToggleEditLabel = (event: any) => {
+  //   if (editLabel) {
+  //     dispatch(setPropertyName({ path: id, name: label }));
+  //   }
+  //   setEditLabel(!editLabel);
+  //   event.stopPropagation();
+  // };
 
-  const onClickEditLabel = (event: any) => {
-    event.stopPropagation();
-  };
+  // const onClickEditLabel = (event: any) => {
+  //   event.stopPropagation();
+  // };
 
-  const onChangeLabel = (event: any) => {
-    setLabel(event.target.value);
-    event.stopPropagation();
-  };
+  // const onChangeLabel = (event: any) => {
+  //   setLabel(event.target.value);
+  //   event.stopPropagation();
+  // };
 
   const onItemClick = (itemId: string) => {
     dispatch(setSelectedId({ id: itemId }));
@@ -223,43 +220,49 @@ function SchemaItem(props: StyledTreeItemProps) {
     return <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>;
   };
 
-  const RenderLabel = () => {
-    return (
-      <div className={classes.labelRoot}>
-        {editLabel ?
-          <TextField
-            className={classes.label}
-            value={label}
-            onChange={onChangeLabel}
-            onClick={onClickEditLabel}
-            autoFocus={true}
-          />
-          :
-          <Typography className={classes.label}>
-            {renderLabelText()}
-          </Typography>}
-        <IconButton onClick={onToggleEditLabel}>
-          {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-        </IconButton>
-        {(definitionItem && definitionItem.properties) &&
-        <>
-          <IconButton
-            aria-label='Add property'
-            onClick={onAddPropertyClicked}
-          >
-            <AddCircleOutline/>
-          </IconButton>
-        </>
-        }
-        <IconButton
-          aria-label='Delete object'
-          onClick={onDeleteObjectClick}
-        >
-          <DeleteOutline/>
-        </IconButton>
-      </div>
-    );
-  };
+  const RenderLabel = () => (
+    <div className={classes.labelRoot}>
+      <Typography className={classes.label}>{renderLabelText()}</Typography>
+    </div>
+  );
+
+  // const RenderLabel = () => {
+  //   return (
+  //     <div className={classes.labelRoot}>
+  //       {editLabel ?
+  //         <TextField
+  //           className={classes.label}
+  //           value={label}
+  //           onChange={onChangeLabel}
+  //           onClick={onClickEditLabel}
+  //           autoFocus={true}
+  //         />
+  //         :
+  //         <Typography className={classes.label}>
+  //           {renderLabelText()}
+  //         </Typography>}
+  //       <IconButton onClick={onToggleEditLabel}>
+  //         {editLabel ? <DoneOutlined /> : <CreateOutlined />}
+  //       </IconButton>
+  //       {(definitionItem && definitionItem.properties) &&
+  //       <>
+  //         <IconButton
+  //           aria-label='Add property'
+  //           onClick={onAddPropertyClicked}
+  //         >
+  //           <AddCircleOutline/>
+  //         </IconButton>
+  //       </>
+  //       }
+  //       <IconButton
+  //         aria-label='Delete object'
+  //         onClick={onDeleteObjectClick}
+  //       >
+  //         <DeleteOutline/>
+  //       </IconButton>
+  //     </div>
+  //   );
+  // };
 
   return (
     <TreeItem

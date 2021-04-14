@@ -150,6 +150,7 @@ const schemaEditorSlice = createSlice({
           if (propertyItem) {
             propertyItem.name = name;
             propertyItem.id = `${rootPath}/properties/${name}`;
+            state.selectedId = propertyItem.id;
           }
         }
         // also update definition item ?
@@ -162,6 +163,7 @@ const schemaEditorSlice = createSlice({
           if (rootItem) {
             rootItem.name = name;
             rootItem.id = `#/definitions/${propertyName}`;
+            state.selectedId = rootItem.id;
           }
         }
       }
