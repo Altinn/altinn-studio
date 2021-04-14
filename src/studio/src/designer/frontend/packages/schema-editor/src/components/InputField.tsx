@@ -8,11 +8,18 @@ import { CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons'
 import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles({
-  root: {
-    margin: 12,
+  field: {
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    padding: 4,
+    margin: 8,
   },
-  rootKey: {
-    margin: 12,
+  type: {
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    margin: 8,
   },
   inline: {
     display: 'inline-block',
@@ -91,10 +98,11 @@ export function InputField(props: IInputFieldProps) {
           <Input
             id={`${baseId}-key-${label}`}
             value={label}
+            disableUnderline={true}
             onChange={onChangeKey}
             onBlur={onBlurKey}
             disabled={!editLabel}
-            className={classes.rootKey}
+            className={classes.field}
             endAdornment={
               <InputAdornment position='end'>
                 <IconButton onClick={toggleEditLabel} id={`${baseId}-toggle-${label}`}>
@@ -104,7 +112,7 @@ export function InputField(props: IInputFieldProps) {
             }
           />
         </FormControl>
-        <FormControl>
+        <FormControl className={classes.field}>
           {label === 'type' ?
             <TypeSelect
               itemType={value}
@@ -115,8 +123,8 @@ export function InputField(props: IInputFieldProps) {
             <Input
               id={`${baseId}-value-${label}`}
               value={value}
+              disableUnderline={true}
               onChange={onChangeValue}
-              className={classes.root}
             />
           }
         </FormControl>

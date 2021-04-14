@@ -9,23 +9,24 @@ export interface ITypeSelectProps {
 
 const useStyles = makeStyles({
   root: {
-    margin: 12,
     width: '100%',
   },
   select: {
-    minWidth: 147,
+    minWidth: 90,
   },
 });
 
 export const TypeSelect = (props: ITypeSelectProps) => {
   const classes = useStyles();
-  const {id, itemType, onChange} = props;
+  const {
+    id, itemType, onChange,
+  } = props;
   const [value, setValue] = React.useState<string>(itemType || '');
 
   const onValueChange = (event: any) => {
     setValue(event.target.value);
     onChange(id, event.target.value);
-  }
+  };
 
   return (
     <Select
@@ -33,8 +34,9 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       value={value}
       onChange={onValueChange}
       className={classes.root}
+      disableUnderline={true}
       classes={{
-        select: classes.select
+        select: classes.select,
       }}
     >
       <MenuItem value='string'>string</MenuItem>
@@ -45,5 +47,5 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       <MenuItem value='enum'>enum</MenuItem>
       <MenuItem value='object'>object</MenuItem>
     </Select>
-  )
-}
+  );
+};

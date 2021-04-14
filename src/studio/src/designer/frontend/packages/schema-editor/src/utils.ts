@@ -33,7 +33,7 @@ export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaIt
       if (propertyItem) {
         itemList = itemList.concat(propertyItem);
       }
-    })
+    });
   }
 
   return itemList;
@@ -52,8 +52,8 @@ export function buildJsonSchema(uiSchema: any[]): any {
 export function createJsonSchemaItem(uiSchemaItem: any): any {
   let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
-    switch(key) {
-      case 'properties':{
+    switch (key) {
+      case 'properties': {
         const properties: any = {};
         item.properties = properties;
         uiSchemaItem.properties.forEach((property: any) => {
@@ -120,7 +120,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
       });
     } else {
       result.push({
-        id, 
+        id,
         value: item,
         name: includeDisplayName ? key : undefined,
       });
@@ -147,7 +147,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
         return {
           key: itemKey,
           value: currentProperty[itemKey],
-        }
+        };
       });
     } else {
       item.value = currentProperty;
@@ -161,7 +161,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
       return;
     }
     rest[key] = schema[key];
-  })
+  });
 
   return {
     id: name,

@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
+import { ISchemaState, ISetRefAction, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -109,6 +109,17 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    setRef(state, action) {
+      const {
+        path, ref,
+      }: ISetRefAction = action.payload;
+      // eslint-disable-next-line no-nested-ternary
+      const itemType = ItemType.Ref;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      if (schemaItem) {
+        schemaItem.$ref = ref;
+      }
+    },
     setKey(state, action) {
       const {
         path, oldKey, newKey,
@@ -128,13 +139,30 @@ const schemaEditorSlice = createSlice({
     },
     setPropertyName(state, action) {
       const { path, name } = action.payload;
-      const [rootPath, propertyName] = path.split('/properties/');
-      if (rootPath && propertyName) {
-        const rootItem = state.uiSchema.find((item) => item.id === rootPath);
-        const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
-        if (propertyItem) {
-          propertyItem.name = name;
-          propertyItem.id = `${rootPath}/properties/${name}`;
+      console.log(state.uiSchema);
+      if (path.includes('/properties')) {
+        // #/definitions/Foretak/properties/organisasjonsnummerForetak
+        const [rootPath, propertyName] = path.split('/properties/');
+        console.log(`path: ${path},rootPath: ${rootPath}, propetyName: ${propertyName}`);
+        if (rootPath && propertyName) {
+          const rootItem = state.uiSchema.find((item) => item.id === rootPath);
+          const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
+          if (propertyItem) {
+            propertyItem.name = name;
+            propertyItem.id = `${rootPath}/properties/${name}`;
+          }
+        }
+        // also update definition item ?
+      } else if (path.includes('/definitions')) {
+        // just update definition id/name
+        const propertyName = path.split('/definitions/')[1];
+        console.log(`path: ${path}, propetyName: ${propertyName}`);
+        if (propertyName) {
+          const rootItem = state.uiSchema.find((item) => item.id === path);
+          if (rootItem) {
+            rootItem.name = name;
+            rootItem.id = `#/definitions/${propertyName}`;
+          }
         }
       }
     },
@@ -180,6 +208,7 @@ export const {
   deleteProperty,
   setFieldValue,
   setKey,
+  setRef,
   setJsonSchema,
   setPropertyName,
   setRootName,

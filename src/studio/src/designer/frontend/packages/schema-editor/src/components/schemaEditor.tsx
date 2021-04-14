@@ -16,10 +16,12 @@ import SchemaInspector from './SchemaInspector';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      height: 264,
-      flexGrow: 1,
-      maxWidth: 1200,
       marginTop: 24,
+      background: 'white',
+      height: 700,
+    },
+    tree: {
+      flexGrow: 1,
     },
     button: {
       marginLeft: 24,
@@ -116,7 +118,7 @@ export const SchemaEditor = ({
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
-    <>
+    <div className={classes.root}>
       <Grid container={true} direction='row'>
         <Grid item={true} xs={7}>
           {uiSchema && uiSchema.length > 0 &&
@@ -134,7 +136,7 @@ export const SchemaEditor = ({
               title='Add property'
             />
             <TreeView
-              className={classes.root}
+              className={classes.tree}
               defaultExpanded={['properties']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
@@ -185,7 +187,7 @@ export const SchemaEditor = ({
           <SchemaInspector />
         </Grid>
       </Grid>
-    </>
+    </div>
   );
 };
 

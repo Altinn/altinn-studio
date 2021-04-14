@@ -157,6 +157,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       return (
         <TreeItem
           classes={{ root: classes.treeItem }}
+          onClick={() => onItemClick(id)}
           nodeId={`${keyPrefix}-${id}-properties`}
           label={<div className={classes.filler}>{ icon('fa-datamodel-properties') } properties</div>}
         >
@@ -189,6 +190,7 @@ function SchemaItem(props: StyledTreeItemProps) {
             className={classes.filler}
             key={`field-${path}-${field.key}`}
             label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value}</>}
+            onClick={() => onItemClick(id)}
           />
         );
       })
@@ -263,6 +265,7 @@ function SchemaItem(props: StyledTreeItemProps) {
     <TreeItem
       classes={{ root: classes.treeItem }}
       label={<RenderLabel/>}
+      onClick={() => onItemClick(id)}
       {...other}
     >
       {RenderRefItems()}

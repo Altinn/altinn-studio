@@ -59,12 +59,13 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       activeLeftMenuSelection: 'Datamodell',
       iconClass: 'fa fa-archive',
     },
-    {
-      displayText: 'Data-Editor',
-      navLink: '/datamodelling',
-      activeLeftMenuSelection: 'Data-Editor',
-      iconClass: 'fa fa-datamodel-object',
-    },
+    // Disabled until datamodelling page is ready for prod.
+    // {
+    //   displayText: 'Data-Editor',
+    //   navLink: '/datamodelling',
+    //   activeLeftMenuSelection: 'Data-Editor',
+    //   iconClass: 'fa fa-datamodel-object',
+    // },
     {
       displayText: 'UI-Editor',
       navLink: '/ui-editor',

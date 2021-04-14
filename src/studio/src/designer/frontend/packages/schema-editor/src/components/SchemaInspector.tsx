@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader } from '@material-ui/core';
+import { Input } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Field, ISchemaState } from '../types';
+import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, setSelectedId } from '../features/editor/schemaEditorSlice';
 
 const useStyles = makeStyles(
   createStyles({
@@ -14,7 +14,15 @@ const useStyles = makeStyles(
       flexGrow: 1,
       margin: 4,
       padding: 2,
+      background: 'white',
+      zIndex: 2,
       position: 'fixed',
+    },
+    label: {
+      background: 'white',
+      border: '1px solid #006BD8',
+      padding: 4,
+      flexGrow: 1,
     },
   }),
 );
@@ -46,6 +54,13 @@ const SchemaInspector = (() => {
     };
     dispatch(setFieldValue(data));
   };
+  const onChangeRef = (path: string, ref: string) => {
+    const data = {
+      path,
+      ref,
+    };
+    dispatch(setRef(data));
+  };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
     dispatch(setKey({
@@ -55,19 +70,36 @@ const SchemaInspector = (() => {
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
+  const onChangeNodeName = (e: any) => {
+    dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
+    // as id is also changed, must set the new id as selected
+    dispatch(setSelectedId({ id: `#/definitions/${e.target.value}` }));
+  };
 
   const RenderSelectedItem = () => (selectedItem ?
     <div>
-      <table>
-        <tbody>
-          <tr>
-            <td>id</td>
-            <td>{selectedId}</td>
-          </tr>
-          <tr><td><h3>Properties</h3></td></tr>
-          { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)}
-        </tbody>
-      </table>
+      <p>Nodenavn</p>
+      <Input
+        fullWidth={true}
+        disableUnderline={true}
+        className={classes.label}
+        value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
+        onChange={onChangeNodeName}
+      />
+      <hr />
+      <h3>Properties</h3>
+      {/* { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)} */}
+      {/* This are the refs */}
+      { selectedItem.properties?.map((p: UiSchemaItem) => <InputField
+        key={`field-${p.id}`}
+        value={p.$ref ?? ''}
+        label={p.name ?? p.id}
+        fullPath={p.id}
+        onChangeValue={onChangeRef}
+        onChangeKey={onChangeKey}
+        onDeleteField={onDeleteFieldClick}
+      />)}
+
       { selectedItem.fields?.map((field: Field) => <InputField
         key={`field-${field.key}`}
         value={field.value}
@@ -80,16 +112,16 @@ const SchemaInspector = (() => {
     </div> : null);
 
   return (
-    <Card
-      elevation={1}
+    <div
       className={classes.root}
     >
-      <CardHeader title='Inspector' />
-      <CardContent>
-        { selectedId && RenderSelectedItem() }
-        { !selectedId && <p className='no-item-selected'>No item selected</p>}
-      </CardContent>
-    </Card>
+      { selectedId && RenderSelectedItem() }
+      { !selectedId &&
+        <div>
+          <p className='no-item-selected'>No item selected</p>
+          <hr />
+        </div>}
+    </div>
   );
 });
 
