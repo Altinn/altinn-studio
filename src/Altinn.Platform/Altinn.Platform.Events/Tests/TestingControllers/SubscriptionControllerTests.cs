@@ -372,7 +372,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
+            private static Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
             {
                 Subscription subscription = new Subscription()
                 {
@@ -382,22 +382,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 };
 
                 return subscription;
-            }
-
-            private CloudEvent GetCloudEvent()
-            {
-                CloudEvent cloudEvent = new CloudEvent
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    SpecVersion = "1.0",
-                    Type = "instance.created",
-                    Source = new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/232243423"),
-                    Time = DateTime.Now,
-                    Subject = "/party/456456",
-                    Data = "something/extra",
-                };
-
-                return cloudEvent;
             }
         }
     }
