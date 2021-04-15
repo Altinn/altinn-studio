@@ -82,7 +82,7 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IContextHandler, ContextHandler>();
-            services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<Services.Interface.IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));

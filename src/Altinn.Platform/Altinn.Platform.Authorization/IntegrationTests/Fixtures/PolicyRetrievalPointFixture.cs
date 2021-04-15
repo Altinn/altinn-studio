@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandlerMock>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<Services.Interface.IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IRoles, RolesMock>();
                     services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

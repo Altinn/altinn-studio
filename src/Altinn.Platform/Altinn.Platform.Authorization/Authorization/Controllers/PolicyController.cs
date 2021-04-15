@@ -2,8 +2,10 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Interface;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Helpers;
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -88,6 +90,25 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             return BadRequest("Something went wrong in the upload of file to storage");
+        }
+
+        /// <summary>
+        /// Gets a list of role code which might give access to an app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        [HttpGet("roleswithaccess/{org}/{app}")]
+        public async Task<ActionResult> GetRolesWithAccess(string org, string app)
+        {
+            // TODO: Input validation?
+            XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
+
+            if (policy == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(PolicyHelper.GetRolesWithAccess(policy));
         }
     }
 }

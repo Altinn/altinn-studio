@@ -7,6 +7,7 @@ using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Services.Interface;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -41,7 +42,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandler>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<Services.Interface.IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IPolicyInformationRepository, PolicyInformationRepository>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>

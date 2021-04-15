@@ -36,7 +36,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IPolicyInformationRepository, PolicyInformationRepositoryMock>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<Services.Interface.IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IRoles, RolesMock>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>

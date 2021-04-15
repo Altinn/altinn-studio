@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
 
 using Altinn.Platform.Authorization.Configuration;
@@ -13,6 +12,7 @@ using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 
 using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Services.Interface;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
