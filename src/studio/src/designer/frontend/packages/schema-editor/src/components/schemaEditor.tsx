@@ -89,7 +89,7 @@ export const SchemaEditor = ({
   };
 
   const onCloseAddPropertyModal = (property: any) => {
-    if (property) {
+    if (property && property.name) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
       const newProp = {
         path: addPropertyPath,
@@ -106,9 +106,12 @@ export const SchemaEditor = ({
     setAddPropertyPath('#/');
     setAddPropertyModalOpen(true);
   };
+  const onCancelAddItemModal = () => {
+    setAddPropertyModalOpen(false);
+  };
 
   const onCloseAddRootItemModal = (property: any) => {
-    if (property) {
+    if (property && property.name) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
       dispatch(addRootItem({ itemsToAdd: itemTree }));
       setAddPropertyModalOpen(false);
@@ -131,7 +134,8 @@ export const SchemaEditor = ({
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
               path={addPropertyPath}
-              onClose={onCloseAddPropertyModal}
+              onClose={onCancelAddItemModal}
+              onConfirm={onCloseAddPropertyModal}
               sharedTypes={sharedItems}
               title='Add property'
             />
@@ -150,7 +154,6 @@ export const SchemaEditor = ({
                   keyPrefix='properties'
                   item={item}
                   nodeId={`prop-${item.id}`}
-                  onAddPropertyClick={onAddPropertyClick}
                 /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -160,7 +163,6 @@ export const SchemaEditor = ({
                   item={def}
                   key={def.id}
                   nodeId={`def-${def.id}`}
-                  onAddPropertyClick={onAddPropertyClick}
                 />)}
               </TreeItem>
             </TreeView>
@@ -176,7 +178,8 @@ export const SchemaEditor = ({
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
               path={addPropertyPath}
-              onClose={onCloseAddRootItemModal}
+              onClose={onCancelAddItemModal}
+              onConfirm={onCloseAddRootItemModal}
               sharedTypes={sharedItems}
               title='Add root item'
             />
@@ -184,7 +187,7 @@ export const SchemaEditor = ({
           }
         </Grid>
         <Grid item={true} xs={5}>
-          <SchemaInspector />
+          <SchemaInspector onAddPropertyClick={onAddPropertyClick} />
         </Grid>
       </Grid>
     </div>

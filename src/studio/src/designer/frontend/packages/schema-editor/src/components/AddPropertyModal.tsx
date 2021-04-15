@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MenuItem, Select, TextField, makeStyles } from '@material-ui/core'
+import { MenuItem, Select, TextField, makeStyles } from '@material-ui/core';
 import Modal from '../../../../shared/components/molecules/AltinnModal';
 import { UiSchemaItem } from '../types';
 
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
   },
   closeButton: {
     marginTop: '1.6em',
-  }
+  },
 });
 
 export interface IAddPropertyModal {
@@ -28,7 +28,8 @@ export interface IAddPropertyModal {
   path: string;
   sharedTypes: UiSchemaItem[];
   title: string;
-  onClose: (item: any) => void;
+  onClose: () => void;
+  onConfirm: (item: any) => void;
 }
 
 function AddPropertyModal(props: IAddPropertyModal) {
@@ -44,26 +45,29 @@ function AddPropertyModal(props: IAddPropertyModal) {
   }, [props.sharedTypes]);
 
   const onCloseModal = () => {
-    props.onClose(property);
-  }
+    props.onClose();
+  };
+  const onConfirm = () => {
+    props.onConfirm(property);
+  };
 
   const onChangeProperty = (event: any) => {
     const name = event.target.value;
     const propertyItem = props.sharedTypes.find((item) => item.name === name);
     setProperty(propertyItem);
-  }
+  };
 
   const onChangeCustomProperty = (event: any) => {
     const propertyItem = {
       name: event.target.value,
-      id: `#/definitions/${event.target.value}`
+      id: `#/definitions/${event.target.value}`,
     };
     setProperty(propertyItem);
-  }
+  };
 
   const onShowCustomClick = () => {
     setShowCustom(true);
-  }
+  };
 
   return (
     <Modal
@@ -84,20 +88,30 @@ function AddPropertyModal(props: IAddPropertyModal) {
         </Select>
       </div>
       <div className={classes.row}>
-        <span onClick={onShowCustomClick} className={classes.customInput}>Velg egendefinert property</span>
-        {showCustom && 
+        <button
+          type='button'
+          onClick={onShowCustomClick}
+          className={classes.customInput}
+        >
+          Velg egendefinert property
+        </button>
+        {showCustom &&
           <div>
             <h6>Skriv inn navn</h6>
             <TextField
-            value={property.name}
-            onChange={onChangeCustomProperty}
-            fullWidth={true}
+              value={property.name}
+              onChange={onChangeCustomProperty}
+              fullWidth={true}
             />
           </div>
         }
       </div>
       <div>
-        <button onClick={onCloseModal} className={classes.closeButton}>Ferdig</button>
+        <button
+          type='button' onClick={onConfirm}
+          className={classes.closeButton}
+        >Ferdig
+        </button>
       </div>
     </Modal>
   );

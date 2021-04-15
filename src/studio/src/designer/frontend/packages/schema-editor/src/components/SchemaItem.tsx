@@ -12,7 +12,6 @@ type StyledTreeItemProps = TreeItemProps & {
   keyPrefix: string;
   // eslint-disable-next-line react/require-default-props
   refSource?: string;
-  onAddPropertyClick: (property: any) => void;
 };
 
 const useStyles = makeStyles({
@@ -117,12 +116,6 @@ function SchemaItem(props: StyledTreeItemProps) {
     }
   }, [fields, refItems]);
 
-  // const onAddPropertyClicked = (event: any) => {
-  //   const path = definitionItem?.id || id;
-  //   onAddPropertyClick(path);
-  //   event.preventDefault();
-  // };
-
   // const onDeleteObjectClick = () => {
   //   dispatch(deleteProperty({ path: id }));
   // };
@@ -165,7 +158,6 @@ function SchemaItem(props: StyledTreeItemProps) {
                 key={`${keyPrefix}-${property.id}`}
                 item={property}
                 nodeId={`${keyPrefix}-prop-${property.id}`}
-                onAddPropertyClick={props.onAddPropertyClick}
                 onClick={() => onItemClick(property.id)}
               />
             );
@@ -206,7 +198,6 @@ function SchemaItem(props: StyledTreeItemProps) {
           onClick={() => onItemClick(definitionItem.id)}
           item={definitionItem}
           nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
-          onAddPropertyClick={props.onAddPropertyClick}
         />
       );
     }

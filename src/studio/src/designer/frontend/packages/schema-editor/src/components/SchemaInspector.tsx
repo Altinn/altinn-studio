@@ -1,10 +1,10 @@
-import { Input } from '@material-ui/core';
+import { IconButton, Input } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField } from '../features/editor/schemaEditorSlice';
 
 const useStyles = makeStyles(
   createStyles({
@@ -27,10 +27,11 @@ const useStyles = makeStyles(
   }),
 );
 
-export interface ISchemaInspector {
+export interface ISchemaInspectorProps {
+  onAddPropertyClick: (property: any) => void;
 }
 
-const SchemaInspector = (() => {
+const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -76,6 +77,21 @@ const SchemaInspector = (() => {
     // dispatch(setSelectedId({ id: `#/definitions/${e.target.value}` }));
   };
 
+  const onAddPropertyClicked = (event: any) => {
+    event.preventDefault();
+    const path = selectedItem?.id;
+    props.onAddPropertyClick(path);
+  };
+  const onAddFieldClick = (event: any) => {
+    event.preventDefault();
+    const path = selectedItem?.id;
+    dispatch(addField({
+      path,
+      key: 'key',
+      value: 'value',
+    }));
+  };
+
   const RenderSelectedItem = () => (selectedItem ?
     <div>
       <p>Nodenavn</p>
@@ -109,13 +125,25 @@ const SchemaInspector = (() => {
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
       />)}
+      { selectedItem.properties &&
+      <IconButton
+        aria-label='Add property'
+        onClick={onAddPropertyClicked}
+      ><i className='fa fa-plus'/>
+      </IconButton> }
+      { selectedItem.fields &&
+      <IconButton
+        aria-label='Add property'
+        onClick={onAddFieldClick}
+      ><i className='fa fa-plus'/>
+      </IconButton> }
     </div> : null);
 
   return (
     <div
       className={classes.root}
     >
-      { selectedId && RenderSelectedItem() }
+      { selectedItem && RenderSelectedItem() }
       { !selectedId &&
         <div>
           <p className='no-item-selected'>No item selected</p>
