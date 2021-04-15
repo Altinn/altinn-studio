@@ -84,6 +84,29 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Method to get a specific subscription
         /// </summary>
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<string>> Get(int id)
+        {
+            Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
+            if (!await AuthorizeAccessToSubscription(subscription))
+            {
+                return Unauthorized();
+            }
+
+            // TODO Authorize
+            return Ok(subscription);
+        }
+
+        /// <summary>
+        /// Method to get a specific subscription
+        /// </summary>
         [Authorize(Policy = "PlatformAccess")]
         [HttpPut("validate/{id}")]
         public async Task<ActionResult<string>> Validate(int id)
