@@ -31,9 +31,9 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
 
         public async Task DataCreation(Instance instance, object data)
         {
-            if (data.GetType() == typeof(Skjema))
+            if (data.GetType() == typeof(@default))
             {
-                Skjema model = (Skjema)data;
+                @default model = (@default)data;
                 string name = "Test Test 123";
 
                 if (model.Foretakgrp8820 == null)

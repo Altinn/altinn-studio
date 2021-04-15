@@ -1,0 +1,39 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "5fce8f21-1d64-4fe7-9e50-214a2c96e158",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "c6511e9f-2a22-463c-a7d7-ac2c5d8042de",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattSammenhengendeAnsattAnsettelse-datadef-33267.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "7afd44e6-a334-456c-b7d7-2a0c0d9186aa",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}
