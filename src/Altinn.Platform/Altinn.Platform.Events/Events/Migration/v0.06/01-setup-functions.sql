@@ -4,9 +4,9 @@ CREATE OR REPLACE PROCEDURE events.setvalidsubscription(_id integer)
 AS $BODY$
 BEGIN
   UPDATE 
-	events.subscription s
-  WHERE s.id = _id
-  SET
-  s.validated = true;
+	events.subscription
+	  SET
+   validated = true
+	WHERE id = _id;
 END;
 $BODY$;

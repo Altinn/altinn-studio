@@ -74,7 +74,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         public Task SetValidSubscription(int id)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         private string GetSubscriptionPath()
