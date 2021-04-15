@@ -49,7 +49,7 @@ function* updateRepeatingGroupsSaga({ payload: {
 } }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
-    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
+    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId]?.count ?? -1;
     const newCount = remove ? currentCount - 1 : currentCount + 1;
     let updatedRepeatingGroups: IRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
