@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty } from '../features/editor/schemaEditorSlice';
 
 const useStyles = makeStyles(
   createStyles({
@@ -71,6 +71,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
+ const onDeleteObjectClick = (path: string) => {
+    dispatch(deleteProperty({ path }));
+  };
   const onChangeNodeName = (e: any) => {
     dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
     // as id is also changed, must set the new id as selected
@@ -113,7 +116,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         fullPath={p.id}
         onChangeValue={onChangeRef}
         onChangeKey={onChangeKey}
-        onDeleteField={onDeleteFieldClick}
+        onDeleteField={onDeleteObjectClick}
       />)}
 
       { selectedItem.fields?.map((field: Field) => <InputField
@@ -129,13 +132,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <IconButton
         aria-label='Add property'
         onClick={onAddPropertyClicked}
-      ><i className='fa fa-plus'/>
+      ><i className='fa fa-plus'/>Add property
       </IconButton> }
       { selectedItem.fields &&
       <IconButton
         aria-label='Add property'
         onClick={onAddFieldClick}
-      ><i className='fa fa-plus'/>
+      ><i className='fa fa-plus'/>Add property
       </IconButton> }
     </div> : null);
 
