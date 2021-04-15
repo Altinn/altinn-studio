@@ -25,6 +25,7 @@ export const RefSelect = (props: IRefSelectProps) => {
   } = props;
   const [value, setValue] = React.useState<string>(props.value);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions')));
+
   const onValueChange = (event: any) => {
     setValue(event.target.value);
     onChange(id, event.target.value);

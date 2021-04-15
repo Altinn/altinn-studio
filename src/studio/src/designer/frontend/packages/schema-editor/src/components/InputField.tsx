@@ -46,7 +46,7 @@ export interface IInputFieldProps {
   fullPath: string;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
-  onChangeRef?: (path: string, ref: string) => void;
+  onChangeRef: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
   isRef?: boolean;
 }
@@ -66,7 +66,6 @@ export function InputField(props: IInputFieldProps) {
   }, [props.label]);
 
   const onChangeValue = (val: any) => {
-    console.log(val);
     let newValue = val;
     setValue(val);
     if (props.label === 'enum') {
@@ -78,7 +77,8 @@ export function InputField(props: IInputFieldProps) {
   const onChangeType = (id: string, type: string) => {
     props.onChangeValue(props.fullPath, type, id);
   };
-  const onChangeRef = (ref: string) => {
+
+  const onChangeRef = (id: string, ref: string) => {
     props.onChangeRef(props.fullPath, ref);
   };
 

@@ -7,7 +7,6 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string, itemType: 
   if (itemType === ItemType.Property) {
     [path, propertyId] = path.split('/properties/');
   }
-
   let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
   if (schemaItem.properties) {
     schemaItem = schemaItem.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`) || {} as UiSchemaItem;

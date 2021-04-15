@@ -128,6 +128,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label={field.key}
         fullPath={selectedItem.id}
         onChangeValue={onChangeValue}
+        onChangeRef={onChangeRef}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
       />)}

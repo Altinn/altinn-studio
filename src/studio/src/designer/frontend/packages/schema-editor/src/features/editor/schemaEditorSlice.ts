@@ -112,9 +112,7 @@ const schemaEditorSlice = createSlice({
       const {
         path, ref,
       }: ISetRefAction = action.payload;
-      // eslint-disable-next-line no-nested-ternary
-      const itemType = ItemType.Ref;
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path, ItemType.Property);
       if (schemaItem) {
         schemaItem.$ref = ref;
       }
