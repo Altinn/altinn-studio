@@ -43,7 +43,8 @@ namespace Altinn.Platform.Storage.Helpers
                 DeletedDateTime = status.SoftDeleted,
                 ArchivedDateTime = status.Archived,
                 DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                ReadStatus = status.ReadStatus
+                ReadStatus = status.ReadStatus,
+                PresentationTexts = instance.PresentationTexts
             };
 
             if (instance.Status?.Substatus != null)

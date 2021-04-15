@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -94,6 +95,13 @@ namespace Altinn.Platform.Storage.Helpers
         /// DateTime the instance was deleted
         /// </summary>
         public DateTime? DeletedDateTime { get; set; }
+
+        /// <summary>
+        /// Presentation texts are dynamically created texts that have been retrieved from data element
+        /// and stored on the instance. The texts can be used to make it easy to separate
+        /// instaces from the same app when displayed by the portal message box.
+        /// </summary>
+        public Dictionary<string, string> PresentationTexts { get; set; }
     }
 
     /// <summary>
