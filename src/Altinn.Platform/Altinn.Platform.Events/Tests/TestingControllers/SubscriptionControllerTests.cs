@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,18 +9,19 @@ using Altinn.Common.AccessToken.Services;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
 using Altinn.Platform.Events.Tests.Mocks.Authentication;
 using Altinn.Platform.Events.Tests.Utils;
 using Altinn.Platform.Events.UnitTest.Mocks;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
+
 using Xunit;
 
 namespace Altinn.Platform.Events.Tests.TestingControllers
@@ -360,7 +359,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                         services.AddSingleton<IRegisterService, RegisterServiceMock>();
                         services.AddSingleton<IProfile, ProfileMockSI>();
 
-                        services.AddSingleton<IPostgresRepository, PostgresRepositoryMock>();
+                        services.AddSingleton<ICloudEventRepository, CloudEventRepositoryMock>();
+                        services.AddSingleton<ISubscriptionRepository, SubscriptionRepositoryMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

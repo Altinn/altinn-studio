@@ -10,7 +10,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     public interface IBlobService
     {
         /// <summary>
-        /// Deletes the all data blobs related to the instance.
+        /// Deletes all the data blobs related to the instance.
         /// </summary>
         public Task<bool> DeleteDataBlobs(Instance instance);
     }

@@ -68,7 +68,7 @@ declare namespace Cypress {
      * Custom command to navigate to change name layout in task_2 in app: frontend-test
      * @example cy.navigateToChangeName()
      */
-    navigateToChangeName(appname: string): Chainable<Element>;
+    navigateToChangeName(): Chainable<Element>;
 
     /**
      * Custom command to used in beforeeach that preserves cookies between tests
@@ -81,5 +81,23 @@ declare namespace Cypress {
      * @example cy.completeChangeNameForm('abc', 'xyz')
      */
     completeChangeNameForm(firstName: string, lastName: string): Chainable<Element>;
+
+    /**
+     * Start an app instance based on the environment selected
+     * @example cy.startAppInstance()
+     */
+     startAppInstance(): Chainable<Element>;
+
+    /**
+     * Navigate to the task3 of app ttd/frontend-test
+     * @example cy.navigateToTask3()
+     */
+      navigateToTask3(): Chainable<Element>;
+
+    /**
+     * navigate to task 3 and complete task 3 form
+     * @example cy.compelteTask3Form()
+     */
+      compelteTask3Form(): Chainable<Element>;
   }
 }

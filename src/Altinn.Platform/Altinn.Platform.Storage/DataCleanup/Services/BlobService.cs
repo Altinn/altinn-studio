@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
@@ -17,9 +18,13 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     public class BlobService : IBlobService
     {
         private readonly ILogger<IBlobService> _logger;
+        private readonly IKeyVaultService _keyVaultService;
         private readonly ISasTokenProvider _sasTokenProvider;
         private readonly string _accountName = "{0}altinn{1}strg01";
         private readonly string _storageContainer = "{0}-{1}-appsdata-blob-db";
+        private readonly string _backupAccountName = "altinn{0}backup01";
+        private readonly string _backupAccountEndpoint = "https://altinn{0}backup01.blob.core.windows.net/";
+        private readonly string _vaultUri = "https://altinn-{0}-kv.vault.azure.net";
         private readonly string _accountKey;
         private readonly string _blobEndpoint;
         private readonly string _environment;
@@ -29,10 +34,12 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="sasTokenProvider">The sas token provider</param>
-        public BlobService(ILogger<IBlobService> logger, ISasTokenProvider sasTokenProvider)
+        /// <param name="keyVaultService">The key vault service</param>
+        public BlobService(ILogger<IBlobService> logger, ISasTokenProvider sasTokenProvider, IKeyVaultService keyVaultService)
         {
             _logger = logger;
             _sasTokenProvider = sasTokenProvider;
+            _keyVaultService = keyVaultService;
             _accountKey = Environment.GetEnvironmentVariable("AccountKey");
             _blobEndpoint = Environment.GetEnvironmentVariable("BlobEndpoint");
             _environment = Environment.GetEnvironmentVariable("Environment");
@@ -46,7 +53,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             if (container == null)
             {
-                _logger.LogError($"BlobSerivce // DeleteDataBlobs // Could not connect to blob container.");
+                _logger.LogError($"BlobService // DeleteDataBlobs // Could not connect to blob container.");
                 return false;
             }
 
@@ -60,13 +67,13 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             catch (Exception e)
             {
                 _sasTokenProvider.InvalidateSasToken(instance.Org);
-                _logger.LogError(e, $"BlobSerivce // DeleteDataBlobs // Org: {instance.Org} // Exeption: {e.Message}");
+                _logger.LogError(e, $"BlobService // DeleteDataBlobs // Org: {instance.Org} // Exeption: {e.Message}");
                 return false;
             }
 
             return true;
         }
-
+       
         private async Task<BlobContainerClient> CreateBlobClient(string org)
         {
             if (!_accountName.Equals("devstoreaccount1"))

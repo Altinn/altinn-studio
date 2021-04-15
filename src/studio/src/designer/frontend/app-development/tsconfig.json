@@ -25,7 +25,8 @@
       "@altinn/schema-editor/*": [
         "../packages/schema-editor/src/*"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "./**/*",

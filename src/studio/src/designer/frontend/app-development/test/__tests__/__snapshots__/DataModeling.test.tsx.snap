@@ -154,15 +154,282 @@ exports[`DataModeling Should match snapshot 1`] = `
     id="schema-editor-container"
   >
     <div
-      class="makeStyles-root-19"
-      id="schema-editor"
+      class="MuiGrid-root MuiGrid-container"
     >
-      <button
-        class="makeStyles-button-20"
-        type="button"
+      <div
+        class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-7"
       >
-        Add root item
-      </button>
+        <div
+          class="makeStyles-root-19"
+          id="schema-editor"
+        >
+          <button
+            class="makeStyles-button-20"
+            type="button"
+          >
+            Save data model
+          </button>
+          <ul
+            aria-multiselectable="false"
+            class="MuiTreeView-root makeStyles-root-19"
+            role="tree"
+          >
+            <li
+              aria-expanded="true"
+              class="MuiTreeItem-root Mui-expanded"
+              role="treeitem"
+              tabindex="0"
+            >
+              <div
+                class="MuiTreeItem-content"
+              >
+                <div
+                  class="MuiTreeItem-iconContainer"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M7 10l5 5 5-5z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                >
+                  <div
+                    style="padding: 5px 0px 5px 0px;"
+                  >
+                    <span
+                      class="makeStyles-iconContainer-21"
+                    >
+                      <i
+                        class="fa fa-datamodel-properties"
+                        style="color: white; text-align: center;"
+                      />
+                    </span>
+                     properties
+                  </div>
+                </div>
+              </div>
+              <ul
+                class="MuiCollapse-container MuiTreeItem-group MuiCollapse-entered"
+                role="group"
+                style="min-height: 0px;"
+              >
+                <div
+                  class="MuiCollapse-wrapper"
+                >
+                  <div
+                    class="MuiCollapse-wrapperInner"
+                  >
+                    <li
+                      aria-expanded="false"
+                      class="MuiTreeItem-root makeStyles-treeItem-42"
+                      role="treeitem"
+                      tabindex="-1"
+                    >
+                      <div
+                        class="MuiTreeItem-content"
+                      >
+                        <div
+                          class="MuiTreeItem-iconContainer"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M10 17l5-5-5-5v10z"
+                            />
+                          </svg>
+                        </div>
+                        <div
+                          class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                        >
+                          <div
+                            class="makeStyles-labelRoot-36"
+                          >
+                            <p
+                              class="MuiTypography-root makeStyles-label-37 MuiTypography-body1"
+                            >
+                              <span
+                                class="makeStyles-iconContainer-41"
+                              >
+                                <i
+                                  class="fa fa-datamodel-object"
+                                  style="color: white; text-align: center;"
+                                />
+                              </span>
+                               
+                              #/properties/melding
+                            </p>
+                            <button
+                              class="MuiButtonBase-root MuiIconButton-root"
+                              tabindex="0"
+                              type="button"
+                            >
+                              <span
+                                class="MuiIconButton-label"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                                  />
+                                </svg>
+                              </span>
+                              <span
+                                class="MuiTouchRipple-root"
+                              />
+                            </button>
+                            <button
+                              aria-label="Add property"
+                              class="MuiButtonBase-root MuiIconButton-root"
+                              tabindex="0"
+                              type="button"
+                            >
+                              <span
+                                class="MuiIconButton-label"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                                  />
+                                </svg>
+                              </span>
+                              <span
+                                class="MuiTouchRipple-root"
+                              />
+                            </button>
+                            <button
+                              aria-label="Delete object"
+                              class="MuiButtonBase-root MuiIconButton-root"
+                              tabindex="0"
+                              type="button"
+                            >
+                              <span
+                                class="MuiIconButton-label"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+                                  />
+                                </svg>
+                              </span>
+                              <span
+                                class="MuiTouchRipple-root"
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </div>
+                </div>
+              </ul>
+            </li>
+            <li
+              class="MuiTreeItem-root"
+              role="treeitem"
+              tabindex="-1"
+            >
+              <div
+                class="MuiTreeItem-content"
+              >
+                <div
+                  class="MuiTreeItem-iconContainer"
+                />
+                <div
+                  class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                >
+                  info
+                </div>
+              </div>
+            </li>
+            <li
+              aria-expanded="false"
+              class="MuiTreeItem-root"
+              role="treeitem"
+              tabindex="-1"
+            >
+              <div
+                class="MuiTreeItem-content"
+              >
+                <div
+                  class="MuiTreeItem-iconContainer"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M10 17l5-5-5-5v10z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                >
+                  definitions
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div
+        class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
+      >
+        <div
+          class="MuiPaper-root MuiCard-root makeStyles-root-34 MuiPaper-elevation1 MuiPaper-rounded"
+        >
+          <div
+            class="MuiCardHeader-root"
+          >
+            <div
+              class="MuiCardHeader-content"
+            >
+              <span
+                class="MuiTypography-root MuiCardHeader-title MuiTypography-h5 MuiTypography-displayBlock"
+              >
+                Inspector
+              </span>
+            </div>
+          </div>
+          <div
+            class="MuiCardContent-root"
+          >
+            
+            <p
+              class="no-item-selected"
+            >
+              No item selected
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

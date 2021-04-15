@@ -4,7 +4,7 @@ import { IFormData } from 'src/features/form/data/formDataReducer';
 import { IRepeatingGroups, IRuntimeState } from 'src/types';
 import { replaceTextResourceParams } from 'altinn-shared/utils/language';
 import { ITextResource } from 'altinn-shared/types';
-import * as FormDataActionTypes from '../../../../features/form/data/formDataActionTypes';
+import FormDataActions from '../../../../features/form/data/formDataActions';
 import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import { FETCH_TEXT_RESOURCES_FULFILLED } from '../fetch/fetchTextResourcesActionTypes';
 import TextResourceActions from '../textResourcesActions';
@@ -34,10 +34,10 @@ export function* replaceTextResourcesSaga(): SagaIterator {
 export function* watchReplaceTextResourcesSaga(): SagaIterator {
   yield all([
     take(FETCH_TEXT_RESOURCES_FULFILLED),
-    take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
+    take(FormDataActions.fetchFormDataFulfilled),
     take(FormLayoutActions.updateRepeatingGroupsFulfilled),
   ]);
   yield call(replaceTextResourcesSaga);
-  yield takeLatest(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED, replaceTextResourcesSaga);
-  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, replaceTextResourcesSaga);
+  yield takeLatest(FormDataActions.fetchFormDataFulfilled, replaceTextResourcesSaga);
+  yield takeLatest(FormDataActions.updateFormDataFulfilled, replaceTextResourcesSaga);
 }

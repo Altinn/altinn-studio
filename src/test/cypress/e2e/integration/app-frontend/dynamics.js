@@ -1,13 +1,13 @@
 /// <reference types='cypress' />
+/// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
 
-const appName = Cypress.env('localTestAppName');
 const appFrontend = new AppFrontend();
 
 describe('Dynamics', () => {
   before(() => {
-    cy.navigateToChangeName(appName);
+    cy.navigateToChangeName();
   });
   beforeEach(() => {
     cy.preserveCookies();

@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <summary>
         /// Deletes the instance document with the given data.
         /// </summary>
-        public Task<bool> DeleteInstanceDocument(string instanceGuid, string instanceOwnerPartyId);
+        public Task<bool> DeleteInstanceDocument(string instanceOwnerPartyId, string instanceGuid);
 
         /// <summary>
         /// Deletes the data element documents under the given instanceGuid.
@@ -38,6 +38,6 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <summary>
         /// Deletes the instance event documents for the the given instance.
         /// </summary>
-        public Task<bool> DeleteInstanceEventDocuments(string instanceGuid, string instanceOwnerPartyId);
+        public Task<bool> DeleteInstanceEventDocuments(string instanceOwnerPartyId, string instanceGuid);
     }
 }
