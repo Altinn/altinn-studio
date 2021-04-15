@@ -32,7 +32,6 @@ namespace Altinn.Platform.Storage.Repository
         private readonly IDataRepository _dataRepository;
 
         private readonly DocumentClient _client;
-        private readonly AzureCosmosSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
@@ -47,8 +46,6 @@ namespace Altinn.Platform.Storage.Repository
         {
             _logger = logger;
             _dataRepository = dataRepository;
-
-            _settings = cosmosSettings.Value;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
