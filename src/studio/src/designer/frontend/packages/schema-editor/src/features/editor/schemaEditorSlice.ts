@@ -34,7 +34,6 @@ const schemaEditorSlice = createSlice({
         path, newKey, content,
       } = action.payload;
 
-      console.log('path: ', path);
       const addToItem = state.uiSchema.find((i) => i.id === path);
       const item = content[0];
       const propertyItem = {
@@ -139,11 +138,9 @@ const schemaEditorSlice = createSlice({
     },
     setPropertyName(state, action) {
       const { path, name } = action.payload;
-      console.log(state.uiSchema);
       if (path.includes('/properties')) {
         // #/definitions/Foretak/properties/organisasjonsnummerForetak
         const [rootPath, propertyName] = path.split('/properties/');
-        console.log(`path: ${path},rootPath: ${rootPath}, propetyName: ${propertyName}`);
         if (rootPath && propertyName) {
           const rootItem = state.uiSchema.find((item) => item.id === rootPath);
           const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
@@ -157,7 +154,6 @@ const schemaEditorSlice = createSlice({
       } else if (path.includes('/definitions')) {
         // just update definition id/name
         const propertyName = path.split('/definitions/')[1];
-        console.log(`path: ${path}, propetyName: ${propertyName}`);
         if (propertyName) {
           const rootItem = state.uiSchema.find((item) => item.id === path);
           if (rootItem) {

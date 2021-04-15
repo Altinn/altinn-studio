@@ -24,6 +24,9 @@ const useStyles = makeStyles(
       padding: 4,
       flexGrow: 1,
     },
+    header: {
+      padding: 8,
+    },
   }),
 );
 
@@ -71,13 +74,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
- const onDeleteObjectClick = (path: string) => {
+  const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
   const onChangeNodeName = (e: any) => {
     dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
-    // as id is also changed, must set the new id as selected
-    // dispatch(setSelectedId({ id: `#/definitions/${e.target.value}` }));
   };
 
   const onAddPropertyClicked = (event: any) => {
@@ -106,19 +107,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onChange={onChangeNodeName}
       />
       <hr />
-      <h3>Properties</h3>
-      {/* { selectedItem.properties?.map((f) => <tr key={f.id}><td>{f.name}</td><td>{f.$ref}</td></tr>)} */}
-      {/* This are the refs */}
+      <h3 className={classes.header}>Properties</h3>
+      {/* These are the refs or consts */}
       { selectedItem.properties?.map((p: UiSchemaItem) => <InputField
         key={`field-${p.id}`}
         value={p.$ref ?? ''}
+        isRef={p.$ref !== undefined}
         label={p.name ?? p.id}
         fullPath={p.id}
-        onChangeValue={onChangeRef}
+        onChangeValue={onChangeValue}
+        onChangeRef={onChangeRef}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteObjectClick}
       />)}
 
+      {/* Normal fields  */}
       { selectedItem.fields?.map((field: Field) => <InputField
         key={`field-${field.key}`}
         value={field.value}

@@ -6,6 +6,7 @@ import { makeStyles,
   IconButton } from '@material-ui/core';
 import { CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
+import { RefSelect } from './RefSelect';
 
 const useStyles = makeStyles({
   field: {
@@ -45,7 +46,9 @@ export interface IInputFieldProps {
   fullPath: string;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
+  onChangeRef?: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
+  isRef?: boolean;
 }
 
 export function InputField(props: IInputFieldProps) {
@@ -62,17 +65,21 @@ export function InputField(props: IInputFieldProps) {
     setLabel(props.label);
   }, [props.label]);
 
-  const onChangeValue = (e: any) => {
-    setValue(e.target.value);
-    let newValue = e.target.value;
+  const onChangeValue = (val: any) => {
+    console.log(val);
+    let newValue = val;
+    setValue(val);
     if (props.label === 'enum') {
-      newValue = e.target.value.split(',');
+      newValue = val.split(',');
     }
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
 
   const onChangeType = (id: string, type: string) => {
     props.onChangeValue(props.fullPath, type, id);
+  };
+  const onChangeRef = (ref: string) => {
+    props.onChangeRef(props.fullPath, ref);
   };
 
   const onChangeKey = (e: any) => {
@@ -89,6 +96,28 @@ export function InputField(props: IInputFieldProps) {
 
   const toggleEditLabel = () => {
     setEditLabel(!editLabel);
+  };
+  const RenderValueField = () => {
+    if (label === 'type') {
+      return <TypeSelect
+        itemType={value}
+        id={label}
+        onChange={onChangeType}
+      />;
+    }
+    if (props.isRef) {
+      return <RefSelect
+        id={label}
+        value={value}
+        onChange={onChangeRef}
+      />;
+    }
+    return <Input
+      id={`${baseId}-value-${label}`}
+      value={value}
+      disableUnderline={true}
+      onChange={(e) => onChangeValue(e.target.value)}
+    />;
   };
   const baseId = `input-${props.fullPath.replace('#/definitions/', '')}`;
   return (
@@ -113,20 +142,7 @@ export function InputField(props: IInputFieldProps) {
           />
         </FormControl>
         <FormControl className={classes.field}>
-          {label === 'type' ?
-            <TypeSelect
-              itemType={value}
-              id={label}
-              onChange={onChangeType}
-            />
-            :
-            <Input
-              id={`${baseId}-value-${label}`}
-              value={value}
-              disableUnderline={true}
-              onChange={onChangeValue}
-            />
-          }
+          <RenderValueField />
         </FormControl>
       </span>
       <IconButton
