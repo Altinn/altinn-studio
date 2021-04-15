@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.13" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.17.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.2" />
     <!-- Version 1.1.55 has a single breaking change. Update and test as part of #5587. -->
     <PackageReference Include="Yuniql.AspNetCore" Version="1.0.2" />
     <!-- Version 1.1.55 has a single breaking change. Update and test as part of #5587. -->
