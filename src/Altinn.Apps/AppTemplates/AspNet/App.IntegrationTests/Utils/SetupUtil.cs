@@ -118,6 +118,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "eformidling-app-invalid":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
                             break;
+                        case "presentationfields-app":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;

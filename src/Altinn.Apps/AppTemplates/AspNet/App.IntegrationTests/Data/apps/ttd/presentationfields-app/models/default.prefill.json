@@ -1,9 +1,9 @@
-﻿{
+{
   "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
   "allowOverwrite": true,
   "ER": {},
   "DSF": {
-    "Name": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattSammenhengendeAnsattAnsettelse-datadef-33267.value"
+    "Name": "OpplysningerOmArbeidstakerengrp8819.Arbeidsforholdgrp8856.AnsattSammenhengendeAnsattAnsettelsedatadef33267.value"
   },
   "UserProfile": {}
 }

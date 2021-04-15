@@ -20,7 +20,7 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema"
+        "classRef": "App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.Skjema"
       },
       "taskId": "Task_1",
       "maxCount": 1,
@@ -36,7 +36,12 @@
   "presentationFields": [
     {
       "id": "Title",
-      "path": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattSammenhengendeAnsattAnsettelse-datadef-33267.value",
+      "path": "OpplysningerOmArbeidstakerengrp8819.Arbeidsforholdgrp8856.AnsattSammenhengendeAnsattAnsettelsedatadef33267.value",
+      "dataTypeId": "default"
+    },
+    {
+      "id": "AnotherField",
+      "path": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value",
       "dataTypeId": "default"
     }
   ],
