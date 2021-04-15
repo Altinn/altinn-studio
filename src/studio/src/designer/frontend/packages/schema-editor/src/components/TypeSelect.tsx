@@ -10,9 +10,7 @@ export interface ITypeSelectProps {
 const useStyles = makeStyles({
   root: {
     width: '100%',
-  },
-  select: {
-    minWidth: 90,
+    minWidth: 114,
   },
 });
 
@@ -35,9 +33,6 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
-      classes={{
-        select: classes.select,
-      }}
     >
       <MenuItem value='string'>string</MenuItem>
       <MenuItem value='integer'>integer</MenuItem>

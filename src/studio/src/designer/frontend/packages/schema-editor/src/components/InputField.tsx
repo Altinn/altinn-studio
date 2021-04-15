@@ -15,6 +15,7 @@ const useStyles = makeStyles({
     border: '1px solid #006BD8',
     padding: 4,
     margin: 8,
+    minWidth: 60,
   },
   type: {
     background: 'white',

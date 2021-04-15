@@ -12,9 +12,7 @@ export interface IRefSelectProps {
 const useStyles = makeStyles({
   root: {
     width: '100%',
-  },
-  select: {
-    minWidth: 90,
+    minWidth: 200,
   },
 });
 
@@ -38,9 +36,6 @@ export const RefSelect = (props: IRefSelectProps) => {
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
-      classes={{
-        select: classes.select,
-      }}
     > { definitions?.map((d: UiSchemaItem) => <MenuItem key={d.id} value={d.id}>{d.id}</MenuItem>) }
     </Select>
   );

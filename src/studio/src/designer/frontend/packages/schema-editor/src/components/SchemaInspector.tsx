@@ -108,7 +108,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
       <hr />
       <h3 className={classes.header}>Properties</h3>
-      {/* These are the refs or consts */}
+      {/* These are the refs or consts. TODO: handle const */}
       { selectedItem.properties?.map((p: UiSchemaItem) => <InputField
         key={`field-${p.id}`}
         value={p.$ref ?? ''}
