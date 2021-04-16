@@ -6,10 +6,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Platform.Events.Functions.Configuration;
 using Altinn.Platform.Events.Functions.Extensions;
 using Altinn.Platform.Events.Functions.Models;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Events.Functions.Services
@@ -22,6 +24,8 @@ namespace Altinn.Platform.Events.Functions.Services
         private readonly HttpClient _client;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly IKeyVaultService _keyVaultService;
+        private readonly KeyVaultSettings _keyVaultSettings;
+        private readonly PlatformSettings _platformSettings;
         private readonly ILogger<IPushEventsService> _logger;
 
         /// <summary>
@@ -31,9 +35,13 @@ namespace Altinn.Platform.Events.Functions.Services
             HttpClient httpClient,
             IAccessTokenGenerator accessTokenGenerator,
             IKeyVaultService keyVaultService,
+            IOptions<PlatformSettings> eventsConfig,
+            IOptions<KeyVaultSettings> keyVaultSettings,
             ILogger<IPushEventsService> logger)
         {
-            httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("ApiPushEventsEndpoint"));
+            _platformSettings = eventsConfig.Value;
+            _keyVaultSettings = keyVaultSettings.Value;
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiPushEventsEndpoint);
             _client = httpClient;
             _accessTokenGenerator = accessTokenGenerator;
             _keyVaultService = keyVaultService;
@@ -46,11 +54,12 @@ namespace Altinn.Platform.Events.Functions.Services
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json");
             try
             {
+                string test = _platformSettings.ApiPushEventsEndpoint;
                 string endpointUrl = "push";
 
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
 
-                string certBase64 = await _keyVaultService.GetSecretAsync(Environment.GetEnvironmentVariable("KeyVaultURI"), Environment.GetEnvironmentVariable("PlatformCertSecretId"));
+                string certBase64 = await _keyVaultService.GetSecretAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
                 string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events", new X509Certificate2(Convert.FromBase64String(certBase64)));
                 HttpResponseMessage response = await _client.PostAsync(endpointUrl, httpContent, accessToken);
                 if (response.StatusCode != HttpStatusCode.OK)
