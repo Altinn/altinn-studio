@@ -17,9 +17,12 @@
       "altinnTaskType": "data"
     }
   },
+  "presentationTexts": {
+    "Title": "Sophie Salt"
+  },
   "data": [
     {
-      "id": "3c745299-d5b0-4fa2-8cbd-5c9110660303",
+      "id": "590ebc27-246e-4a0a-aea3-4296cb231d78",
       "dataType": "default",
       "contentType": "application/xml",
       "size": 0,
