@@ -20,7 +20,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// }
         /// </example>
         /// <param name="instance">The data</param>
-        public async Task<bool> Calculate(object instance)
+        public static async Task<bool> Calculate(object instance)
         {
             return await Task.FromResult(false);
         }

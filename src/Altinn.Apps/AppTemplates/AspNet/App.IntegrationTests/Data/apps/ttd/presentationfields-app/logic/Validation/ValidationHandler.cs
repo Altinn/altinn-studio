@@ -12,15 +12,12 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// </summary>
     public class ValidationHandler
     {
-        private IHttpContextAccessor _httpContextAccessor;
-
         /// <summary>
         /// Initialize a new instance of the <see cref="ValidationHandler"/> class with access to the Http Context.
         /// </summary>
         /// <param name="httpContextAccessor">An http context accessor.</param>
         public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -45,7 +42,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         ///     }
         /// }
         /// </example>
-        public async Task ValidateData(object data, ModelStateDictionary validationResults)
+        public static async Task ValidateData(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
         }
@@ -70,7 +67,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         ///     }
         ///   }
         /// </example>
-        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public static async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
         }

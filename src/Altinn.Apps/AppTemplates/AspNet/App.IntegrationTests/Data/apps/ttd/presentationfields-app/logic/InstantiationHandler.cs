@@ -12,9 +12,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// </summary>
     public class InstantiationHandler
     {
-        private IProfile _profileService;
-        private IRegister _registerService;
-
         /// <summary>
         /// Initialize a new instance of the <see cref="InstantiationHandler"/> class with services
         /// that can be used to access profile and register information.
@@ -23,8 +20,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="registerService">A service with access to register information</param>
         public InstantiationHandler(IProfile profileService, IRegister registerService)
         {
-            _profileService = profileService;
-            _registerService = registerService;
         }
 
         /// <summary>
@@ -39,7 +34,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// </example>
         /// <param name="instance">The instance being validated</param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
+        public static async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             return await Task.FromResult((InstantiationValidationResult)null);
         }
@@ -52,7 +47,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// </remarks>
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
-        public async Task DataCreation(Instance instance, object data)
+        public static async Task DataCreation(Instance instance, object data)
         {
             await Task.CompletedTask;
         }

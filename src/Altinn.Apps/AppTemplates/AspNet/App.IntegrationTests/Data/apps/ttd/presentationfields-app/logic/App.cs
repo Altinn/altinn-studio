@@ -78,20 +78,20 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         }
 
         /// <inheritdoc />
-        public override object CreateNewAppModel(string classRef)
+        public override object CreateNewAppModel(string dataType)
         {
-            _logger.LogInformation($"CreateNewAppModel {classRef}");
+            _logger.LogInformation($"CreateNewAppModel {dataType}");
 
-            Type appType = Type.GetType(classRef);
+            Type appType = Type.GetType(dataType);
             return Activator.CreateInstance(appType);
         }
 
         /// <inheritdoc />
-        public override Type GetAppModelType(string classRef)
+        public override Type GetAppModelType(string dataType)
         {
-            _logger.LogInformation($"GetAppModelType {classRef}");
+            _logger.LogInformation($"GetAppModelType {dataType}");
 
-            return Type.GetType(classRef);
+            return Type.GetType(dataType);
         }
 
         /// <summary>

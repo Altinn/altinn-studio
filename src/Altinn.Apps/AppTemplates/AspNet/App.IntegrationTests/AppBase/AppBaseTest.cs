@@ -62,7 +62,7 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
-        public async void OnInstantiation_PresentationTextsAreSet()
+        public async Task OnInstantiation_PresentationTextsAreSet()
         {
             // Arrange
             string org = "ttd";
@@ -70,7 +70,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             int expectedCount = 1;
             string expectedKey = "Title";
-            string expectedValue = string.Empty;
+            string expectedValue = "Ola Nordmann";
 
             // Act
             Instance instance = await CreateInstance(org, app);
@@ -80,6 +80,7 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.NotNull(instance.PresentationTexts);
             Assert.Equal(expectedCount, instance.PresentationTexts.Count);
             Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
         }
 
         [Fact]

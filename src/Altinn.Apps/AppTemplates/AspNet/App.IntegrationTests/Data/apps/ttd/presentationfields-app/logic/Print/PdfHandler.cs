@@ -20,7 +20,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// </example>
         /// <param name="layoutSettings">the layoutsettings</param>
         /// <param name="data">data object</param>
-        public async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        public static async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
             return await Task.FromResult(layoutSettings);
         }
