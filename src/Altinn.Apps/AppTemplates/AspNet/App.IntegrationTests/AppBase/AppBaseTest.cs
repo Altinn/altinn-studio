@@ -70,7 +70,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             int expectedCount = 1;
             string expectedKey = "Title";
-            string expectedValue = "Ola Nordmann";
+            string expectedValue = "Sophie Salt";
 
             // Act
             Instance instance = await CreateInstance(org, app);
