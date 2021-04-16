@@ -14,9 +14,10 @@ let createStore: any;
 let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
+let addPropertyMock = jest.fn();
 beforeEach(() => {
   const rootPath = '#/definitions/RA-0678_M';
-
+  addPropertyMock = jest.fn();
   mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
 
   mockInitialState = {
@@ -44,7 +45,7 @@ it('Should match snapshot', () => {
   act(() => {
     const wrapper = mount(
       <Provider store={mockStore}>
-        <SchemaInspector />
+        <SchemaInspector onAddPropertyClick={addPropertyMock} />
       </Provider>,
     );
     expect(wrapper.getDOMNode()).toMatchSnapshot();
@@ -55,11 +56,10 @@ it('dispatches correctly when changing value', () => {
   act(() => {
     const wrapper = mount(
       <Provider store={mockStore}>
-        <SchemaInspector />
+        <SchemaInspector onAddPropertyClick={addPropertyMock} />
       </Provider>,
     );
     expect(wrapper).not.toBeNull();
-    expect(wrapper.find('input').length).toBe(10);
     wrapper.find('#input-Kommentar2000Restriksjon-value-minLength').last().simulate('change', { target: { value: '666' } });
     expect(mockStore.dispatch).toHaveBeenCalledWith({
       type: 'schemaEditor/setFieldValue',
@@ -77,7 +77,7 @@ it('dispatches correctly when changing key', (done) => {
   act(() => {
     wrapper = mount(
       <Provider store={mockStore}>
-        <SchemaInspector />
+        <SchemaInspector onAddPropertyClick={addPropertyMock} />
       </Provider>,
     );
   });
@@ -112,7 +112,7 @@ it('renders no item if nothing is selected', () => {
   act(() => {
     const wrapper = mount(
       <Provider store={mockStore}>
-        <SchemaInspector />
+        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
       </Provider>,
     );
     expect(wrapper).not.toBeNull();
@@ -125,7 +125,7 @@ it('handles delete button', () => {
   act(() => {
     const wrapper = mount(
       <Provider store={mockStore}>
-        <SchemaInspector />
+        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
       </Provider>,
     );
     expect(wrapper).not.toBeNull();
