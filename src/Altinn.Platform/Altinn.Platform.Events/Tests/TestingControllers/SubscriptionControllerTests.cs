@@ -349,6 +349,26 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             }
 
+            [Fact]
+            public async Task ValidateSubscription_ReturnsOk()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions/validate/16";
+                HttpClient client = GetTestClient();
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+                {
+                };
+
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("platform", "events"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
             private HttpClient GetTestClient()
             {
                 Program.ConfigureSetupLogging();
