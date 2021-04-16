@@ -15,7 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Platform.Events.Functions.Services
 {
     /// <summary>
-    /// Handles pushevents service
+    /// Handles PushEvents service
     /// </summary>
     public class PushEventsService : IPushEventsService
     {
