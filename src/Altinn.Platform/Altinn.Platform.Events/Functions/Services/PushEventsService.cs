@@ -1,12 +1,16 @@
 using System;
+using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Platform.Events.Functions.Extensions;
 using Altinn.Platform.Events.Functions.Models;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Events.Functions.Services
 {
@@ -16,34 +20,50 @@ namespace Altinn.Platform.Events.Functions.Services
     public class PushEventsService : IPushEventsService
     {
         private readonly HttpClient _client;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
+        private readonly IKeyVaultService _keyVaultService;
         private readonly ILogger<IPushEventsService> _logger;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PushEventsService"/> class.
         /// </summary>
         public PushEventsService(
             HttpClient httpClient,
-            IHttpContextAccessor httpContextAccessor,
             IAccessTokenGenerator accessTokenGenerator,
+            IKeyVaultService keyVaultService,
             ILogger<IPushEventsService> logger)
         {
             httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("ApiPushEventsEndpoint"));
             _client = httpClient;
-            _httpContextAccessor = httpContextAccessor;
             _accessTokenGenerator = accessTokenGenerator;
+            _keyVaultService = keyVaultService;
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public Task SendToPushController(CloudEvent item)
+        public async Task SendToPushController(CloudEvent item)
         {
-            string token = JwtTokenUtil.GetTokenFromContext(
-                _httpContextAccessor.HttpContext,
-                Environment.GetEnvironmentVariable("JwtCookieName"));
-            string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events");
-            throw new System.NotImplementedException();
+            StringContent httpContent = new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json");
+            try
+            {
+                string endpointUrl = "push";
+
+                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
+
+                string certBase64 = await _keyVaultService.GetSecretAsync(Environment.GetEnvironmentVariable("KeyVaultURI"), Environment.GetEnvironmentVariable("PlatformCertSecretId"));
+                string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events", new X509Certificate2(Convert.FromBase64String(certBase64)));
+                HttpResponseMessage response = await _client.PostAsync(endpointUrl, httpContent, accessToken);
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    _logger.LogError($"// Push event with id {item.Id} failed with statuscode {response.StatusCode}");
+                    throw new Exception($"// Push event with id {item.Id} failed with statuscode {response.StatusCode}");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"// Push event with id {item.Id} failed with errormessage {e.Message}");
+                throw e;
+            }
         }
     }
 }

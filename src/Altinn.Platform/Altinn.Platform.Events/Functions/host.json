@@ -6,6 +6,11 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
+    },
+    "logLevel": {
+      "default": "Information",
+      "Function": "Debug",
+      "Altinn.Platform.Events.Functions.Services.PushEventsService": "Information"
     }
   },
   "extensions": {

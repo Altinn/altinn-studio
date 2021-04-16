@@ -1,9 +1,7 @@
-using System;
 using System.Text.Json;
 using Altinn.Platform.Events.Functions.Models;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Functions
@@ -27,12 +25,11 @@ namespace Altinn.Platform.Events.Functions
         /// Retrieves messages from events-inbound queue and push events controller
         /// </summary>
         [FunctionName("EventsInbound")]
-        public static void Run([QueueTrigger("events-inbound", Connection = "QueueStorage")] string item, ILogger log)
+        public void Run([QueueTrigger("events-inbound", Connection = "QueueStorage")] string item, ILogger log)
         {
             CloudEvent cloudEvent = JsonSerializer.Deserialize<CloudEvent>(item);
+            _pushEventsService.SendToPushController(cloudEvent).GetAwaiter().GetResult();
             log.LogInformation($"C# Queue trigger function processed: {cloudEvent.Id}");
-
-            // TODO: Send to matchAPI
         }
     }
 }

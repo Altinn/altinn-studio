@@ -1,6 +1,8 @@
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Functions;
 using Altinn.Platform.Events.Functions.Services;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +21,10 @@ namespace Altinn.Platform.Events.Functions
         /// </summary>
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<PushEventsService, PushEventsService>();
+            builder.Services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
+            builder.Services.AddSingleton<IAccessTokenGenerator, AccessTokenGenerator>();
+            builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            builder.Services.AddSingleton<IPushEventsService, PushEventsService>();
         }
     }
 }
