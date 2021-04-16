@@ -17,17 +17,20 @@ namespace App.IntegrationTests.Utils
 
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
 
-            foreach (string filePath in Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories))
+            if (Directory.Exists(dataPath))
             {
-                if (filePath.Contains(".pretest.json"))
+                foreach (string filePath in Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories))
                 {
-                    // Handling all data elements
-                    File.Copy(filePath, filePath.Replace(".pretest.json", ".json"), true);
-                }
-                else if (filePath.EndsWith(".pretest"))
-                {
-                    // Handling all data blobs
-                    File.Copy(filePath, filePath.Replace(".pretest", string.Empty), true);
+                    if (filePath.Contains(".pretest.json"))
+                    {
+                        // Handling all data elements
+                        File.Copy(filePath, filePath.Replace(".pretest.json", ".json"), true);
+                    }
+                    else if (filePath.EndsWith(".pretest"))
+                    {
+                        // Handling all data blobs
+                        File.Copy(filePath, filePath.Replace(".pretest", string.Empty), true);
+                    }
                 }
             }
         }
@@ -56,36 +59,39 @@ namespace App.IntegrationTests.Utils
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceGuid);
 
-            foreach (string filePath in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+            if (Directory.Exists(path))
             {
-                if (!filePath.Contains("pretest"))
+                foreach (string filePath in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
                 {
-                    File.Delete(filePath);
+                    if (!filePath.Contains("pretest"))
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+
+                if (Directory.GetFiles(path).Length == 0)
+                {
+                    Directory.Delete(path, true);
                 }
             }
+        }    
 
-            if (Directory.GetFiles(path).Length == 0)
-            {
-                Directory.Delete(path, true);
-            }
-        }
-
-        private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
-        }
-
-        private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
-        }
-
-        private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
-        }
+    private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+    {
+        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+        return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
     }
+
+    private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+    {
+        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+        return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+    }
+
+    private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+    {
+        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+        return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
+    }
+}
 }

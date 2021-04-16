@@ -202,7 +202,7 @@ namespace App.IntegrationTests.ApiTests
                 Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
             };
             response = await client.SendAsync(putRequestMessage);
-            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
             responseContent = await response.Content.ReadAsStringAsync();
             CalculationResult calculationResult = JsonConvert.DeserializeObject<CalculationResult>(responseContent);
             Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
