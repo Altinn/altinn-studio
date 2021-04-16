@@ -2,9 +2,8 @@ import * as React from 'react';
 import { makeStyles,
   FormControl,
   Input,
-  InputAdornment,
   IconButton } from '@material-ui/core';
-import { CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
+import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 import { RefSelect } from './RefSelect';
 
@@ -56,7 +55,6 @@ export function InputField(props: IInputFieldProps) {
   const classes = useStyles();
   const [value, setValue] = React.useState<string>(props.value || '');
   const [label, setLabel] = React.useState<string>(props.label || '');
-  const [editLabel, setEditLabel] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setValue(props.value);
@@ -67,14 +65,10 @@ export function InputField(props: IInputFieldProps) {
   }, [props.label]);
 
   const onChangeValue = (val: any) => {
-    let newValue = val;
     setValue(val);
-    if (props.label === 'enum') {
-      newValue = val.split(',');
-    }
+    const newValue = props.label === 'enum' ? val.split(',') : val;
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
-
   const onChangeType = (id: string, type: string) => {
     props.onChangeValue(props.fullPath, type, id);
   };
@@ -95,10 +89,7 @@ export function InputField(props: IInputFieldProps) {
     props.onDeleteField(props.fullPath, props.label);
   };
 
-  const toggleEditLabel = () => {
-    setEditLabel(!editLabel);
-  };
-  const RenderValueField = () => {
+  const renderValueField = () => {
     if (label === 'type') {
       return <TypeSelect
         itemType={value}
@@ -131,19 +122,11 @@ export function InputField(props: IInputFieldProps) {
             disableUnderline={true}
             onChange={onChangeKey}
             onBlur={onBlurKey}
-            disabled={!editLabel}
             className={classes.field}
-            endAdornment={
-              <InputAdornment position='end'>
-                <IconButton onClick={toggleEditLabel} id={`${baseId}-toggle-${label}`}>
-                  {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-                </IconButton>
-              </InputAdornment>
-            }
           />
         </FormControl>
         <FormControl className={classes.field}>
-          <RenderValueField />
+          { renderValueField() }
         </FormControl>
       </span>
       <IconButton
