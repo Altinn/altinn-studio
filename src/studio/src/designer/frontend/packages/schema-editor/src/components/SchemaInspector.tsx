@@ -160,9 +160,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       { selectedItem.properties &&
       // This is work in progress }
       <IconButton
-        aria-label='Add property'
+        aria-label='Add reference'
         onClick={onAddPropertyClicked}
-      ><i className='fa fa-plus'/>Add property
+      ><i className='fa fa-plus'/>Add reference
       </IconButton> }
       { selectedItem.fields &&
       <IconButton

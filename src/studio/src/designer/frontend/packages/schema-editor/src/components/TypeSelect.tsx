@@ -10,7 +10,7 @@ export interface ITypeSelectProps {
 const useStyles = makeStyles({
   root: {
     width: '100%',
-    minWidth: 114,
+    minWidth: 104,
   },
 });
 
