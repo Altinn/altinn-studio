@@ -11,9 +11,9 @@ import { getFetchFormDataUrl } from '../../../../utils/urlHelper';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
 
-const ApplicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
-const TextResourceSelector = (state: IRuntimeState) => state.textResources.resources;
-const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
+export const ApplicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+export const TextResourceSelector = (state: IRuntimeState) => state.textResources.resources;
+export const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
 
 export function* startInitialInfoTaskQueueSaga(): SagaIterator {
   const appMetadata: IApplicationMetadata = yield select(ApplicationMetadataSelector);
