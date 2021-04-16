@@ -71,10 +71,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
                 httpContextAccessor)
         {
             _logger = logger;
-            _validationHandler = new ValidationHandler(httpContextAccessor);
-            _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
-            _pdfHandler = new PdfHandler();
         }
 
         /// <inheritdoc />
@@ -117,7 +114,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-           await _validationHandler.ValidateData(data, validationResults);
+           await ValidationHandler.ValidateData(data, validationResults);
         }
 
         /// <summary>
@@ -129,7 +126,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <returns>A task supporting the async await pattern.</returns>
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-            await _validationHandler.ValidateTask(instance, taskId, validationResults);
+            await ValidationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>
@@ -138,7 +135,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunCalculation(object data)
         {
-            return await _calculationHandler.Calculate(data);
+            return await CalculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -147,7 +144,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <returns>Task with validation results</returns>
         public override async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return await _instantiationHandler.RunInstantiationValidation(instance);
+            return await InstantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
@@ -157,7 +154,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="data">The data object being created</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-           await _instantiationHandler.DataCreation(instance, data);
+           await InstantiationHandler.DataCreation(instance, data);
         }
 
         /// <inheritdoc />
@@ -185,7 +182,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <returns>Layoutsetting with possible hidden fields or pages</returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
-            return await _pdfHandler.FormatPdf(layoutSettings, data);
+            return await PdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }
