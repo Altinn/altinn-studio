@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
-using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using LocalTest.Configuration;
+using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Options;
 
@@ -38,6 +38,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return Task.FromResult(ParsePolicy(policyPath));
         }
 
+        /// <inheritdoc/>
+        public Task<XacmlPolicy> GetPolicyAsync(string org, string app)
+        {
+            throw new NotImplementedException();
+        }
+
         private string GetPolicyPath()
         {
             return _localTestAppSelectionService.GetAppPath() + $"config/authorization/policy.xml";
@@ -60,6 +66,5 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             throw new NotImplementedException();
         }
-
     }
 }

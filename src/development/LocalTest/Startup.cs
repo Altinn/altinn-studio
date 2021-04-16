@@ -41,6 +41,7 @@ using Microsoft.IdentityModel.Tokens;
 using LocalTest.Services.Localtest.Interface;
 using LocalTest.Services.Localtest.Implementation;
 using System.Text.Json.Serialization;
+using LocalTest.Services.Authorization.Interface;
 
 namespace LocalTest
 {

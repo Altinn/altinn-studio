@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Controllers
     public class DecisionController : ControllerBase
     {
         private readonly IContextHandler _contextHandler;
-        private readonly Services.Interface.IPolicyRetrievalPoint _prp;
+        private readonly IPolicyRetrievalPoint _prp;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="contextHandler">The Context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="logger">the logger.</param>
-        public DecisionController(IContextHandler contextHandler, Services.Interface.IPolicyRetrievalPoint policyRetrievalPoint, ILogger<DecisionController> logger)
+        public DecisionController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, ILogger<DecisionController> logger)
         {
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;

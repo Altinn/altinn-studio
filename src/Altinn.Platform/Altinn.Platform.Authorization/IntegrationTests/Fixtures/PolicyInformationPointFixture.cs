@@ -42,7 +42,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandler>();
-                    services.AddScoped<Services.Interface.IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IPolicyInformationRepository, PolicyInformationRepository>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>

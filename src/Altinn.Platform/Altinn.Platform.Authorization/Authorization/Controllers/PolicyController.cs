@@ -93,19 +93,29 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Gets a list of role code which might give access to an app
+        /// Gets a list of role codes which might give access to an app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        [AllowAnonymous]
         [HttpGet("roleswithaccess/{org}/{app}")]
         public async Task<ActionResult> GetRolesWithAccess(string org, string app)
         {
-            // TODO: Input validation?
+            if (string.IsNullOrWhiteSpace(org))
+            {
+                return BadRequest("Organisation must be defined in the path");
+            }
+
+            if (string.IsNullOrWhiteSpace(app))
+            {
+                return BadRequest("App must be defined in the path");
+            }
+
             XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
 
             if (policy == null)
             {
-                return NotFound();
+                return NotFound($"No valid policy found for org '{org}' and app '{app}'");
             }
 
             return Ok(PolicyHelper.GetRolesWithAccess(policy));

@@ -43,9 +43,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
         }
 
-        public Task<XacmlPolicy> GetPolicyAsync(string org, string app)
+        public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
         {
-            throw new NotImplementedException();
+            if (File.Exists(Path.Combine(GetAltinnAppsPolicyPath(org, app), "policy.xml")))
+            {
+                return await Task.FromResult(ParsePolicy("policy.xml", GetAltinnAppsPolicyPath(org, app)));
+            }
+
+            return null;
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
