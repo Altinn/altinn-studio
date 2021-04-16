@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// The actual collection of values to be added to.
         /// </summary>
-        [JsonProperty(PropertyName = "dataValues")]
+        [JsonProperty(PropertyName = "values")]
         public Dictionary<string, string> Values { get; set; }
     }
 }
