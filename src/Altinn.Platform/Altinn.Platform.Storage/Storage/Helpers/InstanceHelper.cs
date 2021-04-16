@@ -43,9 +43,14 @@ namespace Altinn.Platform.Storage.Helpers
                 DeletedDateTime = status.SoftDeleted,
                 ArchivedDateTime = status.Archived,
                 DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                ReadStatus = status.ReadStatus,
-                PresentationTexts = instance.PresentationTexts
+                ReadStatus = status.ReadStatus
             };
+
+            if (instance.PresentationTexts is not null)
+            {
+                // Temporarily storing presentation texts in the title property. See ReplaceTextKeys method for handling
+                messageBoxInstance.Title = string.Join(", ", instance.PresentationTexts.Select(pt => pt.Value).ToArray());
+            }
 
             if (instance.Status?.Substatus != null)
             {
@@ -173,8 +178,14 @@ namespace Altinn.Platform.Storage.Helpers
         {
             foreach (MessageBoxInstance instance in instances)
             {
+                string presentationFields = instance.Title;
                 string id = $"{instance.Org}-{instance.AppName}-{language}";
                 instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
+
+                if (!string.IsNullOrWhiteSpace(presentationFields))
+                {
+                    instance.Title += $", {presentationFields}";
+                }
 
                 if (instance.Substatus?.Label != null)
                 {

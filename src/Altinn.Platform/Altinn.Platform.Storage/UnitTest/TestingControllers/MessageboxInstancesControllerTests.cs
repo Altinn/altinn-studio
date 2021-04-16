@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             string instanceId = "1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
-            string expectedTitle = "Name change";
+            string expectedTitle = "Name change, Sophie Salt";
             string expectedSubstatusLabel = "Application approved";
 
             HttpClient client = GetTestClient();
