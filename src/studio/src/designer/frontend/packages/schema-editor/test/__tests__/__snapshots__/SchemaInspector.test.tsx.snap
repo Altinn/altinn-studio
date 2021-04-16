@@ -31,41 +31,15 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
-              disabled=""
+              class="MuiInputBase-input MuiInput-input"
               id="input-Kommentar2000Restriksjon-key-minLength"
               type="text"
               value="minLength"
             />
-            <div
-              class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                id="input-Kommentar2000Restriksjon-toggle-minLength"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
         <div
@@ -115,41 +89,15 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
-              disabled=""
+              class="MuiInputBase-input MuiInput-input"
               id="input-Kommentar2000Restriksjon-key-maxLength"
               type="text"
               value="maxLength"
             />
-            <div
-              class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                id="input-Kommentar2000Restriksjon-toggle-maxLength"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
         <div
@@ -199,41 +147,15 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
-              disabled=""
+              class="MuiInputBase-input MuiInput-input"
               id="input-Kommentar2000Restriksjon-key-type"
               type="text"
               value="type"
             />
-            <div
-              class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                id="input-Kommentar2000Restriksjon-toggle-type"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
         <div
@@ -302,41 +224,15 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
-              disabled=""
+              class="MuiInputBase-input MuiInput-input"
               id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
               type="text"
               value="@xsdUnhandledAttribute1"
             />
-            <div
-              class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute1"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
         <div
@@ -386,41 +282,15 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
-              disabled=""
+              class="MuiInputBase-input MuiInput-input"
               id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
               type="text"
               value="@xsdUnhandledAttribute2"
             />
-            <div
-              class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute2"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
         <div

@@ -12,6 +12,7 @@ const useStyles = makeStyles({
     background: 'white',
     color: 'black',
     border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
     padding: 4,
     margin: 8,
     minWidth: 60,
@@ -20,6 +21,7 @@ const useStyles = makeStyles({
     background: 'white',
     color: 'black',
     border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
     margin: 8,
   },
   inline: {
