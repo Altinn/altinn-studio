@@ -72,6 +72,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
                                 (string.IsNullOrEmpty(s.TypeFilter) || type.Equals(s.TypeFilter))).ToList());
         }
 
+        public Task SetValidSubscription(int id)
+        {
+            return Task.CompletedTask;
+        }
+
         private string GetSubscriptionPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.Location).LocalPath);

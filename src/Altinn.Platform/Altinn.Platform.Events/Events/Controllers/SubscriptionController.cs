@@ -100,7 +100,25 @@ namespace Altinn.Platform.Events.Controllers
                 return Unauthorized();
             }
 
-            // TODO Authorize
+            return Ok(subscription);
+        }
+
+        /// <summary>
+        /// Method to get a specific subscription
+        /// </summary>
+        [Authorize(Policy = "PlatformAccess")]
+        [HttpPut("validate/{id}")]
+        public async Task<ActionResult<string>> Validate(int id)
+        {
+            Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
+            await _eventsSubscriptionService.SetValidSubscription(id);
+
             return Ok(subscription);
         }
 
@@ -151,7 +169,14 @@ namespace Altinn.Platform.Events.Controllers
             if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
                 && string.IsNullOrEmpty(HttpContext.User.GetOrg()))
             {
-                message = "A valid subject to the authenticated is required";
+                message = "A valid subject to the authenticated identity is required";
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
+                && string.IsNullOrEmpty(eventsSubscription.SubjectFilter))
+            {
+                message = "A valid subject to the authenticated identity is required";
                 return false;
             }
 
