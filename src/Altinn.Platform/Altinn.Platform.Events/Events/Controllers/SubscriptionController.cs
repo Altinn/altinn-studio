@@ -151,7 +151,14 @@ namespace Altinn.Platform.Events.Controllers
             if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
                 && string.IsNullOrEmpty(HttpContext.User.GetOrg()))
             {
-                message = "A valid subject to the authenticated is required";
+                message = "A valid subject to the authenticated identity is required";
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
+                && string.IsNullOrEmpty(eventsSubscription.SubjectFilter))
+            {
+                message = "A valid subject to the authenticated identity is required";
                 return false;
             }
 
