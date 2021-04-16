@@ -13,7 +13,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
-    <PackageVersion>1.0.1-alpha</PackageVersion>
+    <PackageVersion>1.0.1</PackageVersion>
     <PackageTags>Altinn;AccessTokenClient</PackageTags>
     <Description>
       Package to generate access tokens to use against Altinn Platform.
