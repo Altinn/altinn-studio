@@ -128,7 +128,7 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "PostgresRepository // DeleteSubscription // Exception");
+                _logger.LogError(e, "PostgresRepository // SetValidSubscription // Exception");
                 throw;
             }
             finally

@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-
+using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Controllers;
@@ -321,7 +321,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             }
 
             [Fact]
-            public async void ValidateSubscription_ReturnsOk()
+            public async Task ValidateSubscription_ReturnsOk()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions/validate/16";

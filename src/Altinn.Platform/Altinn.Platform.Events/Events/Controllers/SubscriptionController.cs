@@ -100,7 +100,6 @@ namespace Altinn.Platform.Events.Controllers
                 return Unauthorized();
             }
 
-            // TODO Authorize
             return Ok(subscription);
         }
 
@@ -120,7 +119,6 @@ namespace Altinn.Platform.Events.Controllers
 
             await _eventsSubscriptionService.SetValidSubscription(id);
 
-            // TODO Authorize
             return Ok(subscription);
         }
 
