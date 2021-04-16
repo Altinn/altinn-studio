@@ -47,7 +47,7 @@ export interface IInputFieldProps {
   fullPath: string;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
-  onChangeRef: (path: string, ref: string) => void;
+  onChangeRef?: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
   isRef?: boolean;
 }
@@ -80,7 +80,7 @@ export function InputField(props: IInputFieldProps) {
   };
 
   const onChangeRef = (id: string, ref: string) => {
-    props.onChangeRef(props.fullPath, ref);
+    props.onChangeRef?.(props.fullPath, ref);
   };
 
   const onChangeKey = (e: any) => {

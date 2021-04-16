@@ -134,7 +134,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
 
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
-    const item: any = {
+    const item: UiSchemaItem = {
       id: `${name}/properties/${key}`,
       name: key,
     };

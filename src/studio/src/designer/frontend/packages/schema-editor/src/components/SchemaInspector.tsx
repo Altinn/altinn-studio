@@ -58,6 +58,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     };
     dispatch(setFieldValue(data));
   };
+  const onChangeConst = (path: string, value: any) => {
+    const data = {
+      path,
+      value,
+      key: 'const',
+    };
+    dispatch(setFieldValue(data));
+  };
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -108,20 +116,37 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
       <hr />
       <h3 className={classes.header}>Properties</h3>
-      {/* These are the refs or consts. TODO: handle const */}
-      { selectedItem.properties?.map((p: UiSchemaItem) => <InputField
-        key={`field-${p.id}`}
-        value={p.$ref ?? ''}
-        isRef={p.$ref !== undefined}
-        label={p.name ?? p.id}
-        fullPath={p.id}
-        onChangeValue={onChangeValue}
-        onChangeRef={onChangeRef}
-        onChangeKey={onChangeKey}
-        onDeleteField={onDeleteObjectClick}
-      />)}
+      { /* These are the refs or consts. */ }
+      { selectedItem.properties?.map((p: UiSchemaItem) => {
+        if (p.fields && p.fields.find((f) => f.key === 'const')) {
+          // handle const
+          const field = p.fields.find((f) => f.key === 'const');
+          return <InputField
+            key={`field-${p.id}`}
+            value={field?.value}
+            label={p.name ?? p.id}
+            fullPath={p.id}
+            onChangeValue={onChangeConst}
+            onChangeRef={onChangeRef}
+            onChangeKey={onChangeKey}
+            onDeleteField={onDeleteObjectClick}
+          />;
+        }
+        // handle $ref
+        return <InputField
+          key={`field-${p.id}`}
+          value={p.$ref ?? ''}
+          isRef={p.$ref !== undefined}
+          label={p.name ?? p.id}
+          fullPath={p.id}
+          onChangeValue={onChangeValue}
+          onChangeRef={onChangeRef}
+          onChangeKey={onChangeKey}
+          onDeleteField={onDeleteObjectClick}
+        />;
+      })}
 
-      {/* Normal fields  */}
+      {/* key:value fields */}
       { selectedItem.fields?.map((field: Field) => <InputField
         key={`field-${field.key}`}
         value={field.value}
@@ -133,6 +158,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onDeleteField={onDeleteFieldClick}
       />)}
       { selectedItem.properties &&
+      // This is work in progress }
       <IconButton
         aria-label='Add property'
         onClick={onAddPropertyClicked}
