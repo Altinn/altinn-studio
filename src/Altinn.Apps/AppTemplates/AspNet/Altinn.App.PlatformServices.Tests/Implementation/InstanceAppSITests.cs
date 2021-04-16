@@ -303,6 +303,42 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualException);
         }
 
+        [Fact]
+        public async Task UpdatePresentationTexts_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        {
+            // Arrange
+            Guid instanceGuid = Guid.NewGuid();
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "1337");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.UpdatePresentationTexts(1337, instanceGuid, new PresentationTexts());
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
         {
             PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
