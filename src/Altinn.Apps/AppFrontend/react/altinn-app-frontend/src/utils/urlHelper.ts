@@ -65,6 +65,10 @@ export function getValidationUrl(instanceId: string) {
   return `${appPath}/instances/${instanceId}/validate`;
 }
 
+export function getDataValidationUrl(instanceId: string, dataGuid: string) {
+  return `${appPath}/instances/${instanceId}/data/${dataGuid}/validate`;
+}
+
 export function getCompleteProcessUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
 }
