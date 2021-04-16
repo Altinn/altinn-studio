@@ -31,7 +31,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         public Task<Subscription> GetSubscription(int id)
         {
-            return Task.FromResult(new Subscription() { Id = id, AlternativeSubjectFilter = "/organisation/950474084", CreatedBy = "/organisation/950474084" });
+            return Task.FromResult(new Subscription() { Id = id, AlternativeSubjectFilter = "/organisation/950474084", CreatedBy = "/party/500700" });
         }
 
         public Task<List<Subscription>> GetSubscriptionsByConsumer(string consumer)
@@ -70,6 +70,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
                                 s.SourceFilter.Equals(source) &&
                                 subject.Equals(subject) &&
                                 (string.IsNullOrEmpty(s.TypeFilter) || type.Equals(s.TypeFilter))).ToList());
+        }
+
+        public Task SetValidSubscription(int id)
+        {
+            return Task.CompletedTask;
         }
 
         private string GetSubscriptionPath()

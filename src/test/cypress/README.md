@@ -34,7 +34,9 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 {
     "adminUser": "",
     "adminPwd": "",
-    "accessToken": ""
+    "accessToken": "",
+    "testUserName": "",
+    "testUserPwd": ""
 }
 ```
 
@@ -79,4 +81,8 @@ If one has the frontend dependencies installed from  before, run the below comma
 4. Start the app frontend tests from a new git bash terminal.
 ```cmd
     npm run test:appfrontend --env=local
+```
+   To run the tests towards AT21, an altinn user credential has to be supplied [here](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress#test-data-prerequisite).
+```cmd
+    npm run test:appfrontend --env=at21
 ```
