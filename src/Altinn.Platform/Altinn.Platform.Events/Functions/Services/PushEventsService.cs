@@ -54,7 +54,6 @@ namespace Altinn.Platform.Events.Functions.Services
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json");
             try
             {
-                string test = _platformSettings.ApiPushEventsEndpoint;
                 string endpointUrl = "push";
 
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
