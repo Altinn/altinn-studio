@@ -1,4 +1,4 @@
-import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
+import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import Ajv from 'ajv';

@@ -10,7 +10,7 @@ import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
-import { startInitialInfoTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
+import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
 import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
@@ -224,7 +224,7 @@ export function* watchCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
 export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIterator {
   while (true) {
     yield all([
-      take(startInitialInfoTaskQueueFulfilled),
+      take(startInitialDataTaskQueueFulfilled),
       take(FormLayoutActions.fetchLayoutFulfilled),
       take(FormLayoutActions.fetchLayoutSettingsFulfilled),
     ]);

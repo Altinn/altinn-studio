@@ -16,7 +16,7 @@ import { startInitialDataTaskQueue, startInitialInfoTaskQueue } from '../resourc
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 import { IProcessState } from '../resources/process/processReducer';
-import IsLoadingActions from '../resources/isLoading/isLoadingActions';
+import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
 
 export default (props) => {
   const {
@@ -87,7 +87,7 @@ export default (props) => {
         dispatch(startInitialInfoTaskQueue());
         break;
       case (ProcessTaskType.Archived): {
-        IsLoadingActions.finishDataTaskIsloading();
+        dispatch(finishDataTaskIsLoading());
         break;
       }
       default:

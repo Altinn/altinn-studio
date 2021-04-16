@@ -9,7 +9,7 @@ import TextResourceActions from '../../textResources/textResourcesActions';
 import { IApplicationMetadata } from '../../applicationMetadata';
 import { getFetchFormDataUrl } from '../../../../utils/urlHelper';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
-import IsLoadingActions from '../../isLoading/isLoadingActions';
+import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
 
 const ApplicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 const TextResourceSelector = (state: IRuntimeState) => state.textResources.resources;
@@ -19,6 +19,8 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
   const appMetadata: IApplicationMetadata = yield select(ApplicationMetadataSelector);
   const textResources: ITextResource[] = yield select(TextResourceSelector);
   const instance: IInstance = yield select(InstanceDataSelector);
+
+  yield put(startDataTaskIsLoading());
 
   const textResourcesWithVariables = textResources.filter((resource) => {
     return resource.variables && resource.variables.length > 0;
@@ -51,7 +53,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
     yield call(TextResourceActions.replaceTextResources);
   }
   yield put(startInitialInfoTaskQueueFulfilled());
-  yield call(IsLoadingActions.finishDataTaskIsloading);
+  yield put(finishDataTaskIsLoading());
 }
 
 export function* watchStartInitialInfoTaskQueueSaga(): SagaIterator {
