@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.5.10" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>

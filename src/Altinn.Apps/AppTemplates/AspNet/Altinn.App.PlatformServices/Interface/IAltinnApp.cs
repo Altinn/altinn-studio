@@ -113,7 +113,7 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="id">The option id</param>
         /// <param name="options">Possible option found by the platform itself</param>
-        /// <returns></returns>
+        /// <returns>The app options</returns>
         Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <summary>
@@ -138,7 +138,6 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="taskId">The taskId</param>
         /// <param name="instance">The instance</param>
-        /// <returns></returns>
         Task RunProcessTaskEnd(string taskId, Instance instance);
 
         /// <summary>
@@ -147,13 +146,12 @@ namespace Altinn.App.Services.Interface
         Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <summary>
-        /// Updated the presentation texts on the instance
+        /// Updates the presentation texts on the instance
         /// </summary>
         /// <param name="instance">The instance to update.</param>
         /// <param name="dataType">The data type of the provided data</param>
         /// <param name="oldData">Old data.</param>
         /// <param name="updatedData">Updated data.</param>
-        /// <returns></returns>
         Task UpdatePresentationTexts(Instance instance, string dataType, object oldData, object updatedData);
 
         /// <summary>

@@ -184,7 +184,7 @@ namespace Altinn.App.Services.Implementation
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
-                    await UpdatePresentationTexts(instance, dataType.Id, null, data);                    
+                    await UpdatePresentationTexts(instance, dataType.Id, null, data);
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
@@ -308,53 +308,55 @@ namespace Altinn.App.Services.Implementation
             int partyId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            if (_appMetadata.PresentationFields != null && _appMetadata.PresentationFields.Any(pf => pf.DataTypeId == dataType))
+            if (_appMetadata.PresentationFields == null || !_appMetadata.PresentationFields.Any(pf => pf.DataTypeId == dataType))
             {
-                Dictionary<string, object> changes = null;
+                return;
+            }
 
-                try
+            Dictionary<string, object> changes = null;
+
+            try
+            {
+                changes = JsonHelper.FindChangedFields(JsonConvert.SerializeObject(oldData), JsonConvert.SerializeObject(updatedData));
+            }
+            catch (Exception e)
+            {
+                // should a failure in finding changed fields crash the app?? 
+                _logger.LogError(e, "AppBase // UpdatePresentationTexts // Unable to identify changed fields.");
+                return;
+            }
+
+            PresentationTexts presentationTexts = new PresentationTexts
+            {
+                Texts = new Dictionary<string, string>()
+            };
+
+            foreach (DataField field in _appMetadata.PresentationFields)
+            {
+                if (changes.ContainsKey(field.Path))
                 {
-                    changes = JsonHelper.FindChangedFields(JsonConvert.SerializeObject(oldData), JsonConvert.SerializeObject(updatedData));
+                    string value = (changes[field.Path] == null) ? null : changes[field.Path].ToString();
+                    presentationTexts.Texts.Add(field.Id, value);
                 }
-                catch (Exception e)
-                {
-                    // should a failure in finding changed fields crash the app?? 
-                    _logger.LogError(e, "AppBase // UpdatePresentationTexts // Unable to identify changed fields.");
-                    return;
-                }
+            }
 
-                PresentationTexts presentationTexts = new PresentationTexts
-                {
-                    Texts = new Dictionary<string, string>()
-                };
+            if (presentationTexts.Texts.Any())
+            {
+                instance.PresentationTexts ??= new Dictionary<string, string>();
 
-                foreach (PresentationField field in _appMetadata.PresentationFields)
+                foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
                 {
-                    if (changes.ContainsKey(field.Path))
+                    if (string.IsNullOrEmpty(entry.Value))
                     {
-                        string value = (changes[field.Path] == null) ? null : changes[field.Path].ToString();
-                        presentationTexts.Texts.Add(field.Id, value);
+                        instance.PresentationTexts.Remove(entry.Key);
+                    }
+                    else
+                    {
+                        instance.PresentationTexts[entry.Key] = entry.Value;
                     }
                 }
 
-                if (presentationTexts.Texts.Any())
-                {
-                    instance.PresentationTexts ??= new Dictionary<string, string>();
-
-                    foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
-                    {
-                        if (string.IsNullOrEmpty(entry.Value))
-                        {
-                            instance.PresentationTexts.Remove(entry.Key);
-                        }
-                        else
-                        {
-                            instance.PresentationTexts[entry.Key] = entry.Value;
-                        }
-                    }
-
-                    await _instanceService.UpdatePresentationTexts(partyId, instanceGuid, presentationTexts);
-                }
+                await _instanceService.UpdatePresentationTexts(partyId, instanceGuid, presentationTexts);
             }
         }
 
