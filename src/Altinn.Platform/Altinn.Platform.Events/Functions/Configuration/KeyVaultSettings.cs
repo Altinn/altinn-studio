@@ -13,6 +13,6 @@ namespace Altinn.Platform.Events.Functions.Configuration
         /// <summary>
         /// Name of the certificate secret
         /// </summary>
-        public string PlatformCertSecretId { get; set; }
+        public string PlatformCertSecretId { get; set; } = "platform-access-token-private-cert";
     }
 }
