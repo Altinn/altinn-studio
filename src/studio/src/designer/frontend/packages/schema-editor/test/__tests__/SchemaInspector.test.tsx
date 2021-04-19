@@ -118,9 +118,8 @@ it('dispatches correctly when changing ref', () => {
         <SchemaInspector onAddPropertyClick={addPropertyMock} />
       </Provider>,
     );
+    wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
   });
-
-  wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
 
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/setRef',
