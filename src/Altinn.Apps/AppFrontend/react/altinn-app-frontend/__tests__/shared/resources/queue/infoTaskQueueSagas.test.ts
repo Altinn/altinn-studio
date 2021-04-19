@@ -4,16 +4,16 @@ import { expectSaga } from 'redux-saga-test-plan';
 import { startInitialInfoTaskQueueSaga,
   ApplicationMetadataSelector,
   TextResourceSelector,
-  InstanceDataSelector } from '../../../src/shared/resources/queue/infoTask/infoTaskQueueSaga';
-import { ITextResource } from '../../../src/types';
-import { applicationMetadataMock } from '../../../__mocks__/applicationMetadataMock';
-import { getInstanceDataStateMock } from '../../../__mocks__/instanceDataStateMock';
-import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../../src/shared/resources/isLoading/isLoadingSlice';
-import { startInitialInfoTaskQueueFulfilled } from '../../../src/shared/resources/queue/queueSlice';
-import { IApplicationMetadata } from '../../../src/shared/resources/applicationMetadata';
-import { IInstance } from '../../../../shared/src/types';
-import FormDataActions from '../../../src/features/form/data/formDataActions';
-import TextResourcesActions from '../../../src/shared/resources/textResources/textResourcesActions';
+  InstanceDataSelector } from '../../../../src/shared/resources/queue/infoTask/infoTaskQueueSaga';
+import { ITextResource } from '../../../../src/types';
+import { applicationMetadataMock } from '../../../../__mocks__/applicationMetadataMock';
+import { getInstanceDataStateMock } from '../../../../__mocks__/instanceDataStateMock';
+import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../../../src/shared/resources/isLoading/isLoadingSlice';
+import { startInitialInfoTaskQueueFulfilled } from '../../../../src/shared/resources/queue/queueSlice';
+import { IApplicationMetadata } from '../../../../src/shared/resources/applicationMetadata';
+import { IInstance } from '../../../../../shared/src/types';
+import FormDataActions from '../../../../src/features/form/data/formDataActions';
+import TextResourcesActions from '../../../../src/shared/resources/textResources/textResourcesActions';
 
 describe('infoTaskQueueSagas', () => {
   let textResources: ITextResource[];

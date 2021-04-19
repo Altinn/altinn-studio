@@ -8,7 +8,7 @@ import reducer, { IQueueState,
   startInitialInfoTaskQueueFulfilled,
   appTaskQueueError,
   dataTaskQueueError,
-  infoTaskQueueError } from '../../../src/shared/resources/queue/queueSlice';
+  infoTaskQueueError } from '../../../../src/shared/resources/queue/queueSlice';
 
 describe('queueSlice', () => {
   let state: IQueueState;
