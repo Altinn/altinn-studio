@@ -60,7 +60,7 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<List<Application>> ListApplications(string org)
+        public Task<List<Application>> FindByOrg(string org)
         {
             throw new NotImplementedException();
         }
@@ -73,6 +73,16 @@ namespace LocalTest.Services.Storage.Implementation
         private string GetApplicationPath()
         {
            return  _localTestAppSelectionService.GetAppPath() + "config/applicationmetadata.json";
+        }
+
+        public Task<List<Application>> FindAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dictionary<string, string>> GetAllAppTitles()
+        {
+            throw new NotImplementedException();
         }
     }
 }
