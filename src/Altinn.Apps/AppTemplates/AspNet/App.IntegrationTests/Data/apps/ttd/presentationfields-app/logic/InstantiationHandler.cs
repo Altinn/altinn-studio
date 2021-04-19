@@ -10,18 +10,8 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// <summary>
     /// Represents a business logic class responsible for running logic related to instantiation.
     /// </summary>
-    public class InstantiationHandler
+    public static class InstantiationHandler
     {
-        /// <summary>
-        /// Initialize a new instance of the <see cref="InstantiationHandler"/> class with services
-        /// that can be used to access profile and register information.
-        /// </summary>
-        /// <param name="profileService">A service with access to profile information</param>
-        /// <param name="registerService">A service with access to register information</param>
-        public InstantiationHandler(IProfile profileService, IRegister registerService)
-        {
-        }
-
         /// <summary>
         /// Run validations related to instantiation
         /// </summary>

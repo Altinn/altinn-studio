@@ -6,7 +6,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// <summary>
     /// Handler for formatting PDF. 
     /// </summary>
-    public class PdfHandler
+    public static class PdfHandler
     {
         /// <summary>
         /// Method to format PDF dynamic

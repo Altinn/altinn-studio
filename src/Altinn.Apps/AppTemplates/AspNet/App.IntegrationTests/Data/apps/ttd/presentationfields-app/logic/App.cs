@@ -24,10 +24,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
-        private readonly ValidationHandler _validationHandler;
-        private readonly CalculationHandler _calculationHandler;
-        private readonly InstantiationHandler _instantiationHandler;
-        private readonly PdfHandler _pdfHandler;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -71,7 +67,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
                 httpContextAccessor)
         {
             _logger = logger;
-            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         /// <inheritdoc />

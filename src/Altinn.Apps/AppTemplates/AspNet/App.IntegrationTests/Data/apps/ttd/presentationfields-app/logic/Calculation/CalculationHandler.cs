@@ -7,7 +7,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
-    public class CalculationHandler
+    public static class CalculationHandler
     {
         /// <summary>
         /// Perform calculations and update data model

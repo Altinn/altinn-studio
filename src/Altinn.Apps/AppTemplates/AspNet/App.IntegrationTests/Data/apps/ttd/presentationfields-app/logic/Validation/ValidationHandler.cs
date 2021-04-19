@@ -10,16 +10,8 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// <summary>
     /// Represents a business logic class responsible for running validation at different steps of a process.
     /// </summary>
-    public class ValidationHandler
+    public static class ValidationHandler
     {
-        /// <summary>
-        /// Initialize a new instance of the <see cref="ValidationHandler"/> class with access to the Http Context.
-        /// </summary>
-        /// <param name="httpContextAccessor">An http context accessor.</param>
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
-        {
-        }
-
         /// <summary>
         /// Handles all custom validations that are not covered by the data model validation.
         /// </summary>
