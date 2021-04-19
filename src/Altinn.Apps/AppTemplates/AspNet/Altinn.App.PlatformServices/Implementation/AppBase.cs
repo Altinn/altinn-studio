@@ -187,15 +187,14 @@ namespace Altinn.App.Services.Implementation
                     Dictionary<string, string> updatedFields =
                         DataHelper.GetUpdatedDataFields(_appMetadata.PresentationFields, dataType.Id, null, data);
 
-                    if (updatedFields != null && updatedFields.Any())
+                    if (updatedFields.Count > 0)
                     {
-                        Instance ins = await _instanceService.UpdatePresentationTexts(
+                        Instance updatedInstance = await _instanceService.UpdatePresentationTexts(
                               int.Parse(instance.Id.Split("/")[0]),
                               Guid.Parse(instance.Id.Split("/")[1]),
                               new PresentationTexts { Texts = updatedFields });
 
-                        //instance.PresentationTexts = updatedFields;
-                        instance = ins;
+                        instance.PresentationTexts = updatedInstance.PresentationTexts;
                     }
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");

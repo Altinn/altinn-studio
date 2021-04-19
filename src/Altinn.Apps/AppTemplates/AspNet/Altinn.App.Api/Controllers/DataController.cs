@@ -404,7 +404,7 @@ namespace Altinn.App.Api.Controllers
             Dictionary<string, string> updatedFields =
                 DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, null, appModel);
 
-            if (updatedFields != null && updatedFields.Any())
+            if (updatedFields.Count > 0)
             {
                 await _instanceService.UpdatePresentationTexts(
                      int.Parse(instance.InstanceOwner.PartyId),
@@ -568,7 +568,7 @@ namespace Altinn.App.Api.Controllers
             Dictionary<string, string> updatedFields =
                 DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, oldData, serviceModel);
 
-            if (updatedFields != null && updatedFields.Any())
+            if (updatedFields.Count > 0)
             {
                 await _instanceService.UpdatePresentationTexts(
                     int.Parse(instance.Id.Split("/")[0]),
