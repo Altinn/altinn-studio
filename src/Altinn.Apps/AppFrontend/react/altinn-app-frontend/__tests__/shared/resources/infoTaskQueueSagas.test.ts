@@ -1,5 +1,5 @@
 /* eslint-disable import/named */
-import { call, select } from 'redux-saga/effects';
+import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { startInitialInfoTaskQueueSaga,
   ApplicationMetadataSelector,
@@ -11,9 +11,7 @@ import { getInstanceDataStateMock } from '../../../__mocks__/instanceDataStateMo
 import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../../src/shared/resources/isLoading/isLoadingSlice';
 import { startInitialInfoTaskQueueFulfilled } from '../../../src/shared/resources/queue/queueSlice';
 import { IApplicationMetadata } from '../../../src/shared/resources/applicationMetadata';
-import { IData, IInstance } from '../../../../shared/src/types';
-import { get } from '../../../src/utils/networking';
-import { getFetchFormDataUrl } from '../../../src/utils/urlHelper';
+import { IInstance } from '../../../../shared/src/types';
 import FormDataActions from '../../../src/features/form/data/formDataActions';
 import TextResourcesActions from '../../../src/shared/resources/textResources/textResourcesActions';
 
@@ -65,23 +63,7 @@ describe('infoTaskQueueSagas', () => {
         },
       ],
     };
-    const dataElements: IData[] = [
-      {
-        id: 'testElement',
-        blobStoragePath: '',
-        contentType: '',
-        created: new Date(),
-        createdBy: 'TestUser',
-        dataType: 'testModel',
-        filename: 'filename',
-        lastChanged: new Date(),
-        lastChangedBy: 'TestUser',
-        locked: false,
-        refs: [],
-        selfLinks: null,
-        size: 3,
-      },
-    ];
+
     const instanceData: IInstance = getInstanceDataStateMock().instance;
     return expectSaga(startInitialInfoTaskQueueSaga)
       .provide([
