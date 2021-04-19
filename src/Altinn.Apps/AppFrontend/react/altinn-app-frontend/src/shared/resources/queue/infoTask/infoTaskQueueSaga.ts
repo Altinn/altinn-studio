@@ -52,6 +52,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
     yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
     yield call(TextResourceActions.replaceTextResources);
   }
+
   yield put(startInitialInfoTaskQueueFulfilled());
   yield put(finishDataTaskIsLoading());
 }
