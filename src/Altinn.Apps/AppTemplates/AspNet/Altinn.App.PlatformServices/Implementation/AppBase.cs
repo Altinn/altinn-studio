@@ -184,7 +184,16 @@ namespace Altinn.App.Services.Implementation
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
-                    await UpdatePresentationTexts(instance, dataType.Id, null, data);
+                    Dictionary<string, string> updatedFields =
+                        DataHelper.GetUpdatedDataFields(_appMetadata.PresentationFields, dataType.Id, null, data);
+
+                    if (updatedFields != null && updatedFields.Any())
+                    {
+                        await _instanceService.UpdatePresentationTexts(
+                            int.Parse(instance.Id.Split("/")[0]),
+                            Guid.Parse(instance.Id.Split("/")[1]),
+                            new PresentationTexts { Texts = updatedFields });
+                    }
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }

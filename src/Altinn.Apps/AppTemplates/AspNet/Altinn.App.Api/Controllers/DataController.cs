@@ -401,7 +401,16 @@ namespace Altinn.App.Api.Controllers
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);
 
-            await _altinnApp.UpdatePresentationTexts(instance, dataType, null, appModel);
+            Dictionary<string, string> updatedFields =
+                DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, null, appModel);
+
+            if (updatedFields != null && updatedFields.Any())
+            {
+                await _instanceService.UpdatePresentationTexts(
+                    int.Parse(instance.InstanceOwner.PartyId),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new PresentationTexts { Texts = updatedFields });
+            }
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
@@ -556,7 +565,16 @@ namespace Altinn.App.Api.Controllers
                 instanceOwnerPartyId,
                 dataGuid);
 
-            await _altinnApp.UpdatePresentationTexts(instance, dataType, oldData, serviceModel);
+            Dictionary<string, string> updatedFields =
+                DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, oldData, serviceModel);
+
+            if (updatedFields != null && updatedFields.Any())
+            {
+                await _instanceService.UpdatePresentationTexts(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new PresentationTexts { Texts = updatedFields });
+            }
 
             // Save Formdata to database
             DataElement updatedDataElement = await _dataService.UpdateData(

@@ -79,7 +79,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to update presentation texts for.</param>
         /// <param name="presentationTexts">The presentation texts</param>
-        /// <returns></returns>
+        /// <returns>Returns the updated instance.</returns>
         Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts);
 
         /// <summary>
