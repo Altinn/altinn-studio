@@ -1,10 +1,10 @@
-import reducer, { addProperty, addRootItem, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addField, addProperty, addRootItem, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
-  beforeAll(() => {
+  beforeEach(() => {
     // setup state
     const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
     state = reducer(state1, setUiSchema({ rootElementPath: '#/definitions/RA-0678_M' }));
@@ -54,6 +54,21 @@ describe('SchemaEditorSlice', () => {
     }
     expect(item.properties).toContainEqual({
       id: '#/definitions/Kontaktperson/properties/navn_endret', name: 'navn_endret', $ref: '#/definitions/NavnSomToken',
+    });
+  });
+
+  it('handles setRef', () => {
+    const payload = {
+      ref: '#/definitions/Adresse',
+      path: '#/definitions/Kontaktperson/properties/navn',
+    };
+    const nextState = reducer(state, setRef(payload));
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    if (!item || !item.properties) {
+      fail('item not found');
+    }
+    expect(item.properties).toContainEqual({
+      id: '#/definitions/Kontaktperson/properties/navn', name: 'navn', $ref: '#/definitions/Adresse',
     });
   });
 
@@ -112,6 +127,24 @@ describe('SchemaEditorSlice', () => {
 
     expect(item.properties).toContainEqual({
       $ref: '#/definitions/test', id: '#/definitions/Kontaktperson/properties/test', name: 'test',
+    });
+  });
+
+  it('handles addField', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      key: 'key',
+      value: 'value',
+    };
+    const nextState = reducer(state, addField(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    if (!item || !item.properties) {
+      fail('item not found');
+    }
+
+    expect(item.fields).toContainEqual({
+      key: 'key', value: 'value',
     });
   });
 
