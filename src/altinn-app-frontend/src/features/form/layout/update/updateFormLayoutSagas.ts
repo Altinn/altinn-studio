@@ -3,7 +3,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IRepeatingGroups, IRuntimeState, Triggers } from 'src/types';
-import { removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
+import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
@@ -11,7 +11,7 @@ import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper'
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
-import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
+import { ILayoutComponent, ILayoutEntry, ILayoutGroup, ILayouts } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
 import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage } from '../formLayoutTypes';
@@ -20,12 +20,13 @@ import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
 import FormValidationActions from '../../validation/validationActions';
 
-const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
+const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
+const selectFormLayouts = (state: IRuntimeState): ILayouts => state.formLayout.layouts;
 
 function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
-    const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
+    const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     if (currentComponentId) {
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const currentComponentIndex = layout
@@ -47,9 +48,8 @@ function* updateRepeatingGroupsSaga({ payload: {
   index,
 } }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
-    const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
-    const state: IRuntimeState = yield select();
-    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
+    const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
+    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId]?.count ?? -1;
     const newCount = remove ? currentCount - 1 : currentCount + 1;
     let updatedRepeatingGroups: IRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
@@ -80,6 +80,7 @@ function* updateRepeatingGroupsSaga({ payload: {
     if (remove) {
       // Remove the form data associated with the group
       const formDataState: IFormDataState = yield select(selectFormData);
+      const state: IRuntimeState = yield select();
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const updatedFormData = removeGroupData(formDataState.formData, index,
         layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
@@ -263,4 +264,40 @@ export function* watchUpdateFocusSaga(): SagaIterator {
 
 export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.updateRepeatingGroups, updateRepeatingGroupsSaga);
+}
+
+export function* initRepeatingGroupsSaga(): SagaIterator {
+  const formDataState: IFormDataState = yield select(selectFormData);
+  const state: IRuntimeState = yield select();
+  const currentGroups = state.formLayout.uiConfig.repeatingGroups;
+  const layouts = yield select(selectFormLayouts);
+  let newGroups = {};
+  Object.keys(layouts).forEach((layoutKey: string) => {
+    newGroups = {
+      ...newGroups,
+      ...getRepeatingGroups(layouts[layoutKey], formDataState.formData),
+    };
+  });
+  // if any groups have been removed as part of calculation we delete the associated validations
+  const currentKeyes = Object.keys(currentGroups || {});
+  const groupsToRemoveValidaitons = currentKeyes.filter((key) => {
+    return (currentGroups[key].count > -1) && (!newGroups[key] || newGroups[key].count === -1);
+  });
+  if (groupsToRemoveValidaitons.length > 0) {
+    let validations = state.formValidations.validations;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const group of groupsToRemoveValidaitons) {
+      for (let i = 0; i <= currentGroups[group].count; i++) {
+        validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
+      }
+    }
+    yield call(FormValidationActions.updateValidations, validations);
+  }
+  yield put(FormLayoutActions.updateRepeatingGroupsFulfilled({ repeatingGroups: newGroups }));
+}
+
+export function* watchInitRepeatingGroupsSaga(): SagaIterator {
+  yield take(FormLayoutActions.fetchLayoutFulfilled);
+  yield call(initRepeatingGroupsSaga);
+  yield takeLatest([FormDataActions.fetchFormDataFulfilled, FormLayoutActions.initRepeatingGroups], initRepeatingGroupsSaga);
 }

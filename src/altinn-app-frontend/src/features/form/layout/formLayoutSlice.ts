@@ -128,6 +128,7 @@ const actions = {
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
   updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
+  initRepeatingGroups: createAction(`${moduleName}/initRepeatingGroups`),
 };
 
 export const FormLayoutActions = {
