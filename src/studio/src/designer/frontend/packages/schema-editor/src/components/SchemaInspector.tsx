@@ -119,7 +119,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       { /* These are the refs or consts. */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {
         if (p.fields && p.fields.find((f) => f.key === 'const')) {
-          // handle const
           const field = p.fields.find((f) => f.key === 'const');
           return <InputField
             key={`field-${p.id}`}
@@ -147,7 +146,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         }
         console.error(p);
         throw new Error('Unrecognized UISchemaItem');
-        // handle arrays
+        // todo: handle arrays
       })}
 
       {/* key:value fields */}

@@ -130,6 +130,34 @@ it('dispatches correctly when changing ref', () => {
   });
 });
 
+it('dispatches correctly when changing const', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector onAddPropertyClick={addPropertyMock} />
+      </Provider>,
+    );
+  });
+
+  wrapper.find('#input-RA-0678_M-properties-dataFormatProvider-value-dataFormatProvider').last().simulate('change', { target: { value: '666' } });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setFieldValue',
+    payload: {
+      key: 'const',
+      path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
+      value: '666',
+    },
+  });
+});
+
 it('renders no item if nothing is selected', () => {
   mockStore = createStore({
     ...mockInitialState,

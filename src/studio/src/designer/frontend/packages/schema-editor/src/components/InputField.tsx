@@ -113,7 +113,7 @@ export function InputField(props: IInputFieldProps) {
       onChange={(e) => onChangeValue(e.target.value)}
     />;
   };
-  const baseId = `input-${props.fullPath.replace('#/definitions/', '')}`;
+  const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
   return (
     <div>
       <span className={classes.inputs}>
