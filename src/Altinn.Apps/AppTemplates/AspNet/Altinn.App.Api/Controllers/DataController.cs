@@ -407,9 +407,9 @@ namespace Altinn.App.Api.Controllers
             if (updatedFields != null && updatedFields.Any())
             {
                 await _instanceService.UpdatePresentationTexts(
-                    int.Parse(instance.InstanceOwner.PartyId),
-                    Guid.Parse(instance.Id.Split("/")[1]),
-                    new PresentationTexts { Texts = updatedFields });
+                     int.Parse(instance.InstanceOwner.PartyId),
+                     Guid.Parse(instance.Id.Split("/")[1]),
+                     new PresentationTexts { Texts = updatedFields });
             }
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);

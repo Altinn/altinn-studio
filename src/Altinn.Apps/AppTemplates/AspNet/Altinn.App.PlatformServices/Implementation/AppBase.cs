@@ -189,10 +189,13 @@ namespace Altinn.App.Services.Implementation
 
                     if (updatedFields != null && updatedFields.Any())
                     {
-                        await _instanceService.UpdatePresentationTexts(
-                            int.Parse(instance.Id.Split("/")[0]),
-                            Guid.Parse(instance.Id.Split("/")[1]),
-                            new PresentationTexts { Texts = updatedFields });
+                        Instance ins = await _instanceService.UpdatePresentationTexts(
+                              int.Parse(instance.Id.Split("/")[0]),
+                              Guid.Parse(instance.Id.Split("/")[1]),
+                              new PresentationTexts { Texts = updatedFields });
+
+                        //instance.PresentationTexts = updatedFields;
+                        instance = ins;
                     }
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
