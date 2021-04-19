@@ -313,64 +313,6 @@ namespace Altinn.App.Services.Implementation
             return new List<Receiver> { receiver };
         }
 
-        /// <inheritdoc />
-        public async Task UpdatePresentationTexts(Instance instance, string dataType, object oldData, object updatedData)
-        {
-            int partyId = int.Parse(instance.InstanceOwner.PartyId);
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
-            if (_appMetadata.PresentationFields == null || !_appMetadata.PresentationFields.Any(pf => pf.DataTypeId == dataType))
-            {
-                return;
-            }
-
-            Dictionary<string, object> changes = null;
-
-            try
-            {
-                changes = JsonHelper.FindChangedFields(JsonConvert.SerializeObject(oldData), JsonConvert.SerializeObject(updatedData));
-            }
-            catch (Exception e)
-            {
-                // should a failure in finding changed fields crash the app?? 
-                _logger.LogError(e, "AppBase // UpdatePresentationTexts // Unable to identify changed fields.");
-                return;
-            }
-
-            PresentationTexts presentationTexts = new PresentationTexts
-            {
-                Texts = new Dictionary<string, string>()
-            };
-
-            foreach (DataField field in _appMetadata.PresentationFields)
-            {
-                if (changes.ContainsKey(field.Path))
-                {
-                    string value = (changes[field.Path] == null) ? null : changes[field.Path].ToString();
-                    presentationTexts.Texts.Add(field.Id, value);
-                }
-            }
-
-            if (presentationTexts.Texts.Any())
-            {
-                instance.PresentationTexts ??= new Dictionary<string, string>();
-
-                foreach (KeyValuePair<string, string> entry in presentationTexts.Texts)
-                {
-                    if (string.IsNullOrEmpty(entry.Value))
-                    {
-                        instance.PresentationTexts.Remove(entry.Key);
-                    }
-                    else
-                    {
-                        instance.PresentationTexts[entry.Key] = entry.Value;
-                    }
-                }
-
-                await _instanceService.UpdatePresentationTexts(partyId, instanceGuid, presentationTexts);
-            }
-        }
-
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
         {
             string app = instance.AppId.Split("/")[1];
