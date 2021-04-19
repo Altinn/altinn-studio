@@ -1,9 +1,9 @@
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Holds the definition of a presentation field for an application.
+    /// Holds the definition of a data field for an application, ie. a named reference to a form data field.
     /// </summary>
-    public class PresentationField
+    public class DataField
     {
         /// <summary>
         /// Gets or sets the id of the presentation field

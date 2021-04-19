@@ -433,6 +433,30 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.True(string.IsNullOrEmpty(content));
         }
 
+        /// <summary>
+        /// Get all applications returns 200.
+        /// </summary>
+        [Fact]
+        public async void GetAll_ReturnsOK()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications";
+            List<Application> expected = new List<Application>
+            {
+                CreateApplication("testorg", "testapp")
+            };
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindAll()).ReturnsAsync(expected);
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        }
+
         private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {
             Type type = typeof(DocumentClientException);

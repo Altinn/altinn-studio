@@ -2,12 +2,12 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
 import Instantiate from './features/instantiate/containers';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
-import QueueActions from './shared/resources/queue/queueActions';
+import { startInitialAppTaskQueue } from './shared/resources/queue/queueSlice';
 import { get } from './utils/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
@@ -18,6 +18,7 @@ const theme = createMuiTheme(AltinnAppTheme);
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 export default function setup() {
+  const dispatch = useDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
 
@@ -55,7 +56,7 @@ export default function setup() {
 
   React.useEffect(() => {
     refreshJwtToken();
-    QueueActions.startInitialAppTaskQueue();
+    dispatch(startInitialAppTaskQueue());
     setUpEventListeners();
     return function cleanup() {
       removeEventListeners();
