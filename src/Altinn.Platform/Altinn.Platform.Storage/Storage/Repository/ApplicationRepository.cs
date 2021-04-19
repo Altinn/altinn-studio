@@ -68,6 +68,138 @@ namespace Altinn.Platform.Storage.Repository
                 .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.AppTitleCacheLifeTimeInSeconds));
         }
 
+        /// <inheritdoc/>
+        public async Task<List<Application>> FindAll()
+        {
+            IDocumentQuery<Application> query = _client
+                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+                .AsDocumentQuery();
+
+            return await GetMatchesAsync(query);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Application>> FindByOrg(string org)
+        {
+            IDocumentQuery<Application> query = _client
+                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+                .Where(i => i.Org == org)
+                .AsDocumentQuery();
+
+            return await GetMatchesAsync(query);
+        }
+
+        /// <inheritdoc/>
+        public async Task<Application> FindOne(string appId, string org)
+        {
+            string cosmosAppId = AppIdToCosmosId(appId);
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
+            Application application = await _client
+                .ReadDocumentAsync<Application>(
+                    uri,
+                    new RequestOptions { PartitionKey = new PartitionKey(org) });
+            PostProcess(application);
+            return application;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Application> Create(Application item)
+        {
+            item.Id = AppIdToCosmosId(item.Id);
+
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+            Document document = createDocumentResponse.Resource;
+
+            Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());
+
+            PostProcess(instance);
+
+            return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Application> Update(Application item)
+        {
+            PreProcess(item);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+
+            ResourceResponse<Document> document = await _client
+                .ReplaceDocumentAsync(
+                    uri,
+                    item,
+                    new RequestOptions { PartitionKey = new PartitionKey(item.Org) });
+
+            string storedApplication = document.Resource.ToString();
+
+            Application application = JsonConvert.DeserializeObject<Application>(storedApplication);
+
+            PostProcess(application);
+
+            return application;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Delete(string appId, string org)
+        {
+            string cosmosAppId = AppIdToCosmosId(appId);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
+
+            ResourceResponse<Document> instance = await _client
+                .DeleteDocumentAsync(
+                    uri.ToString(),
+                    new RequestOptions { PartitionKey = new PartitionKey(org) });
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<string, string>> GetAllAppTitles()
+        {
+            Dictionary<string, string> appTitles;
+
+            if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
+            {
+                appTitles = new Dictionary<string, string>();
+                IDocumentQuery<Application> query = _client.CreateDocumentQuery<Application>(_collectionUri).AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
+                    foreach (Application item in result)
+                    {
+                        StringBuilder titles = new StringBuilder();
+                        foreach (string title in item.Title.Values)
+                        {
+                            titles.Append(title + ";");
+                        }
+
+                        appTitles.Add(CosmosIdToAppId(item.Id), titles.ToString());
+                    }
+                }
+
+                _memoryCache.Set(_cacheKey, appTitles, _cacheEntryOptions);
+            }
+
+            return appTitles;
+        }
+
+        private async Task<List<Application>> GetMatchesAsync(IDocumentQuery<Application> query)
+        {
+            List<Application> applications = new List<Application>();
+
+            while (query.HasMoreResults)
+            {
+                FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
+                applications.AddRange(result.ToList());
+            }
+
+            PostProcess(applications);
+
+            return applications;
+        }
+
         /// <summary>
         /// Converts the appId "{org}/{app}" to "{org}-{app}"
         /// </summary>
@@ -130,123 +262,6 @@ namespace Altinn.Platform.Storage.Repository
         private void PostProcess(List<Application> applications)
         {
             applications.ForEach(a => PostProcess(a));
-        }
-
-        /// <inheritdoc/>
-        public async Task<Application> Create(Application item)
-        {
-            item.Id = AppIdToCosmosId(item.Id);
-
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-            Document document = createDocumentResponse.Resource;
-
-            Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());
-
-            PostProcess(instance);
-
-            return instance;
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> Delete(string appId, string org)
-        {
-            string cosmosAppId = AppIdToCosmosId(appId);
-
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
-
-            ResourceResponse<Document> instance = await _client
-                .DeleteDocumentAsync(
-                    uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(org) });
-
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Application>> ListApplications(string org)
-        {
-            List<Application> applications = new List<Application>();
-
-            IDocumentQuery<Application> query = _client
-                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
-                .Where(i => i.Org == org)
-                .AsDocumentQuery();
-
-            while (query.HasMoreResults)
-            {
-                FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
-                applications.AddRange(result.ToList());
-            }
-
-            PostProcess(applications);
-
-            return applications;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Application> FindOne(string appId, string org)
-        {
-            string cosmosAppId = AppIdToCosmosId(appId);
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
-            Application application = await _client
-                .ReadDocumentAsync<Application>(
-                    uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(org) });
-            PostProcess(application);
-            return application;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Application> Update(Application item)
-        {
-            PreProcess(item);
-
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
-
-            ResourceResponse<Document> document = await _client
-                .ReplaceDocumentAsync(
-                    uri,
-                    item,
-                    new RequestOptions { PartitionKey = new PartitionKey(item.Org) });
-
-            string storedApplication = document.Resource.ToString();
-
-            Application application = JsonConvert.DeserializeObject<Application>(storedApplication);
-
-            PostProcess(application);
-
-            return application;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Dictionary<string, string>> GetAllAppTitles()
-        {
-            Dictionary<string, string> appTitles;
-
-            if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
-            {
-                appTitles = new Dictionary<string, string>();
-                IDocumentQuery<Application> query = _client.CreateDocumentQuery<Application>(_collectionUri).AsDocumentQuery();
-
-                while (query.HasMoreResults)
-                {
-                    FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
-                    foreach (Application item in result)
-                    {
-                        StringBuilder titles = new StringBuilder();
-                        foreach (string title in item.Title.Values)
-                        {
-                            titles.Append(title + ";");
-                        }
-
-                        appTitles.Add(CosmosIdToAppId(item.Id), titles.ToString());
-                    }
-                }
-
-                _memoryCache.Set(_cacheKey, appTitles, _cacheEntryOptions);
-            }
-
-            return appTitles;
         }
     }
 }

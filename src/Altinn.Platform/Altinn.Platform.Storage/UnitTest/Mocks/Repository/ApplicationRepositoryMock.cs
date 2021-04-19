@@ -27,7 +27,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return await Task.FromResult(GetTestApplication(org, appId.Split("/")[1]));
         }
 
-        public Task<List<Application>> ListApplications(string org)
+        public Task<List<Application>> FindAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Application>> FindByOrg(string org)
         {
             throw new NotImplementedException();
         }

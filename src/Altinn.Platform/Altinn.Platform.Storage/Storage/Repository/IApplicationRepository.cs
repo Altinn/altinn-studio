@@ -10,26 +10,17 @@ namespace Altinn.Platform.Storage.Repository
     public interface IApplicationRepository
     {
         /// <summary>
-        /// Creates an application metadata object in repository
+        /// Get all applications
         /// </summary>
-        /// <param name="item">the application metadata object</param>
-        /// <returns>the created application</returns>
-        Task<Application> Create(Application item);
-
-        /// <summary>
-        /// Delets an instance.
-        /// </summary>
-        /// <param name="appId">The id of the application to delete</param>
-        /// <param name="org">The application owner id</param>
-        /// <returns>if the item is deleted or not</returns>
-        Task<bool> Delete(string appId, string org);
+        /// <returns>A list of Applications</returns>
+        Task<List<Application>> FindAll();
 
         /// <summary>
         /// Get the application owners' applications
         /// </summary>
         /// <param name="org">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        Task<List<Application>> ListApplications(string org);
+        Task<List<Application>> FindByOrg(string org);
 
         /// <summary>
         /// Get the instance based on the input parameters
@@ -40,6 +31,28 @@ namespace Altinn.Platform.Storage.Repository
         Task<Application> FindOne(string appId, string org);
 
         /// <summary>
+        /// Creates an application metadata object in repository
+        /// </summary>
+        /// <param name="item">the application metadata object</param>
+        /// <returns>the created application</returns>
+        Task<Application> Create(Application item);
+
+        /// <summary>
+        /// Update instance for a given form id
+        /// </summary>
+        /// <param name="item">the application object</param>
+        /// <returns>The updated application instance</returns>
+        Task<Application> Update(Application item);
+
+        /// <summary>
+        /// Delets an instance.
+        /// </summary>
+        /// <param name="appId">The id of the application to delete</param>
+        /// <param name="org">The application owner id</param>
+        /// <returns>if the item is deleted or not</returns>
+        Task<bool> Delete(string appId, string org);
+
+        /// <summary>
         /// Gets a dictionary of all application titles.
         /// </summary>
         /// <returns>A dictionary of application titles.</returns>
@@ -48,12 +61,5 @@ namespace Altinn.Platform.Storage.Repository
         /// The value holds the titles, each language by ';'.
         /// </remarks>
         Task<Dictionary<string, string>> GetAllAppTitles();
-
-        /// <summary>
-        /// Update instance for a given form id
-        /// </summary>
-        /// <param name="item">the application object</param>
-        /// <returns>The updated application instance</returns>
-        Task<Application> Update(Application item);
     }
 }
