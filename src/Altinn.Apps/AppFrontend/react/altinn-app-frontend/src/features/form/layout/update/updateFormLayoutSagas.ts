@@ -20,13 +20,13 @@ import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
 import FormValidationActions from '../../validation/validationActions';
 
-const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
+const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
 const selectFormLayouts = (state: IRuntimeState): ILayouts => state.formLayout.layouts;
 
 function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
-    const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
+    const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     if (currentComponentId) {
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const currentComponentIndex = layout
@@ -48,7 +48,7 @@ function* updateRepeatingGroupsSaga({ payload: {
   index,
 } }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
-    const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
+    const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId]?.count ?? -1;
     const newCount = remove ? currentCount - 1 : currentCount + 1;
     let updatedRepeatingGroups: IRepeatingGroups = {
@@ -268,6 +268,8 @@ export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
 
 export function* initRepeatingGroupsSaga(): SagaIterator {
   const formDataState: IFormDataState = yield select(selectFormData);
+  const state: IRuntimeState = yield select();
+  const currentGroups = state.formLayout.uiConfig.repeatingGroups;
   const layouts = yield select(selectFormLayouts);
   let newGroups = {};
   Object.keys(layouts).forEach((layoutKey: string) => {
@@ -276,6 +278,21 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
       ...getRepeatingGroups(layouts[layoutKey], formDataState.formData),
     };
   });
+  // if any groups have been removed as part of calculation we delete the associated validations
+  const currentKeyes = Object.keys(currentGroups || {});
+  const groupsToRemoveValidaitons = currentKeyes.filter((key) => {
+    return (currentGroups[key].count > -1) && (!newGroups[key] || newGroups[key].count === -1);
+  });
+  if (groupsToRemoveValidaitons.length > 0) {
+    let validations = state.formValidations.validations;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const group of groupsToRemoveValidaitons) {
+      for (let i = 0; i <= currentGroups[group].count; i++) {
+        validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
+      }
+    }
+    yield call(FormValidationActions.updateValidations, validations);
+  }
   yield put(FormLayoutActions.updateRepeatingGroupsFulfilled({ repeatingGroups: newGroups }));
 }
 
