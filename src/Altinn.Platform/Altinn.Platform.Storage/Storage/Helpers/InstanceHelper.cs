@@ -48,8 +48,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             if (instance.PresentationTexts is not null)
             {
-                // Temporarily storing presentation texts in the title property. See ReplaceTextKeys method for handling
-                messageBoxInstance.Title = string.Join(", ", instance.PresentationTexts.Select(pt => pt.Value).ToArray());
+                messageBoxInstance.PresentationText = string.Join(", ", instance.PresentationTexts.Select(pt => pt.Value).ToArray());
             }
 
             if (instance.Status?.Substatus != null)
@@ -178,13 +177,13 @@ namespace Altinn.Platform.Storage.Helpers
         {
             foreach (MessageBoxInstance instance in instances)
             {
-                string presentationFields = instance.Title;
                 string id = $"{instance.Org}-{instance.AppName}-{language}";
                 instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
 
-                if (!string.IsNullOrWhiteSpace(presentationFields))
+                if (!string.IsNullOrWhiteSpace(instance.PresentationText))
                 {
-                    instance.Title += $", {presentationFields}";
+                    // Appending presentation text to title to avoid needing changes in SBL.
+                    instance.Title += $", {instance.PresentationText}";
                 }
 
                 if (instance.Substatus?.Label != null)
