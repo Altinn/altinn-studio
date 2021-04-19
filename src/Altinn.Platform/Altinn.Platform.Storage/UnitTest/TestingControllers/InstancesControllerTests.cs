@@ -1122,6 +1122,175 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(3, actual.Keys.Count);
+        }                
+
+        /// <summary>
+        /// Scenario:
+        /// Add the value of a data field to an instance that doesn't have any existing data values
+        /// Result:
+        /// Data values are succesfully added and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdateDataValues_NoPreviousValuesSet_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key1", "value1" },
+                    { "key2", "value2" }
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(2, actual.Keys.Count);            
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Update an existing data value 
+        /// Result:
+        /// Data values are succesfully updated, other values are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdateDataValues_UpdateAnExistingDataValue_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key1", "updatedvalue1" },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Equal(2, actual.Keys.Count);
+            Assert.True(actual.ContainsKey("key2"));
+            Assert.Equal("updatedvalue1", actual["key1"]);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Delete an existing data value 
+        /// Result:
+        /// Data value is succesfully removed, other fields are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdateDataValues_RemoveAnExistingDataValue_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            const string removedKey = "key1";
+
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { removedKey, string.Empty },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Single(actual.Keys);
+            Assert.True(actual.ContainsKey("key2"));
+            Assert.False(actual.ContainsKey(removedKey));
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Add a new data value to an already existing collection of data values
+        /// Result:
+        /// Data value is succesfully added to existing collection and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdateDataValue_AddNewDataValueToExistingCollection_ReturnsUpdatedInstance()
+        {
+            // Arrange            
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key3", "value3" },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Equal(3, actual.Keys.Count);
+            Assert.Equal("value3", actual["key3"]);
         }
 
         private HttpClient GetTestClient()
