@@ -199,5 +199,44 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        /// <summary>
+        /// Test case: Trying to get roles without org
+        /// Expected: GetRolesWithAccess returns 400
+        /// </summary>
+        [Fact]
+        public async Task GetRolesWithAccess_TC03()
+        {
+            // Arrange
+            string org = " ";
+            string app = "doesntexisit";
+
+            // Act
+            HttpResponseMessage response = await _client.GetAsync($"authorization/api/v1/policies/roleswithaccess/{org}/{app}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: GetRolesWithAccess returns empty list when no roles in policy
+        /// Expected: GetRolesWithAccess returns 200 with empty list
+        /// </summary>
+        [Fact]
+        public async Task GetRolesWithAccess_TC04()
+        {
+            // Arrange
+            string org = "testorg";
+            string app = "testapp";
+
+            // Act
+            HttpResponseMessage response = await _client.GetAsync($"authorization/api/v1/policies/roleswithaccess/{org}/{app}");
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<string> roleCodes = (List<string>)JsonConvert.DeserializeObject(responseContent, typeof(List<string>));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Empty(roleCodes);
+        }
     }
 }

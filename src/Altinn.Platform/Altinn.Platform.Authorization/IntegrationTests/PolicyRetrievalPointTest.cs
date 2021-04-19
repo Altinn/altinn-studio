@@ -93,6 +93,57 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Get file from storage.
+        /// Expected: GetPolicyAsync returns a file that is not null.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_ByOrgApp_ReturnsPolicy()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "repository-test-app";
+
+            // Act
+            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(org, app);
+
+            // Assert
+            Assert.NotNull(xacmlPolicy);
+        }
+
+        /// <summary>
+        /// Test case: Get a file from storage that does not exists.
+        /// Expected: GetPolicyAsync returns null.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_ByOrgApp_NullWhenPolicyNotExists()
+        {
+            // Arrange
+            string org = "1";
+            string app = "2";
+
+            // Act
+            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(org, app);
+
+            // Assert
+            Assert.Null(xacmlPolicy);
+        }
+
+        /// <summary>
+        /// Test case: Get a file from storage with a request that does not contain information about app. 
+        /// Expected: GetPolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_ByOrgApp_ThrowsException()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = string.Empty;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(org, app));
+        }
+
+        /// <summary>
         /// Test case: Write to storage a file.
         /// Expected: WritePolicyAsync returns true.
         /// </summary>
