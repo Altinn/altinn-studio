@@ -2,12 +2,12 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
+import { Select } from '@material-ui/core';
 import { act } from 'react-dom/test-utils';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
-import { Select } from '@material-ui/core';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
