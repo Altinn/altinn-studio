@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Altinn.App.Common.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Newtonsoft.Json;
 
-namespace Altinn.App.Common.Helpers
+namespace Altinn.App.Services.Helpers
 {
     /// <summary>
     /// Helper class for handling data
