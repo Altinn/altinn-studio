@@ -619,6 +619,47 @@ namespace Altinn.Platform.Storage.Controllers
             return updatedInstance;
         }
 
+        /// <summary>
+        /// Updates the data values on an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="dataValues">Collection of changes to the presentation texts collection.</param>
+        /// <returns>The instance that was updated with an updated collection of data values.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/datavalues")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public async Task<Instance> UpdateDataValues(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] DataValues dataValues)
+        {
+            var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (instance.DataValues == null)
+            {
+                instance.DataValues = new Dictionary<string, string>();
+            }
+
+            foreach (KeyValuePair<string, string> entry in dataValues.Values)
+            {
+                if (string.IsNullOrEmpty(entry.Value))
+                {
+                    instance.DataValues.Remove(entry.Key);
+                }
+                else
+                {
+                    instance.DataValues[entry.Key] = entry.Value;
+                }
+            }
+
+            var updatedInstance = await _instanceRepository.Update(instance);
+            return updatedInstance;
+        }
+
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
