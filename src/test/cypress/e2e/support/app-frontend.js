@@ -73,3 +73,9 @@ Cypress.Commands.add('compelteTask3Form', () => {
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.summaryText).should('be.visible');
 });
+
+Cypress.Commands.add('navigateToTask4', () => {
+  cy.compelteTask3Form();
+  cy.get(appFrontend.sendinButton).should('be.visible').click();
+  cy.get(appFrontend.confirmContainer).should('be.visible')
+});
