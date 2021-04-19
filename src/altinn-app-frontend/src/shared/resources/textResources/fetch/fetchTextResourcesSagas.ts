@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { IProfile } from 'altinn-shared/types';
-import { all, call, select, take } from 'redux-saga/effects';
+import { all, call, put, select, take } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
 import { textResourcesUrl, oldTextResourcesUrl } from '../../../../utils/urlHelper';
 import TextResourcesActions from '../textResourcesActions';
-import QueueActions from '../../queue/queueActions';
+import { appTaskQueueError } from '../../queue/queueSlice';
 import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
 import { IRuntimeState } from '../../../../types';
 import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionTypes';
@@ -29,9 +29,9 @@ function* fetchTextResources(): SagaIterator {
       }
     });
     yield call(TextResourcesActions.fetchTextResourcesFulfilled, resource.language, resource.resources);
-  } catch (err) {
-    yield call(TextResourcesActions.fetchTextResourcesRejected, err);
-    yield call(QueueActions.appTaskQueueError, err);
+  } catch (error) {
+    yield call(TextResourcesActions.fetchTextResourcesRejected, error);
+    yield put(appTaskQueueError({ error }));
   }
 }
 

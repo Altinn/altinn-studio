@@ -1,11 +1,11 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { IProfile } from 'altinn-shared/types';
 import { get } from '../../../../utils/networking';
 import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
-import QueueActions from '../../queue/queueActions';
+import { appTaskQueueError } from '../../queue/queueSlice';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
@@ -14,9 +14,9 @@ function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
       ProfileActions.fetchProfileFulfilled,
       profile,
     );
-  } catch (err) {
-    yield call(ProfileActions.fetchProfileRejected, err);
-    yield call(QueueActions.appTaskQueueError, err);
+  } catch (error) {
+    yield call(ProfileActions.fetchProfileRejected, error);
+    yield put(appTaskQueueError({ error }));
   }
 }
 
