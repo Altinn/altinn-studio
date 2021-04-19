@@ -28,6 +28,7 @@ export interface IRepeatingGroupTableProps {
   validations: IValidations;
   editIndex: number;
   setEditIndex: (index: number) => void;
+  filteredIndexes?: number[];
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -126,6 +127,7 @@ export function RepeatingGroupTable({
   repeatingGroups,
   validations,
   setEditIndex,
+  filteredIndexes,
 }: IRepeatingGroupTableProps): JSX.Element {
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
@@ -237,6 +239,12 @@ export function RepeatingGroupTable({
               const rowHasErrors = repeatingGroupDeepCopyComponents[index].some((component: ILayoutComponent | ILayoutGroup) => {
                 return childElementHasErrors(component, index);
               });
+
+              // Check if filter is applied and includes specified index.
+              if (filteredIndexes && !filteredIndexes.includes(index)) {
+                return null;
+              }
+
               return (
                 <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={index}>
                   {components.map((component: ILayoutComponent) => {

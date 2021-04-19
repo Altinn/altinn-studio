@@ -35,6 +35,7 @@ export function GroupContainer({
 
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
+  const [filteredIndexList, setFilteredIndexList] = React.useState(null);
 
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
@@ -66,14 +67,19 @@ export function GroupContainer({
   React.useEffect(() => {
     if (container.edit?.mode !== 'showAll' && container.edit?.rules && container.edit.rules.length > 0) {
       container.edit.rules.forEach((rule: any) => {
-        const formDataKey = Object.keys(formData).find((key) => {
+        const formDataKeys: string[] = Object.keys(formData).filter((key) => {
           const keyWithoutIndex = key.replace(/\[\d*\]/, '');
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
         });
-        if (formDataKey) {
-          const index = formDataKey.replace(container.dataModelBindings.group, '')
-            .substring(1, formDataKey.indexOf(']') + 1);
-          setEditIndex(parseInt(index, 10));
+        if (formDataKeys && formDataKeys.length > 0) {
+          const filtered = formDataKeys.map((key) => {
+            return key.replace(container.dataModelBindings.group, '').substring(1, key.indexOf(']') + 1);
+          });
+          if (filtered.length === 0) {
+            setEditIndex(parseInt(filtered[0], 10));
+          } else {
+            setFilteredIndexList(filtered);
+          }
         }
       });
     }
@@ -140,6 +146,7 @@ export function GroupContainer({
           setEditIndex={setEditIndex}
           textResources={textResources}
           validations={validations}
+          filteredIndexes={filteredIndexList}
         />
       }
       <Grid
