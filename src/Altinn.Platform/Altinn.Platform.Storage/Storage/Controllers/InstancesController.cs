@@ -644,10 +644,7 @@ namespace Altinn.Platform.Storage.Controllers
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            if (instance.DataValues == null)
-            {
-                instance.DataValues = new Dictionary<string, string>();
-            }
+            instance.DataValues ??= new Dictionary<string, string>();            
 
             foreach (KeyValuePair<string, string> entry in dataValues.Values)
             {
