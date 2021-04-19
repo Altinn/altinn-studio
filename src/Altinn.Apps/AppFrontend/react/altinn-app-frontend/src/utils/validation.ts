@@ -996,43 +996,41 @@ export function removeGroupValidationsByIndex(
     } else {
       // recursivly call delete if we have a child group
       const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.count;
-      for (let i = 0; i < childGroupCount; i++) {
-        result = removeGroupValidationsByIndex(`${element.id}-${index}`, i, currentLayout, layout, repeatingGroups, validations, false);
+      for (let i = 0; i <= childGroupCount; i++) {
+        result = removeGroupValidationsByIndex(`${element.id}-${index}`, i, currentLayout, layout, repeatingGroups, result, false);
       }
     }
   });
 
+  if (shift) {
   // Shift validations if nessessarry
-  if (index < repeatingGroup.count + 1) {
-    for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
-      const key = `${id}-${i}`;
-      const newKey = `${id}-${i - 1}`;
-      delete result[currentLayout][key];
-      if (shift) {
+    if (index < repeatingGroup.count + 1) {
+      for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
+        const key = `${id}-${i}`;
+        const newKey = `${id}-${i - 1}`;
+        delete result[currentLayout][key];
         result[currentLayout][newKey] = validations[currentLayout][key];
-      }
-      // eslint-disable-next-line no-loop-func
-      children?.forEach((element) => {
-        let childKey;
-        let shiftKey;
-        if (parentGroup) {
-          const splitId = id.split('-');
-          const parentIndex = splitId[splitId.length - 1];
-          childKey = `${element.id}-${parentIndex}-${i}`;
-          shiftKey = `${element.id}-${parentIndex}-${i - 1}`;
-        } else {
-          childKey = `${element.id}-${i}`;
-          shiftKey = `${element.id}-${i - 1}`;
-        }
-        if (element.type !== 'group' && element.type !== 'Group') {
-          delete result[currentLayout][childKey];
-          if (shift) {
-            result[currentLayout][shiftKey] = validations[currentLayout][childKey];
+        // eslint-disable-next-line no-loop-func
+        children?.forEach((element) => {
+          let childKey;
+          let shiftKey;
+          if (parentGroup) {
+            const splitId = id.split('-');
+            const parentIndex = splitId[splitId.length - 1];
+            childKey = `${element.id}-${parentIndex}-${i}`;
+            shiftKey = `${element.id}-${parentIndex}-${i - 1}`;
+          } else {
+            childKey = `${element.id}-${i}`;
+            shiftKey = `${element.id}-${i - 1}`;
           }
-        } else if (shift) {
-          result = shiftChildGroupValidation(element as ILayoutGroup, i, result, repeatingGroups, layout[currentLayout], currentLayout);
-        }
-      });
+          if (element.type !== 'group' && element.type !== 'Group') {
+            delete result[currentLayout][childKey];
+            result[currentLayout][shiftKey] = validations[currentLayout][childKey];
+          } else if (shift) {
+            result = shiftChildGroupValidation(element as ILayoutGroup, i, result, repeatingGroups, layout[currentLayout], currentLayout);
+          }
+        });
+      }
     }
   }
   return result;
