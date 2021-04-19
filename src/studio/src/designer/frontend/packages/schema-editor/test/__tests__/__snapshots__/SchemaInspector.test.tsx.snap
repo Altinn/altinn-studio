@@ -335,6 +335,7 @@ exports[`Should match snapshot 1`] = `
     <button
       aria-label="Add property"
       class="MuiButtonBase-root MuiIconButton-root"
+      id="add-property-button"
       tabindex="0"
       type="button"
     >

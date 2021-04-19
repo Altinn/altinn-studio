@@ -132,18 +132,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onDeleteField={onDeleteObjectClick}
           />;
         }
-        // handle $ref
-        return <InputField
-          key={`field-${p.id}`}
-          value={p.$ref ?? ''}
-          isRef={p.$ref !== undefined}
-          label={p.name ?? p.id}
-          fullPath={p.id}
-          onChangeValue={onChangeValue}
-          onChangeRef={onChangeRef}
-          onChangeKey={onChangeKey}
-          onDeleteField={onDeleteObjectClick}
-        />;
+        if (p.$ref) {
+          return <InputField
+            key={`field-${p.id}`}
+            value={p.$ref ?? ''}
+            isRef={p.$ref !== undefined}
+            label={p.name ?? p.id}
+            fullPath={p.id}
+            onChangeValue={onChangeValue}
+            onChangeRef={onChangeRef}
+            onChangeKey={onChangeKey}
+            onDeleteField={onDeleteObjectClick}
+          />;
+        }
+        console.error(p);
+        throw new Error('Unrecognized UISchemaItem');
+        // handle arrays
       })}
 
       {/* key:value fields */}
@@ -160,12 +164,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       { selectedItem.properties &&
       // This is work in progress }
       <IconButton
+        id='add-reference-button'
         aria-label='Add reference'
         onClick={onAddPropertyClicked}
       ><i className='fa fa-plus'/>Add reference
       </IconButton> }
       { selectedItem.fields &&
       <IconButton
+        id='add-property-button'
         aria-label='Add property'
         onClick={onAddFieldClick}
       ><i className='fa fa-plus'/>Add property

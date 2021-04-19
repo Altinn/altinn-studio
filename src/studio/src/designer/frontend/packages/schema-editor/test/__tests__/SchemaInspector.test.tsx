@@ -140,3 +140,65 @@ it('handles delete button', () => {
     });
   });
 });
+
+it('handles add property button', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/InternInformasjon',
+  });
+  act(() => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
+      </Provider>,
+    );
+    expect(wrapper).not.toBeNull();
+
+    wrapper.find('#add-reference-button').last().simulate('click');
+    expect(addPropertyMock).toBeCalledWith('#/definitions/InternInformasjon');
+  });
+});
+
+it('handles add property (field) button', () => {
+  act(() => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
+      </Provider>,
+    );
+    expect(wrapper).not.toBeNull();
+
+    // #/definitions/OrganisasjonsnummerRestriksjon
+    wrapper.find('#add-property-button').last().simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/addField',
+      payload: {
+        key: 'key',
+        value: 'value',
+        path: '#/definitions/Kommentar2000Restriksjon',
+      },
+    });
+  });
+});
+
+it('renders const properties', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  act(() => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
+      </Provider>,
+    );
+    expect(wrapper).not.toBeNull();
+
+    expect(wrapper.find('input').get(1).props.value).toBe('dataFormatProvider');
+    expect(wrapper.find('input').get(2).props.value).toBe('SERES');
+  });
+});
