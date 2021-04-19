@@ -26,6 +26,11 @@ namespace Altinn.Platform.Events.Repository
         Task DeleteSubscription(int id);
 
         /// <summary>
+        /// Set a subscription as Valid
+        /// </summary>
+        Task SetValidSubscription(int id);
+
+        /// <summary>
         /// Gets subscriptions by source excluding orgs
         /// </summary>
         Task<List<Subscription>> GetSubscriptionsExcludeOrg(string source, string subject, string type);

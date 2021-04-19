@@ -13,7 +13,7 @@ import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
@@ -65,7 +65,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     );
   } catch (error) {
     yield put(FormDataActions.fetchFormDataRejected({ error }));
-    yield call(QueueActions.dataTaskQueueError, error);
+    yield call(dataTaskQueueError, error);
   }
 }
 

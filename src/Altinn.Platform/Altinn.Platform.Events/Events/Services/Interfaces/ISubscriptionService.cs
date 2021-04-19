@@ -21,6 +21,11 @@ namespace Altinn.Platform.Events.Services.Interfaces
         public Task DeleteSubscription(int id);
 
         /// <summary>
+        /// Update validation status
+        /// </summary>
+        public Task SetValidSubscription(int id);
+
+        /// <summary>
         /// Opeation to list all events 
         /// </summary>
         public List<Subscription> FindSubscriptions(string receiver, string source, string org);

@@ -75,7 +75,15 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the presentation fields of the application.
         /// </summary>
         [JsonProperty(PropertyName = "presentationFields")]
-        public List<PresentationField> PresentationFields { get; set; }
+        public List<DataField> PresentationFields { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data fields of the application.
+        /// The data for fields specified here will automatically be copied and populated on the <see cref="Instance"/> model as data values,
+        /// making them easily available for routing or other needs without having to load the entire data set.
+        /// </summary>
+        [JsonProperty(PropertyName = "dataFields")]
+        public List<DataField> DataFields { get; set; }
 
         /// <summary>
         /// Gets or sets the definition of eFormidling shipments related to the app.
