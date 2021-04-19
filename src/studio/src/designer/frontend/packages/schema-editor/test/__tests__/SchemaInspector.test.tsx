@@ -7,6 +7,7 @@ import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
+import { Select } from '@material-ui/core';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
@@ -99,6 +100,34 @@ it('dispatches correctly when changing key', (done) => {
     });
 
     done();
+  });
+});
+
+it('dispatches correctly when changing ref', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/InternInformasjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mount(
+      <Provider store={mockStore}>
+        <SchemaInspector onAddPropertyClick={addPropertyMock} />
+      </Provider>,
+    );
+  });
+
+  wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setRef',
+    payload: {
+      ref: '#/definitions/Tidsrom',
+      path: '#/definitions/InternInformasjon/properties/periodeFritekst',
+    },
   });
 });
 

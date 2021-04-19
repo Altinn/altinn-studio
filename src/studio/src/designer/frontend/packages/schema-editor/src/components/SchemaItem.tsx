@@ -104,9 +104,6 @@ function SchemaItem(props: StyledTreeItemProps) {
   } = item;
 
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
-  // const [editLabel, setEditLabel] = React.useState<boolean>(false);
-  // const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/', ''));
-
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
   React.useEffect(() => {
@@ -115,27 +112,6 @@ function SchemaItem(props: StyledTreeItemProps) {
       setDefinitionItem(refItem);
     }
   }, [fields, refItems]);
-
-  // const onDeleteObjectClick = () => {
-  //   dispatch(deleteProperty({ path: id }));
-  // };
-
-  // const onToggleEditLabel = (event: any) => {
-  //   if (editLabel) {
-  //     dispatch(setPropertyName({ path: id, name: label }));
-  //   }
-  //   setEditLabel(!editLabel);
-  //   event.stopPropagation();
-  // };
-
-  // const onClickEditLabel = (event: any) => {
-  //   event.stopPropagation();
-  // };
-
-  // const onChangeLabel = (event: any) => {
-  //   setLabel(event.target.value);
-  //   event.stopPropagation();
-  // };
 
   const onItemClick = (itemId: string) => {
     dispatch(setSelectedId({ id: itemId }));
@@ -216,44 +192,6 @@ function SchemaItem(props: StyledTreeItemProps) {
       <Typography className={classes.label}>{renderLabelText()}</Typography>
     </div>
   );
-
-  // const RenderLabel = () => {
-  //   return (
-  //     <div className={classes.labelRoot}>
-  //       {editLabel ?
-  //         <TextField
-  //           className={classes.label}
-  //           value={label}
-  //           onChange={onChangeLabel}
-  //           onClick={onClickEditLabel}
-  //           autoFocus={true}
-  //         />
-  //         :
-  //         <Typography className={classes.label}>
-  //           {renderLabelText()}
-  //         </Typography>}
-  //       <IconButton onClick={onToggleEditLabel}>
-  //         {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-  //       </IconButton>
-  //       {(definitionItem && definitionItem.properties) &&
-  //       <>
-  //         <IconButton
-  //           aria-label='Add property'
-  //           onClick={onAddPropertyClicked}
-  //         >
-  //           <AddCircleOutline/>
-  //         </IconButton>
-  //       </>
-  //       }
-  //       <IconButton
-  //         aria-label='Delete object'
-  //         onClick={onDeleteObjectClick}
-  //       >
-  //         <DeleteOutline/>
-  //       </IconButton>
-  //     </div>
-  //   );
-  // };
 
   return (
     <TreeItem
