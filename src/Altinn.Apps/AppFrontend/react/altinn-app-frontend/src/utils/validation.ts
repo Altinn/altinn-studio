@@ -156,11 +156,13 @@ export function validateEmptyFieldsForLayout(
 
     componentsToCheck.forEach((component) => {
       if (group.maxCount > 1) {
-        const parentGroup = getParentGroup(group, formLayout);
+        const parentGroup = getParentGroup(group.id, formLayout);
         if (parentGroup) {
           // If we have a parent group there can exist several instances of the child group.
           Object.keys(repeatingGroups).filter((key) => key.startsWith(group.id)).forEach((repeatingGroupId) => {
-            const parentIndex = Number.parseInt(repeatingGroupId.charAt(repeatingGroupId.length - 1), 10);
+            const splitId = repeatingGroupId.split('-');
+            const parentIndexString = splitId[splitId.length - 1];
+            const parentIndex = Number.parseInt(parentIndexString, 10);
             const parentDataBinding = parentGroup.dataModelBindings?.group;
             const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
             const indexedGroupDataBinding = group.dataModelBindings?.group.replace(parentDataBinding, indexedParentDataBinding);
@@ -210,19 +212,24 @@ export function validateEmptyFieldsForLayout(
   return validations;
 }
 
-export function getParentGroup(group: ILayoutGroup, layout: ILayout): ILayoutGroup {
-  if (!group || !layout) {
+export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup {
+  if (!groupId || !layout) {
     return null;
   }
   return layout.find((element) => {
-    if (element.id !== group.id && element.type === 'Group') {
+    if (element.id !== groupId && (element.type === 'Group' || element.type === 'group')) {
       const parentGroupCandidate = element as ILayoutGroup;
-      if (parentGroupCandidate.children?.indexOf(group.id) > -1) {
+      if (parentGroupCandidate.children?.indexOf(groupId) > -1) {
         return true;
       }
     }
     return false;
   }) as ILayoutGroup;
+}
+
+export function getGroupChildren(groupId: string, layout: ILayout): (ILayoutGroup | ILayoutComponent)[] {
+  const layoutGroup = layout.find((element) => element.id === groupId) as ILayoutGroup;
+  return layout.filter((element) => layoutGroup?.children?.includes(element.id));
 }
 
 export function validateEmptyField(
@@ -235,7 +242,7 @@ export function validateEmptyField(
   if (!dataModelBindings) {
     return null;
   }
-  const fieldKeys: string [] = [];
+  const fieldKeys: string[] = [];
   Object.keys(dataModelBindings).forEach((modelBinding) => {
     fieldKeys.push(modelBinding);
   });
@@ -942,4 +949,123 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
   });
 
   return validations;
+}
+
+/**
+ * Removes the validations for a given group index and shifts higher indexes if nesseccary.
+ * @param id the group id
+ * @param index the index to remove
+ * @param currentLayout the current layout
+ * @param layout the layout state
+ * @param repeatingGroups the repeating groups
+ * @param validations the current validations
+ * @returns a new validation object with the validations for the given group index removed
+ */
+export function removeGroupValidationsByIndex(
+  id: string,
+  index: number,
+  currentLayout: string,
+  layout: ILayouts,
+  repeatingGroups: IRepeatingGroups,
+  validations: IValidations,
+  shift: boolean = true,
+): IValidations {
+  if (!validations[currentLayout]) {
+    return validations;
+  }
+  let result = JSON.parse(JSON.stringify(validations));
+  const indexedId = `${id}-${index}`;
+  const repeatingGroup = repeatingGroups[id];
+  delete result[currentLayout][indexedId];
+  const children = getGroupChildren(repeatingGroup.baseGroupId || id, layout[currentLayout]);
+  const parentGroup = getParentGroup(repeatingGroup.baseGroupId || id, layout[currentLayout]);
+
+  // Remove validations for child elements on given index
+  children?.forEach((element) => {
+    let childKey;
+    if (parentGroup) {
+      const splitId = id.split('-');
+      const parentIndex = splitId[splitId.length - 1];
+      childKey = `${element.id}-${parentIndex}-${index}`;
+    } else {
+      childKey = `${element.id}-${index}`;
+    }
+    if (element.type !== 'group' && element.type !== 'Group') {
+      // delete component directly
+      delete result[currentLayout][childKey];
+    } else {
+      // recursivly call delete if we have a child group
+      const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.count;
+      for (let i = 0; i <= childGroupCount; i++) {
+        result = removeGroupValidationsByIndex(`${element.id}-${index}`, i, currentLayout, layout, repeatingGroups, result, false);
+      }
+    }
+  });
+
+  if (shift) {
+  // Shift validations if nessessarry
+    if (index < repeatingGroup.count + 1) {
+      for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
+        const key = `${id}-${i}`;
+        const newKey = `${id}-${i - 1}`;
+        delete result[currentLayout][key];
+        result[currentLayout][newKey] = validations[currentLayout][key];
+        // eslint-disable-next-line no-loop-func
+        children?.forEach((element) => {
+          let childKey;
+          let shiftKey;
+          if (parentGroup) {
+            const splitId = id.split('-');
+            const parentIndex = splitId[splitId.length - 1];
+            childKey = `${element.id}-${parentIndex}-${i}`;
+            shiftKey = `${element.id}-${parentIndex}-${i - 1}`;
+          } else {
+            childKey = `${element.id}-${i}`;
+            shiftKey = `${element.id}-${i - 1}`;
+          }
+          if (element.type !== 'group' && element.type !== 'Group') {
+            delete result[currentLayout][childKey];
+            result[currentLayout][shiftKey] = validations[currentLayout][childKey];
+          } else {
+            result = shiftChildGroupValidation(element as ILayoutGroup, i, result, repeatingGroups, layout[currentLayout], currentLayout);
+          }
+        });
+      }
+    }
+  }
+  return result;
+}
+
+function shiftChildGroupValidation(group: ILayoutGroup, indexToShiftFrom: number, validations: IValidations, repeatingGroups: IRepeatingGroups, layout: ILayout, currentLayout: string) {
+  const result = JSON.parse(JSON.stringify(validations));
+  const highestIndexOfChildGroup = getHighestIndexOfChildGroup(group.id, repeatingGroups);
+  const children = getGroupChildren(group.id, layout);
+
+  for (let i = indexToShiftFrom; i <= highestIndexOfChildGroup + 1; i++) {
+    const givenIndexCount = repeatingGroups[`${group.id}-${i}`]?.count ?? -1;
+    for (let childIndex = 0; childIndex < (givenIndexCount + 1); childIndex++) {
+      const childGroupKey = `${group.id}-${i}-${childIndex}`;
+      const shiftGroupKey = `${group.id}-${i - 1}-${childIndex}`;
+      delete result[currentLayout][childGroupKey];
+      result[currentLayout][shiftGroupKey] = validations[currentLayout][childGroupKey];
+      children?.forEach((child) => {
+        const childKey = `${child.id}-${i}-${childIndex}`;
+        const shiftKey = `${child.id}-${i - 1}-${childIndex}`;
+        delete result[currentLayout][childKey];
+        result[currentLayout][shiftKey] = validations[currentLayout][childKey];
+      });
+    }
+  }
+  return result;
+}
+
+export function getHighestIndexOfChildGroup(group: string, repeatingGroups: IRepeatingGroups) {
+  if (!group || !repeatingGroups) {
+    return -1;
+  }
+  let index = 0;
+  while (repeatingGroups[`${group}-${index}`]?.count !== undefined) {
+    index += 1;
+  }
+  return (index - 1);
 }

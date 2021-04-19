@@ -8,7 +8,7 @@ import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects } from 'src/utils/validation';
+import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { START_INITIAL_DATA_TASK_QUEUE_FULFILLED } from 'src/shared/resources/queue/dataTask/dataTaskQueueActionTypes';
 import { ILayoutComponent, ILayoutEntry, ILayoutGroup } from '..';
@@ -48,6 +48,7 @@ function* updateRepeatingGroupsSaga({ payload: {
 } }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
+    const state: IRuntimeState = yield select();
     const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
     const newCount = remove ? currentCount - 1 : currentCount + 1;
     let updatedRepeatingGroups: IRepeatingGroups = {
@@ -82,6 +83,10 @@ function* updateRepeatingGroupsSaga({ payload: {
       const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const updatedFormData = removeGroupData(formDataState.formData, index,
         layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
+
+      // Remove the validations associated with the group
+      const updatedValidations = removeGroupValidationsByIndex(layoutElementId, index, formLayoutState.uiConfig.currentView, formLayoutState.layouts, formLayoutState.uiConfig.repeatingGroups, state.formValidations.validations);
+      yield call(FormValidationActions.updateValidations, updatedValidations);
 
       yield put(FormDataActions.fetchFormDataFulfilled({ formData: updatedFormData }));
       yield put(FormDataActions.saveFormData());
