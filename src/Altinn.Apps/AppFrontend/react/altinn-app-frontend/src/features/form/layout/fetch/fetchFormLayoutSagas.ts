@@ -6,7 +6,7 @@ import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils
 import { get } from '../../../../utils/networking';
 import { FormLayoutActions as Actions } from '../formLayoutSlice';
 import FormDataActions from '../../data/formDataActions';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
@@ -69,7 +69,7 @@ function* fetchLayoutSaga(): SagaIterator {
     yield put(Actions.updateCurrentView({ newView: firstLayoutKey, skipPageCaching: true }));
   } catch (error) {
     yield put(Actions.fetchLayoutRejected({ error }));
-    yield call(QueueActions.dataTaskQueueError, error);
+    yield put(dataTaskQueueError({ error }));
   }
 }
 

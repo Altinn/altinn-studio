@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, select } from 'redux-saga/effects';
+import { call, takeLatest, select, put } from 'redux-saga/effects';
 import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import { getRulehandlerUrl } from 'src/utils/urlHelper';
@@ -7,7 +7,7 @@ import { get } from '../../../../utils/networking';
 import { getRuleModelFields } from '../../../../utils/rules';
 import Actions from '../rulesActions';
 import * as ActionTypes from '../rulesActionTypes';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { IRuntimeState, ILayoutSets } from '../../../../types';
 import { getLayoutsetForDataElement } from '../../../../utils/layout';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
@@ -42,9 +42,9 @@ function* fetchRuleModelSaga(): SagaIterator {
       Actions.fetchRuleModelFulfilled,
       ruleModelFields,
     );
-  } catch (err) {
-    yield call(Actions.fetchRuleModelRejected, err);
-    yield call(QueueActions.dataTaskQueueError, err);
+  } catch (error) {
+    yield call(Actions.fetchRuleModelRejected, error);
+    yield put(dataTaskQueueError({ error }));
   }
 }
 

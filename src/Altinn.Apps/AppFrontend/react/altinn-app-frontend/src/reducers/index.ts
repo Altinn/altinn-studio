@@ -20,8 +20,8 @@ import PartyReducer, { IPartyState } from '../shared/resources/party/partyReduce
 import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
-import IsLoadingReducer, { IIsLoadingState } from '../shared/resources/isLoading/isLoadingReducers';
-import QueueReducer, { IQueueState } from '../shared/resources/queue/queueReducer';
+import IsLoadingReducer, { IIsLoadingState } from '../shared/resources/isLoading/isLoadingSlice';
+import QueueReducer, { IQueueState } from '../shared/resources/queue/queueSlice';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
   formLayout: T1;
