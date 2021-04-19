@@ -1026,7 +1026,7 @@ export function removeGroupValidationsByIndex(
           if (element.type !== 'group' && element.type !== 'Group') {
             delete result[currentLayout][childKey];
             result[currentLayout][shiftKey] = validations[currentLayout][childKey];
-          } else if (shift) {
+          } else {
             result = shiftChildGroupValidation(element as ILayoutGroup, i, result, repeatingGroups, layout[currentLayout], currentLayout);
           }
         });
