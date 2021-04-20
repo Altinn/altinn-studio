@@ -13,6 +13,7 @@ const FormDataActions = {
   fetchFormDataInitial: createAction(`${moduleName}/fetchInitial`),
   fetchFormDataRejected: createAction<IFormDataRejected>(`${moduleName}/fetchRejected`),
   saveFormData: createAction(`${moduleName}/save`),
+  setFormDataFulfilled: createAction<IFetchFormDataFulfilled>(`${moduleName}/setFormDataFulfilled`),
   submitFormData: createAction<ISubmitDataAction>(`${moduleName}/submit`),
   submitFormDataFulfilled: createAction(`${moduleName}/submitFulfilled`),
   submitFormDataRejected: createAction<IFormDataRejected>(`${moduleName}/submitRejected`),

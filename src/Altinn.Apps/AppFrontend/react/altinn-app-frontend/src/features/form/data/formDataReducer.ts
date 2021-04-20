@@ -51,6 +51,10 @@ const FormDataReducer = createReducer(initialState, (builder) => {
       const { formData } = action.payload;
       state.formData = formData;
     })
+    .addCase(FormDataActions.setFormDataFulfilled, (state, action: PayloadAction<IFetchFormDataFulfilled>) => {
+      const { formData } = action.payload;
+      state.formData = formData;
+    })
     .addCase(FormDataActions.fetchFormDataRejected, (state, action: PayloadAction<IFormDataRejected>) => {
       const { error } = action.payload;
       state.error = error;

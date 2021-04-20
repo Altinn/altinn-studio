@@ -90,7 +90,7 @@ function* updateRepeatingGroupsSaga({ payload: {
       const updatedValidations = removeGroupValidationsByIndex(layoutElementId, index, formLayoutState.uiConfig.currentView, formLayoutState.layouts, formLayoutState.uiConfig.repeatingGroups, state.formValidations.validations);
       yield call(FormValidationActions.updateValidations, updatedValidations);
 
-      yield put(FormDataActions.fetchFormDataFulfilled({ formData: updatedFormData }));
+      yield put(FormDataActions.setFormDataFulfilled({ formData: updatedFormData }));
       yield put(FormDataActions.saveFormData());
     }
 
@@ -309,7 +309,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   const state: IRuntimeState = yield select();
   const currentGroups = state.formLayout.uiConfig.repeatingGroups;
   const layouts = yield select(selectFormLayouts);
-  let newGroups = {};
+  let newGroups: IRepeatingGroups = {};
   Object.keys(layouts).forEach((layoutKey: string) => {
     newGroups = {
       ...newGroups,
