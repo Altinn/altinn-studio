@@ -98,7 +98,7 @@ namespace Altinn.Platform.Register.Controllers
         /// <summary>
         /// Validate if the authenticated identity is an org
         /// </summary>
-        private bool IsOrg(HttpContext context)
+        private static bool IsOrg(HttpContext context)
         {
             bool isOrg = false;
 
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Register.Controllers
         /// <summary>
         /// Gets userId from httpContext
         /// </summary>
-        private int? GetUserId(HttpContext context)
+        private static int? GetUserId(HttpContext context)
         {
             foreach (Claim claim in context.User.Claims)
             {
