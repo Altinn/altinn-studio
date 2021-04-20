@@ -29,15 +29,15 @@
     "jquery-ui-dist": "1.12.1",
     "jquery-validation": "1.19.3",
     "jquery-validation-unobtrusive": "3.2.12",
-    "js-beautify": "1.13.5",
+    "js-beautify": "1.13.11",
     "json-editor": "0.7.28",
     "monaco-editor": "0.23.0",
     "popper.js": "1.16.1",
     "requirejs": "2.3.6",
-    "requirejs-text": "2.0.15",
+    "requirejs-text": "2.0.16",
     "rivets": "0.9.6",
     "select2": "4.0.13",
     "sightglass": "0.2.6",
-    "underscore": "1.12.1"
+    "underscore": "1.13.1"
   }
 }

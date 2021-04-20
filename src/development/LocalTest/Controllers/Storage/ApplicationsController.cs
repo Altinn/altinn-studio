@@ -40,11 +40,26 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Get all applications.
+        /// </summary>
+        /// <returns>List of all applications</returns>
+        [AllowAnonymous]
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<ApplicationList>> GetAll()
+        {
+            List<Application> applications = await repository.FindAll();
+            ApplicationList applicationList = new ApplicationList { Applications = applications };
+            return Ok(applicationList);
+        }
+
+        /// <summary>
         /// Get all applications deployed by a given application owner.
         /// </summary>
         /// <param name="org">The id of the application owner.</param>
         /// <returns>List of all applications depoyed by the given owner.</returns>
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("{org}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -58,7 +73,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                List<Application> applications = await repository.ListApplications(org);
+                List<Application> applications = await repository.FindByOrg(org);
 
                 ApplicationList applicationList = new ApplicationList { Applications = applications };
 
@@ -82,7 +97,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The metadata for the identified application.</returns>
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("{org}/{app}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -199,41 +214,6 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError($"Unable to store application data in database. {e}");
                 return StatusCode(500, $"Unable to store application data in database. {e}");
             }
-        }
-
-        /// <summary>
-        /// Checks if an appId is valid
-        /// </summary>
-        /// <param name="appId">the id to check</param>
-        /// <returns>true if it is valid, false otherwise</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public bool IsValidAppId(string appId)
-        {
-            if (string.IsNullOrEmpty(appId))
-            {
-                return false;
-            }
-
-            string[] parts = appId.Split("/");
-
-            if (parts.Length != 2)
-            {
-                return false;
-            }
-
-            string orgNamePattern = @"^[a-zæøå][a-zæåø0-9]*$";
-            if (!Regex.IsMatch(parts[0], orgNamePattern))
-            {
-                return false;
-            }
-
-            string appPattern = @"^[a-zæøå][a-zæøå0-9\-]*$";
-            if (!Regex.IsMatch(parts[1], appPattern))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -375,6 +355,41 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError($"Unable to perform request: {e}");
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
+        }
+
+        /// <summary>
+        /// Checks if an appId is valid
+        /// </summary>
+        /// <param name="appId">the id to check</param>
+        /// <returns>true if it is valid, false otherwise</returns>
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public bool IsValidAppId(string appId)
+        {
+            if (string.IsNullOrEmpty(appId))
+            {
+                return false;
+            }
+
+            string[] parts = appId.Split("/");
+
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            string orgNamePattern = @"^[a-zæøå][a-zæåø0-9]*$";
+            if (!Regex.IsMatch(parts[0], orgNamePattern))
+            {
+                return false;
+            }
+
+            string appPattern = @"^[a-zæøå][a-zæøå0-9\-]*$";
+            if (!Regex.IsMatch(parts[1], appPattern))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private string GetUserId()

@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{38C5B1A1-B7CF-4F46-B6E1-482168C8D548}</ProjectGuid>
-    <AssemblyVersion>0.5.6.0</AssemblyVersion>
-    <FileVersion>0.5.6.0</FileVersion>
+    <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
-    <PackageVersion>0.5.6</PackageVersion>
+    <PackageVersion>1.0.1</PackageVersion>
     <PackageTags>Altinn;AccessTokenClient</PackageTags>
     <Description>
       Package to generate access tokens to use against Altinn Platform.
@@ -26,13 +26,15 @@
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.14" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.9.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.10.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

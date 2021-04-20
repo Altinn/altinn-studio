@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
 
-import classNames = require('classnames');
+import classNames from 'classnames';
 
 export type MessageType = 'message' | 'info' | 'error' | 'success';
 

@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
 using Moq;
@@ -73,6 +74,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
 
             ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);
@@ -103,6 +105,47 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateOrganisation_RequestTokenWithInvalidIss_ReturnsNotAuthorized()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver3.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateOrganisationWithSOScope_RequestTokenWithValidExternalToken_ReturnsNewToken()
         {
             // Arrange
@@ -119,6 +162,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:serviceowner/instances.read altinn:serviceowner/instances.write"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
 
             ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);
@@ -166,6 +210,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             claims.Add(new Claim("consumer", JsonConvert.SerializeObject(digdirConsumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:serviceowner/instances.read altinn:serviceowner/instances.write"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
 
             ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);
@@ -405,12 +450,15 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string token = await response.Content.ReadAsStringAsync();
 
             ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+            SecurityToken securityToken = JwtTokenMock.GetSecurityToken(token);
+            SecurityToken securityTokenExternal = JwtTokenMock.GetSecurityToken(externalToken);
 
             Assert.NotNull(principal);
 
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:userid"));
             Assert.True(principal.HasClaim(c => c.Type == "pid"));
             Assert.Equal(expectedAuthLevel, principal.FindFirstValue("urn:altinn:authlevel"));
+            Assert.Equal(securityTokenExternal.ValidTo, securityToken.ValidTo);
         }
 
         /// <summary>

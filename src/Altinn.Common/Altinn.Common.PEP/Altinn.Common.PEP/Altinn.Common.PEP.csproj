@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <OutputType>Library</OutputType>
     <AssemblyVersion>1.0.38.0</AssemblyVersion>
     <FileVersion>1.0.38.0</FileVersion>
@@ -29,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.14" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
@@ -8,14 +9,16 @@ using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
+
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
-using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Telemetry;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -29,6 +32,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Npgsql.Logging;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Yuniql.AspNetCore;
@@ -143,7 +147,8 @@ namespace Altinn.Platform.Events
             services.AddHttpClient<IProfile, ProfileService>();
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<ISubscriptionService, SubscriptionService>();
-            services.AddSingleton<IPostgresRepository, PostgresRepository>();
+            services.AddSingleton<ICloudEventRepository, CloudEventRepository>();
+            services.AddSingleton<ISubscriptionRepository, SubscriptionRepository>();
             services.AddSingleton<IQueueService, QueueService>();
             services.AddSingleton<IPDP, PDPAppSI>();
 

@@ -1,18 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.Common.AccessToken.Configuration;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Events.Authorization;
-using Altinn.Platform.Events.Configuration;
+
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platorm.Events.Extensions;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -65,8 +61,7 @@ namespace Altinn.Platform.Events.Controllers
             await SetCreatedBy(eventsSubscription);
             await EnrichConsumer(eventsSubscription);
 
-            string message = null;
-            if (!ValidateSubscription(eventsSubscription, out message))
+            if (!ValidateSubscription(eventsSubscription, out string message))
             {
                 return BadRequest(message);
             }
@@ -81,9 +76,9 @@ namespace Altinn.Platform.Events.Controllers
                 return Unauthorized("Not authorized to create a subscription with subject " + eventsSubscription.AlternativeSubjectFilter);
             }
 
-            int id = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
+            Subscription createdSubscription = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
 
-            return Created("/events/api/v1/subscription/" + id, eventsSubscription);
+            return Created("/events/api/v1/subscription/" + createdSubscription.Id, createdSubscription);
         }
 
         /// <summary>
@@ -100,12 +95,30 @@ namespace Altinn.Platform.Events.Controllers
                 return NotFound();
             }
 
-            if (!AuthorizeAccessToSubscription(subscription))
+            if (!await AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
             }
 
-            // TODO Authorize
+            return Ok(subscription);
+        }
+
+        /// <summary>
+        /// Method to get a specific subscription
+        /// </summary>
+        [Authorize(Policy = "PlatformAccess")]
+        [HttpPut("validate/{id}")]
+        public async Task<ActionResult<string>> Validate(int id)
+        {
+            Subscription subscription = await _eventsSubscriptionService.GetSubscription(id);
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
+            await _eventsSubscriptionService.SetValidSubscription(id);
+
             return Ok(subscription);
         }
 
@@ -123,7 +136,7 @@ namespace Altinn.Platform.Events.Controllers
                 return NotFound();
             }
 
-            if (!AuthorizeAccessToSubscription(subscription))
+            if (!await AuthorizeAccessToSubscription(subscription))
             {
                 return Unauthorized();
             }
@@ -156,7 +169,14 @@ namespace Altinn.Platform.Events.Controllers
             if (string.IsNullOrEmpty(eventsSubscription.SubjectFilter)
                 && string.IsNullOrEmpty(HttpContext.User.GetOrg()))
             {
-                message = "A valid subject to the authenticated is required";
+                message = "A valid subject to the authenticated identity is required";
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(eventsSubscription.AlternativeSubjectFilter)
+                && string.IsNullOrEmpty(eventsSubscription.SubjectFilter))
+            {
+                message = "A valid subject to the authenticated identity is required";
                 return false;
             }
 
@@ -304,7 +324,7 @@ namespace Altinn.Platform.Events.Controllers
             }
         }
 
-        private bool AuthorizeAccessToSubscription(Subscription eventsSubscription)
+        private async Task<bool> AuthorizeAccessToSubscription(Subscription eventsSubscription)
         {
             string currentIdenity = string.Empty;
 
@@ -314,7 +334,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else if (!string.IsNullOrEmpty(HttpContext.User.GetOrgNumber()))
             {
-                currentIdenity = OrganisationPrefix + HttpContext.User.GetOrgNumber();
+                currentIdenity = PartyPrefix + await _registerService.PartyLookup(HttpContext.User.GetOrgNumber(), null);
             }
             else if (HttpContext.User.GetUserIdAsInt().HasValue)
             {
