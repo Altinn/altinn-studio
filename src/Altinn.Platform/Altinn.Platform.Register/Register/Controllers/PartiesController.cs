@@ -54,7 +54,7 @@ namespace Altinn.Platform.Register.Controllers
                     isValid = await _authorization.ValidateSelectedParty(userId.Value, partyId);
                 }
 
-                if (!isValid.Value)
+                if (!isValid.HasValue || !isValid.Value)
                 {
                     return Unauthorized();
                 }
