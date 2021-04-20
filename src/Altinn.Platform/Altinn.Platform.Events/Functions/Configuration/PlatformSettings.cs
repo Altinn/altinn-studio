@@ -6,7 +6,7 @@ namespace Altinn.Platform.Events.Functions.Configuration
     public class PlatformSettings
     {
         /// <summary>
-        /// Gets or sets the url for the PushEvents API endpoint.
+        /// Gets or sets the url for the Events API endpoint.
         /// </summary>
         public string ApiEventsEndpoint { get; set; }
     }
