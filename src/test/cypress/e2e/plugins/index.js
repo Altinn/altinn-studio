@@ -6,7 +6,10 @@ module.exports = (on, config) => {
       break;
     case 'at21':
       config.baseUrl = `https://${config.env.at21}`;
-      break;    
+      break;
+    case 'at22':
+      config.baseUrl = `https://${config.env.at22}`;
+      break;
   };
 
   return config;

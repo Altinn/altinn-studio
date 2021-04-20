@@ -176,6 +176,7 @@ const Confirm = (props: IConfirmProps) => {
             btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
             onClickFunction={onClickConfirm}
             className={classes.button}
+            id='confirm-button'
           />
         }
       </>

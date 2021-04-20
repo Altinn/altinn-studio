@@ -97,7 +97,11 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
           </Typography>
         )}
 
-        <Typography variant='body1' className={props.classes.paddingTop24}>
+        <Typography
+          id='body-text'
+          variant='body1'
+          className={props.classes.paddingTop24}
+        >
           {props.body}
         </Typography>
         {props.titleSubmitted &&
