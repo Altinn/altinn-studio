@@ -41,7 +41,7 @@ namespace Altinn.Platform.Events.Functions.Services
         {
             _platformSettings = eventsConfig.Value;
             _keyVaultSettings = keyVaultSettings.Value;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiPushEventsEndpoint);
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiEventsEndpoint);
             _client = httpClient;
             _accessTokenGenerator = accessTokenGenerator;
             _keyVaultService = keyVaultService;
