@@ -30,7 +30,6 @@ namespace Altinn.Platform.Events.Functions
         {
             CloudEvent cloudEvent = JsonSerializer.Deserialize<CloudEvent>(item);
             await _pushEventsService.SendToPushController(cloudEvent);
-            log.LogInformation($"C# Queue trigger function processed: {cloudEvent.Id}");
         }
     }
 }
