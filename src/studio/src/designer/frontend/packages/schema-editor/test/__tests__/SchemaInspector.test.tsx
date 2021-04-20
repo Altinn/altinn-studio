@@ -16,6 +16,13 @@ let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
 let addPropertyMock = jest.fn();
+
+const mountComponent = () => mount(
+  <Provider store={mockStore}>
+    <SchemaInspector onAddPropertyClick={addPropertyMock} />
+  </Provider>,
+);
+
 beforeEach(() => {
   const rootPath = '#/definitions/RA-0678_M';
   addPropertyMock = jest.fn();
@@ -44,22 +51,14 @@ afterEach(() => {
 
 it('Should match snapshot', () => {
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock} />
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper.getDOMNode()).toMatchSnapshot();
   });
 });
 
 it('dispatches correctly when changing value', () => {
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock} />
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
     wrapper.find('#input-Kommentar2000Restriksjon-value-minLength').last().simulate('change', { target: { value: '666' } });
     expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -76,11 +75,7 @@ it('dispatches correctly when changing value', () => {
 it('dispatches correctly when changing key', (done) => {
   let wrapper: any = null;
   act(() => {
-    wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock} />
-      </Provider>,
-    );
+    wrapper = mountComponent();
   });
   expect(wrapper).not.toBeNull();
   wrapper.find('#input-Kommentar2000Restriksjon-key-minLength').last()
@@ -113,11 +108,7 @@ it('dispatches correctly when changing ref', () => {
   mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock} />
-      </Provider>,
-    );
+    wrapper = mountComponent();
     wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
   });
 
@@ -140,11 +131,7 @@ it('dispatches correctly when changing const', () => {
   mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock} />
-      </Provider>,
-    );
+    wrapper = mountComponent();
   });
 
   wrapper.find('#input-RA-0678_M-properties-dataFormatProvider-value-dataFormatProvider').last().simulate('change', { target: { value: '666' } });
@@ -166,11 +153,7 @@ it('renders no item if nothing is selected', () => {
     selectedId: null,
   });
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
     expect(wrapper.find('.no-item-selected').last().text()).toBe('No item selected');
@@ -179,11 +162,7 @@ it('renders no item if nothing is selected', () => {
 
 it('handles delete button', () => {
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
     wrapper.find('#input-Kommentar2000Restriksjon-delete-minLength').last().simulate('click');
@@ -205,11 +184,7 @@ it('handles add property button', () => {
     selectedId: '#/definitions/InternInformasjon',
   });
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
     wrapper.find('#add-reference-button').last().simulate('click');
@@ -219,11 +194,7 @@ it('handles add property button', () => {
 
 it('handles add property (field) button', () => {
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
     // #/definitions/OrganisasjonsnummerRestriksjon
@@ -247,11 +218,7 @@ it('renders const properties', () => {
     selectedId: '#/definitions/RA-0678_M',
   });
   act(() => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <SchemaInspector onAddPropertyClick={addPropertyMock}/>
-      </Provider>,
-    );
+    const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
     expect(wrapper.find('input').get(1).props.value).toBe('dataFormatProvider');
