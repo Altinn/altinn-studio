@@ -27,6 +27,9 @@
     }
   },
   "appOwner": {},
+  "presentationTexts": {
+    "Title": "Sophie Salt"
+  },
   "data": [
     {
       "id": "99dc0012-89fa-4968-b928-d6cc16d18d26",
