@@ -93,7 +93,7 @@ const routes: IRoute[] = [
     path: '/datamodelling',
     exact: true,
     activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Datamodell',
+    activeLeftMenuSelection: 'Data-Editor',
     menu: 'create',
     subapp: DataModelingContainer,
   },

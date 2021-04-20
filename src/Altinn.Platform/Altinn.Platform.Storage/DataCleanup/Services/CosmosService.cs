@@ -78,7 +78,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteInstanceDocument(string instanceGuid, string instanceOwnerPartyId)
+        public async Task<bool> DeleteInstanceDocument(string instanceOwnerPartyId, string instanceGuid)
         {
             if (!_clientConnectionEstablished)
             {
@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteInstanceEventDocuments(string instanceGuid, string instanceOwnerPartyId)
+        public async Task<bool> DeleteInstanceEventDocuments(string instanceOwnerPartyId, string instanceGuid)
         {
             if (!_clientConnectionEstablished)
             {

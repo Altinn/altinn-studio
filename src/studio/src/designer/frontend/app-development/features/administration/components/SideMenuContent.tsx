@@ -4,12 +4,10 @@ import { makeStyles, Typography } from '@material-ui/core';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
 import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
-
-// eslint-disable-next-line import/order
-import classNames = require('classnames');
 
 const setupClasses = makeStyles({
   avatar: {

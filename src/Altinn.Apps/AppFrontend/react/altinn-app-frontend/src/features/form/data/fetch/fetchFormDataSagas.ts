@@ -3,17 +3,17 @@ import { call,
   select,
   takeLatest,
   all,
-  take } from 'redux-saga/effects';
+  take,
+  put } from 'redux-saga/effects';
 import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
-import FormActions from '../formDataActions';
-import * as FormDataActionTypes from '../formDataActionTypes';
+import FormDataActions from '../formDataActions';
 import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
@@ -32,15 +32,15 @@ function* fetchFormDataSaga(): SagaIterator {
 
     const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance);
     const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
-    const parsedLayout = convertModelToDataBinding(fetchedData);
-    yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
-  } catch (err) {
-    yield call(FormActions.fetchFormDataRejected, err);
+    const formData = convertModelToDataBinding(fetchedData);
+    yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
+  } catch (error) {
+    yield put(FormDataActions.fetchFormDataRejected({ error }));
   }
 }
 
 export function* watchFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.FETCH_FORM_DATA, fetchFormDataSaga);
+  yield takeLatest(FormDataActions.fetchFormData, fetchFormDataSaga);
 }
 
 function* fetchFormDataInitialSaga(): SagaIterator {
@@ -52,8 +52,8 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
     const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
 
-    const parsedLayout = convertModelToDataBinding(fetchedData);
-    yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
+    const formData = convertModelToDataBinding(fetchedData);
+    yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
 
     yield call(
       FormRulesActions.fetchRuleModel,
@@ -63,15 +63,15 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       FormDynamicsActions.fetchFormDynamics,
       getFetchFormDynamicsUrl(),
     );
-  } catch (err) {
-    yield call(FormActions.fetchFormDataRejected, err);
-    yield call(QueueActions.dataTaskQueueError, err);
+  } catch (error) {
+    yield put(FormDataActions.fetchFormDataRejected({ error }));
+    yield call(dataTaskQueueError, error);
   }
 }
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL);
+    yield take(FormDataActions.fetchFormDataInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     if (!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {

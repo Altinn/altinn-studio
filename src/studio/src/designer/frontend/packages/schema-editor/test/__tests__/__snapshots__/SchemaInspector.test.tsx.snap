@@ -1,0 +1,485 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Should match snapshot 1`] = `
+<div
+  class="MuiPaper-root MuiCard-root makeStyles-root-1 MuiPaper-elevation1 MuiPaper-rounded"
+>
+  <div
+    class="MuiCardHeader-root"
+  >
+    <div
+      class="MuiCardHeader-content"
+    >
+      <span
+        class="MuiTypography-root MuiCardHeader-title MuiTypography-h5 MuiTypography-displayBlock"
+      >
+        Inspector
+      </span>
+    </div>
+  </div>
+  <div
+    class="MuiCardContent-root"
+  >
+    <div>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              id
+            </td>
+            <td>
+              #/definitions/Kommentar2000Restriksjon
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <h3>
+                Properties
+              </h3>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <span
+          class="makeStyles-inputs-6"
+        >
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-rootKey-3 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
+                disabled=""
+                id="input-Kommentar2000Restriksjon-key-minLength"
+                type="text"
+                value="minLength"
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-minLength"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-root-2 MuiInputBase-formControl MuiInput-formControl"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-minLength"
+                type="text"
+                value="1"
+              />
+            </div>
+          </div>
+        </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-minLength"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div>
+        <span
+          class="makeStyles-inputs-6"
+        >
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-rootKey-3 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
+                disabled=""
+                id="input-Kommentar2000Restriksjon-key-maxLength"
+                type="text"
+                value="maxLength"
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-maxLength"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-root-2 MuiInputBase-formControl MuiInput-formControl"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-maxLength"
+                type="text"
+                value="2000"
+              />
+            </div>
+          </div>
+        </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-maxLength"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div>
+        <span
+          class="makeStyles-inputs-6"
+        >
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-rootKey-3 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
+                disabled=""
+                id="input-Kommentar2000Restriksjon-key-type"
+                type="text"
+                value="type"
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-type"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-root-9 MuiInputBase-formControl MuiInput-formControl"
+            >
+              <div
+                aria-haspopup="listbox"
+                aria-labelledby="type-select-type"
+                class="MuiSelect-root MuiSelect-select makeStyles-select-10 MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+                id="type-select-type"
+                role="button"
+                tabindex="0"
+              >
+                string
+              </div>
+              <input
+                aria-hidden="true"
+                class="MuiSelect-nativeInput"
+                tabindex="-1"
+                value="string"
+              />
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSelect-icon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M7 10l5 5 5-5z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-type"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div>
+        <span
+          class="makeStyles-inputs-6"
+        >
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-rootKey-3 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
+                disabled=""
+                id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
+                type="text"
+                value="@xsdUnhandledAttribute1"
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute1"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-root-2 MuiInputBase-formControl MuiInput-formControl"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute1"
+                type="text"
+                value="seres:elementtype=Tegnrestriksjon"
+              />
+            </div>
+          </div>
+        </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute1"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div>
+        <span
+          class="makeStyles-inputs-6"
+        >
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-rootKey-3 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd"
+                disabled=""
+                id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
+                type="text"
+                value="@xsdUnhandledAttribute2"
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root"
+                  id="input-Kommentar2000Restriksjon-toggle-@xsdUnhandledAttribute2"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34c-.2-.2-.45-.29-.71-.29s-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiFormControl-root"
+          >
+            <div
+              class="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-root-2 MuiInputBase-formControl MuiInput-formControl"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiInput-input"
+                id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute2"
+                type="text"
+                value="seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Kommentar2000Restriksjon/502246"
+              />
+            </div>
+          </div>
+        </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root"
+          id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute2"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

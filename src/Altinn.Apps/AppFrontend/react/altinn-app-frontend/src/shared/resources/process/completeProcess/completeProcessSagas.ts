@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, select, takeLatest } from 'redux-saga/effects';
+import { call, fork, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { put } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
 import { IRuntimeState, ProcessTaskType } from '../../../../types';
@@ -8,7 +8,7 @@ import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessDispatcher from '../processDispatcher';
 import InstanceDataActions from '../../instanceData/instanceDataActions';
 import { IInstanceDataState } from '../../instanceData/instanceDataReducers';
-import IsLoadingActions from '../../isLoading/isLoadingActions';
+import { startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
@@ -25,7 +25,7 @@ export function* completeProcessSaga(): SagaIterator {
         result.currentTask.altinnTaskType as ProcessTaskType,
         result.currentTask.elementId);
       if ((result.currentTask.altinnTaskType as ProcessTaskType) === ProcessTaskType.Data) {
-        yield call(IsLoadingActions.startDataTaskIsloading);
+        yield sagaPut(startDataTaskIsLoading());
         const instanceData: IInstanceDataState = yield select(instanceDataSelector);
         const [instanceOwner, instanceId] = instanceData.instance.id.split('/');
         yield call(

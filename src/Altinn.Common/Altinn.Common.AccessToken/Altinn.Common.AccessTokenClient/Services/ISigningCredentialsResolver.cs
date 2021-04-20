@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Common.AccessTokenClient.Services
@@ -10,7 +8,7 @@ namespace Altinn.Common.AccessTokenClient.Services
     public interface ISigningCredentialsResolver
     {
         /// <summary>
-        /// Returns certificat to be used for signing a JWT
+        /// Returns certificate to be used for signing a JWT
         /// </summary>
         /// <returns>The signing credentials</returns>
         SigningCredentials GetSigningCredentials();

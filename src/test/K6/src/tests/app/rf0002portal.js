@@ -13,7 +13,7 @@
 */
 
 import { check, sleep } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
+import { addErrorCount, stopIterationOnFail } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
@@ -46,7 +46,7 @@ export default function () {
         var userSSN = users[userNumber].username;
         var userPwd = users[userNumber].password;
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null);
+        stopIterationOnFail("Testdata missing", false, null);
     };
 
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
@@ -61,7 +61,7 @@ export default function () {
             "Batch request before app Instantiation:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Batch request before app Instantiation:", success, res[i]);
+        stopIterationOnFail("Batch request before app Instantiation:", success, res[i]);
     };
 
     //Test to create an instance with App api and validate the response
@@ -70,13 +70,13 @@ export default function () {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App POST Create Instance:", success, res);
+    stopIterationOnFail("E2E App POST Create Instance:", success, res);
 
     try {
         dataId = appData.findDataId(res.body);
         instanceId = platformInstances.findInstanceId(res.body);
     } catch (error) {
-        printResponseToConsole("Instance id and data id not retrieved:", false, null);
+        stopIterationOnFail("Instance id and data id not retrieved:", false, null);
     };
 
     //Test to get the current process of an app instance
@@ -85,7 +85,7 @@ export default function () {
         "Get Current process of instance:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Get Current process of instance:", success, res);
+    stopIterationOnFail("Get Current process of instance:", success, res);
 
     //Test to get the form data xml by id
     res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
@@ -93,7 +93,7 @@ export default function () {
         "Get form data XML by id:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Get form data XML by id:", success, res);
+    stopIterationOnFail("Get form data XML by id:", success, res);
 
     //Batch request to get the app resources
     res = appResources.batchGetAppResources(runtimeToken, appOwner, level2App);
@@ -102,7 +102,7 @@ export default function () {
             "Batch request to get app resources:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Batch request to get app resources:", success, res[i]);
+        stopIterationOnFail("Batch request to get app resources:", success, res[i]);
     };
 
     //Test to edit a form data in an instance with App APi and validate the response
@@ -112,7 +112,7 @@ export default function () {
             "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
         });
         addErrorCount(success);
-        printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
+        stopIterationOnFail("E2E PUT Edit Data by Id:", success, res);
         sleep(0.5);
     };
 
@@ -122,7 +122,7 @@ export default function () {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
+    stopIterationOnFail("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200
     res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, "EndEvent_1", appOwner, level2App);
@@ -130,7 +130,7 @@ export default function () {
         "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
+    stopIterationOnFail("E2E App PUT Move process to Next element:", success, res);
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
@@ -138,7 +138,7 @@ export default function () {
         "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
     });
     addErrorCount(success);
-    printResponseToConsole("E2E App Instance is not archived:", success, res);
+    stopIterationOnFail("E2E App Instance is not archived:", success, res);
 
     /* write the instance id to console which can be written to a file using --console-output and logformat raw
     for appowner tests. */

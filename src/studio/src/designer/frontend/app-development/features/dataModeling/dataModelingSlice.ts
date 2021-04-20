@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-param-reassign */
-import { Action, createSlice } from '@reduxjs/toolkit';
+import { ISchema } from '@altinn/schema-editor/types';
+import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
   type: string;
 }
 export interface IDataModelActionPayload {
-  schema: any;
+  schema: ISchema;
 }
 
 export interface IDataModelErrorActionPayload extends Action {
@@ -17,16 +18,19 @@ export interface IDataModelErrorActionPayload extends Action {
 export interface ISetDataModelFilePathActionPayload extends Action {
   filePath: string;
 }
-
 export interface IDataModelingState {
-  schema: any;
+  schema: ISchema;
   modelName: string;
   error: Error;
   saving: boolean;
 }
 
+export interface IDeleteDataModelRejected {
+  error: any;
+}
+
 const initialState: IDataModelingState = {
-  schema: {},
+  schema: { properties: {}, definitions: {} },
   modelName: undefined,
   error: null,
   saving: false,
@@ -63,6 +67,24 @@ const dataModelingSlice = createSlice({
       const { modelName } = action.payload;
       state.modelName = modelName;
     },
+    createNewDataModel(state, action) {
+      const { modelName } = action.payload;
+      state.modelName = modelName;
+      state.error = null;
+      state.schema = { properties: {}, definitions: {} };
+    },
+    deleteDataModel(state) {
+      state.saving = true;
+    },
+    deleteDataModelFulfilled(state) {
+      state.saving = false;
+      state.schema = { properties: {}, definitions: {} };
+      state.modelName = '';
+    },
+    deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
+      state.error = action.payload.error;
+      state.saving = false;
+    },
   },
 });
 
@@ -74,6 +96,10 @@ export const {
   saveDataModelFulfilled,
   saveDataModelRejected,
   setDataModelName,
+  createNewDataModel,
+  deleteDataModel,
+  deleteDataModelFulfilled,
+  deleteDataModelRejected,
 } = dataModelingSlice.actions;
 
 export default dataModelingSlice.reducer;

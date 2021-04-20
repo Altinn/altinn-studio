@@ -17,7 +17,7 @@ These instructions will get you a copy of the platform solution up and running o
 Note that Platform PDF is a Java application and requires other prerequisites. 
 This is documented in the sub section.
 
-1. [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+1. [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
 2. Code editor of your choice
 3. Newest [Git](https://git-scm.com/downloads)
 4. [Docker CE](https://www.docker.com/get-docker)

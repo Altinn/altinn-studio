@@ -32,7 +32,6 @@ namespace Altinn.Platform.Storage.Repository
         private readonly IDataRepository _dataRepository;
 
         private readonly DocumentClient _client;
-        private readonly AzureCosmosSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
@@ -47,8 +46,6 @@ namespace Altinn.Platform.Storage.Repository
         {
             _logger = logger;
             _dataRepository = dataRepository;
-
-            _settings = cosmosSettings.Value;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
@@ -535,71 +532,6 @@ namespace Altinn.Platform.Storage.Repository
             await PostProcess(instance);
 
             return instance;
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
-        {
-            List<Instance> instances = new List<Instance>();
-            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
-
-            FeedOptions feedOptions = new FeedOptions
-            {
-                PartitionKey = new PartitionKey(instanceOwnerPartyIdString)
-            };
-
-            if (_settings.CollectMetrics)
-            {
-                feedOptions.PopulateQueryMetrics = true;
-            }
-
-            IQueryable<Instance> filter;
-
-            if (instanceState.Equals("active"))
-            {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Status.IsSoftDeleted)
-                        .Where(i => !i.Status.IsHardDeleted)
-                        .Where(i => !i.Status.IsArchived);
-            }
-            else if (instanceState.Equals("deleted"))
-            {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => i.Status.IsSoftDeleted)
-                        .Where(i => !i.Status.IsHardDeleted);
-            }
-            else if (instanceState.Equals("archived"))
-            {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                       .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                       .Where(i => i.Status.IsArchived)
-                       .Where(i => !i.Status.IsSoftDeleted)
-                       .Where(i => !i.Status.IsHardDeleted)
-                       .OrderByDescending(i => i.Status.Archived);
-            }
-            else
-            {
-                // empty list
-                return instances;
-            }
-
-            IDocumentQuery<Instance> query = filter.AsDocumentQuery();
-
-            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-
-            if (_settings.CollectMetrics)
-            {
-                _logger.LogError($"Metrics retrieving {instanceState} instances for {instanceOwnerPartyId}: {JsonConvert.SerializeObject(feedResponse.QueryMetrics)}");
-            }
-
-            instances = feedResponse.ToList();
-
-            await PostProcess(instances);
-
-            return instances;
         }
 
         /// <inheritdoc/>

@@ -6,7 +6,6 @@ using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Rest.Azure;
 
 namespace Altinn.Platform.Events.Functions.Services
 {

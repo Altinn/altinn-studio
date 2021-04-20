@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
-
+using System.Threading.Tasks;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Get_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        public async Task Get_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -73,7 +73,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         }
 
         [Fact]
-        public async void Get_One_Ok()
+        public async Task Get_One_Ok()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -96,7 +96,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         }
 
         [Fact]
-        public async void Get_One_Twice_Ok()
+        public async Task Get_One_Twice_Ok()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -126,7 +126,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Get_ReponseIsDeny_ReturnsStatusForbidden()
+        public async Task Get_ReponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -149,7 +149,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
+        public async Task Post_ReponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
             string appId = "tdd/endring-av-navn";
@@ -174,7 +174,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Post_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        public async Task Post_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
             string appId = "tdd/endring-av-navn";
@@ -199,7 +199,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Post_Ok()
+        public async Task Post_Ok()
         {
             // Arrange
             string appId = "tdd/endring-av-navn";
@@ -228,7 +228,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        public async Task Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
             int instanceOwnerId = 1337;
@@ -252,7 +252,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
+        public async Task Delete_ResponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
             int instanceOwnerId = 1337;
@@ -276,7 +276,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns success and deleted instance
         /// </summary>
         [Fact]
-        public async void Delete_OrgHardDeletesInstance_ReturnedInstanceHasStatusBothSoftAndHardDeleted()
+        public async Task Delete_OrgHardDeletesInstance_ReturnedInstanceHasStatusBothSoftAndHardDeleted()
         {
             // Arrange
             int instanceOwnerId = 1337;
@@ -305,7 +305,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns success and deleted instance
         /// </summary>
         [Fact]
-        public async void Delete_EndUserSoftDeletesInstance_ReturnedInstanceHasStatusOnlySoftDeleted()
+        public async Task Delete_EndUserSoftDeletesInstance_ReturnedInstanceHasStatusOnlySoftDeleted()
         {
             // Arrange
             int instanceOwnerId = 1337;
@@ -333,7 +333,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: List of instances is returned.
         /// </summary>
         [Fact]
-        public async void GetMany_OrgRequestsAllAppInstances_Ok()
+        public async Task GetMany_OrgRequestsAllAppInstances_Ok()
         {
             // Arrange
             string requestUri = $"{BasePath}?appId=ttd/complete-test";
@@ -359,7 +359,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: List of instances is returned.
         /// </summary>
         [Fact]
-        public async void GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
+        public async Task GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
         {
             // Arrange
             string requestUri = $"{BasePath}?appId=ttd/complete-test";
@@ -385,7 +385,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: List of instances is returned.
         /// </summary>
         [Fact]
-        public async void GetMany_OrgRequestsAllInstances_Ok()
+        public async Task GetMany_OrgRequestsAllInstances_Ok()
         {
             // Arrange
             string requestUri = $"{BasePath}?org=ttd";
@@ -411,7 +411,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: List of instances is returned.
         /// </summary>
         [Fact]
-        public async void GetMany_PartyRequestsOwnInstances_Ok()
+        public async Task GetMany_PartyRequestsOwnInstances_Ok()
         {
             // Arrange
             string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
@@ -437,7 +437,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: List of instances is returned after unathorized instances are removed.
         /// </summary>
         [Fact]
-        public async void GetMany_UserRequestsAnotherPartiesInstances_Ok()
+        public async Task GetMany_UserRequestsAnotherPartiesInstances_Ok()
         {
             // Arrange
             string requestUri = $"{BasePath}?instanceOwner.partyId=1600";
@@ -463,7 +463,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status bad request.
         /// </summary>
         [Fact]
-        public async void GetMany_UserRequestsInstancesNoPartyIdDefined_ReturnsBadRequest()
+        public async Task GetMany_UserRequestsInstancesNoPartyIdDefined_ReturnsBadRequest()
         {
             // Arrange
             string requestUri = $"{BasePath}";
@@ -487,7 +487,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status bad request.
         /// </summary>
         [Fact]
-        public async void GetMany_OrgRequestsInstancesNoOrgDefined_ReturnsBadRequest()
+        public async Task GetMany_OrgRequestsInstancesNoOrgDefined_ReturnsBadRequest()
         {
             // Arrange
             string requestUri = $"{BasePath}";
@@ -511,7 +511,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void GetMany_IncorrectScope_ReturnsForbidden()
+        public async Task GetMany_IncorrectScope_ReturnsForbidden()
         {
             // Arrange
             string requestUri = $"{BasePath}?org=testOrg";
@@ -532,7 +532,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void GetMany_QueryingDifferentOrgThanInClaims_ReturnsForbidden()
+        public async Task GetMany_QueryingDifferentOrgThanInClaims_ReturnsForbidden()
         {
             // Arrange
             string requestUri = $"{BasePath}?org=paradiseHotelOrg";
@@ -556,7 +556,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   The given instance is updated with a new entry in CompleteConfirmations.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
+        public async Task AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
         {
             // Arrange
             string org = "tdd";
@@ -594,7 +594,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   The operation returns status InternalServerError
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_ExceptionDuringInstanceUpdate_ReturnsInternalServerError()
+        public async Task AddCompleteConfirmation_ExceptionDuringInstanceUpdate_ReturnsInternalServerError()
         {
             // Arrange
             string org = "tdd";
@@ -622,7 +622,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   The given instance keeps the existing complete confirmation.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_PostAsValidAppOwnerTwice_RespondsWithSameInstance()
+        public async Task AddCompleteConfirmation_PostAsValidAppOwnerTwice_RespondsWithSameInstance()
         {
             // Arrange
             string org = "tdd";
@@ -667,7 +667,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   The response has status code 500.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_CompleteNonExistentInstance_ExceptionDuringAuthorization_RespondsWithInternalServerError()
+        public async Task AddCompleteConfirmation_CompleteNonExistentInstance_ExceptionDuringAuthorization_RespondsWithInternalServerError()
         {
             // Arrange
             string org = "tdd";
@@ -695,7 +695,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   The response has status code 500.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_AttemptToCompleteInstanceAsUser_ReturnsForbidden()
+        public async Task AddCompleteConfirmation_AttemptToCompleteInstanceAsUser_ReturnsForbidden()
         {
             // Arrange
             string org = "brg";
@@ -722,7 +722,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Read status is successfuly updated and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdateReadStatus_SetInitialReadStatus_ReturnsUpdatedInstance()
+        public async Task UpdateReadStatus_SetInitialReadStatus_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -756,7 +756,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Read status is successfuly updated and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdateReadStatus_FromReadToUnread_ReturnsUpdatedInstance()
+        public async Task UpdateReadStatus_FromReadToUnread_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -788,7 +788,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Response code is bad request.
         /// </summary>
         [Fact]
-        public async void UpdateReadStatus_InvalidStatus_ReturnsBadRequest()
+        public async Task UpdateReadStatus_InvalidStatus_ReturnsBadRequest()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -819,7 +819,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// substatus is successfuly updated and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
+        public async Task UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -858,7 +858,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// substatus is completely overwritten by the new substatus.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_OverwriteSubstatus_DescriptionIsEmpty()
+        public async Task UpdateSubstatus_OverwriteSubstatus_DescriptionIsEmpty()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -897,7 +897,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Response is 403 forbidden.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
+        public async Task UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -928,7 +928,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Response is 400 bas request.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_MissingLabel_ReturnsBadRequest()
+        public async Task UpdateSubstatus_MissingLabel_ReturnsBadRequest()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -959,7 +959,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Presentation fields are succesfully added and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdatePresentationFields_NoPreviousFieldsSet_ReturnsUpdatedInstance()
+        public async Task UpdatePresentationFields_NoPreviousFieldsSet_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -1002,7 +1002,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Presentation field are succesfully updated, other fields are untouched and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdatePresentationFields_UpdateAnExistingPresentationField_ReturnsUpdatedInstance()
+        public async Task UpdatePresentationFields_UpdateAnExistingPresentationField_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -1045,7 +1045,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Presentation field is succesfully removed, other fields are untouched and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdatePresentationFields_RemoveAnExistingPresentationField_ReturnsUpdatedInstance()
+        public async Task UpdatePresentationFields_RemoveAnExistingPresentationField_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -1090,7 +1090,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Presentation field is succesfully added to existing collection and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdatePresentationFields_AddNewPresentationFieldToExistingCollection_ReturnsUpdatedInstance()
+        public async Task UpdatePresentationFields_AddNewPresentationFieldToExistingCollection_ReturnsUpdatedInstance()
         {
             // Arrange
             int instanceOwnerPartyId = 1337;
@@ -1122,6 +1122,175 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(3, actual.Keys.Count);
+        }                
+
+        /// <summary>
+        /// Scenario:
+        /// Add the value of a data field to an instance that doesn't have any existing data values
+        /// Result:
+        /// Data values are succesfully added and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async Task UpdateDataValues_NoPreviousValuesSet_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key1", "value1" },
+                    { "key2", "value2" }
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(2, actual.Keys.Count);            
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Update an existing data value 
+        /// Result:
+        /// Data values are succesfully updated, other values are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async Task UpdateDataValues_UpdateAnExistingDataValue_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key1", "updatedvalue1" },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Equal(2, actual.Keys.Count);
+            Assert.True(actual.ContainsKey("key2"));
+            Assert.Equal("updatedvalue1", actual["key1"]);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Delete an existing data value 
+        /// Result:
+        /// Data value is succesfully removed, other fields are untouched and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async Task UpdateDataValues_RemoveAnExistingDataValue_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            const string removedKey = "key1";
+
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { removedKey, string.Empty },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Single(actual.Keys);
+            Assert.True(actual.ContainsKey("key2"));
+            Assert.False(actual.ContainsKey(removedKey));
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Add a new data value to an already existing collection of data values
+        /// Result:
+        /// Data value is succesfully added to existing collection and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async Task UpdateDataValue_AddNewDataValueToExistingCollection_ReturnsUpdatedInstance()
+        {
+            // Arrange            
+            var dataValues = new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    { "key3", "value3" },
+                }
+            };
+
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Dictionary<string, string> actual = updatedInstance.DataValues;
+
+            // Assert
+            Assert.Equal(3, actual.Keys.Count);
+            Assert.Equal("value3", actual["key3"]);
         }
 
         private HttpClient GetTestClient()

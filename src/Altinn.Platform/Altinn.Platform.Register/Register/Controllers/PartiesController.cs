@@ -1,9 +1,13 @@
+using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Filters;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
+using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Register.Controllers
@@ -17,14 +21,17 @@ namespace Altinn.Platform.Register.Controllers
     public class PartiesController : Controller
     {
         private readonly IParties _partiesWrapper;
+        private readonly IAuthorization _authorization;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class.
         /// </summary>
         /// <param name="partiesWrapper">The parties wrapper used as a client when calling SBL Bridge.</param>
-        public PartiesController(IParties partiesWrapper)
+        /// <param name="authorizationWrapper">The authorization wrapper</param>
+        public PartiesController(IParties partiesWrapper, IAuthorization authorizationWrapper)
         {
             _partiesWrapper = partiesWrapper;
+            _authorization = authorizationWrapper;
         }
 
         /// <summary>
@@ -38,6 +45,21 @@ namespace Altinn.Platform.Register.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Party>> Get(int partyId)
         {
+            if (!IsOrg(HttpContext))
+            {
+                int? userId = GetUserId(HttpContext);
+                bool? isValid = false;
+                if (userId.HasValue)
+                {
+                    isValid = await _authorization.ValidateSelectedParty(userId.Value, partyId);
+                }
+
+                if (!isValid.HasValue || !isValid.Value)
+                {
+                    return Unauthorized();
+                }
+            }
+
             Party result = await _partiesWrapper.GetParty(partyId);
             if (result == null)
             {
@@ -71,6 +93,40 @@ namespace Altinn.Platform.Register.Controllers
             }
 
             return Ok(party);
+        }
+
+        /// <summary>
+        /// Validate if the authenticated identity is an org
+        /// </summary>
+        private static bool IsOrg(HttpContext context)
+        {
+            bool isOrg = false;
+
+            foreach (Claim claim in context.User.Claims)
+            {
+                if (claim.Type.Equals(AltinnCoreClaimTypes.Org))
+                {
+                    isOrg = true;
+                }
+            }
+
+            return isOrg;
+        }
+
+        /// <summary>
+        /// Gets userId from httpContext
+        /// </summary>
+        private static int? GetUserId(HttpContext context)
+        {
+            foreach (Claim claim in context.User.Claims)
+            {
+                if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
+                {
+                    return Convert.ToInt32(claim.Value);
+                }
+            }
+
+            return null;
         }
     }
 }

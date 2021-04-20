@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{C9ABF5DB-928C-4280-B587-13E6DCE010BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.PlatformServices.Tests", "Altinn.App.PlatformServices.Tests\Altinn.App.PlatformServices.Tests.csproj", "{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices.Tests", "Altinn.App.PlatformServices.Tests\Altinn.App.PlatformServices.Tests.csproj", "{17D7DCE9-7797-4BC1-B448-D0529FD6FB3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

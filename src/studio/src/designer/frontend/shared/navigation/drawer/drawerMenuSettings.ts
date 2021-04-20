@@ -59,6 +59,13 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       activeLeftMenuSelection: 'Datamodell',
       iconClass: 'fa fa-archive',
     },
+    // The following link is hidden until datamodelling page is ready for production.
+    // {
+    //   displayText: 'Data-Editor',
+    //   navLink: '/datamodelling',
+    //   activeLeftMenuSelection: 'Data-Editor',
+    //   iconClass: 'fa fa-datamodel-object',
+    // },
     {
       displayText: 'UI-Editor',
       navLink: '/ui-editor',

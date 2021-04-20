@@ -20,7 +20,7 @@ createTestCafe()
         quarantineMode: false,
         selectorTimeout: 15000,
         assertionTimeout: 15000,
-        pageLoadTimeout: 10000,
+        pageLoadTimeout: 15000,
         speed: 1,
         debugOnFail: false,
         stopOnFirstFail: false

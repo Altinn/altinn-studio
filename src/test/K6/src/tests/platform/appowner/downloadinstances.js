@@ -9,7 +9,7 @@
 */
 
 import { check } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../../errorcounter.js";
+import { addErrorCount, stopIterationOnFail } from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/platform/storage/instances.js"
 import * as storageData from "../../../api/platform/storage/data.js"
 import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
@@ -58,7 +58,7 @@ export default function(data) {
         var partyId = instanceId[0];
         instanceId = instanceId[1];
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null);
+        stopIterationOnFail("Testdata missing", false, null);
     }
 
     //Get instance by id
@@ -67,12 +67,12 @@ export default function(data) {
         "Instance details are retrieved:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Instance details are retrieved:", success, res);
+    stopIterationOnFail("Instance details are retrieved:", success, res);
 
     try {
         var dataElements = JSON.parse(res.body).data;
     } catch (error) {
-        printResponseToConsole("DataElements not retrieved:", false, null);
+        stopIterationOnFail("DataElements not retrieved:", false, null);
     };
 
     //Loop through the dataelements under an instance and download instance
@@ -82,7 +82,7 @@ export default function(data) {
             "Instance Data is downloaded:": (r) => r.status === 200
         });
         addErrorCount(success);
-        printResponseToConsole("Instance Data is not downloaded:", success, res);
+        stopIterationOnFail("Instance Data is not downloaded:", success, res);
     };
 
     //Complete confirm the app instance as an appOwner
@@ -91,5 +91,5 @@ export default function(data) {
         "Instance is confirmed complete:": (r) => r.status === 200
     });
     addErrorCount(success);
-    printResponseToConsole("Instance is not confirmed complete:", success, res);
+    stopIterationOnFail("Instance is not confirmed complete:", success, res);
 };

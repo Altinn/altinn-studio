@@ -1,0 +1,25 @@
+name: Profile Scan
+
+on:
+  schedule:
+  - cron: '0 8 * * 1,4'
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.Profile/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/Altinn.Platform/Altinn.Platform.Profile/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build src/Altinn.Platform/Altinn.Platform.Profile --file src/Altinn.Platform/Altinn.Platform.Profile/Profile/Dockerfile --tag altinn-profile:${{github.sha}}
+      
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: altinn-profile:${{ github.sha }}
