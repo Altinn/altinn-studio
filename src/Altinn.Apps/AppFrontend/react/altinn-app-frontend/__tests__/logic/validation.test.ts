@@ -9,7 +9,6 @@ import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
 import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
-import * as React from 'react';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -574,13 +573,15 @@ describe('>>> utils/validations.ts', () => {
         repeatingGroups,
       );
 
-    const mockResult = { FormLayout: {
-      componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
-      'componentId_4-0': { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
-      componentId_6: {
-        address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+    const mockResult = {
+      FormLayout: {
+        componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
+        'componentId_4-0': { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
+        componentId_6: {
+          address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+        },
       },
-    } };
+    };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
@@ -602,10 +603,14 @@ describe('>>> utils/validations.ts', () => {
         repeatingGroups,
       );
 
-    const mockResult = { FormLayout: { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
-      componentId_6: {
-        address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
-      } } };
+    const mockResult = {
+      FormLayout: {
+        componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } },
+        componentId_6: {
+          address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+        },
+      },
+    };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
@@ -653,9 +658,11 @@ describe('>>> utils/validations.ts', () => {
       mockLanguage.language,
     );
 
-    const mockResult = { componentId_6: {
-      address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
-    } };
+    const mockResult = {
+      componentId_6: {
+        address: { errors: ['Feltet er påkrevd'], warnings: [] }, postPlace: { errors: ['Feltet er påkrevd'], warnings: [] }, zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+      },
+    };
 
     expect(validations).toEqual(mockResult);
   });
@@ -999,7 +1006,7 @@ describe('>>> utils/validations.ts', () => {
     const state: IRuntimeState = getInitialStateMock({
       formDataModel: {
         schemas: {
-          'default': mockJsonSchema
+          default: mockJsonSchema,
         },
         error: null,
       },
@@ -1015,7 +1022,9 @@ describe('>>> utils/validations.ts', () => {
       },
       applicationMetadata: {
         applicationMetadata: {
-          dataTypes: [{appLogic: {}, taskId: 'default', maxCount: 0, minCount: 0, allowedContentTypes: [], id: 'default'}]
+          dataTypes: [{
+            appLogic: {}, taskId: 'default', maxCount: 0, minCount: 0, allowedContentTypes: [], id: 'default',
+          }],
         } as any,
         error: null,
       },
@@ -1038,40 +1047,42 @@ describe('>>> utils/validations.ts', () => {
       } as any,
     });
     const result: IValidations = validation.validateGroup('group1', state);
-    expect(result).toEqual({ FormLayout: {
-      'componentId_4-0': {
-        simpleBinding: {
-          errors: [
-            'Feltet er påkrevd',
-            getParsedLanguageFromKey(
-              `validation_errors.pattern`,
-              state.language.language,
-              [],
-            ),
-          ],
-          warnings: [undefined]
+    expect(result).toEqual({
+      FormLayout: {
+        'componentId_4-0': {
+          simpleBinding: {
+            errors: [
+              'Feltet er påkrevd',
+              getParsedLanguageFromKey(
+                `validation_errors.pattern`,
+                state.language.language,
+                [],
+              ),
+            ],
+            warnings: [undefined],
+          },
+        },
+        'componentId_5-0-1': {
+          simpleBinding: {
+            errors: [
+              getParsedLanguageFromKey(
+                `validation_errors.minLength`,
+                state.language.language,
+                [10],
+              ),
+            ],
+            warnings: [undefined],
+          },
         },
       },
-      'componentId_5-0-1': {
-        simpleBinding: {
-          errors: [
-            getParsedLanguageFromKey(
-              `validation_errors.minLength`,
-              state.language.language,
-              [10],
-            ),
-          ],
-          warnings: [undefined]
-        }
-      }
-    }});
+    });
   });
 
   it('+++ validateGroup should detect validation errors for nested group', () => {
     const state: IRuntimeState = getInitialStateMock({
       formDataModel: {
         schemas: {
-          'default': mockJsonSchema
+          default: mockJsonSchema,
         },
         error: null,
       },
@@ -1087,7 +1098,9 @@ describe('>>> utils/validations.ts', () => {
       },
       applicationMetadata: {
         applicationMetadata: {
-          dataTypes: [{appLogic: {}, taskId: 'default', maxCount: 0, minCount: 0, allowedContentTypes: [], id: 'default'}]
+          dataTypes: [{
+            appLogic: {}, taskId: 'default', maxCount: 0, minCount: 0, allowedContentTypes: [], id: 'default',
+          }],
         } as any,
         error: null,
       },
@@ -1105,7 +1118,7 @@ describe('>>> utils/validations.ts', () => {
             group2: {
               count: 0,
               editIndex: -1,
-            }
+            },
           },
         },
       } as any,
@@ -1114,20 +1127,22 @@ describe('>>> utils/validations.ts', () => {
       } as any,
     });
     const result: IValidations = validation.validateGroup('group2', state);
-    expect(result).toEqual({ FormLayout: {
-      'componentId_5-0-1': {
-        simpleBinding: {
-          errors: [
-            getParsedLanguageFromKey(
-              `validation_errors.minLength`,
-              state.language.language,
-              [10],
-            ),
-          ],
-          warnings: [undefined]
-        }
-      }
-    }});
+    expect(result).toEqual({
+      FormLayout: {
+        'componentId_5-0-1': {
+          simpleBinding: {
+            errors: [
+              getParsedLanguageFromKey(
+                `validation_errors.minLength`,
+                state.language.language,
+                [10],
+              ),
+            ],
+            warnings: [undefined],
+          },
+        },
+      },
+    });
   });
 
   it('+++ removeGroupValidations should remove the groups validations', () => {
