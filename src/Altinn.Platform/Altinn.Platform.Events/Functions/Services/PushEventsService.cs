@@ -58,7 +58,7 @@ namespace Altinn.Platform.Events.Functions.Services
 
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
 
-                string certBase64 = await _keyVaultService.GetSecretAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
+                string certBase64 = await _keyVaultService.GetCertificateAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
                 string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events", new X509Certificate2(Convert.FromBase64String(certBase64)));
                 HttpResponseMessage response = await _client.PostAsync(endpointUrl, httpContent, accessToken);
                 if (response.StatusCode != HttpStatusCode.OK)

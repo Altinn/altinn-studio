@@ -2,8 +2,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
+using Azure;
 using Azure.Identity;
+using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.Rest.Azure;
 
 namespace Altinn.Platform.Events.Functions.Services
 {
@@ -15,12 +18,23 @@ namespace Altinn.Platform.Events.Functions.Services
     public class KeyVaultService : IKeyVaultService
     {
         /// <inheritdoc/>
-        public async Task<string> GetSecretAsync(string vaultUri, string secretId)
+        public async Task<string> GetCertificateAsync(string vaultUri, string secretId)
         {
-            SecretClient secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
-            KeyVaultSecret secret = await secretClient.GetSecretAsync(secretId);
+            CertificateClient certificateClient = new CertificateClient(new Uri(vaultUri), new DefaultAzureCredential());
+            AsyncPageable<CertificateProperties> certificatePropertiesPage = certificateClient.GetPropertiesOfCertificateVersionsAsync(secretId);
+            await foreach (CertificateProperties certificateProperties in certificatePropertiesPage)
+            {
+                if (certificateProperties.Enabled == true &&
+                    (certificateProperties.ExpiresOn == null || certificateProperties.ExpiresOn >= DateTime.UtcNow))
+                {
+                    KeyVaultCertificate keyVaultCertificate = await certificateClient.GetCertificateVersionAsync(secretId, certificateProperties.Version);
+                    SecretClient secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
+                    KeyVaultSecret secret = await secretClient.GetSecretAsync(keyVaultCertificate.SecretId.OriginalString);
+                    return secret.Value;
+                }
+            }
 
-            return secret.Value;
+            return null;
         }
     }
 }
