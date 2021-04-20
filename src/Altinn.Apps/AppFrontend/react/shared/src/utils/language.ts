@@ -93,7 +93,7 @@ export function replaceTextResourceParams(
   const resourcesWithVariables = textResources.filter((resource) => resource.variables);
   resourcesWithVariables.forEach((resource) => {
     const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
-    if (variableForRepeatingGroup) {
+    if (repeatingGroups && variableForRepeatingGroup) {
       const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
         const id = variableForRepeatingGroup.key.split('[{0}]')[0];
         return repeatingGroups[groupId].dataModelBinding === id;
