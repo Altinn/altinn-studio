@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'altinn-shared/utils';
-import { ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
+import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from 'src/features/form/layout';
 import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings, IOption, IOptions, IValidations } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
@@ -81,14 +81,14 @@ export const getDisplayFormDataForComponent = (
 
 export const getDisplayFormData = (
   dataModelBinding: string,
-  component: ILayoutComponent,
+  component: ILayoutComponent | ILayoutGroup,
   formData: any,
   options: IOptions,
   textResources: ITextResource[],
 ) => {
   const formDataValue = formData[dataModelBinding] || '';
   if (formDataValue) {
-    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
       if (selectionComponent?.options) {
@@ -99,18 +99,38 @@ export const getDisplayFormData = (
       }
       return getTextResourceByKey(label, textResources) || '';
     }
+    if (component.type === 'Checkboxes') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string = '';
+      const data: string = formData[dataModelBinding];
+      const split = data?.split(',');
+      split?.forEach((value: string) => {
+        if (selectionComponent?.options) {
+          label += getTextResourceByKey(selectionComponent.options.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        } else if (selectionComponent.optionsId) {
+          label += getTextResourceByKey(options[selectionComponent.optionsId]?.find((option: IOption) => option.value === value)?.label, textResources) || '';
+        }
+        if (split.indexOf(value) < (split.length - 1)) {
+          label += ', ';
+        }
+      });
+      return label;
+    }
   }
   return formDataValue;
 };
 
 export const getFormDataForComponentInRepeatingGroup = (
   formData: any,
-  component: ILayoutComponent,
+  component: ILayoutComponent | ILayoutGroup,
   index: number,
   groupDataModelBinding: string,
   textResources: ITextResource[],
   options: IOptions,
 ) => {
+  if (component.type === 'Group' || component.type === 'Header' || component.type === 'Paragraph') {
+    return '';
+  }
   const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
   const replaced = dataModelBinding.replace(groupDataModelBinding, `${groupDataModelBinding}[${index}]`);
   return getDisplayFormData(replaced, component, formData, options, textResources);

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
@@ -12,11 +12,11 @@ import Form from '../../features/form/containers/Form';
 import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
 import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
-import QueueActions from '../resources/queue/queueActions';
+import { startInitialDataTaskQueue, startInitialInfoTaskQueue } from '../resources/queue/queueSlice';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 import { IProcessState } from '../resources/process/processReducer';
-import IsLoadingActions from '../resources/isLoading/isLoadingActions';
+import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
 
 export default (props) => {
   const {
@@ -27,6 +27,7 @@ export default (props) => {
       },
     },
   } = props;
+  const dispatch = useDispatch();
   const [userLanguage, setUserLanguage] = React.useState('nb');
   const [appHeader, setAppHeader] = React.useState('');
 
@@ -78,13 +79,15 @@ export default (props) => {
 
     switch (process.taskType) {
       case (ProcessTaskType.Data): {
-        QueueActions.startInitialDataTaskQueue();
+        dispatch(startInitialDataTaskQueue());
         break;
       }
       case (ProcessTaskType.Confirm):
       case (ProcessTaskType.Feedback):
+        dispatch(startInitialInfoTaskQueue());
+        break;
       case (ProcessTaskType.Archived): {
-        IsLoadingActions.finishDataTaskIsloading();
+        dispatch(finishDataTaskIsLoading());
         break;
       }
       default:
