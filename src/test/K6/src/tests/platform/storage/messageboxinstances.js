@@ -39,7 +39,7 @@ export function setup() {
 };
 
 //Tests for platform Storage: MessageBoxInstances
-export default function(data) {
+export default function (data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     const instanceId = data["instanceId"];
@@ -50,13 +50,6 @@ export default function(data) {
     success = check(res, {
         "GET SBL Instance by Id status is 200:": (r) => r.status === 200,
         "GET SBL Instance by Id Instance Id matches:": (r) => (JSON.parse(r.body)).id === instanceId
-    });
-    addErrorCount(success);
-
-    //Test to get instances for a party from storage: SBL and validate the response
-    res = sbl.getSblInstanceByParty(runtimeToken, partyId, "active");
-    success = check(res, {
-        "GET SBL Instance by Party status is 200:": (r) => r.status === 200
     });
     addErrorCount(success);
 
