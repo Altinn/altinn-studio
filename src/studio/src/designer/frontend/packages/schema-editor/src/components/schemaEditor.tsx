@@ -16,10 +16,12 @@ import SchemaInspector from './SchemaInspector';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      height: 264,
-      flexGrow: 1,
-      maxWidth: 1200,
       marginTop: 24,
+      background: 'white',
+      height: 700,
+    },
+    tree: {
+      flexGrow: 1,
     },
     button: {
       marginLeft: 24,
@@ -87,7 +89,7 @@ export const SchemaEditor = ({
   };
 
   const onCloseAddPropertyModal = (property: any) => {
-    if (property) {
+    if (property && property.name) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
       const newProp = {
         path: addPropertyPath,
@@ -104,9 +106,12 @@ export const SchemaEditor = ({
     setAddPropertyPath('#/');
     setAddPropertyModalOpen(true);
   };
+  const onCancelAddItemModal = () => {
+    setAddPropertyModalOpen(false);
+  };
 
   const onCloseAddRootItemModal = (property: any) => {
-    if (property) {
+    if (property && property.name) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
       dispatch(addRootItem({ itemsToAdd: itemTree }));
       setAddPropertyModalOpen(false);
@@ -116,7 +121,7 @@ export const SchemaEditor = ({
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
-    <>
+    <div className={classes.root}>
       <Grid container={true} direction='row'>
         <Grid item={true} xs={7}>
           {uiSchema && uiSchema.length > 0 &&
@@ -129,12 +134,13 @@ export const SchemaEditor = ({
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
               path={addPropertyPath}
-              onClose={onCloseAddPropertyModal}
+              onClose={onCancelAddItemModal}
+              onConfirm={onCloseAddPropertyModal}
               sharedTypes={sharedItems}
               title='Add property'
             />
             <TreeView
-              className={classes.root}
+              className={classes.tree}
               defaultExpanded={['properties']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
@@ -148,7 +154,6 @@ export const SchemaEditor = ({
                   keyPrefix='properties'
                   item={item}
                   nodeId={`prop-${item.id}`}
-                  onAddPropertyClick={onAddPropertyClick}
                 /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -158,7 +163,6 @@ export const SchemaEditor = ({
                   item={def}
                   key={def.id}
                   nodeId={`def-${def.id}`}
-                  onAddPropertyClick={onAddPropertyClick}
                 />)}
               </TreeItem>
             </TreeView>
@@ -174,7 +178,8 @@ export const SchemaEditor = ({
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
               path={addPropertyPath}
-              onClose={onCloseAddRootItemModal}
+              onClose={onCancelAddItemModal}
+              onConfirm={onCloseAddRootItemModal}
               sharedTypes={sharedItems}
               title='Add root item'
             />
@@ -182,10 +187,10 @@ export const SchemaEditor = ({
           }
         </Grid>
         <Grid item={true} xs={5}>
-          <SchemaInspector />
+          <SchemaInspector onAddPropertyClick={onAddPropertyClick} />
         </Grid>
       </Grid>
-    </>
+    </div>
   );
 };
 

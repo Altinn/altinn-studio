@@ -94,6 +94,13 @@ namespace Altinn.Platform.Storage.Helpers
         /// DateTime the instance was deleted
         /// </summary>
         public DateTime? DeletedDateTime { get; set; }
+
+        /// <summary>
+        /// Presentation text is a dynamically created text that have been retrieved from data elements
+        /// and stored on the instance. The text can be used to make it easy to separate instaces from
+        /// the same app when displayed by the portal message box.
+        /// </summary>
+        public string PresentationText { get; set; }
     }
 
     /// <summary>

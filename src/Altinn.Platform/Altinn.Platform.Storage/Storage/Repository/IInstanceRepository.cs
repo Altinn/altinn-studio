@@ -11,14 +11,6 @@ namespace Altinn.Platform.Storage.Repository
     public interface IInstanceRepository
     {
         /// <summary>
-        /// Gets all the instances for an instance owner that should be visible for the user and in a given state
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">the owner of the instance</param>
-        /// <param name="instanceState">instance state. Valid values: active, archived, deleted</param>
-        /// <returns>The list of instances for an instance owner</returns>
-        Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState);
-
-        /// <summary>
         /// Gets all the instances that satisfy given query parameters
         /// </summary>
         /// <param name="queryParams">the query params</param>

@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, all, take, put } from 'redux-saga/effects';
 import { getJsonSchemaUrl } from 'src/utils/urlHelper';
 import { IInstance } from 'altinn-shared/types';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { get } from '../../../../utils/networking';
 import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
@@ -28,7 +28,7 @@ function* fetchJsonSchemaSaga(): SagaIterator {
     }
   } catch (error) {
     yield put(fetchJsonSchemaRejected({ error }));
-    yield call(QueueActions.dataTaskQueueError, error);
+    yield put(dataTaskQueueError({ error }));
   }
 }
 

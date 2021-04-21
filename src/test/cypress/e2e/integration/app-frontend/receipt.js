@@ -10,12 +10,11 @@ const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
   before(() => {
-    cy.compelteTask3Form();
+    cy.navigateToTask4();
   });
 
   it('Receipt page displays links and attachments', () => {
-    cy.get(appFrontend.backButton).should('be.visible');
-    cy.get(appFrontend.sendinButton).should('be.visible').click();
+    cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
     cy.get(appFrontend.receiptContainer).should('be.visible')
       .find(mui.tableBody).then((table) => {
         cy.get(table).should('exist').and('be.visible');

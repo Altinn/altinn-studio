@@ -120,6 +120,8 @@ function* putFormData(state: IRuntimeState, model: any) {
       if (!calculationUpdateHandled) {
         // No changedFields property returned, try to fetch
         yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+      } else {
+        yield sagaPut(FormLayoutActions.initRepeatingGroups());
       }
     } else {
       throw error;
@@ -170,6 +172,8 @@ function* saveFormDataSaga(): SagaIterator {
         if (!calculationUpdateHandled) {
           // No changedFields property returned, try to fetch
           yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+        } else {
+          yield sagaPut(FormLayoutActions.initRepeatingGroups());
         }
       } else {
         throw error;

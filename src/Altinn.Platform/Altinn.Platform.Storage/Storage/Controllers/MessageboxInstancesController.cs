@@ -56,60 +56,6 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets all instances in a given state for a given instance owner.
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">the instance owner id</param>
-        /// <param name="state">the instance state; active, archived or deleted</param>
-        /// <param name="language"> language nb, en, nn-NO</param>
-        /// <returns>list of instances</returns>
-        [Authorize]
-        [HttpGet("{instanceOwnerPartyId:int}")]
-        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
-        {
-            string[] allowedStates = { "active", "archived", "deleted" };
-            string[] acceptedLanguages = { "en", "nb", "nn" };
-
-            string languageId = "nb";
-            if (string.IsNullOrEmpty(state))
-            {
-                return BadRequest($"State is empty. Please provide on of: {string.Join(", ", allowedStates)}");
-            }
-
-            state = state.ToLower();
-            if (!allowedStates.Contains(state))
-            {
-                return BadRequest($"Invalid instance state. Please provide one of: {string.Join(", ", allowedStates)}");
-            }
-
-            if (language != null && acceptedLanguages.Contains(language.ToLower()))
-            {
-                languageId = language.ToLower();
-            }
-
-            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
-
-            if (allInstances.Count <= 0)
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            // removing properties only used for active messageBoxInstances
-            if (!state.Equals("active"))
-            {
-                allInstances.ForEach(i => i.DueBefore = null);
-            }
-
-            List<MessageBoxInstance> authorizedInstances =
-                await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
-            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
-
-            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
-            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
-
-            return Ok(authorizedInstances);
-        }
-
-        /// <summary>
         /// Search through instances to find match based on query params.
         /// </summary>
         /// <param name="instanceOwnerPartyId">The instance owner party id</param>

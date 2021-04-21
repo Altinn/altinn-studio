@@ -18,6 +18,11 @@ export default class AppFrontend {
     this.receiptContainer = '#ReceiptContainer';
     this.linkToArchive = 'a[href$="/ui/messagebox/archive"]';
 
+    // Confirmation
+    this.confirmContainer = '#ConfirmContainer';
+    this.confirmBody = '#body-text';
+    this.confirmSendInButton = '#confirm-button';
+
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
     this.fieldValidationWarning = '[id^="message_field"]';

@@ -46,6 +46,11 @@ namespace Altinn.Platform.Storage.Helpers
                 ReadStatus = status.ReadStatus
             };
 
+            if (instance.PresentationTexts is not null)
+            {
+                messageBoxInstance.PresentationText = string.Join(", ", instance.PresentationTexts.Select(pt => pt.Value).ToArray());
+            }
+
             if (instance.Status?.Substatus != null)
             {
                 messageBoxInstance.Substatus = new Substatus
@@ -174,6 +179,12 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 string id = $"{instance.Org}-{instance.AppName}-{language}";
                 instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
+
+                if (!string.IsNullOrWhiteSpace(instance.PresentationText))
+                {
+                    // Appending presentation text to title to avoid needing changes in SBL.
+                    instance.Title += $", {instance.PresentationText}";
+                }
 
                 if (instance.Substatus?.Label != null)
                 {
