@@ -24,16 +24,19 @@ export const RefSelect = (props: IRefSelectProps) => {
   const [value, setValue] = React.useState<string>(props.value);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions')));
 
-  const onValueChange = (event: any) => {
-    setValue(event.target.value);
-    onChange(id, event.target.value);
+  const onChangeValue = (event: React.ChangeEvent<{
+    name?: string | undefined;
+    value: unknown;
+}>) => {
+    setValue(event.target.value as string);
+    onChange(id, event.target.value as string);
   };
 
   return (
     <Select
       id={`ref-select-${id}`}
       value={value}
-      onChange={onValueChange}
+      onChange={onChangeValue}
       className={classes.root}
       disableUnderline={true}
     > { definitions?.map((d: UiSchemaItem) => <MenuItem key={d.id} value={d.id}>{d.id}</MenuItem>) }

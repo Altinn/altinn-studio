@@ -66,11 +66,12 @@ export function InputField(props: IInputFieldProps) {
     setLabel(props.label);
   }, [props.label]);
 
-  const onChangeValue = (val: any) => {
+  const onChangeValue = (val: string) => {
     setValue(val);
     const newValue = props.label === 'enum' ? val.split(',') : val;
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
+
   const onChangeType = (id: string, type: string) => {
     props.onChangeValue(props.fullPath, type, id);
   };

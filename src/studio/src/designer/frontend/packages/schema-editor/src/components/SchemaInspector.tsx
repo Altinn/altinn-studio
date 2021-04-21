@@ -31,7 +31,7 @@ const useStyles = makeStyles(
 );
 
 export interface ISchemaInspectorProps {
-  onAddPropertyClick: (property: any) => void;
+  onAddPropertyClick: (property: string) => void;
 }
 
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
@@ -85,16 +85,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
-  const onChangeNodeName = (e: any) => {
+  const onChangeNodeName = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
   };
 
-  const onAddPropertyClicked = (event: any) => {
+  const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = selectedItem?.id;
-    props.onAddPropertyClick(path);
+    if (path) {
+      props.onAddPropertyClick(path);
+    }
   };
-  const onAddFieldClick = (event: any) => {
+
+  const onAddFieldClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = selectedItem?.id;
     dispatch(addField({

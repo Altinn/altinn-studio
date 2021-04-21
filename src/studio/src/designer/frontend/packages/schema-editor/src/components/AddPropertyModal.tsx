@@ -29,14 +29,14 @@ export interface IAddPropertyModal {
   sharedTypes: UiSchemaItem[];
   title: string;
   onClose: () => void;
-  onConfirm: (item: any) => void;
+  onConfirm: (item: UiSchemaItem) => void;
 }
 
 function AddPropertyModal(props: IAddPropertyModal) {
   const { isOpen } = props;
   const classes = useStyles();
 
-  const [property, setProperty] = React.useState<any>({ name: '' });
+  const [property, setProperty] = React.useState<UiSchemaItem>({ name: '', id: '' });
   const [typeList, setTypeList] = React.useState<any[]>([]);
   const [showCustom, setShowCustom] = React.useState<boolean>(false);
 
@@ -54,11 +54,13 @@ function AddPropertyModal(props: IAddPropertyModal) {
   const onChangeProperty = (event: any) => {
     const name = event.target.value;
     const propertyItem = props.sharedTypes.find((item) => item.name === name);
-    setProperty(propertyItem);
+    if (propertyItem) {
+      setProperty(propertyItem);
+    }
   };
 
   const onChangeCustomProperty = (event: any) => {
-    const propertyItem = {
+    const propertyItem: UiSchemaItem = {
       name: event.target.value,
       id: `#/definitions/${event.target.value}`,
     };
