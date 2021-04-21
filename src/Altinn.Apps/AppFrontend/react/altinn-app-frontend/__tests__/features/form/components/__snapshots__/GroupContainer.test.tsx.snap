@@ -6,8 +6,8 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
 >
   <div
     className="MuiGrid-root MuiGrid-container MuiGrid-item"
-    data-testid="group-testGroupId"
-    id="group-testGroupId"
+    data-testid="group-mock-container-id"
+    id="group-mock-container-id"
   >
     <div
       className="MuiGrid-root MuiTableContainer-root"
@@ -62,7 +62,284 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
         <tbody
           className="MuiTableBody-root makeStyles-tableBody-3"
           role={null}
-        />
+        >
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                className="MuiButtonBase-root MuiIconButton-root"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "color": "black",
+                  }
+                }
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  Rediger
+                  <i
+                    className="fa fa-editing-file makeStyles-editIcon-6"
+                  />
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Value to be shown
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                className="MuiButtonBase-root MuiIconButton-root"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "color": "black",
+                  }
+                }
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  Rediger
+                  <i
+                    className="fa fa-editing-file makeStyles-editIcon-6"
+                  />
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                className="MuiButtonBase-root MuiIconButton-root"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "color": "black",
+                  }
+                }
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  Rediger
+                  <i
+                    className="fa fa-editing-file makeStyles-editIcon-6"
+                  />
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                className="MuiButtonBase-root MuiIconButton-root"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "color": "black",
+                  }
+                }
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  Rediger
+                  <i
+                    className="fa fa-editing-file makeStyles-editIcon-6"
+                  />
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>

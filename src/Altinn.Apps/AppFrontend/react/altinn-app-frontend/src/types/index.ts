@@ -173,6 +173,7 @@ export interface IRepeatingGroup {
   count: number;
   baseGroupId?: string;
   dataModelBinding?: string;
+  editIndex?: number;
 }
 
 export interface IRepeatingGroups {

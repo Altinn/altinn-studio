@@ -109,6 +109,14 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    updateRepeatingGroupsEditIndexFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsEditIndexFulfilled>) => {
+      const { group, index } = action.payload;
+      state.uiConfig.repeatingGroups[group].editIndex = index;
+    },
+    updateRepeatingGroupsEditIndexRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
     calculatePageOrderAndMoveToNextPageFulfilled: (state, action: PayloadAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>) => {
       const { order } = action.payload;
       state.uiConfig.layoutOrder = order;
@@ -128,6 +136,7 @@ const actions = {
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
   updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
+  updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),
   initRepeatingGroups: createAction(`${moduleName}/initRepeatingGroups`),
 };
 

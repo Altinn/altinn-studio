@@ -19,8 +19,8 @@ export interface IRepeatingGroupsEditContainer {
   textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;
-  setEditIndex: (index: number) => void;
   onClickRemove: (groupIndex: number) => void;
+  onClickSave: () => void;
   hideSaveButton?: boolean;
   hideDeleteButton?: boolean;
   multiPageIndex?: number;
@@ -59,8 +59,8 @@ export function RepeatingGroupsEditContainer({
   textResources,
   layout,
   editIndex,
-  setEditIndex,
   onClickRemove,
+  onClickSave,
   hideSaveButton,
   hideDeleteButton,
   multiPageIndex,
@@ -78,7 +78,7 @@ export function RepeatingGroupsEditContainer({
   );
 
   const closeEditContainer = () => {
-    setEditIndex(-1);
+    onClickSave();
     if (container.edit?.multiPage) {
       setMultiPageIndex(0);
     }

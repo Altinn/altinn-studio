@@ -13,7 +13,7 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
+import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, Triggers } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
@@ -22,7 +22,8 @@ import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[]
+  components: (ILayoutComponent | ILayoutGroup)[];
+  triggers?: Triggers[];
 }
 
 export function GroupContainer({
@@ -33,7 +34,7 @@ export function GroupContainer({
   const dispatch = useDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
 
-  const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const editIndex: number = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
   const [filteredIndexList, setFilteredIndexList] = React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
@@ -55,11 +56,11 @@ export function GroupContainer({
     }
     return -1;
   };
-  const repeatinGroupIndex = getRepeatingGroupIndex(id);
+  const repeatingGroupIndex = getRepeatingGroupIndex(id);
   const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
     container,
     renderComponents,
-    repeatinGroupIndex,
+    repeatingGroupIndex,
     textResources,
     hiddenFields,
   );
@@ -78,7 +79,7 @@ export function GroupContainer({
             return parseInt(field.substring(1, field.indexOf(']')), 10);
           });
           if (filtered.length === 0) {
-            setEditIndex(filtered[0]);
+            dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: filtered[0] }));
           } else {
             setFilteredIndexList(filtered);
           }
@@ -108,7 +109,7 @@ export function GroupContainer({
   const onClickAdd = () => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     if (container.edit?.mode !== 'showAll') {
-      setEditIndex(repeatinGroupIndex + 1);
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: (repeatingGroupIndex + 1) }));
     }
   };
 
@@ -119,12 +120,23 @@ export function GroupContainer({
   };
 
   const onClickRemove = (groupIndex: number) => {
-    setEditIndex(-1);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));
     dispatch(FormLayoutActions.updateRepeatingGroups({
       layoutElementId: id,
       remove: true,
       index: groupIndex,
     }));
+  };
+
+  const onClickSave = () => {
+    const validate: boolean = container.triggers?.includes(Triggers.Validation);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+      group: id, index: -1, validate,
+    }));
+  };
+
+  const setEditIndex = (index: number) => {
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index }));
   };
 
   if (hidden) {
@@ -149,7 +161,7 @@ export function GroupContainer({
           language={language}
           layout={layout}
           options={options}
-          repeatingGroupIndex={repeatinGroupIndex}
+          repeatingGroupIndex={repeatingGroupIndex}
           repeatingGroups={repeatingGroups}
           setEditIndex={setEditIndex}
           textResources={textResources}
@@ -161,7 +173,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatinGroupIndex + 1) < container.maxCount))) &&
+      {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatingGroupIndex + 1) < container.maxCount))) &&
         <RepeatingGroupAddButton
           container={container}
           language={language}
@@ -180,8 +192,8 @@ export function GroupContainer({
           language={language}
           layout={layout}
           onClickRemove={onClickRemove}
-          repeatingGroupIndex={repeatinGroupIndex}
-          setEditIndex={setEditIndex}
+          onClickSave={onClickSave}
+          repeatingGroupIndex={repeatingGroupIndex}
           textResources={textResources}
           hideSaveButton={container.edit?.saveButton === false}
           hideDeleteButton={container.edit?.deleteButton === false}
@@ -191,7 +203,7 @@ export function GroupContainer({
       }
       {container.edit?.mode === 'showAll' &&
       // Generate array of length repeatingGroupIndex and iterate over indexes
-        Array(repeatinGroupIndex + 1).fill(0).map((v, index) => {
+        Array(repeatingGroupIndex + 1).fill(0).map((v, index) => {
           return (
             <RepeatingGroupsEditContainer
               components={components}
@@ -202,8 +214,8 @@ export function GroupContainer({
               language={language}
               layout={layout}
               onClickRemove={onClickRemove}
-              repeatingGroupIndex={repeatinGroupIndex}
-              setEditIndex={setEditIndex}
+              onClickSave={onClickSave}
+              repeatingGroupIndex={repeatingGroupIndex}
               textResources={textResources}
               hideSaveButton={true}
               hideDeleteButton={container.edit?.deleteButton === false}
@@ -211,7 +223,7 @@ export function GroupContainer({
           );
         })
       }
-      {(container.edit?.mode === 'showAll' && ((repeatinGroupIndex + 1) < container.maxCount)) &&
+      {(container.edit?.mode === 'showAll' && ((repeatingGroupIndex + 1) < container.maxCount)) &&
         <RepeatingGroupAddButton
           container={container}
           language={language}
