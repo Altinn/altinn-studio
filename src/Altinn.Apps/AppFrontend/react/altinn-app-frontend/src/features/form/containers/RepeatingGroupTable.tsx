@@ -131,8 +131,8 @@ export function RepeatingGroupTable({
 }: IRepeatingGroupTableProps): JSX.Element {
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
-
-  const tableHeaderComponents = container.tableHeaders || components.map((c) => c.id) || [];
+  const tableHeaderComponents = container.tableHeaders
+    || components.map((c) => (c as any).baseComponentId || c.id) || [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
