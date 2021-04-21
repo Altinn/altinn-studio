@@ -3,7 +3,7 @@
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common';
-import * as texts from '../../fixtures/texts.json'
+import * as texts from '../../fixtures/texts.json';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -22,7 +22,8 @@ describe('Validation', () => {
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.requiredField)
-      .find(appFrontend.errorExclamation).should('be.visible');
+      .find(appFrontend.errorExclamation)
+      .should('be.visible');
   });
 
   it('Custom field validation - error', () => {
@@ -31,7 +32,8 @@ describe('Validation', () => {
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.customValidationInvalid)
-      .find(appFrontend.errorExclamation).should('be.visible');
+      .find(appFrontend.errorExclamation)
+      .should('be.visible');
   });
 
   it('Custom field validation - warning', () => {
@@ -61,5 +63,4 @@ describe('Validation', () => {
       .should('be.visible')
       .should('contain.text', texts.attachmentError);
   });
-
 });

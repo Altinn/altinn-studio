@@ -1,18 +1,18 @@
 /// <reference types="cypress" />
 
-import * as loginPage from "../../pageobjects/loginandreg";
+import * as loginPage from '../../pageobjects/loginandreg';
 
-context("Login", () => {
+context('Login', () => {
   beforeEach(() => {
-    cy.visit("/");
+    cy.visit('/');
   });
 
-  it("Login with valid user credentials", () => {
-    cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
+  it('Login with valid user credentials', () => {
+    cy.studiologin(Cypress.env('userName'), Cypress.env('userPwd'));
   });
 
-  it("Login with invalid user credentials", () => {
-    cy.studiologin(Cypress.env("userName"), "test123");
-    cy.get(loginPage.errorMessage).should("be.visible");
+  it('Login with invalid user credentials', () => {
+    cy.studiologin(Cypress.env('userName'), 'test123');
+    cy.get(loginPage.errorMessage).should('be.visible');
   });
 });
