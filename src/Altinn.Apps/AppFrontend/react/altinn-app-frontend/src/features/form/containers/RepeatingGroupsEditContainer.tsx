@@ -84,6 +84,13 @@ export function RepeatingGroupsEditContainer({
     }
   };
 
+  const removeClicked = () => {
+    onClickRemove(editIndex);
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  };
+
   return (
     <div className={classes.editContainer}>
       <Grid
@@ -104,7 +111,7 @@ export function RepeatingGroupsEditContainer({
           <Grid item={true}>
             <IconButton
               classes={{ root: classes.deleteButton }}
-              onClick={() => onClickRemove(editIndex)}
+              onClick={removeClicked}
             >
               {getLanguageFromKey('general.delete', language)}
               <i className='ai ai-trash'/>
