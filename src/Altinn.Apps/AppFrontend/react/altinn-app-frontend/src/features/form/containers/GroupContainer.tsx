@@ -35,7 +35,8 @@ export function GroupContainer({
 
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const [groupErrors, setGroupErrors] = React.useState<string>(null);
-  const [filteredIndexList, setFilteredIndexList] = React.useState(null);
+  const [filteredIndexList, setFilteredIndexList] = React.useState<number[]>(null);
+  const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
@@ -65,18 +66,19 @@ export function GroupContainer({
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
 
   React.useEffect(() => {
-    if (container.edit?.mode !== 'showAll' && container.edit?.rules && container.edit.rules.length > 0) {
-      container.edit.rules.forEach((rule: any) => {
+    if (container.edit?.mode !== 'showAll' && container.edit?.filter && container.edit.filter.length > 0) {
+      container.edit.filter.forEach((rule: any) => {
         const formDataKeys: string[] = Object.keys(formData).filter((key) => {
           const keyWithoutIndex = key.replace(/\[\d*\]/, '');
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
         });
         if (formDataKeys && formDataKeys.length > 0) {
           const filtered = formDataKeys.map((key) => {
-            return key.replace(container.dataModelBindings.group, '').substring(1, key.indexOf(']') + 1);
+            const field = key.replace(container.dataModelBindings.group, '');
+            return parseInt(field.substring(1, field.indexOf(']')), 10);
           });
           if (filtered.length === 0) {
-            setEditIndex(parseInt(filtered[0], 10));
+            setEditIndex(filtered[0]);
           } else {
             setFilteredIndexList(filtered);
           }
@@ -84,6 +86,12 @@ export function GroupContainer({
       });
     }
   }, [formData, container]);
+
+  React.useEffect(() => {
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  }, [container]);
 
   React.useEffect(() => {
     if (validations && validations[currentView] && validations[currentView][id]) {
@@ -177,6 +185,8 @@ export function GroupContainer({
           textResources={textResources}
           hideSaveButton={container.edit?.saveButton === false}
           hideDeleteButton={container.edit?.deleteButton === false}
+          multiPageIndex={multiPageIndex}
+          setMultiPageIndex={setMultiPageIndex}
         />
       }
       {container.edit?.mode === 'showAll' &&

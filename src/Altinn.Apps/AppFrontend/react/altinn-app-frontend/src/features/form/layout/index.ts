@@ -131,7 +131,13 @@ export interface IAdressComponent extends ILayoutComponent {
 
 export interface IGroupEditProperties {
   mode?: 'hideTable' | 'showTable' | 'showAll';
-  rules?: any[];
+  filter?: IGroupFilter[];
   saveButton?: boolean;
   deleteButton?: boolean;
+  multiPage?: boolean;
+}
+
+export interface IGroupFilter {
+  key: string;
+  value: string;
 }
