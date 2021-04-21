@@ -1130,12 +1130,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Result:
         /// The existing collection is left as is, and a 400 Bad request is returned
         /// </summary>
-        [Fact]
-        public async Task UpdatePresentationFields_PassingNullAsPresentationTexts_Returns400()
+        [Theory]
+        [MemberData(nameof(GetPresentationTextsData))]
+        public async Task UpdatePresentationFields_PassingNullAsPresentationTexts_Returns400(PresentationTexts presentationTexts)
         {
             // Arrange            
-            PresentationTexts presentationTexts = null;
-
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
             string requestPutUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
@@ -1152,6 +1151,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetPresentationTextsData()
+        {
+            yield return new object[] { new PresentationTexts() { Texts = null } };
+            yield return new object[] { null };
         }
 
         /// <summary>
@@ -1329,12 +1334,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Result:
         /// The existing collection is left as is, and a 400 Bad request is returned
         /// </summary>
-        [Fact]
-        public async Task UpdateDataValues_PassingNullAsDataValues_Returns400()
+        [Theory]
+        [MemberData(nameof(GetDataValuesData))]
+        public async Task UpdateDataValues_PassingNullAsDataValues_Returns400(DataValues dataValues)
         {
-            // Arrange            
-            DataValues dataValues = null;            
-
+            // Arrange
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
             string requestPutUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
@@ -1351,6 +1355,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetDataValuesData()
+        {
+            yield return new object[] { new DataValues() { Values = null } };
+            yield return new object[] { null };
         }
 
         private HttpClient GetTestClient()
