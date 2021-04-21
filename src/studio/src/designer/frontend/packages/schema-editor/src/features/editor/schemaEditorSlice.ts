@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
+import { ISchemaState, ISetRefAction, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -34,7 +34,6 @@ const schemaEditorSlice = createSlice({
         path, newKey, content,
       } = action.payload;
 
-      console.log('path: ', path);
       const addToItem = state.uiSchema.find((i) => i.id === path);
       const item = content[0];
       const propertyItem = {
@@ -109,6 +108,15 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    setRef(state, action) {
+      const {
+        path, ref,
+      }: ISetRefAction = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path, ItemType.Property);
+      if (schemaItem) {
+        schemaItem.$ref = ref;
+      }
+    },
     setKey(state, action) {
       const {
         path, oldKey, newKey,
@@ -128,13 +136,29 @@ const schemaEditorSlice = createSlice({
     },
     setPropertyName(state, action) {
       const { path, name } = action.payload;
-      const [rootPath, propertyName] = path.split('/properties/');
-      if (rootPath && propertyName) {
-        const rootItem = state.uiSchema.find((item) => item.id === rootPath);
-        const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
-        if (propertyItem) {
-          propertyItem.name = name;
-          propertyItem.id = `${rootPath}/properties/${name}`;
+      if (path.includes('/properties')) {
+        // #/definitions/Foretak/properties/organisasjonsnummerForetak
+        const [rootPath, propertyName] = path.split('/properties/');
+        if (rootPath && propertyName) {
+          const rootItem = state.uiSchema.find((item) => item.id === rootPath);
+          const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
+          if (propertyItem) {
+            propertyItem.name = name;
+            propertyItem.id = `${rootPath}/properties/${name}`;
+            state.selectedId = propertyItem.id;
+          }
+        }
+        // also update definition item ?
+      } else if (path.includes('/definitions')) {
+        // just update definition id/name
+        const propertyName = path.split('/definitions/')[1];
+        if (propertyName) {
+          const rootItem = state.uiSchema.find((item) => item.id === path);
+          if (rootItem) {
+            rootItem.name = name;
+            rootItem.id = `#/definitions/${propertyName}`;
+            state.selectedId = rootItem.id;
+          }
         }
       }
     },
@@ -180,6 +204,7 @@ export const {
   deleteProperty,
   setFieldValue,
   setKey,
+  setRef,
   setJsonSchema,
   setPropertyName,
   setRootName,
