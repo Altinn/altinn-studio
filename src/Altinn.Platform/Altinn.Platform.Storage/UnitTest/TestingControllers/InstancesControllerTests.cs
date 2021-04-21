@@ -1122,7 +1122,42 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(3, actual.Keys.Count);
-        }                
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Passes in null as presentation texts.
+        /// Result:
+        /// The existing collection is left as is, and a 400 Bad request is returned
+        /// </summary>
+        [Theory]
+        [MemberData(nameof(GetPresentationTextsData))]
+        public async Task UpdatePresentationFields_PassingNullAsPresentationTexts_Returns400(PresentationTexts presentationTexts)
+        {
+            // Arrange            
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestPutUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri);
+            httpPutRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpPutRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetPresentationTextsData()
+        {
+            yield return new object[] { new PresentationTexts() { Texts = null } };
+            yield return new object[] { null };
+        }
 
         /// <summary>
         /// Scenario:
@@ -1259,7 +1294,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Data value is succesfully added to existing collection and the updated instance returned.
         /// </summary>
         [Fact]
-        public async Task UpdateDataValue_AddNewDataValueToExistingCollection_ReturnsUpdatedInstance()
+        public async Task UpdateDataValues_AddNewDataValueToExistingCollection_ReturnsUpdatedInstance()
         {
             // Arrange            
             var dataValues = new DataValues
@@ -1291,6 +1326,41 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(3, actual.Keys.Count);
             Assert.Equal("value3", actual["key3"]);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Passes in null as datavalue.
+        /// Result:
+        /// The existing collection is left as is, and a 400 Bad request is returned
+        /// </summary>
+        [Theory]
+        [MemberData(nameof(GetDataValuesData))]
+        public async Task UpdateDataValues_PassingNullAsDataValues_Returns400(DataValues dataValues)
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
+            string requestPutUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
+
+            HttpClient client = GetTestClient();
+
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri);
+            httpPutRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpPutRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        public static IEnumerable<object[]> GetDataValuesData()
+        {
+            yield return new object[] { new DataValues() { Values = null } };
+            yield return new object[] { null };
         }
 
         private HttpClient GetTestClient()

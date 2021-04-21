@@ -2,17 +2,27 @@ import * as React from 'react';
 import { makeStyles,
   FormControl,
   Input,
-  InputAdornment,
   IconButton } from '@material-ui/core';
-import { CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
+import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
+import { RefSelect } from './RefSelect';
 
 const useStyles = makeStyles({
-  root: {
-    margin: 12,
+  field: {
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    margin: 8,
+    minWidth: 60,
   },
-  rootKey: {
-    margin: 12,
+  type: {
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    margin: 8,
   },
   inline: {
     display: 'inline-block',
@@ -38,14 +48,15 @@ export interface IInputFieldProps {
   fullPath: string;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
+  onChangeRef?: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
+  isRef?: boolean;
 }
 
 export function InputField(props: IInputFieldProps) {
   const classes = useStyles();
   const [value, setValue] = React.useState<string>(props.value || '');
   const [label, setLabel] = React.useState<string>(props.label || '');
-  const [editLabel, setEditLabel] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setValue(props.value);
@@ -55,17 +66,18 @@ export function InputField(props: IInputFieldProps) {
     setLabel(props.label);
   }, [props.label]);
 
-  const onChangeValue = (e: any) => {
-    setValue(e.target.value);
-    let newValue = e.target.value;
-    if (props.label === 'enum') {
-      newValue = e.target.value.split(',');
-    }
+  const onChangeValue = (val: string) => {
+    setValue(val);
+    const newValue = props.label === 'enum' ? val.split(',') : val;
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
 
   const onChangeType = (id: string, type: string) => {
     props.onChangeValue(props.fullPath, type, id);
+  };
+
+  const onChangeRef = (id: string, ref: string) => {
+    props.onChangeRef?.(props.fullPath, ref);
   };
 
   const onChangeKey = (e: any) => {
@@ -80,10 +92,29 @@ export function InputField(props: IInputFieldProps) {
     props.onDeleteField(props.fullPath, props.label);
   };
 
-  const toggleEditLabel = () => {
-    setEditLabel(!editLabel);
+  const renderValueField = () => {
+    if (label === 'type') {
+      return <TypeSelect
+        itemType={value}
+        id={label}
+        onChange={onChangeType}
+      />;
+    }
+    if (props.isRef) {
+      return <RefSelect
+        id={label}
+        value={value}
+        onChange={onChangeRef}
+      />;
+    }
+    return <Input
+      id={`${baseId}-value-${label}`}
+      value={value}
+      disableUnderline={true}
+      onChange={(e) => onChangeValue(e.target.value)}
+    />;
   };
-  const baseId = `input-${props.fullPath.replace('#/definitions/', '')}`;
+  const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
   return (
     <div>
       <span className={classes.inputs}>
@@ -91,34 +122,14 @@ export function InputField(props: IInputFieldProps) {
           <Input
             id={`${baseId}-key-${label}`}
             value={label}
+            disableUnderline={true}
             onChange={onChangeKey}
             onBlur={onBlurKey}
-            disabled={!editLabel}
-            className={classes.rootKey}
-            endAdornment={
-              <InputAdornment position='end'>
-                <IconButton onClick={toggleEditLabel} id={`${baseId}-toggle-${label}`}>
-                  {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-                </IconButton>
-              </InputAdornment>
-            }
+            className={classes.field}
           />
         </FormControl>
-        <FormControl>
-          {label === 'type' ?
-            <TypeSelect
-              itemType={value}
-              id={label}
-              onChange={onChangeType}
-            />
-            :
-            <Input
-              id={`${baseId}-value-${label}`}
-              value={value}
-              onChange={onChangeValue}
-              className={classes.root}
-            />
-          }
+        <FormControl className={classes.field}>
+          { renderValueField() }
         </FormControl>
       </span>
       <IconButton
