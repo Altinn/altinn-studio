@@ -595,11 +595,16 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdatePresentationTexts(
+        public async Task<ActionResult<Instance>> UpdatePresentationTexts(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromBody] PresentationTexts presentationTexts)
         {
+            if (presentationTexts?.Texts == null)
+            {
+                return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
+            }
+
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
@@ -634,13 +639,19 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/datavalues")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdateDataValues(
+        public async Task<ActionResult<Instance>> UpdateDataValues(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromBody] DataValues dataValues)
         {
+            if (dataValues?.Values == null)
+            {
+                return BadRequest($"Missing parameter value: dataValues is misformed or empty");
+            }
+
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
@@ -659,7 +670,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             var updatedInstance = await _instanceRepository.Update(instance);
-            return updatedInstance;
+            return Ok(updatedInstance);
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
