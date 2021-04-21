@@ -25,10 +25,10 @@ namespace Altinn.Platform.Events.Functions.Services
             {
                 if (certificateProperties.Enabled == true &&
                     (certificateProperties.ExpiresOn == null || certificateProperties.ExpiresOn >= DateTime.UtcNow))
-                {
-                    KeyVaultCertificate keyVaultCertificate = await certificateClient.GetCertificateVersionAsync(secretId, certificateProperties.Version);
+                {                    
                     SecretClient secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
-                    KeyVaultSecret secret = await secretClient.GetSecretAsync(keyVaultCertificate.SecretId.OriginalString);
+
+                    KeyVaultSecret secret = await secretClient.GetSecretAsync(certificateProperties.Name, certificateProperties.Version);
                     return secret.Value;
                 }
             }
