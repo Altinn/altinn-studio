@@ -54,7 +54,11 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         const match = lastItem.match(regex);
         if (match && match[1]) {
           const count = parseInt(match[1], 10);
-          repeatingGroups[groupElement.id] = { count, dataModelBinding: groupElement.dataModelBindings?.group };
+          repeatingGroups[groupElement.id] = {
+            count,
+            dataModelBinding: groupElement.dataModelBindings?.group,
+            editIndex: -1,
+          };
           const groupElementChildGroups = groupElement.children?.filter((id) => childGroups.includes(id));
           groupElementChildGroups.forEach((childGroupId: string) => {
             const childGroup = groups.find((element) => element.id === childGroupId);
@@ -63,12 +67,17 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
               repeatingGroups[groupId] = {
                 count: getCountForRepeatingGroup(formData, childGroup.dataModelBindings?.group, groupElement.dataModelBindings.group, index),
                 baseGroupId: childGroup.id,
+                editIndex: -1,
               };
             });
           });
         }
       } else {
-        repeatingGroups[groupElement.id] = { count: -1, dataModelBinding: groupElement.dataModelBindings?.group };
+        repeatingGroups[groupElement.id] = {
+          count: -1,
+          dataModelBinding: groupElement.dataModelBindings?.group,
+          editIndex: -1,
+        };
       }
     }
   });

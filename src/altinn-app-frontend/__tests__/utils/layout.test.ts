@@ -73,18 +73,22 @@ describe('>>> layout.ts', () => {
       Group1: {
         count: 2,
         dataModelBinding: 'Group1',
+        editIndex: -1,
       },
       'Group2-0': {
         count: 0,
         baseGroupId: 'Group2',
+        editIndex: -1,
       },
       'Group2-1': {
         count: 4,
         baseGroupId: 'Group2',
+        editIndex: -1,
       },
       'Group2-2': {
         count: 1,
         baseGroupId: 'Group2',
+        editIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
@@ -155,10 +159,12 @@ describe('>>> layout.ts', () => {
       Group1: {
         count: 3,
         dataModelBinding: 'Group1',
+        editIndex: -1,
       },
       Group2: {
         count: 2,
         dataModelBinding: 'Group2',
+        editIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);

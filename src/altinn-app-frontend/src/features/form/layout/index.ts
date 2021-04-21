@@ -8,6 +8,7 @@ export interface ILayouts {
 export interface ILayoutEntry {
   id: string;
   type: GroupTypes | ComponentTypes;
+  triggers?: Triggers[];
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
@@ -26,7 +27,6 @@ export interface ILayoutComponent extends ILayoutEntry {
   disabled?: boolean;
   required?: boolean;
   textResourceBindings: ITextResourceBindings;
-  triggers?: Triggers[];
   formData?: any;
   grid?: IGrid;
 }

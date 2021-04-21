@@ -5,7 +5,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import moment from 'moment';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings } from 'src/types';
+import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings, IRuntimeState } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
@@ -16,6 +16,7 @@ import { getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent, setupGroupComponents } from './layout';
 import { createRepeatingGroupComponents } from './formLayout';
+import { getDataTaskDataTypeId } from './appMetadata';
 
 const JsonPointer = require('jsonpointer');
 
@@ -127,7 +128,7 @@ export function validateEmptyFieldsForLayout(
   language: any,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
-) {
+): ILayoutValidations {
   const validations: any = {};
   let fieldsInGroup = [];
   const groupsToCheck = formLayout.filter((component) => component.type.toLowerCase() === 'group');
@@ -297,7 +298,7 @@ export function validateFormComponentsForLayout(
   formData: any,
   language: any,
   hiddenFields: string[],
-) {
+): ILayoutValidations {
   const validations: any = {};
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component: any) => {
@@ -952,6 +953,57 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
 }
 
 /**
+ * Validates a specific group. Validates all child components and child groups.
+ * @param groupId the group to validate
+ * @param state the current state
+ * @returns validations for a given group
+ */
+export function validateGroup(groupId: string, state: IRuntimeState): IValidations {
+  const language = state.language.language;
+  const hiddenFields = state.formLayout.uiConfig.hiddenFields;
+  const attachments = state.attachments.attachments;
+  const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
+  const formData = state.formData.formData;
+  const currentView = state.formLayout.uiConfig.currentView;
+  const currentLayout = state.formLayout.layouts[currentView];
+  const groups = currentLayout.filter((layoutElement) => layoutElement.type.toLowerCase() === 'group');
+
+  const childGroups: string[] = [];
+  groups.forEach((groupCandidate: ILayoutGroup) => {
+    groupCandidate?.children?.forEach((childId: string) => {
+      currentLayout
+        .filter(((element) => (element.id === childId && element.type.toLowerCase() === 'group')))
+        .forEach((childGroup) => childGroups.push(childGroup.id));
+    });
+  });
+  const group: ILayoutGroup = currentLayout.find((element) => element.id === groupId) as ILayoutGroup;
+  // only validate elements that are part of the group or part of child groups
+  const filteredLayout = [];
+  currentLayout.forEach((element) => {
+    if (childGroups?.includes(element.id)) {
+      filteredLayout.push(element);
+      const childGroup = element as ILayoutGroup;
+      childGroup.children?.forEach((childId) => {
+        filteredLayout.push((currentLayout.find((childComponent) => childComponent.id === childId)));
+      });
+    }
+    if (group?.children?.includes(element.id) || element.id === groupId) {
+      filteredLayout.push(element);
+    }
+  });
+  const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+    state.instanceData.instance.process.currentTask.elementId,
+    state.applicationMetadata.applicationMetadata.dataTypes,
+  );
+  const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+  const validator = createValidator(schema);
+  const emptyFieldsValidations: ILayoutValidations = validateEmptyFieldsForLayout(formData, filteredLayout, language, hiddenFields, repeatingGroups);
+  const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
+  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language).validations;
+  return mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
+}
+
+/*
  * Removes the validations for a given group index and shifts higher indexes if nesseccary.
  * @param id the group id
  * @param index the index to remove
