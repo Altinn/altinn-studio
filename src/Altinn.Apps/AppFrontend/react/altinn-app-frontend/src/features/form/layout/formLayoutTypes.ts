@@ -65,6 +65,17 @@ export interface IUpdateRepeatingGroupsFulfilled {
   repeatingGroups: any;
 }
 
+export interface IUpdateRepeatingGroupsEditIndex {
+  group: string;
+  index: number;
+  validate?: boolean;
+}
+
+export interface IUpdateRepeatingGroupsEditIndexFulfilled {
+  group: string;
+  index: number;
+}
+
 export interface ICalculatePageOrderAndMoveToNextPage {
   runValidations?: 'allPages' | 'page';
   skipMoveToNext?: boolean;
