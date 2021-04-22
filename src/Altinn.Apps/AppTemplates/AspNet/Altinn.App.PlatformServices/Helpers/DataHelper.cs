@@ -115,7 +115,7 @@ namespace Altinn.App.Services.Helpers
                 object propertyValue = property.GetValue(data, null);
                 if (isLastKey)
                 {
-                    return propertyValue.ToString();
+                    return propertyValue == null ? (string)propertyValue : propertyValue.ToString();
                 }
                 else
                 {
