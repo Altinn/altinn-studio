@@ -126,11 +126,9 @@ namespace Altinn.App.Services.Helpers
                     }
 
                     // recurivly assign values
-                    GetValueFromDatamodel(keys, property.GetValue(data, null), index + 1);
+                    return GetValueFromDatamodel(keys, property.GetValue(data, null), index + 1);
                 }
             }
-
-            return string.Empty;
         }
     }
 }
