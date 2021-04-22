@@ -57,8 +57,17 @@ namespace Altinn.Platform.Events.Functions.Services
                 string endpointUrl = "push";
 
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
-
+                _logger.LogInformation($"// KeyVaultURI: {_keyVaultSettings.KeyVaultURI}, platformCertId: {_keyVaultSettings.PlatformCertSecretId}");
                 string certBase64 = await _keyVaultService.GetCertificateAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
+                if (string.IsNullOrEmpty(certBase64))
+                {
+                    _logger.LogInformation("// Certificate is empty");
+                }
+                else
+                {
+                    _logger.LogInformation($"// certBase64.length: {certBase64.Length}");
+                }
+
                 string accessToken = _accessTokenGenerator.GenerateAccessToken(
                     "platform",
                     "events",
