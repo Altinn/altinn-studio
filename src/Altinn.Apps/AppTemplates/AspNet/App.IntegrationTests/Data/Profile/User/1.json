@@ -3,7 +3,7 @@
   "UserName": "OlaNordmann",
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
-  "PartyId": 1,
+  "PartyId": 1000,
   "Party": {
 
   },
