@@ -74,7 +74,7 @@ namespace Altinn.App.Services.Helpers
 
             if (originalDictionary == null)
             {
-                return updatedValues;
+                return newDictionary;
             }
 
             foreach (KeyValuePair<string, string> entry in newDictionary)
