@@ -401,15 +401,19 @@ namespace Altinn.App.Api.Controllers
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);
 
-            Dictionary<string, string> updatedFields =
-                DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, null, appModel);
+            Dictionary<string, string> updatedValues =
+                DataHelper.GetUpdatedDataValues(
+                    _appResourcesService.GetApplication().PresentationFields,
+                    instance.PresentationTexts,
+                    dataType,
+                    appModel);
 
-            if (updatedFields.Count > 0)
+            if (updatedValues.Count > 0)
             {
                 await _instanceService.UpdatePresentationTexts(
                      int.Parse(instance.InstanceOwner.PartyId),
                      Guid.Parse(instance.Id.Split("/")[1]),
-                     new PresentationTexts { Texts = updatedFields });
+                     new PresentationTexts { Texts = updatedValues });
             }
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
@@ -556,24 +560,19 @@ namespace Altinn.App.Api.Controllers
             // Trigger application business logic
             bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
-            // Get old form data for comparison to identify changes in presentation texts
-            object oldData = await _dataService.GetFormData(
-                instanceGuid,
-                _altinnApp.GetAppModelType(classRef),
-                org,
-                app,
-                instanceOwnerPartyId,
-                dataGuid);
+            Dictionary<string, string> updatedValues =
+                DataHelper.GetUpdatedDataValues(
+                    _appResourcesService.GetApplication().PresentationFields,
+                    instance.PresentationTexts, 
+                    dataType, 
+                    serviceModel);
 
-            Dictionary<string, string> updatedFields =
-                DataHelper.GetUpdatedDataFields(_appResourcesService.GetApplication().PresentationFields, dataType, oldData, serviceModel);
-
-            if (updatedFields.Count > 0)
+            if (updatedValues.Count > 0)
             {
                 await _instanceService.UpdatePresentationTexts(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
-                    new PresentationTexts { Texts = updatedFields });
+                    new PresentationTexts { Texts = updatedValues });
             }
 
             // Save Formdata to database
