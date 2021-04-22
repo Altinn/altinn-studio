@@ -12,7 +12,6 @@ using Altinn.Platform.Events.Functions.Models;
 using Altinn.Platform.Events.Functions.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Events.Functions.Services
 {
@@ -56,22 +55,12 @@ namespace Altinn.Platform.Events.Functions.Services
             {
                 string endpointUrl = "push";
 
-                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
-                _logger.LogInformation($"// KeyVaultURI: {_keyVaultSettings.KeyVaultURI}, platformCertId: {_keyVaultSettings.PlatformCertSecretId}");
                 string certBase64 = await _keyVaultService.GetCertificateAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
-                if (string.IsNullOrEmpty(certBase64))
-                {
-                    _logger.LogInformation("// Certificate is empty");
-                }
-                else
-                {
-                    _logger.LogInformation($"// certBase64.length: {certBase64.Length}");
-                }
-
                 string accessToken = _accessTokenGenerator.GenerateAccessToken(
                     "platform",
                     "events",
                     new X509Certificate2(Convert.FromBase64String(certBase64), (string)null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable));
+
                 HttpResponseMessage response = await _client.PostAsync(endpointUrl, httpContent, accessToken);
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
