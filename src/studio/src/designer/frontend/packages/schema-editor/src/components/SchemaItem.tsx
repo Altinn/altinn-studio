@@ -4,7 +4,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedId } from '../features/editor/schemaEditorSlice';
+import { IconButton, Menu, MenuItem } from '@material-ui/core';
+import { addField, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -105,6 +106,7 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const [definitionItem, setDefinitionItem] = React.useState<any>(item);
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
+  const [contextAnchor, setContextAnchor] = React.useState<any>(null);
 
   React.useEffect(() => {
     if (refItems && refItems.length > 0) {
@@ -180,6 +182,11 @@ function SchemaItem(props: StyledTreeItemProps) {
     return null;
   };
 
+  const handleCloseContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextAnchor(null);
+  };
+
   const renderLabelText = () => {
     if (refSource) {
       return <>{ icon('fa-datamodel-ref') } {`$ref: ${refSource}`}</>;
@@ -187,16 +194,49 @@ function SchemaItem(props: StyledTreeItemProps) {
     return <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>;
   };
 
-  const RenderLabel = () => (
+  const handleAddProperty = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextAnchor(null);
+    dispatch(addField({
+      path: id,
+      key: 'key',
+      value: 'value',
+    }));
+  };
+  const handleContextMenuClick = (e: React.MouseEvent) => {
+    setContextAnchor(e.currentTarget);
+    e.preventDefault();
+  };
+  const renderLabel = () => (
     <div className={classes.labelRoot}>
       <Typography className={classes.label}>{renderLabelText()}</Typography>
+      {item.fields &&
+      <>
+        <IconButton
+          aria-controls='simple-menu' aria-haspopup='true'
+          id='open-context-menu-button'
+          onClick={handleContextMenuClick}
+        ><i className='fa fa-ellipsismenu'/>
+        </IconButton>
+        <Menu
+          id={`${id}-context-menu`}
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={handleCloseContextMenu}
+        >
+          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Add property</MenuItem>
+          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Import</MenuItem>
+          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Delete</MenuItem>
+        </Menu>
+      </>}
     </div>
   );
 
   return (
     <TreeItem
       classes={{ root: classes.treeItem }}
-      label={<RenderLabel/>}
+      label={renderLabel()}
       onClick={() => onItemClick(id)}
       {...other}
     >
