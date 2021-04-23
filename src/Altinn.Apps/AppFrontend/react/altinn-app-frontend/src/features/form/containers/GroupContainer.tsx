@@ -67,7 +67,7 @@ export function GroupContainer({
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
 
   React.useEffect(() => {
-    if (container.edit?.mode !== 'showAll' && container.edit?.filter && container.edit.filter.length > 0) {
+    if (container.edit?.filter && container.edit.filter.length > 0) {
       container.edit.filter.forEach((rule: any) => {
         const formDataKeys: string[] = Object.keys(formData).filter((key) => {
           const keyWithoutIndex = key.replace(/\[\d*\]/, '');
@@ -78,11 +78,7 @@ export function GroupContainer({
             const field = key.replace(container.dataModelBindings.group, '');
             return parseInt(field.substring(1, field.indexOf(']')), 10);
           });
-          if (filtered.length === 0) {
-            dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: filtered[0] }));
-          } else {
-            setFilteredIndexList(filtered);
-          }
+          setFilteredIndexList(filtered);
         }
       });
     }
