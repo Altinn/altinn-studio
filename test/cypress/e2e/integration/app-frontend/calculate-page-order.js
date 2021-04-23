@@ -2,7 +2,7 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
-import Common from '../../pageobjects/common'
+import Common from '../../pageobjects/common';
 import * as texts from '../../fixtures/texts.json';
 
 const appFrontend = new AppFrontend();
@@ -12,8 +12,7 @@ describe('Calculate Page Order', () => {
   before(() => {
     cy.navigateToTask3();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
-      cy.get(checkbox).should('be.visible')
-        .find('input').check();
+      cy.get(checkbox).should('be.visible').find('input').check();
     });
   });
   beforeEach(() => {
@@ -37,15 +36,16 @@ describe('Calculate Page Order', () => {
   it('Page two is shown when condition is not satisfied', () => {
     cy.get(appFrontend.group.summaryText).should('be.visible');
     cy.get(appFrontend.backButton).click();
-    cy.get(appFrontend.group.mainGroup).find(mui.tableBody).then((table) => {
-      cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
-    });    
-    cy.get(appFrontend.group.newValue).clear().type('2');    
+    cy.get(appFrontend.group.mainGroup)
+      .find(mui.tableBody)
+      .then((table) => {
+        cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
+      });
+    cy.get(appFrontend.group.newValue).clear().type('2');
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
     cy.intercept('POST', '**/pages/order*').as('getPageOrder');
     cy.contains(mui.button, texts.next).click();
     cy.wait('@getPageOrder');
-    cy.get(appFrontend.group.sendersName).should('exist');    
+    cy.get(appFrontend.group.sendersName).should('exist');
   });
-
 });
