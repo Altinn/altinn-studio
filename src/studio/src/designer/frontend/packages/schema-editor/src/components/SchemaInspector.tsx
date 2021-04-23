@@ -148,7 +148,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           />;
         }
         console.error(p);
-        throw new Error('Unrecognized UISchemaItem');
+        return null;
       })}
 
       {/* key:value fields */}

@@ -5,7 +5,7 @@ import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton, Menu, MenuItem } from '@material-ui/core';
-import { addField, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -52,6 +52,16 @@ const useStyles = makeStyles({
     background: 'none',
     border: 'none',
   },
+  contextButton: {
+    borderRadius: 60,
+    display: 'none',
+    '$treeItem :hover > &': {
+      display: 'block',
+    },
+  },
+  menuItem: {
+    padding: 8,
+  },
   iconContainer: {
     background: '#022f51',
     textAlign: 'center',
@@ -70,6 +80,9 @@ const useStyles = makeStyles({
     '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
       backgroundColor: 'transparent',
     },
+    // '&:hover > $contextButton': {
+    //   display: 'block',
+    // },
   },
   filler: {
     paddingTop: 5,
@@ -193,6 +206,11 @@ function SchemaItem(props: StyledTreeItemProps) {
     }
     return <>{ icon('fa-datamodel-object') } {item.name ?? id.replace('#/definitions/', '')}</>;
   };
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextAnchor(null);
+    dispatch(deleteProperty({ path: item.id }));
+  };
 
   const handleAddProperty = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -210,26 +228,28 @@ function SchemaItem(props: StyledTreeItemProps) {
   const renderLabel = () => (
     <div className={classes.labelRoot}>
       <Typography className={classes.label}>{renderLabelText()}</Typography>
-      {item.fields &&
-      <>
-        <IconButton
-          aria-controls='simple-menu' aria-haspopup='true'
-          id='open-context-menu-button'
-          onClick={handleContextMenuClick}
-        ><i className='fa fa-ellipsismenu'/>
-        </IconButton>
-        <Menu
-          id={`${id}-context-menu`}
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={handleCloseContextMenu}
-        >
-          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Add property</MenuItem>
-          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Import</MenuItem>
-          <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/> Delete</MenuItem>
-        </Menu>
-      </>}
+      <IconButton
+        className={classes.contextButton}
+        aria-controls='simple-menu' aria-haspopup='true'
+        id='open-context-menu-button'
+        onClick={handleContextMenuClick}
+      ><i className='fa fa-ellipsismenu'/>
+      </IconButton>
+      <Menu
+        id={`${id}-context-menu`}
+        anchorEl={contextAnchor}
+        keepMounted
+        open={Boolean(contextAnchor)}
+        onClose={handleCloseContextMenu}
+      >
+        { item.fields &&
+          <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
+        }
+        <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
+        { (item.fields || item.properties || item.$ref) &&
+          <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
+        }
+      </Menu>
     </div>
   );
 
