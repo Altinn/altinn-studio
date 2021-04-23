@@ -75,8 +75,9 @@ export function GroupContainer({
         });
         if (formDataKeys && formDataKeys.length > 0) {
           const filtered = formDataKeys.map((key) => {
-            const field = key.replace(container.dataModelBindings.group, '');
-            return parseInt(field.substring(1, field.indexOf(']')), 10);
+            const match = key.match(/\[(\d*)\]/g);
+            const currentIndex = match[match.length - 1];
+            return parseInt(currentIndex.substring(1, currentIndex.indexOf(']')), 10);
           });
           setFilteredIndexList(filtered);
         }
@@ -200,6 +201,10 @@ export function GroupContainer({
       {container.edit?.mode === 'showAll' &&
       // Generate array of length repeatingGroupIndex and iterate over indexes
         Array(repeatingGroupIndex + 1).fill(0).map((v, index) => {
+          if (filteredIndexList && filteredIndexList.length > 0 && !filteredIndexList.includes(index)) {
+            return null;
+          }
+
           return (
             <RepeatingGroupsEditContainer
               components={components}
