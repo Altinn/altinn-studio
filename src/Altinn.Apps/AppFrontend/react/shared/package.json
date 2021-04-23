@@ -61,7 +61,7 @@
     "react-dom": "~16.13.1",
     "react-styleguidist": "~11.1.6",
     "react-test-renderer": "~16.13.1",
-    "ts-jest": "~26.5.5"
+    "ts-jest": "~26.5.4"
   },
   "jest": {
     "transform": {
