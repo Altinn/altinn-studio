@@ -70,7 +70,7 @@ export function GroupContainer({
     if (container.edit?.filter && container.edit.filter.length > 0) {
       container.edit.filter.forEach((rule: any) => {
         const formDataKeys: string[] = Object.keys(formData).filter((key) => {
-          const keyWithoutIndex = key.replace(/\[\d*\]/, '');
+          const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
         });
         if (formDataKeys && formDataKeys.length > 0) {
