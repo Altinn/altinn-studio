@@ -56,14 +56,17 @@ RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.202-alpine3.13 AS build
+# We experienced a hard crash in Altinn Studio Designer when updating to Alpine 3.13 ref GitHub issue 5992
+# Verify that this is resolved before updating to a newer version of Alpine.
+FROM mcr.microsoft.com/dotnet/sdk:5.0.202-alpine3.12 AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.5-alpine3.13 AS final
+# Ref. comment above on upgrading Alpine.
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.5-alpine3.12 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
