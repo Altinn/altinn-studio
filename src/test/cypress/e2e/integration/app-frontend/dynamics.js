@@ -14,14 +14,18 @@ describe('Dynamics', () => {
   });
 
   it('Show and hide confirm name change checkbox on changing firstname', () => {
-    cy.get(appFrontend.changeOfName.newFirstName).type('test').then(() => {
-      cy.get(appFrontend.changeOfName.newMiddleName).focus();
-      cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible');
-    });
-    cy.get(appFrontend.changeOfName.newFirstName).clear().then(() => {
-      cy.get(appFrontend.changeOfName.newMiddleName).focus();
-      cy.get(appFrontend.changeOfName.confirmChangeName).should('not.exist');
-    });
+    cy.get(appFrontend.changeOfName.newFirstName)
+      .type('test')
+      .then(() => {
+        cy.get(appFrontend.changeOfName.newMiddleName).focus();
+        cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible');
+      });
+    cy.get(appFrontend.changeOfName.newFirstName)
+      .clear()
+      .then(() => {
+        cy.get(appFrontend.changeOfName.newMiddleName).focus();
+        cy.get(appFrontend.changeOfName.confirmChangeName).should('not.exist');
+      });
   });
 
   it('Show and hide name change reasons radio buttons', () => {
@@ -30,5 +34,4 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
-
 });

@@ -36,7 +36,7 @@ namespace Altinn.Platform.Events.Functions
             builder.Services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
             builder.Services.AddSingleton<IAccessTokenGenerator, AccessTokenGenerator>();
             builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
-            builder.Services.AddSingleton<IPushEventsService, PushEventsService>();
+            builder.Services.AddHttpClient<IPushEventsService, PushEventsService>();
         }
     }
 }

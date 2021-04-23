@@ -18,14 +18,14 @@ fixture('Bruksmønster')
     await t
       .useRole(UseCaseUser)
       .maximizeWindow()
-      .navigateTo(app.baseUrl + "designer/" + appName + "#/about");
-  })
+      .navigateTo(app.baseUrl + 'designer/' + appName + '#/about');
+  });
 
 //Navigate around studio designer
 test('Navigation', async () => {
   await t
     .click(designerPage.aboutNavigationTab)
-    .expect(designerPage.appNameLocked.value).contains("auto", 'input contains text ' + appName);
+    .expect(designerPage.appNameLocked.value).contains('auto', 'input contains text ' + appName);
   await t
     .click(designerPage.createNavigationTab)
     .expect(designerPage.inputComponent.exists).ok();
@@ -41,7 +41,7 @@ test('Gitea connection - Pull changes', async () => {
     .addRequestHooks(logger)
     .click(designerPage.pullChanges)
     .expect(logger.contains(r => r.response.statusCode === 200)).ok({ timeoutSeconds: 15 })
-    .expect(Selector('h3').withText("Appen din er oppdatert til siste versjon").visible).ok();
+    .expect(Selector('h3').withText('Appen din er oppdatert til siste versjon').visible).ok();
 });
 
 //App builds and deploy information from cosmos
