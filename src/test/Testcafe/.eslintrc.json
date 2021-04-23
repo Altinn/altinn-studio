@@ -1,9 +1,10 @@
 {
-  "plugins": ["cypress"],
-  "extends": ["plugin:cypress/recommended"],
+  "plugins": ["testcafe"],
+  "parser": "babel-eslint",
+  "extends": "plugin:testcafe/recommended",
   "rules": {
     "eol-last": "error",
-    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "indent": ["warn", 2],
     "quotes": [
       "warn",
       "single",

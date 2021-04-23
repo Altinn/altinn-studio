@@ -1,4 +1,4 @@
-import { Role } from 'testcafe'
+import { Role } from 'testcafe';
 import App from './app';
 import LoginPage from './page-objects/loginPage';
 import config from './config';

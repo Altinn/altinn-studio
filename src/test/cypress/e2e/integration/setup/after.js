@@ -3,20 +3,20 @@
 /**
  * Setup test script that is run after all the tests
  *    Delete all the apps of an org
- *    Delete the org 
- *    Delete the user 
+ *    Delete the org
+ *    Delete the user
  * command: npm run after:all
  */
-context("After all tests", () => {
-  it("Delete all apps", () => {
-    cy.deleteallapps(Cypress.env("appOwner"), Cypress.env("accessToken"));
+context('After all tests', () => {
+  it('Delete all apps', () => {
+    cy.deleteallapps(Cypress.env('appOwner'), Cypress.env('accessToken'));
   });
 
-  it("Delete Org", () => {
-    cy.deleteorg(Cypress.env("appOwner"), Cypress.env("accessToken"));
+  it('Delete Org', () => {
+    cy.deleteorg(Cypress.env('appOwner'), Cypress.env('accessToken'));
   });
 
-  it("Delete an user", () => {
-    cy.deleteuser(Cypress.env("userName"), Cypress.env("accessToken"));
+  it('Delete an user', () => {
+    cy.deleteuser(Cypress.env('userName'), Cypress.env('accessToken'));
   });
 });

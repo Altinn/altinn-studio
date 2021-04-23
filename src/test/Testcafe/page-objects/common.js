@@ -2,10 +2,10 @@ import { ClientFunction, Selector, t } from 'testcafe';
 
 export default class CommonPage {
   constructor() {
-    this.repoLogoutButton = Selector("#navbar > div.right.stackable.menu").withText("Log out");
-    this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li").withText("Log out");
+    this.repoLogoutButton = Selector('#navbar > div.right.stackable.menu').withText('Log out');
+    this.designerLogoutButton = Selector('#navbarSupportedContent > ul:nth-child(2) > li').withText('Log out');
     this.getPageUrl = ClientFunction(() => window.location.href);
-    this.homeButton = Selector(".navbar").withAttribute("title", "Startside");
+    this.homeButton = Selector('.navbar').withAttribute('title', 'Startside');
   }
 
   async login(username, password, loginPage) {
@@ -25,7 +25,7 @@ export default class CommonPage {
         .click(this.designerLogoutButton);
     }
 
-    const signInElement = Selector(".signin")
+    const signInElement = Selector('.signin')
       .find('option')
       .withExactText('Sign In');
 
@@ -46,7 +46,7 @@ export default class CommonPage {
   }
 
   async returnToHomePage() {
-    let repoProfileHomeButton = Selector("#navbar > div.item.brand > a > img"); //the home button, should the user be on the repository profile page
+    let repoProfileHomeButton = Selector('#navbar > div.item.brand > a > img'); //the home button, should the user be on the repository profile page
     let home = repoProfileHomeButton.exists ? repoProfileHomeButton : homeButton;
     await t
       .click(home);

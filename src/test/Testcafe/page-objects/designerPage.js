@@ -10,9 +10,9 @@ export default class DesignerPage {
 
     //"Om" navigation tab selectors
     this.aboutNavigationTab = Selector('div > a').withExactText('Om');
-    this.appNameLocked = Selector("#administrationInputServicename_textField");
+    this.appNameLocked = Selector('#administrationInputServicename_textField');
     this.aboutAppName = Selector('#administrationInputServicename > div > div > input');
-    this.aboutChangeAppName = Selector("button > span > span").withExactText("Endre");
+    this.aboutChangeAppName = Selector('button > span > span').withExactText('Endre');
     this.aboutAppId = Selector('#administrationInputServiceid > div > div > input');
     this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
     this.aboutComments = Selector('#administrationInputDescription > div > div > textarea');
@@ -27,33 +27,33 @@ export default class DesignerPage {
       this.leftMenuList.child('a').withAttribute('href', '#/ui-editor').child('div').withExactText('UI-Editor'),
       this.leftMenuList.child('a').withAttribute('href', '#/accesscontrol').child('div').withExactText('Tilgangsstyring')
     ];
-    this.dataModelIFrame = Selector("#root > div > div > div:nth-child(2) > div > div > iframe");
-    this.dataModelUpload = Selector("#filelabel");
-    this.dataModelTabs = Selector("#tabs");
+    this.dataModelIFrame = Selector('#root > div > div > div:nth-child(2) > div > div > iframe');
+    this.dataModelUpload = Selector('#filelabel');
+    this.dataModelTabs = Selector('#tabs');
 
     //Tilgangstyring tab selectors
-    this.bankrupt = Selector("span").withExactText("Konkursbo").sibling(0);
-    this.organization = Selector("span").withExactText("Virksomhet").sibling(0);
-    this.privatePerson = Selector("span").withExactText("Privatperson").sibling(0);
-    this.subUnit = Selector("span").withExactText("Underenhet").sibling(0);
+    this.bankrupt = Selector('span').withExactText('Konkursbo').sibling(0);
+    this.organization = Selector('span').withExactText('Virksomhet').sibling(0);
+    this.privatePerson = Selector('span').withExactText('Privatperson').sibling(0);
+    this.subUnit = Selector('span').withExactText('Underenhet').sibling(0);
 
     //Form components
-    this.inputComponent = Selector(".fa.fa-short-answer").parent(2);
-    this.dateComponent = Selector(".fa.fa-date").parent(2);
-    this.dropdownComponent = Selector(".fa.fa-drop-down").parent(2);
-    this.checkBoxComponent = Selector(".fa.fa-checkbox").parent(2);
-    this.radioButtonComponent = Selector(".fa.fa-radio-button").parent(2);
-    this.textAreaComponent = Selector(".fa.fa-long-answer").parent(2);
-    this.attachmentComponent = Selector(".fa.fa-attachment").parent(2);
-    this.dropDown = Selector(".fa.fa-drop-down").parent(2);
-    this.submitComponent = Selector(".fa.fa-button").parent(2);
-    this.headerComponent = Selector(".fa.fa-title").parent(2);
-    this.paragraphComponent = Selector(".fa.fa-paragraph").parent(2);
-    this.addressComponent = Selector(".fa.fa-address").parent(2);
-    this.dragToArea = Selector(".col-12");
-    this.removeComponentsButton = Selector(".fa.fa-circletrash");
-    this.advancedComponentsGroup = Selector("div").withExactText("Avansert");
-    this.textComponentsGroup = Selector("div").withExactText("Tekst");
+    this.inputComponent = Selector('.fa.fa-short-answer').parent(2);
+    this.dateComponent = Selector('.fa.fa-date').parent(2);
+    this.dropdownComponent = Selector('.fa.fa-drop-down').parent(2);
+    this.checkBoxComponent = Selector('.fa.fa-checkbox').parent(2);
+    this.radioButtonComponent = Selector('.fa.fa-radio-button').parent(2);
+    this.textAreaComponent = Selector('.fa.fa-long-answer').parent(2);
+    this.attachmentComponent = Selector('.fa.fa-attachment').parent(2);
+    this.dropDown = Selector('.fa.fa-drop-down').parent(2);
+    this.submitComponent = Selector('.fa.fa-button').parent(2);
+    this.headerComponent = Selector('.fa.fa-title').parent(2);
+    this.paragraphComponent = Selector('.fa.fa-paragraph').parent(2);
+    this.addressComponent = Selector('.fa.fa-address').parent(2);
+    this.dragToArea = Selector('.col-12');
+    this.removeComponentsButton = Selector('.fa.fa-circletrash');
+    this.advancedComponentsGroup = Selector('div').withExactText('Avansert');
+    this.textComponentsGroup = Selector('div').withExactText('Tekst');
 
     //"språk" navigation tab selectors
     this.languageNavigationTab = Selector('div').withExactText('Språk');
@@ -77,27 +77,27 @@ export default class DesignerPage {
     this.deployVersionOptions = Selector('.select__menu-list');
     this.deployTable = (environment == 'prod') ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
     this.deploys = this.deployTable.find('tr');
-    this.deployConfirm = Selector("#deployPopover");
+    this.deployConfirm = Selector('#deployPopover');
     this.deployStatus = Selector('p').withText('deployer versjon');
-    this.noDeployAccessText = "Du har ikke rettigheter til å starte en deploy til ";
-    this.noDeployAccess = (environment == 'prod') ? Selector('p').withText(this.noDeployAccessText + "PRODUCTION-miljøet") :
-      Selector('p').withText(this.noDeployAccessText + "AT22-miljøet");
+    this.noDeployAccessText = 'Du har ikke rettigheter til å starte en deploy til ';
+    this.noDeployAccess = (environment == 'prod') ? Selector('p').withText(this.noDeployAccessText + 'PRODUCTION-miljøet') :
+      Selector('p').withText(this.noDeployAccessText + 'AT22-miljøet');
 
     //preview tab
-    this.previewSaveButton = Selector(".a-btn-success").withText("Save");
-    this.controlAndSubmit = Selector(".a-btn-success");
+    this.previewSaveButton = Selector('.a-btn-success').withText('Save');
+    this.controlAndSubmit = Selector('.a-btn-success');
 
     //tekst tab
-    this.nyTittelButton = Selector("#schema-texts").withText("Tittel");
-    this.addNewLanguage = Selector("#newtab > a");
+    this.nyTittelButton = Selector('#schema-texts').withText('Tittel');
+    this.addNewLanguage = Selector('#newtab > a');
 
     //syncing elements
-    this.pullChanges = Selector("#fetch_changes_btn");
-    this.validateChanges = Selector("button > span").withExactText("Valider endringer");
-    this.pushChanges = Selector("#changes_to_share_btn");
-    this.noChanges = Selector("#no_changes_to_share_btn");
-    this.pushChangesBlueButton = Selector("#share_changes_modal_button");
-    this.commitMessageBox = Selector("#test");
+    this.pullChanges = Selector('#fetch_changes_btn');
+    this.validateChanges = Selector('button > span').withExactText('Valider endringer');
+    this.pushChanges = Selector('#changes_to_share_btn');
+    this.noChanges = Selector('#no_changes_to_share_btn');
+    this.pushChangesBlueButton = Selector('#share_changes_modal_button');
+    this.commitMessageBox = Selector('#test');
 
     //Clone modal
     this.cloneButton = Selector('button').withExactText('Clone');
@@ -153,18 +153,18 @@ export default class DesignerPage {
       .click(this.pushChanges)
       .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
       .click(this.commitMessageBox)
-      .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
+      .typeText(this.commitMessageBox, 'Sync app automated test', { replace: true })
       .expect(this.validateChanges.exists).ok({ timeout: 60000 })
       .click(this.validateChanges)
       .expect(this.pushChangesBlueButton.exists).ok({ timeout: 60000 })
       .click(this.pushChangesBlueButton)
-      .expect(this.noChanges.exists).ok({ timeout: 60000 })
+      .expect(this.noChanges.exists).ok({ timeout: 60000 });
   };
 
   //Function to find the last deployed version and return the version number
   async getlatestBuildVersion(t) {
     var lastBuildVersion = await this.deployVersionOptions.child(0).innerText; //first element of the dropdown list
-    lastBuildVersion = lastBuildVersion.split(" ");
+    lastBuildVersion = lastBuildVersion.split(' ');
     lastBuildVersion = lastBuildVersion[1].trim();
     lastBuildVersion = parseInt(lastBuildVersion);
     if (isNaN(lastBuildVersion)) {
