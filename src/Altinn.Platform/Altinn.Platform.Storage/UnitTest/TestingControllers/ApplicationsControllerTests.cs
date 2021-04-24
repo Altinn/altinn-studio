@@ -12,8 +12,10 @@ using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Wrappers;
 
@@ -31,17 +33,17 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class ApplicationsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class ApplicationsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
     {
         private const string BasePath = "/storage/api/v1";
 
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<Startup> _factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
         /// </summary>
-        /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-        public ApplicationsControllerTests(WebApplicationFactory<Startup> factory)
+        /// <param name="factory">The <see cref="TestApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
+        public ApplicationsControllerTests(TestApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -490,10 +492,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddMockRepositories();
+
                     services.AddSingleton(applicationRepository);
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceRepository.Object);
                     services.AddSingleton(instanceEventRepository.Object);
+
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);

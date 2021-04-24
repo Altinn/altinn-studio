@@ -9,14 +9,15 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -27,14 +28,14 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class TextsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class TextsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<Startup> _factory;
         private readonly HttpClient _httpClient;
 
         private const string BasePath = "/storage/api/v1/applications";
 
-        public TextsControllerTests(WebApplicationFactory<Startup> factory)
+        public TextsControllerTests(TestApplicationFactory<Startup> factory)
         {
             _factory = factory;
             Mock<ITextRepository> mockTextRepository = CreateMockTextRepo();
@@ -290,10 +291,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddMockRepositories();
+
                     services.AddSingleton(textRepository);
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceRepository.Object);
                     services.AddSingleton(instanceEventRepository.Object);
+
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);
