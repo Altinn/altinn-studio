@@ -223,6 +223,16 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception partyLookupException)
             {
+                if (partyLookupException is ServiceException)
+                {
+                    ServiceException sexp = (ServiceException)partyLookupException;
+
+                    if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
+                    {
+                        return StatusCode((int)HttpStatusCode.Forbidden);
+                    }
+                }
+
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
@@ -470,6 +480,11 @@ namespace Altinn.App.Api.Controllers
                         instanceOwner.PersonNumber = null;
                         instanceOwner.OrganisationNumber = party.OrgNumber;
                     }
+                }
+                catch (ServiceException e)
+                {
+                    // Just rethrow service exception
+                    throw;
                 }
                 catch (Exception e)
                 {
