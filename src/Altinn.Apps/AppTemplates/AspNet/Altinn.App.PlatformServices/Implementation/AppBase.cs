@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Extensions;
@@ -182,6 +183,19 @@ namespace Altinn.App.Services.Implementation
 
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
+
+                    Dictionary<string, string> updatedValues =
+                        DataHelper.GetUpdatedDataValues(_appMetadata.PresentationFields, instance.PresentationTexts, dataType.Id, data);
+
+                    if (updatedValues.Count > 0)
+                    {
+                        Instance updatedInstance = await _instanceService.UpdatePresentationTexts(
+                              int.Parse(instance.Id.Split("/")[0]),
+                              Guid.Parse(instance.Id.Split("/")[1]),
+                              new PresentationTexts { Texts = updatedValues });
+
+                        instance.PresentationTexts = updatedInstance.PresentationTexts;
+                    }
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }

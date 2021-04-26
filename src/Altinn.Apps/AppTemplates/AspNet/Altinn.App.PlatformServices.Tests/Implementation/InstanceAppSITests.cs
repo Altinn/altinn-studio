@@ -19,6 +19,7 @@ using Moq;
 using Moq.Protected;
 
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
@@ -301,6 +302,74 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock.VerifyAll();
 
             Assert.NotNull(actualException);
+        }
+
+        [Fact]
+        public async Task UpdatePresentationTexts_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        {
+            // Arrange
+            Guid instanceGuid = Guid.NewGuid();
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "1337");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.UpdatePresentationTexts(1337, instanceGuid, new PresentationTexts());
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
+        [Fact]
+        public async Task UpdatePresentationTexts_SuccessfulCallToStorage()
+        {
+            // Arrange
+            Guid instanceGuid = Guid.NewGuid();
+            int instanceOwnerId = 1337;
+
+            Instance expected = new Instance
+            {
+                InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() },
+                Id = $"{instanceOwnerId}/{instanceGuid}"
+            };
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "presentationtexts");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            // Act
+            await target.UpdatePresentationTexts(instanceOwnerId, instanceGuid, new PresentationTexts());
+
+            // Assert
+            handlerMock.VerifyAll();
         }
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
