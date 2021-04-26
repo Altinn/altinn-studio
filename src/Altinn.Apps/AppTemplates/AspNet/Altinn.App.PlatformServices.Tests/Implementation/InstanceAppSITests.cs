@@ -344,7 +344,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         public async Task UpdatePresentationTexts_SuccessfulCallToStorage()
         {
             // Arrange
-            // Arrange
             Guid instanceGuid = Guid.NewGuid();
             int instanceOwnerId = 1337;
 
