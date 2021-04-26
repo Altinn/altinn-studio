@@ -35,7 +35,7 @@ namespace App.IntegrationTests.Mocks.Services
             throw await PlatformHttpException.CreateAsync(response);
         }
 
-        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
@@ -67,6 +67,11 @@ namespace App.IntegrationTests.Mocks.Services
         }
 
         public Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts)
         {
             throw new NotImplementedException();
         }

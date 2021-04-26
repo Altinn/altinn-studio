@@ -185,7 +185,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -246,7 +246,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -312,7 +312,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -401,6 +401,21 @@ namespace Altinn.App.Api.Controllers
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);
 
+            Dictionary<string, string> updatedValues =
+                DataHelper.GetUpdatedDataValues(
+                    _appResourcesService.GetApplication().PresentationFields,
+                    instance.PresentationTexts,
+                    dataType,
+                    appModel);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceService.UpdatePresentationTexts(
+                     int.Parse(instance.InstanceOwner.PartyId),
+                     Guid.Parse(instance.Id.Split("/")[1]),
+                     new PresentationTexts { Texts = updatedValues });
+            }
+
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
             DataElement dataElement = await _dataService.InsertFormData(appModel, instanceGuid, _altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
@@ -453,7 +468,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private bool? RequiresAppLogic(string org, string app, string dataType)
+        private bool? RequiresAppLogic(string dataType)
         {
             bool? appLogic = false;
 
@@ -522,9 +537,11 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string dataType)
         {
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            
+
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
@@ -543,7 +560,20 @@ namespace Altinn.App.Api.Controllers
             // Trigger application business logic
             bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            Dictionary<string, string> updatedValues =
+                DataHelper.GetUpdatedDataValues(
+                    _appResourcesService.GetApplication().PresentationFields,
+                    instance.PresentationTexts, 
+                    dataType, 
+                    serviceModel);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceService.UpdatePresentationTexts(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new PresentationTexts { Texts = updatedValues });
+            }
 
             // Save Formdata to database
             DataElement updatedDataElement = await _dataService.UpdateData(
@@ -572,7 +602,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     _logger.LogError(e, "Unable to determine changed fields");
                 }
-                
+
                 return StatusCode((int)HttpStatusCode.SeeOther, calculationResult);
             }
 
@@ -599,7 +629,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private bool InstanceIsActive(Instance i)
+        private static bool InstanceIsActive(Instance i)
         {
             if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
             {
