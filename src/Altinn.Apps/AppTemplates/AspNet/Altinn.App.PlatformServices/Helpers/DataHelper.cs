@@ -101,7 +101,7 @@ namespace Altinn.App.Services.Helpers
             if (property == null)
             {
                 string errorMessage = $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
-                throw new Exception(errorMessage);
+                throw new IndexOutOfRangeException(errorMessage);
             }
             else
             {
