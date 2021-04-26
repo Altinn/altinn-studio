@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Altinn.App.Common.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
-
-using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Helpers
 {
@@ -30,12 +27,8 @@ namespace Altinn.App.Services.Helpers
         }
 
         /// <summary>
-        /// Retrieves data values from a data object based on a list of data fields
+        /// Retrieves data values from a data object based on a list of data fields.
         /// </summary>
-        /// <param name="dataFields">The data fields to extract/param>
-        /// <param name="dataType">The data type of the data</param>
-        /// <param name="data">The data object</param>
-        /// <returns>A dictionary containing the data values</returns>
         private static Dictionary<string, string> GetDataFieldValues(List<DataField> dataFields, string dataType, object data)
         {
             Dictionary<string, string> dataFieldValues = new Dictionary<string, string>();

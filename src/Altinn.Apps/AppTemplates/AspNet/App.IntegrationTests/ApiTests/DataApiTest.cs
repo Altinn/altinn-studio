@@ -534,7 +534,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -562,7 +562,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -590,7 +590,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"; filename*=UTF-8''appsettings.staging.json");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);

@@ -5,7 +5,7 @@ using App.IntegrationTests.Mocks.Services;
 
 namespace App.IntegrationTests.Utils
 {
-    public class TestDataUtil
+    public static class TestDataUtil
     {
         public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
@@ -86,12 +86,6 @@ namespace App.IntegrationTests.Utils
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
-        }
-
-        private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
         }
     }
 }

@@ -312,7 +312,7 @@ namespace App.IntegrationTests.Mocks.Services
                 return Task.FromResult(storedInstance);
             }
 
-            return null;
+            return Task.FromResult<Instance>(null);
         }
 
         private static (string LastChangedBy, DateTime? LastChanged) FindLastChanged(Instance instance)

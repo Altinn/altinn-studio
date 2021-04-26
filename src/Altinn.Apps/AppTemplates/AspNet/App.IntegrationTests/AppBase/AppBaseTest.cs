@@ -183,7 +183,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             try
             {
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                await client.SendAsync(httpRequestMessage);
             }
             catch (Exception e)
             {

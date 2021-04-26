@@ -35,7 +35,7 @@ namespace App.IntegrationTests.Mocks.Services
             throw await PlatformHttpException.CreateAsync(response);
         }
 
-        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
