@@ -50,9 +50,8 @@ namespace Altinn.App.Api.Controllers
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             int userId = userContext.UserId;
-            string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
-            int.TryParse(cookieValue, out int partyIdFromCookie);
 
+            // If selected party is different than party for user self need to verify
             if (userContext.UserParty == null || userContext.PartyId != userContext.UserParty.PartyId)
             {
                 bool? isValid = await _authroization.ValidateSelectedParty(userId, userContext.PartyId);
@@ -77,6 +76,9 @@ namespace Altinn.App.Api.Controllers
                     userContext.PartyId = 0;
                 }
             }
+
+            string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
+            int.TryParse(cookieValue, out int partyIdFromCookie);
 
             // Setting cookie to partyID of logged in user if it varies from previus value.
             if (partyIdFromCookie != userContext.PartyId)

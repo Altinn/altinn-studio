@@ -26,16 +26,17 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentParty_ReturnPartyID_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current");
 
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
             string responseContent = await response.Content.ReadAsStringAsync();
-            
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             int partyId = JsonConvert.DeserializeObject<int>(responseContent);
             Assert.Equal(1337, partyId);
@@ -44,16 +45,17 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentParty_ReturnParty_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true");
 
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Party party = JsonConvert.DeserializeObject<Party>(responseContent);
             Assert.Equal(1337, party.PartyId);
@@ -62,17 +64,18 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForSelf_ReturnPartyID_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current");
             AddPartyCookie(httpRequestMessage, 1337);
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             int partyId = JsonConvert.DeserializeObject<int>(responseContent);
             Assert.Equal(1337, partyId);
@@ -81,17 +84,18 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForSelf_ReturnParty_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true");
             AddPartyCookie(httpRequestMessage, 1337);
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Party party = JsonConvert.DeserializeObject<Party>(responseContent);
             Assert.Equal(1337, party.PartyId);
@@ -100,17 +104,18 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForOther_ReturnPartyID_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current");
             AddPartyCookie(httpRequestMessage, 500003);
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             int partyId = JsonConvert.DeserializeObject<int>(responseContent);
             Assert.Equal(500003, partyId);
@@ -119,17 +124,18 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForOther_ReturnParty_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true");
             AddPartyCookie(httpRequestMessage, 500003);
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Party party = JsonConvert.DeserializeObject<Party>(responseContent);
             Assert.Equal(500003, party.PartyId);
@@ -141,42 +147,55 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForOther_ReturnSelfPartyID_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current");
             AddPartyCookie(httpRequestMessage, 500003);
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             int partyId = JsonConvert.DeserializeObject<int>(responseContent);
             Assert.Equal(1000, partyId);
         }
 
         /// <summary>
-        /// Scenrio: User is not authorized for the party in cookie
+        /// Scenario: User is not authorized for the party in cookie
         /// </summary>
         [Fact]
         public async Task GetCurrentPartyWithPartyCookieForOther_ReturnSelfParty_OK()
         {
+            // Arrange
             string token = PrincipalUtil.GetToken(1);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true")
-            {
-            };
-
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/authorization/parties/current?returnPartyObject=true");
             AddPartyCookie(httpRequestMessage, 500003);
+
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
             string responseContent = await response.Content.ReadAsStringAsync();
+            IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
+            bool cookieIsSet = false;
+            foreach (string cookie in cookieHeaders)
+            {
+                if (cookie.Contains("AltinnPartyId=1000"))
+                {
+                    cookieIsSet = true;
+                }
+            }
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Party party = JsonConvert.DeserializeObject<Party>(responseContent);
             Assert.Equal(1000, party.PartyId);
+            Assert.True(cookieIsSet);
         }
 
         private static void AddPartyCookie(HttpRequestMessage requestMessage, int partyId)
