@@ -54,6 +54,8 @@ const useStyles = makeStyles({
   },
   contextButton: {
     borderRadius: 60,
+    margin: 0,
+    padding: 10,
     display: 'none',
     '$treeItem :hover > &': {
       display: 'block',
@@ -80,9 +82,6 @@ const useStyles = makeStyles({
     '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
       backgroundColor: 'transparent',
     },
-    // '&:hover > $contextButton': {
-    //   display: 'block',
-    // },
   },
   filler: {
     paddingTop: 5,
@@ -196,8 +195,8 @@ function SchemaItem(props: StyledTreeItemProps) {
   };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
     setContextAnchor(null);
+    e.stopPropagation();
   };
 
   const renderLabelText = () => {
@@ -223,7 +222,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   };
   const handleContextMenuClick = (e: React.MouseEvent) => {
     setContextAnchor(e.currentTarget);
-    e.preventDefault();
+    e.stopPropagation();
   };
   const renderLabel = () => (
     <div className={classes.labelRoot}>
