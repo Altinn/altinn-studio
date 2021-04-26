@@ -291,8 +291,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddMockRepositories();
-
                     services.AddSingleton(textRepository);
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceRepository.Object);
