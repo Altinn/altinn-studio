@@ -1,9 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render } from '@testing-library/react';
 import { mount, ReactWrapper } from 'enzyme';
-import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import SchemaEditor from '../../src/components/schemaEditor';
 import { dataMock } from '../../src/mockData';
@@ -50,7 +48,7 @@ test('renders schema editor with populated schema', () => {
     uiSchema: mockUiSchema,
   });
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  let wrapper: ReactWrapper = new ReactWrapper(<div />);
   act(() => {
     wrapper = mountComponent();
   });
@@ -62,50 +60,45 @@ test('renders schema editor with populated schema', () => {
 test('renders schema editor with button to add root item when schema is empty', () => {
   mockStore = createStore(mockInitialState);
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  let wrapper: ReactWrapper = new ReactWrapper(<div />);
   act(() => {
     wrapper = mountComponent();
   });
   expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Add root item'))).toBeTruthy();
 });
 
-
-
 test('Renders properties', () => {
-
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
   });
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  let wrapper: ReactWrapper = new ReactWrapper(<div />);
   act(() => {
     wrapper = mountComponent();
   });
   expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).toBe(0);
   expect(wrapper.find('.fa-datamodel-object').length).toBe(1);
   expect(wrapper.find('.MuiTypography-root').length).toBe(5);
-  wrapper.find('.MuiTypography-root').at(1).simulate('click') //properties
+  wrapper.find('.MuiTypography-root').at(1).simulate('click'); // properties
   expect(wrapper.find('.MuiTypography-root').length).toBe(6);
-  wrapper.find('.MuiTypography-root').at(2).simulate('click') // RA-0678_M
-  wrapper.find('.MuiTypography-root').at(3).simulate('click') // properties
+  wrapper.find('.MuiTypography-root').at(2).simulate('click'); // RA-0678_M
+  wrapper.find('.MuiTypography-root').at(3).simulate('click'); // properties
   expect(wrapper.find('.fa-datamodel-object').length).toBe(11);
-  
-  wrapper.find('.fa-datamodel-object').at(1).simulate('click') //dataFormatProvider
+
+  wrapper.find('.fa-datamodel-object').at(1).simulate('click'); // dataFormatProvider
   expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).not.toBe(0);
 });
 
-
 test('Renders tree with definitions', () => {
-
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
   });
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  let wrapper: ReactWrapper = new ReactWrapper(<div />);
   act(() => {
     wrapper = mountComponent();
   });
