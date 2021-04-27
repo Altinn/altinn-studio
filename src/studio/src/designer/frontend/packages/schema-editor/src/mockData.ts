@@ -496,6 +496,14 @@ const mockString = `
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Tegnrestriksjon",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_50Restriksjon/502232"
 				},
+			"allOfTest": {
+					"type": "object",
+					"allOf": [
+						{
+							"$ref": "#/definitions/Tekst_50"
+						}
+					]
+				},
 			"Dato" : {
 					"type" : "string",
 					"format" : "date",
