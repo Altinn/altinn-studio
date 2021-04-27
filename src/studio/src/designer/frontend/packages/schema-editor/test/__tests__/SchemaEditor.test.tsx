@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render } from '@testing-library/react';
+import { mount, ReactWrapper } from 'enzyme';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import SchemaEditor from '../../src/components/schemaEditor';
@@ -9,17 +10,26 @@ import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 
-let container: any = null;
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
 let createStore: any;
 let mockUiSchema: UiSchemaItem[];
+const rootPath = '#/definitions/RA-0678_M';
+
+const mountComponent = () => mount(
+  <Provider store={mockStore}>
+    <SchemaEditor
+      schema={dataMock}
+      onSaveSchema={() => {}}
+      rootItemId='#/properties/melding'
+    />
+  </Provider>,
+);
 
 beforeEach(() => {
-  container = document.createElement('div');
-  document.body.appendChild(container);
-  const rootPath = '#/definitions/RA-0678_M';
-  mockUiSchema = buildUISchema(dataMock, '#/definitions/RA-0678_M');
+  mockUiSchema = buildUISchema(dataMock.properties, '#/properties')
+    .concat(buildUISchema(dataMock.definitions, '#/definitions'));
+
   mockInitialState = {
     rootName: rootPath,
     saveSchemaUrl: '',
@@ -30,9 +40,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  unmountComponentAtNode(container);
-  container.remove();
-  container = null;
   mockStore = null;
 });
 
@@ -43,34 +50,66 @@ test('renders schema editor with populated schema', () => {
     uiSchema: mockUiSchema,
   });
 
+  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
   act(() => {
-    const utils = render(
-      <Provider store={mockStore}>
-        <SchemaEditor
-          schema={dataMock}
-          onSaveSchema={() => {}}
-          rootItemId='#/properties/melding'
-        />
-      </Provider>,
-    );
-    expect(utils.findByTestId('schema-editor')).toBeTruthy();
-    expect(utils.getByText('Save data model').innerHTML).toBeTruthy();
+    wrapper = mountComponent();
   });
+
+  expect(wrapper.find('.schema-editor')).toBeTruthy();
+  expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Save data model'))).toBeTruthy();
 });
 
 test('renders schema editor with button to add root item when schema is empty', () => {
   mockStore = createStore(mockInitialState);
 
+  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
   act(() => {
-    const utils = render(
-      <Provider store={mockStore}>
-        <SchemaEditor
-          schema={dataMock}
-          onSaveSchema={() => {}}
-          rootItemId='#/properties/melding'
-        />
-      </Provider>,
-    );
-    expect(utils.getByText('Add root item').innerHTML).toBeTruthy();
+    wrapper = mountComponent();
   });
+  expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Add root item'))).toBeTruthy();
+});
+
+
+
+test('Renders properties', () => {
+
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+  });
+
+  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  act(() => {
+    wrapper = mountComponent();
+  });
+  expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).toBe(0);
+  expect(wrapper.find('.fa-datamodel-object').length).toBe(1);
+  expect(wrapper.find('.MuiTypography-root').length).toBe(5);
+  wrapper.find('.MuiTypography-root').at(1).simulate('click') //properties
+  expect(wrapper.find('.MuiTypography-root').length).toBe(6);
+  wrapper.find('.MuiTypography-root').at(2).simulate('click') // RA-0678_M
+  wrapper.find('.MuiTypography-root').at(3).simulate('click') // properties
+  expect(wrapper.find('.fa-datamodel-object').length).toBe(11);
+  
+  wrapper.find('.fa-datamodel-object').at(1).simulate('click') //dataFormatProvider
+  expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).not.toBe(0);
+});
+
+
+test('Renders tree with definitions', () => {
+
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+  });
+
+  let wrapper: ReactWrapper = new ReactWrapper(<div></div>);
+  act(() => {
+    wrapper = mountComponent();
+  });
+  expect(wrapper.find('.MuiTypography-root').length).toBe(5);
+  wrapper.find('.MuiTypography-root').at(4).simulate('click'); // expand definitions
+  expect(wrapper.find('.MuiTypography-root').length).toBe(123);
 });

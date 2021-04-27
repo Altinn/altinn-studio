@@ -186,7 +186,6 @@ function SchemaItem(props: SchemaItemProps) {
               })}
             </TreeItem>);
         }
-        // const value = Array.isArray(field.value) ? 'array' : field.value;
         return (
           <TreeItem
             classes={{ root: classes.treeItem }}
