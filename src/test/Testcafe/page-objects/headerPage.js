@@ -9,9 +9,9 @@ export default class HeaderPage {
     this.openGiteaRepo = Selector('a').withText('Åpne repository');
 
     //Designer related header selectors
-    this.designerTab = Selector(".nav-link.nav-item").withText("Designer");
-    this.previewTab = Selector(".nav-link.nav-item").withText("Preview");
-    this.teksterTab = Selector(".nav-link.nav-item").withText("Tekster");
+    this.designerTab = Selector('.nav-link.nav-item').withText('Designer');
+    this.previewTab = Selector('.nav-link.nav-item').withText('Preview');
+    this.teksterTab = Selector('.nav-link.nav-item').withText('Tekster');
   }
 
 }

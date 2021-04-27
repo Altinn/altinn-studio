@@ -9,6 +9,8 @@
     "frontendPath": "C:/Repos/altinn-studio/src/Altinn.Apps/AppFrontend/react"
   },
   "scripts": {
+    "check": "prettier -c e2e/**/*.js",
+    "format": "prettier -w e2e/**/*.js",
     "cy:open": "cypress open --env environment=%npm_config_env%",
     "cy:verify": "cypress verify",
     "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
@@ -27,12 +29,13 @@
   },
   "devDependencies": {
     "cypress": "^7.1.0",
-    "cypress-file-upload": "^5.0.5",
+    "cypress-file-upload": "^5.0.6",
     "cypress-plugin-tab": "^1.0.5",
     "eslint": "^7.24.0",
     "eslint-plugin-cypress": "^2.11.2",
     "faker": "^5.5.3",
     "npm-run-all": "^4.1.5",
+    "prettier": "^2.2.1",
     "start-server-and-test": "^1.12.1"
   }
 }

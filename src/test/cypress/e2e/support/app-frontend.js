@@ -30,16 +30,22 @@ Cypress.Commands.add('preserveCookies', () => {
  * Complete change name form and navigate to summary page
  */
 Cypress.Commands.add('completeChangeNameForm', (firstName, lastName) => {
-  cy.get(appFrontend.changeOfName.currentName).should('be.visible').then(() => {
-    cy.get(appFrontend.changeOfName.newFirstName).type(firstName);
-    cy.get(appFrontend.changeOfName.newLastName).type(lastName);
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
-    cy.get(appFrontend.changeOfName.reasonRelationship).click().type('test');
-    cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click().then(() => {
-      cy.get(mui.selectedDate).click();
+  cy.get(appFrontend.changeOfName.currentName)
+    .should('be.visible')
+    .then(() => {
+      cy.get(appFrontend.changeOfName.newFirstName).type(firstName);
+      cy.get(appFrontend.changeOfName.newLastName).type(lastName);
+      cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
+      cy.get(appFrontend.changeOfName.reasonRelationship).click().type('test');
+      cy.get(appFrontend.changeOfName.dateOfEffect)
+        .siblings()
+        .children(mui.buttonIcon)
+        .click()
+        .then(() => {
+          cy.get(mui.selectedDate).click();
+        });
+      cy.contains(mui.button, texts.next).click();
     });
-    cy.contains(mui.button, texts.next).click();
-  })
 });
 
 /**
@@ -59,8 +65,7 @@ Cypress.Commands.add('navigateToTask3', () => {
 Cypress.Commands.add('compelteTask3Form', () => {
   cy.navigateToTask3();
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
-    cy.get(checkbox).should('be.visible')
-      .find('input').check();
+    cy.get(checkbox).should('be.visible').find('input').check();
   });
   cy.get(appFrontend.group.addNewItem).should('be.visible').click();
   cy.get(appFrontend.group.currentValue).type('1');
@@ -77,5 +82,5 @@ Cypress.Commands.add('compelteTask3Form', () => {
 Cypress.Commands.add('navigateToTask4', () => {
   cy.compelteTask3Form();
   cy.get(appFrontend.sendinButton).should('be.visible').click();
-  cy.get(appFrontend.confirmContainer).should('be.visible')
+  cy.get(appFrontend.confirmContainer).should('be.visible');
 });

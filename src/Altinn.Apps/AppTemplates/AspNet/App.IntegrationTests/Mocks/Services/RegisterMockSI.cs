@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
-
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
@@ -27,6 +28,12 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<Party> GetParty(int partyId)
         {
+            if (partyId == 1001)
+            {
+                // Specific test for authorization in register
+                throw new ServiceException(HttpStatusCode.Unauthorized, "Unauthorized for party");
+            }
+
             string partyPath = GetPartyPath(partyId);
             if (File.Exists(partyPath))
             {

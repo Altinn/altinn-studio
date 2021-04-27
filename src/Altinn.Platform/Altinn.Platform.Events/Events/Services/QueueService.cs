@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
@@ -44,7 +45,7 @@ namespace Altinn.Platform.Events.Services
             try
             {
                 QueueClient client = await GetInboundQueueClient();
-                await client.SendMessageAsync(content);
+                await client.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)));
             }
             catch (Exception e)
             {

@@ -5,9 +5,9 @@ import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/
 import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
-import { get, post } from 'altinn-shared/utils';
+import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl, getValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
@@ -281,7 +281,11 @@ export function* updateRepeatingGroupEditIndexSaga({ payload: {
           ComponentId: group,
         },
       };
-      const serverValidations: IValidationIssue[] = yield call(get, getValidationUrl(state.instanceData.instance.id), options);
+      const currentTaskDataId = getCurrentTaskDataElementId(
+        state.applicationMetadata.applicationMetadata,
+        state.instanceData.instance,
+      );
+      const serverValidations: IValidationIssue[] = yield call(get, getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId), options);
       const mappedServerValidations: IValidations = mapDataElementValidationToRedux(serverValidations, state.formLayout.layouts, state.textResources.resources);
       const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
       if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {

@@ -219,6 +219,24 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts)
+        {
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json"));
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
+            }
+
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        /// <inheritdoc />
         public async Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";

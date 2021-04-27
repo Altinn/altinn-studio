@@ -1,4 +1,3 @@
-import { Selector } from 'testcafe';
 import config from './config';
 import process from 'process';
 

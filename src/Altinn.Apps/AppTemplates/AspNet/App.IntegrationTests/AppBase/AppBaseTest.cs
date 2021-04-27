@@ -62,6 +62,28 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
+        public async Task OnInstantiation_PresentationTextsAreSet()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+
+            int expectedCount = 1;
+            string expectedKey = "Title";
+            string expectedValue = "Sophie Salt";
+
+            // Act
+            Instance instance = await CreateInstance(org, app);
+            DeleteInstance(instance);
+
+            // Assert
+            Assert.NotNull(instance.PresentationTexts);
+            Assert.Equal(expectedCount, instance.PresentationTexts.Count);
+            Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
+        }
+
+        [Fact]
         public async void OnTaskStart_DataElementIsCreated()
         {
             string token = PrincipalUtil.GetToken(1337);
@@ -161,7 +183,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             try
             {
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                await client.SendAsync(httpRequestMessage);
             }
             catch (Exception e)
             {

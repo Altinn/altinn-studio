@@ -10,13 +10,13 @@ Cypress.Commands.add('uploadAttachment', (orgName, appName, partyId, instanceId,
     cy.clearCookie('AltinnStudioRuntime').then(() => {
       cy.request({
         method: 'POST',
-        url: baseUrl + orgName + '/' + appName + '/instances/' + partyId + '/' + instanceId + '/data?dataType=' + attachmentId,
+        url: `${baseUrl}${orgName}/${appName}/instances/${partyId}/${instanceId}/data?dataType=${attachmentId}`,
         headers: {
           'Content-Disposition': 'attachment; filename=test.txt',
           'Content-Type': 'application/octet-stream',
-          'Authorization': 'Bearer ' + token
+          Authorization: 'Bearer ' + token,
         },
-        body: 'test'
+        body: 'test',
       }).then(() => cy.setCookie(value.name, value.value));
     });
   });

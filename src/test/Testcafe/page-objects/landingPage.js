@@ -11,7 +11,7 @@ export default class LandingPage {
 
   async deleteRepo(repoName) {
     await t
-      .click(this.repoTitleText.withText(repoName))
+      .click(this.repoTitleText.withText(repoName));
   }
 
 }
