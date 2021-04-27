@@ -78,7 +78,10 @@ namespace Altinn.App.Api.Controllers
             }
 
             string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
-            int.TryParse(cookieValue, out int partyIdFromCookie);
+            if (!int.TryParse(cookieValue, out int partyIdFromCookie))
+            {
+                partyIdFromCookie = 0;
+            }
 
             // Setting cookie to partyID of logged in user if it varies from previus value.
             if (partyIdFromCookie != userContext.PartyId)

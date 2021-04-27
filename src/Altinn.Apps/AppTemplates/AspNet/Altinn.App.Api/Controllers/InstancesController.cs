@@ -225,7 +225,7 @@ namespace Altinn.App.Api.Controllers
             {
                 if (partyLookupException is ServiceException)
                 {
-                    ServiceException sexp = (ServiceException)partyLookupException;
+                    ServiceException sexp = partyLookupException as ServiceException;
 
                     if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                     {
@@ -481,7 +481,7 @@ namespace Altinn.App.Api.Controllers
                         instanceOwner.OrganisationNumber = party.OrgNumber;
                     }
                 }
-                catch (ServiceException e)
+                catch (ServiceException)
                 {
                     // Just rethrow service exception
                     throw;
