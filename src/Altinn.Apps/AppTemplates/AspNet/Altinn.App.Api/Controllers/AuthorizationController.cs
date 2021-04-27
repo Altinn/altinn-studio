@@ -50,12 +50,11 @@ namespace Altinn.App.Api.Controllers
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             int userId = userContext.UserId;
-            string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
-            int.TryParse(cookieValue, out int partyId);
 
-            if (partyId != 0)
+            // If selected party is different than party for user self need to verify
+            if (userContext.UserParty == null || userContext.PartyId != userContext.UserParty.PartyId)
             {
-                bool? isValid = await _authroization.ValidateSelectedParty(userId, partyId);
+                bool? isValid = await _authroization.ValidateSelectedParty(userId, userContext.PartyId);
 
                 if (isValid == true)
                 {
@@ -64,18 +63,38 @@ namespace Altinn.App.Api.Controllers
                         return Ok(userContext.Party);
                     }
 
-                    return Ok(partyId);
+                    return Ok(userContext.PartyId);
+                }
+                else if (userContext.UserParty != null)
+                {
+                    userContext.Party = userContext.UserParty;
+                    userContext.PartyId = userContext.UserParty.PartyId;
+                }
+                else
+                {
+                    userContext.Party = null;
+                    userContext.PartyId = 0;
                 }
             }
 
-            // Setting cookie to partyID of logged in user.
-            Response.Cookies.Append(
-            _settings.GetAltinnPartyCookieName,
-            userContext.PartyId.ToString(),
-            new CookieOptions
+            string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
+            if (!int.TryParse(cookieValue, out int partyIdFromCookie))
             {
-                Domain = _settings.HostName
-            });
+                partyIdFromCookie = 0;
+            }
+
+            // Setting cookie to partyID of logged in user if it varies from previus value.
+            if (partyIdFromCookie != userContext.PartyId)
+            {
+                Response.Cookies.Append(
+                _settings.GetAltinnPartyCookieName,
+                userContext.PartyId.ToString(),
+                new CookieOptions
+                {
+                    Domain = _settings.HostName
+                });
+            }
+
             if (returnPartyObject)
             {
                 return Ok(userContext.Party);
