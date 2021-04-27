@@ -138,6 +138,41 @@ namespace App.IntegrationTests
 
         }
 
+        /// <summary>
+        /// Scenario: Failed retrival of register data
+        /// Succsess criteria: Forbidden
+        /// </summary>
+        [Fact]
+        public async void Instance_Post_With_InstanceTemplate_UnuthorizedParty()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            Instance instanceTemplate = new Instance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1001",
+                },
+                DueBefore = DateTime.Parse("2020-01-01"),
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
         [Fact]
         public async void Post_RegistrationOfEventsTurnedOn_ControllerCallsEventWithCorrectType()
         {
