@@ -279,9 +279,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         private HttpClient CreateTestHttpClient(ITextRepository textRepository)
         {
             // No setup required for these services. They are not in use by the ApplicationController
-            Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
-            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
@@ -291,10 +288,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddMockRepositories();
+
                     services.AddSingleton(textRepository);
-                    services.AddSingleton(dataRepository.Object);
-                    services.AddSingleton(instanceRepository.Object);
-                    services.AddSingleton(instanceEventRepository.Object);
 
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);

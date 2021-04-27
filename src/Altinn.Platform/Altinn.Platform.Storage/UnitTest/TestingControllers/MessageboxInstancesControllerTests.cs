@@ -970,7 +970,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
-            Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
@@ -986,8 +985,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(instanceRepositoryMock.Object);
                     }
-
-                    services.AddSingleton(dataRepository.Object);
 
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
