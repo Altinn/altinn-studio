@@ -10,16 +10,6 @@ export function getSblInstanceById(altinnStudioRuntimeCookie, partyId, instanceI
     return http.get(endpoint, params);
 };
 
-/**
- * Api call to Storage:SBL instances to get an instance for a partyid and return response  
- * @param {*} state the instance state; active, archived or deleted
- */
-export function getSblInstanceByParty(altinnStudioRuntimeCookie, partyId, state) {
-    var endpoint = config.platformStorage["messageBoxInstances"] + "/" + partyId + "?state=" + state + "&language=nb";
-    var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
-    return http.get(endpoint, params);
-};
-
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, hardDelete) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "sblinstanceid") + "?hard=" + hardDelete;

@@ -595,11 +595,16 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdatePresentationTexts(
+        public async Task<ActionResult<Instance>> UpdatePresentationTexts(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromBody] PresentationTexts presentationTexts)
         {
+            if (presentationTexts?.Texts == null)
+            {
+                return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
+            }
+
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
@@ -622,6 +627,50 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance updatedInstance = await _instanceRepository.Update(instance);
             return updatedInstance;
+        }
+
+        /// <summary>
+        /// Updates the data values on an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="dataValues">Collection of changes to the presentation texts collection.</param>
+        /// <returns>The instance that was updated with an updated collection of data values.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/datavalues")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> UpdateDataValues(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] DataValues dataValues)
+        {
+            if (dataValues?.Values == null)
+            {
+                return BadRequest($"Missing parameter value: dataValues is misformed or empty");
+            }
+
+            var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            instance.DataValues ??= new Dictionary<string, string>();            
+
+            foreach (KeyValuePair<string, string> entry in dataValues.Values)
+            {
+                if (string.IsNullOrEmpty(entry.Value))
+                {
+                    instance.DataValues.Remove(entry.Key);
+                }
+                else
+                {
+                    instance.DataValues[entry.Key] = entry.Value;
+                }
+            }
+
+            var updatedInstance = await _instanceRepository.Update(instance);
+            return Ok(updatedInstance);
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)

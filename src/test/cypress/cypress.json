@@ -7,7 +7,8 @@
     "appOwner": "ttd",
     "localTestAppName": "frontend-test",
     "localTest": "http://altinn3local.no/",
-    "at21": "at21.altinn.cloud"
+    "at21": "at21.altinn.cloud",
+    "at22": "at22.altinn.cloud"
   },
   "video": false,
   "fixturesFolder": "e2e/fixtures",

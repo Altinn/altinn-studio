@@ -24,6 +24,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly string insertSubscriptionSql = "select * from events.insert_subscription(@sourcefilter, @subjectfilter, @typefilter, @consumer, @endpointurl, @createdby, @validated)";
         private readonly string getSubscriptionSql = "select * from events.getsubscription(@_id)";
         private readonly string deleteSubscription = "call events.deletesubscription(@_id)";
+        private readonly string setValidSubscription = "call events.setvalidsubscription(@_id)";
         private readonly string getSubscriptionsExcludeOrgsSql = "select * from events.getsubscriptionsexcludeorgs(@source, @subject, @type)";
         private readonly string getSubscriptionByConsumerSql = "select * from events.getsubscriptionsbyconsumer(@_consumer)";
 
@@ -106,6 +107,28 @@ namespace Altinn.Platform.Events.Repository
             catch (Exception e)
             {
                 _logger.LogError(e, "PostgresRepository // DeleteSubscription // Exception");
+                throw;
+            }
+            finally
+            {
+                await _conn.CloseAsync();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task SetValidSubscription(int id)
+        {
+            try
+            {
+                await _conn.OpenAsync();
+                NpgsqlCommand pgcom = new NpgsqlCommand(setValidSubscription, _conn);
+                pgcom.Parameters.AddWithValue("_id", id);
+
+                await pgcom.ExecuteNonQueryAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "PostgresRepository // SetValidSubscription // Exception");
                 throw;
             }
             finally

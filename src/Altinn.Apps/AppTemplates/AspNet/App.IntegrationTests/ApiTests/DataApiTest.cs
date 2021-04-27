@@ -141,14 +141,14 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
-             /// <summary>
+        /// <summary>
         /// Test case: Send request to get app with min authentication level 3, user has level 2
         /// Expected: Response with result permit and status Forbidden
         /// </summary>
         [Fact]
         public async Task Data_Get_Forbidden_ToLowAuthenticationLevel()
         {
-            string token = PrincipalUtil.GetToken(1,1);
+            string token = PrincipalUtil.GetToken(1, 1);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -202,7 +202,7 @@ namespace App.IntegrationTests.ApiTests
                 Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
             };
             response = await client.SendAsync(putRequestMessage);
-            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
             responseContent = await response.Content.ReadAsStringAsync();
             CalculationResult calculationResult = JsonConvert.DeserializeObject<CalculationResult>(responseContent);
             Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
@@ -261,14 +261,14 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Fetch data element
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1337/{guid}/data?dataType=default"){};
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1337/{guid}/data?dataType=default");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/{guid}/data/{dataElement.Id}"){};
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/{guid}/data/{dataElement.Id}");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -297,14 +297,14 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Fetch data element
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/500600/{guid}/data?dataType=default"){};
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/500600/{guid}/data?dataType=default");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/500600/{guid}/data/{dataElement.Id}"){};
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/500600/{guid}/data/{dataElement.Id}");
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -534,7 +534,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -562,7 +562,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -590,7 +590,7 @@ namespace App.IntegrationTests.ApiTests
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"; filename*=UTF-8''appsettings.staging.json");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
-            string message = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -620,10 +620,132 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstanceAndData ("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(expectedMsg, message);
+        }
+
+        [Fact]
+        public async Task Data_Put_PresentationTextsUpdated_NewValueIncluded()
+        {
+            // Arrange
+            int expectedCount = 2;
+            string expectedValue = "160694";
+            string expectedKey = "AnotherField";
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.PresentationTexts.Count);
+            Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
+        }
+
+        [Fact]
+        public async Task Data_Put_PresentationTextsUpdated_ExistingValueRemoved()
+        {
+            // Arrange
+            int expectedCount = 0;
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.PresentationTexts.Count);
+        }
+
+        [Fact]
+        public async Task Data_Put_PresentationTextsUpdated_ExistingValueOverwritten()
+        {
+            // Arrange
+            int expectedCount = 1;
+            string expectedValue = "Andreas Dahl";
+            string expectedKey = "Title";
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"Andreas Dahl\",\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.PresentationTexts.Count);
+            Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
         }
     }
 }

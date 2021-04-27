@@ -92,12 +92,12 @@ describe('DataModeling', () => {
     expect(wrapper).not.toBeNull();
 
     expect(wrapper.find('input').length).toBe(1);
-    expect(wrapper.find('button').length).toBe(5);
+    expect(wrapper.find('button').length).toBe(3);
     wrapper.find('#new-button').at(0).simulate('click');
     expect(wrapper.find('input').length).toBe(2);
 
     wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
-    expect(wrapper.find('button').length).toBe(7);
+    expect(wrapper.find('button').length).toBe(4);
     wrapper.find('#newModelInput').find('button').simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({

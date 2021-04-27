@@ -1,12 +1,12 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { IParty } from 'altinn-shared/types';
 import { get } from '../../../../utils/networking';
 import { currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper';
 import PartyActions from '../partyActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
-import QueueActions from '../../queue/queueActions';
+import { appTaskQueueError } from '../../queue/queueSlice';
 
 const PartiesSelector = ((state: IRuntimeState) => state.party.parties);
 
@@ -32,8 +32,8 @@ function* getCurrentPartySaga(): SagaIterator {
     if (!parties || parties.length === 0) {
       yield call(PartyActions.getPartiesFulfilled, [currentParty]);
     }
-  } catch (err) {
-    yield call(QueueActions.appTaskQueueError, err);
+  } catch (error) {
+    yield put(appTaskQueueError({ error }));
   }
 }
 

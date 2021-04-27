@@ -113,6 +113,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         repeatingGroups: {
           'mock-container-id': {
             count: 3,
+            editIndex: -1,
           },
         },
         autosave: false,
@@ -158,7 +159,7 @@ describe('>>> features/form/components/Group.tsx', () => {
       <Provider store={mockStore}>
         <GroupContainer
           components={mockComponents}
-          id='testGroupId'
+          id='mock-container-id'
           key='testKey'
           container={mockContainer}
         />
@@ -173,7 +174,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         <GroupContainer
           components={mockComponents}
           container={mockContainer}
-          id='testGroupId'
+          id='mock-container-id'
           key='testKey'
         />
       </Provider>,
@@ -194,7 +195,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         <GroupContainer
           container={mockContainerWithLabel}
           components={mockComponents}
-          id='testGroupId'
+          id='mock-container-id'
           key='testKey'
         />
       </Provider>,

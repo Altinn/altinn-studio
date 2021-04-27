@@ -5,7 +5,7 @@
 */
 
 import { check } from "k6";
-import * as sbl from "../../../api/platform/storage/messageboxinstances.js"
+import * as sbl from "../../../api/platform/storage/messageboxinstances.js";
 import * as setUpData from "../../../setup.js";
 import { addErrorCount } from "../../../errorcounter.js";
 
@@ -17,9 +17,8 @@ let appNames = __ENV.appnames;
 
 export const options = {
     thresholds: {
-        "errors": ["count<1"]
+        errors: ["count<1"],
     },
-    setupTimeout: '1m'
 };
 
 //Function to setup data and return AltinnstudioRuntime Token and user details
@@ -30,7 +29,7 @@ export function setup() {
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
     return data;
-};
+}
 
 //Hard delete instances under a party id based on supplied app names
 export default function (data) {
@@ -38,7 +37,6 @@ export default function (data) {
     const partyId = data["partyId"];
     var res, success, instances;
     var instancesCount = 0;
-    const instanceStates = ["active", "archived", "deleted"];
 
     try {
         appNames = appNames.split(";");
@@ -48,34 +46,32 @@ export default function (data) {
         appNames.push(level2App);
     }
 
-    instanceStates.forEach(state => {
-        do {
-            //Find active instances under the party id to be deleted.
-            res = sbl.getSblInstanceByParty(runtimeToken, partyId, state);
+
+    do {
+        //Find active instances under the party id to be deleted.
+        var filters = {
+            "instanceOwner.partyId": partyId,
+        };
+        res = sbl.searchSblInstances(runtimeToken, filters);
+
+        //Filter instances based on appName
+        instances = sbl.filterInstancesByAppName(appNames, res.body);
+        instancesCount = instances.length;
+
+        //hard delete all the instances fetched
+        if (instancesCount > 0) {
+            sbl.hardDeleteManyInstances(runtimeToken, instances);
+
+            //Find more instances to loop through
+            res = sbl.searchSblInstances(runtimeToken, filters);
             success = check(res, {
-                "GET SBL Instance by Party status is 200:": (r) => r.status === 200
+                "GET SBL Instance by Party status is 200:": (r) => r.status === 200,
             });
             addErrorCount(success);
 
-            //Filter instances based on appName
             instances = sbl.filterInstancesByAppName(appNames, res.body);
             instancesCount = instances.length;
+        }
+    } while (instancesCount > 0);
 
-            //hard delete all the instances fetched
-            if (instancesCount > 0) {
-                sbl.hardDeleteManyInstances(runtimeToken, instances);
-
-                //Find more instances to loop through
-                res = sbl.getSblInstanceByParty(runtimeToken, partyId, state);
-                success = check(res, {
-                    "GET SBL Instance by Party status is 200:": (r) => r.status === 200
-                });
-                addErrorCount(success);
-
-                instances = sbl.filterInstancesByAppName(appNames, res.body);
-                instancesCount = instances.length;
-            };
-
-        } while (instancesCount > 0)
-    });
-};
+}

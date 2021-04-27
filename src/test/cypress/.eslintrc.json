@@ -1,11 +1,17 @@
 {
-  "plugins": [
-    "cypress"
-  ],
-  "extends": [
-    "plugin:cypress/recommended"
-  ],
+  "plugins": ["cypress"],
+  "extends": ["plugin:cypress/recommended"],
   "rules": {
-    "eol-last": "error"
+    "eol-last": "error",
+    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "quotes": [
+      "warn",
+      "single",
+      {
+        "avoidEscape": true,
+        "allowTemplateLiterals": true
+      }
+    ],
+    "semi": ["warn", "always", { "omitLastInOneLineBlock": true }]
   }
 }

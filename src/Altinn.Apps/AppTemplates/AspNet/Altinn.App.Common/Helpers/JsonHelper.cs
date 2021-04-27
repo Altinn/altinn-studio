@@ -37,6 +37,17 @@ namespace Altinn.App.Common.Helpers
                 case JTokenType.Object:
                     JObject current = Current as JObject;
                     JObject old = Old as JObject;
+
+                    if (old == null)
+                    {
+                        foreach (string key in current.Properties().Select(c => c.Name))
+                        {
+                            FindDiff(dict, new JObject(), current[key], Join(prefix, key));
+                        }
+
+                        break;
+                    }
+
                     IEnumerable<string> addedKeys = current.Properties().Select(c => c.Name).Except(old.Properties().Select(c => c.Name));
                     IEnumerable<string> removedKeys = old.Properties().Select(c => c.Name).Except(current.Properties().Select(c => c.Name));
                     IEnumerable<string> unchangedKeys = current.Properties().Where(c => JToken.DeepEquals(c.Value, old[c.Name])).Select(c => c.Name);

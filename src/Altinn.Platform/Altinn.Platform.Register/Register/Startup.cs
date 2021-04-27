@@ -94,6 +94,7 @@ namespace Altinn.Platform.Register
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -128,6 +129,7 @@ namespace Altinn.Platform.Register
 
             services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
             services.AddHttpClient<IParties, PartiesWrapper>();
+            services.AddHttpClient<IAuthorization, AuthorizationWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

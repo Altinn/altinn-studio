@@ -67,20 +67,20 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     organisationMetaData: {
       allOrgs: {
-        "mockOrg": {
-            "name": {
-                "en": "Mock Ministry",
-                "nb": "Mockdepartementet",
-                "nn": "Mockdepartementet"
-            },
-            "logo": "",
-            "orgnr": "",
-            "homepage": "",
-            "environments": [
-                "tt02",
-                "production"
-            ]
-        }
+        mockOrg: {
+          name: {
+            en: 'Mock Ministry',
+            nb: 'Mockdepartementet',
+            nn: 'Mockdepartementet',
+          },
+          logo: '',
+          orgnr: '',
+          homepage: '',
+          environments: [
+            'tt02',
+            'production',
+          ],
+        },
       },
       error: null,
     },
@@ -100,6 +100,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     queue: {
       appTask: null,
       dataTask: null,
+      infoTask: null,
     },
     textResources: {
       resources: [],

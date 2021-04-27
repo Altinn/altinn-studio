@@ -19,8 +19,8 @@ export interface IRepeatingGroupsEditContainer {
   textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;
-  setEditIndex: (index: number) => void;
   onClickRemove: (groupIndex: number) => void;
+  onClickSave: () => void;
   hideSaveButton?: boolean;
   hideDeleteButton?: boolean;
 }
@@ -57,8 +57,8 @@ export function RepeatingGroupsEditContainer({
   textResources,
   layout,
   editIndex,
-  setEditIndex,
   onClickRemove,
+  onClickSave,
   hideSaveButton,
   hideDeleteButton,
 }: IRepeatingGroupsEditContainer): JSX.Element {
@@ -118,7 +118,7 @@ export function RepeatingGroupsEditContainer({
           { !hideSaveButton &&
           <AltinnButton
             btnText={getLanguageFromKey('general.save', language)}
-            onClickFunction={() => setEditIndex(-1)}
+            onClickFunction={onClickSave}
             id={`add-button-grp-${id}`}
           />}
         </Grid>
