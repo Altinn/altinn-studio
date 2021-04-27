@@ -178,7 +178,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
               textResources,
               null,
               [],
-              true,
+              false,
             )}
           />
         );
