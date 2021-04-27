@@ -91,22 +91,6 @@ test('Renders properties', () => {
   expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).not.toBe(0);
 });
 
-test('Renders tree with definitions', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-  });
-
-  let wrapper: ReactWrapper = new ReactWrapper(<div />);
-  act(() => {
-    wrapper = mountComponent();
-  });
-  expect(wrapper.find('.MuiTypography-root').length).toBe(5);
-  wrapper.find('.MuiTypography-root').at(4).simulate('click'); // expand definitions
-  expect(wrapper.find('.MuiTypography-root').length).toBe(125);
-});
-
 test('Supports allOf', () => {
   mockStore = createStore({
     ...mockInitialState,
