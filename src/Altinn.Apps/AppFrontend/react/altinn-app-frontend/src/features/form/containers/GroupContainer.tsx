@@ -9,8 +9,8 @@ import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
@@ -34,7 +34,6 @@ export function GroupContainer({
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
 
   const [editIndex, setEditIndex] = React.useState<number>(-1);
-  const [groupErrors, setGroupErrors] = React.useState<string>(null);
 
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
@@ -78,18 +77,6 @@ export function GroupContainer({
       });
     }
   }, [formData, container]);
-
-  React.useEffect(() => {
-    if (validations && validations[currentView] && validations[currentView][id]) {
-      let errorText = '';
-      validations[currentView][id].group.errors.forEach((error, index) => {
-        errorText += `${index > 0 ? ' ,' : ''}${getTextFromAppOrDefault(error, textResources, language, [], true)}`;
-      });
-      setGroupErrors(errorText);
-    } else {
-      setGroupErrors(null);
-    }
-  }, [validations, currentView, id]);
 
   const onClickAdd = () => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
@@ -214,17 +201,11 @@ export function GroupContainer({
         />
       </Grid>
       }
-      {groupErrors &&
-      <Grid
-        container={true}
-        style={{ paddingTop: '12px' }}
-        direction='column'
-      >
-        <ErrorPaper
-          message={groupErrors}
-        />
+      <Grid item={true} xs={12}>
+        {validations && validations[currentView] && validations[currentView][id] &&
+          renderValidationMessagesForComponent(validations[currentView][id].group, container.id)
+        }
       </Grid>
-      }
     </Grid>
   );
 }
