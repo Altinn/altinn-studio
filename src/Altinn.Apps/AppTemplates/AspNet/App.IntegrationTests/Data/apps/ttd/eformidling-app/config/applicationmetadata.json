@@ -24,7 +24,7 @@
       },
       "taskId": "Task_1",
       "maxCount": 1,
-      "minCount":0
+      "minCount": 0
     },
     {
       "id": "9dd34a1e-e9f5-4f64-ab47-3a1a4a362e92",
@@ -43,7 +43,7 @@
     "standard": "urn:no:difi:arkivmelding:xsd::arkivmelding",
     "type": "arkivmelding",
     "typeVersion": "2.0",
-    "securityLevel":  3
+    "securityLevel": 3
   },
   "partyTypesAllowed": {
     "bankruptcyEstate": false,

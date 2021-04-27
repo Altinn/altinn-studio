@@ -1,4 +1,4 @@
-import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
+import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import Ajv from 'ajv';
@@ -16,7 +16,7 @@ import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
-import { IQueueState } from '../shared/resources/queue/queueReducer';
+import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 
 export type FormComponentType =
@@ -173,6 +173,7 @@ export interface IRepeatingGroup {
   count: number;
   baseGroupId?: string;
   dataModelBinding?: string;
+  editIndex?: number;
 }
 
 export interface IRepeatingGroups {

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using Altinn.Platform.Storage.UnitTest.Utils;
 
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Primitives;
@@ -41,71 +40,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         public Task<bool> Delete(Instance item)
         {
             throw new NotImplementedException();
-        }
-
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
-        {
-            List<Instance> instances = new List<Instance>();
-
-            string instancesForPartyPath = $"{GetInstancesPath()}\\{instanceOwnerPartyId}";
-
-            if (Directory.Exists(instancesForPartyPath))
-            {
-                string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
-                foreach (string instancePath in instancesFiles)
-                {
-                    Instance instance = null;
-                    lock (TestDataUtil.DataLock)
-                    {
-                        string content = File.ReadAllText(instancePath);
-                        instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    }
-
-                    PostProcess(instance);
-
-                    if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
-                    {
-                        instances.Add(instance);
-                    }
-                }
-            }
-
-            return await Task.FromResult(Filter(instanceState, instances));
-        }
-
-        private List<Instance> Filter(string instanceState, List<Instance> unfilteredInstances)
-        {
-            IEnumerable<Instance> filter;
-            if (instanceState.Equals("active"))
-            {
-                filter = unfilteredInstances
-                        .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Status.IsSoftDeleted)
-                        .Where(i => !i.Status.IsHardDeleted)
-                        .Where(i => !i.Status.IsArchived);
-            }
-            else if (instanceState.Equals("deleted"))
-            {
-                filter = unfilteredInstances
-                        .Where(i => i.Status.IsSoftDeleted)
-                        .Where(i => !i.Status.IsHardDeleted);
-            }
-            else if (instanceState.Equals("archived"))
-            {
-                filter =
-                       unfilteredInstances
-                       .Where(i => i.Status.IsArchived)
-                       .Where(i => !i.Status.IsSoftDeleted)
-                       .Where(i => !i.Status.IsHardDeleted)
-                       .OrderByDescending(i => i.Status.Archived);
-            }
-            else
-            {
-                // empty list
-                return unfilteredInstances;
-            }
-
-            return filter.ToList();
         }
 
         public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)

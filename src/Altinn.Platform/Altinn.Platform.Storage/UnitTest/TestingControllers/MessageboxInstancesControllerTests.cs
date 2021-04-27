@@ -48,95 +48,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Request list of instances active without language settings.
-        /// Expected result:
-        ///   Requested language is not available, but a list of instances is returned regardless.
-        /// Success criteria:
-        ///   Default language is used for title, and the title contains the word "bokmål".
-        /// </summary>
-        [Fact]
-        public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerWithoutLanguage_ReturnsAllElementsUsingDefaultLanguage()
-        {
-            // Arrange
-            HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
-
-            // Act
-            HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{1337}?state=active");
-
-            // Assert
-            string content = await response.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
-
-            int expectedCount = 13;
-            string expectedTitle = "Endring av navn (RF-1453)";
-            int actualCount = messageBoxInstances.Count;
-            string actualTitle = messageBoxInstances.First().Title;
-            Assert.Equal(expectedCount, actualCount);
-            Assert.Equal(expectedTitle, actualTitle);
-        }
-
-        /// <summary>
-        /// Scenario:
-        ///   Request list of instances with language setting english.
-        /// Expected:
-        ///   Requested language is available and a list of instances is returned.
-        /// Success:
-        ///   English title is returned in the instances and the title contains the word "english".
-        /// </summary>
-        [Fact]
-        public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerInEnglish_ReturnsAllElementsWithEnglishTitles()
-        {
-            // Arrange
-            HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
-
-            // Act
-            HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/1337?state=active&language=en");
-            string content = await response.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
-
-            int actualCount = messageBoxInstances.Count;
-            string actualTitle = messageBoxInstances.First().Title;
-
-            // Assert
-            int expectedCount = 13;
-            string expectedTitle = "Name change";
-            Assert.Equal(expectedCount, actualCount);
-            Assert.Equal(expectedTitle, actualTitle);
-        }
-
-        /// <summary>
-        /// Scenario:
-        ///   Request list of archived instances.
-        /// Expected:
-        ///   A list of instances is returned regardless.
-        /// Success:
-        ///   A single instance is returned.
-        /// </summary>
-        [Fact]
-        public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstances()
-        {
-            // Arrange
-            HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
-
-            // Act
-            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{1337}?state=archived");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-
-            string responseContent = await responseMessage.Content.ReadAsStringAsync();
-            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
-
-            int actualCount = messageBoxInstances.Count;
-            int expectedCount = 6;
-            Assert.Equal(expectedCount, actualCount);
-        }
-
-        /// <summary>
-        /// Scenario:
         ///   Request an existing instance.
         /// Expected:
         ///  A converted instance is returned.
@@ -148,7 +59,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             string instanceId = "1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
-            string expectedTitle = "Name change";
+            string expectedTitle = "Name change, Sophie Salt";
             string expectedSubstatusLabel = "Application approved";
 
             HttpClient client = GetTestClient();

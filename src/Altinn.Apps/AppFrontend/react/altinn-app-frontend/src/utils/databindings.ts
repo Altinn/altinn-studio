@@ -107,11 +107,12 @@ export function removeGroupData(
   const groupElement: ILayoutGroup = layout.find((element) => {
     return element.id === groupElementId;
   }) as ILayoutGroup;
-  const parentGroup = getParentGroup(groupElement, layout);
+  const parentGroup = getParentGroup(groupElement.id, layout);
 
   let groupDataModelBinding;
   if (parentGroup) {
-    const parentIndex = Number.parseInt(groupId.charAt(groupId.length - 1), 10);
+    const splitId = groupId.split('-');
+    const parentIndex = Number.parseInt(splitId[splitId.length - 1], 10);
     const parentDataBinding = parentGroup.dataModelBindings?.group;
     const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
     groupDataModelBinding = groupElement.dataModelBindings?.group.replace(parentDataBinding, indexedParentDataBinding);

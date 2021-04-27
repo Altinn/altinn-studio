@@ -28,7 +28,7 @@ createTestCafe()
       .then(failedCount => {
         console.log('Total tests failed ' + failedCount);
         stream.end();
-      })
+      });
   })
   .then(() => {
     testcafe.close();

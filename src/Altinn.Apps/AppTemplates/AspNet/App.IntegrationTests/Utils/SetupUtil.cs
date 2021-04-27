@@ -66,6 +66,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
                     services.AddTransient<IRegister, RegisterMockSI>();
+                    services.AddTransient<IAuthorization, AuthorizationMock>();
 
                     services.AddTransient<IPDF, PDFMockSI>();
                     services.AddTransient<IProfile, ProfileMockSI>();
@@ -117,6 +118,9 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "eformidling-app-invalid":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
+                            break;
+                        case "presentationfields-app":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

@@ -67,6 +67,29 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
         }
 
         [Fact]
+        public async Task GetParty_ValidTokenRequestForInvalidParty_ReturnsParty()
+        {
+            string token = PrincipalUtil.GetToken(2);
+            int partyId = 6565;
+
+            // Arrange
+            Mock<IParties> partiesService = new Mock<IParties>();
+            partiesService.Setup(s => s.GetParty(It.Is<int>(o => o == partyId))).ReturnsAsync(new Party());
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/parties/" + partyId);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
         public async Task GetParty_ValidTokenRequestForNonExistingParty_ReturnsNotFound()
         {
             string token = PrincipalUtil.GetToken(1);
@@ -269,6 +292,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
+                    services.AddSingleton<IAuthorization, AuthorizationWrapperMock>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
