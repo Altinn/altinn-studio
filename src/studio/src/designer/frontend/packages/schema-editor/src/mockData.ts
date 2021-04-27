@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-escape */
+/* eslint-disable no-tabs */
 const mockString = `
 {
 	"$schema" : "http://json-schema.org/schema#",
@@ -743,6 +745,6 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/TokenTekst/486190"
 				}
 		}
-}`
+}`;
 
 export const dataMock = JSON.parse(mockString);

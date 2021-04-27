@@ -107,7 +107,6 @@ test('Renders tree with definitions', () => {
   expect(wrapper.find('.MuiTypography-root').length).toBe(125);
 });
 
-
 test('Supports allOf', () => {
   mockStore = createStore({
     ...mockInitialState,
@@ -123,10 +122,10 @@ test('Supports allOf', () => {
   wrapper.find('.MuiTypography-root').at(4).simulate('click'); // expand definitions
   expect(wrapper.find('.MuiTypography-root').length).toBe(125);
 
-  wrapper.find('.fa-datamodel-object').at(22).simulate('click'); //expand allOfTest
+  wrapper.find('.fa-datamodel-object').at(22).simulate('click'); // expand allOfTest
   expect(wrapper.find('.MuiTypography-root').length).toBe(127);
   expect(wrapper.find('.MuiTypography-root').at(50).text()).toBe(' allOf');
-  wrapper.find('.MuiTypography-root').at(50).simulate('click'); //expand allOf
+  wrapper.find('.MuiTypography-root').at(50).simulate('click'); // expand allOf
 
   expect(wrapper.find('.MuiTypography-root').at(51).text()).toBe(' Tekst_50');
 });
