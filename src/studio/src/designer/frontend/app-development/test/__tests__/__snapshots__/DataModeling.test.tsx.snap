@@ -180,6 +180,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               <li
                 aria-expanded="true"
                 class="MuiTreeItem-root Mui-expanded"
+                id="properties"
                 role="treeitem"
                 tabindex="0"
               >
@@ -232,6 +233,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       <li
                         aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-47"
+                        id="root-schema-item"
                         role="treeitem"
                         tabindex="-1"
                       >
