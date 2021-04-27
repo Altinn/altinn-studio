@@ -135,7 +135,6 @@ namespace App.IntegrationTests
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
-
         }
 
         /// <summary>
@@ -143,7 +142,7 @@ namespace App.IntegrationTests
         /// Succsess criteria: Forbidden
         /// </summary>
         [Fact]
-        public async void Instance_Post_With_InstanceTemplate_UnuthorizedParty()
+        public async Task Instance_Post_With_InstanceTemplate_UnuthorizedParty()
         {
             string token = PrincipalUtil.GetToken(1337);
 
@@ -168,8 +167,6 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
-
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
