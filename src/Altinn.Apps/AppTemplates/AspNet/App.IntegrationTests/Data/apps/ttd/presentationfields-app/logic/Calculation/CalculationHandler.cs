@@ -39,7 +39,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
                 changed = true;
             }
 
-            return changed;
+            return await Task.FromResult(changed);
         }
     }
 }
