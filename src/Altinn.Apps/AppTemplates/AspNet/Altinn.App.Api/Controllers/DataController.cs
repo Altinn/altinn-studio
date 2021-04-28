@@ -31,7 +31,6 @@ namespace Altinn.App.Api.Controllers
     /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
     [AutoValidateAntiforgeryTokenIfAuthCookie]
-    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
@@ -83,6 +82,7 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
         public async Task<ActionResult> Create(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -160,7 +160,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-        [HttpGet("{dataGuid:guid?}")]
+        [HttpGet]
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid?}")]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -216,11 +217,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element, including the changed fields in the event of a calculation that changed data.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpPut("{dataGuid:guid}")]
+        [HttpPut]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
         [ProducesResponseType(typeof(CalculationResult), 303)]
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}")]
         public async Task<ActionResult> Put(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -282,7 +284,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpDelete("{dataGuid:guid}")]
+        [HttpDelete]
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}")]
         public async Task<ActionResult> Delete(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -332,6 +335,69 @@ namespace Altinn.App.Api.Controllers
             {
                 return HandlePlatformHttpException(e, $"Cannot delete data element {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
+        }
+
+        /// <summary>
+        /// Create a new data object of the defined data type
+        /// </summary>
+        /// <param name="dataType">The data type id</param>
+        /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
+        [Authorize]
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 200)]
+        [Route("{org}/{app}/v1/data")]
+        public async Task<ActionResult> Post([FromQuery] string dataType)
+        {
+            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            object appModel = _altinnApp.CreateNewAppModel(classRef);
+
+            int? partyId = HttpContext.User.GetPartyIdAsInt();
+
+            if (partyId.HasValue)
+            {
+                // runs prefill from repo configuration if config exists
+                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            }
+
+            await _altinnApp.RunCalculation(appModel);
+
+            return Ok(appModel);
+        }
+
+        /// <summary>
+        /// Runs calculations on the provided data object of the defined defined data type
+        /// </summary>
+        /// <param name="dataType">The data type id</param>
+        /// <returns>Return the updated data object</returns>
+        [Authorize]
+        [HttpPut]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 200)]
+        [Route("{org}/{app}/v1/data")]
+        public async Task<ActionResult> Put([FromQuery] string dataType)
+        {
+            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+
+            if (!string.IsNullOrEmpty(deserializer.Error))
+            {
+                return BadRequest(deserializer.Error);
+            }
+
+            if (appModel == null)
+            {
+                return BadRequest("No data found in content");
+            }
+
+            await _altinnApp.RunCalculation(appModel);
+
+            return Ok(appModel);
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)
@@ -563,8 +629,8 @@ namespace Altinn.App.Api.Controllers
             Dictionary<string, string> updatedValues =
                 DataHelper.GetUpdatedDataValues(
                     _appResourcesService.GetApplication().PresentationFields,
-                    instance.PresentationTexts, 
-                    dataType, 
+                    instance.PresentationTexts,
+                    dataType,
                     serviceModel);
 
             if (updatedValues.Count > 0)
