@@ -112,7 +112,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, instanceOwnerPartyId, "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
 
             if (!enforcementResult.Authorized)
             {
@@ -233,7 +233,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, "instantiate");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
 
             if (!enforcementResult.Authorized)
             {
@@ -432,10 +432,10 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
+        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, Guid? instanceGuid, string action)
         {
             EnforcementResult enforcementResult = new EnforcementResult();
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, instanceGuid);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
