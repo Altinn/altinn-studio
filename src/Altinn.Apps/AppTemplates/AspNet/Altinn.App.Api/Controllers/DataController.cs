@@ -151,6 +151,36 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
+        /// Create a new data object of the defined data type
+        /// </summary>
+        /// <param name="dataType">The data type id</param>
+        /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
+        [Authorize]
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 200)]
+        [Route("{org}/{app}/v1/data")]
+        public async Task<ActionResult> Post([FromQuery] string dataType)
+        {
+            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            object appModel = _altinnApp.CreateNewAppModel(classRef);
+
+            int? partyId = HttpContext.User.GetPartyIdAsInt();
+
+            if (partyId.HasValue)
+            {
+                // runs prefill from repo configuration if config exists
+                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            }
+
+            await _altinnApp.RunCalculation(appModel);
+
+            return Ok(appModel);
+        }
+
+        /// <summary>
         /// Gets a data element from storage and applies business logic if nessesary.
         /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
@@ -275,6 +305,39 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
+        /// Runs calculations on the provided data object of the defined defined data type
+        /// </summary>
+        /// <param name="dataType">The data type id</param>
+        /// <returns>Return the updated data object</returns>
+        [Authorize]
+        [HttpPut]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 200)]
+        [Route("{org}/{app}/v1/data")]
+        public async Task<ActionResult> Put([FromQuery] string dataType)
+        {
+            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+
+            if (!string.IsNullOrEmpty(deserializer.Error))
+            {
+                return BadRequest(deserializer.Error);
+            }
+
+            if (appModel == null)
+            {
+                return BadRequest("No data found in content");
+            }
+
+            await _altinnApp.RunCalculation(appModel);
+
+            return Ok(appModel);
+        }
+
+        /// <summary>
         ///  Delete a data element.
         /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
@@ -335,70 +398,7 @@ namespace Altinn.App.Api.Controllers
             {
                 return HandlePlatformHttpException(e, $"Cannot delete data element {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
-        }
-
-        /// <summary>
-        /// Create a new data object of the defined data type
-        /// </summary>
-        /// <param name="dataType">The data type id</param>
-        /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
-        [Authorize]
-        [HttpPost]
-        [DisableFormValueModelBinding]
-        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        [ProducesResponseType(typeof(DataElement), 200)]
-        [Route("{org}/{app}/v1/data")]
-        public async Task<ActionResult> Post([FromQuery] string dataType)
-        {
-            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
-
-            object appModel = _altinnApp.CreateNewAppModel(classRef);
-
-            int? partyId = HttpContext.User.GetPartyIdAsInt();
-
-            if (partyId.HasValue)
-            {
-                // runs prefill from repo configuration if config exists
-                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
-            }
-
-            await _altinnApp.RunCalculation(appModel);
-
-            return Ok(appModel);
-        }
-
-        /// <summary>
-        /// Runs calculations on the provided data object of the defined defined data type
-        /// </summary>
-        /// <param name="dataType">The data type id</param>
-        /// <returns>Return the updated data object</returns>
-        [Authorize]
-        [HttpPut]
-        [DisableFormValueModelBinding]
-        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        [ProducesResponseType(typeof(DataElement), 200)]
-        [Route("{org}/{app}/v1/data")]
-        public async Task<ActionResult> Put([FromQuery] string dataType)
-        {
-            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
-
-            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
-            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
-
-            if (!string.IsNullOrEmpty(deserializer.Error))
-            {
-                return BadRequest(deserializer.Error);
-            }
-
-            if (appModel == null)
-            {
-                return BadRequest("No data found in content");
-            }
-
-            await _altinnApp.RunCalculation(appModel);
-
-            return Ok(appModel);
-        }
+        }           
 
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
