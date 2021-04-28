@@ -787,7 +787,7 @@ namespace App.IntegrationTests.ApiTests
             // Arrange
             string org = "ttd";
             string app = "model-validation";
-            decimal expected = 10001;
+            decimal expected = 1001;
 
             string token = PrincipalUtil.GetToken(1337);
 
@@ -795,11 +795,11 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
 
-            string requestBody = "{\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(requestBody, Encoding.UTF8, "application/xml")
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
 
             // Act
