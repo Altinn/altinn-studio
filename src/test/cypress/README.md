@@ -86,3 +86,14 @@ If one has the frontend dependencies installed from  before, run the below comma
 ```cmd
     npm run test:appfrontend --env=at21
 ```
+5. To run a single test case open cypress runner using
+```cmd
+    npm run cy:open --env=local
+```
+
+### Format files with prettier
+
+```cmd
+    npm run check # For checking the files deviating standards
+    npm run format # format and save the files based on config
+```

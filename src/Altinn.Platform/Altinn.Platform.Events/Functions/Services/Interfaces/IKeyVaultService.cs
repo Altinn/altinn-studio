@@ -13,6 +13,6 @@ namespace Altinn.Platform.Events.Functions.Services.Interfaces
         /// <param name="vaultUri">The URI of the key vault to ask for secret. </param>
         /// <param name="secretId">The id of the secret.</param>
         /// <returns>The secret value.</returns>
-        Task<string> GetSecretAsync(string vaultUri, string secretId);
+        Task<string> GetCertificateAsync(string vaultUri, string secretId);
     }
 }

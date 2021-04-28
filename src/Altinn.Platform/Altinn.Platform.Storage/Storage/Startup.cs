@@ -122,11 +122,8 @@ namespace Altinn.Platform.Storage
                 options.AddPolicy(AuthzConstants.POLICY_STUDIO_DESIGNER, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "studio.designer")));
             });
 
-            services.AddSingleton<IDataRepository, DataRepository>();
-            services.AddSingleton<IInstanceRepository, InstanceRepository>();
-            services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
-            services.AddSingleton<ITextRepository, TextRepository>();
+            services.AddRepositories();
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();

@@ -2,10 +2,9 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
-import Common from '../../pageobjects/common'
-import * as texts from '../../fixtures/texts.json'
+import Common from '../../pageobjects/common';
+import * as texts from '../../fixtures/texts.json';
 
-const mui = new Common();
 const appFrontend = new AppFrontend();
 
 describe('Confirm', () => {
@@ -20,5 +19,4 @@ describe('Confirm', () => {
     cy.get(appFrontend.confirmBody).should('contain.text', texts.confirmBody);
     cy.get(appFrontend.confirmSendInButton).should('be.visible');
   });
-
 });

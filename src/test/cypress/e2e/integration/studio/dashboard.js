@@ -1,29 +1,29 @@
 /// <reference types="cypress" />
 
-import * as dashboard from "../../pageobjects/dashboard";
-import Common from "../../pageobjects/common";
-import { repos } from "../../fixtures/repo"
+import * as dashboard from '../../pageobjects/dashboard';
+import Common from '../../pageobjects/common';
+import { repos } from '../../fixtures/repo';
 
 const common = new Common();
 
-context("Dashboard", () => {
+context('Dashboard', () => {
   beforeEach(() => {
-    cy.visit("/");
+    cy.visit('/');
   });
 
-  it("Create an app and exit creation", () => {
-    cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
-    cy.get(dashboard.newApp).should("be.visible");
+  it('Create an app and exit creation', () => {
+    cy.studiologin(Cypress.env('userName'), Cypress.env('userPwd'));
+    cy.get(dashboard.newApp).should('be.visible');
     cy.get(dashboard.newApp).click();
     cy.get(dashboard.appOwners).click();
-    cy.contains(dashboard.appOwnersList, Cypress.env("appOwner")).click();
-    cy.get(dashboard.appName).type("dashboard");
+    cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
+    cy.get(dashboard.appName).type('dashboard');
     cy.get(dashboard.closeButton).click();
   });
 
-  it("Login and dashboard lists app", () => {
-    cy.intercept("GET", "**/designerapi/Repository/UserRepos", repos(10));
-    cy.studiologin(Cypress.env("userName"), Cypress.env("userPwd"));
+  it('Login and dashboard lists app', () => {
+    cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
+    cy.studiologin(Cypress.env('userName'), Cypress.env('userPwd'));
     cy.get('h2').parent('div').siblings(common.gridContainer).children(common.gridItem).should('have.length', 10);
   });
 });

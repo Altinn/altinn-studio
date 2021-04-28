@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-escape */
+/* eslint-disable no-tabs */
 const mockString = `
 {
 	"$schema" : "http://json-schema.org/schema#",
@@ -496,6 +498,14 @@ const mockString = `
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Tegnrestriksjon",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_50Restriksjon/502232"
 				},
+			"allOfTest": {
+					"type": "object",
+					"allOf": [
+						{
+							"$ref": "#/definitions/Tekst_50"
+						}
+					]
+				},
 			"Dato" : {
 					"type" : "string",
 					"format" : "date",
@@ -735,6 +745,6 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/TokenTekst/486190"
 				}
 		}
-}`
+}`;
 
 export const dataMock = JSON.parse(mockString);
