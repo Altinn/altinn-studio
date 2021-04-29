@@ -22,10 +22,10 @@ const schemaEditorSlice = createSlice({
       const addToItem = state.uiSchema.find((item) => item.id === path);
       if (addToItem) {
         const itemToAdd = { key, value };
-        if (addToItem.fields) {
-          addToItem.fields.push(itemToAdd);
+        if (addToItem.keywords) {
+          addToItem.keywords.push(itemToAdd);
         } else {
-          addToItem.fields = [itemToAdd];
+          addToItem.keywords = [itemToAdd];
         }
       }
     },
@@ -74,10 +74,10 @@ const schemaEditorSlice = createSlice({
       const { path, key } = action.payload;
       const removeFromItem = state.uiSchema.find((item) => item.id === path);
       if (removeFromItem) {
-        const removeIndex = removeFromItem.fields?.findIndex((v: any) => v.key === key) ?? -1;
+        const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
         const newValue = removeFromItem
-          .fields?.slice(0, removeIndex).concat(removeFromItem.fields.slice(removeIndex + 1));
-        removeFromItem.fields = newValue;
+          .keywords?.slice(0, removeIndex).concat(removeFromItem.keywords.slice(removeIndex + 1));
+        removeFromItem.keywords = newValue;
       }
     },
     deleteProperty(state, action) {
@@ -101,8 +101,8 @@ const schemaEditorSlice = createSlice({
       // eslint-disable-next-line no-nested-ternary
       const itemType = path.includes('/properties/') ? ItemType.Property : (key ? ItemType.Value : ItemType.Ref);
       const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
-      if (schemaItem.fields) {
-        const fieldItem = schemaItem.fields.find((field) => field.key === key);
+      if (schemaItem.keywords) {
+        const fieldItem = schemaItem.keywords.find((field) => field.key === key);
         if (fieldItem) {
           fieldItem.value = value;
         }
@@ -123,8 +123,8 @@ const schemaEditorSlice = createSlice({
       } = action.payload;
       const itemType = path.includes('/properties/') ? ItemType.Property : ItemType.Value;
       const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
-      if (schemaItem.fields) {
-        const fieldItem = schemaItem.fields.find((field) => field.key === oldKey);
+      if (schemaItem.keywords) {
+        const fieldItem = schemaItem.keywords.find((field) => field.key === oldKey);
         if (fieldItem) {
           fieldItem.key = newKey;
         }

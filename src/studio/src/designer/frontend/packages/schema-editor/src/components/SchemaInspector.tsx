@@ -119,10 +119,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
       <hr />
       <h3 className={classes.header}>Properties</h3>
-      { /* These are the refs or consts. */ }
+      { /* These are the keywords. refs, consts or arrays */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {
-        if (p.fields && p.fields.find((f) => f.key === 'const')) {
-          const field = p.fields.find((f) => f.key === 'const');
+        if (p.keywords && p.keywords.find((f) => f.key === 'const')) {
+          const field = p.keywords.find((f) => f.key === 'const');
           return <InputField
             key={`field-${p.id}`}
             value={field?.value}
@@ -147,14 +147,15 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onDeleteField={onDeleteObjectClick}
           />;
         }
-        console.error(p);
         return null;
       })}
 
       {/* key:value fields */}
-      { selectedItem.fields?.map((field: Field) => <InputField
+      {/* Need to check for a field called type, and if for example value is "array", "items" are required. */}
+      { selectedItem.keywords?.map((field: Field) => <InputField
         key={`field-${field.key}`}
-        value={field.value}
+        isRef={field.key === '$ref'}
+        value={field.value.$ref ?? field.value}
         label={field.key}
         fullPath={selectedItem.id}
         onChangeValue={onChangeValue}
@@ -170,7 +171,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onClick={onAddPropertyClicked}
       ><i className='fa fa-plus'/>Add reference
       </IconButton> }
-      { selectedItem.fields &&
+      { selectedItem.keywords &&
       <IconButton
         id='add-property-button'
         aria-label='Add property'

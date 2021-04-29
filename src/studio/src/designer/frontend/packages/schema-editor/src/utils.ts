@@ -142,7 +142,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
-      item.fields = Object.keys(currentProperty).map((itemKey) => {
+      item.keywords = Object.keys(currentProperty).map((itemKey) => {
         return {
           key: itemKey,
           value: currentProperty[itemKey],

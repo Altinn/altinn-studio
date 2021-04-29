@@ -123,7 +123,7 @@ function SchemaItem(props: SchemaItemProps) {
       const refItem = refItems[refItems.length - 1];
       setDefinitionItem(refItem);
     }
-  }, [item.fields, refItems]);
+  }, [item.keywords, refItems]);
 
   const onItemClick = (itemId: string) => {
     dispatch(setSelectedId({ id: itemId }));
@@ -160,7 +160,7 @@ function SchemaItem(props: SchemaItemProps) {
   const RenderFields = (itemFields: Field[] | undefined, path: string) => {
     if (itemFields && itemFields.length > 0) {
       return (itemFields.map((field) => {
-        if (field.key === 'allOf' || field.key === 'oneOf' || field.key === 'anyOf') {
+        if (Array.isArray(field.value)) {
           return (
             <TreeItem
               classes={{ root: classes.treeItem }}
@@ -192,7 +192,7 @@ function SchemaItem(props: SchemaItemProps) {
             nodeId={`${item.id}-${field.key}`}
             className={classes.filler}
             key={`field-${path}-${field.key}`}
-            label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value}</>}
+            label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
             onClick={() => onItemClick(item.id)}
           />
         );
@@ -265,11 +265,11 @@ function SchemaItem(props: SchemaItemProps) {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        { item.fields &&
+        { item.keywords &&
           <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
         }
         <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
-        { (item.fields || item.properties || item.$ref) &&
+        { (item.keywords || item.properties || item.$ref) &&
           <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
         }
       </Menu>
@@ -284,7 +284,7 @@ function SchemaItem(props: SchemaItemProps) {
     >
       {RenderRefItems()}
       {RenderProperties(item.properties)}
-      {RenderFields(item.fields, item.id)}
+      {RenderFields(item.keywords, item.id)}
     </TreeItem>
   );
 }
