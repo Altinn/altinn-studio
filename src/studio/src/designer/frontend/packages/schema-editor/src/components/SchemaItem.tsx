@@ -133,33 +133,28 @@ function SchemaItem(props: SchemaItemProps) {
   const RenderProperties = (itemProperties: any[] | undefined) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        <TreeItem
-          classes={{ root: classes.treeItem }}
-          onClick={() => onItemClick(item.id)}
-          nodeId={`${keyPrefix}-${item.id}-properties`}
-          label={<div className={classes.filler}>{ icon('fa-datamodel-properties') } properties</div>}
-        >
-          { itemProperties.map((property: any) => {
-            return (
-              <SchemaItem
-                keyPrefix={`${keyPrefix}-${item.id}-properties`}
-                key={`${keyPrefix}-${property.id}`}
-                item={property}
-                nodeId={`${keyPrefix}-prop-${property.id}`}
-                onClick={() => onItemClick(property.id)}
-              />
-            );
-          })
-          }
-        </TreeItem>
+        itemProperties.map((property: any) => {
+          return (
+            <SchemaItem
+              keyPrefix={`${keyPrefix}-${item.id}-properties`}
+              key={`${keyPrefix}-${property.id}`}
+              item={property}
+              nodeId={`${keyPrefix}-prop-${property.id}`}
+              onClick={() => onItemClick(property.id)}
+            />
+          );
+        })
       );
     }
     return null;
   };
 
-  const RenderFields = (itemFields: Field[] | undefined, path: string) => {
-    if (itemFields && itemFields.length > 0) {
-      return (itemFields.map((field) => {
+  const RenderKeywords = (keywords: Field[] | undefined, path: string) => {
+    if (keywords && keywords.length > 0) {
+      return (keywords.map((field) => {
+        // Here we must handle different type of keywords: oneOf, anyOf, etc (arrays).
+        // type:array, we must handle the "items" keyword.
+        // "enum", contains array of values (not refs).
         if (Array.isArray(field.value)) {
           return (
             <TreeItem
@@ -182,6 +177,7 @@ function SchemaItem(props: SchemaItemProps) {
                     nodeId={`${keyPrefix}-${el.id}-ref`}
                   />;
                 }
+                console.error(`No uiSchema found with matching id ${e}`);
                 return null;
               })}
             </TreeItem>);
@@ -284,7 +280,7 @@ function SchemaItem(props: SchemaItemProps) {
     >
       {RenderRefItems()}
       {RenderProperties(item.properties)}
-      {RenderFields(item.keywords, item.id)}
+      {RenderKeywords(item.keywords, item.id)}
     </TreeItem>
   );
 }

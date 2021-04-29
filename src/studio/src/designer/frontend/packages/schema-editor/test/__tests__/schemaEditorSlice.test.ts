@@ -18,10 +18,10 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setKey(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.fields) {
+    if (!item || !item.keywords) {
       fail('item not found');
     }
-    expect(item.fields).toContainEqual({ key: 'color', value: 1 });
+    expect(item.keywords).toContainEqual({ key: 'color', value: 1 });
   });
 
   it('handles setFieldValue', () => {
@@ -32,10 +32,10 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setFieldValue(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.fields) {
+    if (!item || !item.keywords) {
       fail('item not found');
     }
-    const field = item.fields.find((f) => f.key === 'minLength');
+    const field = item.keywords.find((f) => f.key === 'minLength');
     if (!field) {
       fail('field not found');
     }
@@ -87,11 +87,11 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, deleteField(payload));
 
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.fields) {
+    if (!item || !item.keywords) {
       fail('item not found');
     }
 
-    expect(item.fields).not.toContainEqual({ key: 'maxLength' });
+    expect(item.keywords).not.toContainEqual({ key: 'maxLength' });
   });
 
   it('handles deleteProperty', () => {
@@ -143,7 +143,7 @@ describe('SchemaEditorSlice', () => {
       fail('item not found');
     }
 
-    expect(item.fields).toContainEqual({
+    expect(item.keywords).toContainEqual({
       key: 'key', value: 'value',
     });
   });

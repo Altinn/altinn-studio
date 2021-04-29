@@ -38,7 +38,7 @@ export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaIt
   return itemList;
 }
 
-export function buildJsonSchema(uiSchema: any[]): any {
+export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
     const item = createJsonSchemaItem(uiItem);
@@ -48,20 +48,20 @@ export function buildJsonSchema(uiSchema: any[]): any {
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: any): any {
+export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
         const properties: any = {};
         item.properties = properties;
-        uiSchemaItem.properties.forEach((property: any) => {
+        uiSchemaItem.properties?.forEach((property: any) => {
           item.properties[property.name] = createJsonSchemaItem(property);
         });
         break;
       }
-      case 'fields': {
-        uiSchemaItem.fields.forEach((field: any) => {
+      case 'keywords': {
+        uiSchemaItem.keywords?.forEach((field: any) => {
           item[field.key] = field.value;
         });
         break;
@@ -82,11 +82,13 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
         break;
     }
   });
+  console.log('createJsonSchemaItem: ');
+  console.log(item);
   return item;
 }
 
 export function buildUISchema(schema: any, rootPath: string, includeDisplayName?: boolean): UiSchemaItem[] {
-  const result : any[] = [];
+  const result : UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       id: rootPath,
@@ -109,7 +111,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
     } else if (typeof item === 'object' && item !== null) {
       result.push({
         id,
-        fields: Object.keys(item).map((itemKey) => {
+        keywords: Object.keys(item).map((itemKey) => {
           return {
             key: itemKey,
             value: item[itemKey],
