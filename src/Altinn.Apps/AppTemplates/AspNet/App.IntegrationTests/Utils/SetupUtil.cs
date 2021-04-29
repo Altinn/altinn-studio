@@ -122,6 +122,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "presentationfields-app":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
                             break;
+                        case "datafields-app":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;

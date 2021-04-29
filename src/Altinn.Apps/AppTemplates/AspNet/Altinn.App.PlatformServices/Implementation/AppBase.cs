@@ -221,12 +221,12 @@ namespace Altinn.App.Services.Implementation
 
             if (updatedValues.Count > 0)
             {
-                await _instanceService.UpdateDataValues(
+                var updatedInstance = await _instanceService.UpdateDataValues(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     new DataValues { Values = updatedValues });
 
-                // TODO: probably need to update the passed in instance, don't like it as it's a side effect and tampering with the object passed in.
+                instance.DataValues = updatedInstance.DataValues;
             }
         }
 
