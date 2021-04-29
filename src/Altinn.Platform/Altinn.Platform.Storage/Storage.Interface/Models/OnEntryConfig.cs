@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Defines what should be shown on entry.
         /// </summary>
         /// <remarks>
-        /// Valid selections include: new-instance, startPage, and a string mathcing the layoutSetId
+        /// Valid selections include: a string matching the layoutSetId
         /// </remarks>
         [JsonProperty(PropertyName = "show")]
         public string Show { get; set; }
