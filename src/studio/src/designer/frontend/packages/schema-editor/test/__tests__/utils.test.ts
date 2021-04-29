@@ -7,7 +7,7 @@ const mockUiSchema = [
     {id: '#/id2/properties/id3', name:'id3', $ref: '#/id3'}
   ],
   },
-  {id: '#/id3', fields: [
+  {id: '#/id3', keywords: [
     {key: 'type', value: 'string'},
     {key: 'maxLength', value: 10},
   ]},
@@ -32,7 +32,7 @@ const mockJsonSchema = {
 
 test('gets UI schema item', () => {
   const result = getUiSchemaItem(mockUiSchema, '#/id3', ItemType.Value);
-  expect(result).toEqual({id: '#/id3', fields: [
+  expect(result).toEqual({id: '#/id3', keywords: [
     {key: 'type', value: 'string'},
     {key: 'maxLength', value: 10},
   ]});

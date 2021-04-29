@@ -81,10 +81,8 @@ test('Renders properties', () => {
   expect(wrapper.findWhere((n: ReactWrapper) => n.text() === ' const: SERES').length).toBe(0);
   expect(wrapper.find('.fa-datamodel-object').length).toBe(1);
   expect(wrapper.find('.MuiTypography-root').length).toBe(5);
-  wrapper.find('.MuiTypography-root').at(1).simulate('click'); // properties
-  expect(wrapper.find('.MuiTypography-root').length).toBe(6);
-  wrapper.find('.MuiTypography-root').at(2).simulate('click'); // RA-0678_M
-  wrapper.find('.MuiTypography-root').at(3).simulate('click'); // properties
+  wrapper.find('.MuiTypography-root').at(1).simulate('click'); // RA-0678_M
+  expect(wrapper.find('.MuiTypography-root').length).toBe(25);
   expect(wrapper.find('.fa-datamodel-object').length).toBe(11);
 
   wrapper.find('.fa-datamodel-object').at(1).simulate('click'); // dataFormatProvider

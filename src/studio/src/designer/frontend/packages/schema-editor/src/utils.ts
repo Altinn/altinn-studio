@@ -53,8 +53,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
-        const properties: any = {};
-        item.properties = properties;
+        item.properties = {};
         uiSchemaItem.properties?.forEach((property: any) => {
           item.properties[property.name] = createJsonSchemaItem(property);
         });
@@ -82,8 +81,6 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         break;
     }
   });
-  console.log('createJsonSchemaItem: ');
-  console.log(item);
   return item;
 }
 
