@@ -228,7 +228,7 @@ function SchemaItem(props: SchemaItemProps) {
   const renderRefLink = () => <SchemaItem
     keyPrefix={`${keyPrefix}-${refItem.id}`}
     key={`${keyPrefix}-${refItem.id}`}
-    onClick={() => onItemClick(refItem.id)}
+    onClick={() => onItemClick(refItem.$ref ?? refItem.id)}
     item={refItem}
     nodeId={`${keyPrefix}-${refItem.id}-ref`}
   />;
