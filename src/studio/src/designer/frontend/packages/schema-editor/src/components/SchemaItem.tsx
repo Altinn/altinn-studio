@@ -11,8 +11,6 @@ import { Field, ISchemaState, UiSchemaItem } from '../types';
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
   keyPrefix: string;
-  // eslint-disable-next-line react/require-default-props
-  refSource?: string;
 };
 
 const useStyles = makeStyles({
@@ -89,58 +87,45 @@ const useStyles = makeStyles({
   },
 });
 
-const getRefItems = (schema: any[], id: string | undefined): any[] => {
-  let result: any[] = [];
-  if (!id) {
-    return result;
-  }
-
-  const refItem = schema.find((item) => item.id === id);
-  if (refItem) {
-    result.push(refItem);
-    if (refItem.$ref) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      result = result.concat(getRefItems(schema, refItem.$ref));
-    }
-  }
-  return result;
+const getRefItem = (schema: any[], id: string | undefined): UiSchemaItem => {
+  return schema.find((item) => item.id === id);
 };
 
 function SchemaItem(props: SchemaItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
-    item, refSource, keyPrefix, ...other
+    item, keyPrefix, ...other
   } = props;
 
-  const [definitionItem, setDefinitionItem] = React.useState<any>(item);
+  const [definitionItem, setDefinitionItem] = React.useState<UiSchemaItem>(item);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, item.$ref));
+  const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
 
   React.useEffect(() => {
-    if (refItems && refItems.length > 0) {
-      const refItem = refItems[refItems.length - 1];
+    if (refItem) {
       setDefinitionItem(refItem);
     }
-  }, [item.keywords, refItems]);
+  }, [item.keywords, refItem]);
 
   const onItemClick = (itemId: string) => {
+    console.log(itemId);
     dispatch(setSelectedId({ id: itemId }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
-  const renderProperties = (itemProperties: any[] | undefined) => {
+  const renderProperties = (itemProperties: UiSchemaItem[] | undefined) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
-        itemProperties.map((property: any) => {
+        itemProperties.map((property: UiSchemaItem) => {
           return (
             <SchemaItem
               keyPrefix={`${keyPrefix}-${item.id}-properties`}
               key={`${keyPrefix}-${property.id}`}
               item={property}
               nodeId={`${keyPrefix}-prop-${property.id}`}
-              onClick={() => onItemClick(property.id)}
+              onClick={() => onItemClick(property.$ref ?? property.id)}
             />
           );
         })
@@ -183,7 +168,6 @@ function SchemaItem(props: SchemaItemProps) {
           return <SchemaItem
             keyPrefix={`${keyPrefix}-${el.id}`}
             key={`${keyPrefix}-${el.id}`}
-            refSource={item.$ref}
             onClick={() => onItemClick(el.id)}
             item={el}
             nodeId={`${keyPrefix}-${el.id}-ref`}
@@ -210,11 +194,11 @@ function SchemaItem(props: SchemaItemProps) {
             return (
               <TreeItem
                 classes={{ root: classes.treeItem }}
-                nodeId={`${item.id}-${field.key}`}
+                nodeId={`${definitionItem.id}-${field.key}`}
                 className={classes.filler}
                 key={`field-${path}-${field.key}`}
                 label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-                onClick={() => onItemClick(item.id)}
+                onClick={() => onItemClick(definitionItem.id)}
               />
             );
         }
@@ -224,30 +208,34 @@ function SchemaItem(props: SchemaItemProps) {
     return null;
   };
 
-  const renderRefItems = () => {
-    if (refItems && refItems.length > 0) {
-      return (
-        <SchemaItem
-          keyPrefix={`${keyPrefix}-${definitionItem.id}`}
-          key={`${keyPrefix}-${definitionItem.id}`}
-          refSource={item.$ref}
-          onClick={() => onItemClick(definitionItem.id)}
-          item={definitionItem}
-          nodeId={`${keyPrefix}-${definitionItem.id}-ref`}
-        />
-      );
-    }
-    return null;
-  };
+  // const renderRefItems = () => {
+  //   if (refItems && refItems.length > 0) {
+  //     return (
+  //       <>
+  //         { renderProperties(definitionItem.properties) }
+  //         { renderKeywords(definitionItem.keywords, definitionItem.id) }
+  //       </>
+  //     );
+  //   }
+  //   return null;
+  // };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
   };
 
+  const renderRefLink = () => <SchemaItem
+    keyPrefix={`${keyPrefix}-${refItem.id}`}
+    key={`${keyPrefix}-${refItem.id}`}
+    onClick={() => onItemClick(refItem.id)}
+    item={refItem}
+    nodeId={`${keyPrefix}-${refItem.id}-ref`}
+  />;
+
   const renderLabelText = () => {
-    if (refSource) {
-      return <>{ icon('fa-datamodel-ref') } {`$ref: ${refSource}`}</>;
+    if (refItem) {
+      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id.replace('#/definitions/', '')} {`: ${definitionItem.name ?? definitionItem.id.replace('#/definitions/', '')}`}</>;
     }
     return <>{ icon('fa-datamodel-object') } {item.name ?? item.id.replace('#/definitions/', '')}</>;
   };
@@ -301,12 +289,12 @@ function SchemaItem(props: SchemaItemProps) {
     <TreeItem
       classes={{ root: classes.treeItem }}
       label={renderLabel()}
-      onClick={() => onItemClick(item.id)}
+      onClick={() => onItemClick(definitionItem.$ref ?? definitionItem.id)}
       {...other}
     >
-      {renderRefItems()}
-      {renderProperties(item.properties)}
-      {renderKeywords(item.keywords, item.id)}
+      { definitionItem.$ref && refItem && renderRefLink()}
+      {renderProperties(definitionItem.properties)}
+      {renderKeywords(definitionItem.keywords, definitionItem.id)}
     </TreeItem>
   );
 }
