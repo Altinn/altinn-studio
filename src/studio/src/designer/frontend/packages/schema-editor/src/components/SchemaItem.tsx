@@ -130,7 +130,7 @@ function SchemaItem(props: SchemaItemProps) {
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
-  const RenderProperties = (itemProperties: any[] | undefined) => {
+  const renderProperties = (itemProperties: any[] | undefined) => {
     if (itemProperties && itemProperties.length > 0) {
       return (
         itemProperties.map((property: any) => {
@@ -149,56 +149,81 @@ function SchemaItem(props: SchemaItemProps) {
     return null;
   };
 
-  const RenderKeywords = (keywords: Field[] | undefined, path: string) => {
+  const renderEnums = (field: Field, path: string) => (
+    <TreeItem
+      classes={{ root: classes.treeItem }}
+      nodeId={`${item.id}-${field.key}`}
+      className={classes.filler}
+      key={`field-${path}-${field.key}`}
+      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
+      onClick={() => onItemClick(item.id)}
+    >
+      {field.value.map((e: string) => <TreeItem
+        classes={{ root: classes.treeItem }}
+        nodeId={`${item.id}-${field.key}-${e}`}
+        className={classes.filler}
+        key={`field-${path}-${field.key}-${e}`}
+        label={<>{ icon('fa-datamodel-element') } {e}</>}
+        onClick={() => onItemClick(item.id)}
+      />)}
+    </TreeItem>);
+
+  const renderRefArray = (field: Field, path: string) => (
+    <TreeItem
+      classes={{ root: classes.treeItem }}
+      nodeId={`${item.id}-${field.key}`}
+      className={classes.filler}
+      key={`field-${path}-${field.key}`}
+      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
+      onClick={() => onItemClick(item.id)}
+    >
+      {field.value.map((e: {$ref: string}) => {
+        const el = uiSchema.find((s) => s.id === e.$ref);
+        if (el) {
+          return <SchemaItem
+            keyPrefix={`${keyPrefix}-${el.id}`}
+            key={`${keyPrefix}-${el.id}`}
+            refSource={item.$ref}
+            onClick={() => onItemClick(el.id)}
+            item={el}
+            nodeId={`${keyPrefix}-${el.id}-ref`}
+          />;
+        }
+        console.error(`No uiSchema found with matching id ${e}`);
+        return null;
+      })}
+    </TreeItem>);
+
+  const renderKeywords = (keywords: Field[] | undefined, path: string) => {
     if (keywords && keywords.length > 0) {
       return (keywords.map((field) => {
-        // Here we must handle different type of keywords: oneOf, anyOf, etc (arrays).
-        // type:array, we must handle the "items" keyword.
-        // "enum", contains array of values (not refs).
-        if (Array.isArray(field.value)) {
-          return (
-            <TreeItem
-              classes={{ root: classes.treeItem }}
-              nodeId={`${item.id}-${field.key}`}
-              className={classes.filler}
-              key={`field-${path}-${field.key}`}
-              label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-              onClick={() => onItemClick(item.id)}
-            >
-              {field.value.map((e: {$ref: string}) => {
-                const el = uiSchema.find((s) => s.id === e.$ref);
-                if (el) {
-                  return <SchemaItem
-                    keyPrefix={`${keyPrefix}-${el.id}`}
-                    key={`${keyPrefix}-${el.id}`}
-                    refSource={item.$ref}
-                    onClick={() => onItemClick(el.id)}
-                    item={el}
-                    nodeId={`${keyPrefix}-${el.id}-ref`}
-                  />;
-                }
-                console.error(`No uiSchema found with matching id ${e}`);
-                return null;
-              })}
-            </TreeItem>);
+        switch (field.key) {
+          case 'allOf':
+          case 'oneOf':
+          case 'anyOf':
+          case 'items':
+            return renderRefArray(field, path);
+          case 'enum':
+            return renderEnums(field, path);
+          default:
+            return (
+              <TreeItem
+                classes={{ root: classes.treeItem }}
+                nodeId={`${item.id}-${field.key}`}
+                className={classes.filler}
+                key={`field-${path}-${field.key}`}
+                label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
+                onClick={() => onItemClick(item.id)}
+              />
+            );
         }
-        return (
-          <TreeItem
-            classes={{ root: classes.treeItem }}
-            nodeId={`${item.id}-${field.key}`}
-            className={classes.filler}
-            key={`field-${path}-${field.key}`}
-            label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-            onClick={() => onItemClick(item.id)}
-          />
-        );
       })
       );
     }
     return null;
   };
 
-  const RenderRefItems = () => {
+  const renderRefItems = () => {
     if (refItems && refItems.length > 0) {
       return (
         <SchemaItem
@@ -278,9 +303,9 @@ function SchemaItem(props: SchemaItemProps) {
       onClick={() => onItemClick(item.id)}
       {...other}
     >
-      {RenderRefItems()}
-      {RenderProperties(item.properties)}
-      {RenderKeywords(item.keywords, item.id)}
+      {renderRefItems()}
+      {renderProperties(item.properties)}
+      {renderKeywords(item.keywords, item.id)}
     </TreeItem>
   );
 }
