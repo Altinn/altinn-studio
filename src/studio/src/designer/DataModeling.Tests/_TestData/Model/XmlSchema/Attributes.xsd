@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:test="http://test.com/altinn/unittest">
+  <xsd:element name="Root" test:unhandled="Unhandled attribute">
+    <xsd:complexType>
+      <xsd:attribute name="a1" type="xsd:string" />
+      <xsd:attribute name="a2" type="xsd:string" default="def" />
+      <xsd:attribute name="a3" type="xsd:string" fixed="fix" />
+      <xsd:attribute name="a4" type="xsd:string" use="required" />
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

@@ -1,0 +1,325 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "$ref": "#/definitions/customer"
+    }
+  },
+  "definitions": {
+    "customer": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/contact"
+            },
+            {
+              "allOf": [
+                {
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "address_norwegian": {
+                          "$ref": "#/definitions/address_norwegian"
+                        }
+                      },
+                      "required": [
+                        "address_norwegian"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "address_swedish": {
+                          "$ref": "#/definitions/address_swedish"
+                        }
+                      },
+                      "required": [
+                        "address_swedish"
+                      ]
+                    }
+                  ],
+                  "@xsdStructure": "choice"
+                },
+                {
+                  "properties": {
+                    "email": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minItems": 1
+                      },
+                      "@xsdType": "string"
+                    },
+                    "contacts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/contact",
+                        "maxItems": 10
+                      }
+                    }
+                  },
+                  "required": [
+                    "email"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            },
+            {
+              "$ref": "#/definitions/priorityAndTags",
+              "@xsdType": "#ref"
+            }
+          ]
+        }
+      ]
+    },
+    "priorityAndTags": {
+      "allOf": [
+        {
+          "properties": {
+            "priority": {
+              "$ref": "#/definitions/priority",
+              "@xsdAttribute": true
+            },
+            "tags": {
+              "$ref": "#/definitions/tags",
+              "@xsdAttribute": true
+            }
+          }
+        }
+      ]
+    },
+    "contact": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/name",
+              "@xsdType": "#ref"
+            }
+          ],
+          "@xsdStructure": "sequence"
+        }
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "@xsdType": "string"
+      }
+    },
+    "priority": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        }
+      ]
+    },
+    "name": {
+      "allOf": [
+        {
+          "properties": {
+            "title": {
+              "$ref": "#/definitions/title"
+            },
+            "firstName": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "lastName": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "title",
+            "firstName",
+            "lastName"
+          ]
+        }
+      ],
+      "@xsdStructure": "sequence"
+    },
+    "title": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "mr",
+            "ms",
+            "miss"
+          ]
+        }
+      ]
+    },
+    "address": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "street": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "co": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "zipCode": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "city": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "country": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "street",
+                "zipCode",
+                "city",
+                "country"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
+        }
+      ]
+    },
+    "address_norwegian": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/address"
+            },
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "street": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "co": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "zipCode": {
+                      "allOf": [
+                        {
+                          "type": "string",
+                          "@xsdType": "string"
+                        },
+                        {
+                          "pattern": "^\\d{4}$"
+                        }
+                      ]
+                    },
+                    "city": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "country": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "zipCode",
+                    "city",
+                    "country"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            }
+          ]
+        }
+      ]
+    },
+    "address_swedish": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/address"
+            },
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "street": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "co": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "zipCode": {
+                      "allOf": [
+                        {
+                          "type": "string",
+                          "@xsdType": "string"
+                        },
+                        {
+                          "pattern": "^\\d{3} \\d{2}$"
+                        }
+                      ]
+                    },
+                    "city": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    },
+                    "country": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "zipCode",
+                    "city",
+                    "country"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

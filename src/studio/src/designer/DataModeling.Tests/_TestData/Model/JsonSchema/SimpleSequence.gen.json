@@ -1,0 +1,52 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "e1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e2": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e3": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e4": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e1",
+                "e2",
+                "e3",
+                "e4"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
+        }
+      ]
+    }
+  }
+}

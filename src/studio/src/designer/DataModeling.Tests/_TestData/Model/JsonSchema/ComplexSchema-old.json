@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "$ref": "#/definitions/customer",
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  },
+  "definitions": {
+    "customer": {
+      "$ref": "#/definitions/contact",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "address_norwegian": {
+              "$ref": "#/definitions/address_norwegian",
+              "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/0.Choice/0.Element"
+            }
+          },
+          "required": [
+            "address_norwegian"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "address_swedish": {
+              "$ref": "#/definitions/address_swedish",
+              "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/0.Choice/1.Element"
+            }
+          },
+          "required": [
+            "address_swedish"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/priorityAndTags",
+          "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/0.AttributeGroupRef"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minItems": 1
+          },
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/1.Element"
+        },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/contact",
+            "maxItems": 10
+          },
+          "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/2.Element"
+        }
+      },
+      "required": [
+        "email"
+      ],
+      "@xsdStructure": "0.Schema/1.ComplexType"
+    },
+    "priorityAndTags": {
+      "type": "object",
+      "properties": {
+        "priority": {
+          "$ref": "#/definitions/priority",
+          "@xsdStructure": "0.Schema/2.AttributeGroup/0.Attribute"
+        },
+        "tags": {
+          "$ref": "#/definitions/tags",
+          "@xsdStructure": "0.Schema/2.AttributeGroup/1.Attribute"
+        }
+      },
+      "@xsdStructure": "0.Schema/2.AttributeGroup"
+    },
+    "contact": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/name",
+          "@xsdStructure": "0.Schema/3.ComplexType/0.Sequence/0.GroupRef"
+        }
+      ],
+      "@xsdStructure": "0.Schema/3.ComplexType"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "@xsdType": "string",
+      "@xsdStructure": "0.Schema/4.SimpleType"
+    },
+    "priority": {
+      "type": "string",
+      "@xsdType": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "@xsdRestrictions": {
+        "enumeration": [
+          "Low",
+          "Medium",
+          "High"
+        ]
+      },
+      "@xsdStructure": "0.Schema/5.SimpleType"
+    },
+    "name": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/title",
+          "@xsdStructure": "0.Schema/6.Group/0.Sequence/0.Element"
+        },
+        "firstName": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/6.Group/0.Sequence/1.Element"
+        },
+        "lastName": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/6.Group/0.Sequence/2.Element"
+        }
+      },
+      "required": [
+        "title",
+        "firstName",
+        "lastName"
+      ],
+      "@xsdStructure": "0.Schema/6.Group"
+    },
+    "title": {
+      "type": "string",
+      "@xsdType": "string",
+      "enum": [
+        "mr",
+        "ms",
+        "miss"
+      ],
+      "@xsdRestrictions": {
+        "enumeration": [
+          "mr",
+          "ms",
+          "miss"
+        ]
+      },
+      "@xsdStructure": "0.Schema/7.SimpleType"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/8.ComplexType/0.Sequence/0.Element"
+        },
+        "co": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/8.ComplexType/0.Sequence/1.Element"
+        },
+        "zipCode": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/8.ComplexType/0.Sequence/2.Element"
+        },
+        "city": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/8.ComplexType/0.Sequence/3.Element"
+        },
+        "country": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/8.ComplexType/0.Sequence/4.Element"
+        }
+      },
+      "required": [
+        "street",
+        "zipCode",
+        "city",
+        "country"
+      ],
+      "@xsdStructure": "0.Schema/8.ComplexType"
+    },
+    "address_norwegian": {
+      "$ref": "#/definitions/address",
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/9.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/0.Element"
+        },
+        "co": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/9.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/1.Element"
+        },
+        "zipCode": {
+          "type": "string",
+          "@xsdType": "string",
+          "pattern": "^\\d{4}$",
+          "@xsdRestrictions": {
+            "pattern": "^\\d{4}$"
+          },
+          "@xsdStructure": "0.Schema/9.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/2.Element"
+        },
+        "city": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/9.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/3.Element"
+        },
+        "country": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/9.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/4.Element"
+        }
+      },
+      "required": [
+        "street",
+        "zipCode",
+        "city",
+        "country"
+      ],
+      "@xsdStructure": "0.Schema/9.ComplexType"
+    },
+    "address_swedish": {
+      "$ref": "#/definitions/address",
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/10.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/0.Element"
+        },
+        "co": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/10.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/1.Element"
+        },
+        "zipCode": {
+          "type": "string",
+          "@xsdType": "string",
+          "pattern": "^\\d{3} \\d{2}$",
+          "@xsdRestrictions": {
+            "pattern": "^\\d{3} \\d{2}$"
+          },
+          "@xsdStructure": "0.Schema/10.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/2.Element"
+        },
+        "city": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/10.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/3.Element"
+        },
+        "country": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/10.ComplexType/0.ComplexContent/0.Restriction/0.Sequence/4.Element"
+        }
+      },
+      "required": [
+        "street",
+        "zipCode",
+        "city",
+        "country"
+      ],
+      "@xsdStructure": "0.Schema/10.ComplexType"
+    }
+  }
+}

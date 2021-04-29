@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "$ref": "#/definitions/main",
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  },
+  "definitions": {
+    "main": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/g1",
+          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.GroupRef"
+        },
+        {
+          "$ref": "#/definitions/ag1",
+          "@xsdStructure": "0.Schema/1.ComplexType/1.AttributeGroupRef"
+        },
+        {
+          "$ref": "#/definitions/ag2",
+          "@xsdStructure": "0.Schema/1.ComplexType/3.AttributeGroupRef"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "a1": {
+          "$ref": "#/definitions/a1",
+          "@xsdType": "#ref",
+          "@xsdStructure": "0.Schema/1.ComplexType/2.Attribute"
+        }
+      },
+      "@xsdStructure": "0.Schema/1.ComplexType"
+    },
+    "st1": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdStructure": "0.Schema/2.SimpleType"
+    },
+    "g1": {
+      "type": "object",
+      "properties": {
+        "e1": {
+          "$ref": "#/definitions/e1",
+          "@xsdType": "#ref",
+          "@xsdStructure": "0.Schema/3.Group/0.Sequence/0.Element"
+        }
+      },
+      "required": [
+        "e1"
+      ],
+      "@xsdStructure": "0.Schema/3.Group"
+    },
+    "e1": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdStructure": "0.Schema/4.Element"
+    },
+    "a1": {
+      "$ref": "#/definitions/st1",
+      "@xsdStructure": "0.Schema/5.Attribute"
+    },
+    "ag1": {
+      "type": "object",
+      "properties": {
+        "ag1_1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/6.AttributeGroup/0.Attribute"
+        },
+        "ag1_2": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/6.AttributeGroup/1.Attribute"
+        }
+      },
+      "@xsdStructure": "0.Schema/6.AttributeGroup"
+    },
+    "ag2": {
+      "type": "object",
+      "properties": {
+        "ag2_1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/7.AttributeGroup/0.Attribute"
+        },
+        "ag2_2": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/7.AttributeGroup/1.Attribute"
+        }
+      },
+      "@xsdStructure": "0.Schema/7.AttributeGroup"
+    }
+  }
+}
