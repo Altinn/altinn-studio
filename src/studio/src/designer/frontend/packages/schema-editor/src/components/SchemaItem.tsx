@@ -201,10 +201,11 @@ function SchemaItem(props: SchemaItemProps) {
           case 'allOf':
           case 'oneOf':
           case 'anyOf':
-          case 'items':
             return renderRefArray(field, path);
           case 'enum':
             return renderEnums(field, path);
+          // case 'items':
+          //   return renderRefItems(field, path);
           default:
             return (
               <TreeItem

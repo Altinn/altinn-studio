@@ -107,7 +107,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
-  const RenderSelectedItem = () => (selectedItem ?
+  const renderConst = (p: UiSchemaItem, field: Field) => <InputField
+    key={`field-${p.id}`}
+    value={field?.value}
+    label={p.name ?? p.id}
+    fullPath={p.id}
+    onChangeValue={onChangeConst}
+    onChangeRef={onChangeRef}
+    onChangeKey={onChangeKey}
+    onDeleteField={onDeleteObjectClick}
+  />;
+
+  const renderSelectedItem = () => (selectedItem ?
     <div>
       <p>Nodenavn</p>
       <Input
@@ -121,24 +132,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <h3 className={classes.header}>Properties</h3>
       { /* These are the keywords. refs, consts or arrays */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {
-        if (p.keywords && p.keywords.find((f) => f.key === 'const')) {
-          const field = p.keywords.find((f) => f.key === 'const');
-          return <InputField
-            key={`field-${p.id}`}
-            value={field?.value}
-            label={p.name ?? p.id}
-            fullPath={p.id}
-            onChangeValue={onChangeConst}
-            onChangeRef={onChangeRef}
-            onChangeKey={onChangeKey}
-            onDeleteField={onDeleteObjectClick}
-          />;
+        // if a const keyword exist, render const value.
+        const field = p.keywords?.find((f) => f.key === 'const');
+        if (field) {
+          return renderConst(p, field);
         }
+
         if (p.$ref) {
           return <InputField
             key={`field-${p.id}`}
             value={p.$ref ?? ''}
-            isRef={p.$ref !== undefined}
+            isRef={true}
             label={p.name ?? p.id}
             fullPath={p.id}
             onChangeValue={onChangeValue}
@@ -147,22 +151,38 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onDeleteField={onDeleteObjectClick}
           />;
         }
+
+        // todo: handle arrays in properties
+        const type = p.keywords?.find((f) => f.key === 'type');
+        if (type) {
+          if (type.key === 'array') {
+            // .
+          }
+        }
         return null;
       })}
 
-      {/* key:value fields */}
+      {/* Keywords */}
       {/* Need to check for a field called type, and if for example value is "array", "items" are required. */}
-      { selectedItem.keywords?.map((field: Field) => <InputField
-        key={`field-${field.key}`}
-        isRef={field.key === '$ref'}
-        value={field.value.$ref ?? field.value}
-        label={field.key}
-        fullPath={selectedItem.id}
-        onChangeValue={onChangeValue}
-        onChangeRef={onChangeRef}
-        onChangeKey={onChangeKey}
-        onDeleteField={onDeleteFieldClick}
-      />)}
+      { selectedItem.keywords?.map((field: Field) => {
+        if (Array.isArray(field.value)) {
+          // todo: handle arrays in keywords
+
+        }
+        return <InputField
+          key={`field-${field.key}`}
+          isRef={field.key === '$ref'}
+          value={field.value.$ref ?? field.value}
+          label={field.key}
+          fullPath={selectedItem.id}
+          onChangeValue={onChangeValue}
+          onChangeRef={onChangeRef}
+          onChangeKey={onChangeKey}
+          onDeleteField={onDeleteFieldClick}
+        />;
+      })
+      }
+
       { selectedItem.properties &&
       // This is work in progress }
       <IconButton
@@ -184,7 +204,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div
       className={classes.root}
     >
-      { selectedItem && RenderSelectedItem() }
+      { selectedItem && renderSelectedItem() }
       { !selectedId &&
         <div>
           <p className='no-item-selected'>No item selected</p>
