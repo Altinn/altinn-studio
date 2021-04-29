@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/title",
+          "@xsdType": "#ref",
+          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  },
+  "definitions": {
+    "title": {
+      "@xsdStructure": "0.Schema/1.Element",
+      "type": "object",
+      "properties": {
+        "value": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/tokenWithLangAndNote"
+            },
+            {
+              "maxLength": 255,
+              "@xsdRestrictions": {
+                "maxLength": "255"
+              }
+            }
+          ],
+          "@xsdStructure": "0.Schema/1.Element/0.ComplexType/0.SimpleContent/0.Restriction"
+        },
+        "lang": {
+          "type": "string",
+          "@xsdType": "language",
+          "@xsdStructure": "0.Schema/1.Element/0.ComplexType/0.SimpleContent/0.Restriction/0.Attribute"
+        },
+        "note": {
+          "type": "string",
+          "@xsdType": "token",
+          "@xsdStructure": "0.Schema/1.Element/0.ComplexType/0.SimpleContent/0.Restriction/1.Attribute"
+        }
+      },
+      "required": [
+        "value"
+      ]
+    },
+    "tokenWithLangAndNote": {
+      "@xsdStructure": "0.Schema/2.ComplexType",
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "@xsdType": "token"
+        },
+        "lang": {
+          "type": "string",
+          "@xsdType": "language",
+          "@xsdStructure": "0.Schema/2.ComplexType/0.SimpleContent/0.Extension/0.Attribute"
+        },
+        "note": {
+          "type": "string",
+          "@xsdType": "token",
+          "@xsdStructure": "0.Schema/2.ComplexType/0.SimpleContent/0.Extension/1.Attribute"
+        }
+      },
+      "required": [
+        "value"
+      ]
+    }
+  }
+}

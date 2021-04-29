@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="t1" type="stringMinMaxLengthRestrictions" />
+        <xsd:element name="t2" type="stringLengthRestrictions" />
+        <xsd:element name="t3" type="stringEnumRestrictions" />
+        <xsd:element name="t4" type="stringPatternRestrictions" />
+        <xsd:element name="n1" type="numberRestrictions" />
+        <xsd:element name="n2" type="numberRestrictions2" />
+        <xsd:element name="f1" type="numberRestrictionsFractional0" />
+        <xsd:element name="f2" type="numberRestrictionsFractional1" />
+        <xsd:element name="f3" type="numberRestrictionsFractional2" />
+        <xsd:element name="f4" type="numberRestrictionsFractional3" />
+        <xsd:element name="f5" type="numberRestrictionsFractional4" />
+        <xsd:element name="f6" type="numberRestrictionsFractional5" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:simpleType name="stringMinMaxLengthRestrictions">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="20" />
+      <xsd:minLength value="5" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="stringLengthRestrictions">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="10" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="stringEnumRestrictions">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="v1" />
+      <xsd:enumeration value="v2" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="stringPatternRestrictions">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="^\d\.\d\.\d$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictions">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:totalDigits value="10" />
+      <xsd:maxInclusive value="100" />
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictions2">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:totalDigits value="10" />
+      <xsd:maxExclusive value="100" />
+      <xsd:minExclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional0">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="0" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional1">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="1" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional2">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="2" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional3">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="3" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional4">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="numberRestrictionsFractional5">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="5" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

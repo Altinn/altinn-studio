@@ -1,0 +1,75 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/myBase"
+            },
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "ce1": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "ce1"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            },
+            {
+              "properties": {
+                "a1": {
+                  "type": "integer",
+                  "@xsdType": "int",
+                  "@xsdAttribute": true
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "myBase": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "be1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "be1"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/myBase"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "a1": {
+              "type": "integer",
+              "@xsdType": "int",
+              "exclusiveMinimum": 100,
+              "@xsdRestrictions": {
+                "minExclusive": "100"
+              },
+              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Restriction/0.Attribute"
+            },
+            "be1": {
+              "type": "string",
+              "@xsdType": "string",
+              "maxLength": 10,
+              "minLength": 10,
+              "@xsdRestrictions": {
+                "length": "10"
+              },
+              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Restriction/1.Sequence/0.Element"
+            }
+          },
+          "required": [
+            "be1"
+          ]
+        }
+      ],
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  },
+  "definitions": {
+    "myBase": {
+      "type": "object",
+      "properties": {
+        "be1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.Element"
+        },
+        "a1": {
+          "type": "integer",
+          "@xsdType": "int",
+          "@xsdStructure": "0.Schema/1.ComplexType/1.Attribute"
+        }
+      },
+      "required": [
+        "be1"
+      ],
+      "@xsdStructure": "0.Schema/1.ComplexType"
+    }
+  }
+}

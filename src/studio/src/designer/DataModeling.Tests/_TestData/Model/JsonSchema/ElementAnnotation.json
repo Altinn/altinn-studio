@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "brreg": "http://www.brreg.no/or"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "type": "object",
+      "properties": {
+        "e1": {
+          "$comment": "<brreg:tekst brreg:lang=\"EN\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Appinfo</p></brreg:tekst>",
+          "description": "<brreg:tekst brreg:lang=\"EN\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Documentation</p></brreg:tekst>",
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
+        }
+      },
+      "required": [
+        "e1"
+      ],
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  }
+}

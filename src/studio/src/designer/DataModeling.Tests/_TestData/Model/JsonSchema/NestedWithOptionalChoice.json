@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "properties": {
+    "Root": {
+      "oneOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "i1": {
+                  "type": "string",
+                  "@xsdType": "string",
+                  "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/0.Choice/0.Element"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "i2": {
+                  "type": "string",
+                  "@xsdType": "string",
+                  "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/0.Choice/1.Element"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "o1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/1.Element"
+            }
+          },
+          "required": [
+            "o1"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "o2": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/2.Element"
+            }
+          },
+          "required": [
+            "o2"
+          ]
+        }
+      ],
+      "@xsdStructure": "0.Schema/0.Element"
+    }
+  }
+}
