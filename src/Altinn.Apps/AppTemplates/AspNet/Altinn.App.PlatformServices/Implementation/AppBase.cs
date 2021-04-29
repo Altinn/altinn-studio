@@ -184,21 +184,49 @@ namespace Altinn.App.Services.Implementation
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
-                    Dictionary<string, string> updatedValues =
-                        DataHelper.GetUpdatedDataValues(_appMetadata.PresentationFields, instance.PresentationTexts, dataType.Id, data);
-
-                    if (updatedValues.Count > 0)
-                    {
-                        Instance updatedInstance = await _instanceService.UpdatePresentationTexts(
-                              int.Parse(instance.Id.Split("/")[0]),
-                              Guid.Parse(instance.Id.Split("/")[1]),
-                              new PresentationTexts { Texts = updatedValues });
-
-                        instance.PresentationTexts = updatedInstance.PresentationTexts;
-                    }
+                    await UpdatePresentationTextsOnInstance(instance, dataType.Id, data);
+                    await UpdateDataValuesOnInstance(instance, dataType.Id, data);
 
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
+            }
+        }
+
+        private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, dynamic data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                _appMetadata.PresentationFields,
+                instance.PresentationTexts,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                var updatedInstance = await _instanceService.UpdatePresentationTexts(
+                      int.Parse(instance.Id.Split("/")[0]),
+                      Guid.Parse(instance.Id.Split("/")[1]),
+                      new PresentationTexts { Texts = updatedValues });
+
+                instance.PresentationTexts = updatedInstance.PresentationTexts;
+            }
+        }
+
+        private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                _appMetadata.DataFields,
+                instance.DataValues,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceService.UpdateDataValues(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new DataValues { Values = updatedValues });
+
+                // TODO: probably need to update the passed in instance, don't like it as it's a side effect and tampering with the object passed in.
             }
         }
 

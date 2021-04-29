@@ -282,6 +282,11 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
+        public async Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -345,6 +350,6 @@ namespace App.IntegrationTests.Mocks.Services
             });
 
             return (lastChangedBy, lastChanged);
-        }
+        }        
     }
 }
