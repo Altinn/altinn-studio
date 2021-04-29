@@ -57,7 +57,7 @@ namespace Altinn.Platform.Events.Configuration
         /// </summary>
         public void Warn(string message, object payload = null)
         {
-            var traceMessage = $"INF   {DateTime.UtcNow.ToString("o")}   {message}{Environment.NewLine}";
+            var traceMessage = $"WRN   {DateTime.UtcNow.ToString("o")}   {message}{Environment.NewLine}";
             Console.Write(traceMessage);
         }
     }
