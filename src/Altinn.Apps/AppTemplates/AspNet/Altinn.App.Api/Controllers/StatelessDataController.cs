@@ -35,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="appResourcesService">The apps resource service</param>
         /// <param name="prefillService">A service with prefill related logic.</param>
         public StatelessDataController(
-            ILogger<DataController> logger,  
+            ILogger<DataController> logger,
             IAltinnApp altinnApp,
             IAppResources appResourcesService,
             IPrefill prefillService)
@@ -61,6 +61,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Post([FromQuery] string dataType)
         {
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            if (string.IsNullOrEmpty(classRef))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
 
             object appModel = _altinnApp.CreateNewAppModel(classRef);
 
@@ -91,6 +96,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Put([FromQuery] string dataType)
         {
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            if (string.IsNullOrEmpty(classRef))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
