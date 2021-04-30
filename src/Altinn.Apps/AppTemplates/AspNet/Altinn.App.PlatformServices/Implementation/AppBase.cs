@@ -190,45 +190,7 @@ namespace Altinn.App.Services.Implementation
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
             }
-        }
-
-        private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, dynamic data)
-        {
-            var updatedValues = DataHelper.GetUpdatedDataValues(
-                _appMetadata.PresentationFields,
-                instance.PresentationTexts,
-                dataType,
-                data);
-
-            if (updatedValues.Count > 0)
-            {
-                var updatedInstance = await _instanceService.UpdatePresentationTexts(
-                      int.Parse(instance.Id.Split("/")[0]),
-                      Guid.Parse(instance.Id.Split("/")[1]),
-                      new PresentationTexts { Texts = updatedValues });
-
-                instance.PresentationTexts = updatedInstance.PresentationTexts;
-            }
-        }
-
-        private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object data)
-        {
-            var updatedValues = DataHelper.GetUpdatedDataValues(
-                _appMetadata.DataFields,
-                instance.DataValues,
-                dataType,
-                data);
-
-            if (updatedValues.Count > 0)
-            {
-                var updatedInstance = await _instanceService.UpdateDataValues(
-                    int.Parse(instance.Id.Split("/")[0]),
-                    Guid.Parse(instance.Id.Split("/")[1]),
-                    new DataValues { Values = updatedValues });
-
-                instance.DataValues = updatedInstance.DataValues;
-            }
-        }
+        }        
 
         /// <inheritdoc />
         public async Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues)
@@ -339,6 +301,44 @@ namespace Altinn.App.Services.Implementation
             Receiver receiver = new Receiver { Identifier = identifier };
 
             return new List<Receiver> { receiver };
+        }
+
+        private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, dynamic data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                _appMetadata.PresentationFields,
+                instance.PresentationTexts,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                var updatedInstance = await _instanceService.UpdatePresentationTexts(
+                      int.Parse(instance.Id.Split("/")[0]),
+                      Guid.Parse(instance.Id.Split("/")[1]),
+                      new PresentationTexts { Texts = updatedValues });
+
+                instance.PresentationTexts = updatedInstance.PresentationTexts;
+            }
+        }
+
+        private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                _appMetadata.DataFields,
+                instance.DataValues,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                var updatedInstance = await _instanceService.UpdateDataValues(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new DataValues { Values = updatedValues });
+
+                instance.DataValues = updatedInstance.DataValues;
+            }
         }
 
         private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
