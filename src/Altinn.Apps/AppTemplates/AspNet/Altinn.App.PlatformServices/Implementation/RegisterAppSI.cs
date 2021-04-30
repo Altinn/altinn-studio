@@ -97,6 +97,10 @@ namespace Altinn.App.Services.Implementation
             {
                 party = await response.Content.ReadAsAsync<Party>();
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                 throw new ServiceException(HttpStatusCode.Unauthorized, "Unauthorized for party");
+            }
             else
             {
                 _logger.LogError($"// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");

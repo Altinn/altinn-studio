@@ -17,41 +17,24 @@ namespace Altinn.Platform.Storage.Repository
     /// <summary>
     /// Handles instanceEvent repository
     /// </summary>
-    public class InstanceEventRepository : IInstanceEventRepository
+    internal sealed class InstanceEventRepository : BaseRepository, IInstanceEventRepository
     {
         private const string CollectionId = "instanceEvents";
         private const string PartitionKey = "/instanceId";
-
-        private readonly Uri _collectionUri;
-        private readonly string _databaseId;
-        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventRepository"/> class
         /// </summary>
         /// <param name="cosmosSettings">The configuration settings for cosmos database</param>
         public InstanceEventRepository(IOptions<AzureCosmosSettings> cosmosSettings)
+            : base(CollectionId, PartitionKey, cosmosSettings)
         {
-            var database = new CosmosDatabaseHandler(cosmosSettings.Value);
-
-            _client = database.CreateDatabaseAndCollection(CollectionId);
-            _collectionUri = database.CollectionUri;
-            Uri databaseUri = database.DatabaseUri;
-            _databaseId = database.DatabaseName;
-
-            DocumentCollection documentCollection = database.CreateDocumentCollection(CollectionId, PartitionKey);
-
-            _client.CreateDocumentCollectionIfNotExistsAsync(
-                databaseUri,
-                documentCollection).GetAwaiter().GetResult();
-
-            _client.OpenAsync();
         }
 
         /// <inheritdoc/>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
-            ResourceResponse<Document> response = await _client.CreateDocumentAsync(_collectionUri, item);
+            ResourceResponse<Document> response = await Client.CreateDocumentAsync(CollectionUri, item);
             Document document = response.Resource;
 
             InstanceEvent instanceEvent = JsonConvert.DeserializeObject<InstanceEvent>(document.ToString());
@@ -63,9 +46,9 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
         {
             string cosmosId = eventGuid.ToString();
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
-            InstanceEvent theEvent = await _client
+            InstanceEvent theEvent = await Client
             .ReadDocumentAsync<InstanceEvent>(
                 uri,
                 new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
@@ -87,8 +70,8 @@ namespace Altinn.Platform.Storage.Repository
                 PartitionKey = new PartitionKey(instanceId)
             };
 
-            IQueryable<InstanceEvent> query = _client
-                .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
+            IQueryable<InstanceEvent> query = Client
+                .CreateDocumentQuery<InstanceEvent>(CollectionUri, feedOptions)
                 .Where(i => i.InstanceId == instanceId);
 
             if (eventTypes != null && eventTypes.Any())
@@ -119,8 +102,8 @@ namespace Altinn.Platform.Storage.Repository
             int deletedEventsCount = 0;
             try
             {
-                IDocumentQuery<InstanceEvent> query = _client
-                   .CreateDocumentQuery<InstanceEvent>(_collectionUri, new FeedOptions { MaxItemCount = -1 })
+                IDocumentQuery<InstanceEvent> query = Client
+                   .CreateDocumentQuery<InstanceEvent>(CollectionUri, new FeedOptions { MaxItemCount = -1 })
                    .Where(i => i.InstanceId == instanceId)
                    .AsDocumentQuery();
 
@@ -130,8 +113,8 @@ namespace Altinn.Platform.Storage.Repository
 
                 foreach (InstanceEvent instanceEvent in instanceEvents)
                 {
-                    Uri docUri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, instanceEvent.Id.ToString());
-                    await _client.DeleteDocumentAsync(
+                    Uri docUri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, instanceEvent.Id.ToString());
+                    await Client.DeleteDocumentAsync(
                         docUri,
                         new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
                     deletedEventsCount++;

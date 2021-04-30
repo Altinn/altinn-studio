@@ -8,6 +8,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
@@ -16,7 +17,6 @@ using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -27,11 +27,11 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class InstanceEventsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class InstanceEventsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<Startup> _factory;
 
-        public InstanceEventsControllerTests(WebApplicationFactory<Startup> factory)
+        public InstanceEventsControllerTests(TestApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -204,8 +204,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Program.ConfigureSetupLogging();
 
             // No setup required for these services. They are not in use by the InstanceEventController
-            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
@@ -214,10 +212,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddSingleton(applicationRepository.Object);
-                    services.AddSingleton(dataRepository.Object);
-                    services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
-                    services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
+                    services.AddMockRepositories();
+
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);

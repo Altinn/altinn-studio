@@ -135,7 +135,39 @@ namespace App.IntegrationTests
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
 
+        /// <summary>
+        /// Scenario: Failed retrival of register data
+        /// Succsess criteria: Forbidden
+        /// </summary>
+        [Fact]
+        public async Task Instance_Post_With_InstanceTemplate_UnuthorizedParty()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            Instance instanceTemplate = new Instance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1001",
+                },
+                DueBefore = DateTime.Parse("2020-01-01"),
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]

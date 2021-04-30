@@ -66,6 +66,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
                     services.AddTransient<IRegister, RegisterMockSI>();
+                    services.AddTransient<IAuthorization, AuthorizationMock>();
 
                     services.AddTransient<IPDF, PDFMockSI>();
                     services.AddTransient<IProfile, ProfileMockSI>();

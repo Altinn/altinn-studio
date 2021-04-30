@@ -24,9 +24,9 @@ describe('Group', () => {
 
   it('Add Item to Group', () => {
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).type('1');
-    cy.get(appFrontend.group.newValue).type('2');
-    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
+    cy.get(appFrontend.group.currentValue).type('1').blur();
+    cy.get(appFrontend.group.newValue).type('2').blur();
+    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
     cy.get(appFrontend.group.mainGroup)
       .find(mui.tableBody)
       .then((table) => {
@@ -43,7 +43,7 @@ describe('Group', () => {
       });
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
     cy.get(appFrontend.group.comments).type('automation');
-    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click();
+    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
     cy.get(appFrontend.group.subGroup)
       .find(mui.tableBody)
       .then((table) => {
@@ -63,7 +63,7 @@ describe('Group', () => {
       .should('be.visible')
       .click();
     cy.get(appFrontend.group.saveSubGroup).should('not.exist');
-    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
+    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   });
 
   it('Delete Item from Main Group', () => {

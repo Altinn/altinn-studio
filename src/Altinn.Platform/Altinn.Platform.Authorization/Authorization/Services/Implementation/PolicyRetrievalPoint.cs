@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -63,6 +63,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
+        {
+            string policyPath = GetAltinnAppsPolicyPath(org, app);
+            return await GetPolicyInternalAsync(policyPath);
+        }
+
+        /// <inheritdoc/>
         public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
             if (string.IsNullOrWhiteSpace(org))
@@ -87,6 +94,17 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);
+        }
+
+        private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)
+        {
+            XacmlPolicy policy;
+            using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
+            {
+                policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+            }
+
+            return policy;
         }
 
         private string GetPolicyPath(XacmlContextRequest request)

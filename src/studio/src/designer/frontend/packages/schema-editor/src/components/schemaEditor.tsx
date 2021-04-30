@@ -146,12 +146,14 @@ export const SchemaEditor = ({
               defaultExpandIcon={<ArrowRightIcon />}
             >
               <TreeItem
+                id='properties'
                 nodeId='properties'
                 label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
               >
                 { item &&
                 <SchemaItem
                   keyPrefix='properties'
+                  id='root-schema-item'
                   item={item}
                   nodeId={`prop-${item.id}`}
                 /> }
