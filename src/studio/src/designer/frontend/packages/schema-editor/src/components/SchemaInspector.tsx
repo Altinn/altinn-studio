@@ -10,10 +10,10 @@ const useStyles = makeStyles(
   createStyles({
     root: {
       height: 600,
-      minWidth: 300,
+      width: '100%',
       flexGrow: 1,
       margin: 4,
-      padding: 2,
+      padding: 14,
       background: 'white',
       zIndex: 2,
       position: 'fixed',
@@ -26,6 +26,9 @@ const useStyles = makeStyles(
     },
     header: {
       padding: 8,
+    },
+    divider: {
+      margin: 0,
     },
   }),
 );
@@ -128,7 +131,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
         onChange={onChangeNodeName}
       />
-      <hr />
+      <hr className={classes.divider} />
       <h3 className={classes.header}>Properties</h3>
       { /* These are the refs, consts or arrays */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {

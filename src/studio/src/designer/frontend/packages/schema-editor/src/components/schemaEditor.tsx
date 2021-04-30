@@ -17,7 +17,6 @@ const useStyles = makeStyles(
   createStyles({
     root: {
       marginTop: 24,
-      background: 'white',
       height: 700,
     },
     tree: {

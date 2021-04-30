@@ -17,7 +17,9 @@ exports[`Should match snapshot 1`] = `
         value="Kommentar2000Restriksjon"
       />
     </div>
-    <hr />
+    <hr
+      class="makeStyles-divider-4"
+    />
     <h3
       class="makeStyles-header-3"
     >
@@ -25,13 +27,13 @@ exports[`Should match snapshot 1`] = `
     </h3>
     <div>
       <span
-        class="makeStyles-inputs-8"
+        class="makeStyles-inputs-9"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -43,7 +45,7 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root makeStyles-field-5"
         >
           <div
             class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
@@ -83,13 +85,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-8"
+        class="makeStyles-inputs-9"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -101,7 +103,7 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root makeStyles-field-5"
         >
           <div
             class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
@@ -141,13 +143,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-8"
+        class="makeStyles-inputs-9"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -159,10 +161,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root makeStyles-field-5"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-root-11 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-root-12 MuiInputBase-formControl MuiInput-formControl"
           >
             <div
               aria-haspopup="listbox"
@@ -197,122 +199,6 @@ exports[`Should match snapshot 1`] = `
         aria-label="Delete field"
         class="MuiButtonBase-root MuiIconButton-root"
         id="input-Kommentar2000Restriksjon-delete-type"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </span>
-      </button>
-    </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
-      >
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
-              type="text"
-              value="@xsdUnhandledAttribute1"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root makeStyles-field-4"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute1"
-              type="text"
-              value="seres:elementtype=Tegnrestriksjon"
-            />
-          </div>
-        </div>
-      </span>
-      <button
-        aria-label="Delete field"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute1"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </span>
-      </button>
-    </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
-      >
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
-              type="text"
-              value="@xsdUnhandledAttribute2"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root makeStyles-field-4"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute2"
-              type="text"
-              value="seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Kommentar2000Restriksjon/502246"
-            />
-          </div>
-        </div>
-      </span>
-      <button
-        aria-label="Delete field"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute2"
         tabindex="0"
         type="button"
       >

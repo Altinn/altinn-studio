@@ -105,7 +105,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             New
           </Button>
         </Grid>
-        <Grid item xs={9}>
+        <Grid item xs={4}>
           <SchemaSelect
             id='schema' value={selectedDataModelName}
             onChange={onSchemaSelected}

@@ -41,7 +41,7 @@ exports[`DataModeling Should match snapshot 1`] = `
       </button>
     </div>
     <div
-      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-9"
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
     >
       <div
         class="makeStyles-select-5 css-2b097c-container"
@@ -232,7 +232,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-47"
+                        class="MuiTreeItem-root makeStyles-treeItem-48"
                         id="root-schema-item"
                         role="treeitem"
                         tabindex="-1"
@@ -258,26 +258,28 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-39"
+                              class="makeStyles-labelRoot-40"
                             >
                               <p
-                                class="MuiTypography-root makeStyles-label-40 MuiTypography-body1"
+                                class="MuiTypography-root makeStyles-label-41 MuiTypography-body1"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-46"
+                                  class="makeStyles-iconContainer-47"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-ref"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
                                  
                                 #/properties/melding
+                                 
+                                : ForhåndsmeldingMidlertidigArbeidssted2011_M
                               </p>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-44"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-45"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
