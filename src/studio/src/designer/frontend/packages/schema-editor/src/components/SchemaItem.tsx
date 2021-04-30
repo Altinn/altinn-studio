@@ -181,6 +181,9 @@ function SchemaItem(props: SchemaItemProps) {
   const renderKeywords = (keywords: Field[] | undefined, path: string) => {
     if (keywords && keywords.length > 0) {
       return (keywords.map((field) => {
+        if (field.key.startsWith('@')) {
+          return null;
+        }
         switch (field.key) {
           case 'allOf':
           case 'oneOf':
@@ -188,8 +191,6 @@ function SchemaItem(props: SchemaItemProps) {
             return renderRefArray(field, path);
           case 'enum':
             return renderEnums(field, path);
-          // case 'items':
-          //   return renderRefItems(field, path);
           default:
             return (
               <TreeItem
@@ -207,18 +208,6 @@ function SchemaItem(props: SchemaItemProps) {
     }
     return null;
   };
-
-  // const renderRefItems = () => {
-  //   if (refItems && refItems.length > 0) {
-  //     return (
-  //       <>
-  //         { renderProperties(definitionItem.properties) }
-  //         { renderKeywords(definitionItem.keywords, definitionItem.id) }
-  //       </>
-  //     );
-  //   }
-  //   return null;
-  // };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
     setContextAnchor(null);

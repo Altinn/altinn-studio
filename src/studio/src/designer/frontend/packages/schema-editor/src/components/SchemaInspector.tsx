@@ -130,9 +130,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
       <hr />
       <h3 className={classes.header}>Properties</h3>
-      { /* These are the keywords. refs, consts or arrays */ }
+      { /* These are the refs, consts or arrays */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {
-        // if a const keyword exist, render const value.
         const field = p.keywords?.find((f) => f.key === 'const');
         if (field) {
           return renderConst(p, field);
@@ -165,6 +164,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       {/* Keywords */}
       {/* Need to check for a field called type, and if for example value is "array", "items" are required. */}
       { selectedItem.keywords?.map((field: Field) => {
+        if (field.key.startsWith('@')) {
+          return null;
+        }
         if (Array.isArray(field.value)) {
           // todo: handle arrays in keywords
 
