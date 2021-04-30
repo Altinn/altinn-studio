@@ -3,16 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.4.0</AssemblyVersion>
-    <FileVersion>4.4.0</FileVersion>
+    <AssemblyVersion>4.4.1</AssemblyVersion>
+    <FileVersion>4.4.1</FileVersion>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{98E6200A-ED99-418E-B30C-81BA564B509A}</ProjectGuid>
-  </PropertyGroup>
-  
-  <PropertyGroup>
+
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.4.0</PackageVersion>
+    <PackageVersion>4.4.1</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
