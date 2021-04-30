@@ -12,7 +12,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.4.0-alpha</PackageVersion>
+    <PackageVersion>4.4.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
@@ -65,6 +65,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <Version>4.4.0</Version>
   </PropertyGroup>
 
 </Project>

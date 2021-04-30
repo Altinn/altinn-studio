@@ -12,7 +12,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.Common</PackageId>
-    <PackageVersion>4.4.0-alpha</PackageVersion>
+    <PackageVersion>4.4.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
       This class library holds classes with logic that is common for the other Altinn.App packages.
@@ -52,6 +52,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <Version>4.4.0</Version>
   </PropertyGroup>
 
 </Project>
