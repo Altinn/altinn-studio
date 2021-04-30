@@ -18,6 +18,7 @@ namespace Altinn.App.Api.Controllers
     /// The stateless data controller handles creation and calculation of data elements not related to an instance.
     /// </summary>
     [AutoValidateAntiforgeryTokenIfAuthCookie]
+    [Route("{org}/{app}/v1/data")]
     public class StatelessDataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
@@ -57,7 +58,6 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
-        [Route("{org}/{app}/v1/data")]
         public async Task<ActionResult> Post([FromQuery] string dataType)
         {
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
@@ -92,7 +92,6 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
-        [Route("{org}/{app}/v1/data")]
         public async Task<ActionResult> Put([FromQuery] string dataType)
         {
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
