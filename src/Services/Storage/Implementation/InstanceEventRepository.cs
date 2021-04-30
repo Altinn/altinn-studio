@@ -34,7 +34,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent)
         {
-            instanceEvent.Id = new Guid();
+            instanceEvent.Id = Guid.NewGuid();
 
             string path = GetInstanceEventPath(instanceEvent.InstanceId, instanceEvent.Id.Value);
             Directory.CreateDirectory(GetInstanceEventFolder());
