@@ -41,6 +41,11 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns></returns>
         public string GenerateAccessToken(string issuer, string app)
         {
+            if (_accessTokenSettings.DisableAccessTokenGeneration)
+            {
+                return null;
+            }
+
             return GenerateAccessToken(issuer, app, _signingKeysResolver.GetSigningCredentials());
         }
 
@@ -53,16 +58,16 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns>Accesstoken</returns>
         public string GenerateAccessToken(string issuer, string app, X509Certificate2 certificate)
         {
-            return GenerateAccessToken(issuer, app, new X509SigningCredentials(certificate, SecurityAlgorithms.RsaSha256));
-        }
-
-        private string GenerateAccessToken(string issuer, string app, SigningCredentials signingCredentials)
-        {
             if (_accessTokenSettings.DisableAccessTokenGeneration)
             {
                 return null;
             }
 
+            return GenerateAccessToken(issuer, app, new X509SigningCredentials(certificate, SecurityAlgorithms.RsaSha256));
+        }
+
+        private string GenerateAccessToken(string issuer, string app, SigningCredentials signingCredentials)
+        {
             try
             {
                 List<Claim> claims = new List<Claim>();

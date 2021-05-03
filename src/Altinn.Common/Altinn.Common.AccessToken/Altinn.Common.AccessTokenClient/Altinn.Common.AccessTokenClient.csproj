@@ -6,14 +6,14 @@
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.0.2</PackageVersion>
     <PackageTags>Altinn;AccessTokenClient</PackageTags>
     <Description>
       Package to generate access tokens to use against Altinn Platform.
