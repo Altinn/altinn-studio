@@ -96,5 +96,22 @@ namespace Altinn.App.PlatformServices.Extensions
 
             return 0;
         }
+
+        /// <summary>
+        /// Return the partyId as an int or null if PartyId claim is not set
+        /// </summary>
+        public static int? GetPartyIdAsInt(this ClaimsPrincipal user)
+        {
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
+            {
+                Claim partyIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.PartyID);
+                if (partyIdClaim != null && int.TryParse(partyIdClaim.Value, out int partyId))
+                {
+                    return partyId;
+                }
+            }
+
+            return null;
+        }
     }
 }

@@ -22,7 +22,24 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="instance">The data</param>
         public static async Task<bool> Calculate(object instance)
         {
-            return await Task.FromResult(false);
+            bool changed = false;
+            if (instance.GetType() == typeof(Skjema))
+            {
+                Skjema model = (Skjema)instance;
+
+                model.OpplysningerOmArbeidstakerengrp8819 = model.OpplysningerOmArbeidstakerengrp8819 ?? new OpplysningerOmArbeidstakerengrp8819();
+
+                model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 = model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 ?? new Skjemainstansgrp8854();
+
+                model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317 = new IdentifikasjonsnummerKravdatadef33317
+                {
+                    value = "calculatedValue"
+                };
+
+                changed = true;
+            }
+
+            return await Task.FromResult(changed);
         }
     }
 }
