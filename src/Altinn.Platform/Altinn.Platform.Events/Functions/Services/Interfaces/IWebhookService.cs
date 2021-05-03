@@ -11,7 +11,7 @@ namespace Altinn.Platform.Events.Functions.Services.Interfaces
         /// <summary>
         /// Send cloudevent to webhook
         /// </summary>
-        /// <param name="item">CloudEventEnvelope, includes content and uri</param>
-        Task Send(CloudEventEnvelope item);
+        /// <param name="envelope">CloudEventEnvelope, includes content and uri</param>
+        Task Send(CloudEventEnvelope envelope);
     }
 }
