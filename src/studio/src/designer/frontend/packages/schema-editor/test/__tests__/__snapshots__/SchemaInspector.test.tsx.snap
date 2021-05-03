@@ -4,10 +4,12 @@ exports[`Should match snapshot 1`] = `
 <div
   class="makeStyles-root-1"
 >
+  <p
+    class="makeStyles-header-3"
+  >
+    Egenskaper
+  </p>
   <div>
-    <p>
-      Nodenavn
-    </p>
     <div
       class="MuiInputBase-root MuiInput-root makeStyles-label-2 MuiInputBase-fullWidth MuiInput-fullWidth"
     >
@@ -20,14 +22,14 @@ exports[`Should match snapshot 1`] = `
     <hr
       class="makeStyles-divider-4"
     />
-    <h3
+    <p
       class="makeStyles-header-3"
     >
       Properties
-    </h3>
+    </p>
     <div>
       <span
-        class="makeStyles-inputs-9"
+        class="makeStyles-inputs-10"
       >
         <div
           class="MuiFormControl-root"
@@ -45,10 +47,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-5"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -85,13 +87,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-9"
+        class="makeStyles-inputs-18"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-13 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -103,10 +105,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-5"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-13 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -143,13 +145,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-9"
+        class="makeStyles-inputs-26"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-21 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -161,10 +163,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-5"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-root-12 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-root-29 MuiInputBase-formControl MuiInput-formControl"
           >
             <div
               aria-haspopup="listbox"

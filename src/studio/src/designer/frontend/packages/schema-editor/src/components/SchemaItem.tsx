@@ -122,10 +122,10 @@ function SchemaItem(props: SchemaItemProps) {
         itemProperties.map((property: UiSchemaItem) => {
           return (
             <SchemaItem
-              keyPrefix={`${keyPrefix}-${item.id}-properties`}
+              keyPrefix='properties'
               key={`${keyPrefix}-${property.id}`}
               item={property}
-              nodeId={`${keyPrefix}-prop-${property.id}`}
+              nodeId={`${keyPrefix}-${property.id}`}
               onClick={() => onItemClick(property.id)}
             />
           );

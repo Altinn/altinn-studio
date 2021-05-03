@@ -51,9 +51,11 @@ export const SchemaEditor = ({
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
+  const [selectedNodeIds, setSelectedTreeNodeId] = React.useState(['properties']);
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
+  const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
 
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
@@ -77,6 +79,14 @@ export const SchemaEditor = ({
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
+
+  React.useEffect(() => {
+    setSelectedTreeNodeId([selectedNodeId ?? '']);
+  }, [selectedNodeId]);
+
+  const onNodeSelect = (e: any, ids: string[]) => {
+    setSelectedTreeNodeId(ids);
+  };
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -119,6 +129,7 @@ export const SchemaEditor = ({
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
+
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>
@@ -143,6 +154,9 @@ export const SchemaEditor = ({
               defaultExpanded={['properties']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
+              onNodeSelect={onNodeSelect}
+              selected={selectedNodeIds}
+              // expanded={selectedNodeIds}
             >
               <TreeItem
                 id='properties'

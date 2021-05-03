@@ -360,6 +360,11 @@ exports[`DataModeling Should match snapshot 1`] = `
           <div
             class="makeStyles-root-35"
           >
+            <p
+              class="makeStyles-header-37"
+            >
+              Egenskaper
+            </p>
             <div>
               <p
                 class="no-item-selected"

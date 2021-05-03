@@ -9,6 +9,7 @@ export const initialState: ISchemaState = {
   rootName: '/',
   saveSchemaUrl: '',
   selectedId: '',
+  selectedNodeId: '',
   readOnly: false,
 };
 
@@ -168,9 +169,14 @@ const schemaEditorSlice = createSlice({
       state.rootName = rootName;
     },
     setSelectedId(state, action) {
-      const { id, readonly } = action.payload;
+      const {
+        id, readonly, navigate,
+      } = action.payload;
       state.selectedId = id;
       state.readOnly = readonly;
+      if (navigate) {
+        state.selectedNodeId = `def-${id}`;
+      }
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;

@@ -9,6 +9,7 @@ export interface ISchemaState {
   rootName: string;
   saveSchemaUrl: string;
   selectedId?: string;
+  selectedNodeId?: string;
   readOnly: boolean;
 }
 

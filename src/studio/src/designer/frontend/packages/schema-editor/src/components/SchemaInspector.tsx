@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 
 const useStyles = makeStyles(
@@ -117,6 +117,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
+  const onGoToDefButtonClick = () => {
+    dispatch(setSelectedId(
+      {
+        id: selectedItem?.id, readOnly: false, navigate: true,
+      },
+    ));
+  };
+
   const renderDefUrl = () => {
     if (selectedItem?.$ref) {
       return (
@@ -131,7 +139,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     if (readOnly) {
       return (
-        <button type='button'>Gå til hovedkomponent</button>
+        <button type='button' onClick={onGoToDefButtonClick}>Gå til hovedkomponent</button>
       );
     }
     return null;
