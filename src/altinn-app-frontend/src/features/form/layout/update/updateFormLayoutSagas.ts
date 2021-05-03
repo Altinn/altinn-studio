@@ -59,9 +59,21 @@ function* updateRepeatingGroupsSaga({ payload: {
       },
     };
 
-    const children = (formLayoutState.layouts[formLayoutState.uiConfig.currentView].find((element) => element.id === layoutElementId) as ILayoutGroup)?.children;
-    const childGroups: (ILayoutGroup | ILayoutComponent)[] = formLayoutState.layouts[formLayoutState.uiConfig.currentView].filter((
-      (element) => (element.type === 'Group') && children?.indexOf(element.id) > -1));
+    const groupContainer: ILayoutGroup = formLayoutState.layouts[formLayoutState.uiConfig.currentView].find((element) => element.id === layoutElementId) as ILayoutGroup;
+    const children = groupContainer?.children;
+    const childGroups: (ILayoutGroup | ILayoutComponent)[] = formLayoutState.layouts[formLayoutState.uiConfig.currentView].filter(
+      (element) => {
+        if (element.type.toLowerCase() !== 'group') {
+          return false;
+        }
+
+        if (groupContainer?.edit?.multiPage) {
+          return children.find((c) => c.split(':')[1] === element.id);
+        }
+
+        return children?.indexOf(element.id) > -1;
+      },
+    );
 
     childGroups?.forEach((group: ILayoutGroup) => {
       if (remove) {

@@ -34,7 +34,11 @@ function RenderGenericComponent(component: ILayoutComponent, layout: ILayout) {
 
 function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout): JSX.Element {
   const groupComponents = layoutGroup.children.map((child) => {
-    return layout.find((c) => c.id === child) as ILayoutComponent;
+    let childId = child;
+    if (layoutGroup.edit?.multiPage) {
+      childId = child.split(':')[1] || child;
+    }
+    return layout.find((c) => c.id === childId) as ILayoutComponent;
   });
   const repeating = layoutGroup.maxCount > 1;
   if (!repeating) {
@@ -76,7 +80,11 @@ export function Form() {
     if (layout) {
       const groupComponents = layout.filter((component) => component.type.toLowerCase() === 'group');
       groupComponents.forEach((component: ILayoutGroup) => {
-        renderedInGroup = renderedInGroup.concat(component.children);
+        let childList = component.children;
+        if (component.edit?.multiPage) {
+          childList = component.children.map((childId) => childId.split(':')[1] || childId);
+        }
+        renderedInGroup = renderedInGroup.concat(childList);
       });
     }
 
