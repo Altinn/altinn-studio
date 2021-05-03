@@ -110,7 +110,6 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.keywords, refItem]);
 
   const onItemClick = (itemId: string) => {
-    console.log(itemId);
     const readonly = item.id.includes('/properties');
     dispatch(setSelectedId({ id: itemId, readonly }));
   };

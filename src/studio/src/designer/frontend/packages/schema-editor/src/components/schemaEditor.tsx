@@ -51,7 +51,7 @@ export const SchemaEditor = ({
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
-  const [selectedNodeIds, setSelectedTreeNodeId] = React.useState(['properties']);
+  const [selectedTreeNode, setSelectedTreeNode] = React.useState<string>('properties');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
@@ -81,11 +81,15 @@ export const SchemaEditor = ({
   }, [dispatch, schema]);
 
   React.useEffect(() => {
-    setSelectedTreeNodeId([selectedNodeId ?? '']);
+    setSelectedTreeNode(selectedNodeId ?? '');
+    // if (selectedNodeId) {
+    //   document.querySelector<HTMLElement>(selectedNodeId)?.click();
+    // }
   }, [selectedNodeId]);
 
-  const onNodeSelect = (e: any, ids: string[]) => {
-    setSelectedTreeNodeId(ids);
+  const onNodeSelect = (e: any, ids: string) => {
+    setSelectedTreeNode(ids);
+    console.log(ids);
   };
 
   const onClickSaveJsonSchema = () => {
@@ -129,7 +133,6 @@ export const SchemaEditor = ({
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
   const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
-
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>
@@ -149,14 +152,16 @@ export const SchemaEditor = ({
               sharedTypes={sharedItems}
               title='Add property'
             />
+
             <TreeView
+              multiSelect={false}
               className={classes.tree}
               defaultExpanded={['properties']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
               onNodeSelect={onNodeSelect}
-              selected={selectedNodeIds}
-              // expanded={selectedNodeIds}
+              selected={selectedTreeNode}
+              // expanded={['properties', 'definitions', selectedTreeNode]}
             >
               <TreeItem
                 id='properties'
