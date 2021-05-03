@@ -23,6 +23,8 @@ export interface IRepeatingGroupsEditContainer {
   onClickSave: () => void;
   hideSaveButton?: boolean;
   hideDeleteButton?: boolean;
+  multiPageIndex?: number;
+  setMultiPageIndex?: (index: number) => void;
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -61,6 +63,8 @@ export function RepeatingGroupsEditContainer({
   onClickSave,
   hideSaveButton,
   hideDeleteButton,
+  multiPageIndex,
+  setMultiPageIndex,
 }: IRepeatingGroupsEditContainer): JSX.Element {
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
@@ -72,6 +76,20 @@ export function RepeatingGroupsEditContainer({
     textResources,
     hiddenFields,
   );
+
+  const closeEditContainer = () => {
+    onClickSave();
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  };
+
+  const removeClicked = () => {
+    onClickRemove(editIndex);
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  };
 
   return (
     <div className={classes.editContainer}>
@@ -93,7 +111,7 @@ export function RepeatingGroupsEditContainer({
           <Grid item={true}>
             <IconButton
               classes={{ root: classes.deleteButton }}
-              onClick={() => onClickRemove(editIndex)}
+              onClick={removeClicked}
             >
               {getLanguageFromKey('general.delete', language)}
               <i className='ai ai-trash'/>
@@ -107,6 +125,10 @@ export function RepeatingGroupsEditContainer({
           spacing={3}
         >
           { repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => {
+            if (container.edit?.multiPage && multiPageIndex > -1
+              && !container.children.includes(`${multiPageIndex}:${component.id.substring(0, component.id.lastIndexOf('-'))}`)) {
+              return null;
+            }
             return renderGenericComponent(component, layout, editIndex);
           }) }
         </Grid>
@@ -115,10 +137,28 @@ export function RepeatingGroupsEditContainer({
           spacing={3}
           className={classes.saveItem}
         >
+          { container.edit?.multiPage &&
+          <div style={{ marginBottom: 12 }}>
+            { multiPageIndex > -1 && container.children.find((childId) => childId.startsWith(`${multiPageIndex + 1}:`)) &&
+              <AltinnButton
+                btnText={getLanguageFromKey('general.next', language)}
+                secondaryButton={true}
+                onClickFunction={() => setMultiPageIndex(multiPageIndex + 1)}
+              />
+            }
+            { multiPageIndex > 0 && container.children.find((childId) => childId.startsWith(`${multiPageIndex - 1}:`)) &&
+              <AltinnButton
+                btnText={getLanguageFromKey('general.back', language)}
+                secondaryButton={true}
+                onClickFunction={() => setMultiPageIndex(multiPageIndex - 1)}
+              />
+            }
+          </div>
+          }
           { !hideSaveButton &&
           <AltinnButton
             btnText={getLanguageFromKey('general.save', language)}
-            onClickFunction={onClickSave}
+            onClickFunction={closeEditContainer}
             id={`add-button-grp-${id}`}
           />}
         </Grid>
