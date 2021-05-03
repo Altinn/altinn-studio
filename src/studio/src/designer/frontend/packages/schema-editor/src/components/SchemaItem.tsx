@@ -238,7 +238,7 @@ function SchemaItem(props: SchemaItemProps) {
     e.preventDefault();
     setContextAnchor(null);
     dispatch(addField({
-      path: item.id,
+      path: definitionItem.id,
       key: 'key',
       value: 'value',
     }));
@@ -264,7 +264,7 @@ function SchemaItem(props: SchemaItemProps) {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        { item.keywords &&
+        { !definitionItem.$ref &&
           <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
         }
         <MenuItem><i className='fa fa-clone'/> Import</MenuItem>

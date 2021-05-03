@@ -239,7 +239,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       })
       }
 
-      { selectedItem.properties &&
+      { !readOnly &&
       // This is work in progress }
       <IconButton
         id='add-reference-button'
@@ -247,7 +247,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onClick={onAddPropertyClicked}
       ><i className='fa fa-plus'/>Add reference
       </IconButton> }
-      { selectedItem.keywords &&
+      { !readOnly && !selectedItem.$ref &&
       <IconButton
         id='add-property-button'
         aria-label='Add property'
