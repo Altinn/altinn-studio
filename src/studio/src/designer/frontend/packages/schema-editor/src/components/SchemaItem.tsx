@@ -121,7 +121,7 @@ function SchemaItem(props: SchemaItemProps) {
         itemProperties.map((property: UiSchemaItem) => {
           return (
             <SchemaItem
-              keyPrefix='properties'
+              keyPrefix={`${keyPrefix}-properties`}
               key={`${keyPrefix}-${property.id}`}
               item={property}
               nodeId={`${keyPrefix}-${property.id}`}

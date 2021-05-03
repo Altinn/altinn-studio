@@ -174,9 +174,7 @@ const schemaEditorSlice = createSlice({
       } = action.payload;
       state.selectedId = id;
       state.readOnly = readonly;
-      if (navigate) {
-        state.selectedNodeId = `def-${id}`;
-      }
+      state.selectedNodeId = navigate ? `def-${id}` : undefined;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;

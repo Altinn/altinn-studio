@@ -34,6 +34,14 @@ const useStyles = makeStyles(
     divider: {
       margin: 0,
     },
+    navButton: {
+      background: 'none',
+      border: 'none',
+      padding: '0!important',
+      textDecoration: 'underline',
+      cursor: 'pointer',
+      color: '#006BD8',
+    },
   }),
 );
 
@@ -139,7 +147,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     if (readOnly) {
       return (
-        <button type='button' onClick={onGoToDefButtonClick}>Gå til hovedkomponent</button>
+        <button
+          type='button'
+          className={classes.navButton}
+          onClick={onGoToDefButtonClick}
+        >
+          Gå til hovedkomponent
+        </button>
       );
     }
     return null;
