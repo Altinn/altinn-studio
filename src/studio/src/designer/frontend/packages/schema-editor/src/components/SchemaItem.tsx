@@ -111,7 +111,8 @@ function SchemaItem(props: SchemaItemProps) {
 
   const onItemClick = (itemId: string) => {
     console.log(itemId);
-    dispatch(setSelectedId({ id: itemId }));
+    const readonly = item.id.includes('/properties');
+    dispatch(setSelectedId({ id: itemId, readonly }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
@@ -125,7 +126,7 @@ function SchemaItem(props: SchemaItemProps) {
               key={`${keyPrefix}-${property.id}`}
               item={property}
               nodeId={`${keyPrefix}-prop-${property.id}`}
-              onClick={() => onItemClick(property.$ref ?? property.id)}
+              onClick={() => onItemClick(property.id)}
             />
           );
         })

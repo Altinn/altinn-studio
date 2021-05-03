@@ -9,6 +9,7 @@ export interface ISchemaState {
   rootName: string;
   saveSchemaUrl: string;
   selectedId?: string;
+  readOnly: boolean;
 }
 
 export interface ISetValueAction {

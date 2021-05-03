@@ -6,12 +6,19 @@ import { ISchemaState, UiSchemaItem } from '../types';
 export interface IRefSelectProps {
   id: string;
   value: string;
+  readOnly?: boolean;
   onChange: (id: string, value: string) => void;
 }
 
 const useStyles = makeStyles({
   root: {
     width: '100%',
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    margin: 8,
     minWidth: 200,
   },
 });
@@ -35,6 +42,7 @@ export const RefSelect = (props: IRefSelectProps) => {
   return (
     <Select
       id={`ref-select-${id}`}
+      disabled={props.readOnly}
       value={value}
       onChange={onChangeValue}
       className={classes.root}

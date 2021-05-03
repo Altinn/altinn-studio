@@ -7,15 +7,19 @@ import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 import { RefSelect } from './RefSelect';
 
-const useStyles = makeStyles({
+const useStyles = (readonly?: boolean) => makeStyles({
   field: {
     background: 'white',
     color: 'black',
-    border: '1px solid #006BD8',
+    border: readonly ? '1px solid grey' : '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
     margin: 8,
     minWidth: 60,
+    maxWidth: 200,
+  },
+  readonly: {
+    border: '1px solid grey',
   },
   type: {
     background: 'white',
@@ -51,10 +55,12 @@ export interface IInputFieldProps {
   onChangeRef?: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
   isRef?: boolean;
+  readOnly?: boolean;
 }
 
 export function InputField(props: IInputFieldProps) {
-  const classes = useStyles();
+  const classes = useStyles(props.readOnly)();
+
   const [value, setValue] = React.useState<string>(props.value || '');
   const [label, setLabel] = React.useState<string>(props.label || '');
 
@@ -95,6 +101,7 @@ export function InputField(props: IInputFieldProps) {
   const renderValueField = () => {
     if (label === 'type') {
       return <TypeSelect
+        readOnly={props.readOnly}
         itemType={value}
         id={label}
         onChange={onChangeType}
@@ -104,11 +111,14 @@ export function InputField(props: IInputFieldProps) {
       return <RefSelect
         id={label}
         value={value}
+        readOnly={props.readOnly}
         onChange={onChangeRef}
       />;
     }
     return <Input
       id={`${baseId}-value-${label}`}
+      disabled={props.readOnly}
+      className={classes.field}
       value={value}
       disableUnderline={true}
       onChange={(e) => onChangeValue(e.target.value)}
@@ -123,12 +133,13 @@ export function InputField(props: IInputFieldProps) {
             id={`${baseId}-key-${label}`}
             value={label}
             disableUnderline={true}
+            disabled={props.readOnly}
             onChange={onChangeKey}
             onBlur={onBlurKey}
             className={classes.field}
           />
         </FormControl>
-        <FormControl className={classes.field}>
+        <FormControl>
           { renderValueField() }
         </FormControl>
       </span>

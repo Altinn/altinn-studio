@@ -5,12 +5,13 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Field, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty } from '../features/editor/schemaEditorSlice';
+import { RefSelect } from './RefSelect';
 
 const useStyles = makeStyles(
   createStyles({
     root: {
       height: 600,
-      width: '100%',
+      width: 500,
       flexGrow: 1,
       margin: 4,
       padding: 14,
@@ -25,7 +26,10 @@ const useStyles = makeStyles(
       flexGrow: 1,
     },
     header: {
-      padding: 8,
+      padding: 4,
+      fontWeight: 400,
+      fontSize: 16,
+      margin: 2,
     },
     divider: {
       margin: 0,
@@ -42,6 +46,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const dispatch = useDispatch();
 
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  const readOnly = useSelector((state: ISchemaState) => state.readOnly);
+  // todo: need to know also where this was selected from
+  // if from /properties/ then a "go to def item" should be shown.
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       if (selectedId.includes('/properties/')) {
@@ -110,10 +117,31 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
+  const renderDefUrl = () => {
+    if (selectedItem?.$ref) {
+      return (
+        <>
+          <p className={classes.header}>Refererer til</p>
+          <RefSelect
+            id={selectedItem.id}
+            value={selectedItem.$ref}
+            onChange={onChangeRef}
+          />
+        </>);
+    }
+    if (readOnly) {
+      return (
+        <button type='button'>Gå til hovedkomponent</button>
+      );
+    }
+    return null;
+  };
+
   const renderConst = (p: UiSchemaItem, field: Field) => <InputField
     key={`field-${p.id}`}
     value={field?.value}
     label={p.name ?? p.id}
+    readOnly={readOnly}
     fullPath={p.id}
     onChangeValue={onChangeConst}
     onChangeRef={onChangeRef}
@@ -123,7 +151,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderSelectedItem = () => (selectedItem ?
     <div>
-      <p>Nodenavn</p>
       <Input
         fullWidth={true}
         disableUnderline={true}
@@ -132,7 +159,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onChange={onChangeNodeName}
       />
       <hr className={classes.divider} />
-      <h3 className={classes.header}>Properties</h3>
+      { renderDefUrl() }
+      <p className={classes.header}>Properties</p>
       { /* These are the refs, consts or arrays */ }
       { selectedItem.properties?.map((p: UiSchemaItem) => {
         const field = p.keywords?.find((f) => f.key === 'const');
@@ -179,6 +207,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           isRef={field.key === '$ref'}
           value={field.value.$ref ?? field.value}
           label={field.key}
+          readOnly={readOnly}
           fullPath={selectedItem.id}
           onChangeValue={onChangeValue}
           onChangeRef={onChangeRef}
@@ -209,6 +238,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div
       className={classes.root}
     >
+      <p className={classes.header}>Egenskaper</p>
       { selectedItem && renderSelectedItem() }
       { !selectedId &&
         <div>

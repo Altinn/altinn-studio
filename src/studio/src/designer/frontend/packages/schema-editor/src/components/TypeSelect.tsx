@@ -5,12 +5,19 @@ export interface ITypeSelectProps {
   id: string;
   itemType: string;
   onChange: (id: string, value: string) => void;
+  readOnly?: boolean;
 }
 
 const useStyles = makeStyles({
   root: {
     width: '100%',
     minWidth: 104,
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    margin: 8,
   },
 });
 
@@ -29,6 +36,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   return (
     <Select
       id={`type-select-${id}`}
+      disabled={props.readOnly}
       value={value}
       onChange={onValueChange}
       className={classes.root}
