@@ -81,15 +81,15 @@ export const SchemaEditor = ({
   }, [dispatch, schema]);
 
   React.useEffect(() => {
-    setSelectedTreeNode(selectedNodeId ?? '');
-    // if (selectedNodeId) {
-    //   document.querySelector<HTMLElement>(selectedNodeId)?.click();
-    // }
+    if (selectedNodeId) {
+      setSelectedTreeNode(selectedNodeId);
+    }
+    console.log(`selected from state: ${selectedNodeId}`);
   }, [selectedNodeId]);
 
   const onNodeSelect = (e: any, ids: string) => {
     setSelectedTreeNode(ids);
-    console.log(ids);
+    console.log(`selected: ${ids}`);
   };
 
   const onClickSaveJsonSchema = () => {
@@ -156,7 +156,7 @@ export const SchemaEditor = ({
             <TreeView
               multiSelect={false}
               className={classes.tree}
-              defaultExpanded={['properties']}
+              defaultExpanded={['properties', 'definitions']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
               onNodeSelect={onNodeSelect}
@@ -173,7 +173,7 @@ export const SchemaEditor = ({
                   keyPrefix='properties'
                   id='root-schema-item'
                   item={item}
-                  nodeId={`prop-${item.id}`}
+                  nodeId={`${item.id}`}
                 /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
