@@ -7,9 +7,7 @@
     <FileVersion>4.5.0</FileVersion>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>
-  </PropertyGroup>
-  
-  <PropertyGroup>
+
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.Api</PackageId>
     <PackageVersion>4.5.0-alpha</PackageVersion>
