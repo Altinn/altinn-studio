@@ -7,3 +7,5 @@ COPY ./gitea-data/gitea/options data/gitea/options/
 COPY ./gitea-data/gitea/public/img data/gitea/public/img
 COPY ./gitea-data/gitea/templates data/gitea/templates
 
+# copy custom template
+COPY custom etc/templates
