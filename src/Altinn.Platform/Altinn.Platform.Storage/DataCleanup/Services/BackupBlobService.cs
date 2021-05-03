@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly IKeyVaultService _keyVaultService;
         private readonly string _accountName = "altinn{0}backup01";
         private readonly string _accountEndpoint = "https://altinn{0}backup01.blob.core.windows.net/";
-        private readonly string _vaultUri = "https://altinn-{0}-kv.vault.azure.net";
+        private readonly string _keyVaultUri;
         private readonly string _accountKey;
         private readonly string _blobEndpoint;
         private readonly string _environment;
@@ -39,6 +39,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             _accountKey = Environment.GetEnvironmentVariable("AccountKey");
             _blobEndpoint = Environment.GetEnvironmentVariable("BlobEndpoint");
             _environment = Environment.GetEnvironmentVariable("Environment");
+            _keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri");
             _accountName = _environment.Equals("dev") ? "devstoreaccount1" : _accountName;
         }
 
@@ -115,7 +116,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
 
             string backupAccountKey = await _keyVaultService.GetSecretAsync(
-            string.Format(_vaultUri, _environment),
+            _keyVaultUri,
             "AzureStorageConfiguration--BackupAccountKey");
     
             StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(string.Format(_accountName, _environment), backupAccountKey);
