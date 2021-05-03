@@ -6,7 +6,7 @@ FROM gitea/gitea:1.14.1
 COPY gitea-config/app.ini etc/templates/app.ini
 
 # copy custom templates
-COPY custom etc/templates
+COPY custom /data/gitea/templates
 
 
 # Copy rest of configuration
