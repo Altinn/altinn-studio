@@ -161,7 +161,6 @@ namespace App.IntegrationTests.ApiTests
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
-
         }
     }
 }
