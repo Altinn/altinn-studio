@@ -8,7 +8,6 @@ import { call,
   put } from 'redux-saga/effects';
 import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';
@@ -19,7 +18,7 @@ import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getFetchFormDynamicsUrl, getFetchStatelessFormDataUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getFetchStatelessFormDataUrl } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
@@ -69,10 +68,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       FormRulesActions.fetchRuleModel,
     );
 
-    yield call(
-      FormDynamicsActions.fetchFormDynamics,
-      getFetchFormDynamicsUrl(),
-    );
+    yield call(FormDynamicsActions.fetchFormDynamics);
   } catch (error) {
     yield put(FormDataActions.fetchFormDataRejected({ error }));
     yield call(dataTaskQueueError, error);
@@ -81,10 +77,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield all([
-      take(FormDataActions.fetchFormDataInitial),
-      take(FETCH_APPLICATION_METADATA_FULFILLED),
-    ]);
+    yield take(FormDataActions.fetchFormDataInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);

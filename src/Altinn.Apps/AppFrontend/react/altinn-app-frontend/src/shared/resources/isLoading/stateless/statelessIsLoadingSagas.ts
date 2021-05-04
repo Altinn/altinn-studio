@@ -5,9 +5,9 @@ import { FETCH_SERVICE_CONFIG_FULFILLED } from 'src/features/form/dynamics/formD
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { FETCH_RULE_MODEL_FULFILLED } from 'src/features/form/rules/rulesActionTypes';
 import { startInitialStatelessQueue } from '../../queue/queueSlice';
-import { finishStatlessIsLoading } from '../isLoadingSlice';
+import { finishStatelessIsLoading } from '../isLoadingSlice';
 
-export function* watcherFinishStatlessIsLoadingSaga(): SagaIterator {
+export function* watcherFinishStatelessIsLoadingSaga(): SagaIterator {
   yield take(startInitialStatelessQueue);
   yield all([
     take(FormDataActions.fetchFormDataFulfilled),
@@ -16,5 +16,5 @@ export function* watcherFinishStatlessIsLoadingSaga(): SagaIterator {
     take(FETCH_RULE_MODEL_FULFILLED),
     take(FETCH_SERVICE_CONFIG_FULFILLED),
   ]);
-  yield put(finishStatlessIsLoading());
+  yield put(finishStatelessIsLoading());
 }

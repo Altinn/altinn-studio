@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import ProcessStep from 'src/shared/containers/ProcessStep';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
 import { IRuntimeState, ProcessTaskType } from 'src/types';
-import '../form/containers/Form';
 import Form from '../form/containers/Form';
 import Instantiate from '../instantiate/containers';
 
@@ -34,7 +33,7 @@ export default function Entrypoint() {
     return <Instantiate />;
   }
 
-  if (action !== 'Instantiate') {
+  if (action && action !== 'Instantiate') {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }

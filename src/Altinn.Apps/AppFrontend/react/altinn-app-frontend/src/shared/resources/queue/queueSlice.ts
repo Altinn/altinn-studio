@@ -54,7 +54,7 @@ const queueSlice = createSlice({
       const { error } = action.payload;
       state.infoTask.error = error;
     },
-    statlessQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+    statelessQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
       const { error } = action.payload;
       state.stateless.error = error;
     },
@@ -89,7 +89,7 @@ export const {
   appTaskQueueError,
   dataTaskQueueError,
   infoTaskQueueError,
-  statlessQueueError,
+  statelessQueueError,
   startInitialAppTaskQueue,
   startInitialAppTaskQueueFulfilled,
   startInitialDataTaskQueue,

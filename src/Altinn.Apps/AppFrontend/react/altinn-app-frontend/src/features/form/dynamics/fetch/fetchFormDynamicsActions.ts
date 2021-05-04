@@ -1,10 +1,6 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../formDynamicsActionTypes';
 
-export interface IFetchServiceConfig extends Action {
-  url: string;
-}
-
 export interface IFetchServiceConfigFulfilled extends Action {
   apis: any;
   ruleConnection: any;
@@ -15,10 +11,9 @@ export interface IFetchServiceConfigRejected extends Action {
   error: Error;
 }
 
-export function fetchServiceConfig(url: string): IFetchServiceConfig {
+export function fetchServiceConfig(): Action {
   return {
     type: ActionTypes.FETCH_SERVICE_CONFIG,
-    url,
   };
 }
 

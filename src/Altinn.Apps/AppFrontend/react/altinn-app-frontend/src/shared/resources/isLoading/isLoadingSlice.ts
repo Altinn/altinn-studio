@@ -26,7 +26,7 @@ const isLoadingSlice = createSlice({
     startStatelessIsLoading: (state: IIsLoadingState) => {
       state.stateless = true;
     },
-    finishStatlessIsLoading: (state: IIsLoadingState) => {
+    finishStatelessIsLoading: (state: IIsLoadingState) => {
       state.stateless = false;
     },
   },
@@ -36,7 +36,7 @@ export const {
   startDataTaskIsLoading,
   finishDataTaskIsLoading,
   startStatelessIsLoading,
-  finishStatlessIsLoading,
+  finishStatelessIsLoading,
 } = isLoadingSlice.actions;
 
 export default isLoadingSlice.reducer;
