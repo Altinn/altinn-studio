@@ -91,6 +91,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "eFormidling")]
         public EFormidlingContract EFormidling { get; set; }
 
+        /// <summary>
+        /// Gets or sets the "on entry" configuration of the app.
+        /// </summary>
+        [JsonProperty(PropertyName = "onEntry")]
+        public OnEntryConfig OnEntry { get; set; }
+
         /// <inheritdoc/>
         public override string ToString()
         {

@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
@@ -32,16 +33,16 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class MessageBoxInstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class MessageBoxInstancesControllerTests : IClassFixture<TestApplicationFactory<Startup>>
     {
         private const string BasePath = "/storage/api/v1";
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<Startup> _factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
         /// </summary>
-        /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-        public MessageBoxInstancesControllerTests(WebApplicationFactory<Startup> factory)
+        /// <param name="factory">The <see cref="TestApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
+        public MessageBoxInstancesControllerTests(TestApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -969,7 +970,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
-            Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
@@ -979,19 +979,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddMockRepositories();
+
                     if (instanceRepositoryMock != null)
                     {
                         services.AddSingleton(instanceRepositoryMock.Object);
                     }
-                    else
-                    {
-                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
-                    }
 
-                    services.AddSingleton(dataRepository.Object);
-                    services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
-                    services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
-                    services.AddSingleton<ITextRepository, TextRepositoryMock>();
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);

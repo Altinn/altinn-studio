@@ -180,6 +180,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               <li
                 aria-expanded="true"
                 class="MuiTreeItem-root Mui-expanded"
+                id="properties"
                 role="treeitem"
                 tabindex="0"
               >
@@ -231,7 +232,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-45"
+                        class="MuiTreeItem-root makeStyles-treeItem-47"
+                        id="root-schema-item"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -262,7 +264,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 class="MuiTypography-root makeStyles-label-40 MuiTypography-body1"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-44"
+                                  class="makeStyles-iconContainer-46"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -272,6 +274,25 @@ exports[`DataModeling Should match snapshot 1`] = `
                                  
                                 #/properties/melding
                               </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-44"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
                             </div>
                           </div>
                         </div>

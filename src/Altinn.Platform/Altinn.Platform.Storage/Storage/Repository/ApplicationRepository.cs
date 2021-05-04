@@ -5,6 +5,7 @@ namespace Altinn.Platform.Storage.Repository
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
@@ -19,14 +20,11 @@ namespace Altinn.Platform.Storage.Repository
     /// Handles applicationMetadata repository. Notice that the all methods should modify the Id attribute of the
     /// Application, since cosmosDb fails if Id contains slashes '/'.
     /// </summary>
-    public class ApplicationRepository : IApplicationRepository
+    internal sealed class ApplicationRepository : BaseRepository, IApplicationRepository
     {
-        private readonly Uri databaseUri;
-        private readonly Uri _collectionUri;
-        private readonly string databaseId;
-        private readonly string collectionId = "applications";
-        private readonly string partitionKey = "/org";
-        private static DocumentClient _client;
+        private const string CollectionId = "applications";
+        private const string PartitionKey = "/org";
+
         private readonly ILogger _logger;
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheEntryOptions _cacheEntryOptions;
@@ -35,32 +33,18 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationRepository"/> class.
         /// </summary>
-        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="cosmosSettings">the configuration settings for cosmos database</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">dependency injection of logger</param>
         /// <param name="memoryCache">the memory cache</param>
         public ApplicationRepository(
-            IOptions<AzureCosmosSettings> cosmosettings,
+            IOptions<AzureCosmosSettings> cosmosSettings,
             IOptions<GeneralSettings> generalSettings,
             ILogger<ApplicationRepository> logger,
             IMemoryCache memoryCache)
+            : base(CollectionId, PartitionKey, cosmosSettings)
         {
             _logger = logger;
-
-            var database = new CosmosDatabaseHandler(cosmosettings.Value);
-
-            _client = database.CreateDatabaseAndCollection(collectionId);
-            _collectionUri = database.CollectionUri;
-            databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
-
-            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
-
-            _client.CreateDocumentCollectionIfNotExistsAsync(
-                databaseUri,
-                documentCollection).GetAwaiter().GetResult();
-
-            _client.OpenAsync();
 
             _memoryCache = memoryCache;
             _cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -71,8 +55,8 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<List<Application>> FindAll()
         {
-            IDocumentQuery<Application> query = _client
-                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+            IDocumentQuery<Application> query = Client
+                .CreateDocumentQuery<Application>(CollectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
                 .AsDocumentQuery();
 
             return await GetMatchesAsync(query);
@@ -81,8 +65,8 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<List<Application>> FindByOrg(string org)
         {
-            IDocumentQuery<Application> query = _client
-                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+            IDocumentQuery<Application> query = Client
+                .CreateDocumentQuery<Application>(CollectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
                 .Where(i => i.Org == org)
                 .AsDocumentQuery();
 
@@ -93,8 +77,8 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Application> FindOne(string appId, string org)
         {
             string cosmosAppId = AppIdToCosmosId(appId);
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
-            Application application = await _client
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosAppId);
+            Application application = await Client
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
@@ -107,7 +91,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             item.Id = AppIdToCosmosId(item.Id);
 
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+            ResourceResponse<Document> createDocumentResponse = await Client.CreateDocumentAsync(CollectionUri, item);
             Document document = createDocumentResponse.Resource;
 
             Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());
@@ -122,9 +106,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id);
 
-            ResourceResponse<Document> document = await _client
+            ResourceResponse<Document> document = await Client
                 .ReplaceDocumentAsync(
                     uri,
                     item,
@@ -144,9 +128,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosAppId = AppIdToCosmosId(appId);
 
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosAppId);
 
-            ResourceResponse<Document> instance = await _client
+            ResourceResponse<Document> instance = await Client
                 .DeleteDocumentAsync(
                     uri.ToString(),
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
@@ -162,7 +146,7 @@ namespace Altinn.Platform.Storage.Repository
             if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
             {
                 appTitles = new Dictionary<string, string>();
-                IDocumentQuery<Application> query = _client.CreateDocumentQuery<Application>(_collectionUri).AsDocumentQuery();
+                IDocumentQuery<Application> query = Client.CreateDocumentQuery<Application>(CollectionUri).AsDocumentQuery();
 
                 while (query.HasMoreResults)
                 {

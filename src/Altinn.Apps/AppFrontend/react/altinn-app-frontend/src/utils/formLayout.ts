@@ -36,7 +36,13 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   groups.forEach((group: ILayoutGroup) => {
     group.children?.forEach((childId: string) => {
       formLayout
-        .filter(((element) => (element.id === childId && element.type.toLowerCase() === 'group')))
+        .filter((element) => {
+          if (element.type.toLowerCase() !== 'group') return false;
+          if (group.edit?.multiPage) {
+            return childId.split(':')[1] === element.id;
+          }
+          return element.id === childId;
+        })
         .forEach((childGroup) => childGroups.push(childGroup.id));
     });
   });
@@ -59,7 +65,14 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
             dataModelBinding: groupElement.dataModelBindings?.group,
             editIndex: -1,
           };
-          const groupElementChildGroups = groupElement.children?.filter((id) => childGroups.includes(id));
+          const groupElementChildGroups = [];
+          groupElement.children?.forEach((id) => {
+            if (groupElement.edit?.multiPage && childGroups.includes(id.split(':')[1])) {
+              groupElementChildGroups.push(id.split(':')[1]);
+            } else if (childGroups.includes(id)) {
+              groupElementChildGroups.push(id);
+            }
+          });
           groupElementChildGroups.forEach((childGroupId: string) => {
             const childGroup = groups.find((element) => element.id === childGroupId);
             [...Array(count + 1)].forEach((_x: any, index: number) => {

@@ -1,4 +1,11 @@
-/* 
+/* Pre-reqisite for test: 
+    1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
+    2. Installed appOwner certificate
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
+    
     Test script to platform events api with app owner token
     Command: docker-compose run k6 run /src/tests/platform/appowner/events.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e maskinpoten=***  -e appsaccesskey=***
@@ -8,13 +15,11 @@ import { addErrorCount } from "../../../errorcounter.js";
 import * as events from "../../../api/platform/events/events.js"
 import * as appInstances from "../../../api/app/instances.js"
 import * as setUpData from "../../../setup.js";
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
-const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
     thresholds: {
@@ -31,7 +36,7 @@ export function setup() {
     setUpData.clearCookies();
 
     //Get org token
-    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+    altinnStudioRuntimeCookie = setUpData.getAltinnTokenForTTD();
     data.RuntimeToken = altinnStudioRuntimeCookie;
     var instance = appInstances.postInstance(altinnStudioRuntimeCookie, data["partyId"], appOwner, appName);
     data.instanceId = JSON.parse(instance.body).id;

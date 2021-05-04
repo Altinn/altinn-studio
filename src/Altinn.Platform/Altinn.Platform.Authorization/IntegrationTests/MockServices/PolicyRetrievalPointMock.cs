@@ -4,10 +4,9 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
@@ -42,6 +41,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             {
                 return ParsePolicy(testID + "Policy.xml", GetConformancePath());
             }
+        }
+
+        public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
+        {
+            if (File.Exists(Path.Combine(GetAltinnAppsPolicyPath(org, app), "policy.xml")))
+            {
+                return await Task.FromResult(ParsePolicy("policy.xml", GetAltinnAppsPolicyPath(org, app)));
+            }
+
+            return null;
         }
 
         private string GetPolicyPath(XacmlContextRequest request)

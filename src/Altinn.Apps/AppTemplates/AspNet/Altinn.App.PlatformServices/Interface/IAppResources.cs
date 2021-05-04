@@ -62,14 +62,14 @@ namespace Altinn.App.Services.Interface
         /// Gets the prefill json file
         /// </summary>
         /// <param name="dataModelName">the data model name</param>
-        /// <returns></returns>
+        /// <returns>The prefill json file as a string</returns>
         string GetPrefillJson(string dataModelName = "ServiceModel");
 
         /// <summary>
-        /// Returns the class ref for a given datatype. Defaults to first applogic type if not prent
+        /// Get the class ref based on data type
         /// </summary>
         /// <param name="dataType">The datatype</param>
-        /// <returns></returns>
+        /// <returns>Returns the class ref for a given datatype. An empty string is returned if no match is found.</returns>
         string GetClassRefForLogicDataType(string dataType);
 
         /// <summary>
