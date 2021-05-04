@@ -60,6 +60,11 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<ActionResult> Post([FromQuery] string dataType)
         {
+            if (string.IsNullOrEmpty(dataType))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
+
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
@@ -94,11 +99,21 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<ActionResult> Put([FromQuery] string dataType)
         {
+            if (string.IsNullOrEmpty(dataType))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
+
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
             {
                 return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
+
+            if (Request.ContentLength == null || Request.ContentLength <= 0)
+            {
+                return BadRequest("No data found in content.");
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
