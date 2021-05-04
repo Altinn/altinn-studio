@@ -58,6 +58,29 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
+        public async Task StatelessData_Post_MissingDataType()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
         public async Task StatelessData_Put_CalculationsRunAndDataReturned()
         {
             // Arrange
@@ -89,6 +112,55 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.NotNull(actual);
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async Task StatelessData_Put_InvalidDataType()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "model-validation";
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=tix";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatelessData_Put_RequestMissingBodyBadRequest()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "model-validation";
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
     }
 }
