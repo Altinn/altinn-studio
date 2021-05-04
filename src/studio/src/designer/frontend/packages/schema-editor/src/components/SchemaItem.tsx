@@ -98,16 +98,15 @@ function SchemaItem(props: SchemaItemProps) {
     item, keyPrefix, ...other
   } = props;
 
-  const [definitionItem, setDefinitionItem] = React.useState<UiSchemaItem>(item);
+  const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
 
+  // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
-    if (refItem) {
-      setDefinitionItem(refItem);
-    }
-  }, [item.keywords, refItem]);
+    setItemToDisplay(refItem ?? item);
+  }, [item.keywords, item, refItem]);
 
   const onItemClick = (itemId: string) => {
     const readonly = item.$ref !== undefined;
@@ -195,11 +194,11 @@ function SchemaItem(props: SchemaItemProps) {
             return (
               <TreeItem
                 classes={{ root: classes.treeItem }}
-                nodeId={`${definitionItem.id}-${field.key}`}
+                nodeId={`${itemToDisplay.id}-${field.key}`}
                 className={classes.filler}
                 key={`field-${path}-${field.key}`}
                 label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-                onClick={() => onItemClick(definitionItem.id)}
+                onClick={() => onItemClick(itemToDisplay.id)}
               />
             );
         }
@@ -224,7 +223,7 @@ function SchemaItem(props: SchemaItemProps) {
 
   const renderLabelText = () => {
     if (refItem) {
-      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id.replace('#/definitions/', '')} {`: ${definitionItem.name ?? definitionItem.id.replace('#/definitions/', '')}`}</>;
+      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id.replace('#/definitions/', '')} {`: ${itemToDisplay.name ?? itemToDisplay.id.replace('#/definitions/', '')}`}</>;
     }
     return <>{ icon('fa-datamodel-object') } {item.name ?? item.id.replace('#/definitions/', '')}</>;
   };
@@ -238,7 +237,7 @@ function SchemaItem(props: SchemaItemProps) {
     e.preventDefault();
     setContextAnchor(null);
     dispatch(addField({
-      path: definitionItem.id,
+      path: itemToDisplay.id,
       key: 'key',
       value: 'value',
     }));
@@ -264,7 +263,7 @@ function SchemaItem(props: SchemaItemProps) {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        { !definitionItem.$ref &&
+        { !itemToDisplay.$ref &&
           <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
         }
         <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
@@ -278,12 +277,12 @@ function SchemaItem(props: SchemaItemProps) {
     <TreeItem
       classes={{ root: classes.treeItem }}
       label={renderLabel()}
-      onClick={() => onItemClick(definitionItem.$ref ?? definitionItem.id)}
+      onClick={() => onItemClick(itemToDisplay.$ref ?? itemToDisplay.id)}
       {...other}
     >
-      { definitionItem.$ref && refItem && renderRefLink()}
-      {renderProperties(definitionItem.properties)}
-      {renderKeywords(definitionItem.keywords, definitionItem.id)}
+      { itemToDisplay.$ref && refItem && renderRefLink()}
+      {renderProperties(itemToDisplay.properties)}
+      {renderKeywords(itemToDisplay.keywords, itemToDisplay.id)}
     </TreeItem>
   );
 }

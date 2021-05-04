@@ -70,6 +70,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
 
+  // if item is a reference, we want to show the properties of the reference.
+  const itemToDisplay = referencedItem ?? selectedItem;
+
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
@@ -111,7 +114,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = selectedItem?.id;
+    const path = itemToDisplay?.id;
     if (path) {
       props.onAddPropertyClick(path);
     }
@@ -119,7 +122,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddFieldClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = selectedItem?.id;
+    const path = itemToDisplay?.id;
     dispatch(addField({
       path,
       key: 'key',
@@ -250,7 +253,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       </IconButton> }
     </div> : null);
 
-  console.log(selectedItem);
   return (
     <div
       className={classes.root}
