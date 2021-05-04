@@ -54,8 +54,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const dispatch = useDispatch();
 
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  const readOnly = useSelector((state: ISchemaState) => state.readOnly);
-
+  // const readOnly = useSelector((state: ISchemaState) => state.readOnly);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       if (selectedId.includes('/properties/')) {
@@ -69,6 +68,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
+
+  const readOnly = selectedItem?.$ref !== undefined;
 
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
@@ -133,7 +134,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onGoToDefButtonClick = () => {
     dispatch(setSelectedId(
       {
-        id: selectedItem?.id, readOnly: false, navigate: true,
+        id: selectedItem?.$ref, readOnly: false, navigate: true,
       },
     ));
   };
@@ -148,18 +149,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             value={selectedItem.$ref}
             onChange={onChangeRef}
           />
+          <button
+            type='button'
+            className={classes.navButton}
+            onClick={onGoToDefButtonClick}
+          >
+            Gå til hovedkomponent
+          </button>
         </>);
-    }
-    if (readOnly) {
-      return (
-        <button
-          type='button'
-          className={classes.navButton}
-          onClick={onGoToDefButtonClick}
-        >
-          Gå til hovedkomponent
-        </button>
-      );
     }
     return null;
   };
