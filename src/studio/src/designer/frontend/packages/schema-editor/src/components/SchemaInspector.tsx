@@ -55,8 +55,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const readOnly = useSelector((state: ISchemaState) => state.readOnly);
-  // todo: need to know also where this was selected from
-  // if from /properties/ then a "go to def item" should be shown.
+
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       if (selectedId.includes('/properties/')) {
@@ -67,6 +66,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return null;
   });
+  const referencedItem = useSelector(
+    (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
+  );
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
@@ -171,20 +173,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onDeleteField={onDeleteObjectClick}
   />;
 
-  const renderSelectedItem = () => (selectedItem ?
+  const renderItemProperties = (item: UiSchemaItem) => (item ?
     <div>
-      <Input
-        fullWidth={true}
-        disableUnderline={true}
-        className={classes.label}
-        value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
-        onChange={onChangeNodeName}
-      />
-      <hr className={classes.divider} />
-      { renderDefUrl() }
+
       <p className={classes.header}>Properties</p>
       { /* These are the refs, consts or arrays */ }
-      { selectedItem.properties?.map((p: UiSchemaItem) => {
+      { item.properties?.map((p: UiSchemaItem) => {
         const field = p.keywords?.find((f) => f.key === 'const');
         if (field) {
           return renderConst(p, field);
@@ -216,7 +210,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
       {/* Keywords */}
       {/* Need to check for a field called type, and if for example value is "array", "items" are required. */}
-      { selectedItem.keywords?.map((field: Field) => {
+      { item.keywords?.map((field: Field) => {
         if (field.key.startsWith('@')) {
           return null;
         }
@@ -230,7 +224,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           value={field.value.$ref ?? field.value}
           label={field.key}
           readOnly={readOnly}
-          fullPath={selectedItem.id}
+          fullPath={item.id}
           onChangeValue={onChangeValue}
           onChangeRef={onChangeRef}
           onChangeKey={onChangeKey}
@@ -247,7 +241,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onClick={onAddPropertyClicked}
       ><i className='fa fa-plus'/>Add reference
       </IconButton> }
-      { !readOnly && !selectedItem.$ref &&
+      { !readOnly && !item.$ref &&
       <IconButton
         id='add-property-button'
         aria-label='Add property'
@@ -256,12 +250,26 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       </IconButton> }
     </div> : null);
 
+  console.log(selectedItem);
   return (
     <div
       className={classes.root}
     >
       <p className={classes.header}>Egenskaper</p>
-      { selectedItem && renderSelectedItem() }
+      { selectedItem &&
+      <>
+        <Input
+          fullWidth={true}
+          disableUnderline={true}
+          className={classes.label}
+          value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
+          onChange={onChangeNodeName}
+        />
+        <hr className={classes.divider} />
+        { renderDefUrl() }
+        {renderItemProperties(referencedItem ?? selectedItem)}
+      </>
+      }
       { !selectedId &&
         <div>
           <p className='no-item-selected'>No item selected</p>

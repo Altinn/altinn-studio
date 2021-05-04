@@ -26,16 +26,14 @@ const useStyles = makeStyles({
 export const RefSelect = (props: IRefSelectProps) => {
   const classes = useStyles();
   const {
-    id, onChange,
+    id, onChange, value,
   } = props;
-  const [value, setValue] = React.useState<string>(props.value);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions')));
 
   const onChangeValue = (event: React.ChangeEvent<{
     name?: string;
     value: unknown;
 }>) => {
-    setValue(event.target.value as string);
     onChange(id, event.target.value as string);
   };
 

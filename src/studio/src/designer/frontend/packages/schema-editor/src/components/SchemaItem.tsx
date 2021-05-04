@@ -110,7 +110,7 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.keywords, refItem]);
 
   const onItemClick = (itemId: string) => {
-    const readonly = item.id.includes('/properties');
+    const readonly = item.$ref !== undefined;
     dispatch(setSelectedId({ id: itemId, readonly }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;

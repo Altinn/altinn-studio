@@ -61,19 +61,13 @@ export interface IInputFieldProps {
 export function InputField(props: IInputFieldProps) {
   const classes = useStyles(props.readOnly)();
 
-  const [value, setValue] = React.useState<string>(props.value || '');
   const [label, setLabel] = React.useState<string>(props.label || '');
-
-  React.useEffect(() => {
-    setValue(props.value);
-  }, [props.value]);
 
   React.useEffect(() => {
     setLabel(props.label);
   }, [props.label]);
 
   const onChangeValue = (val: string) => {
-    setValue(val);
     const newValue = props.label === 'enum' ? val.split(',') : val;
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
@@ -102,7 +96,7 @@ export function InputField(props: IInputFieldProps) {
     if (label === 'type') {
       return <TypeSelect
         readOnly={props.readOnly}
-        itemType={value}
+        itemType={props.value}
         id={label}
         onChange={onChangeType}
       />;
@@ -110,7 +104,7 @@ export function InputField(props: IInputFieldProps) {
     if (props.isRef) {
       return <RefSelect
         id={label}
-        value={value}
+        value={props.value}
         readOnly={props.readOnly}
         onChange={onChangeRef}
       />;
@@ -119,7 +113,7 @@ export function InputField(props: IInputFieldProps) {
       id={`${baseId}-value-${label}`}
       disabled={props.readOnly}
       className={classes.field}
-      value={value}
+      value={props.value}
       disableUnderline={true}
       onChange={(e) => onChangeValue(e.target.value)}
     />;

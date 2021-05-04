@@ -56,7 +56,7 @@ export const SchemaEditor = ({
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
   const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
-
+  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
   }, [dispatch, rootItemId]);
@@ -132,7 +132,7 @@ export const SchemaEditor = ({
   };
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
-  const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
+  // const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>
