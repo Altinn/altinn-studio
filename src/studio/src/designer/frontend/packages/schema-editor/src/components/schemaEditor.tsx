@@ -17,7 +17,7 @@ const useStyles = makeStyles(
   createStyles({
     root: {
       marginTop: 24,
-      height: 700,
+      height: '100%',
     },
     tree: {
       flexGrow: 1,
@@ -84,12 +84,10 @@ export const SchemaEditor = ({
     if (selectedNodeId) {
       setSelectedTreeNode(selectedNodeId);
     }
-    console.log(`selected from state: ${selectedNodeId}`);
   }, [selectedNodeId]);
 
   const onNodeSelect = (e: any, ids: string) => {
     setSelectedTreeNode(ids);
-    console.log(`selected: ${ids}`);
   };
 
   const onClickSaveJsonSchema = () => {

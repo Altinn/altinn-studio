@@ -22,6 +22,7 @@ const useStyles = makeStyles(
     label: {
       background: 'white',
       border: '1px solid #006BD8',
+      margin: 4,
       padding: 4,
       flexGrow: 1,
     },
@@ -189,6 +190,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             key={`field-${p.id}`}
             value={p.$ref ?? ''}
             isRef={true}
+            readOnly={readOnly}
             label={p.name ?? p.id}
             fullPath={p.id}
             onChangeValue={onChangeValue}

@@ -9,19 +9,19 @@ exports[`Should match snapshot 1`] = `
   >
     Egenskaper
   </p>
-  <div>
-    <div
-      class="MuiInputBase-root MuiInput-root makeStyles-label-2 MuiInputBase-fullWidth MuiInput-fullWidth"
-    >
-      <input
-        class="MuiInputBase-input MuiInput-input"
-        type="text"
-        value="Kommentar2000Restriksjon"
-      />
-    </div>
-    <hr
-      class="makeStyles-divider-4"
+  <div
+    class="MuiInputBase-root MuiInput-root makeStyles-label-2 MuiInputBase-fullWidth MuiInput-fullWidth"
+  >
+    <input
+      class="MuiInputBase-input MuiInput-input"
+      type="text"
+      value="Kommentar2000Restriksjon"
     />
+  </div>
+  <hr
+    class="makeStyles-divider-4"
+  />
+  <div>
     <p
       class="makeStyles-header-3"
     >
@@ -29,13 +29,13 @@ exports[`Should match snapshot 1`] = `
     </p>
     <div>
       <span
-        class="makeStyles-inputs-10"
+        class="makeStyles-inputs-11"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -50,7 +50,7 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -87,13 +87,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-18"
+        class="makeStyles-inputs-19"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-13 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-14 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -108,7 +108,7 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-13 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-14 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -145,13 +145,13 @@ exports[`Should match snapshot 1`] = `
     </div>
     <div>
       <span
-        class="makeStyles-inputs-26"
+        class="makeStyles-inputs-27"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-21 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-22 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -166,7 +166,7 @@ exports[`Should match snapshot 1`] = `
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-root-29 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-root-30 MuiInputBase-formControl MuiInput-formControl"
           >
             <div
               aria-haspopup="listbox"
@@ -220,6 +220,22 @@ exports[`Should match snapshot 1`] = `
         </span>
       </button>
     </div>
+    <button
+      aria-label="Add reference"
+      class="MuiButtonBase-root MuiIconButton-root"
+      id="add-reference-button"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiIconButton-label"
+      >
+        <i
+          class="fa fa-plus"
+        />
+        Add reference
+      </span>
+    </button>
     <button
       aria-label="Add property"
       class="MuiButtonBase-root MuiIconButton-root"
