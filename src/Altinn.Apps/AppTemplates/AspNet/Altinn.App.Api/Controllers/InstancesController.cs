@@ -100,7 +100,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -112,6 +112,13 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
+
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
+            }
+
             try
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -236,16 +243,11 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, "instantiate");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
 
             if (!enforcementResult.Authorized)
             {
-                if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
-                {
-                    return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
-                }
-
-                return StatusCode((int)HttpStatusCode.Forbidden);
+                return Forbidden(enforcementResult);
             }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
@@ -440,10 +442,10 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
+        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, Guid? instanceGuid, string action)
         {
             EnforcementResult enforcementResult = new EnforcementResult();
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, instanceGuid);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
@@ -625,6 +627,16 @@ namespace Altinn.App.Api.Controllers
                     _logger.LogWarning(exception, "Exception when sending event with the Events component.");
                 }
             }
+        }
+
+        private ActionResult Forbidden(EnforcementResult enforcementResult)
+        {
+            if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
+            }
+
+            return StatusCode((int)HttpStatusCode.Forbidden);
         }
     }
 }

@@ -12,6 +12,10 @@
         "partyid": ""
     }
   ]
+
+  Environment variables for test environments (to get appowner token): 
+  -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
+
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/sirius.js 
   -e env=test -e org=ttd -e level2app=sirius -e appsaccesskey=*** -e maskinporten=token -e wait=5
 */
@@ -24,7 +28,6 @@ import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
 import * as platformInstances from "../../api/platform/storage/instances.js"
 import { deleteSblInstance } from "../../api/platform/storage/messageboxinstances.js"
-import { convertMaskinPortenToken } from "../../api/platform/authentication.js"
 import * as setUpData from "../../setup.js";
 
 const appOwner = __ENV.org;
@@ -32,7 +35,6 @@ const appName = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
 const waitBeforeArchiving = parseInt(__ENV.wait);
 const fileName = "users_" + environment + ".json";
-const maskinPortenToken = __ENV.maskinporten;
 
 let instanceFormDataXml = open("../../data/" + appName + ".xml");
 let attachmentXml1 = open("../../data/xml1.xml", "b");
@@ -52,7 +54,7 @@ export const options = {
 export function setup() {
     //get token for appowner: ttd
     var data = {};
-    var altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+    var altinnStudioRuntimeCookie = setUpData.getAltinnTokenForTTD();
     data.RuntimeToken = altinnStudioRuntimeCookie;
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, appName);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);

@@ -1,5 +1,4 @@
 let appsAccessSubscriptionKey = __ENV.appsaccesskey;
-let environment = (__ENV.env).toLowerCase();
 let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
@@ -117,13 +116,13 @@ export function isGuid(stringToTest) {
 };
 
 //Function to add subscription key to the header when sent as env variable from command line
-//and env is YT01 or TT02 and endpoint is a platform endpoint
-function addSubscriptionKey(params, appsAccessSubscriptionKey, api) {
-    if (appsAccessSubscriptionKey != null && api == "platform") {
+//and endpoint is a platform endpoint
+function addSubscriptionKey(params, subscriptionKey, api) {
+    if (subscriptionKey != null && api == "platform") {
         if (params["headers"] == null) {
             params["headers"] = {};
         };
-        params.headers["Ocp-Apim-Subscription-Key"] = appsAccessSubscriptionKey;
+        params.headers["Ocp-Apim-Subscription-Key"] = subscriptionKey;
     };
     return params;
 };
