@@ -26,10 +26,8 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   const {
     id, itemType, onChange,
   } = props;
-  const [value, setValue] = React.useState<string>(itemType || '');
-
+ 
   const onValueChange = (event: any) => {
-    setValue(event.target.value);
     onChange(id, event.target.value);
   };
 
@@ -37,7 +35,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
     <Select
       id={`type-select-${id}`}
       disabled={props.readOnly}
-      value={value}
+      value={itemType || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}

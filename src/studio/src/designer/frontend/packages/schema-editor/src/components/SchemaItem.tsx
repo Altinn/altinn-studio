@@ -108,9 +108,9 @@ function SchemaItem(props: SchemaItemProps) {
     setItemToDisplay(refItem ?? item);
   }, [item.keywords, item, refItem]);
 
-  const onItemClick = (itemId: string) => {
-    const readonly = item.$ref !== undefined;
-    dispatch(setSelectedId({ id: itemId, readonly }));
+  const onItemClick = (e: UiSchemaItem) => {
+    const readonly = e.$ref !== undefined;
+    dispatch(setSelectedId({ id: e.id, readonly }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
@@ -124,7 +124,7 @@ function SchemaItem(props: SchemaItemProps) {
               key={`${keyPrefix}-${property.id}`}
               item={property}
               nodeId={`${keyPrefix}-${property.id}`}
-              onClick={() => onItemClick(property.id)}
+              onClick={() => onItemClick(property)}
             />
           );
         })
@@ -140,7 +140,7 @@ function SchemaItem(props: SchemaItemProps) {
       className={classes.filler}
       key={`field-${path}-${field.key}`}
       label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item.id)}
+      onClick={() => onItemClick(item)}
     >
       {field.value.map((e: string) => <TreeItem
         classes={{ root: classes.treeItem }}
@@ -148,7 +148,7 @@ function SchemaItem(props: SchemaItemProps) {
         className={classes.filler}
         key={`field-${path}-${field.key}-${e}`}
         label={<>{ icon('fa-datamodel-element') } {e}</>}
-        onClick={() => onItemClick(item.id)}
+        onClick={() => onItemClick(item)}
       />)}
     </TreeItem>);
 
@@ -159,7 +159,7 @@ function SchemaItem(props: SchemaItemProps) {
       className={classes.filler}
       key={`field-${path}-${field.key}`}
       label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item.id)}
+      onClick={() => onItemClick(item)}
     >
       {field.value.map((e: {$ref: string}) => {
         const el = uiSchema.find((s) => s.id === e.$ref);
@@ -167,7 +167,7 @@ function SchemaItem(props: SchemaItemProps) {
           return <SchemaItem
             keyPrefix={`${keyPrefix}-${el.id}`}
             key={`${keyPrefix}-${el.id}`}
-            onClick={() => onItemClick(el.id)}
+            onClick={() => onItemClick(el)}
             item={el}
             nodeId={`${keyPrefix}-${el.id}-ref`}
           />;
@@ -198,7 +198,7 @@ function SchemaItem(props: SchemaItemProps) {
                 className={classes.filler}
                 key={`field-${path}-${field.key}`}
                 label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-                onClick={() => onItemClick(itemToDisplay.id)}
+                onClick={() => onItemClick(itemToDisplay)}
               />
             );
         }
@@ -216,7 +216,7 @@ function SchemaItem(props: SchemaItemProps) {
   const renderRefLink = () => <SchemaItem
     keyPrefix={`${keyPrefix}-${refItem.id}`}
     key={`${keyPrefix}-${refItem.id}`}
-    onClick={() => onItemClick(refItem.$ref ?? refItem.id)}
+    onClick={() => onItemClick(refItem)}
     item={refItem}
     nodeId={`${keyPrefix}-${refItem.id}-ref`}
   />;
@@ -277,7 +277,7 @@ function SchemaItem(props: SchemaItemProps) {
     <TreeItem
       classes={{ root: classes.treeItem }}
       label={renderLabel()}
-      onClick={() => onItemClick(itemToDisplay.$ref ?? itemToDisplay.id)}
+      onClick={() => onItemClick(itemToDisplay)}
       {...other}
     >
       { itemToDisplay.$ref && refItem && renderRefLink()}
