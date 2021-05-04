@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call,
   select,
@@ -5,18 +6,20 @@ import { call,
   all,
   take,
   put } from 'redux-saga/effects';
-import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
+import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
+import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
+import { getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';
-import { IRuntimeState } from '../../../../types';
+import { ILayoutSets, IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getFetchFormDynamicsUrl, getFetchStatelessFormDataUrl } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
@@ -29,7 +32,6 @@ function* fetchFormDataSaga(): SagaIterator {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-
     const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance);
     const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
     const formData = convertModelToDataBinding(fetchedData);
@@ -48,9 +50,17 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
+    const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
 
-    const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
-    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
+    let fetchedData: any;
+
+    if (applicationMetadata?.onEntry?.show) {
+      const dataType = getDataTypeByLayoutSetId(applicationMetadata?.onEntry.show, layoutSets);
+      fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
+    } else {
+      const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
+      fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
+    }
 
     const formData = convertModelToDataBinding(fetchedData);
     yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
@@ -71,10 +81,14 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield take(FormDataActions.fetchFormDataInitial);
+    yield all([
+      take(FormDataActions.fetchFormDataInitial),
+      take(FETCH_APPLICATION_METADATA_FULFILLED),
+    ]);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-    if (!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {
+    const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+    if ((!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) && !application.onEntry?.show) {
       yield all([
         take(GET_INSTANCEDATA_FULFILLED),
         take(fetchJsonSchemaFulfilled),

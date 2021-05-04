@@ -8,8 +8,7 @@ import { IFetchServiceConfig } from './fetchFormDynamicsActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { IRuntimeState, ILayoutSets } from '../../../../types';
-import { getLayoutsetForDataElement } from '../../../../utils/layout';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
@@ -20,14 +19,11 @@ function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
     const { org, app } = window as Window as IAltinnWindow;
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
-      aplicationMetadataState.dataTypes);
+    const application: IApplicationMetadata = yield select(applicationMetadataSelector);
     let apiUrl: string = url;
-    if (layoutSets != null) {
-      const layoutSetId: string = getLayoutsetForDataElement(instance, dataType, layoutSets);
-      apiUrl = `${window.location.origin}/${org}/${app}/api/ruleconfiguration/${layoutSetId}`;
-    }
+    const layoutSetId = getLayoutSetIdForApplication(application, instance, layoutSets);
+    apiUrl = `${window.location.origin}/${org}/${app}/api/ruleconfiguration/${layoutSetId}`;
+
     const result: any = yield call(get, apiUrl);
     const data = result ? result.data : {};
     yield call(

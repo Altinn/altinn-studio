@@ -4,13 +4,13 @@ import { Route, Switch } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useSelector, useDispatch } from 'react-redux';
 import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
-import Instantiate from './features/instantiate/containers';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
 import { startInitialAppTaskQueue } from './shared/resources/queue/queueSlice';
 import { get } from './utils/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
+import Entrypoint from './features/entrypoint/Entrypoint';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -73,7 +73,7 @@ export default function setup() {
         <Route
           path='/'
           exact={true}
-          component={Instantiate}
+          component={Entrypoint}
         />
         <Route
           path='/partyselection/:errorCode?'

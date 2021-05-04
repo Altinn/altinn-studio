@@ -140,6 +140,10 @@ export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }
 
+export function getFetchStatelessFormDataUrl(dataType: string) {
+  return `${appPath}/v1/data?dataType=${dataType}`;
+}
+
 export function getFetchFormDynamicsUrl() {
   return `${appPath}/api/resource/RuleConfiguration.json`;
 }

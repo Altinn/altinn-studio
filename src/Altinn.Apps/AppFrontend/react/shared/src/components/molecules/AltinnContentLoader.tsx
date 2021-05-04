@@ -4,9 +4,9 @@ import AltinnContentIcon from '../atoms/AltinnContentIcon';
 
 export interface IAltinnContentLoaderProps {
 /** The height of the loader, defaults to 200 */
-  height?: number;
+  height?: number | string;
 /** The width of the loader, defaults to 400 */
-  width?: number;
+  width?: number | string;
 }
 
 export default function(props: React.PropsWithChildren<IAltinnContentLoaderProps>) {

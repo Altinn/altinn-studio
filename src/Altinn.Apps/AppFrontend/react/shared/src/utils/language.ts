@@ -90,8 +90,8 @@ export function replaceTextResourceParams(
   repeatingGroups?: any,
 ): ITextResource[] {
   let replaceValues: string[];
-  const resourcesWithVariables = textResources.filter((resource) => resource.variables);
-  resourcesWithVariables.forEach((resource) => {
+  const resourcesWithVariables = textResources?.filter((resource) => resource.variables);
+  resourcesWithVariables?.forEach((resource) => {
     const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
     if (repeatingGroups && variableForRepeatingGroup) {
       const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
