@@ -5,10 +5,6 @@ FROM gitea/gitea:1.14.1
 # Has to be copied to the templates-folder so parsing of environment variables is correct
 COPY gitea-config/app.ini etc/templates/app.ini
 
-# copy custom templates
-COPY custom etc/templates
-
-
 # Copy rest of configuration
 COPY gitea-data/gitea/options data/gitea/options/
 COPY gitea-data/gitea/public/img data/gitea/public/img
