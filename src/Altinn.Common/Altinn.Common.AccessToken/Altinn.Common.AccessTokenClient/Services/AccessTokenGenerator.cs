@@ -45,8 +45,8 @@ namespace Altinn.Common.AccessTokenClient.Services
         {
             try
             {
-                SigningCredentials credsentials = _signingKeysResolver.GetSigningCredentials();
-                return GenerateAccessToken(issuer, app, credsentials);
+                SigningCredentials credentials = _signingKeysResolver.GetSigningCredentials();
+                return GenerateAccessToken(issuer, app, credentials);
             }
             catch (Exception ex)
             {
