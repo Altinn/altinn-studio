@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Functions
         public void Initialize(ITelemetry telemetry)
         {
             // set custom role name here
-            telemetry.Context.Cloud.RoleName = "events functions";
+            telemetry.Context.Cloud.RoleName = "events-function";
         }
     }
 }
