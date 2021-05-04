@@ -130,7 +130,6 @@ export const SchemaEditor = ({
   };
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
-  // const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>

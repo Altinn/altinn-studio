@@ -98,10 +98,6 @@ test('Supports allOf', () => {
   act(() => {
     wrapper = mountComponent();
   });
-  // expect(wrapper.find('.MuiTypography-root').length).toBe(5);
-  // wrapper.find('.MuiTypography-root').at(4).simulate('click'); // expand definitions
-  // expect(wrapper.find('.MuiTypography-root').length).toBe(125);
-
   const allOfTest = findTreeItems(wrapper, ' allOfTest').last();
   expect(allOfTest.text()).toBe(' allOfTest');
   allOfTest.simulate('click');

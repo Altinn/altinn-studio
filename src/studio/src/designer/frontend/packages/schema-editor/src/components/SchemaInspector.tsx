@@ -175,9 +175,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderItemProperties = (item: UiSchemaItem) => (item ?
     <div>
-
       <p className={classes.header}>Properties</p>
-      { /* These are the refs, consts or arrays */ }
+      { /* These are the refs, consts or arrays. Work in progress */ }
       { item.properties?.map((p: UiSchemaItem) => {
         const field = p.keywords?.find((f) => f.key === 'const');
         if (field) {
@@ -209,8 +208,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         return null;
       })}
 
-      {/* Keywords */}
-      {/* Need to check for a field called type, and if for example value is "array", "items" are required. */}
+      {/* Keywords - Work in progress, needs sets of rules for different types etc. */}
+      {/* Need to check for a type field field, and if for example value is "array", "items" are required. */}
       { item.keywords?.map((field: Field) => {
         if (field.key.startsWith('@')) {
           return null;
@@ -234,21 +233,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       })
       }
 
+      {/* This is also work in progress */}
       { !readOnly &&
-      // This is work in progress }
-      <IconButton
-        id='add-reference-button'
-        aria-label='Add reference'
-        onClick={onAddPropertyClicked}
-      ><i className='fa fa-plus'/>Add reference
-      </IconButton> }
-      { !readOnly && !item.$ref &&
-      <IconButton
-        id='add-property-button'
-        aria-label='Add property'
-        onClick={onAddFieldClick}
-      ><i className='fa fa-plus'/>Add property
-      </IconButton> }
+      <>
+        <IconButton
+          id='add-reference-button'
+          aria-label='Add reference'
+          onClick={onAddPropertyClicked}
+        ><i className='fa fa-plus'/>Add reference
+        </IconButton>
+        <IconButton
+          id='add-property-button'
+          aria-label='Add property'
+          onClick={onAddFieldClick}
+        ><i className='fa fa-plus'/>Add property
+        </IconButton>
+      </>
+      }
     </div> : null);
 
   return (
