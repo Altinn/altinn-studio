@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
 import { ISchemaState, ISetRefAction, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -10,7 +10,6 @@ export const initialState: ISchemaState = {
   saveSchemaUrl: '',
   selectedId: '',
   selectedNodeId: '',
-  readOnly: false,
 };
 
 const schemaEditorSlice = createSlice({
@@ -170,11 +169,10 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, readonly, navigate,
+        id, navigate,
       } = action.payload;
       state.selectedId = id;
-      state.readOnly = readonly;
-      state.selectedNodeId = navigate ? `def-${id}` : undefined;
+      state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;

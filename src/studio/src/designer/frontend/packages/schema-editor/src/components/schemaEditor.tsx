@@ -10,7 +10,7 @@ import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem,
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
-import { buildUISchema, getUiSchemaTreeFromItem } from '../utils';
+import { buildUISchema, getDomFriendlyID, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
@@ -51,7 +51,6 @@ export const SchemaEditor = ({
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
-  const [selectedTreeNode, setSelectedTreeNode] = React.useState<string>('properties');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
@@ -83,19 +82,13 @@ export const SchemaEditor = ({
 
   React.useEffect(() => {
     if (selectedNodeId) {
-      // setSelectedTreeNode(selectedNodeId);
-      const domId = getDomFriendlyID(selectedNodeId.replace('def-', ''));
-      const node = document.querySelector<HTMLElement>(`#${domId}`);
+      const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
       if (node) {
         node.focus();
         (node.firstChild as HTMLElement).click();
       }
     }
   }, [selectedNodeId]);
-
-  const onNodeSelect = (e: any, ids: string) => {
-    setSelectedTreeNode(ids);
-  };
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -105,7 +98,6 @@ export const SchemaEditor = ({
     setAddPropertyPath(path);
     setAddPropertyModalOpen(true);
   };
-  const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
 
   const onCloseAddPropertyModal = (property: any) => {
     if (property && property.name) {
@@ -165,9 +157,6 @@ export const SchemaEditor = ({
               defaultExpanded={['properties', 'definitions']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
-              onNodeSelect={onNodeSelect}
-              selected={selectedTreeNode}
-              // expanded={['properties', 'definitions', selectedTreeNode]}
             >
               <TreeItem
                 id='properties'

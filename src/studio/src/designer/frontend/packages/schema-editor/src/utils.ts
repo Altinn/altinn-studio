@@ -169,3 +169,4 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     ...rest,
   };
 }
+export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');

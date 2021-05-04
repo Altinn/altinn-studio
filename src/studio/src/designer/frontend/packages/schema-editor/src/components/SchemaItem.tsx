@@ -109,8 +109,7 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.keywords, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
-    const readonly = e.$ref !== undefined;
-    dispatch(setSelectedId({ id: e.id, readonly }));
+    dispatch(setSelectedId({ id: e.id }));
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 

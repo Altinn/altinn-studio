@@ -10,7 +10,6 @@ export interface ISchemaState {
   saveSchemaUrl: string;
   selectedId?: string;
   selectedNodeId?: string;
-  readOnly: boolean;
 }
 
 export interface ISetValueAction {

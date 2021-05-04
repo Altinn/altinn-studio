@@ -26,7 +26,6 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   const {
     id, itemType, onChange,
   } = props;
- 
   const onValueChange = (event: any) => {
     onChange(id, event.target.value);
   };

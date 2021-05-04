@@ -33,7 +33,6 @@ beforeEach(() => {
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
-    readOnly: false,
   };
   createStore = configureStore();
 });

@@ -55,7 +55,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const dispatch = useDispatch();
 
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  // const readOnly = useSelector((state: ISchemaState) => state.readOnly);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       if (selectedId.includes('/properties/')) {
