@@ -57,6 +57,7 @@ export const SchemaEditor = ({
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
   const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
+
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
   }, [dispatch, rootItemId]);
@@ -82,7 +83,13 @@ export const SchemaEditor = ({
 
   React.useEffect(() => {
     if (selectedNodeId) {
-      setSelectedTreeNode(selectedNodeId);
+      // setSelectedTreeNode(selectedNodeId);
+      const domId = getDomFriendlyID(selectedNodeId.replace('def-', ''));
+      const node = document.querySelector<HTMLElement>(`#${domId}`);
+      if (node) {
+        node.focus();
+        (node.firstChild as HTMLElement).click();
+      }
     }
   }, [selectedNodeId]);
 
@@ -98,6 +105,7 @@ export const SchemaEditor = ({
     setAddPropertyPath(path);
     setAddPropertyModalOpen(true);
   };
+  const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
 
   const onCloseAddPropertyModal = (property: any) => {
     if (property && property.name) {
@@ -181,6 +189,7 @@ export const SchemaEditor = ({
                   item={def}
                   key={def.id}
                   nodeId={`def-${def.id}`}
+                  id={getDomFriendlyID(def.id)}
                 />)}
               </TreeItem>
             </TreeView>
