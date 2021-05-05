@@ -43,7 +43,7 @@ const theme = createMuiTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   mainContainer: {
-
+    height: 'fit-content',
   },
   headingContainer: {
     borderTop: '2px solid #000000',
