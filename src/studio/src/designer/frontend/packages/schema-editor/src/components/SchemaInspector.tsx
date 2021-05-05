@@ -222,10 +222,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (field.key.startsWith('@')) {
       return null;
     }
-    if (Array.isArray(field.value)) {
-      // todo: handle arrays in keywords
-
-    }
     return <InputField
       key={`field-${field.key}`}
       isRef={field.key === '$ref'}

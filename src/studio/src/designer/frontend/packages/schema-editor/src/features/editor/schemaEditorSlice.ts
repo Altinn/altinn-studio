@@ -29,8 +29,6 @@ const schemaEditorSlice = createSlice({
         } else {
           addToItem.keywords = [itemToAdd];
         }
-      } else {
-        console.log(`item not found ${path}`);
       }
     },
     addProperty(state, action) {
