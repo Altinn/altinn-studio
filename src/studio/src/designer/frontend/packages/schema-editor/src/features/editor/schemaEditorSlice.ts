@@ -76,7 +76,6 @@ const schemaEditorSlice = createSlice({
     },
     deleteField(state, action) {
       const { path, key } = action.payload;
-      // const removeFromItem = state.uiSchema.find((item) => item.id === path);
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
         const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
