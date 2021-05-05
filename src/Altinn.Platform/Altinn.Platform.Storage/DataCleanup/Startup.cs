@@ -20,7 +20,6 @@ namespace Altinn.Platform.Storage.DataCleanup
         /// </summary>
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
             builder.Services.AddSingleton<ICosmosService, CosmosService>();
             builder.Services.AddSingleton<IBackupBlobService, BackupBlobService>();
             builder.Services.AddSingleton<IBlobService, BlobService>();

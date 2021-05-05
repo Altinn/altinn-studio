@@ -2,18 +2,21 @@
     Pre-reqisite for test: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Send maskinporten token as environment variable after generating the token
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script is to create instance of an app as an appowner for a party id
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
     and maskinporten token
+    
     Command: docker-compose run k6 run /src/tests/platform/appowner/instances.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as instances from "../../../api/platform/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 
@@ -21,7 +24,6 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const maskinPortenToken = __ENV.maskinporten;
 let instanceJson = open("../../../data/instance.json");
 
 export const options = {
@@ -37,7 +39,7 @@ export function setup() {
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
-    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+    altinnStudioRuntimeCookie = setUpData.getAltinnTokenForTTD();
     data.RuntimeToken = altinnStudioRuntimeCookie;
     return data;
 };

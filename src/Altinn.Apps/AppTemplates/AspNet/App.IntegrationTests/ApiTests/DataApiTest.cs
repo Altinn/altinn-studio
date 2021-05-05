@@ -747,5 +747,194 @@ namespace App.IntegrationTests.ApiTests
             Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
             Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
         }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_NewValueIncluded()
+        {
+            // Arrange
+            int expectedCount = 2;
+            string expectedValue = "160694";
+            string expectedKey = "AnotherField";
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+            Assert.True(instance.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_ExistingValueRemoved()
+        {
+            // Arrange
+            int expectedCount = 0;
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+        }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_ExistingValueOverwritten()
+        {
+            // Arrange
+            int expectedCount = 1;
+            string expectedValue = "Andreas Dahl";
+            string expectedKey = "Title";
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"Andreas Dahl\",\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+            Assert.True(instance.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        [Fact]
+        public async Task Data_Post_NoInstanceReferences_ObjectSucessfullyPrefilledCalculatedAndReturned()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string expectedPrefillValue = "Sophie Salt";
+            string expectedCalculatedValue = "calculatedValue";
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.Ttd.PresentationTextsApp.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.PresentationTextsApp.Skjema>(responseContent);
+            string actualPrefillValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Arbeidsforholdgrp8856?.AnsattSammenhengendeAnsattAnsettelsedatadef33267?.value;
+            string actualCalculatedValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(actualPrefillValue);
+            Assert.NotNull(actualCalculatedValue);
+            Assert.Equal(expectedPrefillValue, actualPrefillValue);
+            Assert.Equal(expectedCalculatedValue, actualCalculatedValue);
+        }
+
+        [Fact]
+        public async Task Data_Put_NoInstanceReferences_CalculationsRunAndDataReturned()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "model-validation";
+            decimal expected = 1001;
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.ttd.model_validation.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.ttd.model_validation.Skjema>(responseContent);
+            decimal? actual = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
+        }
     }
 }

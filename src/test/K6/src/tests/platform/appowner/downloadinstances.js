@@ -1,9 +1,13 @@
 /* Pre-reqisite for test: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Send maskinporten token as environment variable after generating the token
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script can only be run with virtual users and iterations count and not based on duration.
+    
     example: k6 run -i 20 -u 10 /src/tests/platform/storage/appowner/downloadinstances.js -e env=test -e org=ttd 
     -e level2app=rf-0002 -e appsaccesskey=*** -e maskinporten=token
 */
@@ -12,13 +16,11 @@ import { check } from "k6";
 import { addErrorCount, stopIterationOnFail } from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/platform/storage/instances.js"
 import * as storageData from "../../../api/platform/storage/data.js"
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
 import * as support from "../../../support.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const maskinPortenToken = __ENV.maskinporten;
 const createdDateTime = __ENV.createddate;
 
 export const options = {
@@ -30,7 +32,7 @@ export const options = {
 
 //Function to authenticate a app owner, get all archived instances of an app and return data for the test
 export function setup() {
-    var altinnStudioRuntimeToken = convertMaskinPortenToken(maskinPortenToken, "true");
+    var altinnStudioRuntimeToken = setUpData.getAltinnTokenForTTD();
     var data = {};
     var maxVus = (options.vus) ? options.vus : 1;
     var totalIterations = (options.iterations) ? options.iterations : 1;

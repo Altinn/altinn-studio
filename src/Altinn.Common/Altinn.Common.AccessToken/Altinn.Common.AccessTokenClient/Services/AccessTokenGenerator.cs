@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Constants;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -41,7 +43,16 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns></returns>
         public string GenerateAccessToken(string issuer, string app)
         {
-            return GenerateAccessToken(issuer, app, _signingKeysResolver.GetSigningCredentials());
+            try
+            {
+                SigningCredentials credentials = _signingKeysResolver.GetSigningCredentials();
+                return GenerateAccessToken(issuer, app, credentials);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Not able to generate access token");
+                return null;
+            }
         }
 
         /// <summary>
@@ -58,11 +69,6 @@ namespace Altinn.Common.AccessTokenClient.Services
 
         private string GenerateAccessToken(string issuer, string app, SigningCredentials signingCredentials)
         {
-            if (_accessTokenSettings.DisableAccessTokenGeneration)
-            {
-                return null;
-            }
-
             try
             {
                 List<Claim> claims = new List<Claim>();

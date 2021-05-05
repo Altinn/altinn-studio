@@ -21,17 +21,13 @@ namespace Altinn.Platform.Storage.Repository
     /// <summary>
     /// Repository operations for application instances.
     /// </summary>
-    public class InstanceRepository : IInstanceRepository
+    internal sealed class InstanceRepository : BaseRepository, IInstanceRepository
     {
         private const string CollectionId = "instances";
         private const string PartitionKey = "/instanceOwner/partyId";
 
-        private readonly Uri _collectionUri;
-        private readonly string _databaseId;
         private readonly ILogger<InstanceRepository> _logger;
         private readonly IDataRepository _dataRepository;
-
-        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
@@ -43,24 +39,10 @@ namespace Altinn.Platform.Storage.Repository
             IOptions<AzureCosmosSettings> cosmosSettings,
             ILogger<InstanceRepository> logger,
             IDataRepository dataRepository)
+            : base(CollectionId, PartitionKey, cosmosSettings)
         {
             _logger = logger;
             _dataRepository = dataRepository;
-
-            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
-
-            _client = database.CreateDatabaseAndCollection(CollectionId);
-            _collectionUri = database.CollectionUri;
-            Uri databaseUri = database.DatabaseUri;
-            _databaseId = database.DatabaseName;
-
-            DocumentCollection documentCollection = database.CreateDocumentCollection(CollectionId, PartitionKey);
-
-            _client.CreateDocumentCollectionIfNotExistsAsync(
-                databaseUri,
-                documentCollection).GetAwaiter().GetResult();
-
-            _client.OpenAsync();
         }
 
         /// <inheritdoc/>
@@ -68,7 +50,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(instance);
 
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instance);
+            ResourceResponse<Document> createDocumentResponse = await Client.CreateDocumentAsync(CollectionUri, instance);
             Document document = createDocumentResponse.Resource;
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
@@ -82,9 +64,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, item.Id);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id);
 
-            await _client.DeleteDocumentAsync(
+            await Client.DeleteDocumentAsync(
                 uri.ToString(),
                 new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
 
@@ -117,7 +99,7 @@ namespace Altinn.Platform.Storage.Repository
                     feedOptions.RequestContinuation = continuationToken;
                 }
 
-                IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+                IQueryable<Instance> queryBuilder = Client.CreateDocumentQuery<Instance>(CollectionUri, feedOptions);
 
                 try
                 {
@@ -522,9 +504,9 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
-            Instance instance = await _client
+            Instance instance = await Client
                 .ReadDocumentAsync<Instance>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
@@ -539,8 +521,8 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            ResourceResponse<Document> createDocumentResponse = await _client
-                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, CollectionId, item.Id), item);
+            ResourceResponse<Document> createDocumentResponse = await Client
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id), item);
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 

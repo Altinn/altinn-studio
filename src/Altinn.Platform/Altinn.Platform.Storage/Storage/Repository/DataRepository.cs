@@ -26,14 +26,10 @@ namespace Altinn.Platform.Storage.Repository
     /// Represents an implementation of <see cref="IDataRepository"/> using Azure CosmosDB to keep metadata
     /// and Azure Blob storage to keep the actual data. Blob storage is again split based on application owner.
     /// </summary>
-    public class DataRepository : IDataRepository
+    internal sealed class DataRepository : BaseRepository, IDataRepository
     {
-        private readonly Uri _collectionUri;
-        private readonly string _databaseId;
-        private readonly string _collectionId = "dataElements";
-        private readonly string _partitionKey = "/instanceGuid";
-
-        private readonly DocumentClient _documentClient;
+        private const string CollectionId = "dataElements";
+        private const string PartitionKey = "/instanceGuid";
 
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly ISasTokenProvider _sasTokenProvider;
@@ -51,25 +47,11 @@ namespace Altinn.Platform.Storage.Repository
             IOptions<AzureCosmosSettings> cosmosSettings,
             IOptions<AzureStorageConfiguration> storageConfiguration,
             ILogger<DataRepository> logger)
+            : base(CollectionId, PartitionKey, cosmosSettings)
         {
             _storageConfiguration = storageConfiguration.Value;
             _sasTokenProvider = sasTokenProvider;
             _logger = logger;
-
-            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
-
-            _documentClient = database.CreateDatabaseAndCollection(_collectionId);
-            _collectionUri = database.CollectionUri;
-            Uri databaseUri = database.DatabaseUri;
-            _databaseId = database.DatabaseName;
-
-            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
-
-            _documentClient.CreateDocumentCollectionIfNotExistsAsync(
-                databaseUri,
-                documentCollection).GetAwaiter().GetResult();
-
-            _documentClient.OpenAsync();
         }
 
         /// <inheritdoc/>
@@ -163,8 +145,8 @@ namespace Altinn.Platform.Storage.Repository
                 MaxItemCount = 10000,
             };
 
-            IQueryable<DataElement> filter = _documentClient
-                .CreateDocumentQuery<DataElement>(_collectionUri, feedOptions)
+            IQueryable<DataElement> filter = Client
+                .CreateDocumentQuery<DataElement>(CollectionUri, feedOptions)
                 .Where(d => d.InstanceGuid == instanceKey);
 
             IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
@@ -179,7 +161,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<DataElement> Create(DataElement dataElement)
         {
-            ResourceResponse<Document> createDocumentResponse = await _documentClient.CreateDocumentAsync(_collectionUri, dataElement);
+            ResourceResponse<Document> createDocumentResponse = await Client.CreateDocumentAsync(CollectionUri, dataElement);
             Document document = createDocumentResponse.Resource;
             DataElement dataElementStored = JsonConvert.DeserializeObject<DataElement>(document.ToString());
 
@@ -192,9 +174,9 @@ namespace Altinn.Platform.Storage.Repository
             string instanceKey = instanceGuid.ToString();
             string dataElementKey = dataElementGuid.ToString();
 
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElementKey);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElementKey);
 
-            DataElement dataElement = await _documentClient
+            DataElement dataElement = await Client
                 .ReadDocumentAsync<DataElement>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceKey) });
@@ -205,8 +187,8 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<DataElement> Update(DataElement dataElement)
         {
-            ResourceResponse<Document> createDocumentResponse = await _documentClient
-              .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElement.Id), dataElement);
+            ResourceResponse<Document> createDocumentResponse = await Client
+              .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElement.Id), dataElement);
             Document document = createDocumentResponse.Resource;
             DataElement updatedElement = JsonConvert.DeserializeObject<DataElement>(document.ToString());
 
@@ -216,9 +198,9 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<bool> Delete(DataElement dataElement)
         {
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElement.Id);
+            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElement.Id);
 
-            await _documentClient.DeleteDocumentAsync(
+            await Client.DeleteDocumentAsync(
                 uri.ToString(),
                 new RequestOptions { PartitionKey = new PartitionKey(dataElement.InstanceGuid) });
 

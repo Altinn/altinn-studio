@@ -13,6 +13,10 @@ labels: kind/user-story
 ## Considerations
 > Describe input (beyond tasks) on how the user story should be solved can be put here.
 
+### Ops requirements
+> Are there any requirements for monitoring? What is being built and what could go wrong? 
+> Are there any requirements related to backup? 
+
 ## Acceptance criteria
 > Describe criteria here (i.e. What is allowed/not allowed (negative tesing), validations, error messages and warnings etc.)
 
