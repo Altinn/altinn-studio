@@ -2332,7 +2332,9 @@ exports[`DataModeling Should match snapshot 1`] = `
               >
                 No item selected
               </p>
-              <hr />
+              <hr
+                class="makeStyles-divider-38"
+              />
             </div>
           </div>
         </div>
