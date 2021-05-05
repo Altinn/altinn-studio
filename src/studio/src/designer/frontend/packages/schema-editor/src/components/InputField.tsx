@@ -17,9 +17,12 @@ const useStyles = (readonly?: boolean) => makeStyles({
     margin: 8,
     minWidth: 60,
     maxWidth: 200,
-  },
-  readonly: {
-    border: '1px solid grey',
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
+      color: 'black',
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
+    },
   },
   type: {
     background: 'white',

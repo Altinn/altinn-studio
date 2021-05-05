@@ -18,6 +18,12 @@ const useStyles = makeStyles({
     boxSsizing: 'border-box',
     padding: 4,
     margin: 8,
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
+      color: 'black',
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
+    },
   },
 });
 

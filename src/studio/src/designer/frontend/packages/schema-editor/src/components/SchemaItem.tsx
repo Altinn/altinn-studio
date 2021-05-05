@@ -73,7 +73,7 @@ const useStyles = makeStyles({
     marginLeft: 8,
     '&.Mui-selected': {
       background: '#E3F7FF',
-      border: '1px solid #006BD8',
+      border: '1px dashed #006BD8',
       boxSizing: 'border-box',
       borderRadius: '5px',
     },
