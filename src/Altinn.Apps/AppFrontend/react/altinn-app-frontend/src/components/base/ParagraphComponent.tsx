@@ -40,6 +40,7 @@ const useStyles = makeStyles({
 
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
+
   return (
     <Grid
       container={true}
