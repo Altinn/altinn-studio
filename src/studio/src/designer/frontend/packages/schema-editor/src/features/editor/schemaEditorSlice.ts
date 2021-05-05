@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetRefAction, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
+import { ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -20,7 +20,8 @@ const schemaEditorSlice = createSlice({
       const {
         path, key, value,
       } = action.payload;
-      const addToItem = state.uiSchema.find((item) => item.id === path);
+
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
       if (addToItem) {
         const itemToAdd = { key, value };
         if (addToItem.keywords) {
@@ -28,6 +29,8 @@ const schemaEditorSlice = createSlice({
         } else {
           addToItem.keywords = [itemToAdd];
         }
+      } else {
+        console.log(`item not found ${path}`);
       }
     },
     addProperty(state, action) {
@@ -73,7 +76,8 @@ const schemaEditorSlice = createSlice({
     },
     deleteField(state, action) {
       const { path, key } = action.payload;
-      const removeFromItem = state.uiSchema.find((item) => item.id === path);
+      // const removeFromItem = state.uiSchema.find((item) => item.id === path);
+      const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
         const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
         const newValue = removeFromItem
@@ -100,8 +104,7 @@ const schemaEditorSlice = createSlice({
         path, value, key,
       }: ISetValueAction = action.payload;
       // eslint-disable-next-line no-nested-ternary
-      const itemType = path.includes('/properties/') ? ItemType.Property : (key ? ItemType.Value : ItemType.Ref);
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem.keywords) {
         const fieldItem = schemaItem.keywords.find((field) => field.key === key);
         if (fieldItem) {
@@ -113,7 +116,7 @@ const schemaEditorSlice = createSlice({
       const {
         path, ref,
       }: ISetRefAction = action.payload;
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, ItemType.Property);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem) {
         schemaItem.$ref = ref;
       }
@@ -122,8 +125,7 @@ const schemaEditorSlice = createSlice({
       const {
         path, oldKey, newKey,
       } = action.payload;
-      const itemType = path.includes('/properties/') ? ItemType.Property : ItemType.Value;
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem.keywords) {
         const fieldItem = schemaItem.keywords.find((field) => field.key === oldKey);
         if (fieldItem) {

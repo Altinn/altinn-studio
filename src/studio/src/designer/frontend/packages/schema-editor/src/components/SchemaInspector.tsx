@@ -173,83 +173,85 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onDeleteField={onDeleteObjectClick}
   />;
 
-  const renderItemProperties = (item: UiSchemaItem) => (item ?
+  const renderAddPropertyButtons = () => (
+    <>
+      <IconButton
+        id='add-reference-button'
+        aria-label='Add reference'
+        onClick={onAddPropertyClicked}
+      ><i className='fa fa-plus'/>Add reference
+      </IconButton>
+      <IconButton
+        id='add-property-button'
+        aria-label='Add property'
+        onClick={onAddFieldClick}
+      ><i className='fa fa-plus'/>Add property
+      </IconButton>
+    </>
+  );
+
+  const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
+    const field = p.keywords?.find((f) => f.key === 'const');
+    if (field) {
+      return renderConst(p, field);
+    }
+
+    if (p.$ref) {
+      return <InputField
+        key={`field-${p.id}`}
+        value={p.$ref ?? ''}
+        isRef={true}
+        readOnly={readOnly}
+        label={p.name ?? p.id}
+        fullPath={p.id}
+        onChangeValue={onChangeValue}
+        onChangeRef={onChangeRef}
+        onChangeKey={onChangeKey}
+        onDeleteField={onDeleteObjectClick}
+      />;
+    }
+
+    // todo: handle arrays in properties
+    const type = p.keywords?.find((f) => f.key === 'type');
+    if (type) {
+      if (type.key === 'array') {
+        // todo
+      }
+    }
+    return null;
+  });
+
+  const renderItemKeywords = (item: UiSchemaItem) => item.keywords?.map((field: Field) => {
+    // Keywords - Work in progress, needs sets of rules for different types etc.
+    // Need to check for a type field field, and if for example value is "array", "items" are required.
+
+    if (field.key.startsWith('@')) {
+      return null;
+    }
+    if (Array.isArray(field.value)) {
+      // todo: handle arrays in keywords
+
+    }
+    return <InputField
+      key={`field-${field.key}`}
+      isRef={field.key === '$ref'}
+      value={field.value.$ref ?? field.value}
+      label={field.key}
+      readOnly={readOnly}
+      fullPath={item.id}
+      onChangeValue={onChangeValue}
+      onChangeRef={onChangeRef}
+      onChangeKey={onChangeKey}
+      onDeleteField={onDeleteFieldClick}
+    />;
+  });
+
+  const renderItem = (item: UiSchemaItem) => (item ?
     <div>
       <p className={classes.header}>Properties</p>
-      { /* These are the refs, consts or arrays. Work in progress */ }
-      { item.properties?.map((p: UiSchemaItem) => {
-        const field = p.keywords?.find((f) => f.key === 'const');
-        if (field) {
-          return renderConst(p, field);
-        }
-
-        if (p.$ref) {
-          return <InputField
-            key={`field-${p.id}`}
-            value={p.$ref ?? ''}
-            isRef={true}
-            readOnly={readOnly}
-            label={p.name ?? p.id}
-            fullPath={p.id}
-            onChangeValue={onChangeValue}
-            onChangeRef={onChangeRef}
-            onChangeKey={onChangeKey}
-            onDeleteField={onDeleteObjectClick}
-          />;
-        }
-
-        // todo: handle arrays in properties
-        const type = p.keywords?.find((f) => f.key === 'type');
-        if (type) {
-          if (type.key === 'array') {
-            // .
-          }
-        }
-        return null;
-      })}
-
-      {/* Keywords - Work in progress, needs sets of rules for different types etc. */}
-      {/* Need to check for a type field field, and if for example value is "array", "items" are required. */}
-      { item.keywords?.map((field: Field) => {
-        if (field.key.startsWith('@')) {
-          return null;
-        }
-        if (Array.isArray(field.value)) {
-          // todo: handle arrays in keywords
-
-        }
-        return <InputField
-          key={`field-${field.key}`}
-          isRef={field.key === '$ref'}
-          value={field.value.$ref ?? field.value}
-          label={field.key}
-          readOnly={readOnly}
-          fullPath={item.id}
-          onChangeValue={onChangeValue}
-          onChangeRef={onChangeRef}
-          onChangeKey={onChangeKey}
-          onDeleteField={onDeleteFieldClick}
-        />;
-      })
-      }
-
-      {/* This is also work in progress */}
-      { !readOnly &&
-      <>
-        <IconButton
-          id='add-reference-button'
-          aria-label='Add reference'
-          onClick={onAddPropertyClicked}
-        ><i className='fa fa-plus'/>Add reference
-        </IconButton>
-        <IconButton
-          id='add-property-button'
-          aria-label='Add property'
-          onClick={onAddFieldClick}
-        ><i className='fa fa-plus'/>Add property
-        </IconButton>
-      </>
-      }
+      { renderItemProperties(item) }
+      { renderItemKeywords(item) }
+      { !readOnly && renderAddPropertyButtons() }
     </div> : null);
 
   return (
@@ -268,7 +270,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         />
         <hr className={classes.divider} />
         { renderDefUrl() }
-        {renderItemProperties(referencedItem ?? selectedItem)}
+        { renderItem(referencedItem ?? selectedItem) }
       </>
       }
       { !selectedId &&

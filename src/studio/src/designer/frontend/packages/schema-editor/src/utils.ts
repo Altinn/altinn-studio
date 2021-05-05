@@ -1,14 +1,14 @@
-import { ItemType, UiSchemaItem } from './types';
+import { UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
-export function getUiSchemaItem(schema: UiSchemaItem[], path: string, itemType: ItemType): UiSchemaItem {
-  let propertyId: string;
-  if (itemType === ItemType.Property) {
+export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
+  let propertyId: string | null = null;
+  if (path.includes('/properties/')) {
     [path, propertyId] = path.split('/properties/');
   }
   let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
-  if (schemaItem.properties) {
+  if (schemaItem.properties && propertyId) {
     schemaItem = schemaItem.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`) || {} as UiSchemaItem;
   }
 

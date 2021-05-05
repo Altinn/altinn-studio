@@ -1,8 +1,3 @@
-export enum ItemType {
-  Property,
-  Value,
-  Ref,
-}
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];
