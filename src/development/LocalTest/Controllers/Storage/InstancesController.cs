@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -629,20 +630,23 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/datavalues")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdateDataValues(
+        public async Task<ActionResult<Instance>> UpdateDataValues(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromBody] DataValues dataValues)
         {
+            if (dataValues?.Values == null)
+            {
+                return BadRequest($"Missing parameter value: dataValues is misformed or empty");
+            }
+
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            if (instance.DataValues == null)
-            {
-                instance.DataValues = new Dictionary<string, string>();
-            }
+            instance.DataValues ??= new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in dataValues.Values)
             {
