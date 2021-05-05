@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetRefAction, ISetValueAction, ItemType, UiSchemaItem } from '../../types';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
+import { ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -9,6 +9,7 @@ export const initialState: ISchemaState = {
   rootName: '/',
   saveSchemaUrl: '',
   selectedId: '',
+  selectedNodeId: '',
 };
 
 const schemaEditorSlice = createSlice({
@@ -19,13 +20,14 @@ const schemaEditorSlice = createSlice({
       const {
         path, key, value,
       } = action.payload;
-      const addToItem = state.uiSchema.find((item) => item.id === path);
+
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
       if (addToItem) {
         const itemToAdd = { key, value };
-        if (addToItem.fields) {
-          addToItem.fields.push(itemToAdd);
+        if (addToItem.keywords) {
+          addToItem.keywords.push(itemToAdd);
         } else {
-          addToItem.fields = [itemToAdd];
+          addToItem.keywords = [itemToAdd];
         }
       }
     },
@@ -72,12 +74,12 @@ const schemaEditorSlice = createSlice({
     },
     deleteField(state, action) {
       const { path, key } = action.payload;
-      const removeFromItem = state.uiSchema.find((item) => item.id === path);
+      const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
-        const removeIndex = removeFromItem.fields?.findIndex((v: any) => v.key === key) ?? -1;
+        const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
         const newValue = removeFromItem
-          .fields?.slice(0, removeIndex).concat(removeFromItem.fields.slice(removeIndex + 1));
-        removeFromItem.fields = newValue;
+          .keywords?.slice(0, removeIndex).concat(removeFromItem.keywords.slice(removeIndex + 1));
+        removeFromItem.keywords = newValue;
       }
     },
     deleteProperty(state, action) {
@@ -99,10 +101,9 @@ const schemaEditorSlice = createSlice({
         path, value, key,
       }: ISetValueAction = action.payload;
       // eslint-disable-next-line no-nested-ternary
-      const itemType = path.includes('/properties/') ? ItemType.Property : (key ? ItemType.Value : ItemType.Ref);
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
-      if (schemaItem.fields) {
-        const fieldItem = schemaItem.fields.find((field) => field.key === key);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      if (schemaItem.keywords) {
+        const fieldItem = schemaItem.keywords.find((field) => field.key === key);
         if (fieldItem) {
           fieldItem.value = value;
         }
@@ -112,7 +113,7 @@ const schemaEditorSlice = createSlice({
       const {
         path, ref,
       }: ISetRefAction = action.payload;
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, ItemType.Property);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem) {
         schemaItem.$ref = ref;
       }
@@ -121,10 +122,9 @@ const schemaEditorSlice = createSlice({
       const {
         path, oldKey, newKey,
       } = action.payload;
-      const itemType = path.includes('/properties/') ? ItemType.Property : ItemType.Value;
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
-      if (schemaItem.fields) {
-        const fieldItem = schemaItem.fields.find((field) => field.key === oldKey);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      if (schemaItem.keywords) {
+        const fieldItem = schemaItem.keywords.find((field) => field.key === oldKey);
         if (fieldItem) {
           fieldItem.key = newKey;
         }
@@ -167,8 +167,11 @@ const schemaEditorSlice = createSlice({
       state.rootName = rootName;
     },
     setSelectedId(state, action) {
-      const { id } = action.payload;
+      const {
+        id, navigate,
+      } = action.payload;
       state.selectedId = id;
+      state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;

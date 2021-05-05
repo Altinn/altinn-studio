@@ -41,7 +41,7 @@ exports[`DataModeling Should match snapshot 1`] = `
       </button>
     </div>
     <div
-      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-9"
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
     >
       <div
         class="makeStyles-select-5 css-2b097c-container"
@@ -232,7 +232,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-21"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
                         id="root-schema-item"
                         role="treeitem"
                         tabindex="-1"
@@ -258,26 +258,28 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-13"
+                              class="makeStyles-labelRoot-15"
                             >
                               <p
-                                class="MuiTypography-root makeStyles-label-14 MuiTypography-body1"
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-20"
+                                  class="makeStyles-iconContainer-22"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-ref"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
                                  
                                 #/properties/melding
+                                 
+                                : ForhåndsmeldingMidlertidigArbeidssted2011_M
                               </p>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-18"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -320,8 +322,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                 </div>
               </li>
               <li
-                aria-expanded="false"
-                class="MuiTreeItem-root"
+                aria-expanded="true"
+                class="MuiTreeItem-root Mui-expanded"
                 role="treeitem"
                 tabindex="-1"
               >
@@ -338,7 +340,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       viewBox="0 0 24 24"
                     >
                       <path
-                        d="M10 17l5-5-5-5v10z"
+                        d="M7 10l5 5 5-5z"
                       />
                     </svg>
                   </div>
@@ -348,6 +350,1967 @@ exports[`DataModeling Should match snapshot 1`] = `
                     definitions
                   </div>
                 </div>
+                <ul
+                  class="MuiCollapse-container MuiTreeItem-group MuiCollapse-entered"
+                  role="group"
+                  style="min-height: 0px;"
+                >
+                  <div
+                    class="MuiCollapse-wrapper"
+                  >
+                    <div
+                      class="MuiCollapse-wrapperInner"
+                    >
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsForhåndsmeldingMidlertidigArbeidssted2011_M"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ForhåndsmeldingMidlertidigArbeidssted2011_M
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsengasjertEnhet"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                engasjertEnhet
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsInnrapporterteData"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                InnrapporterteData
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsProsjekt"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Prosjekt
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsAdresse"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Adresse
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsByggherre"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Byggherre
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsKontaktperson"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Kontaktperson
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsByggherrePerson"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ByggherrePerson
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsByggherreEnhet"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ByggherreEnhet
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsByggherrensRepresentant"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ByggherrensRepresentant
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsEngasjertEnhet"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                EngasjertEnhet
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsProsjektgjennomføring"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Prosjektgjennomføring
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsTidsrom"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Tidsrom
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsKoordinator"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Koordinator
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsKoordinatorrolle"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Koordinatorrolle
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsMelder"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Melder
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsAlternativ"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Alternativ
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsTekst"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Tekst
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsPostnummer"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-ref"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Postnummer
+                                 
+                                : Postnummer_RestriksjonPostnummer
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsPostnummer_RestriksjonPostnummer"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Postnummer_RestriksjonPostnummer
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsPoststed"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Poststed
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsProsjektetsArt"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ProsjektetsArt
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsMeldingstype"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Meldingstype
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsNavn"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Navn
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsTelefonnummer"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Telefonnummer
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsOrganisasjonsnummer"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-ref"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Organisasjonsnummer
+                                 
+                                : Organisasjonsnummer_RestriksjonOrganisasjonsnummer
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsOrganisasjonsnummer_RestriksjonOrganisasjonsnummer"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Organisasjonsnummer_RestriksjonOrganisasjonsnummer
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsTidspunkt"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Tidspunkt
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-23"
+                        id="definitionsAntall"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-labelRoot-15"
+                            >
+                              <p
+                                class="MuiTypography-root makeStyles-label-16 MuiTypography-body1"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-22"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Antall
+                              </p>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-20"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </div>
+                  </div>
+                </ul>
               </li>
             </ul>
           </div>
@@ -358,13 +2321,20 @@ exports[`DataModeling Should match snapshot 1`] = `
           <div
             class="makeStyles-root-9"
           >
+            <p
+              class="makeStyles-header-11"
+            >
+              Egenskaper
+            </p>
             <div>
               <p
                 class="no-item-selected"
               >
                 No item selected
               </p>
-              <hr />
+              <hr
+                class="makeStyles-divider-12"
+              />
             </div>
           </div>
         </div>
