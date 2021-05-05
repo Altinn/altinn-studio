@@ -74,13 +74,25 @@ namespace Altinn.App.Services.Interface
         /// Update presentation texts.
         /// </summary>
         /// <remarks>
-        /// The provided presentation texts will be merged with the existing collection of presentation texts on the insance.
+        /// The provided presentation texts will be merged with the existing collection of presentation texts on the instance.
         /// </remarks>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to update presentation texts for.</param>
         /// <param name="presentationTexts">The presentation texts</param>
         /// <returns>Returns the updated instance.</returns>
         Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts);
+
+        /// <summary>
+        /// Update data values.
+        /// </summary>
+        /// <remarks>
+        /// The provided data values will be merged with the existing collection of data values on the instance.
+        /// </remarks>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to update data values for.</param>
+        /// <param name="dataValues">The data values</param>
+        /// <returns>Returns the updated instance.</returns>
+        Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues);
 
         /// <summary>
         /// Delete instance.

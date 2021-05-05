@@ -282,6 +282,39 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
+        public async Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues)
+        {
+            string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+                storedInstance.DataValues ??= new Dictionary<string, string>();
+
+                foreach (KeyValuePair<string, string> entry in dataValues.Values)
+                {
+                    if (string.IsNullOrEmpty(entry.Value))
+                    {
+                        storedInstance.DataValues.Remove(entry.Key);
+                    }
+                    else
+                    {
+                        storedInstance.DataValues[entry.Key] = entry.Value;
+                    }
+                }
+
+                // mock does not set last changed by, but this is set by the platform.
+                storedInstance.LastChangedBy = string.Empty;
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+
+                return await GetInstance(storedInstance);
+            }
+
+            return null;
+        }
+
         public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -345,6 +378,6 @@ namespace App.IntegrationTests.Mocks.Services
             });
 
             return (lastChangedBy, lastChanged);
-        }
+        }        
     }
 }
