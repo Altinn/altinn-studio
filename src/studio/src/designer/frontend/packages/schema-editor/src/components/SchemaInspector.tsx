@@ -212,13 +212,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />;
     }
 
-    // todo: handle arrays in properties
-    const type = p.keywords?.find((f) => f.key === 'type');
-    if (type) {
-      if (type.key === 'array') {
-        // todo
-      }
-    }
     return null;
   });
 
