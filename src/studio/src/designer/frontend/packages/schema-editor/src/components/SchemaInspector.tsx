@@ -10,7 +10,7 @@ import { RefSelect } from './RefSelect';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      height: 600,
+      minHeight: 600,
       width: 500,
       flexGrow: 1,
       margin: 4,
@@ -34,11 +34,11 @@ const useStyles = makeStyles(
     },
     divider: {
       margin: 0,
+      padding: '8px 2px 8px 2px',
     },
     navButton: {
       background: 'none',
       border: 'none',
-      padding: '0!important',
       textDecoration: 'underline',
       cursor: 'pointer',
       color: '#006BD8',
@@ -142,12 +142,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderDefUrl = () => {
     if (selectedItem?.$ref) {
       return (
-        <>
+        <div>
           <p className={classes.header}>Refererer til</p>
           <RefSelect
             id={selectedItem.id}
             value={selectedItem.$ref}
             onChange={onChangeRef}
+            fullWidth={true}
           />
           <button
             type='button'
@@ -156,7 +157,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           >
             Gå til hovedkomponent
           </button>
-        </>);
+        </div>);
     }
     return null;
   };
@@ -260,7 +261,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     >
       <p className={classes.header}>Egenskaper</p>
       { selectedItem &&
-      <>
+      <div>
         <Input
           fullWidth={true}
           disableUnderline={true}
@@ -271,12 +272,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         <hr className={classes.divider} />
         { renderDefUrl() }
         { renderItem(referencedItem ?? selectedItem) }
-      </>
+      </div>
       }
       { !selectedId &&
         <div>
           <p className='no-item-selected'>No item selected</p>
-          <hr />
+          <hr className={classes.divider} />
         </div>}
     </div>
   );

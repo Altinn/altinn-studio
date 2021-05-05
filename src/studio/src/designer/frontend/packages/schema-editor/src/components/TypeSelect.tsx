@@ -10,14 +10,12 @@ export interface ITypeSelectProps {
 
 const useStyles = makeStyles({
   root: {
-    width: '100%',
-    minWidth: 104,
     background: 'white',
     color: 'black',
     border: '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 8,
+    margin: 12,
     '&.Mui-disabled': {
       background: '#f4f4f4',
       color: 'black',

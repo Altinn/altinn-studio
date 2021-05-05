@@ -14,8 +14,8 @@ const useStyles = (readonly?: boolean) => makeStyles({
     border: readonly ? '1px solid grey' : '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 8,
-    minWidth: 60,
+    margin: 12,
+    minWidth: 150,
     maxWidth: 200,
     '&.Mui-disabled': {
       background: '#f4f4f4',
@@ -24,28 +24,23 @@ const useStyles = (readonly?: boolean) => makeStyles({
       boxSizing: 'border-box',
     },
   },
-  type: {
-    background: 'white',
-    color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    margin: 8,
-  },
   inline: {
     display: 'inline-block',
   },
   label: {
     margin: 12,
   },
-  inputs: {
-    flexGrow: 1,
-  },
   container: {
     display: 'flex',
     flexDirection: 'row',
+    '& >.MuiFormControl-root': {
+      width: 200,
+    },
   },
   delete: {
-    flex: '0 0 auto',
+    marginLeft: '8px',
+    marginTop: '12px',
+    padding: '12px',
   },
 });
 
@@ -123,27 +118,26 @@ export function InputField(props: IInputFieldProps) {
   };
   const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
   return (
-    <div>
-      <span className={classes.inputs}>
-        <FormControl>
-          <Input
-            id={`${baseId}-key-${label}`}
-            value={label}
-            disableUnderline={true}
-            disabled={props.readOnly}
-            onChange={onChangeKey}
-            onBlur={onBlurKey}
-            className={classes.field}
-          />
-        </FormControl>
-        <FormControl>
-          { renderValueField() }
-        </FormControl>
-      </span>
+    <div className={classes.container}>
+      <FormControl>
+        <Input
+          id={`${baseId}-key-${label}`}
+          value={label}
+          disableUnderline={true}
+          disabled={props.readOnly}
+          onChange={onChangeKey}
+          onBlur={onBlurKey}
+          className={classes.field}
+        />
+      </FormControl>
+      <FormControl>
+        { renderValueField() }
+      </FormControl>
       <IconButton
         id={`${baseId}-delete-${label}`}
         aria-label='Delete field'
         onClick={onClickDelete}
+        className={classes.delete}
       >
         <DeleteOutline/>
       </IconButton>
