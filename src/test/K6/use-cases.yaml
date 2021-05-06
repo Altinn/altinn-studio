@@ -1,5 +1,5 @@
 pool:
-  name: Altinn Test Self Hosted VM
+  name: altinn-vmss-testagent
 
 name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
