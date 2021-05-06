@@ -4,7 +4,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ProcessStep from 'src/shared/containers/ProcessStep';
+import Presentation from 'src/shared/containers/Presentation';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
 import { IRuntimeState, ProcessTaskType } from 'src/types';
 import Form from '../form/containers/Form';
@@ -21,32 +21,32 @@ export default function Entrypoint() {
   React.useEffect(() => {
     if (applicationMetadata) {
       const onEntry = applicationMetadata.onEntry;
-      if (!onEntry || onEntry.show === 'Instantiate') {
-        setAction('Instantiate');
+      if (!onEntry || onEntry.show === 'new-instance') {
+        setAction('new-instance');
       } else {
         setAction(onEntry.show);
       }
     }
   }, [applicationMetadata]);
 
-  if (action === 'Instantiate') {
+  if (action === 'new-instance') {
     return <Instantiate />;
   }
 
-  if (action && action !== 'Instantiate') {
+  if (action && action !== '') {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }
     if (statelessLoading === false) {
       return (
-        <ProcessStep
+        <Presentation
           header={applicationMetadata?.title?.nb}
-          step={ProcessTaskType.Data}
+          type={ProcessTaskType.Data}
         >
           <div>
             <Form/>
           </div>
-        </ProcessStep>
+        </Presentation>
       );
     }
   }

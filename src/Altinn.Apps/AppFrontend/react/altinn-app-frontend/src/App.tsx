@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useSelector, useDispatch } from 'react-redux';
-import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
+import ProcessWrapper from './shared/containers/ProcessWrapper';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
 import { startInitialAppTaskQueue } from './shared/resources/queue/queueSlice';
@@ -83,7 +83,7 @@ export default function setup() {
         <Route
           path='/instance/:partyId/:instanceGuid'
           exact={true}
-          component={ProcessStepWrapper}
+          component={ProcessWrapper}
         />
       </Switch>
     </MuiThemeProvider>

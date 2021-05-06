@@ -281,6 +281,10 @@ export enum ProcessTaskType {
   Feedback = 'feedback',
 }
 
+export enum PresentationType {
+  Stateless = 'stateless',
+}
+
 export enum Severity {
   Unspecified = 0,
   Error = 1,
