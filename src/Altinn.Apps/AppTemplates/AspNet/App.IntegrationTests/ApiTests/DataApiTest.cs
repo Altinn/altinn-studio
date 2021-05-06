@@ -905,7 +905,7 @@ namespace App.IntegrationTests.ApiTests
             // Act - automatic update of data values done as a result of configuration and triggered by a change in the data.
             string dataRequestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
             string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
-            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri) { Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json")};
+            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri) { Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json") };
 
             await client.SendAsync(dataHttpRequestMessage);
 
