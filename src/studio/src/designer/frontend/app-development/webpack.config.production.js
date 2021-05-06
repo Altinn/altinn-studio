@@ -77,7 +77,7 @@ module.exports = {
     new ForkTsCheckerWebpackPlugin({
       async: false,
       eslint: {
-        files: './{config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}'
+        files: './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}'
       },
     }),
     new HtmlWebPackPlugin({
