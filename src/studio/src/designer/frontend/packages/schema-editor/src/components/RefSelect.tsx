@@ -6,35 +6,46 @@ import { ISchemaState, UiSchemaItem } from '../types';
 export interface IRefSelectProps {
   id: string;
   value: string;
+  readOnly?: boolean;
+  fullWidth?: boolean;
   onChange: (id: string, value: string) => void;
 }
 
-const useStyles = makeStyles({
-  root: {
-    width: '100%',
-    minWidth: 200,
-  },
-});
-
 export const RefSelect = (props: IRefSelectProps) => {
-  const classes = useStyles();
+  const classes = makeStyles({
+    root: {
+      background: 'white',
+      color: 'black',
+      border: '1px solid #006BD8',
+      boxSsizing: 'border-box',
+      padding: 4,
+      margin: 12,
+      '&.Mui-disabled': {
+        background: '#f4f4f4',
+        color: 'black',
+        border: '1px solid #6A6A6A',
+        boxSizing: 'border-box',
+      },
+    },
+  })();
+
   const {
-    id, onChange,
+    id, onChange, value,
   } = props;
-  const [value, setValue] = React.useState<string>(props.value);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions')));
 
   const onChangeValue = (event: React.ChangeEvent<{
     name?: string;
     value: unknown;
 }>) => {
-    setValue(event.target.value as string);
     onChange(id, event.target.value as string);
   };
 
   return (
     <Select
+      fullWidth={props.fullWidth}
       id={`ref-select-${id}`}
+      disabled={props.readOnly}
       value={value}
       onChange={onChangeValue}
       className={classes.root}

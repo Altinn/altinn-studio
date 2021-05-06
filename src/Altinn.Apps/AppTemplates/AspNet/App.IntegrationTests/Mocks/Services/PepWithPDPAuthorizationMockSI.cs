@@ -277,7 +277,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private string GetRolesPath(int userId, int resourcePartyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepAuthorizationMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\authorization\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 

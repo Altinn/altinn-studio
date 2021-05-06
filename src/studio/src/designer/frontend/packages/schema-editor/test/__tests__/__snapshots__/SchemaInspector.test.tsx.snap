@@ -4,10 +4,12 @@ exports[`Should match snapshot 1`] = `
 <div
   class="makeStyles-root-1"
 >
+  <p
+    class="makeStyles-header-3"
+  >
+    Egenskaper
+  </p>
   <div>
-    <p>
-      Nodenavn
-    </p>
     <div
       class="MuiInputBase-root MuiInput-root makeStyles-label-2 MuiInputBase-fullWidth MuiInput-fullWidth"
     >
@@ -17,21 +19,23 @@ exports[`Should match snapshot 1`] = `
         value="Kommentar2000Restriksjon"
       />
     </div>
-    <hr />
-    <h3
-      class="makeStyles-header-3"
-    >
-      Properties
-    </h3>
+    <hr
+      class="makeStyles-divider-4"
+    />
     <div>
-      <span
-        class="makeStyles-inputs-8"
+      <p
+        class="makeStyles-header-3"
+      >
+        Properties
+      </p>
+      <div
+        class="makeStyles-container-9"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -43,10 +47,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -57,39 +61,37 @@ exports[`Should match snapshot 1`] = `
             />
           </div>
         </div>
-      </span>
-      <button
-        aria-label="Delete field"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-minLength"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-10"
+          id="input-Kommentar2000Restriksjon-delete-minLength"
+          tabindex="0"
+          type="button"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
+          <span
+            class="MuiIconButton-label"
           >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </span>
-      </button>
-    </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div
+        class="makeStyles-container-14"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-11 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -101,10 +103,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-11 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -115,39 +117,37 @@ exports[`Should match snapshot 1`] = `
             />
           </div>
         </div>
-      </span>
-      <button
-        aria-label="Delete field"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-maxLength"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-15"
+          id="input-Kommentar2000Restriksjon-delete-maxLength"
+          tabindex="0"
+          type="button"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
+          <span
+            class="MuiIconButton-label"
           >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </span>
-      </button>
-    </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div
+        class="makeStyles-container-19"
       >
         <div
           class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-field-16 MuiInputBase-formControl MuiInput-formControl"
           >
             <input
               aria-invalid="false"
@@ -159,10 +159,10 @@ exports[`Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiFormControl-root makeStyles-field-4"
+          class="MuiFormControl-root"
         >
           <div
-            class="MuiInputBase-root MuiInput-root makeStyles-root-11 MuiInputBase-formControl MuiInput-formControl"
+            class="MuiInputBase-root MuiInput-root makeStyles-root-21 MuiInputBase-formControl MuiInput-formControl"
           >
             <div
               aria-haspopup="listbox"
@@ -192,162 +192,62 @@ exports[`Should match snapshot 1`] = `
             </svg>
           </div>
         </div>
-      </span>
+        <button
+          aria-label="Delete field"
+          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-20"
+          id="input-Kommentar2000Restriksjon-delete-type"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
       <button
-        aria-label="Delete field"
+        aria-label="Add reference"
         class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-type"
+        id="add-reference-button"
         tabindex="0"
         type="button"
       >
         <span
           class="MuiIconButton-label"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
+          <i
+            class="fa fa-plus"
+          />
+          Add reference
         </span>
       </button>
-    </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
-      >
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute1"
-              type="text"
-              value="@xsdUnhandledAttribute1"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root makeStyles-field-4"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute1"
-              type="text"
-              value="seres:elementtype=Tegnrestriksjon"
-            />
-          </div>
-        </div>
-      </span>
       <button
-        aria-label="Delete field"
+        aria-label="Add property"
         class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute1"
+        id="add-property-button"
         tabindex="0"
         type="button"
       >
         <span
           class="MuiIconButton-label"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
+          <i
+            class="fa fa-plus"
+          />
+          Add property
         </span>
       </button>
     </div>
-    <div>
-      <span
-        class="makeStyles-inputs-8"
-      >
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-4 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-@xsdUnhandledAttribute2"
-              type="text"
-              value="@xsdUnhandledAttribute2"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root makeStyles-field-4"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-@xsdUnhandledAttribute2"
-              type="text"
-              value="seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Kommentar2000Restriksjon/502246"
-            />
-          </div>
-        </div>
-      </span>
-      <button
-        aria-label="Delete field"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="input-Kommentar2000Restriksjon-delete-@xsdUnhandledAttribute2"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </span>
-      </button>
-    </div>
-    <button
-      aria-label="Add property"
-      class="MuiButtonBase-root MuiIconButton-root"
-      id="add-property-button"
-      tabindex="0"
-      type="button"
-    >
-      <span
-        class="MuiIconButton-label"
-      >
-        <i
-          class="fa fa-plus"
-        />
-        Add property
-      </span>
-    </button>
   </div>
 </div>
 `;

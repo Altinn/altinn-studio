@@ -10,15 +10,14 @@ import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem,
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
-import { buildUISchema, getUiSchemaTreeFromItem } from '../utils';
+import { buildUISchema, getDomFriendlyID, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
   createStyles({
     root: {
       marginTop: 24,
-      background: 'white',
-      height: 700,
+      height: '100%',
     },
     tree: {
       flexGrow: 1,
@@ -55,6 +54,8 @@ export const SchemaEditor = ({
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
+  const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
+  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
 
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
@@ -78,6 +79,16 @@ export const SchemaEditor = ({
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
+
+  React.useEffect(() => {
+    if (selectedNodeId) {
+      const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
+      if (node) {
+        node.focus();
+        (node.firstChild as HTMLElement).click();
+      }
+    }
+  }, [selectedNodeId]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -119,7 +130,6 @@ export const SchemaEditor = ({
   };
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
-  const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>
@@ -139,9 +149,11 @@ export const SchemaEditor = ({
               sharedTypes={sharedItems}
               title='Add property'
             />
+
             <TreeView
+              multiSelect={false}
               className={classes.tree}
-              defaultExpanded={['properties']}
+              defaultExpanded={['properties', 'definitions']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
             >
@@ -155,7 +167,7 @@ export const SchemaEditor = ({
                   keyPrefix='properties'
                   id='root-schema-item'
                   item={item}
-                  nodeId={`prop-${item.id}`}
+                  nodeId={`${item.id}`}
                 /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -165,6 +177,7 @@ export const SchemaEditor = ({
                   item={def}
                   key={def.id}
                   nodeId={`def-${def.id}`}
+                  id={getDomFriendlyID(def.id)}
                 />)}
               </TreeItem>
             </TreeView>

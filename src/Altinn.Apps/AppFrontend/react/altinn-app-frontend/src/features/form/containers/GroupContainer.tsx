@@ -9,8 +9,8 @@ import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
 import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, Triggers } from '../../../types';
@@ -35,7 +35,9 @@ export function GroupContainer({
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
 
   const editIndex: number = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
-  const [groupErrors, setGroupErrors] = React.useState<string>(null);
+  const [filteredIndexList, setFilteredIndexList] = React.useState<number[]>(null);
+  const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
+
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
@@ -64,32 +66,29 @@ export function GroupContainer({
   const tableHasErrors = repeatingGroupHasValidations(container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout);
 
   React.useEffect(() => {
-    if (container.edit?.mode !== 'showAll' && container.edit?.rules && container.edit.rules.length > 0) {
-      container.edit.rules.forEach((rule: any) => {
-        const formDataKey = Object.keys(formData).find((key) => {
-          const keyWithoutIndex = key.replace(/\[\d*\]/, '');
+    if (container.edit?.filter && container.edit.filter.length > 0) {
+      container.edit.filter.forEach((rule: any) => {
+        const formDataKeys: string[] = Object.keys(formData).filter((key) => {
+          const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
         });
-        if (formDataKey) {
-          const index = formDataKey.replace(container.dataModelBindings.group, '')
-            .substring(1, formDataKey.indexOf(']') + 1);
-          dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: parseInt(index, 10) }));
+        if (formDataKeys && formDataKeys.length > 0) {
+          const filtered = formDataKeys.map((key) => {
+            const match = key.match(/\[(\d*)\]/g);
+            const currentIndex = match[match.length - 1];
+            return parseInt(currentIndex.substring(1, currentIndex.indexOf(']')), 10);
+          });
+          setFilteredIndexList(filtered);
         }
       });
     }
   }, [formData, container]);
 
   React.useEffect(() => {
-    if (validations && validations[currentView] && validations[currentView][id]) {
-      let errorText = '';
-      validations[currentView][id].group.errors.forEach((error, index) => {
-        errorText += `${index > 0 ? ' ,' : ''}${getTextFromAppOrDefault(error, textResources, language, [], true)}`;
-      });
-      setGroupErrors(errorText);
-    } else {
-      setGroupErrors(null);
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
     }
-  }, [validations, currentView, id]);
+  }, [container]);
 
   const onClickAdd = () => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
@@ -151,6 +150,7 @@ export function GroupContainer({
           setEditIndex={setEditIndex}
           textResources={textResources}
           validations={validations}
+          filteredIndexes={filteredIndexList}
         />
       }
       <Grid
@@ -181,11 +181,17 @@ export function GroupContainer({
           textResources={textResources}
           hideSaveButton={container.edit?.saveButton === false}
           hideDeleteButton={container.edit?.deleteButton === false}
+          multiPageIndex={multiPageIndex}
+          setMultiPageIndex={setMultiPageIndex}
         />
       }
       {container.edit?.mode === 'showAll' &&
       // Generate array of length repeatingGroupIndex and iterate over indexes
         Array(repeatingGroupIndex + 1).fill(0).map((v, index) => {
+          if (filteredIndexList && filteredIndexList.length > 0 && !filteredIndexList.includes(index)) {
+            return null;
+          }
+
           return (
             <RepeatingGroupsEditContainer
               components={components}
@@ -225,17 +231,11 @@ export function GroupContainer({
         />
       </Grid>
       }
-      {groupErrors &&
-      <Grid
-        container={true}
-        style={{ paddingTop: '12px' }}
-        direction='column'
-      >
-        <ErrorPaper
-          message={groupErrors}
-        />
+      <Grid item={true} xs={12}>
+        {validations && validations[currentView] && validations[currentView][id] &&
+          renderValidationMessagesForComponent(validations[currentView][id].group, container.id)
+        }
       </Grid>
-      }
     </Grid>
   );
 }

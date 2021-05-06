@@ -1,14 +1,10 @@
-export enum ItemType {
-  Property,
-  Value,
-  Ref,
-}
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];
   rootName: string;
   saveSchemaUrl: string;
   selectedId?: string;
+  selectedNodeId?: string;
 }
 
 export interface ISetValueAction {
@@ -28,10 +24,11 @@ export type Field = {
 export type UiSchemaItem = {
   id: string;
   $ref?: string;
-  fields?: Field[];
+  keywords?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
   name?: string;
+  required?: string[];
 }
 export interface ISchema {
   properties: { [key: string]: UiSchemaItem };

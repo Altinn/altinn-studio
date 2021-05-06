@@ -1,14 +1,14 @@
-import { ItemType, UiSchemaItem } from './types';
+import { UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
-export function getUiSchemaItem(schema: UiSchemaItem[], path: string, itemType: ItemType): UiSchemaItem {
-  let propertyId: string;
-  if (itemType === ItemType.Property) {
+export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
+  let propertyId: string | null = null;
+  if (path.includes('/properties/')) {
     [path, propertyId] = path.split('/properties/');
   }
   let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
-  if (schemaItem.properties) {
+  if (schemaItem.properties && propertyId) {
     schemaItem = schemaItem.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`) || {} as UiSchemaItem;
   }
 
@@ -38,7 +38,7 @@ export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaIt
   return itemList;
 }
 
-export function buildJsonSchema(uiSchema: any[]): any {
+export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
     const item = createJsonSchemaItem(uiItem);
@@ -48,20 +48,19 @@ export function buildJsonSchema(uiSchema: any[]): any {
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: any): any {
+export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
-        const properties: any = {};
-        item.properties = properties;
-        uiSchemaItem.properties.forEach((property: any) => {
+        item.properties = {};
+        uiSchemaItem.properties?.forEach((property: any) => {
           item.properties[property.name] = createJsonSchemaItem(property);
         });
         break;
       }
-      case 'fields': {
-        uiSchemaItem.fields.forEach((field: any) => {
+      case 'keywords': {
+        uiSchemaItem.keywords?.forEach((field: any) => {
           item[field.key] = field.value;
         });
         break;
@@ -86,7 +85,7 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
 }
 
 export function buildUISchema(schema: any, rootPath: string, includeDisplayName?: boolean): UiSchemaItem[] {
-  const result : any[] = [];
+  const result : UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       id: rootPath,
@@ -109,7 +108,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
     } else if (typeof item === 'object' && item !== null) {
       result.push({
         id,
-        fields: Object.keys(item).map((itemKey) => {
+        keywords: Object.keys(item).map((itemKey) => {
           return {
             key: itemKey,
             value: item[itemKey],
@@ -142,7 +141,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
-      item.fields = Object.keys(currentProperty).map((itemKey) => {
+      item.keywords = Object.keys(currentProperty).map((itemKey) => {
         return {
           key: itemKey,
           value: currentProperty[itemKey],
@@ -170,3 +169,4 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     ...rest,
   };
 }
+export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');

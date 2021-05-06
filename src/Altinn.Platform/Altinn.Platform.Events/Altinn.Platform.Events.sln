@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Events", "E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Events.Tests", "Tests\Altinn.Platform.Events.Tests.csproj", "{A040A511-9AC3-4B5C-9953-1C4A26625E8D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Events.Functions", "Functions\Altinn.Platform.Events.Functions.csproj", "{1F3A1E44-1333-46B8-8A70-08BE01C074F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Events.Functions", "Functions\Altinn.Platform.Events.Functions.csproj", "{1F3A1E44-1333-46B8-8A70-08BE01C074F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
