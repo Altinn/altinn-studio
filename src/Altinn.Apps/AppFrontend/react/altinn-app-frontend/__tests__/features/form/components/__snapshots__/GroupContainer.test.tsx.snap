@@ -375,5 +375,8 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
       </div>
     </div>
   </div>
+  <div
+    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+  />
 </div>
 `;

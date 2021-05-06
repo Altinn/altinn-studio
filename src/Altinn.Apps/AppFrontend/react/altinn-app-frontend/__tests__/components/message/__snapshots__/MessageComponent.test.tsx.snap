@@ -19,6 +19,12 @@ exports[`>>> components/message/MessageComponent.tsx +++ should match snapshot 1
     >
       <i
         className=""
+        style={
+          Object {
+            "fontSize": "1.8em",
+            "marginTop": "-2px",
+          }
+        }
       />
     </div>
     <div
