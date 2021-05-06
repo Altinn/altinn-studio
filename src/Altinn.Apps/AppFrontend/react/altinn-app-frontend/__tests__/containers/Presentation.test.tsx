@@ -7,11 +7,11 @@ import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import ProcessStep from '../../src/shared/containers/ProcessStep';
+import Presentation from '../../src/shared/containers/Presentation';
 import { ProcessTaskType, IRuntimeState } from '../../src/types';
 import { getInitialStateMock } from '../../__mocks__/mocks';
 
-describe('>>> containers/ProcessStep.tsx', () => {
+describe('>>> containers/Presentation.tsx', () => {
   let mockHeader: string;
   let mockStore: any;
   let mockInitialState: IRuntimeState;
@@ -55,9 +55,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const rendered = renderer.create(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Data}
+            type={ProcessTaskType.Data}
           />
         </Provider>
       </MemoryRouter>,
@@ -69,12 +69,12 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Data}
+            type={ProcessTaskType.Data}
           >
             <div id='mockFormFiller' />
-          </ProcessStep>
+          </Presentation>
         </Provider>
       </MemoryRouter>,
     );
@@ -85,9 +85,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Data}
+            type={ProcessTaskType.Data}
           />
         </Provider>
       </MemoryRouter>,
@@ -103,9 +103,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Archived}
+            type={ProcessTaskType.Archived}
           />
         </Provider>
       </MemoryRouter>,
@@ -147,9 +147,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Data}
+            type={ProcessTaskType.Data}
           />
         </Provider>
       </MemoryRouter>,
@@ -164,9 +164,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <ProcessStep
+          <Presentation
             header={mockHeader}
-            step={ProcessTaskType.Data}
+            type={ProcessTaskType.Data}
           />
         </Provider>
       </MemoryRouter>,

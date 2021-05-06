@@ -18,7 +18,7 @@ export interface IPresentationProvidedProps {
   header: string;
   type: ProcessTaskType | PresentationType;
   // eslint-disable-next-line no-undef
-  children: JSX.Element;
+  children?: JSX.Element;
 }
 
 const PresentationComponent = (props: IPresentationProvidedProps) => {
