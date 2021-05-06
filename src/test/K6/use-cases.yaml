@@ -28,7 +28,7 @@ steps:
 - script: |
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
-   type result.txt
+   cat result.txt
    
    set /p result= < result.txt
    
