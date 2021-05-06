@@ -30,9 +30,7 @@ steps:
    
    cat result.txt
    
-   set /p result= < result.txt
-   
-   echo ##vso[task.setvariable variable=availability;]%result%
+   echo "##vso[task.setvariable variable=availability;]`cat result.txt`"
   
   workingDirectory: '$(Build.SourcesDirectory)'   
   displayName: 'Check availability'
