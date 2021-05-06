@@ -32,9 +32,11 @@ export function MessageComponent(props: IMessageComponentProps) {
     >
       <Grid container spacing={2}>
         <Grid item xs={2}>
-          <i className={classNames({
-            'fa fa-circle-exclamation': props.messageType === 'error',
-          })}
+          <i
+            className={classNames({
+              'fa fa-circle-exclamation': props.messageType === 'error',
+            })}
+            style={{ marginTop: '-2px', fontSize: '1.8em' }}
           />
         </Grid>
         <Grid item xs={10}>

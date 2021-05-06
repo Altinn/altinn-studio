@@ -8,6 +8,7 @@ import { getParsedLanguageFromKey } from '../../../shared/src';
 import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
 import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
+import { getParsedTextResourceByKey } from '../../src/utils/textResource';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 
 describe('>>> utils/validations.ts', () => {
@@ -176,25 +177,25 @@ describe('>>> utils/validations.ts', () => {
       FormLayout: {
         componentId_1: {
           simpleBinding: {
-            errors: ['Error message 1', 'Error message 2'],
+            errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
             warnings: [],
           },
         },
         componentId_2: {
           customBinding: {
             errors: [],
-            warnings: ['Warning message 1', 'Warning message 2'],
+            warnings: [getParsedTextResourceByKey('Warning message 1', []),getParsedTextResourceByKey('Warning message 2', [])],
           },
         },
         'componentId_4-1': {
           simpleBinding: {
-            errors: ['test error'],
+            errors: [getParsedTextResourceByKey('test error', [])],
             warnings: [],
           },
         },
         'componentId_5-0-1': {
           simpleBinding: {
-            errors: ['test error'],
+            errors: [getParsedTextResourceByKey('test error', [])],
             warnings: [],
           },
         },
