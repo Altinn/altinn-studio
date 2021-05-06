@@ -6,7 +6,7 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Presentation from 'src/shared/containers/Presentation';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
-import { IRuntimeState, ProcessTaskType } from 'src/types';
+import { IRuntimeState, PresentationType, ProcessTaskType } from 'src/types';
 import Form from '../form/containers/Form';
 import Instantiate from '../instantiate/containers';
 
@@ -41,7 +41,7 @@ export default function Entrypoint() {
       return (
         <Presentation
           header={applicationMetadata?.title?.nb}
-          type={ProcessTaskType.Data}
+          type={PresentationType.Stateless}
         >
           <div>
             <Form/>
