@@ -5,6 +5,7 @@ FROM node:14.16.1-alpine3.13 AS generate-studio-frontend
 COPY ./src/designer/frontend/lerna.json .
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/package-lock.json .
+COPY ./src/designer/frontend/.eslintrc.json .
 RUN npm ci
 
 # Copy and install npm dependencies
