@@ -66,7 +66,7 @@ it('dispatches correctly when changing value', () => {
       payload: {
         key: 'minLength',
         path: '#/definitions/Kommentar2000Restriksjon',
-        value: '666',
+        value: 666,
       },
     });
   });

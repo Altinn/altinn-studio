@@ -95,7 +95,7 @@ const schemaEditorSlice = createSlice({
           removeFromItem.properties = newProperties;
         }
       } else {
-        // delete definition
+        // delete definition, here we need to find all references to this definition, and remove them (?)
         const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
         if (index >= 0) {
           state.uiSchema.splice(index, 1);
