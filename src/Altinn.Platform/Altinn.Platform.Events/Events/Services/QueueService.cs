@@ -76,6 +76,27 @@ namespace Altinn.Platform.Events.Services
             return new PushQueueReceipt { Success = true };
         }
 
+        /// <inheritdoc/>
+        public async Task<PushQueueReceipt> PushToValidationQueue(string content)
+        {
+            if (!_settings.EnablePushToQueue)
+            {
+                return new PushQueueReceipt { Success = true };
+            }
+
+            try
+            {
+                QueueClient client = await GetValidationQueueClient();
+                await client.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)));
+            }
+            catch (Exception e)
+            {
+                return new PushQueueReceipt { Success = false, Exception = e };
+            }
+
+            return new PushQueueReceipt { Success = true };
+        }
+
         private async Task<QueueClient> GetInboundQueueClient()
         {
             if (_inboundQueueClient == null)
@@ -88,6 +109,17 @@ namespace Altinn.Platform.Events.Services
         }
 
         private async Task<QueueClient> GetOutboundQueueClient()
+        {
+            if (_outboundQueueClient == null)
+            {
+                _outboundQueueClient = new QueueClient(_settings.ConnectionString, _settings.OutboundQueueName);
+                await _outboundQueueClient.CreateIfNotExistsAsync();
+            }
+
+            return _outboundQueueClient;
+        }
+
+        private async Task<QueueClient> GetValidationQueueClient()
         {
             if (_outboundQueueClient == null)
             {
