@@ -38,7 +38,7 @@ namespace Altinn.Platform.Events.Functions
         /// <summary>
         /// Retrieves messages from events-inbound queue and push events controller
         /// </summary>
-        [FunctionName("EventsInbound")]
+        [FunctionName("SubscriptionValidation")]
         public async Task Run([QueueTrigger("subscription-validation", Connection = "QueueStorage")] string item, ILogger log)
         {
             Subscription subscription = JsonSerializer.Deserialize<Subscription>(item);
