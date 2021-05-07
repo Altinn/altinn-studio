@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -99,6 +100,13 @@ namespace Altinn.Studio.Designer.Controllers
                 xwriter.WriteStartDocument(false);
                 xmlschema.Write(xsdStream);
                 await _repository.WriteData(org, app, $"{filePath}.xsd", xsdStream);
+
+                // Generate updated C# model
+                JsonMetadataParser modelGenerator = new JsonMetadataParser();
+                string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
+                byteArray = Encoding.UTF8.GetBytes(classes);
+                MemoryStream stream = new MemoryStream(byteArray);
+                await _repository.WriteData(org, app, $"{filePath}.cs", stream);
             }
 
             return Ok();
