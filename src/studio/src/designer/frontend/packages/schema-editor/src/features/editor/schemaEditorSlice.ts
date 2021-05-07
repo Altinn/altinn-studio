@@ -98,8 +98,6 @@ const schemaEditorSlice = createSlice({
         // delete definition
         const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
         if (index >= 0) {
-          // todo: delete all references to this item.
-
           state.uiSchema.splice(index, 1);
         }
       }
@@ -113,7 +111,6 @@ const schemaEditorSlice = createSlice({
       if (schemaItem.keywords) {
         const fieldItem = schemaItem.keywords.find((field) => field.key === key);
         if (fieldItem) {
-          console.log(`${fieldItem.value} -> ${value}`);
           fieldItem.value = value;
         }
       }
