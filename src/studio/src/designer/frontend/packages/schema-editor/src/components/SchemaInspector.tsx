@@ -11,7 +11,7 @@ const useStyles = makeStyles(
   createStyles({
     root: {
       minHeight: 600,
-      width: 500,
+      minWidth: 500,
       flexGrow: 1,
       margin: 4,
       padding: 14,
