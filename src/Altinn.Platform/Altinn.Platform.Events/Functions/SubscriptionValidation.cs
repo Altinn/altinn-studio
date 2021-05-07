@@ -42,19 +42,19 @@ namespace Altinn.Platform.Events.Functions
         public async Task Run([QueueTrigger("subscription-validation", Connection = "QueueStorage")] string item, ILogger log)
         {
             Subscription subscription = JsonSerializer.Deserialize<Subscription>(item);
-            CloudEventEnvelope cloudEventEnvelope = CreateValidate(subscription);
+            CloudEventEnvelope cloudEventEnvelope = CreateValidateEvent(subscription);
             await _webhookService.Send(cloudEventEnvelope);
             await _validateSubscriptionService.ValidateSubscription(cloudEventEnvelope.SubscriptionId);
         }
 
-        private CloudEventEnvelope CreateValidate(Subscription subscription)
+        private CloudEventEnvelope CreateValidateEvent(Subscription subscription)
         {
             CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope();
             cloudEventEnvelope.Consumer = subscription.Consumer;
             cloudEventEnvelope.Endpoint = subscription.EndPoint;
             cloudEventEnvelope.SubscriptionId = subscription.Id;
             cloudEventEnvelope.CloudEvent = new CloudEvent();
-            cloudEventEnvelope.CloudEvent.Source = new Uri(_platformSettings.ApiEventsEndpoint + "/subscription/" + subscription.Id);
+            cloudEventEnvelope.CloudEvent.Source = new Uri(_platformSettings.ApiEventsEndpoint + "subscriptions/" + subscription.Id);
             cloudEventEnvelope.CloudEvent.Type = "platform.events.validatesubscription";
             return cloudEventEnvelope;
         }
