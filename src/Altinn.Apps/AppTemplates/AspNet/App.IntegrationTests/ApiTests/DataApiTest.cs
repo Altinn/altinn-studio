@@ -877,8 +877,6 @@ namespace App.IntegrationTests.ApiTests
         /// This test tests that you can combine data values defined and configured in the applicationmetadata.json
         /// with data values added manully by the app developer through the IInstance interface.
         /// Combining both methods should result in the two value sets beeing merged.
-        /// The test is not ideal as it actually tests the ServiceMock and not the real implementation,
-        /// but it states that it should be possible to combine the two.
         /// </summary>
         [Fact]
         public async Task Instance_CustomDataValuesAdded_CustomValueMergedIn()
@@ -903,13 +901,15 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act - automatic update of data values done as a result of configuration and triggered by a change in the data.
-            string dataRequestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
-            string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+            string instanceUri = $"/{org}/{app}/instances/1337/{instanceGuid}";
+
+            string dataRequestUri = $"{instanceUri}/data/{dataGuid}?dataType=default";
+            string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"12\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
             HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri) { Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json") };
 
             await client.SendAsync(dataHttpRequestMessage);
 
-            HttpResponseMessage responseAfterDataUpdate = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            HttpResponseMessage responseAfterDataUpdate = await client.GetAsync($"{instanceUri}");
             string contentAfterDataUpdate = await responseAfterDataUpdate.Content.ReadAsStringAsync();
             Instance instanceAfterDataUpdate = JsonConvert.DeserializeObject<Instance>(contentAfterDataUpdate);
 
@@ -919,12 +919,16 @@ namespace App.IntegrationTests.ApiTests
             Assert.True(instanceAfterDataUpdate.DataValues.ContainsKey(expectedKey));
             Assert.Equal(expectedValue, instanceAfterDataUpdate.DataValues[expectedKey]);
 
-            // Act - manually updating data values with custom values by calling the service.
-            var customDataValues = new DataValues() { Values = new Dictionary<string, string>() { { expectedCustomKey, expectedCustomValue } } };
+            // Act - manually updating data values with custom values by triggering complete process            
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instanceUri}/process/completeProcess");
 
-            Mock<ILogger<IInstance>> logger = new Mock<ILogger<IInstance>>(); 
-            var instanceServiceMock = new InstanceMockSI(logger.Object);
-            var instanceAfterCustomFieldsAdded = await instanceServiceMock.UpdateDataValues(1337, new Guid(instanceGuid), customDataValues);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+
+            HttpResponseMessage responseAfterCustomFieldsAdded = await client.GetAsync($"{instanceUri}");
+            string contentAfterCustomFieldsAdded = await responseAfterCustomFieldsAdded.Content.ReadAsStringAsync();
+            Instance instanceAfterCustomFieldsAdded = JsonConvert.DeserializeObject<Instance>(contentAfterCustomFieldsAdded);
 
             // Assert - after manual update
             Assert.Equal(expectedDataValuesCountAfterManualUpdate, instanceAfterCustomFieldsAdded.DataValues.Count);            
