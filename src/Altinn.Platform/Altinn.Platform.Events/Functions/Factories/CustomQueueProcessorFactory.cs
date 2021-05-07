@@ -15,7 +15,8 @@ namespace Altinn.Platform.Events.Functions.Factories
         /// <inheritdoc/>
         public QueueProcessor Create(QueueProcessorFactoryContext context)
         {
-            if (context.Queue.Name == "events-outbound")
+            if (context.Queue.Name == "events-outbound" ||
+                context.Queue.Name == "subscription-validation")
             {
                 return new CustomQueueProcessor(context);
             }

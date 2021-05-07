@@ -1,25 +1,62 @@
-using Altinn.Platform.Events.Models;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Platform.Events.Functions.Configuration;
+using Altinn.Platform.Events.Functions.Models;
+using Altinn.Platform.Events.Functions.Services.Interfaces;
+using Altinn.Platform.Events.Models;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Functions
 {
+    /// <summary>
+    /// Function to validate the webhook endpoint for an subscription
+    /// </summary>
     public class SubscriptionValidation
     {
+        private readonly IWebhookService _webhookService;
+        private readonly PlatformSettings _platformSettings;
+        private readonly IValidateSubscriptionService _validateSubscriptionService;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SubscriptionValidation"/> class.
+        /// </summary>
+        public SubscriptionValidation(
+            IWebhookService webhookService,
+            IOptions<PlatformSettings> eventsConfig,
+            IValidateSubscriptionService validateSubscriptionService)
+        {
+            _platformSettings = eventsConfig.Value;
+            _webhookService = webhookService;
+            _validateSubscriptionService = validateSubscriptionService;
+        }
 
         /// <summary>
         /// Retrieves messages from events-inbound queue and push events controller
         /// </summary>
         [FunctionName("EventsInbound")]
-        public async Task Run([QueueTrigger("events-inbound", Connection = "QueueStorage")] string item, ILogger log)
+        public async Task Run([QueueTrigger("subscription-validation", Connection = "QueueStorage")] string item, ILogger log)
         {
-            Subscription cloudEvent = JsonSerializer.Deserialize<Subscription>(item);
-            await _pushEventsService.SendToPushController(cloudEvent);
+            Subscription subscription = JsonSerializer.Deserialize<Subscription>(item);
+            CloudEventEnvelope cloudEventEnvelope = CreateValidate(subscription);
+            await _webhookService.Send(cloudEventEnvelope);
+            await _validateSubscriptionService.ValidateSubscription(cloudEventEnvelope.SubscriptionId);
+        }
+
+        private CloudEventEnvelope CreateValidate(Subscription subscription)
+        {
+            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope();
+            cloudEventEnvelope.Consumer = subscription.Consumer;
+            cloudEventEnvelope.Endpoint = subscription.EndPoint;
+            cloudEventEnvelope.SubscriptionId = subscription.Id;
+            cloudEventEnvelope.CloudEvent = new CloudEvent();
+            cloudEventEnvelope.CloudEvent.Source = new Uri(_platformSettings.ApiEventsEndpoint + "/subscription/" + subscription.Id);
+            cloudEventEnvelope.CloudEvent.Type = "platform.events.validatesubscription";
+            return cloudEventEnvelope;
         }
     }
 }
