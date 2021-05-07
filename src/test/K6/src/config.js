@@ -171,3 +171,9 @@ export var appResources = {
 export var appAuthorization = {
     "currentparties": "/api/authorization/parties/current?returnPartyObject=true"
 };
+
+//AltinnTestTools
+export var tokenGenerator = {
+   getEnterpriseToken : "https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken",
+   getPersonalToken :"https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken"
+};

@@ -2,7 +2,10 @@
     Pre-reqisite for test: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Send maskinporten token as environment variable after generating the token
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script is to verify that get instances endpoint in storage works with a variety of filters
     Test data required: maskinporten token
@@ -11,12 +14,10 @@
 
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as instances from "../../../api/platform/storage/instances.js"
 
 const appOwner = "ttd";
 const app = "testcase-5482";
-const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
   thresholds: {
@@ -27,7 +28,7 @@ export const options = {
 
 //Function to setup data and return AltinnstudioRuntime Token
 export function setup() {
-  var altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+  var altinnStudioRuntimeCookie = setUpData.getAltinnTokenForTTD();
   var data = {};
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;

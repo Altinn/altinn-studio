@@ -66,7 +66,7 @@ namespace Altinn.Platform.Events.Services
             try
             {
                 QueueClient client = await GetOutboundQueueClient();
-                await client.SendMessageAsync(content);
+                await client.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)));
             }
             catch (Exception e)
             {

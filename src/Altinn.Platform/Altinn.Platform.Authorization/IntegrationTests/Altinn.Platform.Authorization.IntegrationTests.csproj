@@ -84,6 +84,7 @@
 
   <ItemGroup>
     <Folder Include="Data\blobs\ttd\rf-0002\" />
+    <Folder Include="Data\Xacml\3.0\AltinnApps\testorg\testapp\" />
   </ItemGroup>
 
 </Project>

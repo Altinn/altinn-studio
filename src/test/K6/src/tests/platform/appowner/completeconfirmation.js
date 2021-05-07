@@ -1,10 +1,14 @@
-/* Pre-reqisite for test: 
+/* Pre-reqisite for test for prod: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Send maskinporten token as environment variable after generating the token
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script sets complete confirmation as app owner on all the instances from a csv file.
     The iteration is shared between the virtual users and each VU runs exactly same number of iternations (maxIter).
+
     example: k6 run /src/tests/platform/storage/appowner/completeconfirmation.js 
     -e env=test -e appsaccesskey=*** -e maskinporten=token -e vus=**(number of virtual users)
 */
@@ -12,11 +16,9 @@
 import { check } from "k6";
 import { stopIterationOnFail } from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/platform/storage/instances.js"
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
 import Papa from "https://jslib.k6.io/papaparse/5.1.1/index.js";
 
-const maskinPortenToken = __ENV.maskinporten;
 const instancesCsvFile = open("../../../data/instances.csv");
 const instancesArray = (Papa.parse(instancesCsvFile)).data; //parsing csv using papaparse
 const instancesCount = instancesArray.length;
@@ -36,7 +38,7 @@ export const options = {
 
 //Function to authenticate a app owner, get all archived hardeleted and not complete confirmed instances of an app and return data
 export function setup() {
-    var altinnStudioRuntimeToken = convertMaskinPortenToken(maskinPortenToken, "true");
+    var altinnStudioRuntimeToken = setUpData.getAltinnTokenForTTD();
     var data = {};
     data.runtimeToken = altinnStudioRuntimeToken;
     data.instances = instancesArray;

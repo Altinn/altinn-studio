@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
@@ -16,7 +17,6 @@ using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -29,16 +29,16 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
     /// <summary>
     /// Represents a collection of integration tests of the <see cref="DataController"/>.
     /// </summary>
-    public class DataControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class DataControllerTests : IClassFixture<TestApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<Startup> _factory;
         private readonly string _versionPrefix = "/storage/api/v1";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataControllerTests"/> class.
         /// </summary>
         /// <param name="factory">Platform storage fixture.</param>
-        public DataControllerTests(WebApplicationFactory<Startup> factory)
+        public DataControllerTests(TestApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -305,13 +305,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         private HttpClient GetTestClient()
         {
-            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            Application testApp1 = new Application { Id = "test/testApp1", Org = "test" };
-
-            applicationRepository
-                .Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>()))
-                .ReturnsAsync(testApp1);
-
             // No setup required for these services. They are not in use by the InstanceController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
@@ -322,10 +315,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
-                    services.AddSingleton<IDataRepository, DataRepositoryMock>();
-                    services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
-                    services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
+                    services.AddMockRepositories();
+
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
                     services.AddSingleton(partiesWrapper.Object);
