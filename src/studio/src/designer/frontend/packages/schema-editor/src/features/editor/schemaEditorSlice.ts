@@ -147,20 +147,18 @@ const schemaEditorSlice = createSlice({
       if (path.includes('/properties')) {
         // #/definitions/Foretak/properties/organisasjonsnummerForetak
         const [rootPath, propertyName] = path.split('/properties/');
-        if (rootPath && propertyName) {
-          const rootItem = state.uiSchema.find((item) => item.id === rootPath);
-          const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
-          if (propertyItem) {
-            propertyItem.name = name;
-            propertyItem.id = `${rootPath}/properties/${name}`;
-            if (navigate) {
-              state.selectedId = propertyItem.id;
-            }
+        const rootItem = state.uiSchema.find((item) => item.id === rootPath);
+        const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
+        if (propertyItem) {
+          propertyItem.name = name;
+          propertyItem.id = `${rootPath}/properties/${name}`;
+          if (navigate) {
+            state.selectedId = propertyItem.id;
           }
         }
-        // also update definition item ?
-      } else if (path.includes('/definitions')) {
-        // just update definition id/name
+        return;
+      }
+      if (path.includes('/definitions')) {
         const propertyName = path.split('/definitions/')[1];
         if (propertyName) {
           const rootItem = state.uiSchema.find((item) => item.id === path);

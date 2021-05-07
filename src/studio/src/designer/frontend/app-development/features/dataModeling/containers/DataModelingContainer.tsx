@@ -61,7 +61,6 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     fetchModel(schema.id);
   };
   const onSaveSchema = (schema: any) => {
-    console.log(schema);
     dispatch(saveDataModel({ schema }));
   };
   const onCreateClick = (event: any) => {
