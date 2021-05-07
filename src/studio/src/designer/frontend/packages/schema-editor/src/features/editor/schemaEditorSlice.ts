@@ -94,6 +94,14 @@ const schemaEditorSlice = createSlice({
             .properties?.slice(0, removeIndex).concat(removeFromItem.properties.slice(removeIndex + 1));
           removeFromItem.properties = newProperties;
         }
+      } else {
+        // delete definition
+        const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
+        if (index >= 0) {
+          // todo: delete all references to this item.
+
+          state.uiSchema.splice(index, 1);
+        }
       }
     },
     setFieldValue(state, action) {
@@ -105,6 +113,7 @@ const schemaEditorSlice = createSlice({
       if (schemaItem.keywords) {
         const fieldItem = schemaItem.keywords.find((field) => field.key === key);
         if (fieldItem) {
+          console.log(`${fieldItem.value} -> ${value}`);
           fieldItem.value = value;
         }
       }
@@ -135,7 +144,9 @@ const schemaEditorSlice = createSlice({
       state.schema = schema;
     },
     setPropertyName(state, action) {
-      const { path, name } = action.payload;
+      const {
+        path, name, navigate,
+      } = action.payload;
       if (path.includes('/properties')) {
         // #/definitions/Foretak/properties/organisasjonsnummerForetak
         const [rootPath, propertyName] = path.split('/properties/');
@@ -145,7 +156,9 @@ const schemaEditorSlice = createSlice({
           if (propertyItem) {
             propertyItem.name = name;
             propertyItem.id = `${rootPath}/properties/${name}`;
-            state.selectedId = propertyItem.id;
+            if (navigate) {
+              state.selectedId = propertyItem.id;
+            }
           }
         }
         // also update definition item ?
@@ -157,7 +170,9 @@ const schemaEditorSlice = createSlice({
           if (rootItem) {
             rootItem.name = name;
             rootItem.id = `#/definitions/${propertyName}`;
-            state.selectedId = rootItem.id;
+            if (navigate) {
+              state.selectedId = rootItem.id;
+            }
           }
         }
       }
