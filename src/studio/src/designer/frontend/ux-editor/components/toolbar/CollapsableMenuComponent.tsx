@@ -76,7 +76,7 @@ const styles = () => createStyles({
   },
   collapsableButton: {
     padding: '0px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   listItemIcon: {
     color: 'rgba(0, 0, 0, 0.54)',
