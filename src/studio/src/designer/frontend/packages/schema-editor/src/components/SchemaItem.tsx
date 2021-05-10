@@ -266,9 +266,7 @@ function SchemaItem(props: SchemaItemProps) {
           <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
         }
         <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
-        { (item.keywords || item.properties || item.$ref) &&
-          <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
-        }
+        <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
       </Menu>
     </div>
   );

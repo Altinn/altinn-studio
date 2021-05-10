@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { makeStyles, MenuItem, Select } from '@material-ui/core';
+import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
-import { ISchemaState, UiSchemaItem } from '../types';
+import { Autocomplete } from '@material-ui/lab';
+import { ISchemaState } from '../types';
 
 export interface IRefSelectProps {
   id: string;
@@ -32,25 +33,41 @@ export const RefSelect = (props: IRefSelectProps) => {
   const {
     id, onChange, value,
   } = props;
-  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions')));
+  const definitions: string[] = useSelector(
+    (state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions'))
+      .map((d) => d.id.replace('#/definitions/', '')),
+  );
 
-  const onChangeValue = (event: React.ChangeEvent<{
-    name?: string;
-    value: unknown;
-}>) => {
-    onChange(id, event.target.value as string);
+  const onChangeValue = (
+    event: React.ChangeEvent<{}>,
+    val: unknown,
+  ) => {
+    if (!val) {
+      return;
+    }
+    onChange(id, `#/definitions/${val as string}`);
   };
 
   return (
-    <Select
+    <Autocomplete
+      freeSolo={false}
       fullWidth={props.fullWidth}
       id={`ref-select-${id}`}
       disabled={props.readOnly}
-      value={value}
+      value={value?.replace('#/definitions/', '')}
       onChange={onChangeValue}
       className={classes.root}
-      disableUnderline={true}
-    > { definitions?.map((d: UiSchemaItem) => <MenuItem key={d.id} value={d.id}>{d.id}</MenuItem>) }
-    </Select>
+      disableClearable={true}
+      options={definitions}
+      renderInput={(params) => {
+        // eslint-disable-next-line no-param-reassign
+        (params.InputProps as any).disableUnderline = true;
+        return <TextField
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...params}
+        />;
+      }
+      }
+    />
   );
 };

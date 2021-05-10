@@ -77,9 +77,9 @@ const schemaEditorSlice = createSlice({
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
         const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
-        const newValue = removeFromItem
-          .keywords?.slice(0, removeIndex).concat(removeFromItem.keywords.slice(removeIndex + 1));
-        removeFromItem.keywords = newValue;
+        if (removeIndex >= 0) {
+          removeFromItem.keywords?.splice(removeIndex, 1);
+        }
       }
     },
     deleteProperty(state, action) {
@@ -90,10 +90,16 @@ const schemaEditorSlice = createSlice({
         if (removeFromItem) {
           const removeIndex = removeFromItem
             .properties?.findIndex((property: any) => property.name === propertyName) ?? -1;
-          const newProperties = removeFromItem
-            .properties?.slice(0, removeIndex).concat(removeFromItem.properties.slice(removeIndex + 1));
-          removeFromItem.properties = newProperties;
+          if (removeIndex >= 0) {
+            removeFromItem.properties?.splice(removeIndex, 1);
+          }
         }
+        return;
+      }
+      // delete definition, here we need to find all references to this definition, and remove them (?)
+      const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
+      if (index >= 0) {
+        state.uiSchema.splice(index, 1);
       }
     },
     setFieldValue(state, action) {
@@ -135,30 +141,18 @@ const schemaEditorSlice = createSlice({
       state.schema = schema;
     },
     setPropertyName(state, action) {
-      const { path, name } = action.payload;
-      if (path.includes('/properties')) {
-        // #/definitions/Foretak/properties/organisasjonsnummerForetak
-        const [rootPath, propertyName] = path.split('/properties/');
-        if (rootPath && propertyName) {
-          const rootItem = state.uiSchema.find((item) => item.id === rootPath);
-          const propertyItem = rootItem?.properties?.find((property: any) => property.name === propertyName);
-          if (propertyItem) {
-            propertyItem.name = name;
-            propertyItem.id = `${rootPath}/properties/${name}`;
-            state.selectedId = propertyItem.id;
-          }
-        }
-        // also update definition item ?
-      } else if (path.includes('/definitions')) {
-        // just update definition id/name
-        const propertyName = path.split('/definitions/')[1];
-        if (propertyName) {
-          const rootItem = state.uiSchema.find((item) => item.id === path);
-          if (rootItem) {
-            rootItem.name = name;
-            rootItem.id = `#/definitions/${propertyName}`;
-            state.selectedId = rootItem.id;
-          }
+      const {
+        path, name, navigate,
+      } = action.payload;
+
+      const item = getUiSchemaItem(state.uiSchema, path);
+      if (item) {
+        item.name = name;
+        const arr = item.id.split('/');
+        arr[arr.length - 1] = name;
+        item.id = arr.join('/');
+        if (navigate) {
+          state.selectedId = item.id;
         }
       }
     },

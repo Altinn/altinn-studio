@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Npgsql;
+
 using NpgsqlTypes;
 
 namespace Altinn.Platform.Events.Repository
@@ -22,8 +23,7 @@ namespace Altinn.Platform.Events.Repository
     {
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
-
-        private readonly NpgsqlConnection _conn;
+        private readonly string _connectionString;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -31,10 +31,9 @@ namespace Altinn.Platform.Events.Repository
         /// </summary>
         public CloudEventRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<CloudEventRepository> logger)
         {
-            string connectionString = string.Format(
+            _connectionString = string.Format(
                 postgresSettings.Value.ConnectionString,
                 postgresSettings.Value.EventsDbPwd);
-            _conn = new NpgsqlConnection(connectionString);
             _logger = logger;
         }
 
@@ -43,9 +42,10 @@ namespace Altinn.Platform.Events.Repository
         {
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, conn);
                 pgcom.Parameters.AddWithValue("id", cloudEvent.Id);
                 pgcom.Parameters.AddWithValue("source", cloudEvent.Source.OriginalString);
                 pgcom.Parameters.AddWithValue("subject", cloudEvent.Subject);
@@ -61,10 +61,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // Create // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -75,9 +71,10 @@ namespace Altinn.Platform.Events.Repository
 
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getEventSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(getEventSql, conn);
                 pgcom.Parameters.AddWithValue("_subject", NpgsqlDbType.Varchar, subject);
                 pgcom.Parameters.AddWithValue("_after", NpgsqlDbType.Varchar, after);
                 pgcom.Parameters.AddWithValue("_from", NpgsqlDbType.TimestampTz, from ?? (object)DBNull.Value);
@@ -102,10 +99,6 @@ namespace Altinn.Platform.Events.Repository
             {
                 _logger.LogError(e, "PostgresRepository // Get // Exception");
                 throw;
-            }
-            finally
-            {
-                await _conn.CloseAsync();
             }
         }
     }

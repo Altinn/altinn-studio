@@ -1,5 +1,5 @@
 pool:
-  name: Altinn Test Self Hosted VM
+  name: altinn-vmss-testagent
 
 name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
@@ -28,11 +28,9 @@ steps:
 - script: |
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
-   type result.txt
+   cat result.txt
    
-   set /p result= < result.txt
-   
-   echo ##vso[task.setvariable variable=availability;]%result%
+   echo "##vso[task.setvariable variable=availability;]`cat result.txt`"
   
   workingDirectory: '$(Build.SourcesDirectory)'   
   displayName: 'Check availability'
