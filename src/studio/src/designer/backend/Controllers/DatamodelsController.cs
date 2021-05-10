@@ -90,6 +90,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelMetadata modelMetadata = converter.GetModelMetadata();
                 string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
                 _repository.UpdateApplicationWithAppLogicModel(org, app, modelName, "Altinn.App.Models." + root);
+                _repository.UpdateModelMetadata(org, app, modelMetadata, modelName);
 
                 // Convert to XML Schema and store in repository
                 JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
