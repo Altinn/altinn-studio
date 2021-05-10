@@ -3,7 +3,7 @@ using System;
 namespace Altinn.App.PlatformServices.Helpers
 {
     /// <summary>
-    /// Helper class for handling instances./>
+    /// Helper class for handling instances.
     /// </summary>
     public static class InstanceHelper
     {
