@@ -77,9 +77,9 @@ const schemaEditorSlice = createSlice({
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
         const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
-        const newValue = removeFromItem
-          .keywords?.slice(0, removeIndex).concat(removeFromItem.keywords.slice(removeIndex + 1));
-        removeFromItem.keywords = newValue;
+        if (removeIndex >= 0) {
+          removeFromItem.keywords?.splice(removeIndex, 1);
+        }
       }
     },
     deleteProperty(state, action) {
