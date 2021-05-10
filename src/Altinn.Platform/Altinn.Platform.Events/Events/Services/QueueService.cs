@@ -25,6 +25,8 @@ namespace Altinn.Platform.Events.Services
 
         private QueueClient _outboundQueueClient;
 
+        private QueueClient _validationQueueClient;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueService"/> class.
         /// </summary>
@@ -121,13 +123,13 @@ namespace Altinn.Platform.Events.Services
 
         private async Task<QueueClient> GetValidationQueueClient()
         {
-            if (_outboundQueueClient == null)
+            if (_validationQueueClient == null)
             {
-                _outboundQueueClient = new QueueClient(_settings.ConnectionString, _settings.OutboundQueueName);
-                await _outboundQueueClient.CreateIfNotExistsAsync();
+                _validationQueueClient = new QueueClient(_settings.ConnectionString, _settings.ValidationQueueName);
+                await _validationQueueClient.CreateIfNotExistsAsync();
             }
 
-            return _outboundQueueClient;
+            return _validationQueueClient;
         }
     }
 }
