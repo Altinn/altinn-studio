@@ -2,8 +2,8 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
-import { Select } from '@material-ui/core';
 import { act } from 'react-dom/test-utils';
+import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
@@ -109,16 +109,33 @@ it('dispatches correctly when changing ref', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Dato');
   });
 
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/setRef',
     payload: {
-      ref: '#/definitions/Tidsrom',
+      ref: '#/definitions/Dato',
       path: '#/definitions/InternInformasjon/properties/periodeFritekst',
     },
   });
+});
+
+it('refSelect does not set invalid refs', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/InternInformasjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
+  });
+
+  expect(mockStore.dispatch).not.toHaveBeenCalledWith({ type: 'schemaEditor/setRef' });
 });
 
 it('dispatches correctly when changing const', () => {
