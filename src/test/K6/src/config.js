@@ -128,7 +128,7 @@ export var appProfile = {
 
 //Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
-export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
+export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, dataType, type) {
     var value = "";
     switch (type) {
         case "instanceid":
@@ -149,6 +149,8 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
         case "completeprocess":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/process/completeprocess";
             break;
+        case "statelessdata":
+            value = "/v1/data/?dataType=" + dataType;
     };
     return value;
 };

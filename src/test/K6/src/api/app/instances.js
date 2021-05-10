@@ -11,14 +11,14 @@ export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appNa
 
 //Api call to App Api:Instances to create an app instance and returns response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
-    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid");
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "", "instanceid");
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.get(endpoint, params);
 };
 
 //Api call to App Api:Instances to validate an app instance and returns response
 export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
-    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid") + "/validate";
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "", "instanceid") + "/validate";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.get(endpoint, params);
 };
@@ -49,7 +49,7 @@ export function isReceiptPdfGenerated(responseJson) {
 
 //Api call to update the sub status of an app instance and return the response
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName, statusLabel, statusDescription) {
-    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "substatus");
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "", "substatus");
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "app");
     var requestBody = JSON.parse("{}");
     requestBody.label = statusLabel;
@@ -60,7 +60,7 @@ export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceI
 
 //Api call to mark an app instance as complete confirmed by app owner and return the response
 export function postCompleteConfirmation(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
-    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "complete");
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "", "complete");
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.post(endpoint, null, params);
 };
