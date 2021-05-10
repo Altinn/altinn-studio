@@ -66,7 +66,7 @@ it('dispatches correctly when changing value', () => {
       payload: {
         key: 'minLength',
         path: '#/definitions/Kommentar2000Restriksjon',
-        value: '666',
+        value: 666,
       },
     });
   });
@@ -91,6 +91,38 @@ it('dispatches correctly when changing key', (done) => {
         newKey: 'color',
         oldKey: 'minLength',
         path: '#/definitions/Kommentar2000Restriksjon',
+      },
+    });
+
+    done();
+  });
+});
+
+it('dispatches correctly when changing property name', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+  });
+  expect(wrapper).not.toBeNull();
+  const input = wrapper.find('#input-RA-0678_M-properties-InternInformasjon-key-InternInformasjon').last();
+  input.simulate('change', { target: { value: 'Test' } });
+
+  setImmediate(() => {
+    wrapper.update();
+    input.simulate('blur');
+
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setPropertyName',
+      payload: {
+        name: 'Test',
+        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
       },
     });
 

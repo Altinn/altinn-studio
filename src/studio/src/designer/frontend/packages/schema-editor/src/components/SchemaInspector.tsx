@@ -77,7 +77,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value,
+      value: Number.isNaN(value) ? value : +value,
       key,
     };
     dispatch(setFieldValue(data));
@@ -103,6 +103,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
+  const onChangPropertyName = (path: string, oldKey: string, newKey: string) => {
+    dispatch(setPropertyName({
+      path, name: newKey,
+    }));
+  };
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
@@ -110,7 +115,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteProperty({ path }));
   };
   const onChangeNodeName = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
+    dispatch(setPropertyName({
+      path: selectedItem?.id, name: e.target.value, navigate: true,
+    }));
   };
 
   const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -207,7 +214,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         fullPath={p.id}
         onChangeValue={onChangeValue}
         onChangeRef={onChangeRef}
-        onChangeKey={onChangeKey}
+        onChangeKey={onChangPropertyName}
         onDeleteField={onDeleteObjectClick}
       />;
     }
