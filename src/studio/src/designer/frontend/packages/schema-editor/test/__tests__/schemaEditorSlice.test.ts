@@ -105,7 +105,17 @@ describe('SchemaEditorSlice', () => {
       fail('item not found');
     }
 
-    expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });
+    expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });    
+  });
+
+  it('handles deleteProperty (root definition)', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, deleteProperty(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item).toBeUndefined();
   });
 
   it('handles addProperty', () => {
