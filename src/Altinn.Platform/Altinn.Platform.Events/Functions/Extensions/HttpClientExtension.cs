@@ -32,7 +32,7 @@ namespace Altinn.Platform.Events.Functions.Extensions
         }
 
         /// <summary>
-        /// Extension that add authorization header to request
+        /// Extension that adds authorization header to request
         /// </summary>
         /// <param name="httpClient">The HttpClient</param>
         /// <param name="requestUri">The request Uri</param>
