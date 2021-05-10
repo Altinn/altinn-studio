@@ -34,7 +34,7 @@ namespace Altinn.Platform.Events.Models
         public string AlternativeSubjectFilter { get; set; }
 
         /// <summary>
-        /// Filter for type. Starts with
+        /// Filter for type. The different sources has different types. 
         /// </summary>
         public string TypeFilter { get; set; }
 

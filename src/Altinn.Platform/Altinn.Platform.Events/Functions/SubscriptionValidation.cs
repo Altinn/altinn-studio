@@ -36,7 +36,8 @@ namespace Altinn.Platform.Events.Functions
         }
 
         /// <summary>
-        /// Retrieves messages from events-inbound queue and push events controller
+        /// Retrieves messages from subscription-validation queue and verify endpoint. If valid
+        /// it will call subscription service
         /// </summary>
         [FunctionName("SubscriptionValidation")]
         public async Task Run([QueueTrigger("subscription-validation", Connection = "QueueStorage")] string item, ILogger log)
