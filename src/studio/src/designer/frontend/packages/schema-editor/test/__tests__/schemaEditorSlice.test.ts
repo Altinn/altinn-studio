@@ -105,7 +105,7 @@ describe('SchemaEditorSlice', () => {
       fail('item not found');
     }
 
-    expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });    
+    expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });
   });
 
   it('handles deleteProperty (root definition)', () => {
