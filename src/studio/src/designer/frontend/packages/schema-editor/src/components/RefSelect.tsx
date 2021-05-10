@@ -59,7 +59,6 @@ export const RefSelect = (props: IRefSelectProps) => {
       className={classes.root}
       disableClearable={true}
       options={definitions}
-      // getOptionLabel={(option) => option.replace('#/definitions/', '')}
       renderInput={(params) => {
         // eslint-disable-next-line no-param-reassign
         (params.InputProps as any).disableUnderline = true;
