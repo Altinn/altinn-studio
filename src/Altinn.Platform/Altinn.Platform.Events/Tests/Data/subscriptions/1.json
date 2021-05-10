@@ -1,7 +1,7 @@
 [
   {
     "Id": "1",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2",
     "Consumer": "/org/ttd",
     "CreatedBy": "/org/ttd",
     "Typefilter": "app.instance.process.completed",
@@ -10,7 +10,7 @@
   },
   {
     "Id": "2",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1",
     "Subjectfilter": "/party/1336",
     "Consumer": "/org/ttd",
     "CreatedBy": "/org/ttd",
@@ -19,7 +19,7 @@
   },
   {
     "Id": "3",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/test-app/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/test-app",
     "Subjectfilter": "/party/1337",
     "Consumer": "/org/ttd",
     "CreatedBy": "/party/1337",
@@ -28,7 +28,7 @@
   },
   {
     "Id": "4",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/new-app/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/new-app",
     "Subjectfilter": "/party/1337",
     "Consumer": "/user/12345678",
     "CreatedBy": "/party/1337",
@@ -37,7 +37,7 @@
   },
   {
     "Id": "5",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2",
     "Subjectfilter": "/party/1337",
     "Consumer": "/user/1337",
     "CreatedBy": "/user/1337",
@@ -46,7 +46,7 @@
   },
   {
     "Id": "6",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2",
     "Consumer": "/org/nav",
     "CreatedBy": "/org/nav",
     "Typefilter": "app.instance.process.completed",
@@ -55,7 +55,7 @@
   },
   {
     "Id": "7",
-    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+    "Sourcefilter": "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2",
     "Consumer": "/org/ttd",
     "CreatedBy": "/org/ttd",
     "Typefilter": "app.instance.process.started",

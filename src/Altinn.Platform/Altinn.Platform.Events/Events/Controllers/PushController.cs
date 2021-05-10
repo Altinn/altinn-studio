@@ -109,7 +109,7 @@ namespace Altinn.Platform.Events.Controllers
         {
             if (source.DnsSafeHost.Contains(_platformSettings.AppsDomain))
             {
-                return source.OriginalString.Substring(0, source.OriginalString.IndexOf(source.Segments[3]));
+                return source.OriginalString.Substring(0, source.OriginalString.IndexOf(source.Segments[3]) - 1);
             }
             else
             {
