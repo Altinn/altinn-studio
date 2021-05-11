@@ -168,7 +168,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // filter out hard deleted instances if user is requesting instances          
-                if (Request.QueryString.HasValue == false || Request.QueryString.Value.Contains("status.isHardDeleted") == false)
+                if (!Request.QueryString.HasValue || !Request.QueryString.Value.Contains("status.isHardDeleted"))
                 {
                     Request.QueryString.Add("status.isHardDeleted", "false");
                 }
