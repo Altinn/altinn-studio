@@ -331,7 +331,6 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   const currentGroups = state.formLayout.uiConfig.repeatingGroups;
   const layouts = yield select(selectFormLayouts);
   let newGroups: IRepeatingGroups = {};
-  // TODO: Preserve edit index if group is still present
   Object.keys(layouts).forEach((layoutKey: string) => {
     newGroups = {
       ...newGroups,
