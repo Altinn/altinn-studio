@@ -1,0 +1,9 @@
+﻿{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "ServiceName",
+      "value": "stateless-app"
+    }
+  ]
+}
