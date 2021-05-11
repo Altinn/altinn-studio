@@ -274,16 +274,20 @@ export function RepeatingGroupTable({
                   />
                 </IconButton>
               </Grid>
-              {componentTitles.map((title: string, i: number) => {
+              {components.map((component: ILayoutComponent) => {
+                const childId = (component as any).baseComponentId || component.id;
+                if (!tableHeaderComponents.includes(childId)) {
+                  return null;
+                }
                 return (
                   <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                     <div className={classes.mobileText}>
-                      {getTextResource(title, textResources)}
+                      {getTextResource(component?.textResourceBindings?.title || '', textResources)}
                     </div>
                     <div
                       className={classes.mobileValueText}
                     >
-                      {`: ${getFormDataForComponent(components[i], index)}`}
+                      {`: ${getFormDataForComponent(component, index)}`}
                     </div>
                   </Grid>
                 );
