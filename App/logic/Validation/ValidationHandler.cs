@@ -30,7 +30,7 @@ namespace Altinn.App.AppLogic.Validation
                 }
                 if (!string.IsNullOrEmpty(firstName) && firstName.Contains("test"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "test er ikke en gyldig verdi");
+                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "error.testValue");
                 }
             }
 
