@@ -7,7 +7,7 @@ import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/
 import { AxiosRequestConfig } from 'axios';
 import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getDataValidationUrl, getValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
@@ -161,7 +161,12 @@ export function* updateCurrentViewSaga({ payload: {
           LayoutId: currentView,
         },
       };
-      const serverValidation: any = yield call(get, getValidationUrl(instanceId), runValidations === 'page' ? options : null);
+
+      const currentTaskDataId = getCurrentTaskDataElementId(
+        state.applicationMetadata.applicationMetadata,
+        state.instanceData.instance,
+      );
+      const serverValidation: any = yield call(get, getDataValidationUrl(instanceId, currentTaskDataId), runValidations === 'page' ? options : null);
       // update validation state
       const layoutState: ILayoutState = state.formLayout;
       const mappedValidations =
