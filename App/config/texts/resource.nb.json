@@ -141,6 +141,10 @@
       "dataSource":"dataModel.ServiceModel-test"
     }
   ]
+  },
+  {
+    "id": "error.testValue",
+    "value": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>"
   }
 ]
 }
