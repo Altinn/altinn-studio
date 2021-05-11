@@ -166,6 +166,9 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return BadRequest("InstanceOwnerPartyId must be defined.");
                 }
+
+                // filter out hard deleted instances if user is requesting instances
+                Request.QueryString.Add("status.isHardDeleted", "false");
             }
             else
             {
