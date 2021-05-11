@@ -22,5 +22,10 @@ namespace Altinn.Platform.Events.Configuration
         /// Gets or sets the apps domain used to match events source
         /// </summary>
         public string AppsDomain { get; set; }
+
+        /// <summary>
+        /// The lifetime to cache subscriptions
+        /// </summary>
+        public int SubscriptionCachingLifetimeInSeconds { get; set; }
     }
 }
