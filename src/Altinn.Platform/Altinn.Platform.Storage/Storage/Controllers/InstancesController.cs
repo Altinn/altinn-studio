@@ -167,8 +167,11 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest("InstanceOwnerPartyId must be defined.");
                 }
 
-                // filter out hard deleted instances if user is requesting instances
-                Request.QueryString.Add("status.isHardDeleted", "false");
+                // filter out hard deleted instances if user is requesting instances          
+                if (Request.QueryString.HasValue == false || Request.QueryString.Value.Contains("status.isHardDeleted") == false)
+                {
+                    Request.QueryString.Add("status.isHardDeleted", "false");
+                }
             }
             else
             {
@@ -658,7 +661,7 @@ namespace Altinn.Platform.Storage.Controllers
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            instance.DataValues ??= new Dictionary<string, string>();            
+            instance.DataValues ??= new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in dataValues.Values)
             {
