@@ -5,12 +5,12 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
-import { ISchema, ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
-import { buildUISchema, getDomFriendlyID, getUiSchemaTreeFromItem } from '../utils';
+import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
@@ -39,15 +39,15 @@ export interface ISchemaEditor {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
   rootItemId?: string;
+  language: ILanguage;
 }
 
 export const SchemaEditor = ({
-  schema, onSaveSchema, rootItemId,
+  schema, onSaveSchema, rootItemId, language,
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
-
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
@@ -139,7 +139,7 @@ export const SchemaEditor = ({
             <button
               type='button' className={classes.button}
               onClick={onClickSaveJsonSchema}
-            >Save data model
+            >{getTranslation('schema_editor.save_data_model', language)}
             </button>
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
@@ -147,7 +147,7 @@ export const SchemaEditor = ({
               onClose={onCancelAddItemModal}
               onConfirm={onCloseAddPropertyModal}
               sharedTypes={sharedItems}
-              title='Add property'
+              title={getTranslation('schema_editor.add_property', language)}
             />
 
             <TreeView
@@ -160,7 +160,7 @@ export const SchemaEditor = ({
               <TreeItem
                 id='properties'
                 nodeId='properties'
-                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
+                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> {getTranslation('schema_editor.properties', language)}</div>}
               >
                 { item &&
                 <SchemaItem
@@ -188,7 +188,7 @@ export const SchemaEditor = ({
             <button
               type='button' className={classes.button}
               onClick={onAddRootItemClick}
-            >Add root item
+            >{getTranslation('schema_editor.add_root_item', language)}
             </button>
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
@@ -202,7 +202,7 @@ export const SchemaEditor = ({
           }
         </Grid>
         <Grid item={true} xs={5}>
-          <SchemaInspector onAddPropertyClick={onAddPropertyClick} />
+          <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>
     </div>
