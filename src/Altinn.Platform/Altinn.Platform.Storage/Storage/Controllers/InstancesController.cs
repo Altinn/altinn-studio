@@ -166,12 +166,6 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return BadRequest("InstanceOwnerPartyId must be defined.");
                 }
-
-                // filter out hard deleted instances if user is requesting instances          
-                if (!Request.QueryString.HasValue || !Request.QueryString.Value.Contains("status.isHardDeleted"))
-                {
-                    Request.QueryString.Add("status.isHardDeleted", "false");
-                }
             }
             else
             {
@@ -185,6 +179,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            // filter out hard deleted instances if user is requesting instances          
+            if (userId != null && !queryParams.ContainsKey("status.isHardDeleted"))
+            {
+                queryParams.Add("status.isHardDeleted", "false");
+            }
 
             string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
