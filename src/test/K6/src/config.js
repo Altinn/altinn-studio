@@ -121,6 +121,9 @@ export function appApiBaseUrl(appOwner, appName) {
 //Validate Instantiation
 export var appValidateInstantiation = "/api/v1/parties/validateInstantiation";
 
+//Stateless
+export var statelessdata = "/v1/data/";
+
 //App Profile
 export var appProfile = {
     "user": "/api/v1/profile/user"
@@ -128,7 +131,7 @@ export var appProfile = {
 
 //Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
-export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, dataType, type) {
+export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
     var value = "";
     switch (type) {
         case "instanceid":
@@ -149,8 +152,6 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, dataType, t
         case "completeprocess":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/process/completeprocess";
             break;
-        case "statelessdata":
-            value = "/v1/data/?dataType=" + dataType;
     };
     return value;
 };
@@ -176,6 +177,6 @@ export var appAuthorization = {
 
 //AltinnTestTools
 export var tokenGenerator = {
-   getEnterpriseToken : "https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken",
-   getPersonalToken :"https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken"
+    getEnterpriseToken: "https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken",
+    getPersonalToken: "https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken"
 };
