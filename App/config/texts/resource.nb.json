@@ -236,6 +236,10 @@
     {
       "id": "8854.Skjemainstansgrp8854.Label",
       "value": "Skjemainstans"
+    },
+    {
+      "id": "text",
+      "value": "Bruke dette app for å teste stateless app <br/> 1. test <br/> 2. test"
     }
   ]
 }

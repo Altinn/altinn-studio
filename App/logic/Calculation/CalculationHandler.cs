@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
-
-//// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
+using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic.Calculation
 {
@@ -8,21 +7,35 @@ namespace Altinn.App.AppLogic.Calculation
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
     public class CalculationHandler
-    {
-        /// <summary>
-        /// Perform calculations and update data model
-        /// </summary>
-        /// <example>
-        /// if (instance.GetType() == typeof(Skjema)
-        /// {
-        ///     Skjema model = (Skjema)instance;
-        ///     // Perform calculations and manipulation of data model here
-        /// }
-        /// </example>
-        /// <param name="instance">The data</param>
+    {        
         public async Task<bool> Calculate(object instance)
         {
-            return await Task.FromResult(false);
-        }
+            if (instance.GetType() != typeof(Skjema))
+            {
+                return false;
+            }
+
+            Skjema skjema = (Skjema)instance;
+
+            if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == null)
+            {
+                skjema.OpplysningerOmArbeidstakerengrp8819 = skjema.OpplysningerOmArbeidstakerengrp8819 ?? new OpplysningerOmArbeidstakerengrp8819();
+                skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 = new Skjemainstansgrp8854()
+                {
+                    IdentifikasjonsnummerKravdatadef33317 = new IdentifikasjonsnummerKravdatadef33317()
+                    {
+                        value = "1234567890"
+                    }
+                };
+
+            }
+            else if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == "1337")
+            {
+                skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317.value = "1705";
+            }
+
+            return await Task.FromResult(true);
+        }           
+        
     }
 }

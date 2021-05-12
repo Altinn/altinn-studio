@@ -6,7 +6,7 @@
         "id": "info",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Paragraf"
+          "title": "text"
         },
         "dataModelBindings": {}
       },
@@ -33,6 +33,14 @@
         },
         "required": false,
         "readOnly": true
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
       }
     ]
   }
