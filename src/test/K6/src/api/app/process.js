@@ -12,8 +12,8 @@ export function postStartProcess(altinnStudioRuntimeCookie, partyId, instaceId, 
 //Api call to App Api:Process to move process of an app instance to a specific process element if sent of next task in process and returns response
 export function putNextProcess(altinnStudioRuntimeCookie, partyId, instaceId, processElement, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "process");
-    endpoint += (processElement !=null) ? "/next?elementId=" + processElement :  "/next";
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
+    endpoint += (processElement != null) ? "/next?elementId=" + processElement : "/next";
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.put(endpoint, null, params);
 };
 
@@ -27,7 +27,7 @@ export function getCurrentProcess(altinnStudioRuntimeCookie, partyId, instaceId,
 //Api call to App Api:Process to GET next process of an app instance and returns response
 export function getNextProcess(altinnStudioRuntimeCookie, partyId, instaceId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "process") + "/next";
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.get(endpoint, params);
 };
 
