@@ -8,9 +8,7 @@
     <ProjectGuid>{C219A8A8-B936-453C-AC34-01454A0D1792}</ProjectGuid>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
-  </PropertyGroup>
-  
-  <PropertyGroup>
+    
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessToken</PackageId>
     <PackageVersion>1.0.0-alpha</PackageVersion>
