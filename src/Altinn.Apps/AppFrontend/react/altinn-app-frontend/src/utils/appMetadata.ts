@@ -35,7 +35,10 @@ export function getLayoutSetIdForApplication(
     return showOnEntry;
   }
 
-  // instance - get dataelement based on current process step
+  // instance - get layoutset based on current data task
+  if (!layoutSets) {
+    return null;
+  }
   const dataType = getDataTaskDataTypeId(instance.process.currentTask.elementId,
     application.dataTypes);
   return getLayoutsetForDataElement(instance, dataType, layoutSets);
