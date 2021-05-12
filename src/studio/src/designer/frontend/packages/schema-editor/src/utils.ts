@@ -1,10 +1,11 @@
-import { UiSchemaItem } from './types';
+import { ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
   let propertyId: string | null = null;
   if (path.includes('/properties/')) {
+    // eslint-disable-next-line no-param-reassign
     [path, propertyId] = path.split('/properties/');
   }
   let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
@@ -15,7 +16,11 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
   return schemaItem;
 }
 
-export function getUiSchemaTreeFromItem(schema: UiSchemaItem[], item: UiSchemaItem, isProperty?: boolean): UiSchemaItem[] {
+export function getUiSchemaTreeFromItem(
+  schema: UiSchemaItem[],
+  item: UiSchemaItem,
+  isProperty?: boolean,
+): UiSchemaItem[] {
   let itemList: UiSchemaItem[] = [];
   if (!isProperty) {
     itemList.push(item);
@@ -170,3 +175,14 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
   };
 }
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
+
+export const getTranslation = (key: string, language: ILanguage) => {
+  if (!key) {
+    return key;
+  }
+  return getNestedObject(language, key.split('.')) ?? key;
+};
+
+const getNestedObject = (nestedObj: any, pathArr: string[]) => {
+  return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
+};

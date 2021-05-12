@@ -154,6 +154,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
       </Grid>
       { selectedDataModelName ?
         <SchemaEditorApp
+          language={props.language}
           schema={jsonSchema || { properties: {}, definitions: {} }}
           onSaveSchema={onSaveSchema}
           rootItemId={`#/definitions/${selectedDataModelName}`}

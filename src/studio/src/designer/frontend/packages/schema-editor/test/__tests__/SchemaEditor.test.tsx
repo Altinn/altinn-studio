@@ -18,6 +18,7 @@ const mountComponent = () => mount(
   <Provider store={mockStore}>
     <SchemaEditor
       schema={dataMock}
+      language={{}}
       onSaveSchema={() => {}}
       rootItemId='#/properties/melding'
     />
