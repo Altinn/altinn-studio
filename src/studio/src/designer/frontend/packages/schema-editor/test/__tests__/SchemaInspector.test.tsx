@@ -19,7 +19,7 @@ let addPropertyMock = jest.fn();
 
 const mountComponent = () => mount(
   <Provider store={mockStore}>
-    <SchemaInspector onAddPropertyClick={addPropertyMock} />
+    <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
   </Provider>,
 );
 
@@ -205,7 +205,7 @@ it('renders no item if nothing is selected', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('.no-item-selected').last().text()).toBe('No item selected');
+    expect(wrapper.find('.no-item-selected').last().text()).toBe('schema_editor.no_item_selected');
   });
 });
 
