@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Profile.Tests.Utils;
+using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 using Newtonsoft.Json;
 
 using Xunit;
 
-namespace Altinn.Platform.Profile.Tests.ApiTests
+namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
     public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
     {

@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Profile.Tests.Mocks.Authentication
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication
 {
     /// <summary>
     /// Represents a stub of <see cref="ConfigurationManager{OpenIdConnectConfiguration}"/> to be used in integration tests.

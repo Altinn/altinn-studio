@@ -15,7 +15,7 @@ using Moq.Protected;
 
 using Xunit;
 
-namespace Altinn.Platform.Profile.Tests.ServiceTests
+namespace Altinn.Platform.Profile.Tests.UnitTests
 {
     public class UserProfilesWrapperTest
     {

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 
 using Xunit;
 
-namespace Altinn.Platform.Profile.Tests
+namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
     public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
     {

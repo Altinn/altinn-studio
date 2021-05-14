@@ -5,7 +5,7 @@ using System.Security.Claims;
 using Altinn.Common.AccessToken.Constants;
 using AltinnCore.Authentication.Constants;
 
-namespace Altinn.Platform.Profile.Tests.Utils
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
     public static class PrincipalUtil
     {

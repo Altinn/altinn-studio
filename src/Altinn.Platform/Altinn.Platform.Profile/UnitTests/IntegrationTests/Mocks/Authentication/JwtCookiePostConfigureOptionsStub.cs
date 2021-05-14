@@ -5,7 +5,7 @@ using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Platform.Profile.Tests.Mocks.Authentication
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication
 {
     /// <summary>
     /// Represents a stub for the <see cref="JwtCookiePostConfigureOptions"/> class to be used in integration tests.

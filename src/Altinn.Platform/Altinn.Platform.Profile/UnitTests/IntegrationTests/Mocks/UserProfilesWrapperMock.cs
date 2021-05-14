@@ -7,7 +7,7 @@ using Altinn.Platform.Register.Models;
 
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Profile.Tests.Mocks
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks
 {
     public class UserProfilesWrapperMock : IUserProfiles
     {

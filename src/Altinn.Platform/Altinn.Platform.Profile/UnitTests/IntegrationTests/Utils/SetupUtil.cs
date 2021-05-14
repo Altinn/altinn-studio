@@ -2,8 +2,8 @@ using System.Net.Http;
 
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Profile.Services.Interfaces;
-using Altinn.Platform.Profile.Tests.Mocks;
-using Altinn.Platform.Profile.Tests.Mocks.Authentication;
+using Altinn.Platform.Profile.Tests.IntegrationTests.Mocks;
+using Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Platform.Profile.Tests.Utils
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
     public static class SetupUtil
     {
