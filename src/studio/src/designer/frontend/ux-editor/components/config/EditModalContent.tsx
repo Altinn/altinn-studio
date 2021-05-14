@@ -12,7 +12,7 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector } from '../../selectors/getLayoutData';
 import ErrorPopover from '../message/ErrorPopover';
-import { getTextResource, truncate } from '../../utils/language';
+import { truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 import { getTextResourceByAddressKey, AddressKeys } from '../../utils/component';
@@ -28,19 +28,6 @@ export const customInput = {
     whiteSpace: 'pre-wrap',
   }),
 };
-
-export const disabledInput = {
-  control: (base: any) => ({
-    ...base,
-    borderRadius: '0 !important',
-    background: 'repeating-linear-gradient(135deg, #efefef, #efefef 2px, #fff 3px, #fff 5px)',
-  }),
-  placeholder: (base: any) => ({
-    ...base,
-    color: '#000',
-  }),
-};
-
 const styles = {
   gridItem: {
     marginTop: '18px',
@@ -100,16 +87,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     });
   }
 
-  public handleTextResourceBindingChange = (e: any, key: string): void => {
-    this.setState((prevState: IEditModalContentState) => {
-      const updatedComponent = prevState.component;
-      updatedComponent.textResourceBindings[key] = e ? e.value : null;
-      return {
-        component: updatedComponent,
-      };
-    }, () => this.props.handleComponentUpdate(this.state.component));
-  }
-
   public handleTitleChange = (e: any): void => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent = prevState.component;
@@ -118,11 +95,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         component: updatedComponent,
       };
     }, () => this.props.handleComponentUpdate(this.state.component));
-  }
-
-  public handleParagraphChange = (e: any): void => {
-    const textObject: any = e.target;
-    this.handleTitleChange(textObject);
   }
 
   public handleIdChange = (event: any) => {
@@ -173,7 +145,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   ) => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options[index].label = optionLabel.value;
+      updatedComponent.options[index].label = optionLabel?.value;
       return {
         component: {
           ...prevState.component,
@@ -299,6 +271,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public handleButtonTypeChange = (selected: any) => {
     const component = this.props.component;
+    if (!component.textResourceBindings) {
+      component.textResourceBindings = {};
+    }
     if (selected.value === 'NavigationButtons') {
       component.type = 'NavigationButtons';
       component.textResourceBindings.title = undefined;
@@ -313,7 +288,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       component.textResourceBindings.back = undefined;
       (component as any).showPrev = undefined;
       (component as any).showBackButton = undefined;
-      component.textResourceBindings.title = getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language);
+      component.textResourceBindings.title = getLanguageFromKey(
+        'ux_editor.modal_properties_button_type_submit', this.props.language,
+      );
     }
     this.setState({
       component,
@@ -442,7 +419,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.state.component.textResourceBindings.title)}
+              this.state.component.textResourceBindings?.title,
+              this.state.component.textResourceBindings?.title)}
             <Grid item={true} xs={12}>
               {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
@@ -472,12 +450,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.title)}
+                this.state.component.textResourceBindings?.title,
+                this.props.component.textResourceBindings?.title)}
               {renderSelectTextFromResources('modal_properties_description_helper',
                 this.handleDescriptionChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.description)}
+                this.state.component.textResourceBindings?.description,
+                this.props.component.textResourceBindings?.description)}
             </Grid>
             <Grid
               item={true} xs={12}
@@ -509,7 +489,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              this.state.component.textResourceBindings?.title,
+              this.props.component.textResourceBindings?.title)}
           </Grid>
         );
       }
@@ -521,18 +502,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
-            {false && renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
-            {false && <textarea
-              value={getTextResource(
-                this.state.component.textResourceBindings.title, this.props.textResources,
-              )}
-              style={{ width: '100%' }}
-              rows={4}
-              className='form-control'
-              onChange={this.handleParagraphChange}
-            />
-            }
+              this.state.component.textResourceBindings?.title,
+              this.props.component.textResourceBindings?.title)}
           </Grid>
         );
       }
@@ -597,12 +568,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.title)}
+                this.state.component.textResourceBindings?.title,
+                this.props.component.textResourceBindings?.title)}
               {renderSelectTextFromResources('modal_properties_description_helper',
                 this.handleDescriptionChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.description)}
+                this.state.component.textResourceBindings?.description,
+                this.props.component.textResourceBindings?.description)}
             </Grid>
             <Grid
               item={true} xs={12}
@@ -652,8 +625,10 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       case 'NavigationButtons':
       case 'Button': {
         const types = [
-          { value: 'Button', label: getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language) },
-          { value: 'NavigationButtons', label: getLanguageFromKey('ux_editor.modal_properties_button_type_navigation', this.props.language) },
+          { value: 'Button',
+            label: getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language) },
+          { value: 'NavigationButtons',
+            label: getLanguageFromKey('ux_editor.modal_properties_button_type_navigation', this.props.language) },
         ];
         return (
           <>
@@ -673,6 +648,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
+                this.state.component.textResourceBindings?.title,
+                // TODO: seemingly incorrect use of the placeholder prop (unknown result)
                 getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
             </Grid>
           </>
@@ -703,7 +680,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.title,
+                this.state.component.textResourceBindings?.title,
+                this.props.component.textResourceBindings?.title,
               )
             }
 
@@ -754,12 +732,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.title)}
+                this.state.component.textResourceBindings?.title,
+                this.props.component.textResourceBindings?.title)}
               {renderSelectTextFromResources('modal_properties_description_helper',
                 this.handleDescriptionChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.description)}
+                this.state.component.textResourceBindings?.description,
+                this.props.component.textResourceBindings?.description)}
             </Grid>
             <Grid item={true} xs={12}>
               <AltinnRadioGroup
@@ -858,12 +838,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.title)}
+                this.state.component.textResourceBindings?.title,
+                this.props.component.textResourceBindings?.title)}
               {renderSelectTextFromResources('modal_properties_description_helper',
                 this.handleDescriptionChange,
                 this.props.textResources,
                 this.props.language,
-                this.props.component.textResourceBindings.description)}
+                this.state.component.textResourceBindings?.description,
+                this.props.component.textResourceBindings?.description)}
             </Grid>
             <Grid
               item={true} xs={12}

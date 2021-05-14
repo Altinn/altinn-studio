@@ -25,7 +25,7 @@ describe('>>> utils/render', () => {
         modal_properties_label_helper: 'Søk etter ledetekst',
       },
     };
-    mockOnChangeFunction = (e: any): void => {
+    mockOnChangeFunction = (): void => {
       // do someting
     };
     mockPlaceholder = '25795.OppgavegiverNavnPreutfyltdatadef25795.Label';
@@ -36,6 +36,7 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
+      undefined,
       mockPlaceholder,
     );
     expect(typeof render).toBe('object');
@@ -47,6 +48,7 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
+      undefined,
       undefined,
     );
     expect(typeof render).toBe('object');

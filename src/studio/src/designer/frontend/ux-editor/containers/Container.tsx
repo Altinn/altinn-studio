@@ -3,7 +3,6 @@
 /* eslint-disable global-require */
 /* eslint-disable react/button-has-type */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable no-nested-ternary */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -248,7 +247,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       }
     } else if (this.state.tmpContainer.tableHeaders?.length === 0) {
       this.setState({
-        tableHeadersError: getLanguageFromKey('ux_editor.modal_properties_group_table_headers_error', this.props.language),
+        tableHeadersError: getLanguageFromKey(
+          'ux_editor.modal_properties_group_table_headers_error',
+          this.props.language,
+        ),
       });
     } else {
       // No validations, save.
@@ -393,7 +395,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return this.renderEditMode();
     }
     return (
-      <Grid container={true} style={this.props.baseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}>
+      <Grid
+        container={true}
+        style={this.props.baseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}
+      >
         <Grid
           container={true}
           onClick={this.changeActiveFormContainer}
@@ -443,16 +448,16 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             item={true}
             xs={12}
           >
-            {!this.props.itemOrder?.length ?
-              this.renderContainerPlaceholder() :
-              (this.state.expanded && this.props.itemOrder.map((id: string, index: number) => (
-                this.props.components[id] ?
-                  this.renderFormComponent(id, index) :
-                  this.props.containers[id] ?
-                    this.renderContainer(id, index)
-                    : null
-              ))
-              )}
+            {!this.props.itemOrder?.length && this.renderContainerPlaceholder()}
+            {this.state.expanded && this.props.itemOrder?.length &&
+            this.props.itemOrder.map((id: string, index: number) => {
+              const component = this.props.components[id];
+              if (component) {
+                return this.renderFormComponent(id, index);
+              }
+              return this.props.containers[id] && this.renderContainer(id, index);
+            })
+            }
           </Grid>
         </Grid>
         {!this.props.baseContainer &&
@@ -526,6 +531,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               this.handleButtonTextChange,
               this.props.textResources,
               this.props.language,
+              this.state.tmpContainer.textResourceBindings?.add_button,
               this.state.tmpContainer.textResourceBindings?.add_button,
               undefined, undefined, undefined,
               getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language),
@@ -751,7 +757,7 @@ const makeMapStateToProps = () => {
   const GetActiveFormContainer = makeGetActiveFormContainer();
   const GetContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
-  const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
+  return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetContainersSelector(state);
     const container = containers[props.id];
     const itemOrder = GetLayoutContainerOrder(state, props.id);
@@ -777,7 +783,6 @@ const makeMapStateToProps = () => {
       textResources: state.appData.textResources.resources,
     };
   };
-  return mapStateToProps;
 };
 
 // https://github.com/microsoft/TypeScript/issues/41615

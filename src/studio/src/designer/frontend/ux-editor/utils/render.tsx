@@ -27,27 +27,15 @@ export const styles = {
 };
 
 export function renderPropertyLabel(textKey: string) {
-  return (
-    <Typography style={styles.inputHelper}>
-      {textKey}
-    </Typography>
-  );
+  return <Typography style={styles.inputHelper}>{textKey}</Typography>;
 }
 
 export function renderOptionalLabel(text: string) {
-  return (
-    <Typography style={styles.optional}>
-      {`(${text.toLowerCase()})`}
-    </Typography>
-  );
+  return <Typography style={styles.optional}>{`(${text.toLowerCase()})`}</Typography>;
 }
 
 export function renderDescription(text: string) {
-  return (
-    <Typography style={styles.description}>
-      {text}
-    </Typography>
-  );
+  return <Typography style={styles.description}>{text}</Typography>;
 }
 
 export function noOptionsMessage(language: any): string {
@@ -65,10 +53,11 @@ export function renderSelectDataModelBinding(
 ): JSX.Element {
   return (
     <div key={uniqueKey || ''}>
-      {renderPropertyLabel(label ?
-        `${language.ux_editor.modal_properties_data_model_helper} ${language.general.for} ${label}` :
-        language.ux_editor.modal_properties_data_model_helper)
-      }
+      {renderPropertyLabel(
+        label
+          ? `${language.ux_editor.modal_properties_data_model_helper} ${language.general.for} ${label}`
+          : language.ux_editor.modal_properties_data_model_helper,
+      )}
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         // tslint:disable-next-line:jsx-no-lambda
@@ -89,9 +78,7 @@ export function renderSelectGroupDataModelBinding(
 ): JSX.Element {
   return (
     <div>
-      {
-        renderPropertyLabel(language.ux_editor.modal_properties_data_model_helper)
-      }
+      {renderPropertyLabel(language.ux_editor.modal_properties_data_model_helper)}
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         // tslint:disable-next-line:jsx-no-lambda
@@ -105,48 +92,12 @@ export function renderSelectGroupDataModelBinding(
   );
 }
 
-export function renderSelectComponent(
-  selectedComponent: string,
-  label: string,
-  components: any,
-  language: any,
-  onChangeFunction: (selected: any, action: any) => void,
-  textResources: ITextResource[],
-) {
-  const resources: any = [];
-  Object.keys(components || {}).forEach((componentId: string) => {
-    const component = components[componentId];
-    if (component.type !== 'Group') {
-      const option = truncate(getTextResource(component.textResourceBindings.title, textResources), 80);
-      resources.push({ value: componentId, label: option.concat(' (', componentId, ')') });
-    }
-  });
-  let defaultValue: any = { value: null, label: null };
-  if (components[selectedComponent]) {
-    const option = truncate(getTextResource(components[selectedComponent].textResourceBindings.title, textResources), 80);
-    defaultValue = { value: selectedComponent, label: option.concat(' (', selectedComponent, ')') };
-  }
-  return (
-    <>
-      {renderPropertyLabel(label)}
-      <Select
-        styles={customInput}
-        defaultValue={defaultValue}
-        options={resources}
-        // tslint:disable-next-line:jsx-no-lambda
-        onChange={(selected, action) => onChangeFunction(selected, action)}
-        isClearable={true}
-        noOptionsMessage={() => noOptionsMessage(language)}
-      />
-    </>
-  );
-}
-
 export function renderSelectTextFromResources(
   labelText: string,
-  onChangeFunction: (e: any, returnValue?: string) => void,
+  onChangeFunction: (e: any, rtValue?: string) => void,
   textResources: ITextResource[],
   language: any,
+  selected?: string,
   placeholder?: string,
   returnValue?: string,
   truncateLimit: number = 80,
@@ -154,13 +105,18 @@ export function renderSelectTextFromResources(
   description?: string,
   optional: boolean = false,
 ): JSX.Element {
-  const resources: any = [];
-  if (textResources) {
-    textResources.forEach((textResource: any) => {
+  const resources = !textResources
+    ? []
+    : textResources.map((textResource: any) => {
       const option = truncate(textResource.value, truncateLimit);
-      resources.push({ value: textResource.id, label: option.concat('\n(', textResource.id, ')') });
+      return { value: textResource.id, label: `${option}\n(${textResource.id})` };
     });
-  }
+  const defaultValue = !selected ? undefined : resources.find(({ value }) => value === selected);
+  const onChange = (value: any) => onChangeFunction(value, returnValue);
+  const noOptMessage = () => noOptionsMessage(language);
+  const placeholderText = placeholder
+    ? truncate(getTextResource(placeholder, textResources), 40)
+    : language.ux_editor[labelText];
   return (
     <div>
       <div style={{ display: 'flex' }}>
@@ -168,37 +124,17 @@ export function renderSelectTextFromResources(
         {optional && renderOptionalLabel(language.general.optional)}
       </div>
       {description && renderDescription(description)}
-      {!createNewTextAllowed &&
-        /* TODO: add back in when creating new texts is allowed
-          <CreatableSelect
-            styles={customInput}
-            options={resources}
-            defaultValue={placeholder ?
-              { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
-            // tslint:disable-next-line:jsx-no-lambda
-            onChange={(value) => onChangeFunction(value, returnValue)}
-            isClearable={true}
-            placeholder={placeholder ?
-              truncate(getTextResource(placeholder, textResources), 40)
-              : language.ux_editor[labelText]}
-            // tslint:disable-next-line:jsx-no-lambda
-            formatCreateLabel={(inputValue: string) => formatCreateTextLabel(inputValue, language)}
-            // tslint:disable-next-line:jsx-no-lambda
-            noOptionsMessage={() => noOptionsMessage(language)}
-          /> */
+      {!createNewTextAllowed && (
         <Select
+          defaultValue={defaultValue}
           styles={customInput}
           options={resources}
-          // tslint:disable-next-line:jsx-no-lambda
-          onChange={(value) => onChangeFunction(value, returnValue)}
+          onChange={onChange}
           isClearable={true}
-          placeholder={(placeholder !== undefined) ?
-            truncate(getTextResource(placeholder, textResources), 40)
-            : language.ux_editor[labelText]}
-          // tslint:disable-next-line:jsx-no-lambda
-          noOptionsMessage={() => noOptionsMessage(language)}
+          placeholder={!defaultValue && placeholderText}
+          noOptionsMessage={noOptMessage}
         />
-      }
+      )}
     </div>
   );
 }

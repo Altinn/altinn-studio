@@ -134,11 +134,13 @@ export class SelectionEditComponent
             this.props.handleTitleChange,
             this.props.textResources,
             this.props.language,
+            this.props.component.textResourceBindings.title,
             this.props.component.textResourceBindings.title)}
           {renderSelectTextFromResources('modal_properties_description_helper',
             this.props.handleDescriptionChange,
             this.props.textResources,
             this.props.language,
+            this.props.component.textResourceBindings.description,
             this.props.component.textResourceBindings.description)}
           <Grid
             item={true} xs={12}
@@ -178,36 +180,40 @@ export class SelectionEditComponent
           </AltinnRadioGroup>
           <Grid item={true} classes={{ item: this.props.classes.gridItemWithTopMargin }}>
             {this.state.radioButtonSelection === 'codelist' &&
-            <>
-              <AltinnInputField
-                id='modal-properties-code-list-id'
-                onChangeFunction={this.props.handleOptionsIdChange}
-                inputValue={this.props.component.optionsId}
-                inputDescription={getLanguageFromKey(
-                  'ux_editor.modal_properties_code_list_id', this.props.language,
-                )}
-                inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
-              />
-              <Typography>
-                <a
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
-                >
-                  {getLanguageFromKey(
-                    'ux_editor.modal_properties_code_list_read_more', this.props.language,
+              <>
+                <AltinnInputField
+                  id='modal-properties-code-list-id'
+                  onChangeFunction={this.props.handleOptionsIdChange}
+                  inputValue={this.props.component.optionsId}
+                  inputDescription={getLanguageFromKey(
+                    'ux_editor.modal_properties_code_list_id', this.props.language,
                   )}
-                </a>
-              </Typography>
-            </>
+                  inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
+                  inputDescriptionStyling={{ marginTop: '24px' }}
+                />
+                <Typography>
+                  <a
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
+                  >
+                    {getLanguageFromKey(
+                      'ux_editor.modal_properties_code_list_read_more', this.props.language,
+                    )}
+                  </a>
+                </Typography>
+              </>
             }
             {this.state.radioButtonSelection === 'manual' &&
               this.props.component.options?.map((option, index) => {
+                const updateLabel = (e: any) => this.props.handleUpdateOptionLabel(index, e);
+                const updateValue = (e: any) => this.props.handleUpdateOptionValue(index, e);
+                const removeItem = () => this.props.handleRemoveOption(index);
+                const key = `${option.label}-${index}`; // TODO: Figure out a way to remove index from key.
                 return (
                   <Grid
                     container={true} xs={12}
-                    key={index} classes={{ container: this.props.classes.gridContainer }}
+                    key={key} classes={{ container: this.props.classes.gridContainer }}
                   >
                     <Grid
                       xs={11}
@@ -223,9 +229,10 @@ export class SelectionEditComponent
                       </Grid>
                       <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
                         {renderSelectTextFromResources('modal_text',
-                          this.props.handleUpdateOptionLabel.bind(this, index),
+                          updateLabel,
                           this.props.textResources,
                           this.props.language,
+                          option.label, // TODO: Check if the component works as intended
                           getLanguageFromKey('general.text', this.props.language))}
                       </Grid>
                       <Grid item={true}>
@@ -237,7 +244,7 @@ export class SelectionEditComponent
                           disableUnderline={true}
                           type='text'
                           fullWidth={true}
-                          onChange={this.props.handleUpdateOptionValue.bind(this, index)}
+                          onChange={updateValue}
                           value={option.value}
                           placeholder={getLanguageFromKey('general.value', this.props.language)}
                         />
@@ -250,7 +257,7 @@ export class SelectionEditComponent
                       <IconButton
                         type='button'
                         className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
-                        onClick={this.props.handleRemoveOption.bind(this, index)}
+                        onClick={removeItem}
                       >
                         <i className='fa fa-circletrash' />
                       </IconButton>
@@ -262,6 +269,7 @@ export class SelectionEditComponent
             {this.state.radioButtonSelection === 'manual' &&
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <button
+                  disabled={this.props.component.options?.some(({ label }) => !label)}
                   type='button' className='a-btn'
                   onClick={this.props.handleAddOption}
                 >
