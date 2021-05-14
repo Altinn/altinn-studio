@@ -7,9 +7,7 @@
     <FileVersion>1.0.38.0</FileVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{92f10f90-79c5-459f-8238-0ec4d02aa93c}</ProjectGuid>
-  </PropertyGroup>
-  
-  <PropertyGroup>
+    
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.PEP</PackageId>
     <PackageVersion>1.0.38-alpha</PackageVersion>
@@ -27,8 +25,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.14" />
+    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
+    <!-- More about this dependency in issue #5706 -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.15" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
