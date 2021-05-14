@@ -2,11 +2,15 @@
     Pre-reqisite for test: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Send maskinporten token as environment variable after generating the token
+    3. Send maskinporten token as environment variable: -e maskinporten=token
+
+    Environment variables for test environments: 
+    -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script upload data to app instance as an app owner.
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     and maskinporten token
+    
     Command: docker-compose run k6 run /src/tests/platform/storage/appowner/uploaddata.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
@@ -16,14 +20,12 @@ import * as apps from "../../../api/platform/storage/applications.js"
 import * as instances from "../../../api/platform/storage/instances.js"
 import * as instanceData from "../../../api/platform/storage/data.js"
 import * as setUpData from "../../../setup.js";
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 import { addErrorCount } from "../../../errorcounter.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const maskinPortenToken = __ENV.maskinporten;
 let instanceJson = open("../../../data/instance.json");
 let instanceFormDataXml = open("../../../data/" + level2App + ".xml");
 let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
@@ -41,7 +43,7 @@ export function setup() {
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
-    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+    altinnStudioRuntimeCookie = setUpData.getAltinnTokenForTTD();
     data.RuntimeToken = altinnStudioRuntimeCookie;
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);

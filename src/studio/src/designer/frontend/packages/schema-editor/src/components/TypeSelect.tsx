@@ -5,12 +5,23 @@ export interface ITypeSelectProps {
   id: string;
   itemType: string;
   onChange: (id: string, value: string) => void;
+  readOnly?: boolean;
 }
 
 const useStyles = makeStyles({
   root: {
-    width: '100%',
-    minWidth: 104,
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    margin: 12,
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
+      color: 'black',
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
+    },
   },
 });
 
@@ -19,17 +30,15 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   const {
     id, itemType, onChange,
   } = props;
-  const [value, setValue] = React.useState<string>(itemType || '');
-
   const onValueChange = (event: any) => {
-    setValue(event.target.value);
     onChange(id, event.target.value);
   };
 
   return (
     <Select
       id={`type-select-${id}`}
-      value={value}
+      disabled={props.readOnly}
+      value={itemType || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}

@@ -25,6 +25,10 @@ Lorem ipsum
 
 Lorem ipsum
 
+## Ops requirements
+> Are there any requirements for monitoring? What is being built and what could go wrong? 
+> Are there any requirements related to backup? 
+
 ## Analysis
 
 Lorem ipsum

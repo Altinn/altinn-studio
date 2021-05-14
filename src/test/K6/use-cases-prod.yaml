@@ -1,5 +1,5 @@
 pool:
-  name: Altinn Test Self Hosted VM
+  name: altinn-vmss-testagent
 
 name: $(environment)_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
@@ -28,11 +28,9 @@ steps:
 - script: |
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
-   type result.txt
+   cat result.txt
    
-   set /p result= < result.txt
-   
-   echo ##vso[task.setvariable variable=availability;]%result%
+   echo "##vso[task.setvariable variable=availability;]`cat result.txt`"
   
   workingDirectory: '$(Build.SourcesDirectory)'   
   displayName: 'Check availability'
@@ -57,7 +55,9 @@ steps:
 
 - script: |   
 
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit sbl.xml   
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit sbl.xml
+   
+   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) | k6-to-junit receipt.xml
    
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Platform'

@@ -231,22 +231,12 @@ namespace Altinn.App.Services.Implementation
             Application application = GetApplication();
             string classRef = string.Empty;
 
-            DataType element = application.DataTypes.Single(d => d.Id.Equals(dataType));
+            DataType element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType));
 
             if (element != null)
             {
                 classRef = element.AppLogic.ClassRef;
-            }
-            else
-            {
-                foreach (DataType dataTypeElement in application.DataTypes)
-                {
-                    if (dataTypeElement.AppLogic != null)
-                    {
-                        classRef = dataTypeElement.AppLogic.ClassRef;
-                    }
-                }
-            }
+            }            
 
             return classRef;
         }

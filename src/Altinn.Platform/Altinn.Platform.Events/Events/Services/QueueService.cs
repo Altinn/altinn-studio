@@ -25,6 +25,8 @@ namespace Altinn.Platform.Events.Services
 
         private QueueClient _outboundQueueClient;
 
+        private QueueClient _validationQueueClient;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueService"/> class.
         /// </summary>
@@ -66,7 +68,28 @@ namespace Altinn.Platform.Events.Services
             try
             {
                 QueueClient client = await GetOutboundQueueClient();
-                await client.SendMessageAsync(content);
+                await client.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)));
+            }
+            catch (Exception e)
+            {
+                return new PushQueueReceipt { Success = false, Exception = e };
+            }
+
+            return new PushQueueReceipt { Success = true };
+        }
+
+        /// <inheritdoc/>
+        public async Task<PushQueueReceipt> PushToValidationQueue(string content)
+        {
+            if (!_settings.EnablePushToQueue)
+            {
+                return new PushQueueReceipt { Success = true };
+            }
+
+            try
+            {
+                QueueClient client = await GetValidationQueueClient();
+                await client.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)));
             }
             catch (Exception e)
             {
@@ -96,6 +119,17 @@ namespace Altinn.Platform.Events.Services
             }
 
             return _outboundQueueClient;
+        }
+
+        private async Task<QueueClient> GetValidationQueueClient()
+        {
+            if (_validationQueueClient == null)
+            {
+                _validationQueueClient = new QueueClient(_settings.ConnectionString, _settings.ValidationQueueName);
+                await _validationQueueClient.CreateIfNotExistsAsync();
+            }
+
+            return _validationQueueClient;
         }
     }
 }

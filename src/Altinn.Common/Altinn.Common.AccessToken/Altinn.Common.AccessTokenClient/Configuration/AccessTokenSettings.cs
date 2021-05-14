@@ -11,11 +11,6 @@ namespace Altinn.Common.AccessTokenClient.Configuration
     public class AccessTokenSettings
     {
         /// <summary>
-        /// Disable generation of access token
-        /// </summary>
-        public bool DisableAccessTokenGeneration { get; set;  }
-
-        /// <summary>
         /// The folder where the signing keys are stored. 
         /// </summary>
         public string AccessTokenSigningKeysFolder { get; set; } = "accesstoken/";

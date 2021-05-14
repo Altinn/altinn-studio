@@ -7,22 +7,22 @@ import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 import { RefSelect } from './RefSelect';
 
-const useStyles = makeStyles({
+const useStyles = (readonly?: boolean) => makeStyles({
   field: {
     background: 'white',
     color: 'black',
-    border: '1px solid #006BD8',
+    border: readonly ? '1px solid grey' : '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 8,
-    minWidth: 60,
-  },
-  type: {
-    background: 'white',
-    color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    margin: 8,
+    margin: 12,
+    minWidth: 150,
+    maxWidth: 200,
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
+      color: 'black',
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
+    },
   },
   inline: {
     display: 'inline-block',
@@ -30,15 +30,17 @@ const useStyles = makeStyles({
   label: {
     margin: 12,
   },
-  inputs: {
-    flexGrow: 1,
-  },
   container: {
     display: 'flex',
     flexDirection: 'row',
+    '& >.MuiFormControl-root': {
+      width: 200,
+    },
   },
   delete: {
-    flex: '0 0 auto',
+    marginLeft: '8px',
+    marginTop: '12px',
+    padding: '12px',
   },
 });
 
@@ -51,23 +53,19 @@ export interface IInputFieldProps {
   onChangeRef?: (path: string, ref: string) => void;
   onDeleteField: (path: string, key: string) => void;
   isRef?: boolean;
+  readOnly?: boolean;
 }
 
 export function InputField(props: IInputFieldProps) {
-  const classes = useStyles();
-  const [value, setValue] = React.useState<string>(props.value || '');
-  const [label, setLabel] = React.useState<string>(props.label || '');
+  const classes = useStyles(props.readOnly)();
 
-  React.useEffect(() => {
-    setValue(props.value);
-  }, [props.value]);
+  const [label, setLabel] = React.useState<string>(props.label || '');
 
   React.useEffect(() => {
     setLabel(props.label);
   }, [props.label]);
 
   const onChangeValue = (val: string) => {
-    setValue(val);
     const newValue = props.label === 'enum' ? val.split(',') : val;
     props.onChangeValue(props.fullPath, newValue, props.label);
   };
@@ -95,7 +93,8 @@ export function InputField(props: IInputFieldProps) {
   const renderValueField = () => {
     if (label === 'type') {
       return <TypeSelect
-        itemType={value}
+        readOnly={props.readOnly}
+        itemType={props.value}
         id={label}
         onChange={onChangeType}
       />;
@@ -103,39 +102,42 @@ export function InputField(props: IInputFieldProps) {
     if (props.isRef) {
       return <RefSelect
         id={label}
-        value={value}
+        value={props.value}
+        readOnly={props.readOnly}
         onChange={onChangeRef}
       />;
     }
     return <Input
       id={`${baseId}-value-${label}`}
-      value={value}
+      disabled={props.readOnly}
+      className={classes.field}
+      value={props.value}
       disableUnderline={true}
       onChange={(e) => onChangeValue(e.target.value)}
     />;
   };
   const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
   return (
-    <div>
-      <span className={classes.inputs}>
-        <FormControl>
-          <Input
-            id={`${baseId}-key-${label}`}
-            value={label}
-            disableUnderline={true}
-            onChange={onChangeKey}
-            onBlur={onBlurKey}
-            className={classes.field}
-          />
-        </FormControl>
-        <FormControl className={classes.field}>
-          { renderValueField() }
-        </FormControl>
-      </span>
+    <div className={classes.container}>
+      <FormControl>
+        <Input
+          id={`${baseId}-key-${label}`}
+          value={label}
+          disableUnderline={true}
+          disabled={props.readOnly}
+          onChange={onChangeKey}
+          onBlur={onBlurKey}
+          className={classes.field}
+        />
+      </FormControl>
+      <FormControl>
+        { renderValueField() }
+      </FormControl>
       <IconButton
         id={`${baseId}-delete-${label}`}
         aria-label='Delete field'
         onClick={onClickDelete}
+        className={classes.delete}
       >
         <DeleteOutline/>
       </IconButton>

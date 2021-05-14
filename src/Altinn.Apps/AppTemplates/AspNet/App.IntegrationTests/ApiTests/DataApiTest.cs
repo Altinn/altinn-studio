@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -8,11 +9,13 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
-
+using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json;
 
 using Xunit;
@@ -22,10 +25,10 @@ namespace App.IntegrationTests.ApiTests
     public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-
+        
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
-            _factory = factory;
+            _factory = factory;            
         }
 
         [Fact]
@@ -746,6 +749,197 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(expectedCount, instance.PresentationTexts.Count);
             Assert.True(instance.PresentationTexts.ContainsKey(expectedKey));
             Assert.Equal(expectedValue, instance.PresentationTexts[expectedKey]);
+        }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_NewValueIncluded()
+        {
+            // Arrange
+            int expectedCount = 2;
+            string expectedValue = "160694";
+            string expectedKey = "AnotherField";
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+            Assert.True(instance.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_ExistingValueRemoved()
+        {
+            // Arrange
+            int expectedCount = 0;
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+        }
+
+        [Fact]
+        public async Task Data_Put_DataValuesUpdated_ExistingValueOverwritten()
+        {
+            // Arrange
+            int expectedCount = 1;
+            string expectedValue = "Andreas Dahl";
+            string expectedKey = "Title";
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}?dataType=default";
+            string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"Andreas Dahl\",\"orid\":\"33267\"}}}}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            // Act
+            await client.SendAsync(httpRequestMessage);
+
+            HttpResponseMessage res = await client.GetAsync($"/{org}/{app}/instances/1337/{instanceGuid}");
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+            Assert.True(instance.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        /// <summary>
+        /// This test tests that you can combine data values defined and configured in the applicationmetadata.json
+        /// with data values added manully by the app developer through the IInstance interface.
+        /// Combining both methods should result in the two value sets beeing merged.
+        /// </summary>
+        [Fact]
+        public async Task Instance_CustomDataValuesAdded_CustomValueMergedIn()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            int expectedDataValuesCountAfterAutomaticUpdate = 2;
+            int expectedDataValuesCountAfterManualUpdate = 3;
+            string expectedKey = "AnotherField";
+            string expectedValue = "160694";
+            string expectedCustomKey = "customKey";
+            string expectedCustomValue = "customValue";
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act - automatic update of data values done as a result of configuration and triggered by a change in the data.
+            string instanceUri = $"/{org}/{app}/instances/1337/{instanceGuid}";
+
+            string dataRequestUri = $"{instanceUri}/data/{dataGuid}?dataType=default";
+            string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"12\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri) { Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json") };
+
+            await client.SendAsync(dataHttpRequestMessage);
+
+            HttpResponseMessage responseAfterDataUpdate = await client.GetAsync($"{instanceUri}");
+            string contentAfterDataUpdate = await responseAfterDataUpdate.Content.ReadAsStringAsync();
+            Instance instanceAfterDataUpdate = JsonConvert.DeserializeObject<Instance>(contentAfterDataUpdate);
+
+            // Assert - after automatic update
+            Assert.Equal(HttpStatusCode.OK, responseAfterDataUpdate.StatusCode);
+            Assert.Equal(expectedDataValuesCountAfterAutomaticUpdate, instanceAfterDataUpdate.DataValues.Count);
+            Assert.True(instanceAfterDataUpdate.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instanceAfterDataUpdate.DataValues[expectedKey]);
+
+            // Act - manually updating data values with custom values by triggering complete process            
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instanceUri}/process/completeProcess");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+
+            HttpResponseMessage responseAfterCustomFieldsAdded = await client.GetAsync($"{instanceUri}");
+            string contentAfterCustomFieldsAdded = await responseAfterCustomFieldsAdded.Content.ReadAsStringAsync();
+            Instance instanceAfterCustomFieldsAdded = JsonConvert.DeserializeObject<Instance>(contentAfterCustomFieldsAdded);
+
+            // Assert - after manual update
+            Assert.Equal(expectedDataValuesCountAfterManualUpdate, instanceAfterCustomFieldsAdded.DataValues.Count);            
+            Assert.True(instanceAfterCustomFieldsAdded.DataValues.ContainsKey(expectedCustomKey));
+            Assert.Equal(expectedCustomValue, instanceAfterCustomFieldsAdded.DataValues[expectedCustomKey]);
+
+            // Assert - the values from the automatic update should still be there
+            Assert.True(instanceAfterDataUpdate.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instanceAfterDataUpdate.DataValues[expectedKey]);
+
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
         }
 
         [Fact]

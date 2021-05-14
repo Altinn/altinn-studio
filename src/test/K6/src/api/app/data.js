@@ -20,7 +20,7 @@ export function findDataId(instanceJson) {
 export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, dataType, data, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, "dataid");
     var isBinaryAttachment = (typeof data === "object") ? true : false;
-    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "app");    
+    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "app");
     var requestBody = data;
     return http.put(endpoint, requestBody, params);
 };
@@ -43,6 +43,6 @@ export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, inst
 export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "instanceid") + "/data?dataType=" + dataType;
     var isBinaryAttachment = (typeof data === "object") ? true : false;
-    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "app");    
+    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "app");
     return http.post(endpoint, data, params);
 };

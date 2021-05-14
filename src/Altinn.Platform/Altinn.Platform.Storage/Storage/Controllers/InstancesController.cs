@@ -180,6 +180,12 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
+            // filter out hard deleted instances if user is requesting instances          
+            if (userId != null && !queryParams.ContainsKey("status.isHardDeleted"))
+            {
+                queryParams.Add("status.isHardDeleted", "false");
+            }
+
             string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
             string query = Request.QueryString.Value;
@@ -655,7 +661,7 @@ namespace Altinn.Platform.Storage.Controllers
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            instance.DataValues ??= new Dictionary<string, string>();            
+            instance.DataValues ??= new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in dataValues.Values)
             {

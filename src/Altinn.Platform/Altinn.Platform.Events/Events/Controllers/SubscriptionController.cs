@@ -192,7 +192,8 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
-            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsolutePath) || eventsSubscription.SourceFilter.AbsolutePath.Split("/").Length < 3)
+            string absolutePath = eventsSubscription.SourceFilter.AbsolutePath;
+            if (string.IsNullOrEmpty(absolutePath) || absolutePath.Split("/").Length != 3)
             {
                 message = "A valid app id is required in Source filter {environment}/{org}/{app}";
                 return false;

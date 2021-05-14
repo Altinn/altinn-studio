@@ -7,7 +7,7 @@ import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/
 import { AxiosRequestConfig } from 'axios';
 import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getDataValidationUrl, getValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
 import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
@@ -161,7 +161,12 @@ export function* updateCurrentViewSaga({ payload: {
           LayoutId: currentView,
         },
       };
-      const serverValidation: any = yield call(get, getValidationUrl(instanceId), runValidations === 'page' ? options : null);
+
+      const currentTaskDataId = getCurrentTaskDataElementId(
+        state.applicationMetadata.applicationMetadata,
+        state.instanceData.instance,
+      );
+      const serverValidation: any = yield call(get, getDataValidationUrl(instanceId, currentTaskDataId), runValidations === 'page' ? options : null);
       // update validation state
       const layoutState: ILayoutState = state.formLayout;
       const mappedValidations =
@@ -333,20 +338,26 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     };
   });
   // if any groups have been removed as part of calculation we delete the associated validations
-  const currentKeyes = Object.keys(currentGroups || {});
-  const groupsToRemoveValidaitons = currentKeyes.filter((key) => {
+  const currentGroupKeys = Object.keys(currentGroups || {});
+  const groupsToRemoveValidations = currentGroupKeys.filter((key) => {
     return (currentGroups[key].count > -1) && (!newGroups[key] || newGroups[key].count === -1);
   });
-  if (groupsToRemoveValidaitons.length > 0) {
+  if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
     // eslint-disable-next-line no-restricted-syntax
-    for (const group of groupsToRemoveValidaitons) {
+    for (const group of groupsToRemoveValidations) {
       for (let i = 0; i <= currentGroups[group].count; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
       }
     }
     yield call(FormValidationActions.updateValidations, validations);
   }
+  // preserve current edit index if still valid
+  currentGroupKeys.filter((key) => !groupsToRemoveValidations.includes(key)).forEach((key) => {
+    if (newGroups[key].count >= currentGroups[key].editIndex) {
+      newGroups[key].editIndex = currentGroups[key].editIndex;
+    }
+  });
   yield put(FormLayoutActions.updateRepeatingGroupsFulfilled({ repeatingGroups: newGroups }));
 }
 

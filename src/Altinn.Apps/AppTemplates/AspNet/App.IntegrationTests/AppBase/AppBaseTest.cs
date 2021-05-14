@@ -84,6 +84,28 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
+        public async Task OnInstantiation_DataValuesAreSet()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "datafields-app";
+
+            int expectedCount = 1;
+            string expectedKey = "Title";
+            string expectedValue = "Sophie Salt";
+
+            // Act
+            Instance instance = await CreateInstance(org, app);
+            DeleteInstance(instance);
+
+            // Assert
+            Assert.NotNull(instance.DataValues);
+            Assert.Equal(expectedCount, instance.DataValues.Count);
+            Assert.True(instance.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        [Fact]
         public async void OnTaskStart_DataElementIsCreated()
         {
             string token = PrincipalUtil.GetToken(1337);

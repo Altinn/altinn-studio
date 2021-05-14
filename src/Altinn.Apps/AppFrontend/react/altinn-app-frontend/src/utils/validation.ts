@@ -11,7 +11,7 @@ import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
-import { getTextResourceByKey } from './textResource';
+import { getParsedTextResourceByKey } from './textResource';
 import { getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent, setupGroupComponents } from './layout';
@@ -805,10 +805,10 @@ function addValidation(
     componentValidations[dataModelBindingKey] = { errors: [], warnings: [] };
   }
   if (validation.severity === Severity.Error) {
-    componentValidations[dataModelBindingKey].errors.push(getTextResourceByKey(validation.description, textResources));
+    componentValidations[dataModelBindingKey].errors.push(getParsedTextResourceByKey(validation.description, textResources) as any);
   } else {
     componentValidations[dataModelBindingKey].warnings
-      .push(getTextResourceByKey(validation.description, textResources));
+      .push(getParsedTextResourceByKey(validation.description, textResources) as any);
   }
 }
 

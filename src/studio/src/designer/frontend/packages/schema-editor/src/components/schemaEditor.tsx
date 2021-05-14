@@ -5,20 +5,19 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
-import { ISchema, ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
-import { buildUISchema, getUiSchemaTreeFromItem } from '../utils';
+import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
 
 const useStyles = makeStyles(
   createStyles({
     root: {
       marginTop: 24,
-      background: 'white',
-      height: 700,
+      height: '100%',
     },
     tree: {
       flexGrow: 1,
@@ -40,21 +39,23 @@ export interface ISchemaEditor {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
   rootItemId?: string;
+  language: ILanguage;
 }
 
 export const SchemaEditor = ({
-  schema, onSaveSchema, rootItemId,
+  schema, onSaveSchema, rootItemId, language,
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
-
   const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const rootItemName = useSelector((state: ISchemaState) => state.rootName);
+  const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
+  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
 
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
@@ -78,6 +79,16 @@ export const SchemaEditor = ({
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
+
+  React.useEffect(() => {
+    if (selectedNodeId) {
+      const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
+      if (node) {
+        node.focus();
+        (node.firstChild as HTMLElement).click();
+      }
+    }
+  }, [selectedNodeId]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -119,7 +130,6 @@ export const SchemaEditor = ({
   };
 
   const item = rootItem ?? uiSchema.find((i) => i.id.includes('#/properties/'));
-  const definitions = uiSchema.filter((i) => i.id.includes('#/definition'));
   return (
     <div className={classes.root}>
       <Grid container={true} direction='row'>
@@ -129,7 +139,7 @@ export const SchemaEditor = ({
             <button
               type='button' className={classes.button}
               onClick={onClickSaveJsonSchema}
-            >Save data model
+            >{getTranslation('schema_editor.save_data_model', language)}
             </button>
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
@@ -137,25 +147,27 @@ export const SchemaEditor = ({
               onClose={onCancelAddItemModal}
               onConfirm={onCloseAddPropertyModal}
               sharedTypes={sharedItems}
-              title='Add property'
+              title={getTranslation('schema_editor.add_property', language)}
             />
+
             <TreeView
+              multiSelect={false}
               className={classes.tree}
-              defaultExpanded={['properties']}
+              defaultExpanded={['properties', 'definitions']}
               defaultCollapseIcon={<ArrowDropDownIcon />}
               defaultExpandIcon={<ArrowRightIcon />}
             >
               <TreeItem
                 id='properties'
                 nodeId='properties'
-                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> properties</div>}
+                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> {getTranslation('schema_editor.properties', language)}</div>}
               >
                 { item &&
                 <SchemaItem
                   keyPrefix='properties'
                   id='root-schema-item'
                   item={item}
-                  nodeId={`prop-${item.id}`}
+                  nodeId={`${item.id}`}
                 /> }
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -165,6 +177,7 @@ export const SchemaEditor = ({
                   item={def}
                   key={def.id}
                   nodeId={`def-${def.id}`}
+                  id={getDomFriendlyID(def.id)}
                 />)}
               </TreeItem>
             </TreeView>
@@ -175,7 +188,7 @@ export const SchemaEditor = ({
             <button
               type='button' className={classes.button}
               onClick={onAddRootItemClick}
-            >Add root item
+            >{getTranslation('schema_editor.add_root_item', language)}
             </button>
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
@@ -189,7 +202,7 @@ export const SchemaEditor = ({
           }
         </Grid>
         <Grid item={true} xs={5}>
-          <SchemaInspector onAddPropertyClick={onAddPropertyClick} />
+          <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>
     </div>
