@@ -1,9 +1,4 @@
-/* eslint-disable no-undef */
-/* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable global-require */
-/* eslint-disable react/button-has-type */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -177,7 +172,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     });
   }
 
-  public handleMaxOccourChange = (event: any) => {
+  public handleMaxOccurChange = (event: any) => {
     let maxOcc = event.target?.value;
     if (maxOcc < 2) {
       maxOcc = 2;
@@ -192,7 +187,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     });
   }
 
-  public getStatefullIndexOfContainer = (
+  public getStatefulIndexOfContainer = (
     containerId: string,
     parentContainerId: string = Object.keys(this.props.containers)[0],
   ): number => {
@@ -419,7 +414,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                   onClick={this.handleExpand}
                 >
                   <i
-                    role='button'
                     className={
                       `${this.props.classes.icon} fa fa-expand-alt${this.state.expanded ? ' fa-rotate-90' : ''}`}
                   />
@@ -450,13 +444,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           >
             {!this.props.itemOrder?.length && this.renderContainerPlaceholder()}
             {this.state.expanded && this.props.itemOrder?.length &&
-            this.props.itemOrder.map((id: string, index: number) => {
-              const component = this.props.components[id];
-              if (component) {
-                return this.renderFormComponent(id, index);
-              }
-              return this.props.containers[id] && this.renderContainer(id, index);
-            })
+              this.props.itemOrder.map((id: string, index: number) => {
+                const component = this.props.components[id];
+                if (component) {
+                  return this.renderFormComponent(id, index);
+                }
+                return this.props.containers[id] && this.renderContainer(id, index);
+              })
             }
           </Grid>
         </Grid>
@@ -519,7 +513,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             )}
             <AltinnInputField
               id='modal-properties-maximum-files'
-              onChangeFunction={this.handleMaxOccourChange}
+              onChangeFunction={this.handleMaxOccurChange}
               inputValue={this.state.tmpContainer.maxCount}
               inputDescription={getLanguageFromKey('ux_editor.modal_properties_group_max_occur', this.props.language)}
               inputFieldStyling={{ width: '60px' }}
@@ -680,7 +674,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         onMoveComponent={this.props.onMoveComponent}
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
-        getIndex={this.getStatefullIndexOfContainer}
+        getIndex={this.getStatefulIndexOfContainer}
         key={id}
       >
         <Container
