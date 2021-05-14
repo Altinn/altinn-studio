@@ -1,9 +1,7 @@
 {
   "defaultSeverity": "warning",
   "extends": [
-    "tslint:recommended",
-    "tslint-react",
-    "tslint-eslint-rules"
+    "eslint"
   ],
   "jsRules": {},
   "rules": {
@@ -25,13 +23,7 @@
       }
     ],
     "no-console": [
-      true,
-      {
-        "allow": [
-          "warn",
-          "error"
-        ]
-      }
+      true
     ],
     "no-empty-interface": false,
     "no-submodule-imports": false,
