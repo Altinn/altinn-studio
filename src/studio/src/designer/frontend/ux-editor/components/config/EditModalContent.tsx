@@ -625,10 +625,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       case 'NavigationButtons':
       case 'Button': {
         const types = [
-          { value: 'Button',
-            label: getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language) },
-          { value: 'NavigationButtons',
-            label: getLanguageFromKey('ux_editor.modal_properties_button_type_navigation', this.props.language) },
+          {
+            value: 'Button',
+            label: getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language),
+          },
+          {
+            value: 'NavigationButtons',
+            label: getLanguageFromKey('ux_editor.modal_properties_button_type_navigation', this.props.language),
+          },
         ];
         return (
           <>
@@ -649,7 +653,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.props.textResources,
                 this.props.language,
                 this.state.component.textResourceBindings?.title,
-                // TODO: seemingly incorrect use of the placeholder prop (unknown result)
                 getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
             </Grid>
           </>

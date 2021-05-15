@@ -209,7 +209,7 @@ export class SelectionEditComponent
                 const updateLabel = (e: any) => this.props.handleUpdateOptionLabel(index, e);
                 const updateValue = (e: any) => this.props.handleUpdateOptionValue(index, e);
                 const removeItem = () => this.props.handleRemoveOption(index);
-                const key = `${option.label}-${index}`; // TODO: Figure out a way to remove index from key.
+                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
                 return (
                   <Grid
                     container={true} xs={12}
@@ -232,7 +232,7 @@ export class SelectionEditComponent
                           updateLabel,
                           this.props.textResources,
                           this.props.language,
-                          option.label, // TODO: Check if the component works as intended
+                          option.label, // Check if the component works as intended
                           getLanguageFromKey('general.text', this.props.language))}
                       </Grid>
                       <Grid item={true}>
