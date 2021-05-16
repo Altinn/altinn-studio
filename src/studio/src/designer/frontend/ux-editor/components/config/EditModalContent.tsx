@@ -4,30 +4,22 @@
 import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import Select from 'react-select';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import Select from 'react-select';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector } from '../../selectors/getLayoutData';
-import ErrorPopover from '../message/ErrorPopover';
 import { truncate } from '../../utils/language';
-import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
+import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { getTextResourceByAddressKey, AddressKeys } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
+import ErrorPopover from '../message/ErrorPopover';
+import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
+import EditBoilerplate from './EditBoilerplate';
+import HeaderSizeSelect from './HeaderSizeSelect';
 
-export const customInput = {
-  control: (base: any) => ({
-    ...base,
-    borderRadius: '0 !important',
-  }),
-  option: (provided: any) => ({
-    ...provided,
-    whiteSpace: 'pre-wrap',
-  }),
-};
 const styles = {
   gridItem: {
     marginTop: '18px',
@@ -403,62 +395,31 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.type) {
       case 'Header': {
-        const sizes = [
-          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
-          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h3 },
-          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
-        ];
         return (
-          <Grid
-            container={true}
-            spacing={0}
-            direction='column'
-          >
-            {this.renderChangeId()}
-            {renderSelectTextFromResources('modal_properties_header_helper',
-              this.handleTitleChange,
-              this.props.textResources,
-              this.props.language,
-              this.state.component.textResourceBindings?.title,
-              this.state.component.textResourceBindings?.title)}
-            <Grid item={true} xs={12}>
-              {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
-              <Select
-                styles={customInput}
-                defaultValue={this.state.component.size ?
-                  sizes.find((size) => size.value === this.state.component.size) :
-                  sizes[0]}
-                onChange={this.handleUpdateHeaderSize}
-                options={sizes}
-              />
-            </Grid>
-          </Grid>
+          <HeaderSizeSelect
+            renderChangeId={this.renderChangeId}
+            component={this.state.component}
+            language={this.props.language}
+            textResources={this.props.textResources}
+            handleTitleChange={this.handleTitleChange}
+            handleUpdateHeaderSize={this.handleUpdateHeaderSize}
+          />
         );
       }
       case 'Datepicker':
+      case 'TextArea':
       case 'Input': {
         return (
           <>
             {this.renderChangeId()}
-            <Grid item={true} xs={12}>
-              {renderSelectDataModelBinding(
-                this.props.component.dataModelBindings,
-                this.handleDataModelChange,
-                this.props.language,
-              )}
-              {renderSelectTextFromResources('modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.title,
-                this.props.component.textResourceBindings?.title)}
-              {renderSelectTextFromResources('modal_properties_description_helper',
-                this.handleDescriptionChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.description,
-                this.props.component.textResourceBindings?.description)}
-            </Grid>
+            <EditBoilerplate
+              component={this.props.component}
+              textResources={this.props.textResources}
+              handleDataModelChange={this.handleDataModelChange}
+              handleTitleChange={this.handleTitleChange}
+              handleDescriptionChange={this.handleDescriptionChange}
+              language={this.props.language}
+            />
             <Grid
               item={true} xs={12}
               style={styles.gridItem}
@@ -507,37 +468,15 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-      case 'Checkboxes': {
-        return (
-          <>
-            {this.renderChangeId()}
-            <SelectionEdit
-              type='checkboxes'
-              key={this.state.component.id}
-              component={this.state.component as IFormCheckboxComponent}
-              handleAddOption={this.handleAddOption}
-              handleOptionsIdChange={this.handleOptionsIdChange}
-              handleDescriptionChange={this.handleDescriptionChange}
-              handlePreselectedOptionChange={this.handlePreselectedOptionChange}
-              handleRemoveOption={this.handleRemoveOption}
-              handleTitleChange={this.handleTitleChange}
-              handleUpdateOptionLabel={this.handleUpdateOptionLabel}
-              handleUpdateOptionValue={this.handleUpdateOptionValue}
-              handleDataModelChange={this.handleDataModelChange}
-              handleRequiredChange={this.handleRequiredChange}
-              handleReadOnlyChange={this.handleReadOnlyChange}
-            />
-          </>
-        );
-      }
+      case 'Checkboxes':
       case 'RadioButtons': {
         return (
           <>
             {this.renderChangeId()}
             <SelectionEdit
-              type='radiobuttons'
+              type={this.props.component.type}
+              component={this.state.component}
               key={this.state.component.id}
-              component={this.state.component as IFormRadioButtonComponent}
               handleAddOption={this.handleAddOption}
               handleOptionsIdChange={this.handleOptionsIdChange}
               handleDescriptionChange={this.handleDescriptionChange}
@@ -558,25 +497,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         return (
           <Grid container={true}>
             {this.renderChangeId()}
-            <Grid item={true} xs={12}>
-              {renderSelectDataModelBinding(
-                this.props.component.dataModelBindings,
-                this.handleDataModelChange,
-                this.props.language,
-              )}
-              {renderSelectTextFromResources('modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.title,
-                this.props.component.textResourceBindings?.title)}
-              {renderSelectTextFromResources('modal_properties_description_helper',
-                this.handleDescriptionChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.description,
-                this.props.component.textResourceBindings?.description)}
-            </Grid>
+            <EditBoilerplate
+              component={this.props.component}
+              textResources={this.props.textResources}
+              handleDataModelChange={this.handleDataModelChange}
+              handleTitleChange={this.handleTitleChange}
+              handleDescriptionChange={this.handleDescriptionChange}
+              language={this.props.language}
+            />
             <Grid
               item={true} xs={12}
               style={styles.gridItem}
@@ -677,17 +605,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               />
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
             </Grid>
-            {
-              renderSelectTextFromResources(
-                'modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.title,
-                this.props.component.textResourceBindings?.title,
-              )
-            }
-
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.state.component.textResourceBindings?.title,
+              this.props.component.textResourceBindings?.title)}
             {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
               if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
@@ -825,51 +748,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               </Typography>
             </Grid>
           </Grid>
-        );
-      }
-      case 'TextArea': {
-        return (
-          <>
-            {this.renderChangeId()}
-            <Grid item={true} xs={12}>
-              {renderSelectDataModelBinding(
-                this.props.component.dataModelBindings,
-                this.handleDataModelChange,
-                this.props.language,
-              )}
-              {renderSelectTextFromResources('modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.title,
-                this.props.component.textResourceBindings?.title)}
-              {renderSelectTextFromResources('modal_properties_description_helper',
-                this.handleDescriptionChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.description,
-                this.props.component.textResourceBindings?.description)}
-            </Grid>
-            <Grid
-              item={true} xs={12}
-              style={styles.gridItem}
-            >
-              <AltinnCheckBox
-                checked={this.state.component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {this.props.language.ux_editor.modal_configure_read_only}
-            </Grid>
-            <Grid
-              item={true} xs={12}
-            >
-              <AltinnCheckBox
-                checked={this.state.component.required}
-                onChangeFunction={this.handleRequiredChange}
-              />
-              {this.props.language.ux_editor.modal_configure_required}
-            </Grid>
-          </>
         );
       }
       default: {

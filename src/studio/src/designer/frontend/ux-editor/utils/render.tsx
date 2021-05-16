@@ -2,10 +2,7 @@
 import { Typography } from '@material-ui/core';
 import * as React from 'react';
 import Select from 'react-select';
-// eslint-disable-next-line import/no-cycle
-import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
-// eslint-disable-next-line import/no-cycle
 import { getTextResource, truncate } from './language';
 
 export const styles = {
@@ -26,6 +23,17 @@ export const styles = {
   },
 };
 
+const selectStyles = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+  }),
+  option: (provided: any) => ({
+    ...provided,
+    whiteSpace: 'pre-wrap',
+  }),
+};
+
 export function renderPropertyLabel(textKey: string) {
   return <Typography style={styles.inputHelper}>{textKey}</Typography>;
 }
@@ -43,7 +51,7 @@ export function noOptionsMessage(language: any): string {
 }
 
 export function renderSelectDataModelBinding(
-  dataModelBinding: IDataModelBindings = {},
+  dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
   label?: string,
@@ -51,6 +59,8 @@ export function renderSelectDataModelBinding(
   key: string = 'simpleBinding',
   uniqueKey?: any,
 ): JSX.Element {
+  const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
+  const noOptMessage = () => noOptionsMessage(language);
   return (
     <div key={uniqueKey || ''}>
       {renderPropertyLabel(
@@ -60,18 +70,16 @@ export function renderSelectDataModelBinding(
       )}
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
-        // tslint:disable-next-line:jsx-no-lambda
-        onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, returnValue)}
+        onDataModelChange={onDMChange}
         language={language}
-        // tslint:disable-next-line:jsx-no-lambda
-        noOptionsMessage={() => noOptionsMessage(language)}
+        noOptionsMessage={noOptMessage}
       />
     </div>
   );
 }
 
 export function renderSelectGroupDataModelBinding(
-  dataModelBinding: IDataModelBindings = {},
+  dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
   key: string = 'simpleBinding',
@@ -92,27 +100,34 @@ export function renderSelectGroupDataModelBinding(
   );
 }
 
-export function renderSelectTextFromResources(
+interface IInnerProps {
   labelText: string,
-  onChangeFunction: (e: any, rtValue?: string) => void,
+  onChangeFunction: (e: any) => void,
   textResources: ITextResource[],
   language: any,
   selected?: string,
   placeholder?: string,
-  returnValue?: string,
-  truncateLimit: number = 80,
-  createNewTextAllowed: boolean = false,
   description?: string,
-  optional: boolean = false,
-): JSX.Element {
+}
+function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
+  const {
+    labelText,
+    onChangeFunction,
+    textResources,
+    language,
+    selected,
+    placeholder,
+    description,
+    children,
+  } = props;
   const resources = !textResources
     ? []
     : textResources.map((textResource: any) => {
-      const option = truncate(textResource.value, truncateLimit);
+      const option = truncate(textResource.value, 80);
       return { value: textResource.id, label: `${option}\n(${textResource.id})` };
     });
   const defaultValue = !selected ? undefined : resources.find(({ value }) => value === selected);
-  const onChange = (value: any) => onChangeFunction(value, returnValue);
+  const onChange = (value: any) => onChangeFunction(value);
   const noOptMessage = () => noOptionsMessage(language);
   const placeholderText = placeholder
     ? truncate(getTextResource(placeholder, textResources), 40)
@@ -121,20 +136,63 @@ export function renderSelectTextFromResources(
     <div>
       <div style={{ display: 'flex' }}>
         {renderPropertyLabel(language.ux_editor[labelText])}
-        {optional && renderOptionalLabel(language.general.optional)}
+        {children}
       </div>
       {description && renderDescription(description)}
-      {!createNewTextAllowed && (
-        <Select
-          defaultValue={defaultValue}
-          styles={customInput}
-          options={resources}
-          onChange={onChange}
-          isClearable={true}
-          placeholder={!defaultValue && placeholderText}
-          noOptionsMessage={noOptMessage}
-        />
-      )}
+      <Select
+        defaultValue={defaultValue}
+        styles={selectStyles}
+        options={resources}
+        onChange={onChange}
+        isClearable={true}
+        placeholder={!defaultValue && placeholderText}
+        noOptionsMessage={noOptMessage}
+      />
     </div>
+  );
+}
+
+export function renderSelectTextFromResources(
+  labelText: string,
+  onChangeFunction: (e: any) => void,
+  textResources: ITextResource[],
+  language: any,
+  selected?: string,
+  placeholder?: string,
+  description?: string,
+): JSX.Element {
+  return (
+    <SelectTextFromRecources
+      labelText={labelText}
+      onChangeFunction={onChangeFunction}
+      textResources={textResources}
+      language={language}
+      selected={selected}
+      placeholder={placeholder}
+      description={description}
+    />
+  );
+}
+
+export function renderOptionalSelectTextFromResources(
+  labelText: string,
+  onChangeFunction: (e: any) => void,
+  textResources: ITextResource[],
+  language: any,
+  selected?: string,
+  placeholder?: string,
+  description?: string,
+): JSX.Element {
+  return (
+    <SelectTextFromRecources
+      labelText={labelText}
+      onChangeFunction={onChangeFunction}
+      textResources={textResources}
+      language={language}
+      selected={selected}
+      placeholder={placeholder}
+      description={description}
+    >{renderOptionalLabel(language.general.optional)}
+    </SelectTextFromRecources>
   );
 }

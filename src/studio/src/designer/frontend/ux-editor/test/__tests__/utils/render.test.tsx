@@ -48,8 +48,6 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
-      undefined,
-      undefined,
     );
     expect(typeof render).toBe('object');
     expect(render.props.children[0].props.children[0].props.children).toEqual('Søk etter ledetekst');

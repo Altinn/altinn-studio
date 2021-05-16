@@ -14,7 +14,7 @@ import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
-import { renderSelectGroupDataModelBinding, renderSelectTextFromResources } from '../utils/render';
+import { renderSelectGroupDataModelBinding, renderOptionalSelectTextFromResources } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -521,15 +521,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               type='number'
               isDisabled={!!(this.state.tmpContainer.dataModelBindings.group)}
             />
-            {renderSelectTextFromResources('modal_properties_group_add_button',
+            {renderOptionalSelectTextFromResources('modal_properties_group_add_button',
               this.handleButtonTextChange,
               this.props.textResources,
               this.props.language,
               this.state.tmpContainer.textResourceBindings?.add_button,
               this.state.tmpContainer.textResourceBindings?.add_button,
-              undefined, undefined, undefined,
-              getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language),
-              true)
+              getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language))
             }
             {(this.props.itemOrder.length > 0) &&
               <Grid item={true} style={{ marginTop: '24px' }}>

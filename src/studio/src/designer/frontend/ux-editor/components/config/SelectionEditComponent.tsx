@@ -7,7 +7,6 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-// eslint-disable-next-line import/no-cycle
 import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 
 const styles = createStyles({
@@ -64,8 +63,8 @@ const styles = createStyles({
 
 export interface ISelectionEditComponentProvidedProps {
   classes: any;
-  component: IFormCheckboxComponent | IFormRadioButtonComponent;
-  type: 'checkboxes' | 'radiobuttons';
+  component: IFormComponent;
+  type: 'Checkboxes' | 'RadioButtons';
   handleOptionsIdChange: (e: any) => void;
   handleTitleChange: (updatedTitle: string) => void;
   handleDescriptionChange: (updatedDescription: string) => void;
@@ -97,8 +96,11 @@ export class SelectionEditComponent
   extends React.Component<ISelectionEditComponentProps, ISelectionEditComponentState> {
   constructor(props: ISelectionEditComponentProps, state: ISelectionEditComponentState) {
     super(props, state);
+    const component = this.props.component.type === 'Checkboxes'
+      ? this.props.component as IFormCheckboxComponent
+      : this.props.component as IFormRadioButtonComponent;
     let radioButtonSelection = '';
-    if (props.component.optionsId) {
+    if (component.optionsId) {
       radioButtonSelection = 'codelist';
     } else if (this.props.component.options.length > 0) {
       radioButtonSelection = 'manual';
@@ -165,7 +167,7 @@ export class SelectionEditComponent
             onChange={this.handleRadioButtonChange}
             value={this.state.radioButtonSelection}
             row={true}
-            description={(this.props.type === 'radiobuttons') ?
+            description={(this.props.type === 'RadioButtons') ?
               this.props.language.ux_editor.modal_properties_add_radio_button_options :
               this.props.language.ux_editor.modal_properties_add_check_box_options}
           >
@@ -184,7 +186,7 @@ export class SelectionEditComponent
                 <AltinnInputField
                   id='modal-properties-code-list-id'
                   onChangeFunction={this.props.handleOptionsIdChange}
-                  inputValue={this.props.component.optionsId}
+                  inputValue={(this.props.component as IFormRadioButtonComponent).optionsId}
                   inputDescription={getLanguageFromKey(
                     'ux_editor.modal_properties_code_list_id', this.props.language,
                   )}
@@ -222,7 +224,7 @@ export class SelectionEditComponent
                     >
                       <Grid item={true} classes={{ item: this.props.classes.gridItem }} >
                         <Typography classes={{ root: this.props.classes.textBold }}>
-                          {`${(this.props.type === 'radiobuttons') ?
+                          {`${(this.props.type === 'RadioButtons') ?
                             this.props.language.ux_editor.modal_radio_button_increment :
                             this.props.language.ux_editor.modal_check_box_increment} ${index + 1}`}
                         </Typography>
@@ -279,7 +281,7 @@ export class SelectionEditComponent
             }
             <Grid item={true} classes={{ item: this.props.classes.gridItemWithTopMargin }}>
               <Typography classes={{ root: this.props.classes.text }}>
-                {(this.props.type === 'checkboxes') ?
+                {(this.props.type === 'Checkboxes') ?
                   this.props.language.ux_editor.modal_check_box_set_preselected :
                   this.props.language.ux_editor.modal_radio_button_set_preselected}
               </Typography>
@@ -291,7 +293,7 @@ export class SelectionEditComponent
                 placeholder={this.props.language.ux_editor.modal_selection_set_preselected_placeholder}
                 fullWidth={true}
                 onChange={this.props.handlePreselectedOptionChange}
-                defaultValue={this.props.component.preselectedOptionIndex}
+                defaultValue={(this.props.component as IFormCheckboxComponent).preselectedOptionIndex}
               />
             </Grid>
           </Grid>
