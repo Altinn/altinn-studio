@@ -1,4 +1,5 @@
 import 'jest';
+import { mount } from 'enzyme';
 import { renderSelectTextFromResources } from '../../../utils/render';
 
 describe('>>> utils/render', () => {
@@ -40,7 +41,10 @@ describe('>>> utils/render', () => {
       mockPlaceholder,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[2].props.placeholder).toEqual('Navn');
+    const wrapper = mount(render);
+    expect(wrapper.children()
+      .last().children().last()
+      .props().placeholder).toEqual('Navn');
   });
   it('+++ should render select with default placeholder', () => {
     const render = renderSelectTextFromResources(
@@ -50,7 +54,15 @@ describe('>>> utils/render', () => {
       mockLanguage,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[0].props.children[0].props.children).toEqual('Søk etter ledetekst');
-    expect(render.props.children[2].props.placeholder).toEqual('Søk etter ledetekst');
+    const wrapper = mount(render);
+    expect(
+      wrapper.children()
+        .first().children().first()
+        .children()
+        .text(),
+    ).toEqual('Søk etter ledetekst');
+    expect(wrapper.children()
+      .last().children().last()
+      .props().placeholder).toEqual('Søk etter ledetekst');
   });
 });
