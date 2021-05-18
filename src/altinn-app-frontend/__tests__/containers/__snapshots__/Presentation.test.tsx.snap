@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
+exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
 <div
   id="processContainer"
   style={

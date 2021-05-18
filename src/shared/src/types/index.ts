@@ -13,6 +13,11 @@ export interface IApplication {
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
+  onEntry?: IOnEntry;
+}
+
+export interface IOnEntry {
+  show: 'new-instance' | 'startpage' | string;
 }
 
 export interface IAttachment {
