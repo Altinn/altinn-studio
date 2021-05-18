@@ -126,6 +126,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string dueBefore,
             [FromQuery] string excludeConfirmedBy,
             [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isHardDeleted")] bool isHardDeleted,
             [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
