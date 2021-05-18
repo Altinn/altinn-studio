@@ -1,13 +1,17 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, select, all, take, put } from 'redux-saga/effects';
 import { getJsonSchemaUrl } from 'src/utils/urlHelper';
 import { IInstance } from 'altinn-shared/types';
+import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
+import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { get } from '../../../../utils/networking';
-import { IRuntimeState } from '../../../../types';
+import { ILayoutSets, IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { fetchJsonSchema, fetchJsonSchemaFulfilled, fetchJsonSchemaRejected } from '../datamodelSlice';
+import { FormLayoutActions } from '../../layout/formLayoutSlice';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata =
   (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
@@ -18,13 +22,13 @@ function* fetchJsonSchemaSaga(): SagaIterator {
     const url = getJsonSchemaUrl();
     const appMetadata: IApplicationMetadata = yield select(AppMetadataSelector);
     const instance: IInstance = yield select(InstanceDataSelector);
-    const dataType =
-      appMetadata.dataTypes.find((type) => !!type.appLogic && type.taskId === instance.process.currentTask.elementId);
-    const id: string = dataType?.id;
+    const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
 
-    if (id) {
-      const schema: any = yield call(get, url + id);
-      yield put(fetchJsonSchemaFulfilled({ schema, id }));
+    const dataTypeId = getCurrentDataTypeForApplication(appMetadata, instance, layoutSets);
+
+    if (dataTypeId) {
+      const schema: any = yield call(get, url + dataTypeId);
+      yield put(fetchJsonSchemaFulfilled({ schema, id: dataTypeId }));
     }
   } catch (error) {
     yield put(fetchJsonSchemaRejected({ error }));
@@ -33,11 +37,26 @@ function* fetchJsonSchemaSaga(): SagaIterator {
 }
 
 export function* watchFetchJsonSchemaSaga(): SagaIterator {
-  while (true) {
-    yield all([
-      take(GET_INSTANCEDATA_FULFILLED),
-      take(fetchJsonSchema),
-    ]);
+  yield all([
+    take(FETCH_APPLICATION_METADATA_FULFILLED),
+    take(FormLayoutActions.fetchLayoutSetsFulfilled),
+    take(fetchJsonSchema),
+  ]);
+  const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+  if (application?.onEntry?.show) {
     yield call(fetchJsonSchemaSaga);
+    while (true) {
+      yield take(fetchJsonSchema);
+      yield call(fetchJsonSchemaSaga);
+    }
+  } else {
+    yield call(fetchJsonSchemaSaga);
+    while (true) {
+      yield all([
+        take(GET_INSTANCEDATA_FULFILLED),
+        take(fetchJsonSchema),
+      ]);
+      yield call(fetchJsonSchemaSaga);
+    }
   }
 }

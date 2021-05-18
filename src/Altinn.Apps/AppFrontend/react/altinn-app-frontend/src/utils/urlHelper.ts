@@ -140,7 +140,14 @@ export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }
 
-export function getFetchFormDynamicsUrl() {
+export function getFetchStatelessFormDataUrl(dataType: string) {
+  return `${appPath}/v1/data?dataType=${dataType}`;
+}
+
+export function getFetchFormDynamicsUrl(layoutSetId?: string) {
+  if (layoutSetId) {
+    return `${appPath}/api/ruleconfiguration/${layoutSetId}`;
+  }
   return `${appPath}/api/resource/RuleConfiguration.json`;
 }
 
