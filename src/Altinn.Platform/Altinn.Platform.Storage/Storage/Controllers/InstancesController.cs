@@ -102,6 +102,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dueBefore">The due before date time.</param>
         /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
         /// <param name="isSoftDeleted">Is the instance soft deleted.</param>
+        /// <param name="isHardDeleted">Is the instance hard deleted.</param>
         /// <param name="isArchived">Is the instance archived.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
