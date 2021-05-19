@@ -1,0 +1,16 @@
+{
+  "name": "k6-api-tests",
+  "version": "1.0.0",
+  "description": "K6 test scripts for Altinn3 APIs",
+  "scripts": {
+    "eslint:check": "eslint \"src/**\"",
+    "eslint:fix": "eslint \"src/**\" --fix",
+    "prettier:check": "prettier -c src/**/*.js",
+    "prettier:format": "prettier -w src/**/*.js"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.26.0",
+    "prettier": "^2.3.0"
+  }
+}

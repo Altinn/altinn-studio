@@ -4,15 +4,15 @@
     -e env=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
-import * as setUpData from "../../../setup.js";
+import * as setUpData from '../../../setup.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 
 export const options = {
   thresholds: {
-    "errors": ["count<1"]
-  }
+    errors: ['count<1'],
+  },
 };
 
 //Tests for platform authentication
@@ -21,4 +21,4 @@ export default function () {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   //Authenticate towards Altinn 3
   setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-};
+}
