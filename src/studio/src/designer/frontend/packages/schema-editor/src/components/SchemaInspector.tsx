@@ -267,8 +267,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
           onChange={onChangeNodeName}
         />
-        <hr className={classes.divider} />
         { renderDefUrl() }
+        <hr className={classes.divider} />
         { renderItem(referencedItem ?? selectedItem) }
       </div>
       }

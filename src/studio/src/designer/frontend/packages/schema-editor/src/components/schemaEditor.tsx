@@ -6,7 +6,7 @@ import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, addRootItem, setRootName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
@@ -107,7 +107,7 @@ export const SchemaEditor = ({
         newKey: property.name,
         content: itemTree,
       };
-      dispatch(addProperty(newProp));
+      dispatch(addRefProperty(newProp));
     }
 
     setAddPropertyModalOpen(false);

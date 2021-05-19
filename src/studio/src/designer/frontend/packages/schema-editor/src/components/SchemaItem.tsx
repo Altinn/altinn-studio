@@ -5,8 +5,8 @@ import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconButton, Menu, MenuItem } from '@material-ui/core';
-import { addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { Field, ISchemaState, UiSchemaItem } from '../types';
+import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { ISchemaState, UiSchemaItem } from '../types';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -99,7 +99,6 @@ function SchemaItem(props: SchemaItemProps) {
   } = props;
 
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
 
@@ -113,99 +112,17 @@ function SchemaItem(props: SchemaItemProps) {
   };
   const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
-  const renderProperties = (itemProperties: UiSchemaItem[] | undefined) => {
-    if (itemProperties && itemProperties.length > 0) {
-      return (
-        itemProperties.map((property: UiSchemaItem) => {
-          return (
-            <SchemaItem
-              keyPrefix={`${keyPrefix}-properties`}
-              key={`${keyPrefix}-${property.id}`}
-              item={property}
-              nodeId={`${keyPrefix}-${property.id}`}
-              onClick={() => onItemClick(property)}
-            />
-          );
-        })
-      );
-    }
-    return null;
-  };
-
-  const renderEnums = (field: Field, path: string) => (
-    <TreeItem
-      classes={{ root: classes.treeItem }}
-      nodeId={`${item.id}-${field.key}`}
-      className={classes.filler}
-      key={`field-${path}-${field.key}`}
-      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item)}
-    >
-      {field.value.map((e: string) => <TreeItem
-        classes={{ root: classes.treeItem }}
-        nodeId={`${item.id}-${field.key}-${e}`}
-        className={classes.filler}
-        key={`field-${path}-${field.key}-${e}`}
-        label={<>{ icon('fa-datamodel-element') } {e}</>}
-        onClick={() => onItemClick(item)}
-      />)}
-    </TreeItem>);
-
-  const renderRefArray = (field: Field, path: string) => (
-    <TreeItem
-      classes={{ root: classes.treeItem }}
-      nodeId={`${item.id}-${field.key}`}
-      className={classes.filler}
-      key={`field-${path}-${field.key}`}
-      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item)}
-    >
-      {field.value.map((e: {$ref: string}) => {
-        const el = uiSchema.find((s) => s.id === e.$ref);
-        if (el) {
-          return <SchemaItem
-            keyPrefix={`${keyPrefix}-${el.id}`}
-            key={`${keyPrefix}-${el.id}`}
-            onClick={() => onItemClick(el)}
-            item={el}
-            nodeId={`${keyPrefix}-${el.id}-ref`}
-          />;
-        }
-        console.error(`No uiSchema found with matching id ${e}`);
-        return null;
-      })}
-    </TreeItem>);
-
-  const renderKeywords = (keywords: Field[] | undefined, path: string) => {
-    if (keywords && keywords.length > 0) {
-      return (keywords.map((field) => {
-        if (field.key.startsWith('@')) {
-          return null;
-        }
-        switch (field.key) {
-          case 'allOf':
-          case 'oneOf':
-          case 'anyOf':
-            return renderRefArray(field, path);
-          case 'enum':
-            return renderEnums(field, path);
-          default:
-            return (
-              <TreeItem
-                classes={{ root: classes.treeItem }}
-                nodeId={`${itemToDisplay.id}-${field.key}`}
-                className={classes.filler}
-                key={`field-${path}-${field.key}`}
-                label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-                onClick={() => onItemClick(itemToDisplay)}
-              />
-            );
-        }
-      })
-      );
-    }
-    return null;
-  };
+  const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
+    return (
+      <SchemaItem
+        keyPrefix={`${keyPrefix}-properties`}
+        key={`${keyPrefix}-${property.id}`}
+        item={property}
+        nodeId={`${keyPrefix}-${property.id}`}
+        onClick={() => onItemClick(property)}
+      />
+    );
+  });
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
     setContextAnchor(null);
@@ -235,10 +152,8 @@ function SchemaItem(props: SchemaItemProps) {
   const handleAddProperty = (e: React.MouseEvent) => {
     e.preventDefault();
     setContextAnchor(null);
-    dispatch(addField({
+    dispatch(addProperty({
       path: itemToDisplay.id,
-      key: 'key',
-      value: 'value',
     }));
   };
   const handleContextMenuClick = (e: React.MouseEvent) => {
@@ -262,14 +177,22 @@ function SchemaItem(props: SchemaItemProps) {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        { !itemToDisplay.$ref &&
-          <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
-        }
+        <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
         <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
         <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
       </Menu>
     </div>
   );
+  const renderTreeChildren = () => {
+    const items = [];
+    if (itemToDisplay.$ref && refItem) {
+      items.push(renderRefLink());
+    }
+    if (itemToDisplay.properties) {
+      items.push(renderProperties(itemToDisplay.properties));
+    }
+    return items;
+  };
   return (
     <TreeItem
       classes={{ root: classes.treeItem }}
@@ -277,9 +200,7 @@ function SchemaItem(props: SchemaItemProps) {
       onClick={() => onItemClick(itemToDisplay)}
       {...other}
     >
-      { itemToDisplay.$ref && refItem && renderRefLink()}
-      {renderProperties(itemToDisplay.properties)}
-      {renderKeywords(itemToDisplay.keywords, itemToDisplay.id)}
+      { renderTreeChildren() }
     </TreeItem>
   );
 }
