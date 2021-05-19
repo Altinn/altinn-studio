@@ -16,8 +16,7 @@ const maskinPortenToken = __ENV.maskinporten;
 
 //Request to Authenticate an user with Altinn userName and password and returns ASPXAUTH Cookie
 export function authenticateUser(userName, userPassword) {
-  var endpoint =
-    environment != 'yt01' ? config.authentication['authenticationWithPassword'] : 'https://yt01.ai.basefarm.net/api/authentication/authenticatewithpassword';
+  var endpoint = environment != 'yt01' ? config.authentication['authenticationWithPassword'] : config.authentication['authenticationYt01'];
   var requestBody = {
     UserName: userName,
     UserPassword: userPassword,
@@ -27,7 +26,7 @@ export function authenticateUser(userName, userPassword) {
     'Authentication towards Altinn 2 Success:': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('Authentication towards Altinn 2 Failed:', success, res);
+  stopIterationOnFail('Authentication towards Altinn 2 Failed', success, res);
 
   const cookieName = '.ASPXAUTH';
   var cookieValue = res.cookies[cookieName][0].value;
@@ -43,7 +42,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
     'T3.0 Authentication Success:': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('T3.0 Authentication Failed:', success, res);
+  stopIterationOnFail('T3.0 Authentication Failed', success, res);
   return res.body;
 }
 
@@ -56,7 +55,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
     'Get User data:': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('Get User data failed:', success, res);
+  stopIterationOnFail('Get User data failed', success, res);
   res = JSON.parse(res.body);
 
   var userData = {
@@ -71,7 +70,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
     'Get User data:': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('Get User data failed:', success, res);
+  stopIterationOnFail('Get User data failed', success, res);
 
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {

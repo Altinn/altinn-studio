@@ -12,6 +12,7 @@ import * as appData from '../../api/app/data.js';
 import * as platformInstances from '../../api/platform/storage/instances.js';
 import { deleteSblInstance } from '../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../setup.js';
+import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -45,8 +46,8 @@ export default function (data) {
   //Test to create an instance with multipart data and verify that an instance is created
   res = appInstances.postInstanceWithMultipartData(runtimeToken, partyId, appOwner, appName, instanceFormDataXml);
   success = check(res, {
-    'App POST Create Instance with Multipart data status is 201:': (r) => r.status === 201,
-    'App POST Create Instance with Multipart data Instace Id is not null:': (r) => JSON.parse(r.body).id != null,
+    'App POST Create Instance with Multipart data status is 201': (r) => r.status === 201,
+    'App POST Create Instance with Multipart data Instace Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
 
@@ -56,10 +57,16 @@ export default function (data) {
   //Test to Get instance data created by the multipart request with App api and validate the response code
   var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, appName);
   var success = check(res, {
-    'App Get Data created by Multipart request status is 200:': (r) => r.status === 200,
+    'App Get Data created by Multipart request status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //hard delete instance
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('multipartdata')] = generateJUnitXML(data, 'app-multipartdata');
+  return result;
 }

@@ -16,6 +16,7 @@ export let baseUrl = baseUrls[environment];
 //Altinn API
 export var authentication = {
   authenticationWithPassword: 'https://' + baseUrl + '/api/authentication/authenticatewithpassword',
+  authenticationYt01: 'https://yt01.ai.basefarm.net/api/authentication/authenticatewithpassword',
 };
 
 //Platform APIs

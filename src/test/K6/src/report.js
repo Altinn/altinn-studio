@@ -25,7 +25,7 @@ export function generateJUnitXML(data, suiteName) {
   if (data.root_group.hasOwnProperty('checks') && data.root_group.checks.length > 0) {
     var checks = data.root_group.checks;
     checks.forEach((check) => {
-      if (check.passes === 1) {
+      if (check.passes >= 1 && check.fails === 0) {
         cases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
       } else {
         failures++;

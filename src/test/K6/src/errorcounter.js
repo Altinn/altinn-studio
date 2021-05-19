@@ -18,7 +18,7 @@ export function addErrorCount(success) {
  */
 export function stopIterationOnFail(testName, success, res) {
   if (!success && res != null) {
-    fail(testName + ' Response code: ' + res.status);
+    fail(testName + ': Response code: ' + res.status);
   } else if (!success) {
     fail(testName);
   }
