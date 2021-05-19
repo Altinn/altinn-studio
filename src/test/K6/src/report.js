@@ -49,6 +49,6 @@ export function generateJUnitXML(data, suiteName) {
  */
 export function reportPath(reportName) {
   var path = `src/reports/${reportName}.xml`;
-  if (!(__ENV.OS && __ENV.OS.includes('Windows'))) path = `/${path}`;
+  if (__ENV.HOME && __ENV.HOME.includes('/home/k6')) path = `/${path}`;
   return path;
 }
