@@ -12,7 +12,7 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
-import { NavigationButtons as NavigationButtonsComponent } from './process-step/NavigationButtons';
+import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
 
 export interface IComponent {
   name: string;

@@ -6,6 +6,7 @@ export interface INavBarProps {
   handleClose: (e: any) => void;
   handleBack: (e: any) => void;
   showBackArrow?: boolean;
+  hideCloseButton?: boolean;
 }
 
 const NavBar = (props: INavBarProps) => {
@@ -27,20 +28,22 @@ const NavBar = (props: INavBarProps) => {
           </span>
         </button>
       }
-      <button
-        type='button'
-        className='a-modal-close a-js-tabable-popover'
-        aria-label={getLanguageFromKey('general.close_schema', props.language)}
-        onClick={props.handleClose}
-      >
-        <span className='ai-stack'>
-          <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
-          <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
-        </span>
-        <span className='hidden-button-text'>
-          {getLanguageFromKey('general.close_schema', props.language)}
-        </span>
-      </button>
+      {!props.hideCloseButton &&
+        <button
+          type='button'
+          className='a-modal-close a-js-tabable-popover'
+          aria-label={getLanguageFromKey('general.close_schema', props.language)}
+          onClick={props.handleClose}
+        >
+          <span className='ai-stack'>
+            <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
+            <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
+          </span>
+          <span className='hidden-button-text'>
+            {getLanguageFromKey('general.close_schema', props.language)}
+          </span>
+        </button>
+      }
     </div>
   );
 };

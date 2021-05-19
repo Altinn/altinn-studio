@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 import { getFormLayoutStateMock, getInitialStateMock } from '../../../__mocks__/mocks';
-import { NavigationButtons } from '../../../src/components/process-step/NavigationButtons';
+import { NavigationButtons } from '../../../src/components/presentation/NavigationButtons';
 
 describe('>>> components/process-step/NavigationButton.tsx', () => {
   let mockStore;

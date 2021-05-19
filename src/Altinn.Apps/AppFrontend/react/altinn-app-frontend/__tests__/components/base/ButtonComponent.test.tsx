@@ -3,8 +3,8 @@ import 'jest';
 import * as React from 'react';
 import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
-import { ButtonComponent } from '../../../src/components/base/ButtonComponent';
 import { Provider } from 'react-redux';
+import { ButtonComponent } from '../../../src/components/base/ButtonComponent';
 
 describe('components/base/ButtonComponent.tsx', () => {
   let mockId: string;
