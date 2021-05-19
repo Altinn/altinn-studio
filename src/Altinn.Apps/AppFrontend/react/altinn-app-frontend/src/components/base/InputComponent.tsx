@@ -50,6 +50,7 @@ function NumberFormatCustom(props: IFormattedNumberInputProps) {
           },
         });
       }}
+      isNumericString={true}
       {...formatting}
     />
   );
