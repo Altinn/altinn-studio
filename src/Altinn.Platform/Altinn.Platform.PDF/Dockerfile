@@ -6,6 +6,7 @@ RUN mvn -Pprod package
 FROM openjdk:16-jdk-slim-buster AS final
 WORKDIR app
 COPY --from=build /build/target .
+RUN apt update && apt upgrade
 # setup the user and group
 # the user will have no password, using shell /bin/false and using the group dotnet
 RUN addgroup --gid 3000 dotnet && adduser --uid 1000 --ingroup dotnet --disabled-password --shell /bin/false dotnet
