@@ -19,7 +19,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_LoadSchema()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.melding-1603-12392.json");
+            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -35,7 +35,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RepeatingGroupHasCorrectDataBinding()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.melding-1603-12392.json");
+            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
