@@ -62,6 +62,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 "language",
                 "status.isSoftDeleted",
                 "status.isArchived",
+                "status.isHardDeleted",
                 "status.isArchivedOrSoftDeleted",
                 "status.isActiveorSoftDeleted",
                 "sortBy",
@@ -99,16 +100,16 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string org = queryParams.GetValueOrDefault("org").ToString();
                 instances.RemoveAll(i => !i.Org.Equals(org, StringComparison.OrdinalIgnoreCase));
             }
-        
+
             if (queryParams.ContainsKey("appId"))
             {
                 string appId = queryParams.GetValueOrDefault("appId").ToString();
-                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));                
+                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));
             }
 
             if (queryParams.ContainsKey("instanceOwner.partyId"))
             {
-                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));                
+                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));
             }
 
             if (queryParams.ContainsKey("archiveReference"))
@@ -119,12 +120,17 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
             bool match;
 
-            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("isArchived"), out match))
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match))
             {
                 instances.RemoveAll(i => i.Status.IsArchived != match);
             }
 
-            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("isSoftDeleted"), out match))
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match))
             {
                 instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
             }

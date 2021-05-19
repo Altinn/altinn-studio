@@ -5,6 +5,7 @@ export interface IQueueState {
   dataTask: IQueueTask;
   appTask: IQueueTask;
   infoTask: IQueueTask;
+  stateless: IQueueTask;
 }
 
 export interface IQueueTask {
@@ -29,6 +30,10 @@ export const initialState: IQueueState = {
     isDone: null,
     error: null,
   },
+  stateless: {
+    isDone: null,
+    error: null,
+  },
 };
 
 const moduleName = 'queue';
@@ -49,6 +54,10 @@ const queueSlice = createSlice({
       const { error } = action.payload;
       state.infoTask.error = error;
     },
+    statelessQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+      const { error } = action.payload;
+      state.stateless.error = error;
+    },
     startInitialAppTaskQueue: (state: IQueueState) => {
       state.appTask.isDone = false;
     },
@@ -67,6 +76,12 @@ const queueSlice = createSlice({
     startInitialInfoTaskQueueFulfilled: (state: IQueueState) => {
       state.infoTask.isDone = true;
     },
+    startInitialStatelessQueue: (state: IQueueState) => {
+      state.stateless.isDone = false;
+    },
+    startInitialStatelessQueueFulfilled: (state: IQueueState) => {
+      state.stateless.isDone = true;
+    },
   },
 });
 
@@ -74,12 +89,15 @@ export const {
   appTaskQueueError,
   dataTaskQueueError,
   infoTaskQueueError,
+  statelessQueueError,
   startInitialAppTaskQueue,
   startInitialAppTaskQueueFulfilled,
   startInitialDataTaskQueue,
   startInitialDataTaskQueueFulfilled,
   startInitialInfoTaskQueue,
   startInitialInfoTaskQueueFulfilled,
+  startInitialStatelessQueue,
+  startInitialStatelessQueueFulfilled,
 } = queueSlice.actions;
 
 export default queueSlice.reducer;

@@ -6,7 +6,9 @@ export interface ISchemaState {
   selectedId?: string;
   selectedNodeId?: string;
 }
-
+export interface ILanguage {
+  [key: string]: string;
+}
 export interface ISetValueAction {
   path: string,
   value: any,

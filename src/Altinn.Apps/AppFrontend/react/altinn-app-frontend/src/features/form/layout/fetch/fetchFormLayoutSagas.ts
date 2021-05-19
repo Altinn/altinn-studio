@@ -9,8 +9,7 @@ import FormDataActions from '../../data/formDataActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
 import { ILayouts } from '../index';
-import { getLayoutsetForDataElement } from '../../../../utils/layout';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
@@ -20,14 +19,8 @@ function* fetchLayoutSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
-      aplicationMetadataState.dataTypes);
-
-    let layoutSetId: string = null;
-    if (layoutSets != null) {
-      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
-    }
+    const applicationMetadata: IApplicationMetadata = yield select(applicationMetadataSelector);
+    const layoutSetId = getLayoutSetIdForApplication(applicationMetadata, instance, layoutSets);
     const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
@@ -41,7 +34,7 @@ function* fetchLayoutSaga(): SagaIterator {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
 
       // use instance id as cache key for current page
-      const currentViewCacheKey = instance.id;
+      const currentViewCacheKey = instance?.id || 'stateless';
       yield put(Actions.setCurrentViewCacheKey({ key: currentViewCacheKey }));
       firstLayoutKey = localStorage.getItem(currentViewCacheKey) || orderedLayoutKeys[0];
 
@@ -78,12 +71,8 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
-      aplicationMetadataState.dataTypes);
-    let layoutSetId: string = null;
-    if (layoutSets != null) {
-      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
-    }
+
+    const layoutSetId = getLayoutSetIdForApplication(aplicationMetadataState, instance, layoutSets);
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
     yield put(Actions.fetchLayoutSettingsFulfilled({ settings }));
   } catch (error) {

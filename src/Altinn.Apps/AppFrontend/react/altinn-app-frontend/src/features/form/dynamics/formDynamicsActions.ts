@@ -1,4 +1,4 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 
 import * as ApiActions from './api/apiActions';
@@ -17,7 +17,7 @@ export interface IFormDynamicsActions extends ActionCreatorsMapObject {
   checkIfConditionalRulesShouldRun: (
     repeatingContainerId?: string,
   ) => ConditionalRenderActions.ICheckIfConditionalRulesShouldRun;
-  fetchFormDynamics: (url: string) => FetchDynamicActions.IFetchServiceConfig;
+  fetchFormDynamics: () => Action;
   fetchFormDynamicsFulfilled: (
     apis: any,
     roleConnections: any,

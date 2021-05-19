@@ -9,8 +9,7 @@ import Actions from '../rulesActions';
 import * as ActionTypes from '../rulesActionTypes';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { IRuntimeState, ILayoutSets } from '../../../../types';
-import { getLayoutsetForDataElement } from '../../../../utils/layout';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
@@ -23,14 +22,8 @@ function* fetchRuleModelSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const dataType: string =
-    getDataTaskDataTypeId(instance.process.currentTask.elementId, aplicationMetadataState.dataTypes);
-    let layoutSetId: string = null;
-
-    if (layoutSets != null) {
-      layoutSetId = getLayoutsetForDataElement(instance, dataType, layoutSets);
-    }
+    const application: IApplicationMetadata = yield select(applicationMetadataSelector);
+    const layoutSetId = getLayoutSetIdForApplication(application, instance, layoutSets);
 
     const ruleModel = yield call(get, getRulehandlerUrl(layoutSetId));
     const scriptEle = window.document.createElement('script');
