@@ -185,7 +185,7 @@ namespace Altinn.Platform.Events.Controllers
             return cloudEventEnvelope;
         }
 
-        private string GetOrgAppSubscriptionCacheKey(string source, string subject, string type)
+        private static string GetOrgAppSubscriptionCacheKey(string source, string subject, string type)
         {
             if (source == null)
             {
@@ -195,7 +195,7 @@ namespace Altinn.Platform.Events.Controllers
             return "orgsubscription:so:" + source + "su:" + subject + "ty:" + type;
         }
 
-        private string GetPartyAppSubscriptionCacheKey(string source, string subject, string type)
+        private static string GetPartyAppSubscriptionCacheKey(string source, string subject, string type)
         {
             if (source == null)
             {
@@ -205,7 +205,7 @@ namespace Altinn.Platform.Events.Controllers
             return "partysubscription:so:" + source + "su:" + subject + "ty:" + type;
         }
 
-        private string GetAltinnAppAuthorizationCacheKey(string sourceFilter, string consumer)
+        private static string GetAltinnAppAuthorizationCacheKey(string sourceFilter, string consumer)
         {
             if (sourceFilter == null)
             {
