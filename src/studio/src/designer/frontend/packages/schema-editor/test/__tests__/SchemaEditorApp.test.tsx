@@ -23,6 +23,7 @@ test('renders schema editor container', () => {
     utils = render(
       <SchemaEditorApp
         schema={dataMock}
+        language={{}}
         onSaveSchema={() => {}}
         rootItemId='#/properties/melding'
       />,

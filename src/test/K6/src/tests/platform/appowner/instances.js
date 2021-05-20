@@ -92,10 +92,11 @@ export default function(data) {
     });
     addErrorCount(success);
 
-    //Test to get an instance of an app isArchived = false from storage and validate the response
+    //Test to get an instance of an app isArchived, isHardDeleted = false from storage and validate the response
     filters = {
         "appId": appOwner + "/" + level2App,
-        "status.isArchived": false
+        "status.isArchived": false,
+        "status.isHardDeleted": false
     };
     res = instances.getAllinstancesWithFilters(runtimeToken, filters);
     success = check(res, {

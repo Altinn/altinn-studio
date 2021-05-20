@@ -33,7 +33,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          New
+          general.create_new
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -142,7 +142,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               />
             </svg>
           </span>
-          Delete
+          general.delete
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -170,7 +170,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               class="makeStyles-button-21"
               type="button"
             >
-              Save data model
+              schema_editor.save_data_model
             </button>
             <ul
               aria-multiselectable="false"
@@ -215,7 +215,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                           style="color: white; text-align: center;"
                         />
                       </span>
-                       properties
+                       
+                      schema_editor.properties
                     </div>
                   </div>
                 </div>
@@ -2324,13 +2325,13 @@ exports[`DataModeling Should match snapshot 1`] = `
             <p
               class="makeStyles-header-37"
             >
-              Egenskaper
+              schema_editor.properties
             </p>
             <div>
               <p
                 class="no-item-selected"
               >
-                No item selected
+                schema_editor.no_item_selected
               </p>
               <hr
                 class="makeStyles-divider-38"

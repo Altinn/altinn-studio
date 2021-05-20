@@ -121,6 +121,9 @@ export function appApiBaseUrl(appOwner, appName) {
 //Validate Instantiation
 export var appValidateInstantiation = "/api/v1/parties/validateInstantiation";
 
+//Stateless
+export var statelessdata = "/v1/data/";
+
 //App Profile
 export var appProfile = {
     "user": "/api/v1/profile/user"
@@ -174,6 +177,6 @@ export var appAuthorization = {
 
 //AltinnTestTools
 export var tokenGenerator = {
-   getEnterpriseToken : "https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken",
-   getPersonalToken :"https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken"
+    getEnterpriseToken: "https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken",
+    getPersonalToken: "https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken"
 };

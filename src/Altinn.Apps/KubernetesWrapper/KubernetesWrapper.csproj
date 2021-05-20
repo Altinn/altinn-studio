@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Update to version 5 of KubernetesClient registered in issue #6252. -->
     <PackageReference Include="KubernetesClient" Version="4.0.26" />
   </ItemGroup>
 

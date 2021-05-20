@@ -10,7 +10,7 @@
 
     <!-- NuGet package properties -->
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.6.0-alpha</PackageVersion>
+    <PackageVersion>4.6.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.3" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
     <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.0.0-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.5" />

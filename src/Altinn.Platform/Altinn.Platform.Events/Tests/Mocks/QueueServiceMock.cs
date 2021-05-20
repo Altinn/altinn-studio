@@ -39,5 +39,10 @@ namespace Altinn.Platform.Events.Tests.Mocks
         {
             return Task.FromResult(new PushQueueReceipt { Success = true });
         }
+
+        public Task<PushQueueReceipt> PushToValidationQueue(string content)
+        {
+            return Task.FromResult(new PushQueueReceipt { Success = true });
+        }
     }
 }
