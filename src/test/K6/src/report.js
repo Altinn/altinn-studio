@@ -48,8 +48,7 @@ export function generateJUnitXML(data, suiteName) {
  * @returns path
  */
 export function reportPath(reportName) {
-  var path = `src/reports/${reportName}.xml`;
-  console.log(JSON.stringify(__ENV));
-  if (!__ENV.OS) path = `/${path}`;
+  var path = `src/reports/${reportName}.xml`;  
+  if (!(__ENV.OS || __ENV.AGENT_OS) ) path = `/${path}`;
   return path;
 }
