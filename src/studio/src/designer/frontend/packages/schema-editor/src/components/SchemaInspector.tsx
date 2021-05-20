@@ -75,7 +75,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value: Number.isNaN(value) ? value : +value,
+      // eslint-disable-next-line no-restricted-globals
+      value: isNaN(value) ? value : +value,
       key,
     };
     dispatch(setFieldValue(data));
@@ -132,7 +133,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(addField({
       path,
       key: 'key',
-      value: 'value',
+      value: '',
     }));
   };
 

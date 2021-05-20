@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { ISchema, ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -198,7 +198,10 @@ const schemaEditorSlice = createSlice({
     },
     updateJsonSchema(state, action) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema = buildJsonSchema(state.uiSchema);
+      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
+      if (!updatedSchema.definitions) {
+        updatedSchema.definitions = {};
+      }
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
