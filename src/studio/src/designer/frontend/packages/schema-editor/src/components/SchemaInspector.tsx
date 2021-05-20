@@ -6,7 +6,7 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getTranslation } from '../utils';
+import { getTranslation, getUiSchemaItem } from '../utils';
 
 const useStyles = makeStyles(
   createStyles({
@@ -59,11 +59,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      if (selectedId.includes('/properties/')) {
-        const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
-        return item?.properties?.find((p) => p.id === selectedId);
-      }
-      return state.uiSchema.find((i) => i.id === selectedId);
+      return getUiSchemaItem(state.uiSchema, selectedId);
     }
     return null;
   });
@@ -264,7 +260,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           fullWidth={true}
           disableUnderline={true}
           className={classes.label}
-          value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
+          value={selectedItem.name || selectedItem.id}
           onChange={onChangeNodeName}
         />
         { renderDefUrl() }

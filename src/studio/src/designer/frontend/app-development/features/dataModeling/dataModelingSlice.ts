@@ -29,7 +29,7 @@ export interface IDeleteDataModelRejected {
   error: any;
 }
 
-const newSchema = { properties: { melding: { id: 'melding', name: 'melding' } }, definitions: {} };
+const newSchema = { properties: { melding: { id: '#/properties/melding', name: 'melding' } }, definitions: {} };
 const initialState: IDataModelingState = {
   schema: newSchema,
   modelName: undefined,

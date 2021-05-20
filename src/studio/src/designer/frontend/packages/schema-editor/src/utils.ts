@@ -2,18 +2,22 @@ import { ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
+function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
+  if (input) {
+    for (const item of input) {
+      stack.push(item);
+      if (item.properties instanceof Array && depth > 0) {
+        flat(item.properties, depth - 1, stack);
+      }
+    }
+  }
+  return stack;
+}
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
-  let propertyId: string | null = null;
-  if (path.includes('/properties/')) {
-    // eslint-disable-next-line no-param-reassign
-    [path, propertyId] = path.split('/properties/');
-  }
-  let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
-  if (schemaItem.properties && propertyId) {
-    schemaItem = schemaItem.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`) || {} as UiSchemaItem;
-  }
-
-  return schemaItem;
+  // flatten all uiSchemaItems, then find matching id.
+  // TODO: keep this flattened structure in state?
+  const items = flat(schema, 999);
+  return items.find((i) => i.id === path) || {} as UiSchemaItem;
 }
 
 export function getUiSchemaTreeFromItem(
