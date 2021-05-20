@@ -49,7 +49,7 @@ export function generateJUnitXML(data, suiteName) {
  */
 export function reportPath(reportName) {
   var path = `src/reports/${reportName}.xml`;
-  console.log(__ENV.HOME);
-  if (__ENV.HOME && __ENV.HOME.includes('/home/k6')) path = `/${path}`;
+  console.log(JSON.stringify(__ENV));
+  if (!__ENV.OS) path = `/${path}`;
   return path;
 }
