@@ -78,18 +78,12 @@ const schemaEditorSlice = createSlice({
       });
     },
     addRootItem(state, action) {
-      const { itemsToAdd } = action.payload;
-      const rootItem = itemsToAdd[0];
+      const { rootItem } = action.payload;
 
       const baseItem = {
         id: '#/properties/melding',
-        $ref: rootItem.id,
       };
       state.uiSchema.push(baseItem);
-
-      itemsToAdd.forEach((item: UiSchemaItem) => {
-        state.uiSchema.push(item);
-      });
 
       state.rootName = rootItem.id;
     },
