@@ -71,7 +71,7 @@ export default function () {
   };
   res = sbl.searchSblInstances(runtimeToken, filters);
   success = check(res, {
-    'GET active Instance by Party status is 200:': (r) => r.status === 200,
+    'GET active Instance by Party status is 200': (r) => r.status === 200,
   });
   TrendRTT.add(res.timings.duration);
   SlowResponse.add(!(res.timings.duration < 2000));

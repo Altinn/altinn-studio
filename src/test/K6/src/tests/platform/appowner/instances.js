@@ -19,6 +19,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -54,8 +55,8 @@ export default function (data) {
   //Test to create an instance with storage api and validate the response that created by is an app owner
   res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);
   success = check(res, {
-    'POST Create Instance status is 201:': (r) => r.status === 201,
-    'POST Create Instance Instance Id is not null:': (r) => JSON.parse(r.body).id != null,
+    'POST Create Instance status is 201': (r) => r.status === 201,
+    'POST Create Instance Instance Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
 
@@ -66,16 +67,16 @@ export default function (data) {
   //Test to get an instance by id from storage and validate the response
   res = instances.getInstanceById(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET Instance by Id status is 200:': (r) => r.status === 200,
-    'CreatedBy of Instance is app owner:': (r) => JSON.parse(r.body).createdBy.toString().length === 9,
+    'GET Instance by Id status is 200': (r) => r.status === 200,
+    'CreatedBy of Instance is app owner': (r) => JSON.parse(r.body).createdBy.toString().length === 9,
   });
   addErrorCount(success);
 
   //Test to update the read status of an instance and validate the response
   res = instances.putUpdateReadStatus(runtimeToken, partyId, instanceId, 'Read');
   success = check(res, {
-    'PUT Update read status is 200:': (r) => r.status === 200,
-    'Read status is updated as read:': (r) => JSON.parse(r.body).status.readStatus === 'Read',
+    'PUT Update read status is 200': (r) => r.status === 200,
+    'Read status is updated as read': (r) => JSON.parse(r.body).status.readStatus === 'Read',
   });
   addErrorCount(success);
 
@@ -86,8 +87,8 @@ export default function (data) {
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instance by Current task is 200:': (r) => r.status === 200,
-    'Instance current task is task_1:': (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === 'Task_1',
+    'GET Instance by Current task is 200': (r) => r.status === 200,
+    'Instance current task is task_1': (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === 'Task_1',
   });
   addErrorCount(success);
 
@@ -99,12 +100,12 @@ export default function (data) {
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instance with filters is 200:': (r) => r.status === 200,
-    'GET Instances isHardDeleted is false:': (r) => {
+    'GET Instance with filters is 200': (r) => r.status === 200,
+    'GET Instances isHardDeleted is false': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.every((instance) => instance.status.isHardDeleted == false);
     },
-    'GET Instances isArchived is true:': (r) => {
+    'GET Instances isArchived is true': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.every((instance) => instance.status.isArchived == false);
     },
@@ -114,16 +115,22 @@ export default function (data) {
   //Test to update the sub status of an instance and validate the response
   res = instances.putUpdateSubStatus(runtimeToken, partyId, instanceId, 'test', 'test description');
   success = check(res, {
-    'PUT Update sub status is 200:': (r) => r.status === 200,
-    'Instance sub status is updated:': (r) => JSON.parse(r.body).status.substatus != null,
+    'PUT Update sub status is 200': (r) => r.status === 200,
+    'Instance sub status is updated': (r) => JSON.parse(r.body).status.substatus != null,
   });
   addErrorCount(success);
 
   //Test to hard delete an instance by id from storage and validate the response
   res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, 'true');
   success = check(res, {
-    'Hard Delete Instance by Id status is 200:': (r) => r.status === 200,
-    'Hard deleted date is set to instance:': (r) => JSON.parse(r.body).status.hardDeleted != null,
+    'Hard Delete Instance by Id status is 200': (r) => r.status === 200,
+    'Hard deleted date is set to instance': (r) => JSON.parse(r.body).status.hardDeleted != null,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('PlatformAppownerInstances')] = generateJUnitXML(data, 'platform-appowner-instances');
+  return result;
 }

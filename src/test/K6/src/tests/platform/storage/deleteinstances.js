@@ -64,7 +64,7 @@ export default function (data) {
       //Find more instances to loop through
       res = sbl.searchSblInstances(runtimeToken, filters);
       success = check(res, {
-        'GET SBL Instance by Party status is 200:': (r) => r.status === 200,
+        'GET SBL Instance by Party status is 200': (r) => r.status === 200,
       });
       addErrorCount(success);
 

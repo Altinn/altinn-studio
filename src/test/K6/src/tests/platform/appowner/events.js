@@ -15,6 +15,7 @@ import { addErrorCount } from '../../../errorcounter.js';
 import * as events from '../../../api/platform/events/events.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -57,7 +58,7 @@ export default function (data) {
   //Test to post events and assert that response is 403
   res = events.postEvents(runtimeToken);
   success = check(res, {
-    'POST Events status is 403:': (r) => r.status === 403,
+    'POST Events status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -68,9 +69,9 @@ export default function (data) {
   };
   res = events.getEventsByparty(runtimeToken, eventsFilter);
   success = check(res, {
-    'GET Todays Events based on party status is 200:': (r) => r.status === 200,
-    'GET Todays Events based on party count greater than 0:': (r) => JSON.parse(r.body).length > 0,
-    'GET Todays Events lists only events for party:': (r) => {
+    'GET Todays Events based on party status is 200': (r) => r.status === 200,
+    'GET Todays Events based on party count greater than 0': (r) => JSON.parse(r.body).length > 0,
+    'GET Todays Events lists only events for party': (r) => {
       var events = r.json();
       return events.every((event) => event.subject.includes(partyId));
     },
@@ -83,11 +84,17 @@ export default function (data) {
   };
   res = events.getEvents(runtimeToken, appOwner, appName, eventsFilter);
   success = check(res, {
-    'GET Todays Events by org app name status is 200:': (r) => r.status === 200,
+    'GET Todays Events by org app name status is 200': (r) => r.status === 200,
     'GET Todays Events lists only events for app': (r) => {
       var events = r.json();
       return events.every((event) => event.source.includes(appName));
     },
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformAppownerEvents')] = generateJUnitXML(data, 'platform-appowner-events');
+  return result;
 }

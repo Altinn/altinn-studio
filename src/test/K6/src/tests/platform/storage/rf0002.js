@@ -50,8 +50,8 @@ export default function () {
   //Test to create an instance with storage api and validate the response
   res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);
   success = check(res, {
-    'POST Create Instance status is 201:': (r) => r.status === 201,
-    'POST Create Instance Instance Id is not null:': (r) => JSON.parse(r.body).id != null,
+    'POST Create Instance status is 201': (r) => r.status === 201,
+    'POST Create Instance Instance Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
 
@@ -62,15 +62,15 @@ export default function () {
   //Test to get an instance by id from storage and validate the response
   res = instances.getInstanceById(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET Instance by Id status is 200:': (r) => r.status === 200,
+    'GET Instance by Id status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to add an form data to an instance with storage api and validate the response
   res = instanceData.postData(runtimeToken, partyId, instanceId, 'schema_4222_160523_forms_212_20160523', instanceFormDataXml);
   success = check(res, {
-    'POST Create Data status is 201:': (r) => r.status === 201,
-    'POST Create Instance Data Id is not null:': (r) => JSON.parse(r.body).id != null,
+    'POST Create Data status is 201': (r) => r.status === 201,
+    'POST Create Instance Data Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
 

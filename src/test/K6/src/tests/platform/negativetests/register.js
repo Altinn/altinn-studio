@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as register from '../../../api/platform/register.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -42,21 +43,27 @@ export default function (data) {
   //Test Platform: Register: Get organization by orgno and validate response to be 403
   res = register.getOrganizations(runtimeToken, orgNr);
   success = check(res, {
-    'GET Org status is 403:': (r) => r.status === 403,
+    'GET Org status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //Test Platform: Register: Get parties by partyId and validate response to be 403
   res = register.getParty(runtimeToken, partyId);
   success = check(res, {
-    'GET Party status is 403:': (r) => r.status === 403,
+    'GET Party status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //Test Platform: Register: POST party lookup by SSN and validate response to be 403
   res = register.postPartieslookup(runtimeToken, 'ssn', ssn);
   success = check(res, {
-    'GET Party info status is 403:': (r) => r.status === 403,
+    'GET Party info status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformNegativeRegister')] = generateJUnitXML(data, 'platform-negative-register');
+  return result;
 }

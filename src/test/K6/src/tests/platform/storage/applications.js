@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as application from '../../../api/platform/storage/applications.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -38,8 +39,8 @@ export default function (data) {
   //Test Platform: Storage: Get All applicaions under an appOwner
   res = application.getAllApplications(runtimeToken, appOwner);
   success = check(res, {
-    'GET All Apps under an Org status is 200:': (r) => r.status === 200,
-    'GET All Apps under an Org List is not empty:': (r) => JSON.parse(r.body).applications.length != 0,
+    'GET All Apps under an Org status is 200': (r) => r.status === 200,
+    'GET All Apps under an Org List is not empty': (r) => JSON.parse(r.body).applications.length != 0,
   });
   addErrorCount(success);
 
@@ -47,8 +48,8 @@ export default function (data) {
   res = application.getAppByName(runtimeToken, appOwner, level2App);
   var appId = appOwner + '/' + level2App;
   success = check(res, {
-    'GET App by Name status is 200:': (r) => r.status === 200,
-    'GET App by Name Metadata is OK:': (r) => JSON.parse(r.body).id === appId,
+    'GET App by Name status is 200': (r) => r.status === 200,
+    'GET App by Name Metadata is OK': (r) => JSON.parse(r.body).id === appId,
   });
   addErrorCount(success);
 
@@ -56,7 +57,7 @@ export default function (data) {
   //expected: 403 as it is not possible to create App with an user token
   res = application.postCreateApp(runtimeToken, appOwner, testApp, metadata);
   success = check(res, {
-    'POST Create App status is 403:': (r) => r.status === 403,
+    'POST Create App status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -64,7 +65,7 @@ export default function (data) {
   //expected: 403 as response code as it is not possible to create App with an user token
   res = application.putEditApp(runtimeToken, appOwner, testApp, metadata);
   success = check(res, {
-    'PUT Edit App status is 403:': (r) => r.status === 403,
+    'PUT Edit App status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -72,7 +73,13 @@ export default function (data) {
   //expected: 403 as response code as it is not possible to create App with an user token
   res = application.deleteAppByName(runtimeToken, appOwner, testApp, 'false');
   success = check(res, {
-    'DELETE App status is 403:': (r) => r.status === 403,
+    'DELETE App status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformStorageApps')] = generateJUnitXML(data, 'platform-storage-apps');
+  return result;
 }

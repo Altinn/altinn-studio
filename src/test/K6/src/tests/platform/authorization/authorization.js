@@ -7,6 +7,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as authz from '../../../api/platform/authorization.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -42,23 +43,23 @@ export default function (data) {
   //Test Platform: Authorization: Get parties of an user and validate response
   res = authz.getParties(userId);
   success = check(res, {
-    'GET Parties Status is 200:': (r) => r.status === 200,
-    'GET Parties Parties list is not empty:': (r) => JSON.parse(r.body).length != null,
+    'GET Parties Status is 200': (r) => r.status === 200,
+    'GET Parties Parties list is not empty': (r) => JSON.parse(r.body).length != null,
   });
   addErrorCount(success);
 
   //Test Platform: Authorization: Get roles of the user self
   res = authz.getRoles(userId, partyId);
   success = check(res, {
-    'GET Roles Status is 200:': (r) => r.status === 200,
-    'GET Roles Roles list is not empty:': (r) => JSON.parse(r.body).length != null,
+    'GET Roles Status is 200': (r) => r.status === 200,
+    'GET Roles Roles list is not empty': (r) => JSON.parse(r.body).length != null,
   });
   addErrorCount(success);
 
   //Test Platform: Authorization: Upload app policy to storage
   res = authz.postPolicy(policyFile, appOwner, appName, runtimeToken);
   success = check(res, {
-    'POST Policy Status is 403:': (r) => r.status === 403,
+    'POST Policy Status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -71,8 +72,8 @@ export default function (data) {
   };
   res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
-    'Get PDP Decision for appOwner Status is 200:': (r) => r.status === 200,
-    'Get PDP Decision for appOwner Decision is Permit:': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
+    'Get PDP Decision for appOwner Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for appOwner Decision is Permit': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
   });
   addErrorCount(success);
 
@@ -86,8 +87,8 @@ export default function (data) {
   altinnTask = '';
   res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
-    'Get PDP Decision for appOwner Status is 200:': (r) => r.status === 200,
-    'Get PDP Decision for appOwner Decision is NotApplicable:': (r) => JSON.parse(r.body).response[0].decision === 'NotApplicable',
+    'Get PDP Decision for appOwner Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for appOwner Decision is NotApplicable': (r) => JSON.parse(r.body).response[0].decision === 'NotApplicable',
   });
   addErrorCount(success);
 
@@ -101,8 +102,8 @@ export default function (data) {
   altinnTask = 'Task_1';
   res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
-    'Get PDP Decision for User Status is 200:': (r) => r.status === 200,
-    'Get PDP Decision for User Decision is Permit:': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
+    'Get PDP Decision for User Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for User Decision is Permit': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
   });
   addErrorCount(success);
 
@@ -116,8 +117,14 @@ export default function (data) {
   altinnTask = '';
   res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
-    'Get PDP Decision for reading events is 200:': (r) => r.status === 200,
-    'Get PDP Decision for reading events is Permit:': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
+    'Get PDP Decision for reading events is 200': (r) => r.status === 200,
+    'Get PDP Decision for reading events is Permit': (r) => JSON.parse(r.body).response[0].decision === 'Permit',
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformAuthZ')] = generateJUnitXML(data, 'platform-authorization');
+  return result;
 }

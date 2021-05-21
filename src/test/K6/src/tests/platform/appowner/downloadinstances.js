@@ -66,32 +66,32 @@ export default function (data) {
   //Get instance by id
   res = storageInstances.getInstanceById(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Instance details are retrieved:': (r) => r.status === 200,
+    'Instance details are retrieved': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('Instance details are retrieved:', success, res);
+  stopIterationOnFail('Instance details are retrieved', success, res);
 
   try {
     var dataElements = JSON.parse(res.body).data;
   } catch (error) {
-    stopIterationOnFail('DataElements not retrieved:', false, null);
+    stopIterationOnFail('DataElements not retrieved', false, null);
   }
 
   //Loop through the dataelements under an instance and download instance
   for (var i = 0; i < dataElements.length; i++) {
     res = storageData.getData(runtimeToken, partyId, instanceId, dataElements[i].id);
     success = check(res, {
-      'Instance Data is downloaded:': (r) => r.status === 200,
+      'Instance Data is downloaded': (r) => r.status === 200,
     });
     addErrorCount(success);
-    stopIterationOnFail('Instance Data is not downloaded:', success, res);
+    stopIterationOnFail('Instance Data is not downloaded', success, res);
   }
 
   //Complete confirm the app instance as an appOwner
   res = storageInstances.postCompleteConfirmation(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Instance is confirmed complete:': (r) => r.status === 200,
+    'Instance is confirmed complete': (r) => r.status === 200,
   });
   addErrorCount(success);
-  stopIterationOnFail('Instance is not confirmed complete:', success, res);
+  stopIterationOnFail('Instance is not confirmed complete', success, res);
 }

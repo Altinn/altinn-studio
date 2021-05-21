@@ -8,6 +8,7 @@ import { addErrorCount } from '../../../errorcounter.js';
 import * as events from '../../../api/platform/events/events.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -50,12 +51,18 @@ export default function (data) {
   };
   res = events.getEventsByparty(runtimeToken, eventsFilter);
   success = check(res, {
-    'GET Todays Events based on party status is 200:': (r) => r.status === 200,
-    'GET Todays Events based on party count greater than 0:': (r) => JSON.parse(r.body).length > 0,
-    'GET Todays Events lists only events for party:': (r) => {
+    'GET Todays Events based on party status is 200': (r) => r.status === 200,
+    'GET Todays Events based on party count greater than 0': (r) => JSON.parse(r.body).length > 0,
+    'GET Todays Events lists only events for party': (r) => {
       var events = r.json();
       return events.every((event) => event.subject.includes(partyId));
     },
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformEvents')] = generateJUnitXML(data, 'platform-events');
+  return result;
 }

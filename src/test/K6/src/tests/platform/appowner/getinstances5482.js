@@ -15,6 +15,7 @@
 import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const appOwner = 'ttd';
 const app = 'testcase-5482';
@@ -45,7 +46,7 @@ export default function (data) {
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instances filter on appId Count should to be 20:': (r) => {
+    'GET Instances filter on appId Count should to be 20': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.length == 20;
     },
@@ -60,7 +61,7 @@ export default function (data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instances filter on appId and exclude confirmed by Count should to be 15:': (r) => {
+    'GET Instances filter on appId and exclude confirmed by Count should to be 15': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.length == 15;
     },
@@ -75,7 +76,7 @@ export default function (data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instances filter  on appId and process complete Count should to be 10:': (r) => {
+    'GET Instances filter  on appId and process complete Count should to be 10': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.length == 10;
     },
@@ -91,10 +92,16 @@ export default function (data) {
 
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    'GET Instances filter on appId process complete and exclude confirmed by app owner Count should to bee 5:': (r) => {
+    'GET Instances filter on appId process complete and exclude confirmed by app owner Count should to bee 5': (r) => {
       var responseInstances = r.json('instances');
       return responseInstances.length == 5;
     },
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('appownerGetInstances5482')] = generateJUnitXML(data, 'platform-GetInstances5482');
+  return result;
 }

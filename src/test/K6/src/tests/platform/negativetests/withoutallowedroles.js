@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as platformInstances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const level1UserName = __ENV.level1user;
@@ -49,14 +50,20 @@ export default function (data) {
   //Test to create an instance without required roles and expecting 403
   res = platformInstances.postInstance(runtimeToken, partyId, appOwner, level1App, instanceJson);
   success = check(res, {
-    'Storage POST Create Instance status is 403:': (r) => r.status === 403,
+    'Storage POST Create Instance status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //Test to get an instance without required roles and expecting 403
   res = platformInstances.getInstanceById(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Storage GET Instance by Id status is 403:': (r) => r.status === 403,
+    'Storage GET Instance by Id status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformNegativeWithoutRoles')] = generateJUnitXML(data, 'platform-negative-withoutroles');
+  return result;
 }

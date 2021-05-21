@@ -23,7 +23,7 @@ export function authenticateUser(userName, userPassword) {
   };
   var res = http.post(endpoint, requestBody);
   var success = check(res, {
-    'Authentication towards Altinn 2 Success:': (r) => r.status === 200,
+    'Authentication towards Altinn 2 Success': (r) => r.status === 200,
   });
   addErrorCount(success);
   stopIterationOnFail('Authentication towards Altinn 2 Failed', success, res);
@@ -39,7 +39,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
   var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, 'platform');
   var res = http.get(endpoint, params);
   var success = check(res, {
-    'T3.0 Authentication Success:': (r) => r.status === 200,
+    'T3.0 Authentication Success': (r) => r.status === 200,
   });
   addErrorCount(success);
   stopIterationOnFail('T3.0 Authentication Failed', success, res);

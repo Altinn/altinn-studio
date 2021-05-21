@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as setUpData from '../../../setup.js';
 import * as appInstances from '../../../api/app/instances.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -41,14 +42,20 @@ export default function (data) {
   //Test regiter party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'ssn', ssn, appOwner, level2App);
   success = check(res, {
-    'Instance created by looking up SSN in register:': (r) => r.status === 201,
+    'Instance created by looking up SSN in register': (r) => r.status === 201,
   });
   addErrorCount(success);
 
   //Test regiter party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'org', orgNr, appOwner, level2App);
   success = check(res, {
-    'Instance created by looking up Org in register:': (r) => r.status === 201,
+    'Instance created by looking up Org in register': (r) => r.status === 201,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformRegister')] = generateJUnitXML(data, 'platform-register');
+  return result;
 }

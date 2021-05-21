@@ -10,6 +10,7 @@ import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 import * as support from '../../../support.js';
 import { addErrorCount } from '../../../errorcounter.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -47,8 +48,8 @@ export default function (data) {
   //Test to get an instance by id from storage: SBL and validate the response
   res = sbl.getSblInstanceById(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET SBL Instance by Id status is 200:': (r) => r.status === 200,
-    'GET SBL Instance by Id Instance Id matches:': (r) => JSON.parse(r.body).id === instanceId,
+    'GET SBL Instance by Id status is 200': (r) => r.status === 200,
+    'GET SBL Instance by Id Instance Id matches': (r) => JSON.parse(r.body).id === instanceId,
   });
   addErrorCount(success);
 
@@ -61,9 +62,9 @@ export default function (data) {
   };
   res = sbl.searchSblInstances(runtimeToken, filters);
   success = check(res, {
-    'Search instances by app id status is 200:': (r) => r.status === 200,
-    'Search instances by app id count is more than 0:': (r) => JSON.parse(r.body).length > 0,
-    'Search instances only active instances retrieved:': (r) => {
+    'Search instances by app id status is 200': (r) => r.status === 200,
+    'Search instances by app id count is more than 0': (r) => JSON.parse(r.body).length > 0,
+    'Search instances only active instances retrieved': (r) => {
       var responseInstances = r.json();
       return (
         responseInstances.every((instance) => instance.archivedDateTime === null) && responseInstances.every((instance) => instance.deletedDateTime === null)
@@ -80,8 +81,8 @@ export default function (data) {
   };
   res = sbl.searchSblInstances(runtimeToken, filters);
   success = check(res, {
-    'Search instances by date filters status is 200:': (r) => r.status === 200,
-    'Search instances Created date is greaten than today:': (r) => {
+    'Search instances by date filters status is 200': (r) => r.status === 200,
+    'Search instances Created date is greaten than today': (r) => {
       var responseInstances = r.json();
       return responseInstances.every((instance) => instance.createdDateTime > support.todayDateInISO());
     },
@@ -96,8 +97,8 @@ export default function (data) {
   };
   res = sbl.searchSblInstances(runtimeToken, filters);
   success = check(res, {
-    'Search instances by app title status is 200:': (r) => r.status === 200,
-    'Search instances app title matches:': (r) => {
+    'Search instances by app title status is 200': (r) => r.status === 200,
+    'Search instances app title matches': (r) => {
       var responseInstances = r.json();
       return responseInstances.every((instance) => instance.title.includes('app'));
     },
@@ -107,39 +108,45 @@ export default function (data) {
   //Test to soft delete an instance from storage: SBL and validate the response
   res = sbl.deleteSblInstance(runtimeToken, partyId, instanceId, 'false');
   success = check(res, {
-    'Soft DELETE instance status is 200:': (r) => r.status === 200,
-    'Soft DELETE instance Response is true:': (r) => r.body === 'true',
+    'Soft DELETE instance status is 200': (r) => r.status === 200,
+    'Soft DELETE instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
 
   //Test to restore a soft deleted instance from storage: SBL and validate the response
   res = sbl.restoreSblInstance(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Restore Soft deleted instance Status is 200:': (r) => r.status === 200,
-    'Restore Soft deleted instance Response is true:': (r) => r.body === 'true',
+    'Restore Soft deleted instance Status is 200': (r) => r.status === 200,
+    'Restore Soft deleted instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
 
   //Test to get an instance events from storage: SBL and validate the response
   res = sbl.getSblInstanceEvents(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET SBL Instance Events status is 200:': (r) => r.status === 200,
-    'GET SBL Instance Events Events Counts matches:': (r) => JSON.parse(r.body).length === 3,
+    'GET SBL Instance Events status is 200': (r) => r.status === 200,
+    'GET SBL Instance Events Events Counts matches': (r) => JSON.parse(r.body).length === 3,
   });
   addErrorCount(success);
 
   //Test to hard delete an instance from storage: SBL and validate the response
   res = sbl.deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
   success = check(res, {
-    'Hard DELETE instance status is 200:': (r) => r.status === 200,
-    'Hard DELETE instance Response is true:': (r) => r.body === 'true',
+    'Hard DELETE instance status is 200': (r) => r.status === 200,
+    'Hard DELETE instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
 
   //Test to restore a hard deleted instance from storage: SBL and validate the response to have 404
   res = sbl.restoreSblInstance(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Restore Hard Deleted instance status is 404:': (r) => r.status === 404,
+    'Restore Hard Deleted instance status is 404': (r) => r.status === 404,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformStorageSbl')] = generateJUnitXML(data, 'platform-storage-sbl');
+  return result;
 }

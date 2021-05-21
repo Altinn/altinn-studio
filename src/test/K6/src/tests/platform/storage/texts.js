@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as texts from '../../../api/platform/storage/texts.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -37,7 +38,7 @@ export default function (data) {
   //Test Platform: Storage: Get  applicaions under an appOwner
   res = texts.getAppTexts(runtimeToken, appOwner, level2App, 'nb');
   success = check(res, {
-    'GET App texts is 200:': (r) => r.status === 200,
+    'GET App texts is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
@@ -45,7 +46,7 @@ export default function (data) {
   //expected: 403 as it is not possible to upload app texts with an user token
   res = texts.postAppTexts(runtimeToken, appOwner, testApp, 'nb');
   success = check(res, {
-    'POST Upload App Texts status is 403:': (r) => r.status === 403,
+    'POST Upload App Texts status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -53,7 +54,7 @@ export default function (data) {
   //expected: 403 as response code
   res = texts.putEditAppTexts(runtimeToken, appOwner, testApp, 'nb');
   success = check(res, {
-    'PUT Edit App Texts status is 403:': (r) => r.status === 403,
+    'PUT Edit App Texts status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -61,7 +62,13 @@ export default function (data) {
   //expected: 403 as response code
   res = texts.deleteAppTexts(runtimeToken, appOwner, testApp, 'nb');
   success = check(res, {
-    'DELETE App Texts status is 403:': (r) => r.status === 403,
+    'DELETE App Texts status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformStorageTexts')] = generateJUnitXML(data, 'platform-storage-texts');
+  return result;
 }

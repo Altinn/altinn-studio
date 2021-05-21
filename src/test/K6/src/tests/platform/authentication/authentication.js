@@ -5,6 +5,7 @@
 */
 
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -21,4 +22,10 @@ export default function () {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   //Authenticate towards Altinn 3
   setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformAuthn')] = generateJUnitXML(data, 'platform-authentication');
+  return result;
 }

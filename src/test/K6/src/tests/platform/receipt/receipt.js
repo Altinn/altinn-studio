@@ -9,6 +9,7 @@ import { addErrorCount } from '../../../errorcounter.js';
 import * as setUpData from '../../../setup.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as receipt from '../../../api/platform/receipt.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -45,8 +46,14 @@ export default function (data) {
 
   res = receipt.getReceipt(partyId, instanceId, runtimeToken);
   success = check(res, {
-    'Get receipt Status is 200:': (r) => r.status === 200,
-    'Get receipt includes party info:': (r) => JSON.parse(r.body).party.partyId == partyId,
+    'Get receipt Status is 200': (r) => r.status === 200,
+    'Get receipt includes party info': (r) => JSON.parse(r.body).party.partyId == partyId,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformReceipt')] = generateJUnitXML(data, 'platform-receipt');
+  return result;
 }

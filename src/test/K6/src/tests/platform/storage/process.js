@@ -10,6 +10,7 @@ import * as process from '../../../api/platform/storage/process.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 import { addErrorCount } from '../../../errorcounter.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -50,14 +51,14 @@ export default function (data) {
   //Test to edit the process of an instance and validate the response
   res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);
   success = check(res, {
-    'PUT Edit Process status is 200:': (r) => r.status === 200,
+    'PUT Edit Process status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to get the process history of an instance and validate the response
   res = process.getProcessHistory(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET Process history status is 200:': (r) => r.status === 200,
+    'GET Process history status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 }
@@ -68,4 +69,10 @@ export function teardown(data) {
   const instanceId = data['instanceId'];
 
   sbl.deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformStorageProcess')] = generateJUnitXML(data, 'platform-storage-process');
+  return result;
 }

@@ -68,7 +68,7 @@ export default function (data) {
   //Complete confirm the app instance as an appOwner
   res = storageInstances.postCompleteConfirmation(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'Instance is confirmed complete:': (r) => r.status === 200,
+    'Instance is confirmed complete': (r) => r.status === 200,
   });
-  stopIterationOnFail('Instance is not confirmed complete:', success, res);
+  stopIterationOnFail('Instance is not confirmed complete', success, res);
 }

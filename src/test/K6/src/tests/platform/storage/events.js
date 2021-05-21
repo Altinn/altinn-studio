@@ -9,6 +9,7 @@ import * as events from '../../../api/platform/storage/events.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 import { addErrorCount } from '../../../errorcounter.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -48,8 +49,8 @@ export default function (data) {
   //Test to add an instance event to an instance with storage api and validate the response
   res = events.postAddEvent(runtimeToken, partyId, instanceId, eventsJson);
   success = check(res, {
-    'POST Add Event status is 201:': (r) => r.status === 201,
-    'POST Add Event Event Id is not null:': (r) => JSON.parse(r.body).id != null,
+    'POST Add Event status is 201': (r) => r.status === 201,
+    'POST Add Event Event Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
 
@@ -58,21 +59,21 @@ export default function (data) {
   //Test to get an instance event by id from an instance with storage api and validate the response
   res = events.getEvent(runtimeToken, partyId, instanceId, eventId);
   success = check(res, {
-    'GET Instance Event status is 200:': (r) => r.status === 200,
+    'GET Instance Event status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to get all instance events from an instance with storage api and validate the response
   res = events.getAllEvents(runtimeToken, partyId, instanceId);
   success = check(res, {
-    'GET All Instance Events status is 200:': (r) => r.status === 200,
+    'GET All Instance Events status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to get all instance events by type from an instance with storage api and validate the response
   res = events.getEventByType(runtimeToken, partyId, instanceId, 'created');
   success = check(res, {
-    'GET Instance Events by EventType status is 200:': (r) => r.status === 200,
+    'GET Instance Events by EventType status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 }
@@ -84,4 +85,10 @@ export function teardown(data) {
   const instanceId = data['instanceId'];
 
   sbl.deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('platformStorageEvents')] = generateJUnitXML(data, 'platform-storage-events');
+  return result;
 }
