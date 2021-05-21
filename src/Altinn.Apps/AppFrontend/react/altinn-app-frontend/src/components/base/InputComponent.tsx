@@ -1,15 +1,20 @@
 import * as React from 'react';
-import '../../styles/shared.css';
 import classNames from 'classnames';
-import NumberFormat from 'react-number-format';
+import NumberFormat, { NumberFormatProps } from 'react-number-format';
 import { Input } from '@material-ui/core';
+
+import '../../styles/shared.css';
 
 export interface IInputBaseProps {
   id: string;
   readOnly: boolean;
   required: boolean;
-  formatting?: any;
+  formatting?: IInputFormatting;
   handleDataChange: (value: any) => void;
+}
+
+export interface IInputFormatting {
+  number?: NumberFormatProps;
 }
 
 export interface IInputProps extends IInputBaseProps {
@@ -51,19 +56,17 @@ function NumberFormatCustom(props: IFormattedNumberInputProps) {
         });
       }}
       isNumericString={true}
-      {...formatting}
+      {...formatting.number}
     />
   );
 }
 
 export function BasicInputComponent(props: IBasicInputProps) {
-  const { formatting, ...rest } = props;
   return (
     <>
       <input
         data-testid={props.id}
-        {...rest}
-        {...formatting}
+        {...props}
       />
     </>
   );
@@ -71,34 +74,43 @@ export function BasicInputComponent(props: IBasicInputProps) {
 
 export function InputComponent(props: IInputProps) {
   const [value, setValue] = React.useState(props.formData ? props.formData : '');
-  const { number, ...formatting } = props.formatting || {};
+  const {
+    id,
+    readOnly,
+    required,
+    isValid,
+    formData,
+    formatting,
+    handleDataChange,
+  } = props;
 
   React.useEffect(() => {
-    setValue(props.formData ? props.formData : '');
-  }, [props.formData]);
+    setValue(formData || '');
+  }, [formData]);
 
   const onDataChanged = (e: any) => {
     setValue(e.target.value);
   };
 
   const onDataChangeSubmit = () => {
-    props.handleDataChange(value);
+    handleDataChange(value);
   };
 
   return (
     <Input
-      key={`input_${props.id}`}
-      id={props.id}
+      key={`input_${id}`}
+      id={id}
       onBlur={onDataChangeSubmit}
       onChange={onDataChanged}
-      readOnly={props.readOnly}
-      required={props.required}
+      readOnly={readOnly}
+      required={required}
+      disableUnderline={true}
       className={classNames('form-control',
-        { 'validation-error': !props.isValid, disabled: props.readOnly })}
+        { 'validation-error': !isValid, disabled: readOnly })}
       value={value}
       aria-describedby={`description-${props.id}`}
-      inputComponent={number ? NumberFormatCustom : BasicInputComponent}
-      inputProps={{ formatting }}
+      inputComponent={formatting?.number ? NumberFormatCustom : BasicInputComponent}
+      inputProps={formatting?.number ? { formatting } : null}
     />
   );
 }
