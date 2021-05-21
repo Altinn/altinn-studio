@@ -50,7 +50,6 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>4.6.1</Version>
   </PropertyGroup>
 
 </Project>
