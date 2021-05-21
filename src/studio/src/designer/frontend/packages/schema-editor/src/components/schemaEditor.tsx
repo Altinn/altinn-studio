@@ -141,7 +141,6 @@ export const SchemaEditor = ({
                 { properties?.map((item: UiSchemaItem) => <SchemaItem
                   keyPrefix='properties'
                   key={item.id}
-                  id='root-schema-item'
                   item={item}
                   nodeId={`${item.id}`}
                 />)}

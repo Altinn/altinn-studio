@@ -139,9 +139,9 @@ function SchemaItem(props: SchemaItemProps) {
 
   const renderLabelText = () => {
     if (refItem) {
-      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id.replace('#/definitions/', '')} {`: ${itemToDisplay.name ?? itemToDisplay.id.replace('#/definitions/', '')}`}</>;
+      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id} {`: ${itemToDisplay.name ?? itemToDisplay.id}`}</>;
     }
-    return <>{ icon('fa-datamodel-object') } {item.name ?? item.id.replace('#/definitions/', '')}</>;
+    return <>{ icon('fa-datamodel-object') } {item.name ?? item.id}</>;
   };
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();

@@ -188,7 +188,7 @@ const schemaEditorSlice = createSlice({
       const { rootElementPath } = action.payload; // state.schema.properties.melding.$ref;
       let uiSchema: any[] = [];
 
-      const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties');
+      const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties', true);
       uiSchema = uiSchema.concat(uiSchemaProps);
       const uiSchemaDefs = buildUISchema(state.schema.definitions, '#/definitions');
       uiSchema = uiSchema.concat(uiSchemaDefs);
