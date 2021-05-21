@@ -16,7 +16,7 @@ exports[`Should match snapshot 1`] = `
       <input
         class="MuiInputBase-input MuiInput-input"
         type="text"
-        value="Kommentar2000Restriksjon"
+        value=""
       />
     </div>
     <hr

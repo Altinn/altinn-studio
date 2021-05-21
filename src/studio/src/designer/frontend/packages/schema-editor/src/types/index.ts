@@ -29,7 +29,7 @@ export type UiSchemaItem = {
   keywords?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
-  displayName?: string;
+  displayName: string;
   required?: string[];
 }
 

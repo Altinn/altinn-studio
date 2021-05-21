@@ -234,7 +234,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                       <li
                         aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
-                        id="root-schema-item"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -273,7 +272,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                #/properties/melding
+                                melding
                                  
                                 : ForhåndsmeldingMidlertidigArbeidssted2011_M
                               </p>
@@ -430,7 +429,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsengasjertEnhet"
                         role="treeitem"
@@ -441,18 +439,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1435,7 +1422,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsAlternativ"
                         role="treeitem"
@@ -1446,18 +1432,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1502,7 +1477,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsTekst"
                         role="treeitem"
@@ -1513,18 +1487,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1569,7 +1532,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsPostnummer"
                         role="treeitem"
@@ -1580,18 +1542,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1638,7 +1589,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsPostnummer_RestriksjonPostnummer"
                         role="treeitem"
@@ -1649,18 +1599,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1705,7 +1644,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsPoststed"
                         role="treeitem"
@@ -1716,18 +1654,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1772,7 +1699,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsProsjektetsArt"
                         role="treeitem"
@@ -1783,18 +1709,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1839,7 +1754,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsMeldingstype"
                         role="treeitem"
@@ -1850,18 +1764,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1906,7 +1809,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsNavn"
                         role="treeitem"
@@ -1917,18 +1819,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -1973,7 +1864,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsTelefonnummer"
                         role="treeitem"
@@ -1984,18 +1874,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -2040,7 +1919,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsOrganisasjonsnummer"
                         role="treeitem"
@@ -2051,18 +1929,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -2109,7 +1976,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsOrganisasjonsnummer_RestriksjonOrganisasjonsnummer"
                         role="treeitem"
@@ -2120,18 +1986,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -2176,7 +2031,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsTidspunkt"
                         role="treeitem"
@@ -2187,18 +2041,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
@@ -2243,7 +2086,6 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-49"
                         id="definitionsAntall"
                         role="treeitem"
@@ -2254,18 +2096,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
+                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >

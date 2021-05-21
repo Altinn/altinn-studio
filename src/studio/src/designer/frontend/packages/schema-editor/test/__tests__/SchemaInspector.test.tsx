@@ -252,7 +252,7 @@ it('handles add property (field) button', () => {
       type: 'schemaEditor/addField',
       payload: {
         key: 'key',
-        value: 'value',
+        value: '',
         path: '#/definitions/Kommentar2000Restriksjon',
       },
     });

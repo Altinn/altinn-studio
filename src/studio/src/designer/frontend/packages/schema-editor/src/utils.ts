@@ -63,8 +63,8 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
     switch (key) {
       case 'properties': {
         item.properties = {};
-        uiSchemaItem.properties?.forEach((property: any) => {
-          item.properties[property.name] = createJsonSchemaItem(property);
+        uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
+          item.properties[property.displayName] = createJsonSchemaItem(property);
         });
         break;
       }
@@ -83,7 +83,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         break;
       }
       case 'id':
-      case 'name':
+      case 'displayName':
         break;
       default:
         item[key] = uiSchemaItem[key];
@@ -93,12 +93,14 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName?: boolean): UiSchemaItem[] {
+export function buildUISchema(schema: any, rootPath: string, includeDisplayName: boolean = true): UiSchemaItem[] {
   const result : UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
+    // What is this...
     result.push({
       id: rootPath,
       value: schema,
+      displayName: rootPath,
     });
     return result;
   }
@@ -181,7 +183,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
     id: name,
     properties,
     required: schema.required,
-    displayName: displayName,
+    displayName,
     ...rest,
   };
 };
