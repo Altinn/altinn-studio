@@ -137,7 +137,8 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
   return result;
 }
 
-export function buildUiSchemaForItemWithProperties(schema: any, name: string, displayName?: string) {
+export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
+  name: string, displayName?: string): UiSchemaItem => {
   const properties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
@@ -150,11 +151,16 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
-      item.keywords = Object.keys(currentProperty).map((itemKey) => {
-        return {
-          key: itemKey,
-          value: currentProperty[itemKey],
-        };
+      item.keywords = [];
+      Object.keys(currentProperty).forEach((k: string) => {
+        if (k === 'properties') {
+          item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties/${key}/`, true);
+        } else {
+          item.keywords?.push({
+            key: k,
+            value: currentProperty[k],
+          });
+        }
       });
     } else {
       item.value = currentProperty;
@@ -177,7 +183,8 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string, di
     name: displayName,
     ...rest,
   };
-}
+};
+
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
 
 export const getTranslation = (key: string, language: ILanguage) => {
