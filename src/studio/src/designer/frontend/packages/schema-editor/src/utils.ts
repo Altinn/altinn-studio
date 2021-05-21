@@ -4,6 +4,7 @@ const JsonPointer = require('jsonpointer');
 
 function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
   if (input) {
+    // eslint-disable-next-line no-restricted-syntax
     for (const item of input) {
       stack.push(item);
       if (item.properties instanceof Array && depth > 0) {
@@ -13,9 +14,9 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
   }
   return stack;
 }
+
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
-  // flatten all uiSchemaItems, then find matching id.
-  // TODO: keep this flattened structure in state?
+  // should we cache this flattened structure in state somehow for faster lookups?
   const items = flat(schema, 999);
   return items.find((i) => i.id === path) || {} as UiSchemaItem;
 }

@@ -58,16 +58,6 @@ test('renders schema editor with populated schema', () => {
   expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Save data model'))).toBeTruthy();
 });
 
-// test('renders schema editor with button to add root item when schema is empty', () => {
-//   mockStore = createStore(mockInitialState);
-
-//   let wrapper: ReactWrapper = new ReactWrapper(<div />);
-//   act(() => {
-//     wrapper = mountComponent();
-//   });
-//   expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Add root item'))).toBeTruthy();
-// });
-
 const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find('.MuiTypography-root').findWhere((r: ReactWrapper) => r.text() === text);
 
 test('Renders properties', () => {
@@ -85,25 +75,3 @@ test('Renders properties', () => {
 
   expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(6);
 });
-
-// test('Supports allOf', () => {
-//   mockStore = createStore({
-//     ...mockInitialState,
-//     schema: dataMock,
-//     uiSchema: mockUiSchema,
-//   });
-
-//   let wrapper: ReactWrapper = new ReactWrapper(<div />);
-//   act(() => {
-//     wrapper = mountComponent();
-//   });
-//   const allOfTest = findTreeItems(wrapper, ' allOfTest').last();
-//   expect(allOfTest.text()).toBe(' allOfTest');
-//   allOfTest.simulate('click');
-
-//   expect(wrapper.find('.MuiTypography-root').length).toBe(127);
-//   expect(wrapper.find('.MuiTypography-root').at(50).text()).toBe(' allOf');
-//   wrapper.find('.MuiTypography-root').at(50).simulate('click'); // expand allOf
-
-//   expect(wrapper.find('.MuiTypography-root').at(51).text()).toBe(' Tekst_50 : Tekst_50Restriksjon');
-// });

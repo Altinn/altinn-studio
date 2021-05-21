@@ -34,22 +34,20 @@ const schemaEditorSlice = createSlice({
     addProperty(state, action) {
       const { path } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      if (addToItem) {
-        const item: UiSchemaItem = {
-          id: `${path}/properties/name`,
-          displayName: 'name',
-          keywords: [
-            {
-              key: 'type',
-              value: 'object',
-            },
-          ],
-        };
-        if (addToItem.properties) {
-          addToItem.properties.push(item);
-        } else if (addToItem) {
-          addToItem.properties = [item];
-        }
+      const item: UiSchemaItem = {
+        id: `${path}/properties/name`,
+        displayName: 'name',
+        keywords: [
+          {
+            key: 'type',
+            value: 'object',
+          },
+        ],
+      };
+      if (addToItem.properties) {
+        addToItem.properties.push(item);
+      } else {
+        addToItem.properties = [item];
       }
     },
     addRefProperty(state, action) {
@@ -108,9 +106,9 @@ const schemaEditorSlice = createSlice({
         return;
       }
       // delete definition, here we need to find all references to this definition, and remove them (?)
-      const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
-      if (index >= 0) {
-        state.uiSchema.splice(index, 1);
+      const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
+      if (rootIndex >= 0) {
+        state.uiSchema.splice(rootIndex, 1);
       }
     },
     setFieldValue(state, action) {

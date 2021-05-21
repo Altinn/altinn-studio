@@ -52,7 +52,7 @@ export const SchemaEditor = ({
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
- const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
+  const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
 
   React.useEffect(() => {
