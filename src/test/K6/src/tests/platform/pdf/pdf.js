@@ -26,6 +26,6 @@ export default function () {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformPdf')] = generateJUnitXML(data, 'platform-pdf');  
+  result[reportPath('platformPdf')] = generateJUnitXML(data, 'platform-pdf');
   return result;
 }

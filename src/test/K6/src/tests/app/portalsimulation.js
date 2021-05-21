@@ -167,6 +167,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('portal-simulation')] = generateJUnitXML(data, 'portal-simulation');  
+  result[reportPath('portal-simulation')] = generateJUnitXML(data, 'portal-simulation');
   return result;
 }

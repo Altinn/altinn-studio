@@ -22,8 +22,8 @@ export function authenticateUser(userName, userPassword) {
     UserPassword: userPassword,
   };
   var params = {
-    headers: {      
-      'Accept': 'application/hal+json',
+    headers: {
+      Accept: 'application/hal+json',
     },
   };
   var res = http.post(endpoint, requestBody, params);
