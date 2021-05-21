@@ -98,13 +98,16 @@ const schemaEditorSlice = createSlice({
       }
     },
     deleteProperty(state, action) {
-      const { path } = action.payload;
-      const [rootPath, propertyName] = path.split('/properties/');
-      if (rootPath && propertyName) {
-        const removeFromItem = state.uiSchema.find((item) => item.id === rootPath);
+      const path: string = action.payload.path;
+      if (path.includes('/properties/')) {
+        // find parent of item to delete property.
+        const index = path.lastIndexOf('/properties/');
+        const parentPath = path.substring(0, index);
+        const propertyName = path.substring(index + 15);
+        const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
-            .properties?.findIndex((property: any) => property.name === propertyName) ?? -1;
+            .properties?.findIndex((property) => property.displayName === propertyName) ?? -1;
           if (removeIndex >= 0) {
             removeFromItem.properties?.splice(removeIndex, 1);
           }
