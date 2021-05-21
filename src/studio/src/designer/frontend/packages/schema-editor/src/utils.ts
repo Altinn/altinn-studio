@@ -157,7 +157,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       item.keywords = [];
       Object.keys(currentProperty).forEach((k: string) => {
         if (k === 'properties') {
-          item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties/${key}/`, true);
+          item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties`, true);
         } else {
           item.keywords?.push({
             key: k,
