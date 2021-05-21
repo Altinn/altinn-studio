@@ -35,6 +35,22 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Fact]
+        public void AsJsonSchema_ConvertXsdToJsonSchema_CorrectModelName()
+        {
+            // Arrange
+            using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/RA-0678_M.xsd"));
+            XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
+
+            // Act
+            JsonSchema actual = target.AsJsonSchema();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Single(actual.Properties());
+            Assert.True(actual.Properties().ContainsKey("melding"));
+        }
+
+        [Fact]
         public void ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
         {
                 // Arrange

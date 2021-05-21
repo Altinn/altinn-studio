@@ -59,6 +59,29 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Null(nonRepeatingGroup.DataBindingName);
         }
 
+        [Fact]
+        public void GetModelMetadata_RootNameCorrectlyTransferedToModelMetadata()
+        {
+            // Arrange
+            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.RA-0678_M.schema.json");
+
+            JsonSchemaToInstanceModelGenerator target =
+                new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
+
+            // Act
+            ModelMetadata actual = target.GetModelMetadata();
+
+            // Assert
+            Assert.NotNull(actual);
+
+            ElementMetadata rootElement = actual.Elements["melding"];
+
+            Assert.NotNull(rootElement);
+            Assert.Equal("melding", rootElement.ID);
+            Assert.Equal("melding", rootElement.Name);
+            Assert.Equal("RA0678_M", rootElement.TypeName);
+        }
+
         private JsonSchema LoadTestData(string resourceName)
         {
             Assembly assembly = typeof(JsonSchemaToInstanceModelGeneratorTests).GetTypeInfo().Assembly;
