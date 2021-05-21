@@ -89,6 +89,9 @@ const schemaEditorSlice = createSlice({
     },
     deleteProperty(state, action) {
       const path: string = action.payload.path;
+      if (state.selectedId === path) {
+        state.selectedId = undefined;
+      }
       if (path.includes('/properties/')) {
         // find parent of item to delete property.
         const index = path.lastIndexOf('/properties/');

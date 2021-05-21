@@ -144,7 +144,7 @@ function SchemaItem(props: SchemaItemProps) {
     return <>{ icon('fa-datamodel-object') } {item.displayName ?? item.id}</>;
   };
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     setContextAnchor(null);
     dispatch(deleteProperty({ path: item.id }));
   };
