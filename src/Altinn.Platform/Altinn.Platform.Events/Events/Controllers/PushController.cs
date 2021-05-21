@@ -30,9 +30,9 @@ namespace Altinn.Platform.Events.Controllers
         private readonly PlatformSettings _platformSettings;
 
         private readonly IMemoryCache _memoryCache;
-        private readonly MemoryCacheEntryOptions orgSubscriptioncacheEntryOptions;
-        private readonly MemoryCacheEntryOptions partySubscriptioncacheEntryOptions;
-        private readonly MemoryCacheEntryOptions orgAuthorizationEntryOptions;
+        private readonly MemoryCacheEntryOptions _orgSubscriptioncacheEntryOptions;
+        private readonly MemoryCacheEntryOptions _partySubscriptioncacheEntryOptions;
+        private readonly MemoryCacheEntryOptions _orgAuthorizationEntryOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PushController"/> class.
@@ -49,15 +49,15 @@ namespace Altinn.Platform.Events.Controllers
             _authorizationHelper = new AuthorizationHelper(pdp);
             _platformSettings = platformSettings.Value;
             _memoryCache = memoryCache;
-            orgSubscriptioncacheEntryOptions = new MemoryCacheEntryOptions()
+            _orgSubscriptioncacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
                 .SetAbsoluteExpiration(
                     new TimeSpan(0, 0, _platformSettings.SubscriptionCachingLifetimeInSeconds));
-            partySubscriptioncacheEntryOptions = new MemoryCacheEntryOptions()
+            _partySubscriptioncacheEntryOptions = new MemoryCacheEntryOptions()
               .SetPriority(CacheItemPriority.Normal)
               .SetAbsoluteExpiration(
                   new TimeSpan(0, 0, _platformSettings.SubscriptionCachingLifetimeInSeconds));
-            orgAuthorizationEntryOptions = new MemoryCacheEntryOptions()
+            _orgAuthorizationEntryOptions = new MemoryCacheEntryOptions()
               .SetPriority(CacheItemPriority.High)
               .SetAbsoluteExpiration(
                   new TimeSpan(0, 0, _platformSettings.SubscriptionCachingLifetimeInSeconds));
@@ -118,7 +118,7 @@ namespace Altinn.Platform.Events.Controllers
             if (!_memoryCache.TryGetValue(cacheKey, out isAuthorized))
             {
                 isAuthorized = await _authorizationHelper.AuthorizeConsumerForAltinnAppEvent(cloudEvent, consumer);
-                _memoryCache.Set(cacheKey, isAuthorized, orgAuthorizationEntryOptions);
+                _memoryCache.Set(cacheKey, isAuthorized, _orgAuthorizationEntryOptions);
             }
 
             return isAuthorized;
@@ -136,7 +136,7 @@ namespace Altinn.Platform.Events.Controllers
                 subject,
                 type);
 
-                _memoryCache.Set(cacheKey, orgSubscriptions, orgSubscriptioncacheEntryOptions);
+                _memoryCache.Set(cacheKey, orgSubscriptions, _orgSubscriptioncacheEntryOptions);
             }
 
             return orgSubscriptions;
@@ -153,7 +153,7 @@ namespace Altinn.Platform.Events.Controllers
                 sourceFilter,
                 subject,
                 type);
-                _memoryCache.Set(cacheKey, orgSubscriptions, partySubscriptioncacheEntryOptions);
+                _memoryCache.Set(cacheKey, orgSubscriptions, _partySubscriptioncacheEntryOptions);
             }
 
             return orgSubscriptions;
