@@ -97,7 +97,6 @@ const schemaEditorSlice = createSlice({
         const index = path.lastIndexOf('/properties/');
         const parentPath = path.substring(0, index);
         const propertyName = path.substring(index + 12);
-        console.log(`parent: ${parentPath} property: ${propertyName}`);
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
