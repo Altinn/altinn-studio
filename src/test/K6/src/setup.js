@@ -21,7 +21,12 @@ export function authenticateUser(userName, userPassword) {
     UserName: userName,
     UserPassword: userPassword,
   };
-  var res = http.post(endpoint, requestBody);
+  var params = {
+    headers: {      
+      'Accept': 'application/hal+json',
+    },
+  };
+  var res = http.post(endpoint, requestBody, params);
   var success = check(res, {
     'Authentication towards Altinn 2 Success': (r) => r.status === 200,
   });
@@ -52,7 +57,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
   var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
   var res = http.get(endpoint, params);
   var success = check(res, {
-    'Get User data:': (r) => r.status === 200,
+    'Get User data': (r) => r.status === 200,
   });
   addErrorCount(success);
   stopIterationOnFail('Get User data failed', success, res);
@@ -67,7 +72,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
   //get parties and find an Org that an user can represent
   res = getParties(userData['userId']);
   success = check(res, {
-    'Get User data:': (r) => r.status === 200,
+    'Get User data': (r) => r.status === 200,
   });
   addErrorCount(success);
   stopIterationOnFail('Get User data failed', success, res);

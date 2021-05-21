@@ -41,6 +41,7 @@ namespace Altinn.Platform.Events.Functions
             builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
             builder.Services.AddHttpClient<IPushEventsService, PushEventsService>();
             builder.Services.AddHttpClient<IWebhookService, WebhookService>();
+            builder.Services.AddHttpClient<IValidateSubscriptionService, ValidateSubscriptionService>();
         }
     }
 }

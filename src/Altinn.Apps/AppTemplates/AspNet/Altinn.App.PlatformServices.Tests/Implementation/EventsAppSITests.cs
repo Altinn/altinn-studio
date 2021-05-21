@@ -93,7 +93,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/123", actualEvent.Subject);
-            Assert.Equal("/organisation/org", actualEvent.AlternativeSubject);
+            Assert.Equal("/org/org", actualEvent.AlternativeSubject);
             Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
