@@ -36,12 +36,12 @@ function AddPropertyModal(props: IAddPropertyModal) {
   const { isOpen } = props;
   const classes = useStyles();
 
-  const [property, setProperty] = React.useState<UiSchemaItem>({ name: '', id: '' });
+  const [property, setProperty] = React.useState<UiSchemaItem>({ displayName: '', id: '' });
   const [typeList, setTypeList] = React.useState<any[]>([]);
   const [showCustom, setShowCustom] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    setTypeList(props.sharedTypes.map((item) => item.name));
+    setTypeList(props.sharedTypes.map((item) => item.displayName));
   }, [props.sharedTypes]);
 
   const onCloseModal = () => {
@@ -53,7 +53,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
 
   const onChangeProperty = (event: any) => {
     const name = event.target.value;
-    const propertyItem = props.sharedTypes.find((item) => item.name === name);
+    const propertyItem = props.sharedTypes.find((item) => item.displayName === name);
     if (propertyItem) {
       setProperty(propertyItem);
     }
@@ -61,7 +61,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
 
   const onChangeCustomProperty = (event: any) => {
     const propertyItem: UiSchemaItem = {
-      name: event.target.value,
+      displayName: event.target.value,
       id: `#/definitions/${event.target.value}`,
     };
     setProperty(propertyItem);
@@ -101,7 +101,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
           <div>
             <h6>Skriv inn navn</h6>
             <TextField
-              value={property.name}
+              value={property.displayName}
               onChange={onChangeCustomProperty}
               fullWidth={true}
             />

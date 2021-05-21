@@ -106,13 +106,14 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
   Object.keys(schema).forEach((key) => {
     const item = schema[key];
     const id = `${rootPath}/${key}`;
+    const displayName = includeDisplayName ? key : id;
     if (item.properties) {
-      result.push(buildUiSchemaForItemWithProperties(item, id, includeDisplayName ? key : undefined));
+      result.push(buildUiSchemaForItemWithProperties(item, id, displayName));
     } else if (item.$ref) {
       result.push({
         id,
         $ref: item.$ref,
-        name: includeDisplayName ? key : undefined,
+        displayName,
       });
     } else if (typeof item === 'object' && item !== null) {
       result.push({
@@ -123,13 +124,13 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName?
             value: item[itemKey],
           };
         }),
-        name: includeDisplayName ? key : undefined,
+        displayName,
       });
     } else {
       result.push({
         id,
         value: item,
-        name: includeDisplayName ? key : undefined,
+        displayName,
       });
     }
   });
@@ -145,7 +146,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
     const currentProperty = schema.properties[key];
     const item: UiSchemaItem = {
       id: `${name}/properties/${key}`,
-      name: key,
+      displayName: key,
     };
 
     if (currentProperty.$ref) {
@@ -180,7 +181,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
     id: name,
     properties,
     required: schema.required,
-    name: displayName,
+    displayName: displayName,
     ...rest,
   };
 };

@@ -37,7 +37,7 @@ const schemaEditorSlice = createSlice({
       if (addToItem) {
         const item: UiSchemaItem = {
           id: `${path}/properties/name`,
-          name: 'name',
+          displayName: 'name',
           keywords: [
             {
               key: 'type',
@@ -159,9 +159,12 @@ const schemaEditorSlice = createSlice({
       const {
         path, name, navigate,
       } = action.payload;
+      if (!name || name.length === 0) {
+        return;
+      }
       const item = getUiSchemaItem(state.uiSchema, path);
       if (item) {
-        item.name = name;
+        item.displayName = name;
         const arr = item.id.split('/');
         arr[arr.length - 1] = name;
         item.id = arr.join('/');
@@ -190,7 +193,7 @@ const schemaEditorSlice = createSlice({
 
       const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties', true);
       uiSchema = uiSchema.concat(uiSchemaProps);
-      const uiSchemaDefs = buildUISchema(state.schema.definitions, '#/definitions');
+      const uiSchemaDefs = buildUISchema(state.schema.definitions, '#/definitions', true);
       uiSchema = uiSchema.concat(uiSchemaDefs);
 
       state.uiSchema = uiSchema;

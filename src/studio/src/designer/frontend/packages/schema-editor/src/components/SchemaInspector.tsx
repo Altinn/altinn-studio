@@ -66,8 +66,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
-
+  const [nodeName, setNodeName] = React.useState(referencedItem?.displayName);
   const readOnly = selectedItem?.$ref !== undefined;
+
+  React.useEffect(() => {
+    setNodeName(selectedItem?.displayName);
+  }, [selectedItem]);
 
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
@@ -113,9 +117,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
-  const onChangeNodeName = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const onChangeNodeName = () => {
     dispatch(setPropertyName({
-      path: selectedItem?.id, name: e.target.value, navigate: true,
+      path: selectedItem?.id, name: nodeName, navigate: true,
     }));
   };
 
@@ -171,7 +175,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderConst = (p: UiSchemaItem, field: Field) => <InputField
     key={`field-${p.id}`}
     value={field?.value}
-    label={p.name ?? p.id}
+    label={p.displayName ?? p.id}
     readOnly={readOnly}
     fullPath={p.id}
     onChangeValue={onChangeConst}
@@ -209,7 +213,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         value={p.$ref ?? ''}
         isRef={true}
         readOnly={readOnly}
-        label={p.name ?? p.id}
+        label={p.displayName ?? p.id}
         fullPath={p.id}
         onChangeValue={onChangeValue}
         onChangeRef={onChangeRef}
@@ -261,8 +265,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           fullWidth={true}
           disableUnderline={true}
           className={classes.label}
-          value={selectedItem.name || selectedItem.id}
-          onChange={onChangeNodeName}
+          value={nodeName}
+          onChange={(e) => setNodeName(e.target.value)}
+          onBlur={onChangeNodeName}
         />
         { renderDefUrl() }
         <hr className={classes.divider} />
