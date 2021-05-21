@@ -64,9 +64,10 @@ describe('components/base/InputComponent.tsx', () => {
   test('components/base/InputComponent.tsx -- should render input with formatted number when this is specified', async () => {
     const { findByTestId } = renderInputComponent({
       formatting: {
-        number: true,
-        thousandSeparator: true,
-        prefix: '$',
+        number: {
+          thousandSeparator: true,
+          prefix: '$',
+        },
       },
       formData: '1234',
     });

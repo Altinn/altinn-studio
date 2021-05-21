@@ -110,7 +110,7 @@ export function InputComponent(props: IInputProps) {
       value={value}
       aria-describedby={`description-${props.id}`}
       inputComponent={formatting?.number ? NumberFormatCustom : BasicInputComponent}
-      inputProps={formatting?.number ? { formatting } : null}
+      inputProps={{ formatting }}
     />
   );
 }
