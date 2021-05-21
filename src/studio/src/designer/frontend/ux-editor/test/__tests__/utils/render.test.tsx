@@ -1,4 +1,5 @@
 import 'jest';
+import { mount } from 'enzyme';
 import { renderSelectTextFromResources } from '../../../utils/render';
 
 describe('>>> utils/render', () => {
@@ -25,7 +26,7 @@ describe('>>> utils/render', () => {
         modal_properties_label_helper: 'Søk etter ledetekst',
       },
     };
-    mockOnChangeFunction = (e: any): void => {
+    mockOnChangeFunction = (): void => {
       // do someting
     };
     mockPlaceholder = '25795.OppgavegiverNavnPreutfyltdatadef25795.Label';
@@ -36,10 +37,14 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
+      undefined,
       mockPlaceholder,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[2].props.placeholder).toEqual('Navn');
+    const wrapper = mount(render);
+    expect(wrapper.children()
+      .last().children().last()
+      .props().placeholder).toEqual('Navn');
   });
   it('+++ should render select with default placeholder', () => {
     const render = renderSelectTextFromResources(
@@ -47,10 +52,17 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
-      undefined,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[0].props.children[0].props.children).toEqual('Søk etter ledetekst');
-    expect(render.props.children[2].props.placeholder).toEqual('Søk etter ledetekst');
+    const wrapper = mount(render);
+    expect(
+      wrapper.children()
+        .first().children().first()
+        .children()
+        .text(),
+    ).toEqual('Søk etter ledetekst');
+    expect(wrapper.children()
+      .last().children().last()
+      .props().placeholder).toEqual('Søk etter ledetekst');
   });
 });

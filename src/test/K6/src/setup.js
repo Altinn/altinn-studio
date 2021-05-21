@@ -21,7 +21,12 @@ export function authenticateUser(userName, userPassword) {
     "UserName": userName,
     "UserPassword": userPassword
   };
-  var res = http.post(endpoint, requestBody);
+  var params = {
+    headers: {      
+      'Accept': 'application/hal+json',
+    },
+  };
+  var res = http.post(endpoint, requestBody, params);
   var success = check(res, {
     "Authentication towards Altinn 2 Success:": (r) => r.status === 200
   });
