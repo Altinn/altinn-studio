@@ -13,6 +13,7 @@ import * as platformInstances from '../../api/platform/storage/instances.js';
 import * as apps from '../../api/platform/storage/applications.js';
 import { deleteSblInstance } from '../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../setup.js';
+import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -54,7 +55,7 @@ export default function (data) {
   //Test to create an instance with App api and validate the response
   instanceId = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
   var success = check(instanceId, {
-    'E2E App POST Create Instance status is 201:': (r) => r.status === 201,
+    'E2E App POST Create Instance status is 201': (r) => r.status === 201,
   });
   addErrorCount(success);
 
@@ -64,21 +65,21 @@ export default function (data) {
   //Test to get current process of an app instance and verify response code to be 200
   var res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'E2E App GET current process status is 200:': (r) => r.status === 200,
+    'E2E App GET current process status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to get validate instance and verify response code to have error "TooFewDataElementsOfType"
   res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App, appOwner, level2App);
   success = check(res, {
-    'E2E App GET Validate Instance response has TooFewDataElementsOfType:': (r) => JSON.parse(r.body)[0].code === 'TooFewDataElementsOfType',
+    'E2E App GET Validate Instance response has TooFewDataElementsOfType': (r) => JSON.parse(r.body)[0].code === 'TooFewDataElementsOfType',
   });
   addErrorCount(success);
 
   //Test to edit a form data in an instance with App APi and validate the response
   res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
   success = check(res, {
-    'E2E PUT Edit Data by Id status is 201:': (r) => r.status === 201,
+    'E2E PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });
   addErrorCount(success);
 
@@ -90,7 +91,7 @@ export default function (data) {
   //Test to get validate instance attachment data and verify response code to have error "DataElementTooLarge"
   res = appData.getValidateInstanceData(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
   success = check(res, {
-    'E2E App GET Validate InstanceData response has DataElementTooLarge:': (r) => JSON.parse(r.body)[0].code === 'DataElementTooLarge',
+    'E2E App GET Validate InstanceData response has DataElementTooLarge': (r) => JSON.parse(r.body)[0].code === 'DataElementTooLarge',
   });
   addErrorCount(success);
 
@@ -105,14 +106,14 @@ export default function (data) {
   //Test to get validate instance attachment data and verify that validation of instance is ok
   res = appData.getValidateInstanceData(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
   success = check(res, {
-    'E2E App GET Validate InstanceData: Validation OK:': (r) => JSON.parse(r.body).length === 0,
+    'E2E App GET Validate InstanceData: Validation OK': (r) => JSON.parse(r.body).length === 0,
   });
   addErrorCount(success);
 
   //Test to get validate instance and verify that validation of instance is ok
   res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'E2E App GET Validate Instance validation OK:': (r) => JSON.parse(r.body).length === 0,
+    'E2E App GET Validate Instance validation OK': (r) => JSON.parse(r.body).length === 0,
   });
   addErrorCount(success);
 
@@ -124,7 +125,7 @@ export default function (data) {
   //Test to move the process of an app instance to the next process element and verify response code to be 200
   res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement, appOwner, level2App);
   success = check(res, {
-    'E2E App PUT Move process to Next element status is 200:': (r) => r.status === 200,
+    'E2E App PUT Move process to Next element status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
@@ -132,8 +133,14 @@ export default function (data) {
   res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
   isReceiptPdfGenerated = appInstances.isReceiptPdfGenerated(res.body);
   success = check(res, {
-    'E2E App Instance is archived:': (r) => JSON.parse(r.body).status.archived != null,
-    'E2E Receipt pdf is generated:': (r) => isReceiptPdfGenerated == true,
+    'E2E App Instance is archived': (r) => JSON.parse(r.body).status.archived != null,
+    'E2E Receipt pdf is generated': (r) => isReceiptPdfGenerated == true,
   });
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('appUserE2E')] = generateJUnitXML(data, 'app-userE2E');
+  return result;
 }

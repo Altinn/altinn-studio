@@ -8,6 +8,7 @@ import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -40,7 +41,13 @@ export default function (data) {
   //Test to create an instance without required security level login and expecting 403
   res = appInstances.postInstance(runtimeToken, partyId, appOwner, level3App);
   success = check(res, {
-    'App POST Create Instance status is 403:': (r) => r.status === 403,
+    'App POST Create Instance status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('negativeLowerlevelLogin')] = generateJUnitXML(data, 'app-negativeLowerlevelLogin');
+  return result;
 }

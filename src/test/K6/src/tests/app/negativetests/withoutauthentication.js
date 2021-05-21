@@ -10,6 +10,7 @@ import * as appInstances from '../../../api/app/instances.js';
 import * as appData from '../../../api/app/data.js';
 import * as platformInstances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -48,14 +49,20 @@ export default function (data) {
   //Test to create an instance without authentication and expect 401
   res = appInstances.postInstance(null, partyId, appOwner, level2App);
   success = check(res, {
-    'App POST Create Instance status is 401:': (r) => r.status === 401,
+    'App POST Create Instance status is 401': (r) => r.status === 401,
   });
   addErrorCount(success);
 
   //Test to Get instance data by id with App api and validate the response
   var res = appData.getDataById(null, partyId, instanceId, dataId, appOwner, level2App);
   var success = check(res, {
-    'App GET Data by Id status is 401:': (r) => r.status === 401,
+    'App GET Data by Id status is 401': (r) => r.status === 401,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('negativeWithoutAuthN')] = generateJUnitXML(data, 'app-negativeWithoutAuthN');
+  return result;
 }

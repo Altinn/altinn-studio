@@ -9,6 +9,7 @@ import { addErrorCount } from '../../../errorcounter.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as platformInstances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const level1UserName = __ENV.level1user;
@@ -49,14 +50,20 @@ export default function (data) {
   //Test to create an instance without required roles and expecting 403
   res = appInstances.postInstance(runtimeToken, partyId, appOwner, level1App);
   success = check(res, {
-    'App POST Create Instance status is 403:': (r) => r.status === 403,
+    'App POST Create Instance status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //Test to get an instance without required roles and expecting 403
   res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level1App);
   success = check(res, {
-    'App GET Instance by Id status is 403:': (r) => r.status === 403,
+    'App GET Instance by Id status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('negativeWithoutAllowedRoles')] = generateJUnitXML(data, 'app-negativeWithoutAllowedRoles');
+  return result;
 }

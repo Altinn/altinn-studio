@@ -13,6 +13,7 @@ import * as platformInstances from '../../api/platform/storage/instances.js';
 import { deleteSblInstance } from '../../api/platform/storage/messageboxinstances.js';
 import * as apps from '../../api/platform/storage/applications.js';
 import * as setUpData from '../../setup.js';
+import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -57,14 +58,14 @@ export default function (data) {
   //Test to start process of an app instance again and verify response code to be 409
   var res = appProcess.postStartProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   var success = check(res, {
-    'App POST Start process again Not Possible status is 409:': (r) => r.status === 409,
+    'App POST Start process again Not Possible status is 409': (r) => r.status === 409,
   });
   addErrorCount(success);
 
   //Test to get current process of an app instance and verify response code to be 200
   res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'App GET current process status is 200:': (r) => r.status === 200,
+    'App GET current process status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
@@ -73,7 +74,7 @@ export default function (data) {
   //Test to move the process of an app instance to the current process element and verify response code to be 409
   res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, currentProcessElement, appOwner, level2App);
   success = check(res, {
-    'App PUT Move process to current process element Not Possible status is 409:': (r) => r.status === 409,
+    'App PUT Move process to current process element Not Possible status is 409': (r) => r.status === 409,
   });
   addErrorCount(success);
 
@@ -84,26 +85,26 @@ export default function (data) {
   //Test to get next process of an app instance again and verify response code  to be 200
   res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'App GET Next process status is 200:': (r) => r.status === 200,
+    'App GET Next process status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to get the process history of an app instance and verify the response code to be 200
   res = appProcess.getProcessHistory(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'App GET Process history:': (r) => r.status === 200,
+    'App GET Process history': (r) => r.status === 200,
   });
 
   //Test to complete the process of an app instance and verify the response code to be 200
   res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'App Complete instance process:': (r) => r.status === 200,
+    'App Complete instance process': (r) => r.status === 200,
   });
 
   //Test to complete an instance process again and check response code to be 409
   res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'App Complete instance process again status is 409:': (r) => r.status === 409,
+    'App Complete instance process again status is 409': (r) => r.status === 409,
   });
 }
 
@@ -114,4 +115,10 @@ export function teardown(data) {
   const instanceId = data['instanceId'];
 
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};  
+  result[reportPath('appProcess')] = generateJUnitXML(data, 'app-process');
+  return result;
 }

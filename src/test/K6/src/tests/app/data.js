@@ -12,6 +12,7 @@ import * as platformInstances from '../../api/platform/storage/instances.js';
 import * as apps from '../../api/platform/storage/applications.js';
 import { deleteSblInstance } from '../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../setup.js';
+import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -55,28 +56,28 @@ export default function (data) {
   //Test to Get instance data by id with App api and validate the response
   var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
   var success = check(res, {
-    'App GET Data by Id status is 200:': (r) => r.status === 200,
+    'App GET Data by Id status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to edit a form data in an instance with App APi and validate the response
   res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
   success = check(res, {
-    'PUT Edit Data by Id status is 201:': (r) => r.status === 201,
+    'PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });
   addErrorCount(success);
 
   //Test to delete a form data in an instance with App API and validate the response
   res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
   success = check(res, {
-    'DELETE Form Data by Id Not Allowed status is 400:': (r) => r.status === 400,
+    'DELETE Form Data by Id Not Allowed status is 400': (r) => r.status === 400,
   });
   addErrorCount(success);
 
   //Test to upload an attachment to an instance with App API and validate the response
   res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
   success = check(res, {
-    'POST Attachment is uploaded status is 201:': (r) => r.status === 201,
+    'POST Attachment is uploaded status is 201': (r) => r.status === 201,
   });
   addErrorCount(success);
 
@@ -85,7 +86,7 @@ export default function (data) {
   //Test to delete a an attachment from an instance with App API and validate the response
   res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
   success = check(res, {
-    'DELETE Attachment Allowed status is 200:': (r) => r.status === 200,
+    'DELETE Attachment Allowed status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 }
@@ -97,4 +98,10 @@ export function teardown(data) {
   const instanceId = data['instanceId'];
 
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('appData')] = generateJUnitXML(data, 'app-data');
+  return result;
 }

@@ -23,6 +23,7 @@ import * as appProcess from '../../../api/app/process.js';
 import * as apps from '../../../api/platform/storage/applications.js';
 import * as storageInstances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
+import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -69,7 +70,7 @@ export default function (data) {
   //Test to create an instance with storage api and validate that the app owner is forbidden.
   res = appInstances.postInstance(orgRuntimeToken, partyId, appOwner, level2App);
   success = check(res, {
-    'Create Instance as app owner without write access - status is 403:': (r) => r.status === 403,
+    'Create Instance as app owner without write access - status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -84,14 +85,14 @@ export default function (data) {
   //Test to edit a form data in an instance with App APi and validate that the app owner is forbidden.
   res = appData.putDataById(orgRuntimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
   success = check(res, {
-    'Edit Form Data as app owner without write access - status is 403:': (r) => r.status === 403,
+    'Edit Form Data as app owner without write access - status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //upload a valid attachment to an instance with App API and validate that the app owner is forbidden.
   res = appData.postData(orgRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
   success = check(res, {
-    'Upload attachment as app owner without write access - status is 403:': (r) => r.status === 403,
+    'Upload attachment as app owner without write access - status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
@@ -103,7 +104,13 @@ export default function (data) {
   //Test to move the process of an app instance to the next process element and validate that the app owner is forbidden.
   res = appProcess.putNextProcess(orgRuntimeToken, partyId, instanceId, nextElement, appOwner, level2App);
   success = check(res, {
-    'Move process to Next element as appowner without write access - status is 403:': (r) => r.status === 403,
+    'Move process to Next element as appowner without write access - status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
+}
+
+export function handleSummary(data) {
+  let result = {};
+  result[reportPath('negativeWithoutAccess')] = generateJUnitXML(data, 'app-negativeWithoutAccess');
+  return result;
 }
