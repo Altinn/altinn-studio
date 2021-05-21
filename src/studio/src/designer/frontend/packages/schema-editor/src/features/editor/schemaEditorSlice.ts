@@ -59,9 +59,9 @@ const schemaEditorSlice = createSlice({
 
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item = content[0];
-      const propertyItem = {
+      const propertyItem: UiSchemaItem = {
         id: `${path}/properties/${newKey}`,
-        name: newKey,
+        displayName: newKey,
         $ref: item.id,
       };
 

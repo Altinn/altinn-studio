@@ -88,12 +88,12 @@ export const SchemaEditor = ({
     setAddPropertyModalOpen(true);
   };
 
-  const onCloseAddPropertyModal = (property: any) => {
-    if (property && property.name) {
+  const onCloseAddPropertyModal = (property: UiSchemaItem) => {
+    if (property && property.displayName) {
       const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
       const newProp = {
         path: addPropertyPath,
-        newKey: property.name,
+        newKey: property.displayName,
         content: itemTree,
       };
       dispatch(addRefProperty(newProp));
