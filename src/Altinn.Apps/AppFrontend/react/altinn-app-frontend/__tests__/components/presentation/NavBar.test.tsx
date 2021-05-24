@@ -4,7 +4,7 @@ import React from 'react';
 import  NavBar from '../../../src/components/presentation/NavBar';
 
 
-describe('>>> components/process-step/NavBar.tsx', () => {
+describe('>>> components/presentation/NavBar.tsx', () => {
   it('+++ should render back button by default', () => {
     const wrapper = mount(
       <NavBar
