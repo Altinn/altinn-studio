@@ -69,7 +69,7 @@ namespace Altinn.App.PlatformServices.Implementation
             string alternativeSubject = null;
             if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.OrganisationNumber))
             {
-                alternativeSubject = $"/organisation/{instance.InstanceOwner.OrganisationNumber}";
+                alternativeSubject = $"/org/{instance.InstanceOwner.OrganisationNumber}";
             }
 
             if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.PersonNumber))

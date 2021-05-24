@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ILayoutSettings } from 'app-shared/types';
 import * as FormLayoutTypes from '../formDesignerTypes';
@@ -253,8 +252,10 @@ const formLayoutSlice = createSlice({
       state.fetched = false;
       state.error = error;
     },
-    // eslint-disable-next-line max-len
-    fetchLayoutSettingsFulfilled: (state, action: PayloadAction<FormLayoutTypes.IFetchLayoutSettingsFulfilledAction>) => {
+    fetchLayoutSettingsFulfilled: (
+      state,
+      action: PayloadAction<FormLayoutTypes.IFetchLayoutSettingsFulfilledAction>,
+    ) => {
       const { settings } = action.payload;
       if (settings && settings.pages && settings.pages.order) {
         state.layoutSettings.pages.order = settings.pages.order;
@@ -284,13 +285,8 @@ const formLayoutSlice = createSlice({
     updateActiveListOrder: (state, action: PayloadAction<FormLayoutTypes.IUpdateActiveListOrderAction>) => {
       const { containerList, orderList } = action.payload;
       const key: any = Object.keys(orderList)[0];
-      let returnedList = null;
       const func = sortArray();
-      if (containerList.length >= 1) {
-        returnedList = func({ array: [...containerList], order: orderList[key] });
-      } else {
-        returnedList = [];
-      }
+      const returnedList = !containerList.length ? [] : func({ array: [...containerList], order: orderList[key] });
       if (returnedList.length > 0) {
         state.activeList = returnedList;
       }
@@ -351,7 +347,6 @@ const formLayoutSlice = createSlice({
       }
       state.unSavedChanges = true;
     },
-    // eslint-disable-next-line max-len
     updateFormComponentOrder: (state, action: PayloadAction<FormLayoutTypes.IUpdateFormComponentOrderAction>) => {
       const { updatedOrder } = action.payload;
       state.layouts[state.selectedLayout].order = updatedOrder;
