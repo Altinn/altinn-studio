@@ -205,7 +205,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return XsdToJsonSchema.SanitizeName(name);
         }
 
-        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentType, string parentXpath)
+        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema currentJsonSchema, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentJsonSchema, string parentXpath)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
             string xPath;
@@ -232,16 +232,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             string minItems = "0";
             string maxItems = "1";
 
-            TypeKeyword type = propertyType.Get<TypeKeyword>();
+            TypeKeyword currentJsonSchemaType = currentJsonSchema.Get<TypeKeyword>();
 
-            if (type != null && type.Value == JsonSchemaType.Array)
+            if (currentJsonSchemaType != null && currentJsonSchemaType.Value == JsonSchemaType.Array)
             {
-                List<JsonSchema> items = propertyType.Items();
+                List<JsonSchema> items = currentJsonSchema.Items();
                 path += multiplicityString;
                 FollowRef(path, items[0], alreadyVisitedTypes, xPath); // TODO fix multiple item types. It now uses only the first
 
-                double? minItemsValue = propertyType.MinItems();
-                double? maxItemsValue = propertyType.MaxItems();
+                double? minItemsValue = currentJsonSchema.MinItems();
+                double? maxItemsValue = currentJsonSchema.MaxItems();
 
                 if (minItemsValue.HasValue)
                 {
@@ -254,29 +254,26 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     maxItems = maxItemsValue.ToString();
                 }
             }
-            else if (type != null && type.Value == JsonSchemaType.Object)
-            {                
-                if (propertyType != null)
+            else if (currentJsonSchemaType != null && currentJsonSchemaType.Value == JsonSchemaType.Object)
+            {   
+                if (alreadyVisitedTypes.Contains(sanitizedPropertyName))
                 {
-                    if (alreadyVisitedTypes.Contains(sanitizedPropertyName))
-                    {
-                        return;
-                    }
-
-                    ISet<string> currentlyVisitedTypes = new HashSet<string>(alreadyVisitedTypes);
-                    currentlyVisitedTypes.Add(sanitizedPropertyName);
-                    if (propertyType.Properties() != null)
-                    {
-                        foreach (KeyValuePair<string, JsonSchema> def in propertyType.Properties())
-                        {
-                            TraverseModell(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, propertyType), currentlyVisitedTypes, propertyType, parentXpath);
-                        }
-                    }
+                    return;
                 }
+
+                ISet<string> currentlyVisitedTypes = new HashSet<string>(alreadyVisitedTypes);
+                currentlyVisitedTypes.Add(sanitizedPropertyName);
+                if (currentJsonSchema.Properties() != null)
+                {
+                    foreach (KeyValuePair<string, JsonSchema> def in currentJsonSchema.Properties())
+                    {
+                        TraverseModell(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, currentJsonSchema), currentlyVisitedTypes, currentJsonSchema, parentXpath);
+                    }
+                }                
             }
             else
             {
-                FollowRef(path, propertyType, alreadyVisitedTypes, xPath);
+                FollowRef(path, currentJsonSchema, alreadyVisitedTypes, xPath);
                 if (isRequired)
                 {
                     minItems = "1";
@@ -286,7 +283,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             JsonObject result = new JsonObject();
 
             string inputType = "Field";
-            string xsdType = propertyType.OtherData.TryGetString("@xsdType");
+            string xsdType = currentJsonSchema.OtherData.TryGetString("@xsdType");
 
             result.Add("ID", RemoveStarsFromPath(path));
 
@@ -296,9 +293,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 result.Add("ParentElement", RemoveStarsFromPath(parentElement));
             }
 
-            string xsdValueType = FollowValueType(propertyType);
+            string xsdValueType = FollowValueType(currentJsonSchema);
 
-            string typeName = ExtractTypeNameFromSchema(propertyType);
+            string typeName = ExtractTypeNameFromSchema(currentJsonSchema);
             if (typeName != null)
             {
                 result.Add("TypeName", SanitizeName(typeName));
@@ -311,7 +308,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             result.Add("Name", sanitizedPropertyName);
 
             string fixedValue = null;
-            JsonValue fixedValueJson = propertyType.Const();
+            JsonValue fixedValueJson = currentJsonSchema.Const();
             if (fixedValueJson != null)
             {
                 fixedValue = fixedValueJson.String;
@@ -321,7 +318,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 inputType = "Attribute";
             }
-            else if ((type == null && xsdValueType == null) || (type != null && (type.Value == JsonSchemaType.Object || type.Value == JsonSchemaType.Array)))
+            else if ((currentJsonSchemaType == null && xsdValueType == null) || (currentJsonSchemaType != null && (currentJsonSchemaType.Value == JsonSchemaType.Object || currentJsonSchemaType.Value == JsonSchemaType.Array)))
             {
                 inputType = "Group";
             }
@@ -337,7 +334,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             result.Add("XPath", xPath);
 
-            result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
+            result.Add("Restrictions", ExtractRestrictions(xsdValueType, currentJsonSchema));
 
             result.Add("Type", inputType);
 
@@ -348,12 +345,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (path.EndsWith(".value"))
             {
-                result.Add("Texts", ExtractTexts(parentElement.Split(".").Last(), parentType));
+                result.Add("Texts", ExtractTexts(parentElement.Split(".").Last(), parentJsonSchema));
                 result.Add("IsTagContent", true);
             }
             else
             {
-                result.Add("Texts", ExtractTexts(propertyName, propertyType));
+                result.Add("Texts", ExtractTexts(propertyName, currentJsonSchema));
             }
 
             result.Add("CustomProperties", new JsonObject()); // ??
