@@ -44,7 +44,9 @@ steps:
   continueOnError: false
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
-- script: |   
+- script: |
+   mkdir -p $(pwd)/src/reports
+       
    k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
