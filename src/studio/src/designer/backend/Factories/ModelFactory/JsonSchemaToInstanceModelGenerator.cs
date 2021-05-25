@@ -267,7 +267,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     foreach (KeyValuePair<string, JsonSchema> def in currentJsonSchema.Properties())
                     {
-                        TraverseModell(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, currentJsonSchema), currentlyVisitedTypes, currentJsonSchema, parentXpath);
+                        TraverseModell(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, currentJsonSchema), currentlyVisitedTypes, currentJsonSchema, xPath);
                     }
                 }                
             }
