@@ -4,14 +4,15 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { Grid, IconButton, Menu, MenuItem } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addProperty, addRootProperty } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
+import { SchemaItemLabel } from './SchemaItemLabel';
 
 const useStyles = makeStyles(
   createStyles({
@@ -19,37 +20,13 @@ const useStyles = makeStyles(
       marginTop: 24,
       height: '100%',
     },
-    propertiesLabel: {
-      display: 'flex',
-      alignItems: 'center',
-      padding: 8,
-    },
-    label: {
-      flexGrow: 1,
-    },
     tree: {
       flexGrow: 1,
     },
     button: {
       marginLeft: 24,
     },
-    iconContainer: {
-      background: '#022f51',
-      textAlign: 'center',
-      padding: '5px 0px 5px 0px',
-      marginRight: 4,
-      fontSize: '10px',
-    },
-    contextButton: {
-      borderRadius: 60,
-      margin: 0,
-      padding: 10,
-      display: 'none',
-      '$properties :hover > &': {
-        display: 'block',
-      },
-    },
-    properties: {
+    treeItem: {
       marginLeft: 8,
       '&.Mui-selected': {
         background: '#E3F7FF',
@@ -87,7 +64,6 @@ export const SchemaEditor = ({
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
   }, [dispatch, rootItemId]);
-  const [contextAnchor, setContextAnchor] = React.useState<any>(null);
 
   React.useEffect(() => {
     if (jsonSchema) {
@@ -135,45 +111,11 @@ export const SchemaEditor = ({
   const onCancelAddItemModal = () => {
     setAddPropertyModalOpen(false);
   };
-  const handleContextMenuClick = (e: React.MouseEvent) => {
-    setContextAnchor(e.currentTarget);
-    e.stopPropagation();
-  };
-  const handleCloseContextMenu = (e: React.MouseEvent) => {
-    setContextAnchor(null);
-    e.stopPropagation();
-  };
-  const handleAddProperty = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextAnchor(null);
+  const handleAddProperty = () => {
     dispatch(addRootProperty({
       name: 'name',
     }));
   };
-  const renderPropertiesLabel = () => (
-    <div className={classes.propertiesLabel}>
-      <div className={classes.label}>
-        <span className={classes.iconContainer}>
-          <i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} />
-        </span> {getTranslation('schema_editor.properties', language)}
-      </div>
-      <IconButton
-        className={classes.contextButton}
-        aria-controls='simple-menu'
-        aria-haspopup='true'
-        id='open-context-menu-button'
-        onClick={handleContextMenuClick}
-      ><i className='fa fa-ellipsismenu'/>
-      </IconButton>
-      <Menu
-        id='root-properties-context-menu'
-        anchorEl={contextAnchor}
-        open={Boolean(contextAnchor)}
-        onClose={handleCloseContextMenu}
-      >
-        <MenuItem onClick={handleAddProperty}><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', language)}</MenuItem>
-      </Menu>
-    </div>);
 
   const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
@@ -205,8 +147,8 @@ export const SchemaEditor = ({
               <TreeItem
                 id='properties'
                 nodeId='properties'
-                className={classes.properties}
-                label={renderPropertiesLabel()}
+                className={classes.treeItem}
+                label={<SchemaItemLabel language={language} onAddProperty={handleAddProperty}/>}
               >
                 { properties?.map((item: UiSchemaItem) => <SchemaItem
                   keyPrefix='properties'
