@@ -103,7 +103,7 @@ const schemaEditorSlice = createSlice({
         state.selectedId = undefined;
       }
       // eslint-disable-next-line no-useless-escape
-      if (path.match('[^#]\/properties/g')) {
+      if (path.match('[^#]\/properties')) {
         // find parent of item to delete property.
         const index = path.lastIndexOf('/properties/');
         const parentPath = path.substring(0, index);
