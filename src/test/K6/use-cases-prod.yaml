@@ -27,6 +27,13 @@ steps:
   condition: succeededOrFailed()
 
 - script: |
+   mkdir -p $(pwd)/src/reports
+   
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Create reports folder'
+  continueOnError: true
+
+- script: |
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
    cat result.txt
@@ -45,8 +52,6 @@ steps:
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
-   mkdir -p $(pwd)/src/reports
-       
    k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
@@ -56,8 +61,7 @@ steps:
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
-- script: |   
-
+- script: |
    k6 run  --quiet $(pwd)/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
    
    k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
@@ -78,7 +82,9 @@ steps:
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   inputs:
-    testResultsFiles: '*.xml'
+    testResultsFiles: |
+     *.xml
+     **/src/test/K6/src/reports/*.xml
     searchFolder: '$(Build.SourcesDirectory)'
     mergeTestResults: true
     failTaskOnFailedTests: true

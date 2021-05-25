@@ -6,6 +6,7 @@
 
 import * as setUpData from '../../../setup.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -26,6 +27,7 @@ export default function () {
 
 export function handleSummary(data) {
   let result = {};
+  result['stdout'] = textSummary(data, { indent: ' ', enableColors: true});
   result[reportPath('platformAuthn')] = generateJUnitXML(data, 'platform-authentication');
   return result;
 }
