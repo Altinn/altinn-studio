@@ -254,6 +254,26 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     maxItems = maxItemsValue.ToString();
                 }
             }
+            else if (type != null && type.Value == JsonSchemaType.Object)
+            {                
+                if (propertyType != null)
+                {
+                    if (alreadyVisitedTypes.Contains(sanitizedPropertyName))
+                    {
+                        return;
+                    }
+
+                    ISet<string> currentlyVisitedTypes = new HashSet<string>(alreadyVisitedTypes);
+                    currentlyVisitedTypes.Add(sanitizedPropertyName);
+                    if (propertyType.Properties() != null)
+                    {
+                        foreach (KeyValuePair<string, JsonSchema> def in propertyType.Properties())
+                        {
+                            TraverseModell(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, propertyType), currentlyVisitedTypes, propertyType, parentXpath);
+                        }
+                    }
+                }
+            }
             else
             {
                 FollowRef(path, propertyType, alreadyVisitedTypes, xPath);
@@ -282,6 +302,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (typeName != null)
             {
                 result.Add("TypeName", SanitizeName(typeName));
+            }
+            else
+            {
+                result.Add("TypeName", sanitizedPropertyName);
             }
 
             result.Add("Name", sanitizedPropertyName);

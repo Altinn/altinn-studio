@@ -47,11 +47,18 @@
     <EmbeddedResource Include="_TestData\**\*.*" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="_TestData\TestDataHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="_TestData\Model\JsonSchema\hvem-er-hvem.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Utils\TestDataHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
