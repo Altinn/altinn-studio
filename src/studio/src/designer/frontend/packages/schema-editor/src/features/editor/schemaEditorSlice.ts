@@ -31,6 +31,18 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    addRootProperty(state, action) {
+      const { name } = action.payload;
+      state.uiSchema.push(
+        {
+          id: `#/properties/${name}`,
+          displayName: name,
+          keywords: [
+            { key: 'type', value: 'object' },
+          ],
+        },
+      );
+    },
     addProperty(state, action) {
       const { path } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
@@ -209,6 +221,7 @@ const schemaEditorSlice = createSlice({
 
 export const {
   addField,
+  addRootProperty,
   addProperty,
   addRefProperty,
   deleteField,
