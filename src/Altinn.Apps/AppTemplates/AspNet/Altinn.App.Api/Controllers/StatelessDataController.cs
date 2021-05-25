@@ -119,6 +119,8 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Runs calculations on the provided data object of the defined defined data type
         /// </summary>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
         /// <returns>Return the updated data object</returns>
         [Authorize]
@@ -126,7 +128,7 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
-        public async Task<ActionResult> Put([FromQuery] string dataType)
+        public async Task<ActionResult> Put(string org, string app, [FromQuery] string dataType)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -143,6 +145,20 @@ namespace Altinn.App.Api.Controllers
             if (Request.ContentLength == null || Request.ContentLength <= 0)
             {
                 return BadRequest("No data found in content.");
+            }
+
+            if (GetPartyHeader(HttpContext).Count > 1)
+            {
+                return BadRequest($"Invalid party. Only one allowed");
+            }
+
+            int? partyId = await GetPartyId(HttpContext);
+
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, null, "read");
+
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
