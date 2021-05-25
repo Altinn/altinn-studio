@@ -31,6 +31,18 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    addRootProperty(state, action) {
+      const { name } = action.payload;
+      state.uiSchema.push(
+        {
+          id: `#/properties/${name}`,
+          displayName: name,
+          keywords: [
+            { key: 'type', value: 'object' },
+          ],
+        },
+      );
+    },
     addProperty(state, action) {
       const { path } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
@@ -90,7 +102,8 @@ const schemaEditorSlice = createSlice({
       if (state.selectedId === path) {
         state.selectedId = undefined;
       }
-      if (path.includes('/properties/')) {
+      // eslint-disable-next-line no-useless-escape
+      if (path.match('[^#]\/properties')) {
         // find parent of item to delete property.
         const index = path.lastIndexOf('/properties/');
         const parentPath = path.substring(0, index);
@@ -105,7 +118,8 @@ const schemaEditorSlice = createSlice({
         }
         return;
       }
-      // delete definition, here we need to find all references to this definition, and remove them (?)
+      // delete root property / definition
+      // if this is a definition, we need to find all references to this definition, and remove them (?)
       const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
       if (rootIndex >= 0) {
         state.uiSchema.splice(rootIndex, 1);
@@ -209,6 +223,7 @@ const schemaEditorSlice = createSlice({
 
 export const {
   addField,
+  addRootProperty,
   addProperty,
   addRefProperty,
   deleteField,

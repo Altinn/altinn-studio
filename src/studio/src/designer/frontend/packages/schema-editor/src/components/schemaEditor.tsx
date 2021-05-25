@@ -6,12 +6,13 @@ import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
+import { SchemaItemLabel } from './SchemaItemLabel';
 
 const useStyles = makeStyles(
   createStyles({
@@ -25,12 +26,17 @@ const useStyles = makeStyles(
     button: {
       marginLeft: 24,
     },
-    iconContainer: {
-      background: '#022f51',
-      textAlign: 'center',
-      padding: '5px 0px 5px 0px',
-      marginRight: 4,
-      fontSize: '10px',
+    treeItem: {
+      marginLeft: 8,
+      '&.Mui-selected': {
+        background: '#E3F7FF',
+        border: '1px solid #006BD8',
+        boxSizing: 'border-box',
+        borderRadius: '5px',
+      },
+      '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
+        backgroundColor: 'transparent',
+      },
     },
   }),
 );
@@ -105,6 +111,11 @@ export const SchemaEditor = ({
   const onCancelAddItemModal = () => {
     setAddPropertyModalOpen(false);
   };
+  const handleAddProperty = () => {
+    dispatch(addRootProperty({
+      name: 'name',
+    }));
+  };
 
   const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
@@ -136,13 +147,19 @@ export const SchemaEditor = ({
               <TreeItem
                 id='properties'
                 nodeId='properties'
-                label={<div style={{ padding: '5px 0px 5px 0px' }}><span className={classes.iconContainer}><i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} /></span> {getTranslation('schema_editor.properties', language)}</div>}
+                className={classes.treeItem}
+                label={<SchemaItemLabel
+                  language={language}
+                  label={getTranslation('schema_editor.properties', language)}
+                  icon='fa-datamodel-properties' onAddProperty={handleAddProperty}
+                />}
               >
                 { properties?.map((item: UiSchemaItem) => <SchemaItem
                   keyPrefix='properties'
                   key={item.id}
                   item={item}
                   nodeId={`${item.id}`}
+                  language={language}
                 />)}
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -153,6 +170,7 @@ export const SchemaEditor = ({
                   key={def.id}
                   nodeId={`def-${def.id}`}
                   id={getDomFriendlyID(def.id)}
+                  language={language}
                 />)}
               </TreeItem>
             </TreeView>
