@@ -89,7 +89,10 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
             }
 
-            object appModel = _altinnApp.CreateNewAppModel(classRef);
+            if (GetPartyHeader(HttpContext).Count > 1)
+            {
+                return BadRequest($"Invalid party. Only one allowed");
+            }
 
             int? partyId = await GetPartyId(HttpContext);
 
@@ -99,6 +102,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return Forbidden(enforcementResult);
             }
+
+            object appModel = _altinnApp.CreateNewAppModel(classRef);
 
             if (partyId.HasValue)
             {
@@ -158,17 +163,22 @@ namespace Altinn.App.Api.Controllers
             return Ok(appModel);
         }
 
+        private StringValues GetPartyHeader(HttpContext context)
+        {
+            StringValues partyValues;
+            if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
+            {
+                return partyValues;
+            }
+
+            return partyValues;
+        }
+
         private async Task<int?> GetPartyId(HttpContext context)
         {
             StringValues partyValues;
             if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
             {
-                if (partyValues.Count != 1)
-                {
-                    // Should only allow one party header
-                    throw new Exception();
-                }
-
                 return await GetPartyId(partyValues[0]);
             }
             else
