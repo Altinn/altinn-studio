@@ -13,7 +13,7 @@ type SchemaItemProps = TreeItemProps & {
   keyPrefix: string;
 };
 
-const useStyles = makeStyles({
+const useStyles = (isRef: boolean) => makeStyles({
   root: {
     height: 216,
     flexGrow: 1,
@@ -35,7 +35,7 @@ const useStyles = makeStyles({
   },
   buttonRoot: {
     backgroundColor: 'white',
-    border: '1px solid black',
+    border: isRef ? '1px dashed black' : '1px solid black',
     borderRadius: 5,
     marginLeft: 12,
     width: 90,
@@ -73,7 +73,7 @@ const useStyles = makeStyles({
     marginLeft: 8,
     '&.Mui-selected': {
       background: '#E3F7FF',
-      border: '1px dashed #006BD8',
+      border: isRef ? '1px dashed #006BD8' : '1px solid #006BD8',
       boxSizing: 'border-box',
       borderRadius: '5px',
     },
@@ -92,11 +92,11 @@ const getRefItem = (schema: any[], id: string | undefined): UiSchemaItem => {
 };
 
 function SchemaItem(props: SchemaItemProps) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const {
     item, keyPrefix, ...other
   } = props;
+  const classes = useStyles(item.$ref !== undefined)();
 
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
   const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
