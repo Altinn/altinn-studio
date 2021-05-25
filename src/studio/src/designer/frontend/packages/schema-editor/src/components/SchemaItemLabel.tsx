@@ -1,11 +1,15 @@
 import * as React from 'react';
 import { IconButton, Menu, MenuItem, makeStyles } from '@material-ui/core';
-import { ILanguage } from '../types';
 import { getTranslation } from '../utils';
+import { ILanguage } from '../types';
 
 export interface SchemaItemLabelProps {
+  icon: string;
+  label: string;
   language: ILanguage;
   onAddProperty: () => void;
+  onDelete?: () => void;
+  onImport?: () => void;
 }
 
 export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
@@ -47,6 +51,11 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     e.stopPropagation();
     props.onAddProperty();
   };
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    setContextAnchor(null);
+    e.stopPropagation();
+    props.onDelete?.();
+  };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
     setContextAnchor(null);
@@ -56,8 +65,8 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     <div className={classes.propertiesLabel}>
       <div className={classes.label}>
         <span className={classes.iconContainer}>
-          <i className='fa fa-datamodel-properties' style={{ color: 'white', textAlign: 'center' }} />
-        </span> {getTranslation('schema_editor.properties', props.language)}
+          <i className={`fa ${props.icon}`} style={{ color: 'white', textAlign: 'center' }} />
+        </span> {props.label}
       </div>
       <IconButton
         className={classes.contextButton}
@@ -74,6 +83,8 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         onClose={handleCloseContextMenu}
       >
         <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}</MenuItem>
+        {props.onImport && <MenuItem><i className='fa fa-clone'/> Import</MenuItem>}
+        {props.onDelete !== undefined && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem> }
       </Menu>
     </div>);
 };

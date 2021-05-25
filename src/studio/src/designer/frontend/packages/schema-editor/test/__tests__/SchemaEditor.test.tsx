@@ -73,5 +73,5 @@ test('Renders properties', () => {
   });
   wrapper.find('.MuiTypography-root').at(1).simulate('click');
 
-  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(6);
+  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(4);
 });

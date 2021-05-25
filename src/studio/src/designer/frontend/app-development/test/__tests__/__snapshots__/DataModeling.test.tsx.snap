@@ -256,7 +256,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-391"
+                        class="MuiTreeItem-root makeStyles-treeItem-511"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -281,13 +282,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-383"
+                              class="makeStyles-propertiesLabel-514"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-384 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-515"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-390"
+                                  class="makeStyles-iconContainer-516"
                                 >
                                   <i
                                     class="fa fa-datamodel-ref"
@@ -295,14 +296,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                melding
-                                 
-                                : ForhåndsmeldingMidlertidigArbeidssted2011_M
-                              </p>
+                                melding : ForhåndsmeldingMidlertidigArbeidssted2011_M
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-388"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-513"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -386,8 +385,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-72"
+                        class="MuiTreeItem-root makeStyles-treeItem-76"
                         id="definitionsForhåndsmeldingMidlertidigArbeidssted2011_M"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -412,13 +412,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-64"
+                              class="makeStyles-propertiesLabel-79"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-65 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-80"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-71"
+                                  class="makeStyles-iconContainer-81"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -427,11 +427,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 ForhåndsmeldingMidlertidigArbeidssted2011_M
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-69"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-78"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -452,8 +452,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-83"
+                        class="MuiTreeItem-root makeStyles-treeItem-91"
                         id="definitionsengasjertEnhet"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -467,13 +468,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-75"
+                              class="makeStyles-propertiesLabel-94"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-76 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-95"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-82"
+                                  class="makeStyles-iconContainer-96"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -482,11 +483,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 engasjertEnhet
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-80"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-93"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -508,8 +509,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-94"
+                        class="MuiTreeItem-root makeStyles-treeItem-106"
                         id="definitionsInnrapporterteData"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -534,13 +536,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-86"
+                              class="makeStyles-propertiesLabel-109"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-87 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-110"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-93"
+                                  class="makeStyles-iconContainer-111"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -549,11 +551,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 InnrapporterteData
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-91"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-108"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -575,8 +577,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-105"
+                        class="MuiTreeItem-root makeStyles-treeItem-121"
                         id="definitionsProsjekt"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -601,144 +604,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-97"
+                              class="makeStyles-propertiesLabel-124"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-98 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-104"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Prosjekt
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-102"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-116"
-                        id="definitionsAdresse"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-108"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-109 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-115"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Adresse
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-113"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-127"
-                        id="definitionsByggherre"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-119"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-120 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-125"
                               >
                                 <span
                                   class="makeStyles-iconContainer-126"
@@ -749,12 +618,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Byggherre
-                              </p>
+                                Prosjekt
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-124"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-123"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -776,8 +645,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-138"
-                        id="definitionsKontaktperson"
+                        class="MuiTreeItem-root makeStyles-treeItem-136"
+                        id="definitionsAdresse"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -802,13 +672,149 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-130"
+                              class="makeStyles-propertiesLabel-139"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-131 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-140"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-137"
+                                  class="makeStyles-iconContainer-141"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Adresse
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-138"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-151"
+                        id="definitionsByggherre"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-154"
+                            >
+                              <div
+                                class="makeStyles-label-155"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-156"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Byggherre
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-153"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-166"
+                        id="definitionsKontaktperson"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-169"
+                            >
+                              <div
+                                class="makeStyles-label-170"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-171"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -817,208 +823,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 Kontaktperson
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-135"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-149"
-                        id="definitionsByggherrePerson"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-141"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-142 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-148"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                ByggherrePerson
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-146"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-160"
-                        id="definitionsByggherreEnhet"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-152"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-153 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-159"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                ByggherreEnhet
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-157"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-171"
-                        id="definitionsByggherrensRepresentant"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-163"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-164 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-170"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                ByggherrensRepresentant
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
@@ -1044,8 +849,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-182"
-                        id="definitionsEngasjertEnhet"
+                        class="MuiTreeItem-root makeStyles-treeItem-181"
+                        id="definitionsByggherrePerson"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1070,13 +876,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-174"
+                              class="makeStyles-propertiesLabel-184"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-175 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-185"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-181"
+                                  class="makeStyles-iconContainer-186"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1084,12 +890,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                EngasjertEnhet
-                              </p>
+                                ByggherrePerson
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-179"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-183"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1111,8 +917,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-193"
-                        id="definitionsProsjektgjennomføring"
+                        class="MuiTreeItem-root makeStyles-treeItem-196"
+                        id="definitionsByggherreEnhet"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1137,13 +944,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-185"
+                              class="makeStyles-propertiesLabel-199"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-186 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-200"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-192"
+                                  class="makeStyles-iconContainer-201"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1151,12 +958,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Prosjektgjennomføring
-                              </p>
+                                ByggherreEnhet
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-190"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-198"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1178,8 +985,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-204"
-                        id="definitionsTidsrom"
+                        class="MuiTreeItem-root makeStyles-treeItem-211"
+                        id="definitionsByggherrensRepresentant"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1204,13 +1012,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-196"
+                              class="makeStyles-propertiesLabel-214"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-197 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-215"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-203"
+                                  class="makeStyles-iconContainer-216"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1218,79 +1026,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Tidsrom
-                              </p>
+                                ByggherrensRepresentant
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-201"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-215"
-                        id="definitionsKoordinator"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M10 17l5-5-5-5v10z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-207"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-208 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-214"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Koordinator
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-212"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-213"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1313,7 +1054,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                       <li
                         aria-expanded="false"
                         class="MuiTreeItem-root makeStyles-treeItem-226"
-                        id="definitionsKoordinatorrolle"
+                        id="definitionsEngasjertEnhet"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1338,13 +1080,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-218"
+                              class="makeStyles-propertiesLabel-229"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-219 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-230"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-225"
+                                  class="makeStyles-iconContainer-231"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1352,12 +1094,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Koordinatorrolle
-                              </p>
+                                EngasjertEnhet
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-223"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-228"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1379,8 +1121,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-237"
-                        id="definitionsMelder"
+                        class="MuiTreeItem-root makeStyles-treeItem-241"
+                        id="definitionsProsjektgjennomføring"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1405,13 +1148,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-229"
+                              class="makeStyles-propertiesLabel-244"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-230 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-245"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-236"
+                                  class="makeStyles-iconContainer-246"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1419,12 +1162,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Melder
-                              </p>
+                                Prosjektgjennomføring
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-234"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-243"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1445,8 +1188,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-248"
-                        id="definitionsAlternativ"
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-256"
+                        id="definitionsTidsrom"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1455,18 +1200,29 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          />
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-240"
+                              class="makeStyles-propertiesLabel-259"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-241 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-260"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-247"
+                                  class="makeStyles-iconContainer-261"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1474,12 +1230,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Alternativ
-                              </p>
+                                Tidsrom
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-245"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-258"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1500,8 +1256,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-259"
-                        id="definitionsTekst"
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-271"
+                        id="definitionsKoordinator"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1510,18 +1268,29 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          />
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-251"
+                              class="makeStyles-propertiesLabel-274"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-252 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-275"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-258"
+                                  class="makeStyles-iconContainer-276"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1529,12 +1298,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Tekst
-                              </p>
+                                Koordinator
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-256"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-273"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1555,8 +1324,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-402"
-                        id="definitionsPostnummer"
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-286"
+                        id="definitionsKoordinatorrolle"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1565,127 +1336,26 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          />
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
-                            <div
-                              class="makeStyles-labelRoot-394"
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-395 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-401"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-ref"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Postnummer
-                                 
-                                : Postnummer_RestriksjonPostnummer
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-399"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
                           </div>
-                        </div>
-                      </li>
-                      <li
-                        class="MuiTreeItem-root makeStyles-treeItem-281"
-                        id="definitionsPostnummer_RestriksjonPostnummer"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          />
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-273"
+                              class="makeStyles-propertiesLabel-289"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-274 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-280"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Postnummer_RestriksjonPostnummer
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-278"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        class="MuiTreeItem-root makeStyles-treeItem-292"
-                        id="definitionsPoststed"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          />
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-284"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-285 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-290"
                               >
                                 <span
                                   class="makeStyles-iconContainer-291"
@@ -1696,12 +1366,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Poststed
-                              </p>
+                                Koordinatorrolle
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-289"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-288"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1722,8 +1392,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-303"
-                        id="definitionsProsjektetsArt"
+                        aria-expanded="false"
+                        class="MuiTreeItem-root makeStyles-treeItem-301"
+                        id="definitionsMelder"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1732,18 +1404,29 @@ exports[`DataModeling Should match snapshot 1`] = `
                         >
                           <div
                             class="MuiTreeItem-iconContainer"
-                          />
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M10 17l5-5-5-5v10z"
+                              />
+                            </svg>
+                          </div>
                           <div
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-295"
+                              class="makeStyles-propertiesLabel-304"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-296 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-305"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-302"
+                                  class="makeStyles-iconContainer-306"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1751,12 +1434,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                ProsjektetsArt
-                              </p>
+                                Melder
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-300"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-303"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1777,8 +1460,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-314"
-                        id="definitionsMeldingstype"
+                        class="MuiTreeItem-root makeStyles-treeItem-316"
+                        id="definitionsAlternativ"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1792,13 +1476,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-306"
+                              class="makeStyles-propertiesLabel-319"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-307 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-320"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-313"
+                                  class="makeStyles-iconContainer-321"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1806,12 +1490,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Meldingstype
-                              </p>
+                                Alternativ
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-311"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-318"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1832,8 +1516,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-325"
-                        id="definitionsNavn"
+                        class="MuiTreeItem-root makeStyles-treeItem-331"
+                        id="definitionsTekst"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1847,13 +1532,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-317"
+                              class="makeStyles-propertiesLabel-334"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-318 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-335"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-324"
+                                  class="makeStyles-iconContainer-336"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -1861,63 +1546,8 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Navn
-                              </p>
-                              <button
-                                aria-controls="simple-menu"
-                                aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-322"
-                                id="open-context-menu-button"
-                                tabindex="0"
-                                type="button"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <i
-                                    class="fa fa-ellipsismenu"
-                                  />
-                                </span>
-                                <span
-                                  class="MuiTouchRipple-root"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                      <li
-                        class="MuiTreeItem-root makeStyles-treeItem-336"
-                        id="definitionsTelefonnummer"
-                        role="treeitem"
-                        tabindex="-1"
-                      >
-                        <div
-                          class="MuiTreeItem-content"
-                        >
-                          <div
-                            class="MuiTreeItem-iconContainer"
-                          />
-                          <div
-                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
-                          >
-                            <div
-                              class="makeStyles-labelRoot-328"
-                            >
-                              <p
-                                class="MuiTypography-root makeStyles-label-329 MuiTypography-body1"
-                              >
-                                <span
-                                  class="makeStyles-iconContainer-335"
-                                >
-                                  <i
-                                    class="fa fa-datamodel-object"
-                                    style="color: white; text-align: center;"
-                                  />
-                                </span>
-                                 
-                                Telefonnummer
-                              </p>
+                                Tekst
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
@@ -1942,8 +1572,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-413"
-                        id="definitionsOrganisasjonsnummer"
+                        class="MuiTreeItem-root makeStyles-treeItem-526"
+                        id="definitionsPostnummer"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -1957,13 +1588,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-405"
+                              class="makeStyles-propertiesLabel-529"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-406 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-530"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-412"
+                                  class="makeStyles-iconContainer-531"
                                 >
                                   <i
                                     class="fa fa-datamodel-ref"
@@ -1971,14 +1602,12 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   />
                                 </span>
                                  
-                                Organisasjonsnummer
-                                 
-                                : Organisasjonsnummer_RestriksjonOrganisasjonsnummer
-                              </p>
+                                Postnummer : Postnummer_RestriksjonPostnummer
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-410"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-528"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -1999,8 +1628,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-358"
-                        id="definitionsOrganisasjonsnummer_RestriksjonOrganisasjonsnummer"
+                        class="MuiTreeItem-root makeStyles-treeItem-361"
+                        id="definitionsPostnummer_RestriksjonPostnummer"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -2014,13 +1644,405 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-350"
+                              class="makeStyles-propertiesLabel-364"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-351 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-365"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-357"
+                                  class="makeStyles-iconContainer-366"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Postnummer_RestriksjonPostnummer
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-363"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-376"
+                        id="definitionsPoststed"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-379"
+                            >
+                              <div
+                                class="makeStyles-label-380"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-381"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Poststed
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-378"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-391"
+                        id="definitionsProsjektetsArt"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-394"
+                            >
+                              <div
+                                class="makeStyles-label-395"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-396"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                ProsjektetsArt
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-393"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-406"
+                        id="definitionsMeldingstype"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-409"
+                            >
+                              <div
+                                class="makeStyles-label-410"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-411"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Meldingstype
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-408"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-421"
+                        id="definitionsNavn"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-424"
+                            >
+                              <div
+                                class="makeStyles-label-425"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-426"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Navn
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-423"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-436"
+                        id="definitionsTelefonnummer"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-439"
+                            >
+                              <div
+                                class="makeStyles-label-440"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-441"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-object"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Telefonnummer
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-438"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-541"
+                        id="definitionsOrganisasjonsnummer"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-544"
+                            >
+                              <div
+                                class="makeStyles-label-545"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-546"
+                                >
+                                  <i
+                                    class="fa fa-datamodel-ref"
+                                    style="color: white; text-align: center;"
+                                  />
+                                </span>
+                                 
+                                Organisasjonsnummer : Organisasjonsnummer_RestriksjonOrganisasjonsnummer
+                              </div>
+                              <button
+                                aria-controls="simple-menu"
+                                aria-haspopup="true"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-543"
+                                id="open-context-menu-button"
+                                tabindex="0"
+                                type="button"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <i
+                                    class="fa fa-ellipsismenu"
+                                  />
+                                </span>
+                                <span
+                                  class="MuiTouchRipple-root"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li
+                        class="MuiTreeItem-root makeStyles-treeItem-466"
+                        id="definitionsOrganisasjonsnummer_RestriksjonOrganisasjonsnummer"
+                        language="[object Object]"
+                        role="treeitem"
+                        tabindex="-1"
+                      >
+                        <div
+                          class="MuiTreeItem-content"
+                        >
+                          <div
+                            class="MuiTreeItem-iconContainer"
+                          />
+                          <div
+                            class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
+                          >
+                            <div
+                              class="makeStyles-propertiesLabel-469"
+                            >
+                              <div
+                                class="makeStyles-label-470"
+                              >
+                                <span
+                                  class="makeStyles-iconContainer-471"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -2029,11 +2051,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 Organisasjonsnummer_RestriksjonOrganisasjonsnummer
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-355"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-468"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -2054,8 +2076,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-369"
+                        class="MuiTreeItem-root makeStyles-treeItem-481"
                         id="definitionsTidspunkt"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -2069,13 +2092,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-361"
+                              class="makeStyles-propertiesLabel-484"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-362 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-485"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-368"
+                                  class="makeStyles-iconContainer-486"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -2084,11 +2107,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 Tidspunkt
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-366"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-483"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"
@@ -2109,8 +2132,9 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-380"
+                        class="MuiTreeItem-root makeStyles-treeItem-496"
                         id="definitionsAntall"
+                        language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
                       >
@@ -2124,13 +2148,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                             class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                           >
                             <div
-                              class="makeStyles-labelRoot-372"
+                              class="makeStyles-propertiesLabel-499"
                             >
-                              <p
-                                class="MuiTypography-root makeStyles-label-373 MuiTypography-body1"
+                              <div
+                                class="makeStyles-label-500"
                               >
                                 <span
-                                  class="makeStyles-iconContainer-379"
+                                  class="makeStyles-iconContainer-501"
                                 >
                                   <i
                                     class="fa fa-datamodel-object"
@@ -2139,11 +2163,11 @@ exports[`DataModeling Should match snapshot 1`] = `
                                 </span>
                                  
                                 Antall
-                              </p>
+                              </div>
                               <button
                                 aria-controls="simple-menu"
                                 aria-haspopup="true"
-                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-377"
+                                class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-498"
                                 id="open-context-menu-button"
                                 tabindex="0"
                                 type="button"

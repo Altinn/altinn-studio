@@ -148,13 +148,18 @@ export const SchemaEditor = ({
                 id='properties'
                 nodeId='properties'
                 className={classes.treeItem}
-                label={<SchemaItemLabel language={language} onAddProperty={handleAddProperty}/>}
+                label={<SchemaItemLabel
+                  language={language}
+                  label={getTranslation('schema_editor.properties', language)}
+                  icon='fa-datamodel-properties' onAddProperty={handleAddProperty}
+                />}
               >
                 { properties?.map((item: UiSchemaItem) => <SchemaItem
                   keyPrefix='properties'
                   key={item.id}
                   item={item}
                   nodeId={`${item.id}`}
+                  language={language}
                 />)}
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
@@ -165,6 +170,7 @@ export const SchemaEditor = ({
                   key={def.id}
                   nodeId={`def-${def.id}`}
                   id={getDomFriendlyID(def.id)}
+                  language={language}
                 />)}
               </TreeItem>
             </TreeView>

@@ -2,15 +2,15 @@
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
-import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
-import { IconButton, Menu, MenuItem } from '@material-ui/core';
 import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { SchemaItemLabel } from './SchemaItemLabel';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
   keyPrefix: string;
+  language: ILanguage;
 };
 
 const useStyles = (isRef: boolean) => makeStyles({
@@ -100,8 +100,6 @@ function SchemaItem(props: SchemaItemProps) {
 
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
   const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
-  const [contextAnchor, setContextAnchor] = React.useState<any>(null);
-
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
     setItemToDisplay(refItem ?? item);
@@ -110,7 +108,6 @@ function SchemaItem(props: SchemaItemProps) {
   const onItemClick = (e: UiSchemaItem) => {
     dispatch(setSelectedId({ id: e.id }));
   };
-  const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
   const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
     return (
@@ -120,14 +117,10 @@ function SchemaItem(props: SchemaItemProps) {
         item={property}
         nodeId={`${keyPrefix}-${property.id}`}
         onClick={() => onItemClick(property)}
+        language={props.language}
       />
     );
   });
-
-  const handleCloseContextMenu = (e: React.MouseEvent) => {
-    setContextAnchor(null);
-    e.stopPropagation();
-  };
 
   const renderRefLink = () => <SchemaItem
     keyPrefix={`${keyPrefix}-${refItem.id}`}
@@ -135,54 +128,31 @@ function SchemaItem(props: SchemaItemProps) {
     onClick={() => onItemClick(refItem)}
     item={refItem}
     nodeId={`${keyPrefix}-${refItem.id}-ref`}
+    language={props.language}
   />;
 
-  const renderLabelText = () => {
-    if (refItem) {
-      return <>{ icon('fa-datamodel-ref') } {item.displayName ?? item.id} {`: ${itemToDisplay.displayName ?? itemToDisplay.id}`}</>;
-    }
-    return <>{ icon('fa-datamodel-object') } {item.displayName ?? item.id}</>;
-  };
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setContextAnchor(null);
+  const handleDeleteClick = () => {
     dispatch(deleteProperty({ path: item.id }));
   };
 
-  const handleAddProperty = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextAnchor(null);
+  const handleAddProperty = () => {
     dispatch(addProperty({
       path: itemToDisplay.id,
     }));
   };
-  const handleContextMenuClick = (e: React.MouseEvent) => {
-    setContextAnchor(e.currentTarget);
-    e.stopPropagation();
+
+  const renderLabel = () => {
+    const iconStr = refItem ? 'fa-datamodel-ref' : 'fa-datamodel-object';
+    const label = refItem ? `${item.displayName ?? item.id} : ${itemToDisplay.displayName ?? itemToDisplay.id}` : item.displayName ?? item.id;
+    return <SchemaItemLabel
+      language={props.language}
+      icon={iconStr}
+      label={label}
+      onAddProperty={handleAddProperty}
+      onDelete={handleDeleteClick}
+    />;
   };
-  const renderLabel = () => (
-    <div className={classes.labelRoot}>
-      <Typography className={classes.label}>{renderLabelText()}</Typography>
-      <IconButton
-        className={classes.contextButton}
-        aria-controls='simple-menu' aria-haspopup='true'
-        id='open-context-menu-button'
-        onClick={handleContextMenuClick}
-      ><i className='fa fa-ellipsismenu'/>
-      </IconButton>
-      <Menu
-        id={`${item.id}-context-menu`}
-        anchorEl={contextAnchor}
-        keepMounted
-        open={Boolean(contextAnchor)}
-        onClose={handleCloseContextMenu}
-      >
-        <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
-        <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
-        <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
-      </Menu>
-    </div>
-  );
+
   const renderTreeChildren = () => {
     const items = [];
     if (itemToDisplay.$ref && refItem) {
