@@ -55,7 +55,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
-            Assert.Equal(3, options.Count);
+            Assert.Equal(5, options.Count);
         }
     }
 }

@@ -498,7 +498,10 @@ namespace Altinn.App.Services.Implementation
                     Dictionary<string, string> options = new Dictionary<string, string>();
                     foreach (AppOption item in appOptions.Options)
                     {
-                        options.Add(item.Label, item.Value);
+                        if (!options.ContainsKey(item.Label))
+                        {
+                            options.Add(item.Label, item.Value);
+                        }
                     }
 
                     dictionary.Add(optionsId, options);
