@@ -56,12 +56,14 @@ export default function MultipleChoiceSummary({
     );
   };
 
+  const validationErrorClass = hasValidationMessages ? ` ${classes.labelWithError}` : '';
+
   return (
     <>
       <Grid item={true} xs={10}>
         <Typography
           variant='body1'
-          className={`${classes.label}${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+          className={`${classes.label}${validationErrorClass}`}
           component='span'
         >
           {label}
