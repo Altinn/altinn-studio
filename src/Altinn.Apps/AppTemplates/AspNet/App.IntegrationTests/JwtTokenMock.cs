@@ -44,7 +44,7 @@ namespace Altinn.App.IntegrationTests
         /// <returns>ClaimsPrincipal</returns>
         public static ClaimsPrincipal ValidateToken(string token)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.Location).LocalPath);
 
             string certPath = Path.Combine(unitTestFolder, @"..\..\..\JWTValidationCert.cer");
 
@@ -68,7 +68,7 @@ namespace Altinn.App.IntegrationTests
 
         private static SigningCredentials GetSigningCredentials()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.Location).LocalPath);
 
             string certPath = Path.Combine(unitTestFolder, @"..\..\..\jwtselfsignedcert.pfx");
             X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");

@@ -35,7 +35,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 
         private string GetProfilePath(int userId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Profile\User", userId.ToString() + ".json");
         }
     }

@@ -12,7 +12,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
     {
         public Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDFMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDFMockSI).Assembly.Location).LocalPath);
             string dataPath = Path.Combine(unitTestFolder, @"..\..\..\Data\Files\print.pdf");
 
             Stream ms = new MemoryStream();

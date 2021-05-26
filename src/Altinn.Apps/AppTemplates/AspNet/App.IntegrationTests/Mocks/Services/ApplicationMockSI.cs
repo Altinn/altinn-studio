@@ -31,7 +31,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private string GetMetadataPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Metadata");
         }
     }

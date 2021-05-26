@@ -30,7 +30,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 
         private string GetTextPath(string org, string app, string language)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\", org + @"\", app + @$"\config\texts\resource.{language}.json");
         }
     }

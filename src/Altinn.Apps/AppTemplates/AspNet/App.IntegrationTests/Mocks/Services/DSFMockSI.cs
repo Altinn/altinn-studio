@@ -26,7 +26,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private string GetPersonPath(string ssn)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DSFMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DSFMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Person", ssn + ".json");
         }
     }
