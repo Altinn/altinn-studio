@@ -247,7 +247,6 @@ namespace App.IntegrationTestsRef.Data.apps.dibk.nabovarsel
 
         [XmlElement("signeringssteg")]
         public string signeringssteg { get; set; }
-
     }
 }
 #pragma warning restore SA1300 // Element should begin with upper-case letter

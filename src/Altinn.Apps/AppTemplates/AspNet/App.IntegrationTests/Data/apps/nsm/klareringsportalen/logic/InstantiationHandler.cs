@@ -74,39 +74,39 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
               model.PersonInformasjon.postadresse = new Adresse();
             }
 
-            if(model.DeusRequest == null) {
+            if (model.DeusRequest == null) {
               model.DeusRequest = new Deusrequest();
             }
 
-            if(model.PersonRelasjoner == null) {
+            if (model.PersonRelasjoner == null) {
               model.PersonRelasjoner = new Relasjoner();
             }
 
-            if(model.Samboerellerektefelle == null) {
+            if (model.Samboerellerektefelle == null) {
               model.Samboerellerektefelle = new Samboerektefelle();
             }
 
-            if(model.PersonligOkonomi == null) {
+            if (model.PersonligOkonomi == null) {
               model.PersonligOkonomi = new OEkonomi();
             }
 
-            if(model.HelsePerson == null) {
+            if (model.HelsePerson == null) {
               model.HelsePerson = new Helse();
             }
 
-            if(model.PersonRusmidler == null) {
+            if (model.PersonRusmidler == null) {
               model.PersonRusmidler = new Rusmidler();
             }
 
-            if(model.Straff == null) {
+            if (model.Straff == null) {
               model.Straff = new Strafferettslig();
             }
 
-            if(model.StatsTilknytning == null) {
+            if (model.StatsTilknytning == null) {
               model.StatsTilknytning = new Statstilknytning();
             }
 
-            if(model.SikkerhetsOpplysninger == null) {
+            if (model.SikkerhetsOpplysninger == null) {
               model.SikkerhetsOpplysninger = new Sikkerhetsopplysninger();
             }
 
@@ -175,12 +175,12 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
           if (foedselsnummer != null)
           {
             string century = "20";
-            int year = int.Parse(foedselsnummer.Substring(4,2));
-            if (year >= 20 && year <= 99){
+            int year = int.Parse(foedselsnummer.Substring(4, 2));
+            if (year >= 20 && year <= 99) {
               century = "19";
             }
 
-            model.PersonInformasjon.person.foedselsdato = century + foedselsnummer.Substring(4,2) + "-" + foedselsnummer.Substring(2,2) + "-" + foedselsnummer.Substring(0,2);
+            model.PersonInformasjon.person.foedselsdato = century + foedselsnummer.Substring(4, 2) + "-" + foedselsnummer.Substring(2, 2) + "-" + foedselsnummer.Substring(0, 2);
           }
         }
     }

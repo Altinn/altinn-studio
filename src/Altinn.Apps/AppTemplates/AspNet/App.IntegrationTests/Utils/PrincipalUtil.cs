@@ -14,7 +14,7 @@ namespace App.IntegrationTests.Utils
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no"; 
             claims.Add(new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString() , ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, "UserOne", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));

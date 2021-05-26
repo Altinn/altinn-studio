@@ -192,7 +192,6 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models
     [JsonProperty("samtykkepersonkontroll")]
     [JsonPropertyName("samtykkepersonkontroll")]
     public string samtykkepersonkontroll { get; set; }
-
   }
 
     public class Adresse
@@ -216,7 +215,6 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models
     [JsonProperty("land")]
     [JsonPropertyName("land")]
     public string land { get; set; }
-
   }
 
     public class Iddokumenter
@@ -235,7 +233,6 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models
     [JsonProperty("land")]
     [JsonPropertyName("land")]
     public string land { get; set; }
-
   }
 
     public class Person
@@ -1077,7 +1074,6 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models
     [JsonProperty("requestid")]
     [JsonPropertyName("requestid")]
     public string requestid { get; set; }
-
   }
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 }

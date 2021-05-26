@@ -21,7 +21,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
         {
             if (instance.GetType().Equals(typeof(SvarPaaNabovarselType)))
             {
-                SvarPaaNabovarselType skjema = (SvarPaaNabovarselType) instance;
+                SvarPaaNabovarselType skjema = (SvarPaaNabovarselType)instance;
                 if (skjema.nabo == null)
                 {
                     validationResults.AddModelError("nabo.epost",  "Error: Epost required");

@@ -101,7 +101,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
                 {
                     Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
                     bool isValidNæring = await _siriusApi.IsValidNæring(næringsStream);
-                    if(!isValidNæring)
+                    if (!isValidNæring)
                     {
                         validationResults.AddModelError(string.Empty, "invalid.næring");
                     }
@@ -148,7 +148,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
                 if (dataElement != null)
                 {
                     Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
-                    Stream næringsPDF =  await _siriusApi.GetNæringPDF(næringsStream);
+                    Stream næringsPDF = await _siriusApi.GetNæringPDF(næringsStream);
                     await _dataService.InsertBinaryData(instance.Id, "næringsoppgavepdf", "application/pdf", "NæringPDF", næringsPDF);
                 }
             }

@@ -43,7 +43,7 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            ProcessState processState= (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+            ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
@@ -104,7 +104,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // fetch instance and get data element id
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/"){};
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/");
             response = await client.SendAsync(httpRequestMessage);
             Instance instance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
             DataElement dataElement = instance.Data.First();

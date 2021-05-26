@@ -247,7 +247,6 @@ namespace App.IntegrationTests
 
             byte[] byteArray = Encoding.UTF8.GetBytes(næringsppgave);
 
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
@@ -262,7 +261,6 @@ namespace App.IntegrationTests
 
             byte[] byteArraySkattemelding = Encoding.UTF8.GetBytes(skattemelding);
 
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             HttpContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
@@ -287,7 +285,7 @@ namespace App.IntegrationTests
             string responseContentFirstNext = await responseFirstNext.Content.ReadAsStringAsync();
 
             ProcessState stateAfterFirstNext = (ProcessState)JsonConvert.DeserializeObject(responseContentFirstNext, typeof(ProcessState));
-            Assert.Equal("Task_2",stateAfterFirstNext.CurrentTask.ElementId);
+            Assert.Equal("Task_2", stateAfterFirstNext.CurrentTask.ElementId);
 
             // Validate instance in Task_2. This validates that PDF for nærings is in place
             HttpResponseMessage responseValidationTask2 = await client.GetAsync(url);
