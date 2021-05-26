@@ -198,9 +198,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             DataElement dataElementForm = instance.Data.FirstOrDefault(r => r.DataType.Equals(dataType.Id));
 
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementForm.Id)
-            {
-            };
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath + "/data/" + dataElementForm.Id);
 
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();

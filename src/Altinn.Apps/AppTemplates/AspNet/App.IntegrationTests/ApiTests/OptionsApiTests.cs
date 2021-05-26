@@ -28,9 +28,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/options/weekdays")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/options/weekdays");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -46,9 +44,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/options/carbrands")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/options/carbrands");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();

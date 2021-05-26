@@ -37,9 +37,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713/process")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713/process");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
@@ -60,9 +58,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713/process/next")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713/process/next");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
@@ -84,9 +80,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -104,7 +98,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start"){};
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -117,7 +111,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // fetch actual data and compare to expected prefill
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/data/{dataElement.Id}"){};
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713/data/{dataElement.Id}");
             response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -182,7 +176,7 @@ namespace App.IntegrationTests.ApiTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            //// Commented out the Asserts as another test might clear the Requests list and then fail these
+            // Commented out the Asserts as another test might clear the Requests list and then fail these
             ////Assert.Equal("app.instance.process.completed", EventsMockSI.Requests.First().eventType);
             ////Assert.NotNull(EventsMockSI.Requests.First().instance);
 

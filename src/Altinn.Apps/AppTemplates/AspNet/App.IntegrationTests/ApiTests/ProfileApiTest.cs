@@ -34,9 +34,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/v1/profile/user/")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/v1/profile/user/");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

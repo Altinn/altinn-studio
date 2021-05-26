@@ -37,9 +37,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -63,9 +61,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -143,9 +139,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -216,9 +210,7 @@ namespace App.IntegrationTests
             // Setup client and calls Instance controller on the App that instansiates a new instances of the app
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -289,9 +281,7 @@ namespace App.IntegrationTests
             Assert.Empty(messages);
 
             // Handle first next go from data to confirmation
-            HttpRequestMessage httpRequestMessageFirstNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
-            {
-            };
+            HttpRequestMessage httpRequestMessageFirstNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next");
 
             HttpResponseMessage responseFirstNext = await client.SendAsync(httpRequestMessageFirstNext);
             string responseContentFirstNext = await responseFirstNext.Content.ReadAsStringAsync();
@@ -306,9 +296,7 @@ namespace App.IntegrationTests
             Assert.Empty(messagesTask2);
 
             // Move process from Task_2 (Confirmation) to Task_3  (Feedback). 
-            HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
-            {
-            };
+            HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next");
 
             HttpResponseMessage responseSecondNext = await client.SendAsync(httpRequestMessageSecondNext);
             string responseContentSecondNext = await responseSecondNext.Content.ReadAsStringAsync();

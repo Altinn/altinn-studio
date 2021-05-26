@@ -29,9 +29,7 @@ namespace App.IntegrationTests.ControllerTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -51,9 +49,7 @@ namespace App.IntegrationTests.ControllerTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/36133fb5-a9f2-45d4-90b1-f6d93ad40713")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/36133fb5-a9f2-45d4-90b1-f6d93ad40713");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -67,9 +63,7 @@ namespace App.IntegrationTests.ControllerTests
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/");
 
             SetupUtil.AddAuthCookie(httpRequestMessage, token);
 
