@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace App.IntegrationTests.Mocks.Services
 {
-    class RegisterMockSI : IRegister
+    public class RegisterMockSI : IRegister
     {
         private readonly IDSF _dsfService;
         private readonly IER _erService;
