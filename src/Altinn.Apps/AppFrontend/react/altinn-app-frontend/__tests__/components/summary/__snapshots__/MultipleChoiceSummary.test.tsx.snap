@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/summary/MultipleChoiceSummary.tsx components/summary/MultipleChoiceSummary.tsx -- should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
+  >
+    <span
+      class="MuiTypography-root makeStyles-label-1 MuiTypography-body1"
+    >
+      TestLabel
+    </span>
+  </div>
+  <div
+    class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
+  >
+    <button
+      class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-5"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiIconButton-label"
+      >
+        <p
+          class="MuiTypography-root makeStyles-change-7 MuiTypography-body1"
+        >
+          <span>
+            Endre
+          </span>
+          <i
+            class="fa fa-editing-file makeStyles-editIcon-6"
+          />
+        </p>
+      </span>
+      <span
+        class="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+  >
+    <ul
+      class="MuiList-root MuiList-padding"
+    >
+      <li
+        class="MuiListItem-root makeStyles-list-4 MuiListItem-gutters"
+      >
+        <div
+          class="MuiListItemText-root"
+          id="1"
+        >
+          <span
+            class="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+          >
+            This is a text
+          </span>
+        </div>
+      </li>
+      <li
+        class="MuiListItem-root makeStyles-list-4 MuiListItem-gutters"
+      >
+        <div
+          class="MuiListItemText-root"
+          id="2"
+        >
+          <span
+            class="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+          >
+            This is another text
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</DocumentFragment>
+`;

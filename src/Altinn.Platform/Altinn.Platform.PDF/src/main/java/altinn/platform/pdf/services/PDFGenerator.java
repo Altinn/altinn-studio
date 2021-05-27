@@ -319,8 +319,13 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), getLanguage()) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources));
-    yPoint -= leading;
+    String header = AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), getLanguage()) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources);
+    List<String> lines = TextUtils.splitTextToLines(header, fontBold, headerFontSize, width);
+    for (String line : lines) {
+      currentContent.showText(line);
+      currentContent.newLineAtOffset(0, -leading);
+      yPoint -= leading;
+    }
     currentContent.endText();
     yPoint -= textFieldMargin;
     addContentToCurrentSection(COSName.P, StandardStructureTypes.H1);
