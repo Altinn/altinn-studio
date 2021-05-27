@@ -58,12 +58,10 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<Party> LookupParty(PartyLookup partyLookup)
         {
-            if (!string.IsNullOrEmpty(partyLookup.Ssn))
-            {
-               string[] partyFiles = Directory.GetFiles(GetPartyFolder());
+            string[] partyFiles = Directory.GetFiles(GetPartyFolder());
 
-               foreach (string partyFile in partyFiles)
-               {
+            foreach (string partyFile in partyFiles)
+            {
                 if (File.Exists(partyFile))
                 {
                     string content = System.IO.File.ReadAllText(partyFile);
@@ -81,18 +79,6 @@ namespace App.IntegrationTests.Mocks.Services
                         return party2;
                     }
                 }
-            }
-
-            // TODO: fetch from disk
-            Party party = new Party
-            {
-                PartyId = 1000,
-                Name = "Test Lookup",
-                SSN = partyLookup.Ssn,
-                PartyTypeName = PartyType.Person,
-            };
-
-                return party;
             }
 
             return new Party();
