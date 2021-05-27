@@ -73,7 +73,7 @@ namespace App.IntegrationTests.ApiTests
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            httpRequestMessage.Headers.Add("party","partyid:1337");
+            httpRequestMessage.Headers.Add("party", "partyid:1337");
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);

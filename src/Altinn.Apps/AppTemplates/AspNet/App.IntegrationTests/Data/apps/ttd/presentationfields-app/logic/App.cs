@@ -135,7 +135,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunCalculation(object data)
         {
-            return await CalculationHandler.Calculate(data,_altinnAppContext);
+            return await CalculationHandler.Calculate(data, _altinnAppContext);
         }
 
         /// <summary>
