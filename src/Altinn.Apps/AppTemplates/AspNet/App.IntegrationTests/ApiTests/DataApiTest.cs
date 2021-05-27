@@ -976,7 +976,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task Data_Put_NoInstanceReferences_CalculationsRunAndDataReturned()
+        public async Task Data_Post_NoInstanceReferences_CalculationsRunAndDataReturned()
         {
             // Arrange
             string org = "ttd";
@@ -991,7 +991,7 @@ namespace App.IntegrationTests.ApiTests
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
             string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
