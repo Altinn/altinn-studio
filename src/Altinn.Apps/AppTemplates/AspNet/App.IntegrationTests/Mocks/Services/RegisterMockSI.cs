@@ -65,18 +65,18 @@ namespace App.IntegrationTests.Mocks.Services
                 if (File.Exists(partyFile))
                 {
                     string content = System.IO.File.ReadAllText(partyFile);
-                    Party party2 = JsonConvert.DeserializeObject<Party>(content);
+                    Party party = JsonConvert.DeserializeObject<Party>(content);
 
-                    if (party2.OrgNumber != null && partyLookup.OrgNo != null && party2.OrgNumber.Equals(partyLookup.OrgNo))
+                    if (party.OrgNumber != null && partyLookup.OrgNo != null && party.OrgNumber.Equals(partyLookup.OrgNo))
                     {
-                        party2.Organization = await _erService.GetOrganization(party2.OrgNumber);
-                        return party2;
+                        party.Organization = await _erService.GetOrganization(party.OrgNumber);
+                        return party;
                     }
 
-                    if (party2.SSN != null && partyLookup.Ssn != null && party2.SSN.Equals(partyLookup.Ssn))
+                    if (party.SSN != null && partyLookup.Ssn != null && party.SSN.Equals(partyLookup.Ssn))
                     {
-                        party2.Person = await _dsfService.GetPerson(party2.SSN);
-                        return party2;
+                        party.Person = await _dsfService.GetPerson(party.SSN);
+                        return party;
                     }
                 }
             }
