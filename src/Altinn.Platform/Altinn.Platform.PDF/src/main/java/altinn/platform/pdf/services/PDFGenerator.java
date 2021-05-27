@@ -452,8 +452,10 @@ public class PDFGenerator {
       if(optionsDictionary == null){
         return value;
       }
-      splitFormData.forEach(formDataValue ->
-          returnValues.add(MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), formDataValue))
+      splitFormData.forEach(formDataValue -> {
+          String label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), formDataValue);
+          returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
+        }
       );
     } else {
       List<Option> optionList = element.getOptions();
