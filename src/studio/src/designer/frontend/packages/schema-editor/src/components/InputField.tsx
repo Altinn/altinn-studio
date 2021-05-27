@@ -51,7 +51,7 @@ export interface IInputFieldProps {
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
   onChangeRef?: (path: string, ref: string) => void;
-  onDeleteField: (path: string, key: string) => void;
+  onDeleteField?: (path: string, key: string) => void;
   isRef?: boolean;
   readOnly?: boolean;
 }
@@ -87,7 +87,7 @@ export function InputField(props: IInputFieldProps) {
   };
 
   const onClickDelete = () => {
-    props.onDeleteField(props.fullPath, props.label);
+    props.onDeleteField?.(props.fullPath, props.label);
   };
 
   const renderValueField = () => {
@@ -133,6 +133,7 @@ export function InputField(props: IInputFieldProps) {
       <FormControl>
         { renderValueField() }
       </FormControl>
+      { props.onDeleteField &&
       <IconButton
         id={`${baseId}-delete-${label}`}
         aria-label='Delete field'
@@ -141,6 +142,7 @@ export function InputField(props: IInputFieldProps) {
       >
         <DeleteOutline/>
       </IconButton>
+      }
     </div>
   );
 }

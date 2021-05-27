@@ -159,6 +159,16 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    setTitle(state, action) {
+      const { path, title } = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.title = title;
+    },
+    setDescription(state, action) {
+      const { path, description } = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.description = description;
+    },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
       state.schema = schema;
@@ -238,6 +248,8 @@ export const {
   setUiSchema,
   updateJsonSchema,
   setSelectedId,
+  setTitle,
+  setDescription,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

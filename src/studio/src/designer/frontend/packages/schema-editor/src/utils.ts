@@ -14,6 +14,7 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
   }
   return stack;
 }
+export const getSchemaType = (schema: UiSchemaItem): string | undefined => schema.keywords?.find((k) => k.key === 'type')?.value;
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
   // should we cache this flattened structure in state somehow for faster lookups?
@@ -117,6 +118,8 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         id,
         $ref: item.$ref,
         displayName,
+        title: item.title,
+        description: item.description,
       });
     } else if (typeof item === 'object' && item !== null) {
       result.push({
@@ -128,12 +131,16 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
           };
         }),
         displayName,
+        title: item.title,
+        description: item.description,
       });
     } else {
       result.push({
         id,
         value: item,
         displayName,
+        title: item.title,
+        description: item.description,
       });
     }
   });

@@ -1,12 +1,15 @@
-import { IconButton, Input } from '@material-ui/core';
+/* eslint-disable react/jsx-props-no-spreading */
+import { AppBar, IconButton, Tab, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getTranslation, getUiSchemaItem } from '../utils';
+import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles(
   createStyles({
@@ -44,6 +47,18 @@ const useStyles = makeStyles(
       cursor: 'pointer',
       color: '#006BD8',
     },
+    field: {
+      background: 'white',
+      color: 'black',
+      border: '1px solid #006BD8',
+      boxSsizing: 'border-box',
+      '&.Mui-disabled': {
+        background: '#f4f4f4',
+        color: 'black',
+        border: '1px solid #6A6A6A',
+        boxSizing: 'border-box',
+      },
+    },
   }),
 );
 
@@ -68,6 +83,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   );
   const [nodeName, setNodeName] = React.useState(referencedItem?.displayName);
   const readOnly = selectedItem?.$ref !== undefined;
+  const typeField = selectedItem?.keywords?.find((k) => k.key === 'type');
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
@@ -75,6 +91,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
+  const [tabIndex, setTabIndex] = React.useState('0');
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
@@ -184,6 +201,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onDeleteField={onDeleteObjectClick}
   />;
 
+  const renderType = (p: UiSchemaItem, field: Field) => <InputField
+    key={`field-${p.id}`}
+    value={field?.value}
+    label={p.displayName ?? p.id}
+    readOnly={readOnly}
+    fullPath={p.id}
+    onChangeValue={onChangeConst}
+    onChangeRef={onChangeRef}
+    onChangeKey={onChangeKey}
+    onDeleteField={onDeleteObjectClick}
+  />;
+
   const renderAddPropertyButtons = () => (
     <>
       <IconButton
@@ -202,11 +231,16 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   );
 
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
+    // render const
     const field = p.keywords?.find((f) => f.key === 'const');
     if (field) {
       return renderConst(p, field);
     }
-
+    // check type
+    const type = p.keywords?.find((f) => f.key === 'type');
+    if (type) {
+      return renderType(p, type);
+    }
     if (p.$ref) {
       return <InputField
         key={`field-${p.id}`}
@@ -246,39 +280,131 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     />;
   });
 
-  const renderItem = (item: UiSchemaItem) => (item ?
+  const handleTabChange = (event: any, newValue: string) => {
+    setTabIndex(newValue);
+  };
+  const onChangeType = (id: string, type: string) => {
+    console.log(`${id}, ${type}`);
+  };
+  const onChangeTitle = (title: string) => {
+    dispatch(setTitle({ path: selectedId, title }));
+  };
+  const onChangeDescription = (description: string) => {
+    dispatch(setDescription({ path: selectedId, description }));
+  };
+  const renderItemData = () => (
     <div>
-      <p className={classes.header}>{getTranslation('schema_editor.properties', props.language)}</p>
+
+      <TextField
+        id={`${selectedItem?.id}-name`}
+        className={classes.field}
+        placeholder='Name'
+        label='Name'
+        fullWidth={true}
+        value={nodeName}
+        onChange={(e) => setNodeName(e.target.value)}
+        onBlur={onChangeNodeName}
+        InputProps={{
+          disableUnderline: true,
+        }}
+      />
+      { typeField && selectedItem && <TypeSelect
+        label='Type'
+        fullWidth={true}
+        readOnly={readOnly}
+        itemType={typeField.value}
+        id={selectedItem.id}
+        onChange={onChangeType}
+      />}
+      { renderDefUrl() }
+      <hr className={classes.divider} />
+      <p>Beskrivende felter</p>
+      <TextField
+        id={`${selectedItem?.id}-title`}
+        className={classes.field}
+        label='Title'
+        placeholder='Title'
+        fullWidth
+        value={selectedItem?.title}
+        margin='normal'
+        onChange={(e) => onChangeTitle(e.target.value)}
+        InputProps={{
+          disableUnderline: true,
+        }}
+      />
+
+      <TextField
+        id={`${selectedItem?.id}-description`}
+        multiline={true}
+        className={classes.field}
+        label='Description'
+        fullWidth
+        style={{ height: 100 }}
+        value={selectedItem?.description}
+        margin='normal'
+        onChange={(e) => onChangeDescription(e.target.value)}
+        InputLabelProps={{
+          shrink: true,
+        }}
+        InputProps={{
+          disableUnderline: true,
+        }}
+      />
+    </div>);
+
+  const renderItemFields = (item: UiSchemaItem) => (item ?
+    <div>
       { renderItemProperties(item) }
       { renderItemKeywords(item) }
       { !readOnly && renderAddPropertyButtons() }
     </div> : null);
 
+  const a11yProps = (index: number) => ({
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+    value: `${index}`,
+  });
+
+  if (!selectedId) {
+    return (
+      <div>
+        <p className='no-item-selected'>{getTranslation('schema_editor.no_item_selected', props.language)}</p>
+        <hr className={classes.divider} />
+      </div>);
+  }
+
   return (
     <div
       className={classes.root}
     >
-      <p className={classes.header}>{getTranslation('schema_editor.properties', props.language)}</p>
-      { selectedItem &&
-      <div>
-        <Input
-          fullWidth={true}
-          disableUnderline={true}
-          className={classes.label}
-          value={nodeName}
-          onChange={(e) => setNodeName(e.target.value)}
-          onBlur={onChangeNodeName}
-        />
-        { renderDefUrl() }
-        <hr className={classes.divider} />
-        { renderItem(referencedItem ?? selectedItem) }
-      </div>
-      }
-      { !selectedId &&
-        <div>
-          <p className='no-item-selected'>{getTranslation('schema_editor.no_item_selected', props.language)}</p>
-          <hr className={classes.divider} />
-        </div>}
+      <TabContext value={tabIndex}>
+        <AppBar position='static' color='default'>
+          <TabList
+            onChange={handleTabChange}
+            aria-label='inspector tabs'
+          >
+            <Tab
+              label={getTranslation('schema_editor.properties', props.language)} {...a11yProps(0)}
+            />
+            <Tab
+              label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
+            />
+            <Tab
+              label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
+            />
+          </TabList>
+
+        </AppBar>
+        <TabPanel value='0'>
+          { renderItemData() }
+        </TabPanel>
+        <TabPanel value='1'>
+          ...
+        </TabPanel>
+        <TabPanel value='2'>
+          { selectedItem && renderItemFields(referencedItem ?? selectedItem) }
+        </TabPanel>
+      </TabContext>
     </div>
   );
 });

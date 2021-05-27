@@ -6,6 +6,8 @@ export interface ITypeSelectProps {
   itemType: string;
   onChange: (id: string, value: string) => void;
   readOnly?: boolean;
+  fullWidth?: boolean;
+  label?: string;
 }
 
 const useStyles = makeStyles({
@@ -38,10 +40,12 @@ export const TypeSelect = (props: ITypeSelectProps) => {
     <Select
       id={`type-select-${id}`}
       disabled={props.readOnly}
+      label={props.label}
       value={itemType || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
+      fullWidth={props.fullWidth}
     >
       <MenuItem value='string'>string</MenuItem>
       <MenuItem value='integer'>integer</MenuItem>

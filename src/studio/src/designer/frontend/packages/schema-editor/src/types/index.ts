@@ -23,7 +23,7 @@ export type Field = {
   value: any;
 }
 
-export type UiSchemaItem = {
+export interface UiSchemaItem {
   id: string;
   $ref?: string;
   keywords?: Field[];
@@ -31,6 +31,8 @@ export type UiSchemaItem = {
   value?: any;
   displayName: string;
   required?: string[];
+  title?: string;
+  description?: string;
 }
 
 export interface ISchema {
