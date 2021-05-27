@@ -23,7 +23,15 @@ steps:
     Contents: |
       *.xml
       result.txt
+      /src/test/K6/src/reports/*
   condition: succeededOrFailed()
+
+- script: |
+   mkdir -p $(pwd)/src/reports
+   
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Create reports folder'
+  continueOnError: true
 
 - script: |
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
@@ -36,43 +44,43 @@ steps:
   displayName: 'Check availability'
 
 - script: |   
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
    
-  workingDirectory: '$(Build.SourcesDirectory)'
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
   continueOnError: false
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
-- script: |   
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit portal.xml
+- script: |
+   k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit multipart.xml
+   k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
    
-  workingDirectory: '$(Build.SourcesDirectory)'
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'App'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |   
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/events/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd)  -e appsaccesskey=$(appsAccessSubsKey) | k6-to-junit events.xml
+   k6 run  --quiet $(pwd)/src/tests/platform/events/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd)  -e appsaccesskey=$(appsAccessSubsKey)
    
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) | k6-to-junit register.xml
+   k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
 
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) | k6-to-junit receipt.xml
+   k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
 
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit sbl.xml
+   k6 run  --quiet $(pwd)/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)  -e sblaccesskey=$(sblAccessSubsKey) | k6-to-junit storageevents.xml
+   k6 run  --quiet $(pwd)/src/tests/platform/storage/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)  -e sblaccesskey=$(sblAccessSubsKey)
    
-  workingDirectory: '$(Build.SourcesDirectory)'
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Platform'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |   
-   k6 run  --quiet $(Build.SourcesDirectory)/src/test/K6/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
    
-  workingDirectory: '$(Build.SourcesDirectory)'
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Cleanup'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
@@ -80,7 +88,9 @@ steps:
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   inputs:
-    testResultsFiles: '*.xml'
+    testResultsFiles: |
+     *.xml
+     **/src/test/K6/src/reports/*.xml
     searchFolder: '$(Build.SourcesDirectory)'
     mergeTestResults: true
     failTaskOnFailedTests: true

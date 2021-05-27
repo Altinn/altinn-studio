@@ -15,9 +15,9 @@
     -e env=*** -e org=*** -e app=*** -e maskinporten=token -e poll=60 (in seconds)
 */
 
-import { check, sleep } from "k6";
-import { addErrorCount } from "../../../errorcounter.js";
-import * as instances from "../../../api/platform/storage/instances.js";
+import { check, sleep } from 'k6';
+import { addErrorCount } from '../../../errorcounter.js';
+import * as instances from '../../../api/platform/storage/instances.js';
 
 const appOwner = __ENV.org;
 const appName = __ENV.app;
@@ -26,7 +26,7 @@ const pollEvery = __ENV.poll;
 export const options = {
   vus: 1,
   thresholds: {
-    errors: ["count<1"],
+    errors: ['count<1'],
   },
 };
 
@@ -38,20 +38,18 @@ export function setup() {
 }
 
 export default function (data) {
-  const runtimeToken = data["RuntimeToken"];
+  const runtimeToken = data['RuntimeToken'];
   var res, success;
 
   //Get app instances of appName that are in task1
   var filters = {
-    appId: appOwner + "/" + appName,
-    "process.currentTask": "Task_1",
+    appId: appOwner + '/' + appName,
+    'process.currentTask': 'Task_1',
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
   success = check(res, {
-    "GET Instance by Current task is 200": (r) => r.status === 200,
-    "Instance current task is task_1": (r) =>
-      JSON.parse(r.body).instances[0].process.currentTask.elementId ===
-      "Task_1",
+    'GET Instance by Current task is 200': (r) => r.status === 200,
+    'Instance current task is task_1': (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === 'Task_1',
   });
   addErrorCount(success);
 
