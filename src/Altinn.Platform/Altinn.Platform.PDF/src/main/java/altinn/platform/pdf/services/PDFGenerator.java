@@ -442,25 +442,24 @@ public class PDFGenerator {
       splitFormData = Arrays.asList(value.split((",")));
     } else {
       // all other option components only have one selected value
-      splitFormData = new ArrayList<String>();
+      splitFormData = new ArrayList<>();
       splitFormData.add(value);
     }
 
-    List<String> returnValues = new ArrayList();
+    List<String> returnValues = new ArrayList<>();
 
     if (element.getOptionsId() != null) {
       if(optionsDictionary == null){
         return value;
       }
-      splitFormData.forEach(formData -> {
-          returnValues.add(MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), formData));
-        }
+      splitFormData.forEach(formDataValue ->
+          returnValues.add(MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), formDataValue))
       );
     } else {
       List<Option> optionList = element.getOptions();
-      splitFormData.forEach(formData -> {
-        Option option = optionList.stream()
-          .filter(o -> o.getValue().equals(formData))
+      splitFormData.forEach(formDataValue -> {
+        var option = optionList.stream()
+          .filter(o -> o.getValue().equals(formDataValue))
           .findFirst()
           .orElse(null);
         String label = (option != null) ? option.getLabel() : value;
