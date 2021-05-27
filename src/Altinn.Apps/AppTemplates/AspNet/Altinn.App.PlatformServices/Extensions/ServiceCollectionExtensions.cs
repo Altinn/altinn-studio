@@ -73,6 +73,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddHttpClient<IEFormidlingClient, Altinn.Common.EFormidlingClient.EFormidlingClient>();
             services.AddSingleton<IAppResources, AppResourcesSI>();
+            services.AddScoped<IAltinnAppContext, AltinnAppContextSI>();
 
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));

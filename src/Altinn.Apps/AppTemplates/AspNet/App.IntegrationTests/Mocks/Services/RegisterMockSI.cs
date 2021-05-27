@@ -56,29 +56,58 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        public Task<Party> LookupParty(PartyLookup partyLookup)
+        public async Task<Party> LookupParty(PartyLookup partyLookup)
         {
             if (!string.IsNullOrEmpty(partyLookup.Ssn))
             {
-                // TODO: fetch from disk
-                Party party = new Party
-                {
-                    PartyId = 1000,
-                    Name = "Test Lookup",
-                    SSN = partyLookup.Ssn,
-                    PartyTypeName = PartyType.Person,
-                };
+               string[] partyFiles = Directory.GetFiles(GetPartyFolder());
 
-                return Task.FromResult(party);
+               foreach (string partyFile in partyFiles)
+               {
+                if (File.Exists(partyFile))
+                {
+                    string content = System.IO.File.ReadAllText(partyFile);
+                    Party party2 = JsonConvert.DeserializeObject<Party>(content);
+
+                    if (party2.OrgNumber != null && partyLookup.OrgNo != null && party2.OrgNumber.Equals(partyLookup.OrgNo))
+                    {
+                        party2.Organization = await _erService.GetOrganization(party2.OrgNumber);
+                        return party2;
+                    }
+
+                    if (party2.SSN != null && partyLookup.Ssn != null && party2.SSN.Equals(partyLookup.Ssn))
+                    {
+                        party2.Person = await _dsfService.GetPerson(party2.SSN);
+                        return party2;
+                    }
+                }
             }
 
-            return Task.FromResult(new Party());
+            // TODO: fetch from disk
+            Party party = new Party
+            {
+                PartyId = 1000,
+                Name = "Test Lookup",
+                SSN = partyLookup.Ssn,
+                PartyTypeName = PartyType.Person,
+            };
+
+                return party;
+            }
+
+            return new Party();
         }
 
         private string GetPartyPath(int partyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Party", partyId.ToString() + ".json");
+        }
+
+        private string GetPartyFolder()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Party");
         }
     }
 }
