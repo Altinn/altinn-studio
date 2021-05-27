@@ -422,7 +422,7 @@ public class PDFGenerator {
     String value;
 
     if (element.getOptionsId() != null || element.getOptions() != null) {
-      value = getValueFromOptions(element);
+      value = getDisplayValueFromOptions(element);
     } else {
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     }
@@ -434,27 +434,42 @@ public class PDFGenerator {
     }
   }
 
-  private String getValueFromOptions(FormLayoutElement element) {
+  private String getDisplayValueFromOptions(FormLayoutElement element) {
     String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
-    String label;
-
-    if(optionsDictionary == null){
-      return value;
+    List<String> splitFormData;
+    if (element.getType().equalsIgnoreCase("Checkboxes")) {
+      // checkboxes can have multiple values, need to fetch label for each one
+      splitFormData = Arrays.asList(value.split((",")));
+    } else {
+      // all other option components only have one selected value
+      splitFormData = new ArrayList<>();
+      splitFormData.add(value);
     }
+
+    List<String> returnValues = new ArrayList<>();
 
     if (element.getOptionsId() != null) {
-      label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), value);
+      if(optionsDictionary == null){
+        return value;
+      }
+      splitFormData.forEach(formDataValue ->
+          returnValues.add(MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), formDataValue))
+      );
     } else {
-      List<Options> optionsList = element.getOptions();
-      Options options = optionsList.stream()
-        .filter(o -> o.getValue().equals(value))
-        .findFirst()
-        .orElse(null);
+      List<Option> optionList = element.getOptions();
+      splitFormData.forEach(formDataValue -> {
+        var option = optionList.stream()
+          .filter(o -> o.getValue().equals(formDataValue))
+          .findFirst()
+          .orElse(null);
+        String label = (option != null) ? option.getLabel() : value;
+        returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
+        }
+      );
 
-      label = (options != null) ? options.getLabel() : value;
     }
 
-    return TextUtils.getTextResourceByKey(label, textResources);
+    return String.join(", ", returnValues);
   }
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
