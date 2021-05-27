@@ -12,7 +12,6 @@ describe('components/base/InputComponent.tsx', () => {
   let mockIsValid: boolean;
   let mockReadOnly: boolean;
   let mockRequired: boolean;
-  let mockType: string;
 
   beforeEach(() => {
     mockId = 'mock-id';
@@ -21,7 +20,6 @@ describe('components/base/InputComponent.tsx', () => {
     mockIsValid = true;
     mockReadOnly = false;
     mockRequired = false;
-    mockType = 'Input';
   });
 
   test('components/base/InputComponent.tsx -- should match snapshot', () => {
@@ -29,14 +27,14 @@ describe('components/base/InputComponent.tsx', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  test('components/base/InputComponent.tsx -- should correct value with no formdata provided', async () => {
+  test('components/base/InputComponent.tsx -- should correct value with no form data provided', async () => {
     const { findByTestId } = renderInputComponent();
     const inputComponent: any = await findByTestId(mockId);
 
     expect(inputComponent.value).toEqual('');
   });
 
-  test('components/base/InputComponent.tsx -- should have correct value with specified formdata', async () => {
+  test('components/base/InputComponent.tsx -- should have correct value with specified form data', async () => {
     const customProps = { formData: 'Test123' };
     const { findByTestId } = renderInputComponent(customProps);
     const inputComponent: any = await findByTestId(mockId);
@@ -63,6 +61,20 @@ describe('components/base/InputComponent.tsx', () => {
     expect(handleDataChange).toHaveBeenCalled();
   });
 
+  test('components/base/InputComponent.tsx -- should render input with formatted number when this is specified', async () => {
+    const { findByTestId } = renderInputComponent({
+      formatting: {
+        number: {
+          thousandSeparator: true,
+          prefix: '$',
+        },
+      },
+      formData: '1234',
+    });
+    const inputComponent: any = await findByTestId(`${mockId}-formatted-number`);
+    expect(inputComponent.value).toEqual('$1,234');
+  });
+
   function renderInputComponent(props: Partial<IInputProps> = {}) {
     const defaultProps: IInputProps = {
       id: mockId,
@@ -71,7 +83,6 @@ describe('components/base/InputComponent.tsx', () => {
       isValid: mockIsValid,
       readOnly: mockReadOnly,
       required: mockRequired,
-      type: mockType,
     };
 
     return render(<InputComponent {...defaultProps} {...props}/>);
