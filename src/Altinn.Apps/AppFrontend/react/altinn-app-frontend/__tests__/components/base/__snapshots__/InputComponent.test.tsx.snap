@@ -2,13 +2,17 @@
 
 exports[`components/base/InputComponent.tsx components/base/InputComponent.tsx -- should match snapshot 1`] = `
 <DocumentFragment>
-  <input
-    aria-describedby="description-mock-id"
-    class="form-control"
-    data-testid="mock-id"
-    id="mock-id"
-    type="Input"
-    value=""
-  />
+  <div
+    class="MuiInputBase-root MuiInput-root form-control"
+  >
+    <input
+      aria-describedby="description-mock-id"
+      class="MuiInputBase-input MuiInput-input"
+      data-testid="mock-id"
+      id="mock-id"
+      type="text"
+      value=""
+    />
+  </div>
 </DocumentFragment>
 `;
