@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Models;
 
 //// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
@@ -20,8 +22,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// }
         /// </example>
         /// <param name="instance">The data</param>
-        public static async Task<bool> Calculate(object instance)
+        public static async Task<bool> Calculate(object instance, IAltinnAppContext altinnAppContext)
         {
+            AltinnAppContext appContext = altinnAppContext.GetContext();
             bool changed = false;
             if (instance.GetType() == typeof(Skjema))
             {

@@ -6,6 +6,7 @@ using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -24,6 +25,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
+        private readonly IAltinnAppContext _altinnAppContext;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -39,6 +41,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="instanceService">A service with access to instances</param>
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
+        /// <param name="altinnAppContext">The app context service</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
@@ -52,6 +55,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
             IText textService,
+            IAltinnAppContext altinnAppContext,
             IHttpContextAccessor httpContextAccessor) : base(
                 appResourcesService,
                 logger,
@@ -67,6 +71,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
                 httpContextAccessor)
         {
             _logger = logger;
+            _altinnAppContext = altinnAppContext;
         }
 
         /// <inheritdoc />
@@ -130,7 +135,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunCalculation(object data)
         {
-            return await CalculationHandler.Calculate(data);
+            return await CalculationHandler.Calculate(data,_altinnAppContext);
         }
 
         /// <summary>

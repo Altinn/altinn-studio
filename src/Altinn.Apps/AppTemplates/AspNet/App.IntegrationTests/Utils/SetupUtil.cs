@@ -56,7 +56,7 @@ namespace App.IntegrationTestsRef.Utils
 
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
 
-                    services.AddSingleton<IValidation, ValidationAppSI>();
+                    services.AddScoped<IValidation, ValidationAppSI>();
 
                     services.AddTransient<IApplication, ApplicationMockSI>();
                     services.AddTransient<IInstance, InstanceMockSI>();
@@ -120,7 +120,7 @@ namespace App.IntegrationTestsRef.Utils
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
                             break;
                         case "presentationfields-app":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
                             break;
                         case "datafields-app":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
