@@ -3,7 +3,7 @@ package altinn.platform.pdf.models;
 import io.swagger.annotations.ApiModel;
 
 @ApiModel(description = "An option")
-public class Options {
+public class Option {
   private String label;
   private String value;
 
