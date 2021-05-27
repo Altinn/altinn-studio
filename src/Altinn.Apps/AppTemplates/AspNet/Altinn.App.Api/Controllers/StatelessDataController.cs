@@ -101,7 +101,7 @@ namespace Altinn.App.Api.Controllers
 
             int? partyId = await GetPartyId(HttpContext);
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, null, "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, "read");
 
             if (!enforcementResult.Authorized)
             {
@@ -128,70 +128,7 @@ namespace Altinn.App.Api.Controllers
             return Ok(appModel);
         }
 
-        /// <summary>
-        /// Runs calculations on the provided data object of the defined defined data type
-        /// </summary>
-        /// <param name="org">unique identfier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="dataType">The data type id</param>
-        /// <returns>Return the updated data object</returns>
-        [Authorize]
-        [HttpPut]
-        [DisableFormValueModelBinding]
-        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        [ProducesResponseType(typeof(DataElement), 200)]
-        public async Task<ActionResult> Put(string org, string app, [FromQuery] string dataType)
-        {
-            if (string.IsNullOrEmpty(dataType))
-            {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
-            }
-
-            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
-
-            if (string.IsNullOrEmpty(classRef))
-            {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
-            }
-
-            if (Request.ContentLength == null || Request.ContentLength <= 0)
-            {
-                return BadRequest("No data found in content.");
-            }
-
-            if (GetPartyHeader(HttpContext).Count > 1)
-            {
-                return BadRequest($"Invalid party. Only one allowed");
-            }
-
-            int? partyId = await GetPartyId(HttpContext);
-
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, null, "read");
-
-            if (!enforcementResult.Authorized)
-            {
-                return Forbidden(enforcementResult);
-            }
-
-            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
-            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
-
-            if (!string.IsNullOrEmpty(deserializer.Error))
-            {
-                return BadRequest(deserializer.Error);
-            }
-
-            if (appModel == null)
-            {
-                return BadRequest("No data found in content");
-            }
-
-            await _altinnApp.RunCalculation(appModel);
-
-            return Ok(appModel);
-        }
-
-        private StringValues GetPartyHeader(HttpContext context)
+        private static StringValues GetPartyHeader(HttpContext context)
         {
             StringValues partyValues;
             if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
@@ -239,7 +176,7 @@ namespace Altinn.App.Api.Controllers
             return null;
         }
 
-        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, Guid? instanceGuid, string action)
+        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
         {
             EnforcementResult enforcementResult = new EnforcementResult();
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, null);
