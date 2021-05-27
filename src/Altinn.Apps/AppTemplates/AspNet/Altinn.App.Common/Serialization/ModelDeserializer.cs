@@ -44,6 +44,12 @@ namespace Altinn.App.Common.Serialization
         {
             Error = null;
 
+            if (contentType == null)
+            {
+                Error = $"Unknown content type {contentType}. Cannot read the data.";
+                return null;
+            }
+
             if (contentType.Contains("application/json"))
             {
                 return await DeserializeJsonAsync(stream);

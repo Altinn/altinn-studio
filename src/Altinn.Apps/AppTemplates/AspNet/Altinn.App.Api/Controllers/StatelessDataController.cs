@@ -110,14 +110,19 @@ namespace Altinn.App.Api.Controllers
 
             _altinnAppContext.SetContext(new AltinnAppContext() { PartyId = partyId.Value });
 
-            object appModel = _altinnApp.CreateNewAppModel(classRef);
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            if (appModel == null)
+            {
+                appModel = _altinnApp.CreateNewAppModel(classRef);
+            }
 
             if (partyId.HasValue)
             {
                 // runs prefill from repo configuration if config exists
                 await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
             }
-
+           
             await _altinnApp.RunCalculation(appModel);
 
             return Ok(appModel);

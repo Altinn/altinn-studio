@@ -39,7 +39,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
@@ -149,7 +149,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_CalculationsRunAndDataReturned()
+        public async Task StatelessData_Post_CalculationsRunAndDataReturned()
         {
             // Arrange
             string org = "ttd";
@@ -164,7 +164,7 @@ namespace App.IntegrationTests.ApiTests
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
             string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
@@ -183,7 +183,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_InvalidDataType()
+        public async Task StatelessData_Post_InvalidDataType()
         {
             // Arrange
             string org = "ttd";
@@ -196,7 +196,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=tix";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent("{}", Encoding.UTF8, "application/json")
             };
@@ -209,7 +209,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_RequestMissingBodyBadRequest()
+        public async Task StatelessData_Post_RequestMissingBodyBadRequest()
         {
             // Arrange
             string org = "ttd";
@@ -222,13 +222,13 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
     }
 }
