@@ -294,7 +294,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-
       <TextField
         id={`${selectedItem?.id}-name`}
         className={classes.field}
@@ -325,7 +324,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label='Title'
         placeholder='Title'
         fullWidth
-        value={selectedItem?.title}
+        value={selectedItem?.title ?? ''}
         margin='normal'
         onChange={(e) => onChangeTitle(e.target.value)}
         InputProps={{
@@ -340,7 +339,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label='Description'
         fullWidth
         style={{ height: 100 }}
-        value={selectedItem?.description}
+        value={selectedItem?.description ?? ''}
         margin='normal'
         onChange={(e) => onChangeDescription(e.target.value)}
         InputLabelProps={{
