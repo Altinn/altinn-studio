@@ -16,7 +16,7 @@ const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
   reducers: {
-    addField(state, action) { // addKeyword
+    addField(state, action) {
       const {
         path, key, value,
       } = action.payload;

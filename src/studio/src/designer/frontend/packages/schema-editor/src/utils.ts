@@ -98,7 +98,6 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
 export function buildUISchema(schema: any, rootPath: string, includeDisplayName: boolean = true): UiSchemaItem[] {
   const result : UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
-    // What is this...
     result.push({
       id: rootPath,
       value: schema,

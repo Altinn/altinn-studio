@@ -29,16 +29,22 @@ export interface IDeleteDataModelRejected {
   error: any;
 }
 
-const newSchema: ISchema = { properties: { melding: {
-  type: 'object',
-} },
-definitions: {} };
+const newSchema: ISchema = {
+  properties: {
+    melding: {
+      type: 'object',
+    },
+  },
+  definitions: {},
+};
+
 const initialState: IDataModelingState = {
   schema: newSchema,
   modelName: undefined,
   error: null,
   saving: false,
 };
+
 const dataModelingSlice = createSlice({
   name: 'dataModeling',
   initialState,
