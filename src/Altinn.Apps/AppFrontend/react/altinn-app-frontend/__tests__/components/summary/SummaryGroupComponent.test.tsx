@@ -1,4 +1,3 @@
-/* tslint:disable:jsx-wrap-multiline */
 import '@testing-library/jest-dom/extend-expect';
 import 'jest';
 import * as React from 'react';
