@@ -56,6 +56,7 @@ const formLayoutSlice = createSlice({
     fetchLayoutSettingsFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>) => {
       const { settings } = action.payload;
       if (settings && settings.pages) {
+        state.uiConfig.hideCloseButton = settings?.pages?.hideCloseButton;
         state.uiConfig.pageTriggers = settings.pages.triggers;
         if (settings.pages.order) {
           state.uiConfig.layoutOrder = settings.pages.order;

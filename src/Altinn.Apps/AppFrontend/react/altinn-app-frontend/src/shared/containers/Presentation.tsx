@@ -11,8 +11,8 @@ import { IRuntimeState, ProcessTaskType, ITextResource, PresentationType } from 
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import ErrorReport from '../../components/message/ErrorReport';
-import Header from '../../components/process-step/Header';
-import NavBar from '../../components/process-step/NavBar';
+import Header from '../../components/presentation/Header';
+import NavBar from '../../components/presentation/NavBar';
 
 export interface IPresentationProvidedProps {
   header: string;
@@ -25,6 +25,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useDispatch();
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
+  const hideCloseButton: boolean = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hideCloseButton);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const userParty: IParty = useSelector(
     (state: IRuntimeState) => (state.profile.profile ? state.profile.profile.party : {} as IParty),
@@ -87,6 +88,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
               language={language}
               showBackArrow={!!previousFormPage
                 && (props.type === ProcessTaskType.Data || props.type === PresentationType.Stateless)}
+              hideCloseButton={hideCloseButton}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>
