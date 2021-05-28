@@ -151,7 +151,8 @@ export const SchemaEditor = ({
                 label={<SchemaItemLabel
                   language={language}
                   label={getTranslation('schema_editor.properties', language)}
-                  icon='fa-datamodel-properties' onAddProperty={handleAddProperty}
+                  icon='fa-datamodel-properties'
+                  onAddProperty={handleAddProperty}
                 />}
               >
                 { properties?.map((item: UiSchemaItem) => <SchemaItem
