@@ -111,6 +111,12 @@ namespace App.IntegrationTests.ApiTests
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+
+            // Extra call to make sure Altinn App context is scoped. (it should be cleared between each call)
+            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            httpRequestMessage2.Headers.Add("party", "person:01039012345");
+            res = await client.SendAsync(httpRequestMessage2);
 
             string responseContent = await res.Content.ReadAsStringAsync();
             Mocks.Apps.Ttd.PresentationTextsApp.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.PresentationTextsApp.Skjema>(responseContent);

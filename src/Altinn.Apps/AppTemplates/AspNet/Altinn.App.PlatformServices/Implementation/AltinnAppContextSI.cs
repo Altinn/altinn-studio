@@ -1,3 +1,4 @@
+using System;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 
@@ -19,6 +20,11 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc/>
         public void SetContext(AltinnAppContext appContext)
         {
+            if (_altinnAppContext != null)
+            {
+                throw new Exception("AltinnAppContext overwriting");
+            }
+
             _altinnAppContext = appContext;
         }
     }
