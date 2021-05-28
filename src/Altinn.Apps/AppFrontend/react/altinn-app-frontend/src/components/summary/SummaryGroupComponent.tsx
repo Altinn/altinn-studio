@@ -143,7 +143,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
       }
       setGroupHasErrors(groupErrors);
     }
-  }, [validations, props.largeGroup, props.pageRef, groupComponent, repeatingGroupMaxIndex, layout, props.index]);
+  }, [validations, props.largeGroup, props.pageRef, groupChildComponents, repeatingGroupMaxIndex, layout, props.index]);
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];
