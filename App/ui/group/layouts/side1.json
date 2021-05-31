@@ -11,21 +11,19 @@
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
         },
-        "options": [{
-          "label": "Ja",
-          "value": "Ja"
-        }],
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
         "required": true,
         "readOnly": false
       },
       {
         "id": "mainGroup",
         "type": "Group",
-        "children": [
-          "currentValue",
-          "newValue",
-          "subGroup"
-        ],
+        "children": ["currentValue", "newValue", "subGroup"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -49,6 +47,13 @@
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false           
+          }
         }
       },
       {
@@ -64,14 +69,19 @@
         "readOnly": false,
         "grid": {
           "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false           
+          }
         }
       },
       {
         "id": "subGroup",
         "type": "Group",
-        "children": [
-          "comments"
-        ],
+        "children": ["comments"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -104,7 +114,7 @@
         },
         "dataModelBindings": {},
         "showBackButton": false,
-        "triggers": ["calculatePageOrder","validatePage"]       
+        "triggers": ["calculatePageOrder", "validatePage"]
       }
     ]
   }

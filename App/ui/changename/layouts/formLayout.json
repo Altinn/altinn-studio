@@ -1,7 +1,8 @@
 ﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
-    "layout": [{
+    "layout": [
+      {
         "id": "currentName",
         "type": "Input",
         "textResourceBindings": {
@@ -25,7 +26,8 @@
         },
         "required": true,
         "readOnly": false,
-        "triggers": ["validation"]
+        "triggers": ["validation"],
+        "formatting": {}
       },
       {
         "id": "newLastName",
@@ -59,10 +61,10 @@
         "id": "yourChanges",
         "type": "Header",
         "textResourceBindings": {
-          "title": "DineEndringer"          
+          "title": "DineEndringer"
         },
         "dataModelBindings": {},
-        "size": "L"        
+        "size": "L"
       },
       {
         "id": "changeNameFrom",
@@ -97,10 +99,12 @@
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
         },
-        "options": [{
-          "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
-          "value": "Ja"
-        }],
+        "options": [
+          {
+            "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
+            "value": "Ja"
+          }
+        ],
         "required": true,
         "readOnly": false
       },
@@ -113,7 +117,8 @@
         "dataModelBindings": {
           "simpleBinding": "Radioknapp"
         },
-        "options": [{
+        "options": [
+          {
             "label": "Slektskap",
             "value": "1"
           },
@@ -313,6 +318,19 @@
         "maxDate": "2100-01-01T12:00:00Z",
         "required": true,
         "timeStamp": false
+      },
+      {
+        "id": "mobilnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Mobil nummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraMobiltelefonsnummer-datadef-34750.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "formatting": { "number": { "format": "+47 ### ## ###" } }
       },
       {
         "id": "fileUpload-changename",
