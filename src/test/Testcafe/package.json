@@ -17,7 +17,7 @@
     "eslint": "^7.27.0",
     "eslint-plugin-testcafe": "^0.2.1",
     "process": "^0.11.10",
-    "testcafe": "^1.14.2",
+    "testcafe": "^1.14.0",
     "testcafe-browser-provider-puppeteer": "^1.5.2"
   },
   "dependencies": {
