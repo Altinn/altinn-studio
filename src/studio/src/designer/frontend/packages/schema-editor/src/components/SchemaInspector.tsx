@@ -285,6 +285,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const onChangeType = (id: string, type: string) => {
     console.log(`${id}, ${type}`);
+    dispatch(setFieldValue({
+      path: id, key: 'type', value: type,
+    }));
   };
   const onChangeTitle = (title: string) => {
     dispatch(setTitle({ path: selectedId, title }));
@@ -294,6 +297,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
+      <p>Name</p>
       <TextField
         id={`${selectedItem?.id}-name`}
         className={classes.field}
@@ -307,12 +311,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      { typeField && selectedItem && <TypeSelect
+      <p>Type</p>
+      {selectedId && <TypeSelect
         label='Type'
         fullWidth={true}
         readOnly={readOnly}
-        itemType={typeField.value}
-        id={selectedItem.id}
+        itemType={typeField?.value}
+        id={selectedId}
         onChange={onChangeType}
       />}
       { renderDefUrl() }

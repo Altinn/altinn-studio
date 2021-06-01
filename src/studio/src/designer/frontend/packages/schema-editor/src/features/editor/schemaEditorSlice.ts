@@ -131,11 +131,15 @@ const schemaEditorSlice = createSlice({
       }: ISetValueAction = action.payload;
       // eslint-disable-next-line no-nested-ternary
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      if (schemaItem.keywords) {
-        const fieldItem = schemaItem.keywords.find((field) => field.key === key);
-        if (fieldItem) {
-          fieldItem.value = value;
-        }
+      if (!schemaItem.keywords) {
+        schemaItem.keywords = [];
+      }
+
+      const fieldItem = schemaItem.keywords.find((field) => field.key === key);
+      if (fieldItem) {
+        fieldItem.value = value;
+      } else if (key) {
+        schemaItem.keywords.push({ key, value });
       }
     },
     setRef(state, action) {

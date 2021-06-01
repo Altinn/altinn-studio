@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     border: '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 12,
+    marginTop: 4,
     '&.Mui-disabled': {
       background: '#f4f4f4',
       color: 'black',
