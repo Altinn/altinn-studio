@@ -37,9 +37,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -63,9 +61,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -143,9 +139,7 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -216,9 +210,7 @@ namespace App.IntegrationTests
             // Setup client and calls Instance controller on the App that instansiates a new instances of the app
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -255,7 +247,6 @@ namespace App.IntegrationTests
 
             byte[] byteArray = Encoding.UTF8.GetBytes(næringsppgave);
 
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
@@ -270,7 +261,6 @@ namespace App.IntegrationTests
 
             byte[] byteArraySkattemelding = Encoding.UTF8.GetBytes(skattemelding);
 
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             HttpContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
@@ -289,15 +279,13 @@ namespace App.IntegrationTests
             Assert.Empty(messages);
 
             // Handle first next go from data to confirmation
-            HttpRequestMessage httpRequestMessageFirstNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
-            {
-            };
+            HttpRequestMessage httpRequestMessageFirstNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next");
 
             HttpResponseMessage responseFirstNext = await client.SendAsync(httpRequestMessageFirstNext);
             string responseContentFirstNext = await responseFirstNext.Content.ReadAsStringAsync();
 
             ProcessState stateAfterFirstNext = (ProcessState)JsonConvert.DeserializeObject(responseContentFirstNext, typeof(ProcessState));
-            Assert.Equal("Task_2",stateAfterFirstNext.CurrentTask.ElementId);
+            Assert.Equal("Task_2", stateAfterFirstNext.CurrentTask.ElementId);
 
             // Validate instance in Task_2. This validates that PDF for nærings is in place
             HttpResponseMessage responseValidationTask2 = await client.GetAsync(url);
@@ -306,9 +294,7 @@ namespace App.IntegrationTests
             Assert.Empty(messagesTask2);
 
             // Move process from Task_2 (Confirmation) to Task_3  (Feedback). 
-            HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
-            {
-            };
+            HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next");
 
             HttpResponseMessage responseSecondNext = await client.SendAsync(httpRequestMessageSecondNext);
             string responseContentSecondNext = await responseSecondNext.Content.ReadAsStringAsync();
