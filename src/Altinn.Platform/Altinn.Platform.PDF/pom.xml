@@ -13,6 +13,7 @@
         <configuration>
           <source>16</source>
           <target>16</target>
+          <skipTestScope>true</skipTestScope>
         </configuration>
       </plugin>
       <plugin>
@@ -47,7 +48,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
+        <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
