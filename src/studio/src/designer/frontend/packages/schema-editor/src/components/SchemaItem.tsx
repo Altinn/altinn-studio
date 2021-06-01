@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
-import { getSchemaType } from '../utils';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -143,7 +142,7 @@ function SchemaItem(props: SchemaItemProps) {
   };
 
   const renderLabel = () => {
-    const type = getSchemaType(item);
+    const type = item.type;
     // eslint-disable-next-line no-nested-ternary
     const iconStr = refItem ? 'fa-datamodel-ref' : type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
     const label = refItem ? `${item.displayName ?? item.id} : ${itemToDisplay.displayName ?? itemToDisplay.id}` : item.displayName ?? item.id;

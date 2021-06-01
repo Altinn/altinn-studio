@@ -14,7 +14,6 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
   }
   return stack;
 }
-export const getSchemaType = (schema: UiSchemaItem): string | undefined => schema.keywords?.find((k) => k.key === 'type')?.value;
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
   // should we cache this flattened structure in state somehow for faster lookups?
@@ -154,12 +153,14 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
     const {
-      type, properties, ...restrictions
+      type, title, description, properties, ...restrictions
     } = currentProperty;
     const item: UiSchemaItem = {
       id: `${name}/properties/${key}`,
       displayName: key,
       type,
+      title,
+      description,
     };
 
     if (currentProperty.$ref) {

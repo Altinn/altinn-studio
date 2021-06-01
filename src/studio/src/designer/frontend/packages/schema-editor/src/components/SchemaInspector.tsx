@@ -34,7 +34,7 @@ const useStyles = makeStyles(
       padding: 4,
       fontWeight: 400,
       fontSize: 16,
-      margin: 2,
+      marginTop: 2,
     },
     divider: {
       margin: 0,
