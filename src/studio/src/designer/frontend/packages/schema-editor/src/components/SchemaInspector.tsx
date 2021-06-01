@@ -52,6 +52,7 @@ const useStyles = makeStyles(
       color: 'black',
       border: '1px solid #006BD8',
       boxSsizing: 'border-box',
+      padding: 4,
       '&.Mui-disabled': {
         background: '#f4f4f4',
         color: 'black',
@@ -213,21 +214,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onDeleteField={onDeleteObjectClick}
   />;
 
-  const renderAddPropertyButtons = () => (
-    <>
-      <IconButton
-        id='add-reference-button'
-        aria-label='Add reference'
-        onClick={onAddPropertyClicked}
-      ><i className='fa fa-plus'/>{getTranslation('schema_editor.create_reference', props.language)}
-      </IconButton>
-      <IconButton
-        id='add-property-button'
-        aria-label='Add property'
-        onClick={onAddFieldClick}
-      ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}
-      </IconButton>
-    </>
+  const renderAddPropertyButton = () => (
+    <IconButton
+      id='add-reference-button'
+      aria-label='Add reference'
+      onClick={onAddPropertyClicked}
+    ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}
+    </IconButton>
   );
 
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
@@ -263,9 +256,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     // Keywords - Work in progress, needs sets of rules for different types etc.
     // Need to check for a type field field, and if for example value is "array", "items" are required.
 
-    if (field.key.startsWith('@')) {
+    if (field.key.startsWith('@') || field.key === 'type') {
       return null;
     }
+
     return <InputField
       key={`field-${field.key}`}
       isRef={field.key === '$ref'}
@@ -302,7 +296,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         id={`${selectedItem?.id}-name`}
         className={classes.field}
         placeholder='Name'
-        label='Name'
         fullWidth={true}
         value={nodeName}
         onChange={(e) => setNodeName(e.target.value)}
@@ -326,7 +319,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <TextField
         id={`${selectedItem?.id}-title`}
         className={classes.field}
-        label='Title'
         placeholder='Title'
         fullWidth
         value={selectedItem?.title ?? ''}
@@ -355,13 +347,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         }}
       />
     </div>);
-
-  const renderItemFields = (item: UiSchemaItem) => (item ?
-    <div>
-      { renderItemProperties(item) }
-      { renderItemKeywords(item) }
-      { !readOnly && renderAddPropertyButtons() }
-    </div> : null);
 
   const a11yProps = (index: number) => ({
     id: `simple-tab-${index}`,
@@ -403,10 +388,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           { renderItemData() }
         </TabPanel>
         <TabPanel value='1'>
-          ...
+          { itemToDisplay && renderItemKeywords(itemToDisplay) }
+          <IconButton
+            id='add-property-button'
+            aria-label='Add property'
+            onClick={onAddFieldClick}
+          ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
+          </IconButton>
         </TabPanel>
         <TabPanel value='2'>
-          { selectedItem && renderItemFields(referencedItem ?? selectedItem) }
+          { itemToDisplay && renderItemProperties(itemToDisplay) }
+          { !readOnly && renderAddPropertyButton() }
         </TabPanel>
       </TabContext>
     </div>
