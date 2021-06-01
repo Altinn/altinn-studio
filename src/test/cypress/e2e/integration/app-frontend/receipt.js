@@ -14,7 +14,9 @@ describe('Receipt', () => {
   });
 
   it('Receipt page displays links and attachments', () => {
+    cy.intercept('GET', '**/orgs/altinn-orgs.json').as('getAltinnOrgs');
     cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
+    cy.wait('@getAltinnOrgs');
     cy.get(appFrontend.receiptContainer)
       .should('be.visible')
       .find(mui.tableBody)

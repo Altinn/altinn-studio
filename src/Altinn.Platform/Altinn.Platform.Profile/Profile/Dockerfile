@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0.203-alpine3.13 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.13 AS build
 WORKDIR Profile/
 
 COPY Profile ./Profile

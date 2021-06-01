@@ -51,13 +51,26 @@ describe('>>> utils/formComponentUtils.ts', () => {
     expect(result).toEqual('test');
   });
 
-  it('+++ getDisplayFormData should return comma separated string of text resources for checkboxes with mulitiple values', () => {
+  it('+++ getDisplayFormData should return comma separated string of text resources for checkboxes with multiple values', () => {
     const checkboxComponent = {
       type: 'Checkboxes',
       optionsId: 'mockOption',
     } as ISelectionComponentProps;
     const result = getDisplayFormData('mockBindingCheckbox', checkboxComponent, mockFormData, mockOptions, mockTextResources);
     expect(result).toEqual('Value1, Value2');
+  });
+
+  it('+++ getDisplayFormData should return object with text resources for checkboxes with multiple values when asObject parameter is true', () => {
+    const checkboxComponent = {
+      type: 'Checkboxes',
+      optionsId: 'mockOption',
+    } as ISelectionComponentProps;
+    const result = getDisplayFormData('mockBindingCheckbox', checkboxComponent, mockFormData, mockOptions, mockTextResources, true);
+    const expected = {
+      optionValue1: 'Value1',
+      optionValue2: 'Value2',
+    };
+    expect(result).toEqual(expected);
   });
 
   it('+++ getFormDataForComponentInRepeatingGroup should return comma separated string of text resources for checkboxes with mulitiple values', () => {
