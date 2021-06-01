@@ -54,7 +54,7 @@ const styles = createStyles({
   header: {
     backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
     paddingLeft: 12,
-    ['@media (min-width: 786px)']: {
+    '@media (min-width: 786px)': {
       paddingLeft: 96,
     },
     paddingTop: 30,
@@ -72,10 +72,10 @@ const styles = createStyles({
     ['@media only print']: {
       paddingLeft: 48,
     },
-    ['@media (min-width: 786px)']: {
+    '@media (min-width: 786px)': {
       paddingLeft: 96,
       paddingRight: 96,
-      paddingTop: 34
+      paddingTop: 34,
     },
   },
   iconBtn: {
