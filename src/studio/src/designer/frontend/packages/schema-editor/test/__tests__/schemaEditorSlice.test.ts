@@ -18,10 +18,10 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setKey(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
-    expect(item.keywords).toContainEqual({ key: 'color', value: 1 });
+    expect(item.restrictions).toContainEqual({ key: 'color', value: 1 });
   });
 
   it('handles setFieldValue', () => {
@@ -32,10 +32,10 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setFieldValue(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
-    const field = item.keywords.find((f) => f.key === 'minLength');
+    const field = item.restrictions.find((f) => f.key === 'minLength');
     if (!field) {
       fail('field not found');
     }
@@ -87,11 +87,11 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, deleteField(payload));
 
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
 
-    expect(item.keywords).not.toContainEqual({ key: 'maxLength' });
+    expect(item.restrictions).not.toContainEqual({ key: 'maxLength' });
   });
 
   it('handles deleteProperty', () => {
@@ -126,7 +126,7 @@ describe('SchemaEditorSlice', () => {
 
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.properties).toContainEqual({
-      id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', keywords: [{ key: 'type', value: 'object' }],
+      id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', restrictions: [{ key: 'type', value: 'object' }],
     });
 
     // test add second time to get more case coverage.
@@ -146,7 +146,7 @@ describe('SchemaEditorSlice', () => {
     let nextState = reducer(state, addField(payload));
 
     let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    expect(item && item.keywords).toContainEqual({
+    expect(item && item.restrictions).toContainEqual({
       key: 'key', value: '',
     });
 
@@ -154,7 +154,7 @@ describe('SchemaEditorSlice', () => {
     payload.value = '';
     nextState = reducer(nextState, addField(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    expect(item && item.keywords).toContainEqual({
+    expect(item && item.restrictions).toContainEqual({
       key: 'test', value: '',
     });
   });

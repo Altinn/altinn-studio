@@ -75,8 +75,8 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         });
         break;
       }
-      case 'keywords': {
-        uiSchemaItem.keywords?.forEach((field: any) => {
+      case 'restrictions': {
+        uiSchemaItem.restrictions?.forEach((field: any) => {
           item[field.key] = field.value;
         });
         break;
@@ -131,7 +131,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       } = item;
       result.push({
         id,
-        keywords: Object.keys(restrictions).map((k: any) => ({ key: k, value: restrictions[k] })),
+        restrictions: Object.keys(restrictions).map((k: any) => ({ key: k, value: restrictions[k] })),
         displayName,
         title,
         description,
@@ -175,7 +175,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
         item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties`, true);
       }
 
-      item.keywords = Object.keys(restrictions).map((k: string) => ({ key: k, value: currentProperty[k] }));
+      item.restrictions = Object.keys(restrictions).map((k: string) => ({ key: k, value: currentProperty[k] }));
     } else {
       item.value = currentProperty;
     }

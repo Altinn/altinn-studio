@@ -218,7 +218,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
     // render const
-    const field = p.keywords?.find((f) => f.key === 'const');
+    const field = p.restrictions?.find((f) => f.key === 'const');
     if (field) {
       return renderConst(p, field);
     }
@@ -240,7 +240,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return null;
   });
 
-  const renderItemKeywords = (item: UiSchemaItem) => item.keywords?.map((field: Field) => {
+  const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
     // Keywords - Work in progress, needs sets of rules for different types etc.
     // Need to check for a type field field, and if for example value is "array", "items" are required.
 
@@ -377,7 +377,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           { renderItemData() }
         </TabPanel>
         <TabPanel value='1'>
-          { itemToDisplay && renderItemKeywords(itemToDisplay) }
+          { itemToDisplay && renderItemRestrictions(itemToDisplay) }
           <IconButton
             id='add-property-button'
             aria-label='Add property'

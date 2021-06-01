@@ -24,10 +24,10 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       if (addToItem) {
         const itemToAdd = { key, value };
-        if (addToItem.keywords) {
-          addToItem.keywords.push(itemToAdd);
+        if (addToItem.restrictions) {
+          addToItem.restrictions.push(itemToAdd);
         } else {
-          addToItem.keywords = [itemToAdd];
+          addToItem.restrictions = [itemToAdd];
         }
       }
     },
@@ -47,7 +47,7 @@ const schemaEditorSlice = createSlice({
       const item: UiSchemaItem = {
         id: `${path}/properties/name`,
         displayName: 'name',
-        keywords: [
+        restrictions: [
           {
             key: 'type',
             value: 'object',
@@ -89,9 +89,9 @@ const schemaEditorSlice = createSlice({
       const { path, key } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
-        const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
+        const removeIndex = removeFromItem.restrictions?.findIndex((v: any) => v.key === key) ?? -1;
         if (removeIndex >= 0) {
-          removeFromItem.keywords?.splice(removeIndex, 1);
+          removeFromItem.restrictions?.splice(removeIndex, 1);
         }
       }
     },
@@ -129,15 +129,15 @@ const schemaEditorSlice = createSlice({
       }: ISetValueAction = action.payload;
       // eslint-disable-next-line no-nested-ternary
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      if (!schemaItem.keywords) {
-        schemaItem.keywords = [];
+      if (!schemaItem.restrictions) {
+        schemaItem.restrictions = [];
       }
 
-      const fieldItem = schemaItem.keywords.find((field) => field.key === key);
+      const fieldItem = schemaItem.restrictions.find((field) => field.key === key);
       if (fieldItem) {
         fieldItem.value = value;
       } else if (key) {
-        schemaItem.keywords.push({ key, value });
+        schemaItem.restrictions.push({ key, value });
       }
     },
     setRef(state, action) {
@@ -154,8 +154,8 @@ const schemaEditorSlice = createSlice({
         path, oldKey, newKey,
       } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      if (schemaItem.keywords) {
-        const fieldItem = schemaItem.keywords.find((field) => field.key === oldKey);
+      if (schemaItem.restrictions) {
+        const fieldItem = schemaItem.restrictions.find((field) => field.key === oldKey);
         if (fieldItem) {
           fieldItem.key = newKey;
         }

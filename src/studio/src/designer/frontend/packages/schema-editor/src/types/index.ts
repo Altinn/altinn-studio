@@ -31,7 +31,7 @@ export interface UiSchemaItem {
   id: string;
   type?: string;
   $ref?: string;
-  keywords?: Field[];
+  restrictions?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
   displayName: string;

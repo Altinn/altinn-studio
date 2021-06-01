@@ -1485,7 +1485,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-boolean"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1541,7 +1541,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1653,7 +1653,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1709,7 +1709,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1765,7 +1765,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1821,7 +1821,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1877,7 +1877,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1933,7 +1933,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2045,7 +2045,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2101,7 +2101,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2157,7 +2157,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-integer"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
