@@ -27,6 +27,10 @@ const styles = () => createStyles({
   body: {
     padding: 0,
   },
+  contentLoaderContainer: {
+    marginTop: '5rem',
+    marginLeft: '8rem',
+  },
 });
 
 const titleKey = 'instantiate.starting';
@@ -93,7 +97,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           hideCloseIcon={true}
           headerText={titleText}
         >
-          <div style={{ marginTop: '5rem', marginLeft: '8rem' }}>
+          <div className={classes.contentLoaderContainer}>
             <AltinnContentLoader width='100%' height='700'>
               <AltinnContentIconFormData/>
             </AltinnContentLoader>
