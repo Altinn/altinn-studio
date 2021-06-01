@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Elfullmakt">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Navn" type="xs:string" />
+        <xs:element name="Orgnr" type="xs:unsignedInt" />
+        <xs:element name="Fakturadresse">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Postadresse" type="xs:string" />
+              <xs:element name="Postnr" type="xs:unsignedShort" />
+              <xs:element name="Poststed" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Anleggsadresse">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Gateadresse" type="xs:string" />
+              <xs:element name="Postnr" type="xs:unsignedShort" />
+              <xs:element name="Poststed" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Anleggsnummer" type="xs:unsignedInt" />
+        <xs:element name="Maalere">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="Maaler">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                      <xs:element name="MaalerID" type="xs:unsignedInt" />
+                      <xs:element name="MaalerNummer" type="xs:string" />
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Aarforbruk" type="xs:unsignedInt" />
+        <xs:element name="Netteier">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Navn" type="xs:string" />
+              <xs:element name="Orgnr" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Utlopsdato" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
