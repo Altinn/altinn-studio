@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Controllers
         private readonly IRegisterService _registerService;
         private readonly IProfile _profileService;
 
-        private const string OrganisationPrefix = "/organisation/";
+        private const string OrganisationPrefix = "/org/";
         private const string PersonPrefix = "/person/";
         private const string UserPrefix = "/user/";
         private const string OrgPrefix = "/org/";

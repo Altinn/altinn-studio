@@ -8,7 +8,7 @@
     <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
     <AssemblyVersion>1.0.4</AssemblyVersion>
     <FileVersion>1.0.4</FileVersion>
-    
+
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
     <PackageVersion>1.0.4</PackageVersion>
@@ -33,7 +33,7 @@
     <!-- Upgrade to 5.x.x causes function-apps to fail. -->
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.15" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace App.IntegrationTests.Mocks.Services
 {
-    class RegisterMockSI : IRegister
+    public class RegisterMockSI : IRegister
     {
         private readonly IDSF _dsfService;
         private readonly IER _erService;
@@ -77,7 +77,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private string GetPartyPath(int partyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Party", partyId.ToString() + ".json");
         }
     }
