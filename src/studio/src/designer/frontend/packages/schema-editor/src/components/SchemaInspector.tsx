@@ -72,6 +72,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [nodeName, setNodeName] = React.useState<string | undefined>('');
+  const [description, setItemDescription] = React.useState<string>('');
+  const [title, setItemTitle] = React.useState<string>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -87,6 +89,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
+    setItemTitle(selectedItem?.title ?? '');
+    setItemDescription(selectedItem?.description ?? '');
   }, [selectedItem]);
 
   // if item is a reference, we want to show the properties of the reference.
@@ -282,10 +286,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path: id, key: 'type', value: type,
     }));
   };
-  const onChangeTitle = (title: string) => {
+  const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
   };
-  const onChangeDescription = (description: string) => {
+  const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
   const renderItemData = () => (
@@ -310,7 +314,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         readOnly={readOnly}
         itemType={selectedItem?.type ?? ''}
         id={selectedId}
-        onChange={onChangeType}
+        onChange={(onChangeType)}
       />}
       { renderDefUrl() }
       <hr className={classes.divider} />
@@ -320,9 +324,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         className={classes.field}
         placeholder='Title'
         fullWidth
-        value={selectedItem?.title ?? ''}
+        value={title}
         margin='normal'
-        onChange={(e) => onChangeTitle(e.target.value)}
+        onChange={(e) => setItemTitle(e.target.value)}
+        onBlur={onChangeTitle}
         InputProps={{
           disableUnderline: true,
         }}
@@ -335,9 +340,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label='Description'
         fullWidth
         style={{ height: 100 }}
-        value={selectedItem?.description ?? ''}
+        value={description}
         margin='normal'
-        onChange={(e) => onChangeDescription(e.target.value)}
+        onChange={(e) => setItemDescription(e.target.value)}
+        onBlur={onChangeDescription}
         InputLabelProps={{
           shrink: true,
         }}

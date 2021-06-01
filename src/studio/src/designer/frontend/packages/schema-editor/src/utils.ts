@@ -16,8 +16,14 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
 }
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
-  // should we cache this flattened structure in state somehow for faster lookups?
-  const items = flat(schema, 999);
+  const parent = schema.find((s) => path.includes(s.id));
+  if (!parent) {
+    return {} as UiSchemaItem;
+  }
+  if (parent.id === path) {
+    return parent;
+  }
+  const items = flat(parent?.properties, 999);
   return items.find((i) => i.id === path) || {} as UiSchemaItem;
 }
 

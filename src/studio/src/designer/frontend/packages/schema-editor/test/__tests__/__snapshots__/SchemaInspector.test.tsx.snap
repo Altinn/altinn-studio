@@ -4,250 +4,189 @@ exports[`Should match snapshot 1`] = `
 <div
   class="makeStyles-root-1"
 >
-  <p
-    class="makeStyles-header-3"
+  <header
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault MuiPaper-elevation4"
   >
-    schema_editor.properties
-  </p>
-  <div>
     <div
-      class="MuiInputBase-root MuiInput-root makeStyles-label-2 MuiInputBase-fullWidth MuiInput-fullWidth"
+      class="MuiTabs-root"
     >
-      <input
-        class="MuiInputBase-input MuiInput-input"
-        type="text"
-        value=""
-      />
-    </div>
-    <hr
-      class="makeStyles-divider-4"
-    />
-    <div>
-      <p
-        class="makeStyles-header-3"
+      <div
+        class="MuiTabs-scroller MuiTabs-fixed"
+        style="overflow: hidden;"
       >
-        schema_editor.properties
+        <div
+          aria-label="inspector tabs"
+          class="MuiTabs-flexContainer"
+          role="tablist"
+        >
+          <button
+            aria-selected="true"
+            class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit Mui-selected"
+            role="tab"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiTab-wrapper"
+            >
+              schema_editor.properties
+            </span>
+            <span
+              class="PrivateTabIndicator-root-7 PrivateTabIndicator-colorSecondary-9 MuiTabs-indicator"
+            />
+          </button>
+          <button
+            aria-selected="false"
+            class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <span
+              class="MuiTab-wrapper"
+            >
+              schema_editor.restrictions
+            </span>
+          </button>
+          <button
+            aria-selected="false"
+            class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <span
+              class="MuiTab-wrapper"
+            >
+              schema_editor.fields
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div
+    class="MuiTabPanel-root"
+    role="tabpanel"
+  >
+    <div>
+      <p>
+        Name
       </p>
       <div
-        class="makeStyles-container-9"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
       >
         <div
-          class="MuiFormControl-root"
+          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-minLength"
-              type="text"
-              value="minLength"
-            />
-          </div>
+          <input
+            aria-invalid="false"
+            class="MuiInputBase-input MuiInput-input"
+            id="#/definitions/Kommentar2000Restriksjon-name"
+            placeholder="Name"
+            type="text"
+            value=""
+          />
         </div>
+      </div>
+      <p>
+        Type
+      </p>
+      <div
+        class="MuiInputBase-root MuiInput-root makeStyles-root-11 MuiInputBase-fullWidth MuiInput-fullWidth"
+      >
         <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-minLength"
-              type="text"
-              value="1"
-            />
-          </div>
-        </div>
-        <button
-          aria-label="Delete field"
-          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-10"
-          id="input-Kommentar2000Restriksjon-delete-minLength"
+          aria-haspopup="listbox"
+          aria-labelledby="type-select-#/definitions/Kommentar2000Restriksjon"
+          class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+          id="type-select-#/definitions/Kommentar2000Restriksjon"
+          role="button"
           tabindex="0"
-          type="button"
         >
-          <span
-            class="MuiIconButton-label"
-          >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
+          <span>
+            ​
           </span>
-        </button>
+        </div>
+        <input
+          aria-hidden="true"
+          class="MuiSelect-nativeInput"
+          tabindex="-1"
+          value=""
+        />
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSelect-icon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M7 10l5 5 5-5z"
+          />
+        </svg>
+      </div>
+      <hr
+        class="makeStyles-divider-4"
+      />
+      <p>
+        Beskrivende felter
+      </p>
+      <div
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+      >
+        <div
+          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+        >
+          <input
+            aria-invalid="false"
+            class="MuiInputBase-input MuiInput-input"
+            id="#/definitions/Kommentar2000Restriksjon-title"
+            placeholder="Title"
+            type="text"
+            value=""
+          />
+        </div>
       </div>
       <div
-        class="makeStyles-container-14"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        style="height: 100px;"
       >
+        <label
+          class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink"
+          data-shrink="true"
+          for="#/definitions/Kommentar2000Restriksjon-description"
+          id="#/definitions/Kommentar2000Restriksjon-description-label"
+        >
+          Description
+        </label>
         <div
-          class="MuiFormControl-root"
+          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
         >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-11 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-maxLength"
-              type="text"
-              value="maxLength"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-11 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-value-maxLength"
-              type="text"
-              value="2000"
-            />
-          </div>
-        </div>
-        <button
-          aria-label="Delete field"
-          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-15"
-          id="input-Kommentar2000Restriksjon-delete-maxLength"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiIconButton-label"
-          >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
-          </span>
-        </button>
-      </div>
-      <div
-        class="makeStyles-container-19"
-      >
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-field-16 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <input
-              aria-invalid="false"
-              class="MuiInputBase-input MuiInput-input"
-              id="input-Kommentar2000Restriksjon-key-type"
-              type="text"
-              value="type"
-            />
-          </div>
-        </div>
-        <div
-          class="MuiFormControl-root"
-        >
-          <div
-            class="MuiInputBase-root MuiInput-root makeStyles-root-21 MuiInputBase-formControl MuiInput-formControl"
-          >
-            <div
-              aria-haspopup="listbox"
-              aria-labelledby="type-select-type"
-              class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
-              id="type-select-type"
-              role="button"
-              tabindex="0"
-            >
-              string
-            </div>
-            <input
-              aria-hidden="true"
-              class="MuiSelect-nativeInput"
-              tabindex="-1"
-              value="string"
-            />
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root MuiSelect-icon"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M7 10l5 5 5-5z"
-              />
-            </svg>
-          </div>
-        </div>
-        <button
-          aria-label="Delete field"
-          class="MuiButtonBase-root MuiIconButton-root makeStyles-delete-20"
-          id="input-Kommentar2000Restriksjon-delete-type"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiIconButton-label"
-          >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
-          </span>
-        </button>
-      </div>
-      <button
-        aria-label="Add reference"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="add-reference-button"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
-        >
-          <i
-            class="fa fa-plus"
+          <textarea
+            aria-invalid="false"
+            class="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
+            id="#/definitions/Kommentar2000Restriksjon-description"
+            rows="1"
           />
-          schema_editor.create_reference
-        </span>
-      </button>
-      <button
-        aria-label="Add property"
-        class="MuiButtonBase-root MuiIconButton-root"
-        id="add-property-button"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label"
-        >
-          <i
-            class="fa fa-plus"
+          <textarea
+            aria-hidden="true"
+            class="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
+            readonly=""
+            style="visibility: hidden; position: absolute; overflow: hidden; height: 0px; top: 0px; left: 0px; transform: translateZ(0); width: 100%;"
+            tabindex="-1"
           />
-          schema_editor.add_property
-        </span>
-      </button>
+        </div>
+      </div>
     </div>
   </div>
+  <div
+    class="MuiTabPanel-root"
+    hidden=""
+    role="tabpanel"
+  />
+  <div
+    class="MuiTabPanel-root"
+    hidden=""
+    role="tabpanel"
+  />
 </div>
 `;
