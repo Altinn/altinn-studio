@@ -126,17 +126,16 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         description: item.description,
       });
     } else if (typeof item === 'object' && item !== null) {
+      const {
+        title, description, type, ...restrictions
+      } = item;
       result.push({
         id,
-        keywords: Object.keys(item).map((itemKey) => {
-          return {
-            key: itemKey,
-            value: item[itemKey],
-          };
-        }),
+        keywords: Object.keys(restrictions).map((k: any) => ({ key: k, value: restrictions[k] })),
         displayName,
-        title: item.title,
-        description: item.description,
+        title,
+        description,
+        type,
       });
     } else {
       result.push({

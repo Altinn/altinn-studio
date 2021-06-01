@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
@@ -74,6 +74,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [nodeName, setNodeName] = React.useState<string | undefined>('');
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
+  const [objectType, setObjectType] = React.useState<string>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -91,6 +92,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setNodeName(selectedItem?.displayName);
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
+    setObjectType(selectedItem?.type ?? '');
   }, [selectedItem]);
 
   // if item is a reference, we want to show the properties of the reference.
@@ -205,18 +207,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onDeleteField={onDeleteObjectClick}
   />;
 
-  const renderType = (p: UiSchemaItem, field: Field) => <InputField
-    key={`field-${p.id}`}
-    value={field?.value}
-    label={p.displayName ?? p.id}
-    readOnly={readOnly}
-    fullPath={p.id}
-    onChangeValue={onChangeConst}
-    onChangeRef={onChangeRef}
-    onChangeKey={onChangeKey}
-    onDeleteField={onDeleteObjectClick}
-  />;
-
   const renderAddPropertyButton = () => (
     <IconButton
       id='add-reference-button'
@@ -231,11 +221,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     const field = p.keywords?.find((f) => f.key === 'const');
     if (field) {
       return renderConst(p, field);
-    }
-    // check type
-    const type = p.keywords?.find((f) => f.key === 'type');
-    if (type) {
-      return renderType(p, type);
     }
     if (p.$ref) {
       return <InputField
@@ -259,14 +244,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     // Keywords - Work in progress, needs sets of rules for different types etc.
     // Need to check for a type field field, and if for example value is "array", "items" are required.
 
-    if (field.key.startsWith('@') || field.key === 'type') {
+    if (field.key.startsWith('@')) {
       return null;
     }
 
     return <InputField
       key={`field-${field.key}`}
       isRef={field.key === '$ref'}
-      value={field.value.$ref ?? field.value}
+      value={field.value}
       label={field.key}
       readOnly={readOnly}
       fullPath={item.id}
@@ -281,9 +266,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setTabIndex(newValue);
   };
   const onChangeType = (id: string, type: string) => {
-    console.log(`${id}, ${type}`);
-    dispatch(setFieldValue({
-      path: id, key: 'type', value: type,
+    dispatch(setType({
+      path: id, value: type,
     }));
   };
   const onChangeTitle = () => {
@@ -308,12 +292,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         }}
       />
       <p>Type</p>
-      {selectedId && <TypeSelect
+      {selectedItem && <TypeSelect
         label='Type'
         fullWidth={true}
         readOnly={readOnly}
-        itemType={selectedItem?.type ?? ''}
-        id={selectedId}
+        itemType={objectType}
+        id={selectedItem.id}
         onChange={(onChangeType)}
       />}
       { renderDefUrl() }

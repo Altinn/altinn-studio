@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
-import { ISchema, ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -36,10 +36,8 @@ const schemaEditorSlice = createSlice({
       state.uiSchema.push(
         {
           id: `#/properties/${name}`,
+          type: 'object',
           displayName: name,
-          keywords: [
-            { key: 'type', value: 'object' },
-          ],
         },
       );
     },
@@ -163,6 +161,11 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    setType(state, action) {
+      const { path, value }: ISetTypeAction = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.type = value;
+    },
     setTitle(state, action) {
       const { path, title } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
@@ -254,6 +257,7 @@ export const {
   setSelectedId,
   setTitle,
   setDescription,
+  setType,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

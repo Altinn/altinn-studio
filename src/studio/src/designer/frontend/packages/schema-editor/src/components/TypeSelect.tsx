@@ -41,7 +41,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       id={`type-select-${id}`}
       disabled={props.readOnly}
       label={props.label}
-      value={itemType || ''}
+      value={itemType}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}

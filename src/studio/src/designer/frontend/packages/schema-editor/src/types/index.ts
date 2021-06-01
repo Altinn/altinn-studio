@@ -14,6 +14,10 @@ export interface ISetValueAction {
   value: any,
   key?: string,
 }
+export interface ISetTypeAction {
+  path: string;
+  value: string;
+}
 export interface ISetRefAction {
   path: string,
   ref: string,
