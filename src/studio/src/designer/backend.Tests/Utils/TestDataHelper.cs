@@ -23,5 +23,20 @@ namespace Designer.Tests.Utils
             JsonValue jsonValue = JsonValue.Parse(streamReader);
             return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
         }
+
+        public static Stream LoadTestDataFromFile(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            string unitTestFolder = Path.GetDirectoryName(new Uri(assembly.Location).LocalPath);
+            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            Stream resource = File.OpenRead(unitTestFolder + resourceName);
+
+            if (resource == null)
+            {
+                throw new InvalidOperationException("Unable to find test data.");
+            }
+
+            return resource;
+        }
     }
 }
