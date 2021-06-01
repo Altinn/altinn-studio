@@ -51,7 +51,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
                     model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317 = null;
                     changed = true;
                 }
-
             }
 
             return changed;

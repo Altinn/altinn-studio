@@ -12,7 +12,7 @@ namespace App.IntegrationTestsRef.Data.apps.tdd.sirius.services
     {
         public Task<Stream> GetNæringPDF(Stream næringsoppgave)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             string pdfPath = Path.Combine(unitTestFolder, @"..\..\..\Data\Files\cat.pdf");
 
             Stream fs = File.OpenRead(pdfPath);
