@@ -25,6 +25,7 @@ export type Field = {
 
 export interface UiSchemaItem {
   id: string;
+  type?: string;
   $ref?: string;
   keywords?: Field[];
   properties?: UiSchemaItem[];

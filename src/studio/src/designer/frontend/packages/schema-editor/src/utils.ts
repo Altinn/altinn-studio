@@ -149,33 +149,31 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
 
 export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
   name: string, displayName?: string): UiSchemaItem => {
-  const properties: any[] = [];
+  const rootProperties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
+    const {
+      type, properties, ...restrictions
+    } = currentProperty;
     const item: UiSchemaItem = {
       id: `${name}/properties/${key}`,
       displayName: key,
+      type,
     };
 
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
-      item.keywords = [];
-      Object.keys(currentProperty).forEach((k: string) => {
-        if (k === 'properties') {
-          item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties`, true);
-        } else {
-          item.keywords?.push({
-            key: k,
-            value: currentProperty[k],
-          });
-        }
-      });
+      if (properties) {
+        item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties`, true);
+      }
+
+      item.keywords = Object.keys(restrictions).map((k: string) => ({ key: k, value: currentProperty[k] }));
     } else {
       item.value = currentProperty;
     }
-    properties.push(item);
+    rootProperties.push(item);
   });
 
   const rest: any = {};
@@ -188,7 +186,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
 
   return {
     id: name,
-    properties,
+    properties: rootProperties,
     required: schema.required,
     displayName,
     ...rest,

@@ -84,7 +84,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   );
 
   const readOnly = selectedItem?.$ref !== undefined;
-  const typeField = selectedItem?.keywords?.find((k) => k.key === 'type');
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
@@ -309,7 +308,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label='Type'
         fullWidth={true}
         readOnly={readOnly}
-        itemType={typeField?.value}
+        itemType={selectedItem?.type ?? ''}
         id={selectedId}
         onChange={onChangeType}
       />}
