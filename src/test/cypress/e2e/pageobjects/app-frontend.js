@@ -48,6 +48,7 @@ export default class AppFrontend {
       upload: '#fileUpload-changename',
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
+      mobilenummer: '#mobilnummer',
     };
 
     //group - task 3
