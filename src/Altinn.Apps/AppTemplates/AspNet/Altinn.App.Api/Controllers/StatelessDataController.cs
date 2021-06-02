@@ -187,7 +187,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // runs prefill from repo configuration if config exists
-            wait _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
             
             await _altinnApp.RunCalculation(appModel);
 
