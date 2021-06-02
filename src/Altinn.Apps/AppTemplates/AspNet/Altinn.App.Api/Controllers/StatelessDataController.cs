@@ -80,7 +80,10 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
-        public async Task<ActionResult> Post(string org, string app, [FromQuery] string dataType)
+        public async Task<ActionResult> Post(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] string dataType)
         {
             if (string.IsNullOrEmpty(dataType))
             {
