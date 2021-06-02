@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies" Version="1.1.2" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.6" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
@@ -53,6 +54,7 @@
     <Compile Remove="_TestData\TestDataHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="_TestData\Model\JsonSchema\custom_inline.schema.json" />
     <None Remove="_TestData\Model\JsonSchema\hvem-er-hvem.json" />
     <None Remove="_TestData\Model\Xsd\statsbygg_custom_modified.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />

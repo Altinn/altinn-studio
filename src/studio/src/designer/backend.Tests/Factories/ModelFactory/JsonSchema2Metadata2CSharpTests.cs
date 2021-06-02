@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Basic.Reference.Assemblies;
+using Designer.Tests.Extensions;
 using Designer.Tests.Utils;
+using FluentAssertions;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Microsoft.CodeAnalysis;
@@ -16,89 +23,118 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
+using XmlSchemaValidator = Designer.Tests.Utils.XmlSchemaValidator;
 
 namespace Designer.Tests.Factories.ModelFactory
 {
     public class JsonSchema2Metadata2CSharpTests
     {
-        [Fact]
-        public void JsonSerialize()
+        private readonly ITestOutputHelper _outputHelper;
+
+        public JsonSchema2Metadata2CSharpTests(ITestOutputHelper outputHelper)
         {
+            _outputHelper = outputHelper;            
         }
 
         [Fact]
-        public async Task FlatSchema_ShouldSerializeToCSharp()
+        public async Task InlineSchema_ShouldSerializeToCSharp()
         {
             var org = "yabbin";
             var app = "datamodelling";
-            var jsonSchemaString = @"{""properties"":{""melding"":{""properties"":{""test"":{""type"":""object"",""properties"":{""navn"":{""type"":""string""}}}},""type"":""object""}},""definitions"":{}}";
+            var jsonSchemaString = @"{""properties"":{""melding"":{""properties"":{""test"":{""type"":""object"",""properties"":{""navn"":{""type"":""string""}}}},""type"":""object""}},""definitions"":{}, ""required"": [""melding""]}";
             var modelName = "test";
 
             JsonSchema jsonSchema = await ParseJsonSchema(jsonSchemaString);
             ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
             string classes = GenerateCSharpClasses(modelMetadata);
-
-            Assert.NotEmpty(classes);
-
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(classes));
-            var assemblyPath = Path.ChangeExtension(Path.GetTempFileName(), "exe");
-
-            var compilation = CSharpCompilation.Create(Path.GetFileName(assemblyPath))
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithReferenceAssemblies(ReferenceAssemblyKind.Net50)
-                .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
-                .AddSyntaxTrees(syntaxTree);
-
-            // Compile the generated C# class
-            Assembly assembly = null;
-            using (var ms = new MemoryStream())
-            {
-                EmitResult result = compilation.Emit(ms);
-
-                Assert.True(result.Success);
-
-                if (!result.Success)
-                {
-                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
-
-                    foreach (Diagnostic diagnostic in failures)
-                    {
-                        //Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
-                    }
-                }
-                else
-                {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    assembly = Assembly.Load(ms.ToArray());
-                }
-            }
-
-            Assert.NotNull(assembly);
-
-            // Check that we can serialize JSON into the newly generated class
+                        
+            Assembly assembly = CompileToAssembly(classes);            
+            
             Type type = assembly.GetType("Altinn.App.Models.melding");
-            object obj = Activator.CreateInstance(type);
 
-            object melding = JsonSerializer.Deserialize(@"{""test"":{""navn"":""Ronny""}}", type);
+            // Make sure the JSON can be serialized into the generated C# class
+            // var json = @"{""melding"":{""test"":{""navn"":""Ronny""}}}";
+            var json = @"{""test"":{""navn"":""Ronny""}}";            
+            object jsonObj = JsonSerializer.Deserialize(json, type);
 
+            // Make sure the serialized JSON equals what we expect
+            var jsonSerialized = new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonObj);
+            Assert.Equal(json, jsonSerialized.ToString());
+
+            // Make sure the serialized JSON validates
+            var jsonValidationResult = jsonSchema.Validate(new JsonValue(jsonSerialized.ToString()));
+            Assert.True(jsonValidationResult.IsValid);
+
+            // Validate JSON against JSON Schema (Manatee seems to think this is fine, but it's not ref. https://www.jsonschemavalidator.net/).                        
+            jsonValidationResult = jsonSchema.Validate(new JsonValue(json), new JsonSchemaOptions() { });
+            Assert.True(jsonValidationResult.IsValid);
+
+            // Make sure the xml can be deserialized
+            var xml = "<melding><test><navn>Ronny</navn></test></melding>";
+            XmlSerializer serializer = new XmlSerializer(type);
+            object xmlObj = serializer.Deserialize(xml, type);
+
+            // Validate XML against generated XSD
+            // OBS! On inline schemas the generated XSD only adds the root node, and does not traverse the properties.
+            // This should be handled in the new XSD generator.
+            JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
+            XmlSchema xmlSchema = jsonSchemaToXsd.CreateXsd(jsonSchema);
+            var xmlSchemaValidator = new XmlSchemaValidator(xmlSchema);
+            Assert.True(xmlSchemaValidator.Validate(xml));
+
+            // Do a deep compare, property by property, value by value
+            jsonObj.Should().Equals(xmlObj);
         }
 
-        [Fact]
-        public void SeresSchema_ShouldSerializeToCSharp()
+        // TODO: This is the one that should work
+        // [InlineData("Designer.Tests._TestData.Model.JsonSchema.hvem-er-hvem.json", "Altinn.App.Models.HvemErHvem_M", "{\"melding\":{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"RonnyBirkeli\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
+        [Theory]
+        [InlineData("Designer.Tests._TestData.Model.JsonSchema.hvem-er-hvem.json", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"RonnyBirkeli\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
+        public void SeresSchema_ShouldSerializeToCSharp(string resourceName, string modelName, string json, string xml)
         {
             var org = "yabbin";
             var app = "hvem-er-hvem";
                         
-            JsonSchema jsonSchema = TestDataHelper.LoadTestDataAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.hvem-er-hvem.json");
+            JsonSchema jsonSchema = TestDataHelper.LoadTestDataAsJsonSchema(resourceName);
             ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
             string classes = GenerateCSharpClasses(modelMetadata);
 
-            Assert.NotEmpty(classes);
+            Assembly assembly = CompileToAssembly(classes);
 
-            // TODO: Add asserts that verifies that the generated C# class is actually valid according to the JSON Schema provided
+            Type type = assembly.GetType(modelName);
+
+            // Make sure the JSON can be serialized into the generated C# class
+            object jsonObj = JsonSerializer.Deserialize(json, type);
+
+            // Make sure the serialized JSON equals what we expect            
+            var jsonSerialized = new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonObj);
+            Assert.Equal(json, jsonSerialized.ToString());
+
+            // Make sure the serialized JSON validates
+            // Manatee fails on this, but not https://www.jsonschemavalidator.net/
+            // var jsonValidationResult = jsonSchema.Validate(new JsonValue(jsonSerialized.ToString()));
+            // Assert.True(jsonValidationResult.IsValid);
+
+            // Validate JSON against JSON Schema (Manatee seems to think this is fine, but it's not ref. https://www.jsonschemavalidator.net/).                        
+            // jsonValidationResult = jsonSchema.Validate(new JsonValue(json), new JsonSchemaOptions() { });
+            // Assert.True(jsonValidationResult.IsValid);
+
+            // Make sure the xml can be deserialized            
+            XmlSerializer serializer = new XmlSerializer(type);
+            object xmlObj = serializer.Deserialize(xml, type);
+
+            // Validate XML against generated XSD
+            // OBS! On inline schemas the generated XSD only adds the root node, and does not traverse the properties.
+            // This should be handled in the new XSD generator.
+            JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
+            XmlSchema xmlSchema = jsonSchemaToXsd.CreateXsd(jsonSchema);
+            var xmlSchemaValidator = new XmlSchemaValidator(xmlSchema);
+            Assert.True(xmlSchemaValidator.Validate(xml));
+
+            // Do a deep compare, property by property, value by value
+            jsonObj.Should().Equals(xmlObj);
+
         }
 
         private static async Task<JsonSchema> ParseJsonSchema(string jsonSchemaString)
@@ -125,6 +161,45 @@ namespace Designer.Tests.Factories.ModelFactory
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
             return classes;
+        }
+
+        private Assembly CompileToAssembly(string classes)
+        {
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(classes));
+
+            var compilation = CSharpCompilation.Create(Guid.NewGuid().ToString())
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .WithReferenceAssemblies(ReferenceAssemblyKind.Net50)
+                .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
+                .AddSyntaxTrees(syntaxTree);
+
+            Assembly assembly = null;
+            using (var ms = new MemoryStream())
+            {
+                EmitResult result = compilation.Emit(ms);
+
+                Assert.True(result.Success);
+
+                if (!result.Success)
+                {
+                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                        diagnostic.IsWarningAsError ||
+                        diagnostic.Severity == DiagnosticSeverity.Error);
+
+                    foreach (Diagnostic diagnostic in failures)
+                    {
+                        _outputHelper.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());                        
+                    }
+                }
+                else
+                {
+                    ms.Seek(0, SeekOrigin.Begin);
+                    assembly = Assembly.Load(ms.ToArray());
+                }
+            }
+
+            return assembly;
         }
     }
 }
