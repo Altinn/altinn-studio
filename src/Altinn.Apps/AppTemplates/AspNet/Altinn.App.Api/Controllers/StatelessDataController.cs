@@ -104,6 +104,11 @@ namespace Altinn.App.Api.Controllers
 
             int? partyId = await GetPartyId(HttpContext);
 
+            if (!partyId.HasValue)
+            {
+               return StatusCode((int)HttpStatusCode.Forbidden);
+            }
+
             EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, "read");
 
             if (!enforcementResult.Authorized)
