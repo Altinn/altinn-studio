@@ -81,5 +81,53 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal("melding", rootElement.Name);
             Assert.Equal("RA0678_M", rootElement.TypeName);
         }
+
+        [Fact]
+        public void GetModelMetadata_RestrictIntegers()
+        {
+            // Arrange
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.restriction-max-min-integer.schema.json");
+
+            // Act
+            JsonSchemaToInstanceModelGenerator target =
+                new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
+            ModelMetadata actual = target.GetModelMetadata();
+
+            // Assert
+            Assert.Equal(BaseValueType.NonNegativeInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].XsdValueType);
+            Assert.Equal("999", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].Restrictions["maximum"].Value);
+            Assert.Equal("0", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.PositiveInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].XsdValueType);
+            Assert.Equal("999", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].Restrictions["maximum"].Value);
+            Assert.Equal("1", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.Integer, actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("-1", actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.NonNegativeInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("0", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.PositiveInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("1", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].Restrictions["minimum"].Value);
+        }
+
+        private JsonSchema LoadTestData(string resourceName)
+        {
+            Assembly assembly = typeof(JsonSchemaToInstanceModelGeneratorTests).GetTypeInfo().Assembly;
+            using Stream resource = assembly.GetManifestResourceStream(resourceName);
+
+            if (resource == null)
+            {
+                throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
+            }
+
+            using StreamReader streamReader = new StreamReader(resource);
+            JsonValue jsonValue = JsonValue.Parse(streamReader);
+            return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+        }
     }
 }
