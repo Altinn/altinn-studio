@@ -70,6 +70,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
 
   const [title, setTitle] = React.useState<string>('');
   const [groupHasErrors, setGroupHasErrors] = React.useState<boolean>(false);
+  const [groupChildComponents, setGroupChildComponents] = React.useState<string[]>([]);
 
   const groupComponent = useSelector(
     (state: IRuntimeState) => getComponentForSummaryGroup(state.formLayout.layouts[pageRef], componentRef),
@@ -84,7 +85,8 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const hiddenFields = useSelector((state: IRuntimeState) => getHiddenFieldsForSummaryGroup(
-    state.formLayout.uiConfig.hiddenFields, groupComponent.children,
+    state.formLayout.uiConfig.hiddenFields, groupComponent.edit?.multiPage ?
+      groupComponent.children.map((childId) => childId.split(':')[1] || childId) : groupComponent.children,
   ));
 
   React.useEffect(() => {
@@ -93,6 +95,13 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
       setTitle(getTextFromAppOrDefault(titleKey, textResources, null, [], true));
     }
   }, [textResources, groupComponent]);
+
+  React.useEffect(() => {
+    if (groupComponent && groupComponent.children) {
+      setGroupChildComponents(groupComponent.edit?.multiPage ?
+        groupComponent.children.map((childId) => childId.split(':')[1] || childId) : groupComponent.children);
+    }
+  }, [groupComponent]);
 
   const getRepeatingGroup = (containerId: string) => {
     const id = props.index >= 0 && props.parentGroup ? `${containerId}-${props.index}` : containerId;
@@ -120,8 +129,9 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         if (groupErrors) {
           break;
         }
+
         // eslint-disable-next-line no-loop-func
-        groupComponent.children.forEach((componentId: string) => {
+        groupChildComponents.forEach((componentId: string) => {
           const component: ILayoutComponent =
             layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
           const componentIdWithIndex = `${component.id}${props.index >= 0 ? `-${props.index}` : ''}-${i}`;
@@ -133,12 +143,12 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
       }
       setGroupHasErrors(groupErrors);
     }
-  }, [validations, props.largeGroup, props.pageRef, groupComponent, repeatingGroupMaxIndex, layout, props.index]);
+  }, [validations, props.largeGroup, props.pageRef, groupChildComponents, repeatingGroupMaxIndex, layout, props.index]);
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray = [];
     for (let i = 0; i <= repeatingGroupMaxIndex; ++i) {
-      const childSummaryComponents = groupComponent.children.map((componentId: string) => {
+      const childSummaryComponents = groupChildComponents.map((componentId: string) => {
         const component: ILayoutComponent =
           layout.find((c: ILayoutComponent) => c.id === componentId) as ILayoutComponent;
         const componentDeepCopy = JSON.parse(JSON.stringify(component));
@@ -202,7 +212,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         },
       };
       const childSummaryComponents = [];
-      groupComponent.children.forEach((componentId: string) => {
+      groupChildComponents.forEach((componentId: string) => {
         const component = layout.find((c: ILayoutComponent) => c.id === componentId);
         const isGroupComponent = component.type.toLowerCase() === 'group';
         const summaryType = 'Summary';

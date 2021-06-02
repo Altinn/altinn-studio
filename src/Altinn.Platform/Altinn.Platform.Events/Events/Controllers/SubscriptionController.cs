@@ -43,9 +43,11 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Method to register an subscription for events.
-        /// Requires information about endpoint to post events for subscribers.
+        /// Register an subscription for events.
         /// </summary>
+        /// <remarks>
+        /// Requires information about endpoint to post events for subscribers.
+        /// </remarks>
         /// <param name="eventsSubscription">The subscription details</param>
         /// <returns></returns>
         [HttpPost]
@@ -82,7 +84,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Method to get a specific subscription
+        /// Get a specific subscription
         /// </summary>
         [Authorize]
         [HttpGet("{id}")]
@@ -123,7 +125,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// API to delete a given subscription
+        /// Delete a given subscription
         /// </summary>
         [Authorize]
         [HttpDelete("{id}")]
