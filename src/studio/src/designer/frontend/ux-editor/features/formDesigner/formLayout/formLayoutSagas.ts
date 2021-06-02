@@ -458,18 +458,22 @@ export function* watchUpdateLayoutNameSaga(): SagaIterator {
 export function* fetchFormLayoutSettingSaga(): SagaIterator {
   try {
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
-    yield put(FormLayoutActions.fetchLayoutSettingsFulfilled({ settings }));
+    if (settings) {
+      yield put(FormLayoutActions.fetchLayoutSettingsFulfilled({ settings }));
+    }
   } catch (error) {
     yield put(FormLayoutActions.fetchLayoutSettingsRejected({ error }));
   }
 }
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
-  yield all([
-    take(FormLayoutActions.fetchFormLayoutFulfilled),
-    take(FormLayoutActions.fetchLayoutSettings),
-  ]);
-  yield call(fetchFormLayoutSettingSaga);
+  while (true) {
+    yield all([
+      take(FormLayoutActions.fetchFormLayoutFulfilled),
+      take(FormLayoutActions.fetchLayoutSettings),
+    ]);
+    yield call(fetchFormLayoutSettingSaga);
+  }
 }
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {

@@ -257,9 +257,7 @@ const formLayoutSlice = createSlice({
       action: PayloadAction<FormLayoutTypes.IFetchLayoutSettingsFulfilledAction>,
     ) => {
       const { settings } = action.payload;
-      if (settings && settings.pages && settings.pages.order) {
-        state.layoutSettings.pages.order = settings.pages.order;
-      }
+      state.layoutSettings = settings;
     },
     fetchLayoutSettingsRejected: (state, action: PayloadAction<FormLayoutTypes.IFormDesignerActionRejected>) => {
       const { error } = action.payload;
