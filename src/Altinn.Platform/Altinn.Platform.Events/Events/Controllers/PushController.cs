@@ -65,10 +65,11 @@ namespace Altinn.Platform.Events.Controllers
 
         /// <summary>
         /// Alert push controller about a new event.
-        ///
+        /// </summary>
+        /// <remarks>
         /// This method will then identify any matching subscriptions and authorize if the consumer is authorized
         /// to receive event. If autorized it will put it on a outbound queue
-        /// </summary>
+        /// </remarks>
         /// <returns>Returns the result of the request in the form og a HTTP status code.</returns>
         [Authorize(Policy = "PlatformAccess")]
         [HttpPost]
