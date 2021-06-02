@@ -6,6 +6,7 @@ import { makeStyles,
 import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 import { RefSelect } from './RefSelect';
+import { ILanguage } from '../types';
 
 const useStyles = (readonly?: boolean) => makeStyles({
   field: {
@@ -48,6 +49,7 @@ export interface IInputFieldProps {
   value: string;
   label: string;
   fullPath: string;
+  language: ILanguage;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
   onChangeRef?: (path: string, ref: string) => void;
@@ -93,8 +95,9 @@ export function InputField(props: IInputFieldProps) {
   const renderValueField = () => {
     if (label === 'type') {
       return <TypeSelect
+        language={props.language}
         readOnly={props.readOnly}
-        itemType={props.value}
+        value={props.value}
         id={label}
         onChange={onChangeType}
       />;

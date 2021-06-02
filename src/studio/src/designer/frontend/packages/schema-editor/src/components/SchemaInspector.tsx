@@ -193,6 +193,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderConst = (p: UiSchemaItem, field: Field) => <InputField
     key={`field-${p.id}`}
     value={field?.value}
+    language={props.language}
     label={p.displayName ?? p.id}
     readOnly={readOnly}
     fullPath={p.id}
@@ -219,6 +220,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     if (p.$ref) {
       return <InputField
+        language={props.language}
         key={`field-${p.id}`}
         value={p.$ref ?? ''}
         isRef={true}
@@ -246,6 +248,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return <InputField
       key={`field-${field.key}`}
       isRef={field.key === '$ref'}
+      language={props.language}
       value={field.value}
       label={field.key}
       readOnly={readOnly}
@@ -264,6 +267,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(setType({
       path: id, value: type,
     }));
+    setObjectType(type);
   };
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
@@ -289,9 +293,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <p>Type</p>
       {selectedItem && <TypeSelect
         label='Type'
+        language={props.language}
         fullWidth={true}
         readOnly={readOnly}
-        itemType={objectType}
+        value={objectType}
         id={selectedItem.id}
         onChange={(onChangeType)}
       />}

@@ -1,9 +1,12 @@
 import * as React from 'react';
 import { makeStyles, MenuItem, Select } from '@material-ui/core';
+import { ILanguage } from '../types';
+import { getTranslation } from '../utils';
 
 export interface ITypeSelectProps {
   id: string;
-  itemType: string;
+  value?: string;
+  language: ILanguage;
   onChange: (id: string, value: string) => void;
   readOnly?: boolean;
   fullWidth?: boolean;
@@ -30,7 +33,7 @@ const useStyles = makeStyles({
 export const TypeSelect = (props: ITypeSelectProps) => {
   const classes = useStyles();
   const {
-    id, itemType, onChange,
+    id, value, onChange,
   } = props;
   const onValueChange = (event: any) => {
     onChange(id, event.target.value);
@@ -41,19 +44,19 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       id={`type-select-${id}`}
       disabled={props.readOnly}
       label={props.label}
-      value={itemType}
+      value={value}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
       fullWidth={props.fullWidth}
     >
-      <MenuItem value='string'>string</MenuItem>
-      <MenuItem value='integer'>integer</MenuItem>
-      <MenuItem value='number'>number</MenuItem>
-      <MenuItem value='boolean'>boolean</MenuItem>
-      <MenuItem value='array'>array</MenuItem>
-      <MenuItem value='enum'>enum</MenuItem>
-      <MenuItem value='object'>object</MenuItem>
+      <MenuItem value='string'>{getTranslation('schema_editor.string', props.language)}</MenuItem>
+      <MenuItem value='integer'>{getTranslation('schema_editor.integer', props.language)}</MenuItem>
+      <MenuItem value='number'>{getTranslation('schema_editor.number', props.language)}</MenuItem>
+      <MenuItem value='boolean'>{getTranslation('schema_editor.boolean', props.language)}</MenuItem>
+      <MenuItem value='array'>{getTranslation('schema_editor.array', props.language)}</MenuItem>
+      <MenuItem value='enum'>{getTranslation('schema_editor.enum', props.language)}</MenuItem>
+      <MenuItem value='object'>{getTranslation('schema_editor.object', props.language)}</MenuItem>
     </Select>
   );
 };
