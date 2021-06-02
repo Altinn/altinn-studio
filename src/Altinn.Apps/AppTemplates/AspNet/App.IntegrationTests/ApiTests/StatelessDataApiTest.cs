@@ -254,6 +254,7 @@ namespace App.IntegrationTests.ApiTests
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri)
             {
             };
+            httpRequestMessage.Headers.Add("party", "org:897069650");
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
