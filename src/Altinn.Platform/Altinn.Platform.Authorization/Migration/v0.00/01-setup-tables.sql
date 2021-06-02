@@ -1,7 +1,3 @@
--- SCHEMA: delegatedPolicy
-CREATE SCHEMA IF NOT EXISTS delegatedPolicy
-AUTHORIZATION platform_authorization_admin;
-
 -- Table: delegatedPolicy.delegatedPolicy
 CREATE TABLE IF NOT EXISTS delegatedPolicy.delegatedPolicy
 (
