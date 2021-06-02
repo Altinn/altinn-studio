@@ -24,13 +24,6 @@ const styles = () => createStyles({
     MozBoxShadow: null,
     WebkitBoxShadow: null,
   },
-  body: {
-    padding: 0,
-  },
-  contentLoaderContainer: {
-    marginTop: '5rem',
-    marginLeft: '8rem',
-  },
 });
 
 const titleKey = 'instantiate.starting';
@@ -97,11 +90,9 @@ function InstantiateContainer(props: IServiceInfoProps) {
           hideCloseIcon={true}
           headerText={titleText}
         >
-          <div className={classes.contentLoaderContainer}>
-            <AltinnContentLoader width='100%' height='700'>
-              <AltinnContentIconFormData/>
-            </AltinnContentLoader>
-          </div>
+          <AltinnContentLoader width='100%' height='400'>
+            <AltinnContentIconFormData/>
+          </AltinnContentLoader>
         </AltinnModal>
       </>
     );
