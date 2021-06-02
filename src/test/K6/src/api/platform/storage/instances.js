@@ -97,17 +97,6 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
   return archivedInstances;
 }
 
-//Function to build an array with instances that are not deleted from an json response
-function findArchivedNotDeltedInstances(instancesArray) {
-  var archivedInstances = [];
-  for (var i = 0; i < instancesArray.length; i++) {
-    if (!('softDeleted' in instancesArray[i].status)) {
-      archivedInstances.push(instancesArray[i].id);
-    }
-  }
-  return archivedInstances;
-}
-
 //Function to build an array with instance id from instances json response
 function buildArrayWithInstanceIds(instancesArray) {
   var instanceIds = [];
@@ -183,4 +172,40 @@ export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceI
   requestBody.description = statusDescription;
   requestBody = JSON.stringify(requestBody);
   return http.put(endpoint, requestBody, params);
+}
+
+/**
+ * API request to platform storage to update presentation text of an instance
+ * @param {*} token token for authenticating user
+ * @param {*} partyId
+ * @param {*} instanceId
+ * @returns response of the http put call to update presentation texts in an instance
+ */
+export function putUpdatePresentationTexts(token, partyId, instanceId) {
+  var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'presentationtexts');
+  var params = header.buildHearderWithRuntimeandJson(token, 'platform');
+  var requestBody = {
+    texts: {
+      text1: 'test',
+    },
+  };
+  return http.put(endpoint, JSON.stringify(requestBody), params);
+}
+
+/**
+ * API request to platform storage to update presentation text of an instance
+ * @param {*} token token for authenticating user
+ * @param {*} partyId
+ * @param {*} instanceId
+ * @returns response of the http put call to update data values in an instance
+ */
+export function putUpdateDataValues(token, partyId, instanceId) {
+  var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'datavalues');
+  var params = header.buildHearderWithRuntimeandJson(token, 'platform');
+  var requestBody = {
+    values: {
+      value1: 'test',
+    },
+  };
+  return http.put(endpoint, JSON.stringify(requestBody), params);
 }
