@@ -22,7 +22,7 @@ namespace Altinn.App.PlatformServices.Implementation
         {
             if (_altinnAppContext != null)
             {
-                throw new Exception("AltinnAppContext overwriting");
+                throw new ApplicationException("AltinnAppContext overwriting");
             }
 
             _altinnAppContext = appContext;
