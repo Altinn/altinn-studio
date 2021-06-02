@@ -27,17 +27,23 @@ describe('Validation', () => {
   });
 
   it('Custom field validation - error', () => {
+    cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newFirstName).type('test').blur();
+    cy.wait('@validateData');
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substr(1)))
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.customValidationInvalid)
-      .find(appFrontend.errorExclamation)
-      .should('be.visible');
+      .then((error) => {
+        cy.get(error).find(appFrontend.errorExclamation).should('be.visible');
+        cy.get(error).find('a[href="https://www.altinn.no/"]').should('exist');
+      });
   });
 
   it('Custom field validation - warning', () => {
+    cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).type('test').blur();
+    cy.wait('@validateData');
     cy.get(appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substr(1)))
       .should('exist')
       .should('be.visible')
@@ -48,7 +54,9 @@ describe('Validation', () => {
   it('Page validation on clicking next', () => {
     cy.get(appFrontend.changeOfName.newFirstName).clear().type('test').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
+    cy.intercept('GET', '**/validate').as('validateData');
     cy.get(mui.button).should('be.visible').click();
+    cy.wait('@validateData');
     cy.get(appFrontend.errorReport)
       .should('exist')
       .should('be.visible')

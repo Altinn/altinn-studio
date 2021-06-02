@@ -33,12 +33,12 @@ var conditionalRuleHandlerObject = {
 
   smallerThan10: function(obj) {
     obj.number = +obj.number;
-    return obj.number > 10;
+    return obj.number < 10;
   },
 
   lengthBiggerThan4: function(obj) {
     if (obj.value == null) return false;
-    return obj.value.length >= 4;
+    return obj.value.length > 4;
   }
 }
 var conditionalRuleHandlerHelper = {

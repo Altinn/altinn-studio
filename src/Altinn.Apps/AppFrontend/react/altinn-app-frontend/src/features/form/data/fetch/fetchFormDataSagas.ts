@@ -53,8 +53,8 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
     let fetchedData: any;
 
-    if (applicationMetadata?.onEntry?.show) {
-      const dataType = getDataTypeByLayoutSetId(applicationMetadata?.onEntry.show, layoutSets);
+    if (applicationMetadata?.onEntry?.show && applicationMetadata.onEntry.show !== 'new-instance') {
+      const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
       fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
     } else {
       const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);

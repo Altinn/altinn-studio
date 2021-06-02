@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/summary/MultipleChoiceSummary.tsx components/summary/MultipleChoiceSummary.tsx -- should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root MuiGrid-container"
+  >
+    <div
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
+    >
+      <span
+        class="MuiTypography-root makeStyles-label-1  MuiTypography-body1"
+      >
+        Mock group
+      </span>
+    </div>
+    <div
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
+    >
+      <button
+        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-4"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label"
+        >
+          <p
+            class="MuiTypography-root makeStyles-change-6 MuiTypography-body1"
+          >
+            <span>
+              Change
+            </span>
+            <i
+              class="fa fa-editing-file makeStyles-editIcon-5"
+            />
+          </p>
+        </span>
+        <span
+          class="MuiTouchRipple-root"
+        />
+      </button>
+    </div>
+    <div
+      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    >
+      <div
+        style="padding-bottom: 24px;"
+      >
+        <p
+          class="MuiTypography-root MuiTypography-body1"
+        >
+          <span
+            class="makeStyles-label-7"
+          />
+        </p>
+        <p
+          style="margin-bottom: 0px; display: inline;"
+        >
+          Mock field 1
+        </p>
+         : 
+        <span>
+          1
+        </span>
+        <p />
+        <p
+          class="MuiTypography-root MuiTypography-body1"
+        >
+          <span
+            class="makeStyles-label-7"
+          />
+        </p>
+        <p
+          style="margin-bottom: 0px; display: inline;"
+        >
+          Mock field 2
+        </p>
+         : 
+        <span>
+          2
+        </span>
+        <p />
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

@@ -20,7 +20,6 @@ using Microsoft.Extensions.Options;
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.Tdd.Frontendtest
 #pragma warning restore SA1300 // Element should begin with upper-case letter
-
 {
     public class App : AppBase, IAltinnApp
     {
