@@ -943,7 +943,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task Data_Post_NoInstanceReferences_ObjectSucessfullyPrefilledCalculatedAndReturned()
+        public async Task Data_Get_NoInstanceReferences_ObjectSucessfullyPrefilledCalculatedAndReturned()
         {
             // Arrange
             string org = "ttd";
@@ -957,7 +957,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
