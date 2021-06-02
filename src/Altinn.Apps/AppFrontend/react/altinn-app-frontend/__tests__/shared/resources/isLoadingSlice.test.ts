@@ -15,7 +15,7 @@ describe('isLoadingSlice', () => {
   });
 
   it('handles finishDataTaskIsLoading action', () => {
-    const nextState = reducer({ dataTask: true }, finishDataTaskIsLoading);
+    const nextState = reducer({ dataTask: true, stateless: true }, finishDataTaskIsLoading);
     expect(nextState.dataTask).toBeFalsy();
   });
 });

@@ -28,25 +28,17 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.calcul
             {
                 ePOB_M model = (ePOB_M)instance;
                 if (model.PersonInformasjon.harpostadrsammesombosted != null)
-                {                    
+                {
                     model.PersonInformasjon.postadresse.land = model.PersonInformasjon.bostedsadresse.land;
                     model.PersonInformasjon.postadresse.adressebeskrivelse = model.PersonInformasjon.bostedsadresse.adressebeskrivelse;
                     model.PersonInformasjon.postadresse.postnummer = model.PersonInformasjon.bostedsadresse.postnummer;
                     model.PersonInformasjon.postadresse.poststed = model.PersonInformasjon.bostedsadresse.poststed;
-                    
                 }
 
-                if
-                (model?.PersonInformasjon?.person?.naavaandestatsborgerskap?.statsborgerfrafodsel == "Ja")
+                if (model?.PersonInformasjon?.person?.naavaandestatsborgerskap?.statsborgerfrafodsel == "Ja")
                 {
                     model.PersonInformasjon.person.naavaandestatsborgerskap.fraDato = model.PersonInformasjon.person.foedselsdato;
                 }
-
-                //TODO: må lage generics av dette.
-                /*if(model?.FlereGjeldendeStatsborgerskap?.statsborgerfrafodsel == "Ja")
-                {
-                    model.FlereGjeldendeStatsborgerskap.fraDato = model.PersonInformasjon.person.foedselsdato;
-                }*/
                 
                 return true;
             }

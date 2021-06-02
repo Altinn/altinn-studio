@@ -11,6 +11,11 @@ export interface IApplicationMetadata {
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
   autoDeleteOnProcessEnd: boolean;
+  onEntry?: IOnEntry;
+}
+
+export interface IOnEntry {
+  show: 'new-instance' | 'startpage' | string;
 }
 
 interface IPartyTypesAllowed {

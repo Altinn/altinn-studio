@@ -82,6 +82,32 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             }
 
             /// <summary>
+            /// Scenario: Invalid path that includes / at end
+            /// Expected: Returns bad request
+            /// </summary>
+            /// <returns></returns>
+            [Fact]
+            public async Task Post_GivenInValidCloudEventSubscription_ReturnsBadRequest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/subscriptions";
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/skd/flyttemelding/", null, "https://www.skatteetaten.no/hook");
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("skd"));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEventSubscription.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+
+            /// <summary>
             /// Scenario:
             ///   Post a valid EventsSubscription for SKD
             /// Expected result:
@@ -181,7 +207,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/skd/flyttemelding", "/organisation/950474084", "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/skd/flyttemelding", "/org/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "897069651"));
@@ -209,7 +235,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/subscriptions";
-                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/skd/flyttemelding", "/organisation/950474084", "https://www.skatteetaten.no/hook");
+                Subscription cloudEventSubscription = GetEventsSubscription("https://skd.apps.altinn.no/skd/flyttemelding", "/org/950474084", "https://www.skatteetaten.no/hook");
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken(null, "950474084"));

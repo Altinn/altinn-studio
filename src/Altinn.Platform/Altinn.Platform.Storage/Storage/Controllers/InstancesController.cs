@@ -102,6 +102,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dueBefore">The due before date time.</param>
         /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
         /// <param name="isSoftDeleted">Is the instance soft deleted.</param>
+        /// <param name="isHardDeleted">Is the instance hard deleted.</param>
         /// <param name="isArchived">Is the instance archived.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
@@ -126,6 +127,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string dueBefore,
             [FromQuery] string excludeConfirmedBy,
             [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isHardDeleted")] bool isHardDeleted,
             [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
@@ -179,6 +181,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            // filter out hard deleted instances if user is requesting instances          
+            if (userId != null && !queryParams.ContainsKey("status.isHardDeleted"))
+            {
+                queryParams.Add("status.isHardDeleted", "false");
+            }
 
             string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
@@ -655,7 +663,7 @@ namespace Altinn.Platform.Storage.Controllers
             var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-            instance.DataValues ??= new Dictionary<string, string>();            
+            instance.DataValues ??= new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in dataValues.Values)
             {

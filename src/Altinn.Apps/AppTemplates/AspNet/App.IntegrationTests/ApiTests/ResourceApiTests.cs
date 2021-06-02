@@ -25,9 +25,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/resource/FormLayout.json")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/resource/FormLayout.json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -41,9 +39,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/metadata/ServiceMetaData")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/metadata/ServiceMetaData");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -57,9 +53,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/textresources/")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/textresources/");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -73,9 +67,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/resource/RuleHandler.js")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/resource/RuleHandler.js");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -89,9 +81,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "frontend-test");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/ttd/frontend-test/api/ruleconfiguration/message")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/ttd/frontend-test/api/ruleconfiguration/message");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();

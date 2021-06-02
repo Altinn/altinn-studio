@@ -574,7 +574,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string expectedIsSoftDeleted = "false";
             string expectedIsArchived = "false";
-            int expectedParamCount = 4;
+            int expectedParamCount = 5;
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
 
@@ -613,7 +613,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string expectedIsSoftDeleted = "false";
             string expectedIsArchived = "true";
-            int expectedParamCount = 4;
+            int expectedParamCount = 5;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
@@ -649,7 +649,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
-            int expectedParamCount = 2;
+            int expectedParamCount = 3;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
@@ -682,7 +682,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
 
-            int expectedParamCount = 3;
+            int expectedParamCount = 4;
             string expectedSortBy = "desc:lastChanged";
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
@@ -720,7 +720,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
 
-            int expectedParamCount = 3;
+            int expectedParamCount = 4;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));

@@ -7,7 +7,7 @@ We love your input! We want to make contributing to this project as easy and tra
 - Submitting a fix
 - Proposing new features
 - Coding and submitting new features (but please write a comment tagging @lvbachmann in the corresponding [issue(s)](https://github.com/Altinn/altinn-studio/issues) in our backlog before you do)
-- Telling us what you want us to prioritise - by adding a :heart: or :+1: to the issue.
+- Telling us what you want us to prioritise - by adding a :+1: to the issue.
 
 ## We develop with GitHub
 

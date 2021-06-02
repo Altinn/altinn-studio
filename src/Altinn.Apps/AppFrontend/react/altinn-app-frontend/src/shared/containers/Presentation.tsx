@@ -7,24 +7,25 @@ import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components'
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
 import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
-import { IRuntimeState, ProcessTaskType, ITextResource } from 'src/types';
+import { IRuntimeState, ProcessTaskType, ITextResource, PresentationType } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import ErrorReport from '../../components/message/ErrorReport';
-import Header from '../../components/process-step/Header';
-import NavBar from '../../components/process-step/NavBar';
+import Header from '../../components/presentation/Header';
+import NavBar from '../../components/presentation/NavBar';
 
-export interface IProcessStepProvidedProps {
+export interface IPresentationProvidedProps {
   header: string;
-  step: ProcessTaskType;
+  type: ProcessTaskType | PresentationType;
   // eslint-disable-next-line no-undef
-  children: JSX.Element;
+  children?: JSX.Element;
 }
 
-const ProcessStepComponent = (props) => {
+const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useDispatch();
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
+  const hideCloseButton: boolean = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hideCloseButton);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const userParty: IParty = useSelector(
     (state: IRuntimeState) => (state.profile.profile ? state.profile.profile.party : {} as IParty),
@@ -43,7 +44,7 @@ const ProcessStepComponent = (props) => {
   const handleBackArrowButton = () => {
     if (returnToView) {
       dispatch(FormLayoutActions.updateCurrentView({ newView: returnToView, runValidations: 'allPages' }));
-    } else if (props.step === ProcessTaskType.Data) {
+    } else if (props.type === ProcessTaskType.Data || props.type === PresentationType.Stateless) {
       dispatch(FormLayoutActions.updateCurrentView({ newView: previousFormPage }));
     }
   };
@@ -56,7 +57,7 @@ const ProcessStepComponent = (props) => {
     return true;
   };
 
-  const isProcessStepsArchived = Boolean(props.step === ProcessTaskType.Archived);
+  const isProcessStepsArchived = Boolean(props.type === ProcessTaskType.Archived);
   const backgroundColor = isProcessStepsArchived ?
     AltinnAppTheme.altinnPalette.primary.greenLight
     : AltinnAppTheme.altinnPalette.primary.blue;
@@ -85,7 +86,9 @@ const ProcessStepComponent = (props) => {
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
               language={language}
-              showBackArrow={!!previousFormPage && props.step === ProcessTaskType.Data}
+              showBackArrow={!!previousFormPage
+                && (props.type === ProcessTaskType.Data || props.type === PresentationType.Stateless)}
+              hideCloseButton={hideCloseButton}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>
@@ -106,4 +109,4 @@ const ProcessStepComponent = (props) => {
   );
 };
 
-export default ProcessStepComponent;
+export default PresentationComponent;

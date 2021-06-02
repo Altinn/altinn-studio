@@ -148,9 +148,12 @@ namespace App.IntegrationTests.Mocks.Services
 
                 foreach (string file in files)
                 {
-                    string content = File.ReadAllText(Path.Combine(path, file));
-                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                    dataElements.Add(dataElement);
+                    if (!file.Contains(".pretest"))
+                    {
+                        string content = File.ReadAllText(Path.Combine(path, file));
+                        DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                        dataElements.Add(dataElement);
+                    }
                 }
             }
 

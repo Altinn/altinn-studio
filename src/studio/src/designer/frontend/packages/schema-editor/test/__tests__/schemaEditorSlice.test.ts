@@ -108,6 +108,16 @@ describe('SchemaEditorSlice', () => {
     expect(item.properties).not.toContainEqual({ id: '#/definitions/Kontaktperson/properties/navn' });
   });
 
+  it('handles deleteProperty (root definition)', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, deleteProperty(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item).toBeUndefined();
+  });
+
   it('handles addProperty', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
@@ -120,13 +130,18 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, addProperty(payload));
 
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    if (!item || !item.properties) {
-      fail('item not found');
-    }
-
-    expect(item.properties).toContainEqual({
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.properties).toContainEqual({
       $ref: '#/definitions/test', id: '#/definitions/Kontaktperson/properties/test', name: 'test',
+    });
+
+    // test add second time to get more case coverage.
+    payload.newKey = 'test2';
+    payload.content = [{ id: '#/definitions/test2' }];
+    const state2 = reducer(nextState, addProperty(payload));
+    item = state2.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.properties).toContainEqual({
+      $ref: '#/definitions/test2', id: '#/definitions/Kontaktperson/properties/test2', name: 'test2',
     });
   });
 
@@ -136,15 +151,19 @@ describe('SchemaEditorSlice', () => {
       key: 'key',
       value: 'value',
     };
-    const nextState = reducer(state, addField(payload));
+    let nextState = reducer(state, addField(payload));
 
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    if (!item || !item.properties) {
-      fail('item not found');
-    }
-
-    expect(item.keywords).toContainEqual({
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.keywords).toContainEqual({
       key: 'key', value: 'value',
+    });
+
+    payload.key = 'test';
+    payload.value = 'test';
+    nextState = reducer(nextState, addField(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.keywords).toContainEqual({
+      key: 'test', value: 'test',
     });
   });
 

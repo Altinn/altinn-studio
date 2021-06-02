@@ -2,16 +2,17 @@ import { IconButton, Input } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Field, ISchemaState, UiSchemaItem } from '../types';
+import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
+import { getTranslation } from '../utils';
 
 const useStyles = makeStyles(
   createStyles({
     root: {
       minHeight: 600,
-      width: 500,
+      minWidth: 500,
       flexGrow: 1,
       margin: 4,
       padding: 14,
@@ -48,6 +49,7 @@ const useStyles = makeStyles(
 
 export interface ISchemaInspectorProps {
   onAddPropertyClick: (property: string) => void;
+  language: ILanguage;
 }
 
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
@@ -77,7 +79,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value,
+      value: Number.isNaN(value) ? value : +value,
       key,
     };
     dispatch(setFieldValue(data));
@@ -103,6 +105,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
+  const onChangPropertyName = (path: string, oldKey: string, newKey: string) => {
+    dispatch(setPropertyName({
+      path, name: newKey,
+    }));
+  };
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
@@ -110,7 +117,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteProperty({ path }));
   };
   const onChangeNodeName = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    dispatch(setPropertyName({ path: selectedItem?.id, name: e.target.value }));
+    dispatch(setPropertyName({
+      path: selectedItem?.id, name: e.target.value, navigate: true,
+    }));
   };
 
   const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -155,7 +164,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             className={classes.navButton}
             onClick={onGoToDefButtonClick}
           >
-            Gå til hovedkomponent
+            {getTranslation('schema_editor.go_to_main_component', props.language)}
           </button>
         </div>);
     }
@@ -180,13 +189,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         id='add-reference-button'
         aria-label='Add reference'
         onClick={onAddPropertyClicked}
-      ><i className='fa fa-plus'/>Add reference
+      ><i className='fa fa-plus'/>{getTranslation('schema_editor.create_reference', props.language)}
       </IconButton>
       <IconButton
         id='add-property-button'
         aria-label='Add property'
         onClick={onAddFieldClick}
-      ><i className='fa fa-plus'/>Add property
+      ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}
       </IconButton>
     </>
   );
@@ -207,7 +216,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         fullPath={p.id}
         onChangeValue={onChangeValue}
         onChangeRef={onChangeRef}
-        onChangeKey={onChangeKey}
+        onChangeKey={onChangPropertyName}
         onDeleteField={onDeleteObjectClick}
       />;
     }
@@ -238,7 +247,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderItem = (item: UiSchemaItem) => (item ?
     <div>
-      <p className={classes.header}>Properties</p>
+      <p className={classes.header}>{getTranslation('schema_editor.properties', props.language)}</p>
       { renderItemProperties(item) }
       { renderItemKeywords(item) }
       { !readOnly && renderAddPropertyButtons() }
@@ -248,7 +257,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div
       className={classes.root}
     >
-      <p className={classes.header}>Egenskaper</p>
+      <p className={classes.header}>{getTranslation('schema_editor.properties', props.language)}</p>
       { selectedItem &&
       <div>
         <Input
@@ -265,7 +274,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       }
       { !selectedId &&
         <div>
-          <p className='no-item-selected'>No item selected</p>
+          <p className='no-item-selected'>{getTranslation('schema_editor.no_item_selected', props.language)}</p>
           <hr className={classes.divider} />
         </div>}
     </div>

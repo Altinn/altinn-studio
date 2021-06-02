@@ -6,14 +6,12 @@
     <OutputType>Library</OutputType>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{454ED0A7-05B0-4D99-A05E-0B526219DC05}</ProjectGuid>
-    <AssemblyVersion>1.0.3</AssemblyVersion>
-    <FileVersion>1.0.3</FileVersion>
-  </PropertyGroup>
+    <AssemblyVersion>1.0.4</AssemblyVersion>
+    <FileVersion>1.0.4</FileVersion>
 
-  <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
     <PackageTags>Altinn;AccessTokenClient</PackageTags>
     <Description>
       Package to generate access tokens to use against Altinn Platform.
@@ -32,9 +30,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <!-- Upgrade to 5.x.x causes function-apps to fail. -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.15" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

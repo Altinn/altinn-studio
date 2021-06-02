@@ -6,7 +6,7 @@ import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaSelect } from '../schemaSelect';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 
@@ -102,7 +102,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             startIcon={<AddCircleOutline />}
             onClick={onCreateClick}
           >
-            New
+            {getLanguageFromKey('general.create_new', props.language)}
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -119,15 +119,15 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             startIcon={<DeleteOutline />}
             onClick={onDeleteClick}
           >
-            Delete
+            {getLanguageFromKey('general.delete', props.language)}
           </Button>
         </Grid>
         <AltinnPopover
           anchorEl={deleteButtonAnchor}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText='Nei'
+          btnCancelText={getLanguageFromKey('general.cancel', props.language)}
           descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
-          btnConfirmText='Ja'
+          btnConfirmText={getLanguageFromKey('general.continue', props.language)}
           btnPrimaryId='confirm-delete-button'
           btnClick={onDeleteConfirmClick}
           handleClose={onCancelDelete}
@@ -154,6 +154,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
       </Grid>
       { selectedDataModelName ?
         <SchemaEditorApp
+          language={props.language}
           schema={jsonSchema || { properties: {}, definitions: {} }}
           onSaveSchema={onSaveSchema}
           rootItemId={`#/definitions/${selectedDataModelName}`}

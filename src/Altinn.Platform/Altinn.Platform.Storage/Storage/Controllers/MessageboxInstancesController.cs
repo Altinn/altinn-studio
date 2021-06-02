@@ -114,6 +114,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
             queryParams.Add("sortBy", "desc:lastChanged");
+            queryParams.Add("status.isHardDeleted", "false");
 
             if (!string.IsNullOrEmpty(searchString))
             {

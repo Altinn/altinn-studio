@@ -24,5 +24,10 @@ namespace Altinn.Platform.Events.Configuration
         /// Name of the queue to push outbound events to.
         /// </summary>
         public string OutboundQueueName { get; set; }
+
+        /// <summary>
+        /// Name of the queue to push new subscriptions to.
+        /// </summary>
+        public string ValidationQueueName { get; set; }
     }
 }

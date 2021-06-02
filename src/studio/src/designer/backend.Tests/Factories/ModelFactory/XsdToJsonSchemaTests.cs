@@ -22,7 +22,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void AsJsonSchema_ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
         {
             // Arrange
-            XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/melding-1603-12392.xsd"));
+            using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Skjema-1603-12392.xsd"));
             XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
 
             // Act
@@ -35,12 +35,27 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Fact]
-        public void ConvertXsdToJsonSchemaAndBack_CorrectNumberOfPropertiesAndDefinitions()
+        public void AsJsonSchema_ConvertXsdToJsonSchema_CorrectModelName()
+        {
+            // Arrange
+            using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/RA-0678_M.xsd"));
+            XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
+
+            // Act
+            JsonSchema actual = target.AsJsonSchema();
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Single(actual.Properties());
+            Assert.True(actual.Properties().ContainsKey("melding"));
+        }
+
+        [Fact]
+        public void ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
         {
                 // Arrange
-                XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/xsd/melding-1603-12392.xsd"));
+                using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/xsd/Skjema-1603-12392.xsd"));
                 XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
-                xsdReader.Close();
 
                 // Act
                 JsonSchema actual = target.AsJsonSchema();
@@ -48,7 +63,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 // Assert
                 Assert.NotNull(actual);
                 Assert.Equal(12, actual.Properties().Count);
-                Assert.Equal(19, actual.Definitions().Count);                  
+                Assert.Equal(19, actual.Definitions().Count);
         }
         
         private Stream LoadTestData(string resourceName)

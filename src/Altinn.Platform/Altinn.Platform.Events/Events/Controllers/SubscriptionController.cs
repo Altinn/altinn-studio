@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Controllers
         private readonly IRegisterService _registerService;
         private readonly IProfile _profileService;
 
-        private const string OrganisationPrefix = "/organisation/";
+        private const string OrganisationPrefix = "/org/";
         private const string PersonPrefix = "/person/";
         private const string UserPrefix = "/user/";
         private const string OrgPrefix = "/org/";
@@ -106,7 +106,7 @@ namespace Altinn.Platform.Events.Controllers
         }
 
         /// <summary>
-        /// Validate a specific subscription
+        /// Method to validate an specific subscription. Only avaiable from validation function.
         /// </summary>
         [Authorize(Policy = "PlatformAccess")]
         [HttpPut("validate/{id}")]
@@ -194,7 +194,8 @@ namespace Altinn.Platform.Events.Controllers
                 return false;
             }
 
-            if (string.IsNullOrEmpty(eventsSubscription.SourceFilter.AbsolutePath) || eventsSubscription.SourceFilter.AbsolutePath.Split("/").Length < 3)
+            string absolutePath = eventsSubscription.SourceFilter.AbsolutePath;
+            if (string.IsNullOrEmpty(absolutePath) || absolutePath.Split("/").Length != 3)
             {
                 message = "A valid app id is required in Source filter {environment}/{org}/{app}";
                 return false;

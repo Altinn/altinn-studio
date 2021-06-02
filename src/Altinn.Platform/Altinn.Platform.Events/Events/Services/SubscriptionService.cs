@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Models;
@@ -13,19 +14,23 @@ namespace Altinn.Platform.Events.Services
     public class SubscriptionService : ISubscriptionService
     {
         private readonly ISubscriptionRepository _repository;
+        private readonly IQueueService _queue;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionService"/> class.
         /// </summary>
-        public SubscriptionService(ISubscriptionRepository repository)
+        public SubscriptionService(ISubscriptionRepository repository, IQueueService queue)
         {
             _repository = repository;
+            _queue = queue;
         }
 
         /// <inheritdoc/>
         public async Task<Subscription> CreateSubscription(Subscription eventsSubcrition)
         {
-            return await _repository.CreateSubscription(eventsSubcrition);
+            Subscription subscription = await _repository.CreateSubscription(eventsSubcrition);
+            await _queue.PushToValidationQueue(JsonSerializer.Serialize(subscription));
+            return subscription;
         }
 
         /// <inheritdoc/>

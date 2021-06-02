@@ -16,9 +16,9 @@ namespace Tests.TestingServices
         [Fact]
         public async Task GetOrgSubscriptions_Three_Match()
         {
-            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock());
+            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock(), new QueueServiceMock());
             List<Subscription> result = await subscriptionService.GetOrgSubscriptions(
-                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/",
+                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v2",
                 "/party/1337",
                 "app.instance.process.completed");
             Assert.True(result.Count == 2);
@@ -27,9 +27,9 @@ namespace Tests.TestingServices
         [Fact]
         public async Task GetOrgSubscriptions_Zero_Match()
         {
-            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock());
+            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock(), new QueueServiceMock());
             List<Subscription> result = await subscriptionService.GetOrgSubscriptions(
-                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1/",
+                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1",
                 "/party/1337",
                 null);
             Assert.True(result.Count == 0);
@@ -38,9 +38,9 @@ namespace Tests.TestingServices
         [Fact]
         public async Task GetSubscriptions_One_Match()
         {
-            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock());
+            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock(), new QueueServiceMock());
             List<Subscription> result = await subscriptionService.GetSubscriptions(
-                "https://ttd.apps.altinn.no/ttd/new-app/",
+                "https://ttd.apps.altinn.no/ttd/new-app",
                 "/party/1337",
                 null);
             Assert.True(result.Count == 1);
@@ -49,9 +49,9 @@ namespace Tests.TestingServices
         [Fact]
         public async Task GetSubscriptions_Zero_Match()
         {
-            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock());
+            SubscriptionService subscriptionService = new SubscriptionService(new SubscriptionRepositoryMock(), new QueueServiceMock());
             List<Subscription> result = await subscriptionService.GetSubscriptions(
-                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1/",
+                "https://ttd.apps.altinn.no/ttd/endring-av-navn-v1",
                 "/party/1337",
                 null);
             Assert.True(result.Count == 0);

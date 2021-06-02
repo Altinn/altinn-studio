@@ -84,4 +84,23 @@ describe('Group', () => {
         cy.get(table).get(mui.tableElement).should('have.length', 0);
       });
   });
+
+  it('Calculation on Item in Main Group should update value', () => {
+    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.currentValue).type('1337').blur();
+    // CalculationHandler.cs for frontend-test changes 1337 to 1338.
+    cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
+    // Deletes value from group
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.delete)
+      .should('be.visible')
+      .click();
+    cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+    cy.get(appFrontend.group.mainGroup)
+      .find(mui.tableBody)
+      .then((table) => {
+        cy.get(table).get(mui.tableElement).should('have.length', 0);
+      });
+  });
 });

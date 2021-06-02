@@ -60,6 +60,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     isLoading: {
       dataTask: false,
+      stateless: false,
     },
     language: {
       language: getLanguageFromCode('nb'),
@@ -101,6 +102,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       appTask: null,
       dataTask: null,
       infoTask: null,
+      stateless: null,
     },
     textResources: {
       resources: [],

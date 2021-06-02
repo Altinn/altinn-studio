@@ -3,6 +3,7 @@
   <OpplysningerOmArbeidstakeren-grp-8819 gruppeid="8819">
     <Skjemainstans-grp-8854 gruppeid="8854">
       <Journalnummer-datadef-33316 orid="33316">98274</Journalnummer-datadef-33316>
+      <IdentifikasjonsnummerKrav-datadef-33317>1337</IdentifikasjonsnummerKrav-datadef-33317>
     </Skjemainstans-grp-8854>
   </OpplysningerOmArbeidstakeren-grp-8819>
 </Skjema>

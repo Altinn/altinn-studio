@@ -15,11 +15,11 @@
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.14" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.15" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.1" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.1.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.1.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

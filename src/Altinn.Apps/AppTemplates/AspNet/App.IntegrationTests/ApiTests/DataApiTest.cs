@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -8,11 +9,13 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
-
+using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json;
 
 using Xunit;
@@ -22,7 +25,7 @@ namespace App.IntegrationTests.ApiTests
     public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-
+        
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
@@ -84,9 +87,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -108,9 +109,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
@@ -131,9 +130,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -152,9 +149,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -171,9 +166,7 @@ namespace App.IntegrationTests.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
@@ -191,9 +184,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -223,18 +214,14 @@ namespace App.IntegrationTests.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data?dataType=default")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data?dataType=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data/{dataElement.Id}")
-            {
-            };
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data/{dataElement.Id}");
 
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
@@ -868,6 +855,78 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(expectedCount, instance.DataValues.Count);
             Assert.True(instance.DataValues.ContainsKey(expectedKey));
             Assert.Equal(expectedValue, instance.DataValues[expectedKey]);
+        }
+
+        /// <summary>
+        /// This test tests that you can combine data values defined and configured in the applicationmetadata.json
+        /// with data values added manully by the app developer through the IInstance interface.
+        /// Combining both methods should result in the two value sets beeing merged.
+        /// </summary>
+        [Fact]
+        public async Task Instance_CustomDataValuesAdded_CustomValueMergedIn()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "datafields-app";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba304f1";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231d78";
+            string token = PrincipalUtil.GetToken(1337);
+
+            int expectedDataValuesCountAfterAutomaticUpdate = 2;
+            int expectedDataValuesCountAfterManualUpdate = 3;
+            string expectedKey = "AnotherField";
+            string expectedValue = "160694";
+            string expectedCustomKey = "customKey";
+            string expectedCustomValue = "customValue";
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act - automatic update of data values done as a result of configuration and triggered by a change in the data.
+            string instanceUri = $"/{org}/{app}/instances/1337/{instanceGuid}";
+
+            string dataRequestUri = $"{instanceUri}/data/{dataGuid}?dataType=default";
+            string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"12\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
+            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri)
+            {
+                Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json")
+            };
+
+            await client.SendAsync(dataHttpRequestMessage);
+
+            HttpResponseMessage responseAfterDataUpdate = await client.GetAsync($"{instanceUri}");
+            string contentAfterDataUpdate = await responseAfterDataUpdate.Content.ReadAsStringAsync();
+            Instance instanceAfterDataUpdate = JsonConvert.DeserializeObject<Instance>(contentAfterDataUpdate);
+
+            // Assert - after automatic update
+            Assert.Equal(HttpStatusCode.OK, responseAfterDataUpdate.StatusCode);
+            Assert.Equal(expectedDataValuesCountAfterAutomaticUpdate, instanceAfterDataUpdate.DataValues.Count);
+            Assert.True(instanceAfterDataUpdate.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instanceAfterDataUpdate.DataValues[expectedKey]);
+
+            // Act - manually updating data values with custom values by triggering complete process            
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instanceUri}/process/completeProcess");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+
+            HttpResponseMessage responseAfterCustomFieldsAdded = await client.GetAsync($"{instanceUri}");
+            string contentAfterCustomFieldsAdded = await responseAfterCustomFieldsAdded.Content.ReadAsStringAsync();
+            Instance instanceAfterCustomFieldsAdded = JsonConvert.DeserializeObject<Instance>(contentAfterCustomFieldsAdded);
+
+            // Assert - after manual update
+            Assert.Equal(expectedDataValuesCountAfterManualUpdate, instanceAfterCustomFieldsAdded.DataValues.Count);            
+            Assert.True(instanceAfterCustomFieldsAdded.DataValues.ContainsKey(expectedCustomKey));
+            Assert.Equal(expectedCustomValue, instanceAfterCustomFieldsAdded.DataValues[expectedCustomKey]);
+
+            // Assert - the values from the automatic update should still be there
+            Assert.True(instanceAfterDataUpdate.DataValues.ContainsKey(expectedKey));
+            Assert.Equal(expectedValue, instanceAfterDataUpdate.DataValues[expectedKey]);
+
+            TestDataUtil.DeleteInstanceAndData(org, app, 1337, new Guid(instanceGuid));
         }
 
         [Fact]

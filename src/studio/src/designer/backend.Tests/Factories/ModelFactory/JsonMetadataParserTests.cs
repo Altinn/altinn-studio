@@ -46,6 +46,22 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Contains("[MaxLength(20)]", modelClass);
         }
 
+        [Fact]
+        public void CreateModelFromMetadata_InputModelSpecifiedModelName_GenerateDataAnnotationForRoomElement()
+        {
+            // Arrange
+            ModelMetadata testData = LoadTestData("Designer.Tests._TestData.Model.Metadata.RA-0678_M.metadata.json");
+
+            JsonMetadataParser target = new JsonMetadataParser();
+
+            // Act
+            string modelClass = target.CreateModelFromMetadata(testData);
+
+            // Assert
+            Assert.NotNull(modelClass);
+            Assert.Contains("[XmlRoot(ElementName=\"melding\")]", modelClass);
+        }
+
         private ModelMetadata LoadTestData(string resourceName)
         {
             Assembly assembly = typeof(JsonMetadataParserTests).GetTypeInfo().Assembly;

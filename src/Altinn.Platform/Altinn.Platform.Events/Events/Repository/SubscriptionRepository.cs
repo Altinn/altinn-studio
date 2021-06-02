@@ -27,8 +27,8 @@ namespace Altinn.Platform.Events.Repository
         private readonly string setValidSubscription = "call events.setvalidsubscription(@_id)";
         private readonly string getSubscriptionsExcludeOrgsSql = "select * from events.getsubscriptionsexcludeorgs(@source, @subject, @type)";
         private readonly string getSubscriptionByConsumerSql = "select * from events.getsubscriptionsbyconsumer(@_consumer)";
+        private readonly string connectionString;
 
-        private readonly NpgsqlConnection _conn;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,10 +36,9 @@ namespace Altinn.Platform.Events.Repository
         /// </summary>
         public SubscriptionRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<SubscriptionRepository> logger)
         {
-            string connectionString =
+            connectionString =
                 string.Format(postgresSettings.Value.ConnectionString, postgresSettings.Value.EventsDbPwd);
 
-            _conn = new NpgsqlConnection(connectionString);
             _logger = logger;
         }
 
@@ -48,9 +47,10 @@ namespace Altinn.Platform.Events.Repository
         {
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertSubscriptionSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(insertSubscriptionSql, conn);
                 pgcom.Parameters.AddWithValue("sourcefilter", eventsSubscription.SourceFilter.AbsoluteUri);
 
                 if (eventsSubscription.SubjectFilter != null)
@@ -87,10 +87,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // CreateSubscription // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -98,8 +94,10 @@ namespace Altinn.Platform.Events.Repository
         {
             try
             {
-                await _conn.OpenAsync();
-                NpgsqlCommand pgcom = new NpgsqlCommand(deleteSubscription, _conn);
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
+
+                NpgsqlCommand pgcom = new NpgsqlCommand(deleteSubscription, conn);
                 pgcom.Parameters.AddWithValue("_id", id);
 
                 await pgcom.ExecuteNonQueryAsync();
@@ -109,10 +107,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // DeleteSubscription // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -120,8 +114,10 @@ namespace Altinn.Platform.Events.Repository
         {
             try
             {
-                await _conn.OpenAsync();
-                NpgsqlCommand pgcom = new NpgsqlCommand(setValidSubscription, _conn);
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
+
+                NpgsqlCommand pgcom = new NpgsqlCommand(setValidSubscription, conn);
                 pgcom.Parameters.AddWithValue("_id", id);
 
                 await pgcom.ExecuteNonQueryAsync();
@@ -131,10 +127,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // SetValidSubscription // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -143,9 +135,10 @@ namespace Altinn.Platform.Events.Repository
             Subscription subscription = null;
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionSql, conn);
                 pgcom.Parameters.AddWithValue("_id", NpgsqlDbType.Integer, id);
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
@@ -163,10 +156,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // GetSubscription // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -175,9 +164,10 @@ namespace Altinn.Platform.Events.Repository
             List<Subscription> searchResult = new List<Subscription>();
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionsExcludeOrgsSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionsExcludeOrgsSql, conn);
                 pgcom.Parameters.AddWithValue("source", NpgsqlDbType.Varchar, source);
                 pgcom.Parameters.AddWithValue("subject", NpgsqlDbType.Varchar, subject);
                 pgcom.Parameters.AddWithValue("type", NpgsqlDbType.Varchar, type);
@@ -197,10 +187,6 @@ namespace Altinn.Platform.Events.Repository
                 _logger.LogError(e, "PostgresRepository // GetSubscriptionsExcludeOrg // Exception");
                 throw;
             }
-            finally
-            {
-                await _conn.CloseAsync();
-            }
         }
 
         /// <inheritdoc/>
@@ -209,9 +195,10 @@ namespace Altinn.Platform.Events.Repository
             List<Subscription> searchResult = new List<Subscription>();
             try
             {
-                await _conn.OpenAsync();
+                using NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionByConsumerSql, _conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(getSubscriptionByConsumerSql, conn);
                 pgcom.Parameters.AddWithValue("_consumer", NpgsqlDbType.Varchar, consumer);
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
@@ -228,10 +215,6 @@ namespace Altinn.Platform.Events.Repository
             {
                 _logger.LogError(e, "PostgresRepository // GetSubscriptionByConsumer // Exception");
                 throw;
-            }
-            finally
-            {
-                await _conn.CloseAsync();
             }
         }
 

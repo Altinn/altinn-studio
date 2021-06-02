@@ -2,8 +2,8 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
-import { Select } from '@material-ui/core';
 import { act } from 'react-dom/test-utils';
+import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
@@ -19,7 +19,7 @@ let addPropertyMock = jest.fn();
 
 const mountComponent = () => mount(
   <Provider store={mockStore}>
-    <SchemaInspector onAddPropertyClick={addPropertyMock} />
+    <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
   </Provider>,
 );
 
@@ -66,7 +66,7 @@ it('dispatches correctly when changing value', () => {
       payload: {
         key: 'minLength',
         path: '#/definitions/Kommentar2000Restriksjon',
-        value: '666',
+        value: 666,
       },
     });
   });
@@ -98,6 +98,38 @@ it('dispatches correctly when changing key', (done) => {
   });
 });
 
+it('dispatches correctly when changing property name', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+  });
+  expect(wrapper).not.toBeNull();
+  const input = wrapper.find('#input-RA-0678_M-properties-InternInformasjon-key-InternInformasjon').last();
+  input.simulate('change', { target: { value: 'Test' } });
+
+  setImmediate(() => {
+    wrapper.update();
+    input.simulate('blur');
+
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setPropertyName',
+      payload: {
+        name: 'Test',
+        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      },
+    });
+
+    done();
+  });
+});
+
 it('dispatches correctly when changing ref', () => {
   mockStore = createStore({
     ...mockInitialState,
@@ -109,16 +141,33 @@ it('dispatches correctly when changing ref', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find(Select).first().props().onChange({ target: { value: '#/definitions/Tidsrom' } });
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Dato');
   });
 
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/setRef',
     payload: {
-      ref: '#/definitions/Tidsrom',
+      ref: '#/definitions/Dato',
       path: '#/definitions/InternInformasjon/properties/periodeFritekst',
     },
   });
+});
+
+it('refSelect does not set invalid refs', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/InternInformasjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
+  });
+
+  expect(mockStore.dispatch).not.toHaveBeenCalledWith({ type: 'schemaEditor/setRef' });
 });
 
 it('dispatches correctly when changing const', () => {
@@ -156,7 +205,7 @@ it('renders no item if nothing is selected', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('.no-item-selected').last().text()).toBe('No item selected');
+    expect(wrapper.find('.no-item-selected').last().text()).toBe('schema_editor.no_item_selected');
   });
 });
 

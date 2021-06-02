@@ -103,8 +103,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 try
                 {
-                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder)
-                    .Where(i => !i.Status.IsHardDeleted);
+                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
                 }
                 catch (Exception e)
                 {
@@ -228,6 +227,11 @@ namespace Altinn.Platform.Storage.Repository
                         case "status.isSoftDeleted":
                             bool isSoftDeleted = bool.Parse(queryValue);
                             queryBuilder = queryBuilder.Where(i => i.Status.IsSoftDeleted == isSoftDeleted);
+
+                            break;
+                        case "status.isHardDeleted":
+                            bool isHardDeleted = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Status.IsHardDeleted == isHardDeleted);
 
                             break;
                         case "status.isArchivedOrSoftDeleted":

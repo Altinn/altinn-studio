@@ -1,5 +1,4 @@
 /* eslint-disable react/no-unused-state */
-/* eslint-disable no-restricted-syntax */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
@@ -21,7 +20,7 @@ export interface ISelectDataModelState {
   selectedElement: string;
 }
 
-const customInput = {
+const selectStyles = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
@@ -31,7 +30,7 @@ const customInput = {
 export class SelectDataModel extends React.Component<
   ISelectDataModelProps,
   ISelectDataModelState
-  > {
+> {
   constructor(_props: ISelectDataModelProps, _state: ISelectDataModelState) {
     super(_props, _state);
 
@@ -86,20 +85,22 @@ export class SelectDataModel extends React.Component<
   }
 
   public render() {
-    const dataModelElementNames = [];
-    for (const element of this.props.dataModelElements) {
-      if (element.dataBindingName &&
-        ((!this.props.selectGroup && element.maxOccurs <= 1) || (this.props.selectGroup && element.maxOccurs > 1))) {
-        dataModelElementNames.push({ value: element.dataBindingName, label: element.displayString });
-      }
-    }
+    const {
+      dataModelElements,
+      selectGroup,
+      selectedElement,
+      noOptionsMessage,
+    } = this.props;
+    const dataModelElementNames = dataModelElements.filter((element) => (element.dataBindingName &&
+      ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))))
+      .map((element) => ({ value: element.dataBindingName, label: element.displayString }));
     return (
       <Select
-        styles={customInput}
+        styles={selectStyles}
         options={dataModelElementNames}
-        defaultValue={{ value: this.props.selectedElement, label: this.props.selectedElement }}
+        defaultValue={{ value: selectedElement, label: selectedElement }}
         onChange={this.onDataModelChange}
-        noOptionsMessage={this.props.noOptionsMessage}
+        noOptionsMessage={noOptionsMessage}
       />
     );
   }

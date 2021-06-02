@@ -1,5 +1,5 @@
 pool:
-  name: Altinn Test Self Hosted VM
+  name: altinn-vmss-testagent
 
 name: $(environment)_Studio_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
@@ -24,10 +24,12 @@ steps:
       testresult.xml      
   condition: succeededOrFailed()
 
-- script: |
-   set ENV=$(environment)
-   set useCaseUserPwd=$(userPassword)
-   testcafe "chrome:headless" ./usecase/usecase.js --disable-screenshots --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml
+- bash: |
+   export ENV=$(environment)
+
+   export useCaseUserPwd=$(userPassword)
+
+   testcafe 'chrome:headless' ./usecase/usecase.js --disable-screenshots --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml
   
   workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'   
   displayName: 'Studio Tests'
