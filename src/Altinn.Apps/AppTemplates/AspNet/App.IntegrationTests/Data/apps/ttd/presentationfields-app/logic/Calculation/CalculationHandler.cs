@@ -23,9 +23,11 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// </example>
         /// <param name="instance">The data</param>
         /// <param name="altinnAppContext">The context</param>
-        public static async Task<bool> Calculate(object instance, IAltinnAppContext altinnAppContext)
+        public static async Task<bool> Calculate(object instance, IAltinnAppContextAccessor altinnAppContext)
         {
             AltinnAppContext appContext = altinnAppContext.GetContext();
+            double result = 20.3 / appContext.PartyId;
+
             bool changed = false;
             if (instance.GetType() == typeof(Skjema))
             {

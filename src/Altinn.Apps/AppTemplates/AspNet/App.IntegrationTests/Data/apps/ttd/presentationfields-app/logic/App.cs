@@ -25,7 +25,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
-        private readonly IAltinnAppContext _altinnAppContext;
+        private readonly IAltinnAppContextAccessor _altinnAppContext;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -55,7 +55,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
             IText textService,
-            IAltinnAppContext altinnAppContext,
+            IAltinnAppContextAccessor altinnAppContext,
             IHttpContextAccessor httpContextAccessor) : base(
                 appResourcesService,
                 logger,

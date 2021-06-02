@@ -10,7 +10,7 @@ namespace Altinn.App.PlatformServices.Interface
     /// <summary>
     /// Service interface for AltinnApp context
     /// </summary>
-    public interface IAltinnAppContext
+    public interface IAltinnAppContextAccessor
     {
         /// <summary>
         /// Set context

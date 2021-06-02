@@ -7,7 +7,7 @@ namespace Altinn.App.PlatformServices.Implementation
     /// <summary>
     /// Implementation of AltinnAppContext serivce
     /// </summary>
-    public class AltinnAppContextSI : IAltinnAppContext
+    public class AltinnAppContextAccessorSI : IAltinnAppContextAccessor
     {
         private AltinnAppContext _altinnAppContext;
 

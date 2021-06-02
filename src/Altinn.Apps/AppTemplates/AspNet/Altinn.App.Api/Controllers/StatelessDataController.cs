@@ -38,7 +38,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IPrefill _prefillService;
         private readonly IRegister _registerService;
         private readonly IPDP _pdp;
-        private readonly IAltinnAppContext _altinnAppContext;
+        private readonly IAltinnAppContextAccessor _altinnAppContext;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -57,7 +57,7 @@ namespace Altinn.App.Api.Controllers
             IPrefill prefillService,
             IRegister registerService,
             IPDP pdp,
-            IAltinnAppContext altinnAppContext)
+            IAltinnAppContextAccessor altinnAppContext)
         {
             _logger = logger;
             _altinnApp = altinnApp;
