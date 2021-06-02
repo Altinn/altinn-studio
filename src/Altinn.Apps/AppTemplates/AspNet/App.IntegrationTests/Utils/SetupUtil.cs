@@ -79,57 +79,57 @@ namespace App.IntegrationTestsRef.Utils
                     switch (app)
                     {
                         case "endring-av-navn":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
                         case "custom-validation":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
                             break;
                         case "task-validation":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.task_validation.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.task_validation.AltinnApp>();
                             break;
                         case "platform-fails":
                             services.AddSingleton<IInstance, InstancePlatformFailsMock>();
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
                         case "contributor-restriction":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
                             break;
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPI>();
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
                             break;
                         case "events":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
                             break;
                         case "autodelete-true":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.autodelete_true.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.autodelete_true.AltinnApp>();
                             break;
                         case "nabovarsel":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
                             break;
                         case "klareringsportalen":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
                             break;
                         case "issue-5740":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
                             break;
                         case "eformidling-app":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
                             break;
                         case "eformidling-app-invalid":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
                             break;
                         case "presentationfields-app":
                             services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
                             break;
                         case "datafields-app":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
                             break;
                         case "model-validation":
-                            services.AddSingleton<IAltinnApp, App.IntegrationTests.Mocks.Apps.ttd.model_validation.AltinnApp>();
+                            services.AddScoped<IAltinnApp, App.IntegrationTests.Mocks.Apps.ttd.model_validation.AltinnApp>();
                             break;
                         default:
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
                     }
                 });
