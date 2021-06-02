@@ -119,13 +119,10 @@ namespace Altinn.App.Api.Controllers
             _altinnAppContext.SetContext(new AltinnAppContext() { PartyId = partyId.Value });
         
             object appModel = _altinnApp.CreateNewAppModel(classRef);
-           
-            if (partyId.HasValue)
-            {
-                // runs prefill from repo configuration if config exists
-                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
-            }
-
+   
+            // runs prefill from repo configuration if config exists
+            await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+         
             await _altinnApp.RunCalculation(appModel);
 
             return Ok(appModel);
@@ -189,12 +186,9 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest(deserializer.Error);
             }
 
-            if (partyId.HasValue)
-            {
-                // runs prefill from repo configuration if config exists
-                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
-            }
-           
+            // runs prefill from repo configuration if config exists
+            wait _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            
             await _altinnApp.RunCalculation(appModel);
 
             return Ok(appModel);
