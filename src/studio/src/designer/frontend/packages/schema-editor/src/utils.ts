@@ -16,15 +16,16 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
 }
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
-  const parent = schema.find((s) => path.includes(s.id));
-  if (!parent) {
-    return {} as UiSchemaItem;
+  const matches = schema.filter((s) => path.includes(s.id));
+  if (matches.length === 1 && matches[0].id === path) {
+    return matches[0];
   }
-  if (parent.id === path) {
-    return parent;
+  const items = flat(matches, 999);
+  const result = items.find((i) => i.id === path);
+  if (!result) {
+    throw new Error(`no uiSchema found: ${path}`);
   }
-  const items = flat(parent?.properties, 999);
-  return items.find((i) => i.id === path) || {} as UiSchemaItem;
+  return result;
 }
 
 export function getUiSchemaTreeFromItem(

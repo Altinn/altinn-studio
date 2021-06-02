@@ -207,6 +207,7 @@ const schemaEditorSlice = createSlice({
         id, navigate,
       } = action.payload;
       state.selectedId = id;
+      state.selectedItem = getUiSchemaItem(state.uiSchema, id);
       state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
     },
     setSaveSchemaUrl(state, action) {

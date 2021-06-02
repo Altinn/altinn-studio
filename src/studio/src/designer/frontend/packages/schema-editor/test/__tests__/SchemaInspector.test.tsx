@@ -259,12 +259,12 @@ it('handles add property (field) button', () => {
   });
 });
 
-it('renders const properties', () => {
+it('renders restrictions', () => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M',
+    selectedId: '#/definitions/Tekst_50Restriksjon',
   });
   act(() => {
     const wrapper = mountComponent();

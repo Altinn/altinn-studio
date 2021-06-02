@@ -4,6 +4,7 @@ export interface ISchemaState {
   rootName: string;
   saveSchemaUrl: string;
   selectedId?: string;
+  selectedItem?: UiSchemaItem;
   selectedNodeId?: string;
 }
 export interface ILanguage {

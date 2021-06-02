@@ -8,7 +8,7 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getTranslation, getUiSchemaItem } from '../utils';
+import { getTranslation } from '../utils';
 import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles(
@@ -76,17 +76,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  const selectedItem = useSelector((state: ISchemaState) => {
-    if (selectedId) {
-      return getUiSchemaItem(state.uiSchema, selectedId);
-    }
-    return null;
-  });
+  const selectedItem = useSelector((state: ISchemaState) => state.selectedItem);
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
-
-  const readOnly = selectedItem?.$ref !== undefined;
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
@@ -94,6 +87,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
   }, [selectedItem]);
+
+  const readOnly = selectedItem?.$ref !== undefined;
 
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
