@@ -25,7 +25,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Post_ObjectSucessfullyPrefilledAndCalculated()
+        public async Task StatelessData_Get_ObjectSucessfullyPrefilledAndCalculated()
         {
             // Arrange
             string org = "ttd";
@@ -39,7 +39,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
@@ -58,7 +58,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Post_WithPartyHeader_ObjectSucessfullyPrefilledAndCalculated()
+        public async Task StatelessData_Get_WithPartyHeader_ObjectSucessfullyPrefilledAndCalculated()
         {
             // Arrange
             string org = "ttd";
@@ -72,7 +72,7 @@ namespace App.IntegrationTests.ApiTests
        
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequestMessage.Headers.Add("party", "partyid:1337");
 
             // Act
@@ -92,7 +92,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Post_WithPartyHeaderSSN_ObjectSucessfullyPrefilledAndCalculated()
+        public async Task StatelessData_Get_WithPartyHeaderSSN_ObjectSucessfullyPrefilledAndCalculated()
         {
             // Arrange
             string org = "ttd";
@@ -106,7 +106,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequestMessage.Headers.Add("party", "person:01039012345");
 
             // Act
@@ -114,7 +114,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
             // Extra call to make sure Altinn App context is scoped. (it should be cleared between each call)
-            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequestMessage2.Headers.Add("party", "person:01039012345");
             res = await client.SendAsync(httpRequestMessage2);
 
@@ -234,7 +234,7 @@ namespace App.IntegrationTests.ApiTests
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
 
         [Fact]
