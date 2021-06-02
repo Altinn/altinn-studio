@@ -53,8 +53,10 @@ const styles = createStyles({
   },
   header: {
     backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
-    // height: '96px',
-    paddingLeft: 48,
+    paddingLeft: 12,
+    '@media (min-width: 786px)': {
+      paddingLeft: 96,
+    },
     paddingTop: 30,
     paddingBottom: 30,
   },
@@ -63,12 +65,17 @@ const styles = createStyles({
     color: altinnTheme.altinnPalette.primary.white,
   },
   body: {
-    paddingLeft: 90,
-    paddingRight: 243,
-    paddingTop: 45,
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingTop: 24,
     paddingBottom: 34,
     ['@media only print']: {
       paddingLeft: 48,
+    },
+    '@media (min-width: 786px)': {
+      paddingLeft: 96,
+      paddingRight: 96,
+      paddingTop: 34,
     },
   },
   iconBtn: {

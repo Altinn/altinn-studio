@@ -3,27 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.6.1</AssemblyVersion>
-    <FileVersion>4.6.1</FileVersion>
-    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>
-
-    <!-- NuGet package properties -->
+    <Version>4.6.2</Version>
+    <AssemblyVersion>4.6.2.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
-    <PackageVersion>4.6.1</PackageVersion>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
       This class library holds all the API controllers used by a standard Altinn 3 App.
     </Description>
-    <PackageReleaseNotes>
-      https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IsPackable>true</IsPackable>
+
+    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
+    <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>

@@ -151,7 +151,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
             response = await client.GetAsync(url);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ValidationIssue> messages =
-                (List<ValidationIssue>) JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+                (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Single(messages);
@@ -168,7 +168,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Thread.Sleep(new TimeSpan(0, 0, 12));
             response = await client.GetAsync(url);
             responseContent = await response.Content.ReadAsStringAsync();
-            messages = (List<ValidationIssue>) JsonConvert.DeserializeObject(
+            messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(
                 responseContent,
                 typeof(List<ValidationIssue>));
 
@@ -274,7 +274,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
             WebApplicationFactory<Startup> factory = _factory.WithWebHostBuilder(builder =>
             {
-                string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+                string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
                 string path = Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
 
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(path + "appsettings.json"); });

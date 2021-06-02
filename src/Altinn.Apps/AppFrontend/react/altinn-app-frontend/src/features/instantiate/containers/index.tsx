@@ -1,10 +1,9 @@
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import { AxiosError } from 'axios';
 import * as React from 'react';
-import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
+import { AltinnAppHeader, AltinnModal, AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
-import { AltinnAppHeader, AltinnModal } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
@@ -24,9 +23,6 @@ const styles = () => createStyles({
     boxShadow: null,
     MozBoxShadow: null,
     WebkitBoxShadow: null,
-  },
-  body: {
-    padding: 0,
   },
 });
 
@@ -94,57 +90,9 @@ function InstantiateContainer(props: IServiceInfoProps) {
           hideCloseIcon={true}
           headerText={titleText}
         >
-          <ContentLoader
-            height={200}
-          >
-            <rect
-              x='25' y='20'
-              rx='0' ry='0'
-              width='100' height='5'
-            />
-            <rect
-              x='25' y='30'
-              rx='0' ry='0'
-              width='350' height='5'
-            />
-            <rect
-              x='25' y='40'
-              rx='0' ry='0'
-              width='350' height='25'
-            />
-
-            <rect
-              x='25' y='75'
-              rx='0' ry='0'
-              width='100' height='5'
-            />
-            <rect
-              x='25' y='85'
-              rx='0' ry='0'
-              width='350' height='5'
-            />
-            <rect
-              x='25' y='95'
-              rx='0' ry='0'
-              width='350' height='25'
-            />
-
-            <rect
-              x='25' y='130'
-              rx='0' ry='0'
-              width='100' height='5'
-            />
-            <rect
-              x='25' y='140'
-              rx='0' ry='0'
-              width='350' height='5'
-            />
-            <rect
-              x='25' y='150'
-              rx='0' ry='0'
-              width='350' height='25'
-            />
-          </ContentLoader>
+          <AltinnContentLoader width='100%' height='400'>
+            <AltinnContentIconFormData/>
+          </AltinnContentLoader>
         </AltinnModal>
       </>
     );

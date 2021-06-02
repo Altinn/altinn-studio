@@ -144,7 +144,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       }
       {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd &&
         <AltinnReceiptSimple
-          body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, null, true)}
+          body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, null, false)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
         />
       }

@@ -372,6 +372,18 @@
         "dataModelBindings": {},
         "textResourceId": "Standard.Button.Button",
         "customType": "Standard"
+      },
+      {
+        "id": "61e8044f-5dbd-4285-8536-5781c32d2105",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "carbrands"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "carbrands"
+        },
+        "required": true,
+        "optionsId": "carbrands"
       }
     ]
   }
