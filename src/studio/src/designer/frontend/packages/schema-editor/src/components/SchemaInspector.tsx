@@ -55,7 +55,7 @@ export interface ISchemaInspectorProps {
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-
+  const [nodeName, setNodeName] = React.useState<string | undefined>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -66,7 +66,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
-  const [nodeName, setNodeName] = React.useState(referencedItem?.displayName);
+
   const readOnly = selectedItem?.$ref !== undefined;
 
   React.useEffect(() => {
