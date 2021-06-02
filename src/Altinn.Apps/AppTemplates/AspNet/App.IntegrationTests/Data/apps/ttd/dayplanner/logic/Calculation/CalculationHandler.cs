@@ -4,7 +4,7 @@ using Altinn.App.PlatformServices.Models;
 
 //// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
-namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
 {
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
@@ -25,21 +25,16 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="altinnAppContext">The context</param>
         public static async Task<bool> Calculate(object instance, IAltinnAppContextAccessor altinnAppContext)
         {
+            AltinnAppContext appContext = altinnAppContext.GetContext();
+            double result = 20.3 / appContext.PartyId;
+
             bool changed = false;
-            if (instance.GetType() == typeof(Skjema))
+            if (instance.GetType() == typeof(MyDay))
             {
-                Skjema model = (Skjema)instance;
+                MyDay model = (MyDay)instance;
 
-                model.OpplysningerOmArbeidstakerengrp8819 = model.OpplysningerOmArbeidstakerengrp8819 ?? new OpplysningerOmArbeidstakerengrp8819();
-
-                model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 = model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 ?? new Skjemainstansgrp8854();
-
-                model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317 = new IdentifikasjonsnummerKravdatadef33317
-                {
-                    value = "calculatedValue"
-                };
-
-                changed = true;
+                model.Weather = new Weather();
+                model.Weather.Temp = "20C";
             }
 
             return await Task.FromResult(changed);

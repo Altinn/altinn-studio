@@ -236,5 +236,35 @@ namespace App.IntegrationTests.ApiTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
+
+        [Fact]
+        public async Task StatelessData_Get_CalculationsRunAndDataReturned()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "dayplanner";
+            decimal expected = 1001;
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+            
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri)
+            {
+            };
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.Ttd.Dayplanner.MyDay dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.Dayplanner.MyDay>(responseContent);
+ 
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(dataObject);
+        }
     }
 }

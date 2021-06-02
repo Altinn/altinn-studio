@@ -76,6 +76,69 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataType">The data type id</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
+        [HttpGet]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 200)]
+        public async Task<ActionResult> Get(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] string dataType)
+        {
+            if (string.IsNullOrEmpty(dataType))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
+
+            string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
+
+            if (string.IsNullOrEmpty(classRef))
+            {
+                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+            }
+
+            if (GetPartyHeader(HttpContext).Count > 1)
+            {
+                return BadRequest($"Invalid party. Only one allowed");
+            }
+
+            int? partyId = await GetPartyId(HttpContext);
+
+            if (!partyId.HasValue)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden);
+            }
+
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, "read");
+
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
+            }
+
+            _altinnAppContext.SetContext(new AltinnAppContext() { PartyId = partyId.Value });
+        
+            object appModel = _altinnApp.CreateNewAppModel(classRef);
+           
+            if (partyId.HasValue)
+            {
+                // runs prefill from repo configuration if config exists
+                await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            }
+
+            await _altinnApp.RunCalculation(appModel);
+
+            return Ok(appModel);
+        }
+
+        /// <summary>
+        /// Create a new data object of the defined data type
+        /// </summary>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="dataType">The data type id</param>
+        /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
+        [Authorize]
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
@@ -120,9 +183,10 @@ namespace Altinn.App.Api.Controllers
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
-            if (appModel == null)
+
+            if (!string.IsNullOrEmpty(deserializer.Error))
             {
-                appModel = _altinnApp.CreateNewAppModel(classRef);
+                return BadRequest(deserializer.Error);
             }
 
             if (partyId.HasValue)

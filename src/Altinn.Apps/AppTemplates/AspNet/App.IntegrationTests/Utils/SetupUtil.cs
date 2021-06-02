@@ -128,6 +128,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "model-validation":
                             services.AddScoped<IAltinnApp, App.IntegrationTests.Mocks.Apps.ttd.model_validation.AltinnApp>();
                             break;
+                        case "dayplanner":
+                            services.AddScoped<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
+                            break;
                         default:
                             services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
