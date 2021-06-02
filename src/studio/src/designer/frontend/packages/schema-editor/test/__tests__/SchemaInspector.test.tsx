@@ -270,7 +270,21 @@ it('renders restrictions', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('input').get(1).props.value).toBe('dataFormatProvider');
-    expect(wrapper.find('input').get(2).props.value).toBe('SERES');
+    expect(wrapper.find('.input-Tekst_50Restriksjon-key-maxLength').get(0).props.value).toBe('50');
+  });
+});
+
+it('renders data', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/Tekst_50Restriksjon',
+  });
+  act(() => {
+    const wrapper = mountComponent();
+    expect(wrapper).not.toBeNull();
+
+    expect(wrapper.find('.definitionsTekst_50Restriksjon-name').get(0).props.value).toBe('Tekst_50Restriksjon');
   });
 });

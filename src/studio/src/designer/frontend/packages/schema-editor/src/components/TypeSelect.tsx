@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { makeStyles, MenuItem, Select } from '@material-ui/core';
 import { ILanguage } from '../types';
-import { getTranslation } from '../utils';
+import { getDomFriendlyID, getTranslation } from '../utils';
 
 export interface ITypeSelectProps {
   id: string;
@@ -41,7 +41,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
 
   return (
     <Select
-      id={`type-select-${id}`}
+      id={`${getDomFriendlyID(id)}-type-select`}
       disabled={props.readOnly}
       label={props.label}
       value={value}

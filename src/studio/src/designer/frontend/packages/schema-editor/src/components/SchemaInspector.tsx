@@ -8,7 +8,7 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getTranslation } from '../utils';
+import { getDomFriendlyID, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles(
@@ -76,10 +76,15 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  const selectedItem = useSelector((state: ISchemaState) => state.selectedItem);
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
+  const selectedItem = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      return getUiSchemaItem(state.uiSchema, selectedId);
+    }
+    return null;
+  });
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
@@ -279,7 +284,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div>
       <p>Name</p>
       <TextField
-        id={`${selectedItem?.id}-name`}
+        id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
         placeholder='Name'
         fullWidth={true}
@@ -304,7 +309,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <hr className={classes.divider} />
       <p>Beskrivende felter</p>
       <TextField
-        id={`${selectedItem?.id}-title`}
+        id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
         placeholder='Title'
         fullWidth
@@ -318,7 +323,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
 
       <TextField
-        id={`${selectedItem?.id}-description`}
+        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}
         className={classes.field}
         label='Description'
