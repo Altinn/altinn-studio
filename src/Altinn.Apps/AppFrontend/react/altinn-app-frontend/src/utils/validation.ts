@@ -668,6 +668,22 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
   return canBeSaved;
 }
 
+export function removeOutdatedValidations(
+  singleFieldValidations: IValidations,
+  existingValidations: IValidations,
+  triggerComponent: string,
+) {
+  const layoutIds = Object.keys(existingValidations).filter((layoutId: string) => {
+    return Object.keys(existingValidations[layoutId]).includes(triggerComponent);
+  });
+
+  layoutIds.forEach((layoutId: string) => {
+    if (!singleFieldValidations[layoutId] || !singleFieldValidations[layoutId][triggerComponent]) {
+      delete existingValidations[layoutId][triggerComponent];
+    }
+  });
+}
+
 /* Function to map the new data element validations to our internal redux structure */
 export function mapDataElementValidationToRedux(
   validations: IValidationIssue[],
@@ -942,8 +958,24 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
           if (!validations[layout][component][binding]) {
             validations[layout][component][binding] = { errors: [], warnings: [] };
           }
-          validations[layout][component][binding].errors = validations[layout][component][binding].errors.concat(source[layout][component][binding]?.errors);
-          validations[layout][component][binding].warnings = validations[layout][component][binding].warnings.concat(source[layout][component][binding]?.warnings);
+
+          // Only merge items that are not already in the existing components errors/warnings array
+          validations[layout][component][binding].errors =
+            validations[layout][component][binding].errors.concat(
+              source[layout][component][binding]?.errors.filter((error) => {
+                return !validations[layout][component][binding].errors.find((existingError) => {
+                  return JSON.stringify(existingError) === JSON.stringify(error);
+                });
+              }),
+            );
+          validations[layout][component][binding].warnings =
+            validations[layout][component][binding].warnings.concat(
+              source[layout][component][binding]?.warnings.filter((warning) => {
+                return !validations[layout][component][binding].warnings.find((existingWarning) => {
+                  return JSON.stringify(existingWarning) === JSON.stringify(warning);
+                });
+              }),
+            );
         });
       });
     });

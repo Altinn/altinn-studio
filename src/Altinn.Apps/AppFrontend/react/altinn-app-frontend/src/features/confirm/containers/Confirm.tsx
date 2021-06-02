@@ -2,9 +2,8 @@
 import * as React from 'react';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { createMuiTheme } from '@material-ui/core';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
@@ -18,7 +17,7 @@ import ProcessDispatcher from '../../../shared/resources/process/processDispatch
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { get } from '../../../utils/networking';
 import { getValidationUrl } from '../../../utils/urlHelper';
-import FormValidationActions from '../../form/validation/validationActions';
+import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
@@ -74,6 +73,7 @@ export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
 
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
@@ -136,7 +136,7 @@ const Confirm = (props: IConfirmProps) => {
     setIsSubmitting(true);
     get(getValidationUrl(instanceId)).then((data: any) => {
       const mappedValidations = mapDataElementValidationToRedux(data, {}, textResources);
-      FormValidationActions.updateValidations(mappedValidations);
+      dispatch(updateValidations({ validations: mappedValidations }));
       if (data.length === 0) {
         ProcessDispatcher.completeProcess();
       }

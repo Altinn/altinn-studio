@@ -13,7 +13,7 @@ import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, IGrid, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
-import ValidationActions from '../features/form/validation/validationActions';
+import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
@@ -97,13 +97,13 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    const dataModelField = props.dataModelBindings[key];
+    const dataModelBinding = props.dataModelBindings[key];
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      ValidationActions.setCurrentSingleFieldValidation(dataModelField);
+      dispatch(setCurrentSingleFieldValidation({ dataModelBinding }));
     }
 
     dispatch(FormDataActions.updateFormData({
-      field: dataModelField,
+      field: dataModelBinding,
       data: value,
       componentId: props.id,
     }));
