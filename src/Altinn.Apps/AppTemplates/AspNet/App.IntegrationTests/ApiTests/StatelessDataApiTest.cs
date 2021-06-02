@@ -243,7 +243,6 @@ namespace App.IntegrationTests.ApiTests
             // Arrange
             string org = "ttd";
             string app = "dayplanner";
-            decimal expected = 1001;
 
             string token = PrincipalUtil.GetToken(1337);
 
