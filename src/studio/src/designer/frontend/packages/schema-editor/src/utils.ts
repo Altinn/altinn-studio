@@ -216,10 +216,13 @@ const getNestedObject = (nestedObj: any, pathArr: string[]) => {
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];
 const objectRestrictions = ['minProperties', 'maxProperties'];
+const arrayRestrictions = ['items', 'additionalItems', 'minItems', 'maxItems'];
+
 const restrictionMap = new Map([
   ['string', stringRestrictions],
   ['integer', integerRestrictions],
   ['number', integerRestrictions],
   ['object', objectRestrictions],
+  ['array', arrayRestrictions],
 ]);
 export const getRestrictions = (type: string) => restrictionMap.get(type);

@@ -252,6 +252,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return (
       <RestrictionField
+        key={field.key}
         language={props.language}
         type={itemToDisplay?.type}
         value={field.value}

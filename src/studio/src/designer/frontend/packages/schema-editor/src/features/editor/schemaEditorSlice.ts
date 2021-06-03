@@ -18,13 +18,16 @@ const schemaEditorSlice = createSlice({
   reducers: {
     addField(state, action) {
       const {
-        path, key, value,
+        path, value, key,
       } = action.payload;
 
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       if (addToItem) {
         const itemToAdd = { key, value };
         if (addToItem.restrictions) {
+          while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+            itemToAdd.key += 1;
+          }
           addToItem.restrictions.push(itemToAdd);
         } else {
           addToItem.restrictions = [itemToAdd];
@@ -55,6 +58,9 @@ const schemaEditorSlice = createSlice({
         ],
       };
       if (addToItem.properties) {
+        while (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
+          item.id += 1;
+        }
         addToItem.properties.push(item);
       } else {
         addToItem.properties = [item];
