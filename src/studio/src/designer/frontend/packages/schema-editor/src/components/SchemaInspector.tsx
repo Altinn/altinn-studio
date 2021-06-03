@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, IconButton, Tab, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, Tab, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -28,11 +28,8 @@ const useStyles = makeStyles(
       },
     },
     label: {
-      background: 'white',
-      border: '1px solid #006BD8',
-      margin: 4,
-      padding: 4,
-      flexGrow: 1,
+      margin: '4px 0px 0px 0px',
+      padding: 0,
     },
     header: {
       padding: 4,
@@ -41,7 +38,8 @@ const useStyles = makeStyles(
       marginTop: 2,
     },
     divider: {
-      margin: 0,
+      marginTop: 2,
+      marginBottom: 2,
       padding: '8px 2px 8px 2px',
     },
     navButton: {
@@ -56,6 +54,7 @@ const useStyles = makeStyles(
       color: 'black',
       border: '1px solid #006BD8',
       boxSsizing: 'border-box',
+      marginTop: 2,
       padding: 4,
       '&.Mui-disabled': {
         background: '#f4f4f4',
@@ -63,6 +62,21 @@ const useStyles = makeStyles(
         border: '1px solid #6A6A6A',
         boxSizing: 'border-box',
       },
+    },
+    appBar: {
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: '#fff',
+      color: '#000',
+      '& .Mui-Selected': {
+        color: '#6A6A6A',
+      },
+      '& .MuiTabs-indicator': {
+        backgroundColor: '#006BD8',
+      },
+    },
+    restrictions: {
+      flexGrow: 1,
     },
   }),
 );
@@ -89,6 +103,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return null;
   });
+  const isRequired = false;
+  const isArray = false;
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
@@ -254,18 +270,20 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       return null;
     }
     return (
-      <RestrictionField
-        key={field.key}
-        language={props.language}
-        type={itemToDisplay?.type}
-        value={field.value}
-        keyName={field.key}
-        readOnly={readOnly}
-        path={item.id}
-        onChangeValue={onChangeValue}
-        onChangeKey={onChangeKey}
-        onDeleteField={onDeleteFieldClick}
-      />);
+      <Grid item xs={12}>
+        <RestrictionField
+          key={field.key}
+          language={props.language}
+          type={itemToDisplay?.type}
+          value={field.value}
+          keyName={field.key}
+          readOnly={readOnly}
+          path={item.id}
+          onChangeValue={onChangeValue}
+          onChangeKey={onChangeKey}
+          onDeleteField={onDeleteFieldClick}
+        />
+      </Grid>);
   });
 
   const handleTabChange = (event: any, newValue: string) => {
@@ -283,9 +301,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
+  const handleIsArrayChanged = (e: any) => {
+    console.log(e);
+  };
+
+  const handleRequiredChanged = (e: any) => {
+    console.log(e);
+  };
+
   const renderItemData = () => (
     <div>
-      <p>Name</p>
+      <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
@@ -298,7 +324,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p>Type</p>
+      <p className={classes.label}>Type</p>
       {selectedItem && <TypeSelect
         label='Type'
         language={props.language}
@@ -310,11 +336,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />}
       { renderDefUrl() }
       <hr className={classes.divider} />
-      <p>Beskrivende felter</p>
+      <p className={classes.label}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
+      <p className={classes.label}>{getTranslation('schema_editor.title', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
-        placeholder='Title'
         fullWidth
         value={title}
         margin='normal'
@@ -324,21 +350,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-
+      <p className={classes.label}>{getTranslation('schema_editor.description', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}
         className={classes.field}
-        label='Description'
         fullWidth
         style={{ height: 100 }}
         value={description}
         margin='normal'
         onChange={(e) => setItemDescription(e.target.value)}
         onBlur={onChangeDescription}
-        InputLabelProps={{
-          shrink: true,
-        }}
         InputProps={{
           disableUnderline: true,
         }}
@@ -364,7 +386,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       className={classes.root}
     >
       <TabContext value={tabIndex}>
-        <AppBar position='static' color='default'>
+        <AppBar
+          position='static' color='default'
+          className={classes.appBar}
+        >
           <TabList
             onChange={handleTabChange}
             aria-label='inspector tabs'
@@ -385,7 +410,40 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           { renderItemData() }
         </TabPanel>
         <TabPanel value='1'>
-          { itemToDisplay && renderItemRestrictions(itemToDisplay) }
+          <div className={classes.restrictions}>
+            <Grid container>
+              <Grid item xs={4}>
+                <FormControlLabel
+                  control={<Checkbox
+                    checked={isRequired} onChange={handleRequiredChanged}
+                    name='checkedA'
+                  />}
+                  label={getTranslation('schema_editor.required', props.language)}
+                />
+              </Grid>
+              <Grid item xs={1} />
+              <Grid item xs={7}>
+                <FormControlLabel
+                  control={<Checkbox
+                    checked={isArray} onChange={handleIsArrayChanged}
+                    name='checkedA'
+                  />}
+                  label={getTranslation('schema_editor.multiple_answers', props.language)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <hr className={classes.divider} />
+              </Grid>
+              <Grid item xs={4}>
+                <p>Nøkkelord</p>
+              </Grid>
+              <Grid item xs={1} />
+              <Grid item xs={7}>
+                <p>Verdi</p>
+              </Grid>
+              { itemToDisplay && renderItemRestrictions(itemToDisplay) }
+            </Grid>
+          </div>
           <IconButton
             id='add-property-button'
             aria-label='Add property'

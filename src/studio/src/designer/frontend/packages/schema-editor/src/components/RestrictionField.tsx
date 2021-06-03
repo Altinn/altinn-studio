@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IconButton, Input, makeStyles, TextField } from '@material-ui/core';
+import { Grid, IconButton, Input, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
 import { getDomFriendlyID, getRestrictions } from '../utils';
@@ -37,7 +37,6 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
       border: '1px solid #006BD8',
       boxSsizing: 'border-box',
       padding: 4,
-      margin: 12,
       width: 150,
       '&.Mui-disabled': {
         background: '#f4f4f4',
@@ -61,27 +60,30 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
   const options = getRestrictions(props.type ?? '');
   const baseId = getDomFriendlyID(props.path);
   return (
-    <span className={classes.root}>
-      <Autocomplete
-        freeSolo={true}
-        id={`${baseId}-${props.keyName}-key`}
-        disabled={props.readOnly}
-        value={props.keyName}
-        onChange={handleChangeKey}
-        className={classes.field}
-        disableClearable={true}
-        options={options ?? []}
-        renderInput={(params) => {
-        // eslint-disable-next-line no-param-reassign
-          (params.InputProps as any).disableUnderline = true;
-          return <TextField
-          // eslint-disable-next-line react/jsx-props-no-spreading
-            {...params}
-          />;
-        }
-        }
-      />
-      <Input
+    <Grid className={classes.root}>
+      <Grid item xs={4}>
+        <Autocomplete
+          freeSolo={true}
+          id={`${baseId}-${props.keyName}-key`}
+          disabled={props.readOnly}
+          value={props.keyName}
+          onChange={handleChangeKey}
+          className={classes.field}
+          disableClearable={true}
+          options={options ?? []}
+          renderInput={(params) => {
+            // eslint-disable-next-line no-param-reassign
+            (params.InputProps as any).disableUnderline = true;
+            return <TextField
+              // eslint-disable-next-line react/jsx-props-no-spreading
+              {...params}
+            />;
+          }
+          }
+        />
+      </Grid>
+      <Grid item xs={1} />
+      <Grid item xs={4}><Input
         id={`${baseId}-${props.keyName}-value`}
         disabled={props.readOnly}
         className={classes.field}
@@ -89,14 +91,17 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
         disableUnderline={true}
         onChange={(e) => props.onChangeValue(props.path, e.target.value, props.keyName)}
       />
+      </Grid>
       { props.onDeleteField &&
-      <IconButton
-        id={`${baseId}-delete-${props.keyName}`}
-        aria-label='Delete field'
-        onClick={() => props.onDeleteField?.(props.path, props.keyName)}
-        className={classes.delete}
-      >
-        <DeleteOutline/>
-      </IconButton>}
-    </span>);
+      <Grid item xs={1}>
+        <IconButton
+          id={`${baseId}-delete-${props.keyName}`}
+          aria-label='Delete field'
+          onClick={() => props.onDeleteField?.(props.path, props.keyName)}
+          className={classes.delete}
+        >
+          <DeleteOutline/>
+        </IconButton>
+      </Grid>}
+    </Grid>);
 };
