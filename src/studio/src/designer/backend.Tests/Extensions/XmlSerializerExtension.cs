@@ -11,7 +11,6 @@ namespace Designer.Tests.Extensions
         {
             byte[] byteArray = Encoding.ASCII.GetBytes(xml);
             using MemoryStream stream = new MemoryStream(byteArray);
-            serializer = new XmlSerializer(type);
             var obj = serializer.Deserialize(stream);
 
             return obj;
