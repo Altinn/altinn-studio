@@ -3,14 +3,15 @@ using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Designer.Tests.Extensions
+namespace Designer.Tests.Utils
 {
-    public static class XmlSerializerExtension
+    public class SerializationHelper
     {
-        public static object Deserialize(this XmlSerializer serializer, string xml, Type type)
+        public static object Deserialize(string xml, Type type)
         {
             byte[] byteArray = Encoding.ASCII.GetBytes(xml);
             using MemoryStream stream = new MemoryStream(byteArray);
+            var serializer = new XmlSerializer(type);
             var obj = serializer.Deserialize(stream);
 
             return obj;

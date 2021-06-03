@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
-using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Basic.Reference.Assemblies;
-using Designer.Tests.Extensions;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Manatee.Json;
@@ -72,9 +67,8 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.True(jsonValidationResult.IsValid);
 
             // Make sure the xml can be deserialized
-            var xml = "<melding><test><navn>Ronny</navn></test></melding>";
-            XmlSerializer serializer = new XmlSerializer(type);
-            object xmlObj = serializer.Deserialize(xml, type);
+            var xml = "<melding><test><navn>Ronny</navn></test></melding>";            
+            object xmlObj = SerializationHelper.Deserialize(xml, type);
 
             // Validate XML against generated XSD
             // OBS! On inline schemas the generated XSD only adds the root node, and does not traverse the properties.
@@ -121,9 +115,8 @@ namespace Designer.Tests.Factories.ModelFactory
             // jsonValidationResult = jsonSchema.Validate(new JsonValue(json), new JsonSchemaOptions() { });
             // Assert.True(jsonValidationResult.IsValid);
 
-            // Make sure the xml can be deserialized            
-            XmlSerializer serializer = new XmlSerializer(type);
-            object xmlObj = serializer.Deserialize(xml, type);
+            // Make sure the xml can be deserialized                        
+            object xmlObj = SerializationHelper.Deserialize(xml, type);
 
             // Validate XML against generated XSD
             // OBS! On inline schemas the generated XSD only adds the root node, and does not traverse the properties.
