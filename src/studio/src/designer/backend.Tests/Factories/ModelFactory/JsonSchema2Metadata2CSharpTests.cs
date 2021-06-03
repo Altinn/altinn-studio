@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Basic.Reference.Assemblies;
@@ -39,8 +40,7 @@ namespace Designer.Tests.Factories.ModelFactory
             var org = "yabbin";
             var app = "datamodelling";
             var jsonSchemaString = @"{""properties"":{""melding"":{""properties"":{""test"":{""type"":""object"",""properties"":{""navn"":{""type"":""string""}}}},""type"":""object""}},""definitions"":{}, ""required"": [""melding""]}";
-            var modelName = "test";
-
+            
             JsonSchema jsonSchema = await ParseJsonSchema(jsonSchemaString);
             ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
             string classes = GenerateCSharpClasses(modelMetadata);
@@ -161,8 +161,10 @@ namespace Designer.Tests.Factories.ModelFactory
             Assembly expectedAssembly = CompileToAssembly(expectedClasses);
             Type expectedType = expectedAssembly.GetType(modelName);
             var expectedModelInstance = expectedAssembly.CreateInstance(expectedType.FullName);
+            expectedType.HasSameMetadataDefinitionAs(type);
 
-            expectedModelInstance.Should().Equals(modelInstance);
+            modelInstance.Should().BeEquivalentTo(expectedModelInstance);
+            type.Should().BeDecoratedWith<XmlRootAttribute>();            
         }
 
         private static async Task<JsonSchema> ParseJsonSchema(string jsonSchemaString)
