@@ -10,6 +10,7 @@ import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, 
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
+import { RestrictionField } from './RestrictionField';
 
 const useStyles = makeStyles(
   createStyles({
@@ -154,12 +155,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddFieldClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const onAddRestrictionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
     dispatch(addField({
       path,
-      key: 'key',
+      key: '',
       value: '',
     }));
   };
@@ -249,20 +250,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (field.key.startsWith('@')) {
       return null;
     }
-
-    return <InputField
-      key={`field-${field.key}`}
-      isRef={field.key === '$ref'}
-      language={props.language}
-      value={field.value}
-      label={field.key}
-      readOnly={readOnly}
-      fullPath={item.id}
-      onChangeValue={onChangeValue}
-      onChangeRef={onChangeRef}
-      onChangeKey={onChangeKey}
-      onDeleteField={onDeleteFieldClick}
-    />;
+    return (
+      <RestrictionField
+        language={props.language}
+        type={itemToDisplay?.type}
+        value={field.value}
+        keyName={field.key}
+        readOnly={readOnly}
+        path={item.id}
+        onChangeValue={onChangeValue}
+        onChangeKey={onChangeKey}
+        onDeleteField={onDeleteFieldClick}
+      />);
   });
 
   const handleTabChange = (event: any, newValue: string) => {
@@ -386,7 +385,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <IconButton
             id='add-property-button'
             aria-label='Add property'
-            onClick={onAddFieldClick}
+            onClick={onAddRestrictionClick}
           ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
           </IconButton>
         </TabPanel>

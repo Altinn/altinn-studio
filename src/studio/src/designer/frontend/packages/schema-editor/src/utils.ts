@@ -212,3 +212,14 @@ export const getTranslation = (key: string, language: ILanguage) => {
 const getNestedObject = (nestedObj: any, pathArr: string[]) => {
   return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
 };
+
+const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
+const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];
+const objectRestrictions = ['minProperties', 'maxProperties'];
+const restrictionMap = new Map([
+  ['string', stringRestrictions],
+  ['integer', integerRestrictions],
+  ['number', integerRestrictions],
+  ['object', objectRestrictions],
+]);
+export const getRestrictions = (type: string) => restrictionMap.get(type);
