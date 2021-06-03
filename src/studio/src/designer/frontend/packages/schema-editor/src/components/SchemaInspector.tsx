@@ -23,6 +23,9 @@ const useStyles = makeStyles(
       background: 'white',
       zIndex: 2,
       position: 'fixed',
+      '& .MuiAutocomplete-input': {
+        width: 150,
+      },
     },
     label: {
       background: 'white',

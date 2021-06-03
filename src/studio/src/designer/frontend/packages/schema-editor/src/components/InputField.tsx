@@ -16,8 +16,6 @@ const useStyles = (readonly?: boolean) => makeStyles({
     boxSsizing: 'border-box',
     padding: 4,
     margin: 12,
-    minWidth: 150,
-    maxWidth: 200,
     '&.Mui-disabled': {
       background: '#f4f4f4',
       color: 'black',
@@ -34,8 +32,8 @@ const useStyles = (readonly?: boolean) => makeStyles({
   container: {
     display: 'flex',
     flexDirection: 'row',
-    '& >.MuiFormControl-root': {
-      width: 200,
+    '& >.MuiAutocomplete-input': {
+      width: 150,
     },
   },
   delete: {

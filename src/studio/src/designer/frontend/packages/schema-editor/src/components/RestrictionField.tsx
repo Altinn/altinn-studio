@@ -38,8 +38,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
       boxSsizing: 'border-box',
       padding: 4,
       margin: 12,
-      minWidth: 150,
-      maxWidth: 200,
+      width: 150,
       '&.Mui-disabled': {
         background: '#f4f4f4',
         color: 'black',
