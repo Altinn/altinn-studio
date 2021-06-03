@@ -135,6 +135,8 @@ export default function (data) {
   success = check(res, {
     'E2E App Instance is archived': (r) => JSON.parse(r.body).status.archived != null,
     'E2E Receipt pdf is generated': (r) => isReceiptPdfGenerated == true,
+    'E2E Presentation text is updated': (r) => r.json('presentationTexts.nummer') == '98274',
+    'E2E Data value is updated': (r) => r.json('dataValues.nummer2') == '98274',
   });
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
 }
