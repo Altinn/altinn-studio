@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -96,7 +97,7 @@ namespace Designer.Tests.Factories.ModelFactory
             var org = "yabbin";
             var app = "hvem-er-hvem";
                         
-            JsonSchema jsonSchema = TestDataHelper.LoadTestDataAsJsonSchema(resourceName);
+            JsonSchema jsonSchema = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema(resourceName);
             ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
             string classes = GenerateCSharpClasses(modelMetadata);
 
@@ -134,7 +135,41 @@ namespace Designer.Tests.Factories.ModelFactory
 
             // Do a deep compare, property by property, value by value
             jsonObj.Should().Equals(xmlObj);
+        }
 
+        [Theory]
+        [InlineData("Designer.Tests._TestData.Model.Xsd.or-melding-2-12186.xsd", "Altinn.App.Models.Skjema", "Designer.Tests._TestData.Model.JsonSchema.or-melding-2-12186.expected.schema.json", "Designer.Tests._TestData.Model.CSharp.or-melding-2-12186.expected.csharp.txt")]
+        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Designer.Tests._TestData.Model.JsonSchema.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.schema.json", "Designer.Tests._TestData.Model.CSharp.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.csharp.txt")]
+        public void SeresOrXmlSchema_ShouldSerializeToCSharp(string xsdResource, string modelName, string expectedJsonSchemaResource, string expectedCSharpResource)
+        {
+            var org = "yabbin";
+            var app = "hvem-er-hvem";
+
+            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
+            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+
+            // Compare generated JSON Schema
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
+            JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            var expectedJsonSchema = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema(expectedJsonSchemaResource);
+
+            expectedJsonSchema.Should().Equals(jsonSchema);
+
+            // Compare generated C# classes
+            ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
+
+            string classes = GenerateCSharpClasses(modelMetadata);
+            Assembly assembly = CompileToAssembly(classes);
+            Type type = assembly.GetType(modelName);
+            var modelInstance = assembly.CreateInstance(type.FullName);
+
+            string expectedClasses = TestDataHelper.LoadDataFromEmbeddedResourceAsString(expectedCSharpResource);
+            Assembly expectedAssembly = CompileToAssembly(expectedClasses);
+            Type expectedType = expectedAssembly.GetType(modelName);
+            var expectedModelInstance = expectedAssembly.CreateInstance(expectedType.FullName);
+
+            expectedModelInstance.Should().Equals(modelInstance);
         }
 
         private static async Task<JsonSchema> ParseJsonSchema(string jsonSchemaString)
