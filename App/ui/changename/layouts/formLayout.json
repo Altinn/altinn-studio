@@ -117,44 +117,7 @@
         "dataModelBindings": {
           "simpleBinding": "Radioknapp"
         },
-        "options": [
-          {
-            "label": "Slektskap",
-            "value": "1"
-          },
-          {
-            "label": "Adoptivforelders etternavn eller mellomnavn",
-            "value": "2"
-          },
-          {
-            "label": "Ste- eller fosterforeldres etternavn eller mellomnavn",
-            "value": "3"
-          },
-          {
-            "label": "Ektefelles etternavn eller mellomnavn",
-            "value": "4"
-          },
-          {
-            "label": "Samboers etternavn eller mellomnavn",
-            "value": "5"
-          },
-          {
-            "label": "Tidligere etternavn eller mellomnavn",
-            "value": "6"
-          },
-          {
-            "label": "Gårdsbruk",
-            "value": "7"
-          },
-          {
-            "label": "Jeg tror navnet er nytt i Norge",
-            "value": "8"
-          },
-          {
-            "label": "Annen begrunnelse ",
-            "value": "9"
-          }
-        ],
+        "optionsId": "reasons",        
         "required": true,
         "readOnly": false,
         "preselectedOptionIndex": 0

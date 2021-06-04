@@ -23,7 +23,7 @@
       {
         "id": "mainGroup",
         "type": "Group",
-        "children": ["currentValue", "newValue", "subGroup"],
+        "children": ["0:currentValue", "0:newValue", "1:subGroup"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -31,7 +31,19 @@
         "textResourceBindings": {
           "title": "Group titel"
         },
-        "triggers": ["validation"]
+        "triggers": ["validation"],
+        "edit": {
+          "mode": "showTable",
+          "saveButton": true,
+          "deleteButton": true,
+          "multiPage": true,
+          "filter": [
+            {
+              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
+              "value": "555"
+            }
+          ]
+        }
       },
       {
         "id": "currentValue",
@@ -52,7 +64,7 @@
           "number": {
             "thousandSeparator": " ",
             "prefix": "NOK ",
-            "allowNegative": false           
+            "allowNegative": false
           }
         }
       },
@@ -74,7 +86,7 @@
           "number": {
             "thousandSeparator": " ",
             "prefix": "NOK ",
-            "allowNegative": false           
+            "allowNegative": false
           }
         }
       },
