@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Altinn.App.AppLogic.Calculation;
 using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;

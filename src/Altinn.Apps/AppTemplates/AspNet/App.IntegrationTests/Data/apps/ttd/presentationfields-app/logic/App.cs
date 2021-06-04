@@ -1,9 +1,6 @@
 using System;
 using System.Threading.Tasks;
 
-using Altinn.App.AppLogic.Calculation;
-using Altinn.App.AppLogic.Print;
-using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Interface;

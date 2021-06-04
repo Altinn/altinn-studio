@@ -98,6 +98,22 @@ namespace Altinn.App.Services.Interface
         Task<bool> RunCalculation(object data);
 
         /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data);
+
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is written to app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        Task<bool> RunProcessDataWrite(Instance instance, Guid? dataId, object data);
+
+        /// <summary>
         /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
         /// <returns>Task with validation results</returns>

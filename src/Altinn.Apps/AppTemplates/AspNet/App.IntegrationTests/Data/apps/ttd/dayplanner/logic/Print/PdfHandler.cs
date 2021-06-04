@@ -6,7 +6,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
     /// <summary>
     /// Handler for formatting PDF. 
     /// </summary>
-    public static class PdfHandler
+    public class PdfHandler
     {
         /// <summary>
         /// Method to format PDF dynamic
@@ -20,7 +20,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// </example>
         /// <param name="layoutSettings">the layoutsettings</param>
         /// <param name="data">data object</param>
-        public static async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        public async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
             return await Task.FromResult(layoutSettings);
         }

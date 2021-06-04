@@ -10,8 +10,19 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
     /// <summary>
     /// Represents a business logic class responsible for running validation at different steps of a process.
     /// </summary>
-    public static class ValidationHandler
+    public class ValidationHandler
     {
+        private IHttpContextAccessor _httpContextAccessor;
+
+        /// <summary>
+        /// Initialize a new instance of the <see cref="ValidationHandler"/> class with access to the Http Context.
+        /// </summary>
+        /// <param name="httpContextAccessor">An http context accessor.</param>
+        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
         /// <summary>
         /// Handles all custom validations that are not covered by the data model validation.
         /// </summary>
@@ -34,7 +45,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         ///     }
         /// }
         /// </example>
-        public static async Task ValidateData(object data, ModelStateDictionary validationResults)
+        public async Task ValidateData(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
         }
@@ -59,7 +70,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         ///     }
         ///   }
         /// </example>
-        public static async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
         }

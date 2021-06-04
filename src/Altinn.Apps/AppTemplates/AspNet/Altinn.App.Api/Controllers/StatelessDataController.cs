@@ -176,8 +176,6 @@ namespace Altinn.App.Api.Controllers
                 return Forbidden(enforcementResult);
             }
 
-            _altinnAppContext.SetContext(new AltinnAppContext() { PartyId = partyId.Value });
-
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
@@ -188,8 +186,9 @@ namespace Altinn.App.Api.Controllers
 
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
-            
-            await _altinnApp.RunCalculation(appModel);
+
+            Instance virutalInstance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = partyId.ToString() } };
+            await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);
 
             return Ok(appModel);
         }

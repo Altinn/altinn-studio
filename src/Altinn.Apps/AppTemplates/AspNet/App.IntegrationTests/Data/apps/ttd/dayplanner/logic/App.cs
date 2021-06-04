@@ -1,12 +1,7 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.App.AppLogic.Calculation;
-using Altinn.App.AppLogic.Print;
-using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -25,7 +20,10 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
-        private readonly IAltinnAppContextAccessor _altinnAppContext;
+        private readonly ValidationHandler _validationHandler;
+        private readonly InstantiationHandler _instantiationHandler;
+        private readonly PdfHandler _pdfHandler;
+        private readonly DataProcessingHandler _dataProcessingHandler;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -41,7 +39,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <param name="instanceService">A service with access to instances</param>
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
-        /// <param name="altinnAppContext">The app context service</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
@@ -55,7 +52,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
             IText textService,
-            IAltinnAppContextAccessor altinnAppContext,
             IHttpContextAccessor httpContextAccessor) : base(
                 appResourcesService,
                 logger,
@@ -71,24 +67,27 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
                 httpContextAccessor)
         {
             _logger = logger;
-            _altinnAppContext = altinnAppContext;
+            _validationHandler = new ValidationHandler(httpContextAccessor);
+            _dataProcessingHandler = new DataProcessingHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _pdfHandler = new PdfHandler();
         }
 
         /// <inheritdoc />
-        public override object CreateNewAppModel(string dataType)
+        public override object CreateNewAppModel(string classRef)
         {
-            _logger.LogInformation($"CreateNewAppModel {dataType}");
+            _logger.LogInformation($"CreateNewAppModel {classRef}");
 
-            Type appType = Type.GetType(dataType);
+            Type appType = Type.GetType(classRef);
             return Activator.CreateInstance(appType);
         }
 
         /// <inheritdoc />
-        public override Type GetAppModelType(string dataType)
+        public override Type GetAppModelType(string classRef)
         {
-            _logger.LogInformation($"GetAppModelType {dataType}");
+            _logger.LogInformation($"GetAppModelType {classRef}");
 
-            return Type.GetType(dataType);
+            return Type.GetType(classRef);
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-           await ValidationHandler.ValidateData(data, validationResults);
+            await _validationHandler.ValidateData(data, validationResults);
         }
 
         /// <summary>
@@ -126,16 +125,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <returns>A task supporting the async await pattern.</returns>
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-            await ValidationHandler.ValidateTask(instance, taskId, validationResults);
-        }
-
-        /// <summary>
-        /// Is called to run custom calculation events defined by app developer.
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object data)
-        {
-            return await CalculationHandler.Calculate(data, _altinnAppContext);
+            await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>
@@ -144,7 +134,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <returns>Task with validation results</returns>
         public override async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return await InstantiationHandler.RunInstantiationValidation(instance);
+            return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
@@ -154,7 +144,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <param name="data">The data object being created</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-           await InstantiationHandler.DataCreation(instance, data);
+            await _instantiationHandler.DataCreation(instance, data);
         }
 
         /// <inheritdoc />
@@ -182,7 +172,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <returns>Layoutsetting with possible hidden fields or pages</returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
-            return await PdfHandler.FormatPdf(layoutSettings, data);
+            return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }
