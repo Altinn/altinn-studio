@@ -115,8 +115,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return Forbidden(enforcementResult);
             }
-
-            _altinnAppContext.SetContext(new AltinnAppContext() { PartyId = partyId.Value });
         
             object appModel = _altinnApp.CreateNewAppModel(classRef);
    
