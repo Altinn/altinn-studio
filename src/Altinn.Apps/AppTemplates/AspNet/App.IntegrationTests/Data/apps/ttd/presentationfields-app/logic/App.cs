@@ -104,6 +104,17 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         }
 
         /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
+        {
+            return await CalculationHandler.Calculate(data);
+        }
+
+        /// <summary>
         /// Run data validation event to perform custom validations on data
         /// </summary>
         /// <param name="data">An instance of the data to be validated.</param>
@@ -132,7 +143,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunCalculation(object data)
         {
-            return await CalculationHandler.Calculate(data, _altinnAppContext);
+            return await CalculationHandler.Calculate(data);
         }
 
         /// <summary>
