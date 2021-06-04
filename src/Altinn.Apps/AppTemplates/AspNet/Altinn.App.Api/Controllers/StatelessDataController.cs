@@ -122,8 +122,9 @@ namespace Altinn.App.Api.Controllers
    
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
-         
-            await _altinnApp.RunCalculation(appModel);
+
+            Instance virutalInstance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = partyId.ToString() } };
+            await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);
 
             return Ok(appModel);
         }
