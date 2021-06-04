@@ -22,7 +22,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// }
         /// </example>
         /// <param name="instance">The data</param>
-        /// <param name="altinnAppContext">The context</param>
         public static async Task<bool> Calculate(object instance)
         {
             bool changed = false;
