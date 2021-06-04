@@ -5,14 +5,18 @@
   <artifactId>Altinn.Platform.PDF</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
+  <properties>
+    <build.source>16</build.source>
+    <build.target>16</build.target>
+  </properties>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>16</source>
-          <target>16</target>
+          <source>${build.source}</source>
+          <target>${build.target}</target>
           <skipTestScope>true</skipTestScope>
         </configuration>
       </plugin>
