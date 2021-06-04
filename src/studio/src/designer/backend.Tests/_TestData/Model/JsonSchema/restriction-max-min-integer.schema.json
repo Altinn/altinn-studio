@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "RestrictedIntegersTests": {
+      "$ref": "#/definitions/RestrictedIntegersTests"
+    }
+  },
+  "definitions": {
+    "RestrictedIntegersTests": {
+      "properties": {
+        "RestrictedInteger0IncTo999Incl": {
+          "$ref": "#/definitions/RestrictedInteger0IncTo999Incl"
+        },
+        "RestrictedInteger1IncTo999Incl": {
+          "$ref": "#/definitions/RestrictedInteger1IncTo999Incl"
+        },
+        "RestrictedIntegerNegative1IncToMax": {
+          "$ref": "#/definitions/RestrictedIntegerNegative1IncToMax"
+        },
+        "RestrictedInteger0IncToMax": {
+          "$ref": "#/definitions/RestrictedInteger0IncToMax"
+        },
+        "RestrictedInteger1IncToMax": {
+          "$ref": "#/definitions/RestrictedInteger1IncToMax"
+        }
+      },
+      "required": [
+        "RestrictedInteger0IncTo999Incl",
+        "RestrictedInteger1IncTo999Incl",
+        "RestrictedIntegerNegative1IncToMax",
+        "RestrictedInteger0IncToMax",
+        "RestrictedInteger1IncToMax"
+      ]
+    },
+    "RestrictedInteger0IncTo999Incl": {
+      "minimum": 0,
+      "maximum": 999,
+      "type": "integer"
+    },
+    "RestrictedInteger1IncTo999Incl": {
+      "minimum": 1,
+      "maximum": 999,
+      "type": "integer"
+    },
+    "RestrictedIntegerNegative1IncToMax": {
+      "minimum": -1,
+      "type": "integer"
+    },
+    "RestrictedInteger0IncToMax": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "RestrictedInteger1IncToMax": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  }
+}
