@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner;
@@ -24,7 +25,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
-        public async Task<bool> ProcessDataRead(Instance instance, string dataId, object data)
+        public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
         {
             bool changed = false;
             if (data.GetType() == typeof(MyDay))
@@ -51,7 +52,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
-        public async Task<bool> ProcessDataWrite(Instance instance, string dataId, object data)
+        public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
         {
             return await Task.FromResult(false);
         }
