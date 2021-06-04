@@ -89,7 +89,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
     cy.get(appFrontend.group.currentValue).type('1337').blur();
     // CalculationHandler.cs for frontend-test changes 1337 to 1338.
-    cy.get(appFrontend.group.currentValue).should('have.value', '1338');
+    cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
     // Deletes value from group
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)

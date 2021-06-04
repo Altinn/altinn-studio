@@ -130,6 +130,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const readOnly = selectedItem?.$ref !== undefined;
 
+  React.useEffect(() => {
+    setNodeName(selectedItem?.displayName);
+  }, [selectedItem]);
+
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
   const [tabIndex, setTabIndex] = React.useState('0');

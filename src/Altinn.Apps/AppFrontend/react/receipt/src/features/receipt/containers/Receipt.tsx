@@ -16,8 +16,6 @@ const theme = createMuiTheme(AltinnReceiptTheme);
 
 const styles = () => createStyles({
   body: {
-    paddingLeft: '96px !important',
-    paddingRight: '96px !important',
     '@media only print': {
       paddingLeft: '48px !important',
     },

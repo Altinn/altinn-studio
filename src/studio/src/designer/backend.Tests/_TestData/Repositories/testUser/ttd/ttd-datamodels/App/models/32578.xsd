@@ -1,168 +1,174 @@
-<?xml version="1.0"?>
-<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema targetNamespace="http://seres.no/xsd/Sjøfartsdirektoratet/AnsettelseFratredelse_M/2012" elementFormDefault="qualified" attributeFormDefault="unqualified"
+  xmlns="http://seres.no/xsd/Sjøfartsdirektoratet/AnsettelseFratredelse_M/2012"
+  xmlns:seres="http://seres.no/xsd/forvaltningsdata"
+  xmlns:kodebib="http://kodebibliotek.brreg.no/xsd/kodebibliotek"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://seres.no/xsd/forvaltningsdata" schemaLocation="seres.xsd" />
+  <xsd:import namespace="http://kodebibliotek.brreg.no/xsd/kodebibliotek" schemaLocation="kodebibliotek.xsd" />
   <xsd:element name="melding" type="AnsettelseFratredelse_M" />
-  <xsd:complexType seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsmodell/AnsettelseFratredelse_M/478006" name="AnsettelseFratredelse_M">
+  <xsd:complexType name="AnsettelseFratredelse_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsmodell/AnsettelseFratredelse_M/478006">
     <xsd:sequence>
       <xsd:element name="Rapportørdata" type="Rapportørdata" />
       <xsd:element name="InnrapporterteData" type="InnrapporterteData" />
     </xsd:sequence>
-    <xsd:attribute fixed="SERES" name="dataFormatProvider" type="xsd:string" use="required" />
-    <xsd:attribute fixed="3478" name="dataFormatId" type="xsd:string" use="required" />
-    <xsd:attribute fixed="32578" name="dataFormatVersion" type="xsd:string" use="required" />
-    <xsd:anyAttribute namespace="##targetNamespace" />
+    <xsd:attribute ref="seres:dataFormatProvider" fixed="SERES" use="required" />
+    <xsd:attribute ref="seres:dataFormatId" fixed="3478" use="required" />
+    <xsd:attribute ref="seres:dataFormatVersion" fixed="32578" use="required" />
+    <xsd:anyAttribute />
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsdel/Rapportoerdata/478000" name="Rapportørdata">
+  <xsd:complexType name="Rapportørdata" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsdel/Rapportoerdata/478000">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/innsender/484586" seres:elementtype="Relasjonsegenskap" minOccurs="0" name="innsender" nillable="true" type="Innsender" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/rapportererFor/484585" seres:elementtype="Relasjonsegenskap" minOccurs="0" name="rapportererFor" nillable="true" type="RapportererFor" />
+      <xsd:element name="innsender" minOccurs="0" nillable="true" type="Innsender" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/innsender/484586" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="rapportererFor" minOccurs="0" nillable="true" type="RapportererFor" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/rapportererFor/484585" seres:elementtype="Relasjonsegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Innsender/484480" name="Innsender">
+  <xsd:complexType name="Innsender" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Innsender/484480">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsnummer/484479" seres:elementtype="Dataegenskap" minOccurs="0" name="fødselsnummer" nillable="true" type="Tekst" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/navn/484478" seres:elementtype="Dataegenskap" minOccurs="0" name="navn" nillable="true" type="Personnavn" />
+      <xsd:element name="fødselsnummer" minOccurs="0" nillable="true" type="Tekst" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsnummer/484479" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navn" minOccurs="0" nillable="true" type="Personnavn" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/navn/484478" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Tekst/477797" name="Tekst">
+  <xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Tekst/477797">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Personnavn/477796" seres:elementtype="Datakomplekstype" name="Personnavn">
+  <xsd:complexType name="Personnavn" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Personnavn/477796" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/fornavn/477795" name="fornavn" type="Tekst" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/etternavn/477794" name="etternavn" type="Tekst" />
+      <xsd:element name="fornavn" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/fornavn/477795" />
+      <xsd:element name="etternavn" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/etternavn/477794" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/RapportererFor/484477" name="RapportererFor">
+  <xsd:complexType name="RapportererFor" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/RapportererFor/484477">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsadresse/484476" seres:elementtype="Dataegenskap" minOccurs="0" name="organisasjonsadresse" nillable="true" type="Adresse" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsnavn/484475" seres:elementtype="Dataegenskap" name="organisasjonsnavn" type="Navn" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsnummer/484474" seres:elementtype="Dataegenskap" name="organisasjonsnummer" type="Organisasjonsnummer" />
+      <xsd:element name="organisasjonsadresse" minOccurs="0" nillable="true" type="Adresse" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsadresse/484476" seres:elementtype="Dataegenskap" />
+      <xsd:element name="organisasjonsnavn" type="Navn" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsnavn/484475" seres:elementtype="Dataegenskap" />
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/organisasjonsnummer/484474" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Adresse/477803" seres:elementtype="Datakomplekstype" name="Adresse">
+  <xsd:complexType name="Adresse" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Adresse/477803" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/adresselinje1/477802" minOccurs="0" name="adresselinje1" nillable="true" type="Tekst" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/postnummer/477801" name="postnummer" type="Postnummer" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/poststed/477800" name="poststed" type="Poststed" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/adresselinje2/477799" minOccurs="0" name="adresselinje2" nillable="true" type="Tekst" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/land/477798" minOccurs="0" name="land" nillable="true" type="KodeverkElement" />
+      <xsd:element name="adresselinje1" type="Tekst" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/adresselinje1/477802" />
+      <xsd:element name="postnummer" type="Postnummer" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/postnummer/477801" />
+      <xsd:element name="poststed" type="Poststed" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/poststed/477800" />
+      <xsd:element name="adresselinje2" type="Tekst" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/adresselinje2/477799" />
+      <xsd:element name="land" type="KodeverkElement" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/land/477798" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Postnummer/477812" name="Postnummer">
+  <xsd:simpleType name="Postnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Postnummer/477812">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Poststed/477805" name="Poststed">
+  <xsd:simpleType name="Poststed" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Poststed/477805">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/KodeverkElement/478238" seres:elementtype="Datakomplekstype" name="KodeverkElement">
+  <xsd:complexType name="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/KodeverkElement/478238" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/id/478237" name="id" type="Tekst" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/kode/478236" name="kode" type="Tekst" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/beskrivelse/478235" name="beskrivelse" type="Tekst" />
+      <xsd:element name="id" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/id/478237" />
+      <xsd:element name="kode" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/kode/478236" />
+      <xsd:element name="beskrivelse" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/beskrivelse/478235" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Navn/477811" name="Navn">
+  <xsd:simpleType name="Navn" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Navn/477811">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Organisasjonsnummer/477810" name="Organisasjonsnummer">
+  <xsd:simpleType name="Organisasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Organisasjonsnummer/477810">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>
-  <xsd:complexType seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsdel/InnrapporterteData/477999" name="InnrapporterteData">
+  <xsd:complexType name="InnrapporterteData" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Meldingsdel/InnrapporterteData/477999">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforholdListe/484584" seres:elementtype="Relasjonsegenskap" name="ansettelsesforholdListe" type="AnsettelsesforholdListe" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/skjema/484583" seres:elementtype="Relasjonsegenskap" minOccurs="0" name="skjema" nillable="true" type="Skjema" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/skjemavariable/484582" seres:elementtype="Relasjonsegenskap" minOccurs="0" name="skjemavariable" nillable="true" type="Skjemavariable" />
+      <xsd:element name="ansettelsesforholdListe" type="AnsettelsesforholdListe" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforholdListe/484584" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="skjema" minOccurs="0" nillable="true" type="Skjema" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/skjema/484583" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="skjemavariable" minOccurs="0" nillable="true" type="Skjemavariable" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/skjemavariable/484582" seres:elementtype="Relasjonsegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/AnsettelsesforholdListe/484574" name="AnsettelsesforholdListe">
+  <xsd:complexType name="AnsettelsesforholdListe" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/AnsettelsesforholdListe/484574">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforhold/484573" seres:elementtype="Relasjonsegenskap" minOccurs="0" maxOccurs="unbounded" name="ansettelsesforhold" nillable="true" type="Ansettelsesforhold" />
+      <xsd:element name="ansettelsesforhold" minOccurs="0" nillable="true" maxOccurs="unbounded" type="Ansettelsesforhold" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforhold/484573" seres:elementtype="Relasjonsegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Ansettelsesforhold/484581" name="Ansettelsesforhold">
+  <xsd:complexType name="Ansettelsesforhold" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Ansettelsesforhold/484581">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansatt/484580" seres:elementtype="Relasjonsegenskap" name="ansatt" type="Person" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/periode/484579" seres:elementtype="Dataegenskap" minOccurs="0" name="periode" nillable="true" type="Periode" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjennskapTilEngelskSpråk/484578" seres:elementtype="Dataegenskap" name="kjennskapTilEngelskSpråk" type="KodeverkElement" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjennskapTilRegelverk/484577" seres:elementtype="Dataegenskap" name="kjennskapTilRegelverk" type="KodeverkElement" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/stilling/484576" seres:elementtype="Dataegenskap" minOccurs="0" name="stilling" nillable="true" type="KodeverkElement" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/tempId/484575" seres:elementtype="Dataegenskap" name="tempId" type="Identifikasjonsnummer" />
+      <xsd:element name="ansatt" type="Person" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansatt/484580" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="periode" minOccurs="0" nillable="true" type="Periode" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/periode/484579" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjennskapTilEngelskSpråk" type="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjennskapTilEngelskSpråk/484578" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjennskapTilRegelverk" type="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjennskapTilRegelverk/484577" seres:elementtype="Dataegenskap" />
+      <xsd:element name="stilling" minOccurs="0" nillable="true" type="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/stilling/484576" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tempId" type="Identifikasjonsnummer" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/tempId/484575" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Person/484531" name="Person">
+  <xsd:complexType name="Person" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Person/484531">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/adresse/484530" seres:elementtype="Dataegenskap" minOccurs="0" name="adresse" nillable="true" type="Adresse" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsdato/484529" seres:elementtype="Dataegenskap" minOccurs="0" name="fødselsdato" nillable="true" type="Dato" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsnummer/484528" seres:elementtype="Dataegenskap" minOccurs="0" name="fødselsnummer" nillable="true" type="Fødselsnummer" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjønn/484527" seres:elementtype="Dataegenskap" minOccurs="0" name="kjønn" nillable="true" type="KodeverkElement" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/navn/484526" seres:elementtype="Dataegenskap" name="navn" type="Personnavn" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/statsborgerskap/484525" seres:elementtype="Dataegenskap" name="statsborgerskap" type="KodeverkElement" />
+      <xsd:element name="adresse" minOccurs="0" nillable="true" type="Adresse" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/adresse/484530" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fødselsdato" minOccurs="0" nillable="true" type="Dato" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsdato/484529" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fødselsnummer" minOccurs="0" nillable="true" type="Fødselsnummer" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/fødselsnummer/484528" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjønn" minOccurs="0" nillable="true" type="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/kjønn/484527" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navn" type="Personnavn" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/navn/484526" seres:elementtype="Dataegenskap" />
+      <xsd:element name="statsborgerskap" type="KodeverkElement" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/statsborgerskap/484525" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Dato/477804" name="Dato">
+  <xsd:simpleType name="Dato" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Dato/477804">
     <xsd:restriction base="xsd:dateTime" />
   </xsd:simpleType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Fødselsnummer/477807" name="Fødselsnummer">
+  <xsd:simpleType name="Fødselsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Fødselsnummer/477807">
     <xsd:restriction base="xsd:string">
       <xsd:length value="11" />
     </xsd:restriction>
   </xsd:simpleType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Periode/477921" seres:elementtype="Datakomplekstype" name="Periode">
+  <xsd:complexType name="Periode" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/Periode/477921" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/fraDato/477920" minOccurs="0" name="fraDato" nillable="true" type="Dato" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/tilDato/477919" minOccurs="0" name="tilDato" nillable="true" type="Dato" />
+      <xsd:element name="fraDato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/fraDato/477920" />
+      <xsd:element name="tilDato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/tilDato/477919" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Identifikasjonsnummer/480343" name="Identifikasjonsnummer">
+  <xsd:simpleType name="Identifikasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Identifikasjonsnummer/480343">
     <xsd:restriction base="xsd:integer" />
   </xsd:simpleType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Skjema/484469" name="Skjema">
+  <xsd:complexType name="Skjema" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Skjema/484469">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/skjemaErLastet/484468" seres:elementtype="Dataegenskap" name="skjemaErLastet" type="Bolsk" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/språkkode/484467" seres:elementtype="Dataegenskap" name="språkkode" type="Språkkode" />
+      <xsd:element name="skjemaErLastet" type="Bolsk" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/skjemaErLastet/484468" seres:elementtype="Dataegenskap" />
+      <xsd:element name="språkkode" type="Språkkode" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/språkkode/484467" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakodeutvalg/Bolsk/477770" name="Bolsk">
+  <xsd:simpleType name="Bolsk" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakodeutvalg/Bolsk/477770">
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="true" />
       <xsd:enumeration value="false" />
     </xsd:restriction>
   </xsd:simpleType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Språkkode/484470" name="Språkkode">
+  <xsd:simpleType name="Språkkode" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Språkkode/484470">
     <xsd:restriction base="xsd:integer" />
   </xsd:simpleType>
-  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Skjemavariable/484572" name="Skjemavariable">
+  <xsd:complexType name="Skjemavariable" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataobjekttype/Skjemavariable/484572">
     <xsd:sequence>
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforhold/484571" seres:elementtype="Relasjonsegenskap" name="ansettelsesforhold" type="Ansettelsesforhold" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/feilmelding/484570" seres:elementtype="Dataegenskap" name="feilmelding" type="Tekst" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/feilmeldingVedlegg/484569" seres:elementtype="Dataegenskap" name="feilmeldingVedlegg" type="Tekst" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/låsInntastingsfelt/484568" seres:elementtype="Dataegenskap" name="låsInntastingsfelt" type="Bolsk" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/sjømannSøk/484567" seres:elementtype="Dataegenskap" name="sjømannSøk" type="SjømannSøk" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/tempIdIterator/484566" seres:elementtype="Dataegenskap" name="tempIdIterator" type="Tall" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/valgtTempId/484565" seres:elementtype="Dataegenskap" name="valgtTempId" type="Tall" />
-      <xsd:element seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/vedleggId/484564" seres:elementtype="Dataegenskap" minOccurs="0" name="vedleggId" nillable="true" type="Tall" />
+      <xsd:element name="ansettelsesforhold" type="Ansettelsesforhold" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Relasjonsegenskap/ansettelsesforhold/484571" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="feilmelding" type="Tekst" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/feilmelding/484570" seres:elementtype="Dataegenskap" />
+      <xsd:element name="feilmeldingVedlegg" type="Tekst" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/feilmeldingVedlegg/484569" seres:elementtype="Dataegenskap" />
+      <xsd:element name="låsInntastingsfelt" type="Bolsk" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/låsInntastingsfelt/484568" seres:elementtype="Dataegenskap" />
+      <xsd:element name="sjømannSøk" type="SjømannSøk" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/sjømannSøk/484567" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tempIdIterator" type="Tall" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/tempIdIterator/484566" seres:elementtype="Dataegenskap" />
+      <xsd:element name="valgtTempId" type="Tall" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/valgtTempId/484565" seres:elementtype="Dataegenskap" />
+      <xsd:element name="vedleggId" minOccurs="0" nillable="true" type="Tall" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataegenskap/vedleggId/484564" seres:elementtype="Dataegenskap" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoek/477954" seres:elementtype="Datakomplekstype" name="SjømannSøk">
+  <xsd:complexType name="SjømannSøk" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoek/477954" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/soekPaaFoedselsnummer/477953" minOccurs="0" name="søkPåFødselsnummer" nillable="true" type="SjømannSøkFødselsnummer" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/soekPaaFoedselsdato/477952" minOccurs="0" name="søkPåFødselsdato" nillable="true" type="SjømannSøkFødselsdato" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/valgtSoekemetode/478047" name="valgtSøkemetode" type="Tekst" />
+      <xsd:element name="søkPåFødselsnummer" type="SjømannSøkFødselsnummer" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/soekPaaFoedselsnummer/477953" />
+      <xsd:element name="søkPåFødselsdato" type="SjømannSøkFødselsdato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/soekPaaFoedselsdato/477952" />
+      <xsd:element name="valgtSøkemetode" type="Tekst" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/valgtSoekemetode/478047" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoekFoedselsnummer/477950" seres:elementtype="Datakomplekstype" name="SjømannSøkFødselsnummer">
+  <xsd:complexType name="SjømannSøkFødselsnummer" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoekFoedselsnummer/477950" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/Foedselsnummer/477949" minOccurs="0" name="fødselsnummer" nillable="true" type="Fødselsnummer" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/navn/477948" minOccurs="0" name="navn" nillable="true" type="Personnavn" />
+      <xsd:element name="fødselsnummer" type="Fødselsnummer" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/Foedselsnummer/477949" />
+      <xsd:element name="navn" type="Personnavn" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/navn/477948" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoekFoedselsdato/477947" seres:elementtype="Datakomplekstype" name="SjømannSøkFødselsdato">
+  <xsd:complexType name="SjømannSøkFødselsdato" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Datakomplekstype/SjoemannSoekFoedselsdato/477947" seres:elementtype="Datakomplekstype">
     <xsd:sequence>
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/foedselsdato/477946" minOccurs="0" name="fødselsdato" nillable="true" type="Dato" />
-      <xsd:element seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/navn/477945" minOccurs="0" name="navn" nillable="true" type="Personnavn" />
+      <xsd:element name="fødselsdato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/foedselsdato/477946" />
+      <xsd:element name="navn" type="Personnavn" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/DataTypeegenskap/navn/477945" />
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Tall/477808" name="Tall">
+  <xsd:simpleType name="Tall" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Sjøfartsdirektoratet/Dataenkeltype/Tall/477808">
     <xsd:restriction base="xsd:integer" />
   </xsd:simpleType>
 </xsd:schema>
