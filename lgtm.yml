@@ -4,7 +4,7 @@ extraction:
       maven:
         version: 4.0.0
       build_command: mvn -f ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml -Pprod package -DskipTests
-      java_version: "15"
+      java_version: "16"
   csharp:
     index:
       dotnet:
