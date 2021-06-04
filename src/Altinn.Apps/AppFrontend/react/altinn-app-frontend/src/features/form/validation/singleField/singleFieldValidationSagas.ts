@@ -34,8 +34,7 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       const serverValidation: any = yield call(get, url, options);
       const mappedValidations =
       mapDataElementValidationToRedux(serverValidation, state.formLayout.layouts, state.textResources.resources);
-      const existingValidations = JSON.parse(JSON.stringify(state.formValidations.validations));
-      const validations = mergeValidationObjects(mappedValidations, existingValidations);
+      const validations = mergeValidationObjects(state.formValidations.validations, mappedValidations);
       yield put(runSingleFieldValidationFulfilled({ validations }));
     } catch (error) {
       yield put(runSingleFieldValidationRejected({ error }));
