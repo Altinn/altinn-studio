@@ -6,9 +6,9 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, getTranslation, getUiSchemaItem } from '../utils';
+import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 
@@ -93,6 +93,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
+  const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
@@ -103,7 +104,16 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return null;
   });
-  const isRequired = false;
+
+  const parentItem = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      const parentPath = getParentPath(selectedId);
+      if (parentPath != null) {
+        return getUiSchemaItem(state.uiSchema, parentPath);
+      }
+    }
+    return null;
+  });
   const isArray = false;
 
   React.useEffect(() => {
@@ -111,7 +121,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
-  }, [selectedItem]);
+    if (selectedItem) {
+      setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
+    } else {
+      setIsRequired(false);
+    }
+  }, [selectedItem, parentItem]);
 
   const readOnly = selectedItem?.$ref !== undefined;
 
@@ -305,8 +320,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     console.log(e);
   };
 
-  const handleRequiredChanged = (e: any) => {
-    console.log(e);
+  const handleRequiredChanged = (e: any, checked: boolean) => {
+    dispatch(setRequired({
+      path: selectedId, key: selectedItem?.displayName, required: checked,
+    }));
+    setIsRequired(checked);
   };
 
   const renderItemData = () => (

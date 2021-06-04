@@ -28,6 +28,16 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
   return result;
 }
 
+export const getParentPath = (path: string): string | null => {
+  // eslint-disable-next-line no-useless-escape
+  if (path.match('[^#]\/properties')) {
+    const index = path.lastIndexOf('/properties/');
+    const parentPath = path.substring(0, index);
+    return parentPath;
+  }
+  return null;
+};
+
 export function getUiSchemaTreeFromItem(
   schema: UiSchemaItem[],
   item: UiSchemaItem,
@@ -92,6 +102,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       }
       case 'id':
       case 'displayName':
+      case 'isRequiredInParent':
         break;
       default:
         item[key] = uiSchemaItem[key];

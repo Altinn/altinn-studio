@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -182,6 +182,24 @@ const schemaEditorSlice = createSlice({
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.description = description;
     },
+    setRequired(state, action) {
+      const {
+        path, key, required,
+      } = action.payload;
+      // need to find parent object
+      const parent = getParentPath(path);
+      if (parent != null) {
+        const schemaItem = getUiSchemaItem(state.uiSchema, parent);
+        if (schemaItem.required === undefined) {
+          schemaItem.required = [];
+        }
+        if (!required) {
+          schemaItem.required = schemaItem.required.filter((k) => k !== key);
+        } else if (!schemaItem.required.includes(key)) {
+          schemaItem.required.push(key);
+        }
+      }
+    },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
       state.schema = schema;
@@ -264,6 +282,7 @@ export const {
   setTitle,
   setDescription,
   setType,
+  setRequired,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;
