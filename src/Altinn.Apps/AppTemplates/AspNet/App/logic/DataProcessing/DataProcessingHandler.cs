@@ -12,7 +12,7 @@ namespace Altinn.App.AppLogic.DataProcessing
     public class DataProcessingHandler
     {
         /// <summary>
-        /// Perform data processing on data write. When posting and putting data against app
+        /// Perform data processing on data read. When reading data from App API
         /// </summary>
         /// <example>
         /// if (instance.GetType() == typeof(Skjema)
