@@ -4,7 +4,7 @@ using System.Reflection;
 
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
+using Designer.Tests.Utils;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -19,7 +19,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_LoadSchema()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -35,7 +35,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RepeatingGroupHasCorrectDataBinding()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -63,7 +63,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RootNameCorrectlyTransferedToModelMetadata()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.RA-0678_M.schema.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.RA-0678_M.schema.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -80,21 +80,6 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal("melding", rootElement.ID);
             Assert.Equal("melding", rootElement.Name);
             Assert.Equal("RA0678_M", rootElement.TypeName);
-        }
-
-        private JsonSchema LoadTestData(string resourceName)
-        {
-            Assembly assembly = typeof(JsonSchemaToInstanceModelGeneratorTests).GetTypeInfo().Assembly;
-            using Stream resource = assembly.GetManifestResourceStream(resourceName);
-
-            if (resource == null)
-            {
-                throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
-            }
-
-            using StreamReader streamReader = new StreamReader(resource);
-            JsonValue jsonValue = JsonValue.Parse(streamReader);
-            return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
         }
     }
 }

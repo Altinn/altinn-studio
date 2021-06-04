@@ -1,18 +1,27 @@
+import { UiSchemaItem } from '../../src/types';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../src/utils';
 
-const mockUiSchema = [
-  { id: '#/id1', $ref: '#/id2' },
-  { id: '#/id2',
+const mockUiSchema: UiSchemaItem[] = [
+  {
+    id: '#/id1', displayName: 'id1', $ref: '#/id2',
+  },
+  {
+    id: '#/id2',
+    displayName: 'id2',
     properties: [
       {
-        id: '#/id2/properties/id3', name: 'id3', $ref: '#/id3',
+        id: '#/id2/properties/id3', displayName: 'id3', $ref: '#/id3',
       },
-    ] },
-  { id: '#/id3',
+    ],
+  },
+  {
+    id: '#/id3',
+    displayName: 'id3',
     keywords: [
       { key: 'type', value: 'string' },
       { key: 'maxLength', value: 10 },
-    ] },
+    ],
+  },
 ];
 
 const mockJsonSchema = {
@@ -34,11 +43,14 @@ const mockJsonSchema = {
 
 test('gets UI schema item', () => {
   const result = getUiSchemaItem(mockUiSchema, '#/id3');
-  expect(result).toEqual({ id: '#/id3',
+  expect(result).toEqual({
+    id: '#/id3',
+    displayName: 'id3',
     keywords: [
       { key: 'type', value: 'string' },
       { key: 'maxLength', value: 10 },
-    ] });
+    ],
+  });
 });
 
 test('build json schema', () => {

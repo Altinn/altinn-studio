@@ -6,7 +6,7 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getTranslation } from '../utils';
+import { getTranslation, getUiSchemaItem } from '../utils';
 
 const useStyles = makeStyles(
   createStyles({
@@ -55,15 +55,11 @@ export interface ISchemaInspectorProps {
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-
+  const [nodeName, setNodeName] = React.useState<string | undefined>('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      if (selectedId.includes('/properties/')) {
-        const item = state.uiSchema.find((i) => i.properties?.find((e) => e.id === selectedId));
-        return item?.properties?.find((p) => p.id === selectedId);
-      }
-      return state.uiSchema.find((i) => i.id === selectedId);
+      return getUiSchemaItem(state.uiSchema, selectedId);
     }
     return null;
   });
@@ -73,13 +69,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const readOnly = selectedItem?.$ref !== undefined;
 
+  React.useEffect(() => {
+    setNodeName(selectedItem?.displayName);
+  }, [selectedItem]);
+
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = referencedItem ?? selectedItem;
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path,
-      value: Number.isNaN(value) ? value : +value,
+      // eslint-disable-next-line no-restricted-globals
+      value: isNaN(value) ? value : +value,
       key,
     };
     dispatch(setFieldValue(data));
@@ -116,9 +117,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
-  const onChangeNodeName = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const onChangeNodeName = () => {
     dispatch(setPropertyName({
-      path: selectedItem?.id, name: e.target.value, navigate: true,
+      path: selectedItem?.id, name: nodeName, navigate: true,
     }));
   };
 
@@ -136,7 +137,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(addField({
       path,
       key: 'key',
-      value: 'value',
+      value: '',
     }));
   };
 
@@ -174,7 +175,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderConst = (p: UiSchemaItem, field: Field) => <InputField
     key={`field-${p.id}`}
     value={field?.value}
-    label={p.name ?? p.id}
+    label={p.displayName ?? p.id}
     readOnly={readOnly}
     fullPath={p.id}
     onChangeValue={onChangeConst}
@@ -212,7 +213,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         value={p.$ref ?? ''}
         isRef={true}
         readOnly={readOnly}
-        label={p.name ?? p.id}
+        label={p.displayName ?? p.id}
         fullPath={p.id}
         onChangeValue={onChangeValue}
         onChangeRef={onChangeRef}
@@ -264,11 +265,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           fullWidth={true}
           disableUnderline={true}
           className={classes.label}
-          value={selectedItem.name || selectedItem.id.replace('#/definitions/', '')}
-          onChange={onChangeNodeName}
+          value={nodeName}
+          onChange={(e) => setNodeName(e.target.value)}
+          onBlur={onChangeNodeName}
         />
-        <hr className={classes.divider} />
         { renderDefUrl() }
+        <hr className={classes.divider} />
         { renderItem(referencedItem ?? selectedItem) }
       </div>
       }
