@@ -4,7 +4,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
-import { all, call, delay, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, delay, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
@@ -467,13 +467,10 @@ export function* fetchFormLayoutSettingSaga(): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
-  while (true) {
-    yield all([
-      take(FormLayoutActions.fetchFormLayoutFulfilled),
-      take(FormLayoutActions.fetchLayoutSettings),
-    ]);
-    yield call(fetchFormLayoutSettingSaga);
-  }
+  yield takeEvery([
+    FormLayoutActions.fetchFormLayoutFulfilled,
+    FormLayoutActions.fetchLayoutSettings,
+  ], fetchFormLayoutSettingSaga);
 }
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {
