@@ -960,7 +960,7 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
           }
 
           // Only merge items that are not already in the existing components errors/warnings array
-          const newErrors = source[layout][component][binding]?.errors.filter((error) => {
+          const newErrors = source[layout][component][binding]?.errors?.filter((error) => {
             return validations[layout][component][binding]?.errors.findIndex((existingError) => {
               return JSON.stringify(existingError) === JSON.stringify(error);
             }) < 0;
@@ -968,7 +968,7 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
           validations[layout][component][binding].errors =
             validations[layout][component][binding]?.errors.concat(newErrors);
 
-          const newWarnings = source[layout][component][binding]?.warnings.filter((warning) => {
+          const newWarnings = source[layout][component][binding]?.warnings?.filter((warning) => {
             return validations[layout][component][binding]?.warnings.findIndex((existingWarning) => {
               return JSON.stringify(existingWarning) === JSON.stringify(warning);
             }) < 0;
