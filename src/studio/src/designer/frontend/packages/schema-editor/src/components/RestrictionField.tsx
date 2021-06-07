@@ -47,13 +47,12 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
     },
   })();
 
-  const handleChangeKey = (
-    event: React.ChangeEvent<{}>,
-    val: string,
-  ) => {
-    if (!val) {
-      return;
-    }
+  const [val, setVal] = React.useState(props.value);
+  React.useEffect(() => {
+    setVal(props.value);
+  }, [props.value]);
+
+  const onBlur = () => {
     props.onChangeKey(props.path, props.keyName, val);
   };
 
@@ -67,7 +66,8 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           id={`${baseId}-${props.keyName}-key`}
           disabled={props.readOnly}
           value={props.keyName}
-          onChange={handleChangeKey}
+          onInputChange={(e, v) => setVal(v)}
+          onBlur={onBlur}
           className={classes.field}
           disableClearable={true}
           options={options ?? []}

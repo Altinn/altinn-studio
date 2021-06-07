@@ -7,6 +7,7 @@ import { DeleteOutline } from '@material-ui/icons';
 import { TypeSelect } from './TypeSelect';
 import { RefSelect } from './RefSelect';
 import { ILanguage } from '../types';
+import { getDomFriendlyID } from '../utils';
 
 const useStyles = (readonly?: boolean) => makeStyles({
   field: {
@@ -109,7 +110,7 @@ export function InputField(props: IInputFieldProps) {
       />;
     }
     return <Input
-      id={`${baseId}-value-${label}`}
+      id={`${baseId}-${label}-value`}
       disabled={props.readOnly}
       className={classes.field}
       value={props.value}
@@ -117,7 +118,7 @@ export function InputField(props: IInputFieldProps) {
       onChange={(e) => onChangeValue(e.target.value)}
     />;
   };
-  const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
+  const baseId = getDomFriendlyID(props.fullPath);
   return (
     <div className={classes.container}>
       <FormControl>

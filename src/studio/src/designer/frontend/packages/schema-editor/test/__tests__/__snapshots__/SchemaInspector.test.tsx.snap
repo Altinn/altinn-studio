@@ -5,7 +5,7 @@ exports[`Should match snapshot 1`] = `
   class="makeStyles-root-1"
 >
   <header
-    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault MuiPaper-elevation4"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-7 MuiPaper-elevation4"
   >
     <div
       class="MuiTabs-root"
@@ -32,7 +32,7 @@ exports[`Should match snapshot 1`] = `
               schema_editor.properties
             </span>
             <span
-              class="PrivateTabIndicator-root-7 PrivateTabIndicator-colorSecondary-9 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
             />
           </button>
           <button
@@ -70,8 +70,10 @@ exports[`Should match snapshot 1`] = `
     role="tabpanel"
   >
     <div>
-      <p>
-        Name
+      <p
+        class="makeStyles-label-2"
+      >
+        schema_editor.name
       </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
@@ -82,24 +84,26 @@ exports[`Should match snapshot 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input"
-            id="#/definitions/Kommentar2000Restriksjon-name"
+            id="definitionsKommentar2000Restriksjon-name"
             placeholder="Name"
             type="text"
             value=""
           />
         </div>
       </div>
-      <p>
+      <p
+        class="makeStyles-label-2"
+      >
         Type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-11 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-13 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
-          aria-labelledby="type-select-#/definitions/Kommentar2000Restriksjon"
+          aria-labelledby="definitionsKommentar2000Restriksjon-type-select"
           class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
-          id="type-select-#/definitions/Kommentar2000Restriksjon"
+          id="definitionsKommentar2000Restriksjon-type-select"
           role="button"
           tabindex="0"
         >
@@ -127,8 +131,15 @@ exports[`Should match snapshot 1`] = `
       <hr
         class="makeStyles-divider-4"
       />
-      <p>
-        Beskrivende felter
+      <p
+        class="makeStyles-label-2"
+      >
+        schema_editor.descriptive_fields
+      </p>
+      <p
+        class="makeStyles-label-2"
+      >
+        schema_editor.title
       </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
@@ -139,32 +150,28 @@ exports[`Should match snapshot 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input"
-            id="#/definitions/Kommentar2000Restriksjon-title"
-            placeholder="Title"
+            id="definitionsKommentar2000Restriksjon-title"
             type="text"
             value=""
           />
         </div>
       </div>
+      <p
+        class="makeStyles-label-2"
+      >
+        schema_editor.description
+      </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
         style="height: 100px;"
       >
-        <label
-          class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink"
-          data-shrink="true"
-          for="#/definitions/Kommentar2000Restriksjon-description"
-          id="#/definitions/Kommentar2000Restriksjon-description-label"
-        >
-          Description
-        </label>
         <div
           class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
         >
           <textarea
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
-            id="#/definitions/Kommentar2000Restriksjon-description"
+            id="definitionsKommentar2000Restriksjon-description"
             rows="1"
           />
           <textarea

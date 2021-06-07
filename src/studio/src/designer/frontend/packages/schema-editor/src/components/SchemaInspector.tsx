@@ -289,7 +289,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       return null;
     }
     return (
-      <Grid item xs={12}>
+      <Grid
+        item xs={12}
+        key={field.key}
+      >
         <RestrictionField
           key={field.key}
           language={props.language}
@@ -438,7 +441,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                 <FormControlLabel
                   control={<Checkbox
                     checked={isRequired} onChange={handleRequiredChanged}
-                    name='checkedA'
+                    name='checkedRequired'
                   />}
                   label={getTranslation('schema_editor.required', props.language)}
                 />
@@ -448,7 +451,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                 <FormControlLabel
                   control={<Checkbox
                     checked={isArray} onChange={handleIsArrayChanged}
-                    name='checkedA'
+                    name='checkedArray'
                   />}
                   label={getTranslation('schema_editor.multiple_answers', props.language)}
                 />
