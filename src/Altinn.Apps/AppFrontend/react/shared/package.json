@@ -40,27 +40,27 @@
     "@types/jest": "~26.0.23",
     "@types/jsdom": "~16.2.10",
     "@types/marked": "~1.2.2",
-    "@types/react": "~16.9.56",
-    "@types/react-dom": "~16.9.12",
+    "@types/react": "~17.0.9",
+    "@types/react-dom": "~17.0.6",
     "@types/react-html-parser": "~2.0.1",
     "@types/react-router-dom": "~5.1.7",
-    "@types/react-test-renderer": "~16.9.5",
+    "@types/react-test-renderer": "~17.0.1",
     "altinn-designsystem": "~3.0.3",
-    "babel-jest": "~26.6.3",
+    "babel-jest": "~27.0.2",
     "babel-loader": "~8.2.2",
     "enzyme": "~3.11.0",
-    "enzyme-adapter-react-16": "~1.15.6",
-    "jest": "~26.6.3",
+    "@wojtekmaj/enzyme-adapter-react-17": "~0.6.1",
+    "jest": "~27.0.4",
     "jest-environment-enzyme": "~7.1.2",
     "jest-enzyme": "~7.1.2",
     "jest-junit": "~12.1.0",
     "jsdom": "~16.6.0",
-    "react": "~16.13.1",
+    "react": "~17.0.2",
     "react-docgen-typescript": "~1.22.0",
-    "react-dom": "~16.13.1",
+    "react-dom": "~17.0.2",
     "react-styleguidist": "~11.1.7",
-    "react-test-renderer": "~16.13.1",
-    "ts-jest": "~26.5.6"
+    "react-test-renderer": "~17.0.2",
+    "ts-jest": "~27.0.3"
   },
   "jest": {
     "transform": {
@@ -84,7 +84,8 @@
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
-    ]
+    ],
+    "testEnvironment": "jsdom"
   },
   "browserslist": {
     "production": [
