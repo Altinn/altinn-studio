@@ -41,6 +41,11 @@ describe('Group', () => {
       .then((table) => {
         cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
       });
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.next)
+      .should('be.visible')
+      .click();
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
     cy.get(appFrontend.group.comments).type('automation');
     cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
@@ -62,6 +67,12 @@ describe('Group', () => {
       .find(appFrontend.group.delete)
       .should('be.visible')
       .click();
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.back)
+      .should('be.visible')
+      .click();
+    cy.get(appFrontend.group.currentValue).should('be.visible');
     cy.get(appFrontend.group.saveSubGroup).should('not.exist');
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   });
