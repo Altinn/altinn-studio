@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-param-reassign */
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
@@ -589,6 +588,7 @@ export function mapToComponentValidations(
     const index = getIndex(dataBindingName);
     const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
     if (!validations[layoutId]) {
+      // eslint-disable-next-line no-param-reassign
       validations[layoutId] = {};
     }
     if (validations[layoutId][componentId]) {
@@ -666,22 +666,6 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
     return layoutCanBeSaved;
   });
   return canBeSaved;
-}
-
-export function removeOutdatedValidations(
-  singleFieldValidations: IValidations,
-  existingValidations: IValidations,
-  triggerComponent: string,
-) {
-  const layoutIds = Object.keys(existingValidations).filter((layoutId: string) => {
-    return Object.keys(existingValidations[layoutId]).includes(triggerComponent);
-  });
-
-  layoutIds.forEach((layoutId: string) => {
-    if (!singleFieldValidations[layoutId] || !singleFieldValidations[layoutId][triggerComponent]) {
-      delete existingValidations[layoutId][triggerComponent];
-    }
-  });
 }
 
 /* Function to map the new data element validations to our internal redux structure */

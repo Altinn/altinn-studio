@@ -177,6 +177,6 @@
     "react/jsx-boolean-value": "off",
     "linebreak-style": "off",
     "import/no-cycle": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": ["error", { "props": true, "ignorePropertyModificationsFor": ["state"] }]
   }
 }
