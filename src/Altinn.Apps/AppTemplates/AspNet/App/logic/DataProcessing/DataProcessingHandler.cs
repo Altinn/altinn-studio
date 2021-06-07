@@ -17,7 +17,7 @@ namespace Altinn.App.AppLogic.DataProcessing
         /// <example>
         /// if (data.GetType() == typeof(Skjema)
         /// {
-        ///     Skjema model = (Skjema)instance;
+        ///     Skjema model = (Skjema)data;
         ///     // Perform calculations and manipulation of data model here
         /// }
         /// </example>
@@ -35,7 +35,7 @@ namespace Altinn.App.AppLogic.DataProcessing
         /// <example>
         /// if (data.GetType() == typeof(Skjema)
         /// {
-        ///     Skjema model = (Skjema)instance;
+        ///     Skjema model = (Skjema)data;
         ///     // Perform calculations and manipulation of data model here
         /// }
         /// </example>
