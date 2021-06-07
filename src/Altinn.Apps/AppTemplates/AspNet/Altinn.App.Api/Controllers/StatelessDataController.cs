@@ -6,8 +6,6 @@ using Altinn.App.Api.Filters;
 
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Interface;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
@@ -38,8 +36,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IPrefill _prefillService;
         private readonly IRegister _registerService;
         private readonly IPDP _pdp;
-        private readonly IAltinnAppContextAccessor _altinnAppContext;
-
+   
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
         private const string Partyheader = "party";
@@ -56,8 +53,7 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IPrefill prefillService,
             IRegister registerService,
-            IPDP pdp,
-            IAltinnAppContextAccessor altinnAppContext)
+            IPDP pdp)
         {
             _logger = logger;
             _altinnApp = altinnApp;
@@ -65,7 +61,6 @@ namespace Altinn.App.Api.Controllers
             _prefillService = prefillService;
             _registerService = registerService;
             _pdp = pdp;
-            _altinnAppContext = altinnAppContext;
         }
 
         /// <summary>
