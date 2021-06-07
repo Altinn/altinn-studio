@@ -41,7 +41,6 @@ const validationSlice = createSlice({
   initialState,
   reducers: {
     runSingleFieldValidationFulfilled: (state: IValidationState, action: PayloadAction<IUpdateValidations>) => {
-      console.log('run single field validation fulfilled');
       const { validations } = action.payload;
       state.validations = validations;
     },
