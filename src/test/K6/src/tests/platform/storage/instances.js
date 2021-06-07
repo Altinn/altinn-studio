@@ -99,6 +99,22 @@ export default function (data) {
   });
   addErrorCount(success);
 
+  //Test to update the presentation texts of an instance and validate the response
+  res = instances.putUpdatePresentationTexts(runtimeToken, partyId, instanceId);
+  success = check(res, {
+    'PUT Update Presentation texts - status is 200': (r) => r.status === 200,
+    'Presentation texts are updated in instance metadata': (r) => r.json('presentationTexts.text1') == 'test',
+  });
+  addErrorCount(success);
+
+  //Test to update the data values of an instance and validate the response
+  res = instances.putUpdateDataValues(runtimeToken, partyId, instanceId);
+  success = check(res, {
+    'PUT Update data values - status is 200': (r) => r.status === 200,
+    'Data values are updated in instance metadata': (r) => r.json('dataValues.value1') == 'test',
+  });
+  addErrorCount(success);
+
   //Test to soft delete an instance by id and validate the response code and response body to have the soft deleted date set
   res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, 'false');
   success = check(res, {

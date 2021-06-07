@@ -27,7 +27,7 @@ export default function () {
 
 export function handleSummary(data) {
   let result = {};
-  result['stdout'] = textSummary(data, { indent: ' ', enableColors: true});
+  result['stdout'] = textSummary(data, { indent: ' ', enableColors: true });
   result[reportPath('platformAuthn')] = generateJUnitXML(data, 'platform-authentication');
   return result;
 }

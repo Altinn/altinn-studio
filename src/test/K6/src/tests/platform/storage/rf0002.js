@@ -1,4 +1,5 @@
 import { check } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as instanceData from '../../../api/platform/storage/data.js';
@@ -14,7 +15,10 @@ const fileName = 'users_' + environment + '.json';
 
 let instanceFormDataXml = open('../../../data/' + level2App + '.xml');
 let instanceJson = open('../../../data/instance.json');
-let users = JSON.parse(open('../../data/' + fileName));
+let users = new SharedArray('test users', function () {
+  var usersArray = JSON.parse(open('../../data/' + fileName));
+  return usersArray;
+});
 const usersCount = users.length;
 
 export const options = {
