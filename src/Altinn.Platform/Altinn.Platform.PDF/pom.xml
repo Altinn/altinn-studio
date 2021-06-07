@@ -5,14 +5,19 @@
   <artifactId>Altinn.Platform.PDF</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
+  <properties>
+    <build.source>16</build.source>
+    <build.target>16</build.target>
+  </properties>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>15</source>
-          <target>15</target>
+          <source>${build.source}</source>
+          <target>${build.target}</target>
+          <skipTestScope>true</skipTestScope>
         </configuration>
       </plugin>
       <plugin>
@@ -47,12 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.jayway.jsonpath</groupId>
-      <artifactId>json-path</artifactId>
+        <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
