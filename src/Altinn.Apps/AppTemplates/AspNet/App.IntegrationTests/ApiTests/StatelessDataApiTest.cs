@@ -111,12 +111,6 @@ namespace App.IntegrationTests.ApiTests
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-
-            // Extra call to make sure Altinn App context is scoped. (it should be cleared between each call)
-            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            httpRequestMessage2.Headers.Add("party", "person:01039012345");
-            res = await client.SendAsync(httpRequestMessage2);
 
             string responseContent = await res.Content.ReadAsStringAsync();
             Mocks.Apps.Ttd.PresentationTextsApp.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.PresentationTextsApp.Skjema>(responseContent);
@@ -250,10 +244,8 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
-            
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri)
-            {
-            };
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequestMessage.Headers.Add("party", "org:897069650");
 
             // Act

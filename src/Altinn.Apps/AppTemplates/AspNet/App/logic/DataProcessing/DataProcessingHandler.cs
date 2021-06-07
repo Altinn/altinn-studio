@@ -15,7 +15,7 @@ namespace Altinn.App.AppLogic.DataProcessing
         /// Perform data processing on data read. When reading data from App API
         /// </summary>
         /// <example>
-        /// if (instance.GetType() == typeof(Skjema)
+        /// if (data.GetType() == typeof(Skjema)
         /// {
         ///     Skjema model = (Skjema)instance;
         ///     // Perform calculations and manipulation of data model here
@@ -33,7 +33,7 @@ namespace Altinn.App.AppLogic.DataProcessing
         /// Perform data processing on data write. When posting and putting data against app
         /// </summary>
         /// <example>
-        /// if (instance.GetType() == typeof(Skjema)
+        /// if (data.GetType() == typeof(Skjema)
         /// {
         ///     Skjema model = (Skjema)instance;
         ///     // Perform calculations and manipulation of data model here

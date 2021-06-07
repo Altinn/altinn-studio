@@ -56,7 +56,7 @@ namespace App.IntegrationTestsRef.Utils
 
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
 
-                    services.AddScoped<IValidation, ValidationAppSI>();
+                    services.AddTransient<IValidation, ValidationAppSI>();
 
                     services.AddTransient<IApplication, ApplicationMockSI>();
                     services.AddTransient<IInstance, InstanceMockSI>();
@@ -79,60 +79,60 @@ namespace App.IntegrationTestsRef.Utils
                     switch (app)
                     {
                         case "endring-av-navn":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
                         case "custom-validation":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
                             break;
                         case "task-validation":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.task_validation.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.task_validation.AltinnApp>();
                             break;
                         case "platform-fails":
-                            services.AddSingleton<IInstance, InstancePlatformFailsMock>();
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
+                            services.AddTransient<IInstance, InstancePlatformFailsMock>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
                         case "contributor-restriction":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
                             break;
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPI>();
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
                             break;
                         case "events":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
                             break;
                         case "autodelete-true":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.autodelete_true.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.autodelete_true.AltinnApp>();
                             break;
                         case "nabovarsel":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.dibk.nabovarsel.AltinnApp>();
                             break;
                         case "klareringsportalen":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.App>();
                             break;
                         case "issue-5740":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.Issue5740.App>();
                             break;
                         case "eformidling-app":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidling.App>();
                             break;
                         case "eformidling-app-invalid":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid.App>();
                             break;
                         case "presentationfields-app":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp.App>();
                             break;
                         case "datafields-app":
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp.App>();
                             break;
                         case "model-validation":
-                            services.AddScoped<IAltinnApp, App.IntegrationTests.Mocks.Apps.ttd.model_validation.AltinnApp>();
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.ttd.model_validation.AltinnApp>();
                             break;
                         case "dayplanner":
-                            services.AddScoped<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
                             break;
                         default:
-                            services.AddScoped<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
                     }
                 });
