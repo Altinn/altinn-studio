@@ -141,7 +141,6 @@ it('dispatches correctly when changing field key', (done) => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  // definitionsRA-0678_MpropertiesdataFormatProvider-key-dataFormatProvider
   const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-InternInformasjon').hostNodes().at(0);
   input.simulate('change', { target: { value: 'Test' } });
 
@@ -161,69 +160,85 @@ it('dispatches correctly when changing field key', (done) => {
   });
 });
 
-// it('dispatches correctly when changing ref', () => {
-//   mockStore = createStore({
-//     ...mockInitialState,
-//     schema: dataMock,
-//     uiSchema: mockUiSchema,
-//     selectedId: '#/definitions/InternInformasjon',
-//   });
-//   mockStore.dispatch = jest.fn(dispatchMock);
-//   let wrapper: any = null;
-//   act(() => {
-//     wrapper = mountComponent();
-//     wrapper.find(Autocomplete).first().props().onChange(null, 'Dato');
-//   });
+it('dispatches correctly when changing ref', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+  });
 
-//   expect(mockStore.dispatch).toHaveBeenCalledWith({
-//     type: 'schemaEditor/setRef',
-//     payload: {
-//       ref: '#/definitions/Dato',
-//       path: '#/definitions/InternInformasjon/properties/periodeFritekst',
-//     },
-//   });
-// });
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Dato');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setRef',
+      payload: {
+        ref: '#/definitions/Dato',
+        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      },
+    });
 
-// it('refSelect does not set invalid refs', () => {
-//   mockStore = createStore({
-//     ...mockInitialState,
-//     schema: dataMock,
-//     uiSchema: mockUiSchema,
-//     selectedId: '#/definitions/InternInformasjon',
-//   });
-//   mockStore.dispatch = jest.fn(dispatchMock);
-//   let wrapper: any = null;
-//   act(() => {
-//     wrapper = mountComponent();
-//     wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
-//   });
+    done();
+  });
+});
 
-//   expect(mockStore.dispatch).not.toHaveBeenCalledWith({ type: 'schemaEditor/setRef' });
-// });
+it('refSelect does not set invalid refs', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+  });
 
-// it('dispatches correctly when changing const', () => {
-//   mockStore = createStore({
-//     ...mockInitialState,
-//     schema: dataMock,
-//     uiSchema: mockUiSchema,
-//     selectedId: '#/definitions/RA-0678_M',
-//   });
-//   mockStore.dispatch = jest.fn(dispatchMock);
-//   let wrapper: any = null;
-//   act(() => {
-//     wrapper = mountComponent();
-//   });
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
+    expect(mockStore.dispatch).not.toHaveBeenCalledWith({ type: 'schemaEditor/setRef' });
+    done();
+  });
+});
 
-//   wrapper.find('#input-RA-0678_M-properties-dataFormatProvider-value-dataFormatProvider').last().simulate('change', { target: { value: '666' } });
-//   expect(mockStore.dispatch).toHaveBeenCalledWith({
-//     type: 'schemaEditor/setFieldValue',
-//     payload: {
-//       key: 'const',
-//       path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
-//       value: '666',
-//     },
-//   });
-// });
+it('dispatches correctly when changing const', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+  });
+
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-dataFormatProvider-value').hostNodes().at(0).simulate('change', { target: { value: '666' } });
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setFieldValue',
+      payload: {
+        key: 'const',
+        path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
+        value: '666',
+      },
+    });
+    done();
+  });
+});
 
 it('renders no item if nothing is selected', () => {
   mockStore = createStore({
@@ -240,21 +255,97 @@ it('renders no item if nothing is selected', () => {
   });
 });
 
-// it('handles delete button', () => {
-//   act(() => {
-//     const wrapper = mountComponent();
-//     expect(wrapper).not.toBeNull();
+it('dispatches correctly when deleting fields', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+  });
 
-//     wrapper.find('#input-Kommentar2000Restriksjon-delete-minLength').last().simulate('click');
-//     expect(mockStore.dispatch).toHaveBeenCalledWith({
-//       type: 'schemaEditor/deleteField',
-//       payload: {
-//         key: 'minLength',
-//         path: '#/definitions/Kommentar2000Restriksjon',
-//       },
-//     });
-//   });
-// });
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-dataFormatProvider').hostNodes().at(0).simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/deleteProperty',
+      payload: {
+        path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
+      },
+    });
+    done();
+  });
+});
+
+it('dispatches correctly when deleting restrictions', (done) => {
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+  });
+
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find('#definitionsKommentar2000Restriksjon-delete-maxLength').hostNodes().at(0).simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/deleteField',
+      payload: {
+        key: 'maxLength',
+        path: '#/definitions/Kommentar2000Restriksjon',
+      },
+    });
+    done();
+  });
+});
+
+it('dispatches correctly when adding restrictions', (done) => {
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+  });
+
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find('#add-restriction-button').hostNodes().at(0).simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/addRestriction',
+      payload: {
+        key: '',
+        path: '#/definitions/Kommentar2000Restriksjon',
+        value: '',
+      },
+    });
+    done();
+  });
+});
+
+it('dispatches correctly when adding fields', (done) => {
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+  });
+
+  setImmediate(() => {
+    wrapper.update();
+    wrapper.find('#add-restriction-button').hostNodes().at(0).simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/addRestriction',
+      payload: {
+        key: '',
+        path: '#/definitions/Kommentar2000Restriksjon',
+        value: '',
+      },
+    });
+    done();
+  });
+});
 
 // it('handles add property button', () => {
 //   mockStore = createStore({

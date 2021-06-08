@@ -49,7 +49,9 @@ const dataModelingSlice = createSlice({
   name: 'dataModeling',
   initialState,
   reducers: {
-    fetchDataModel(state, action) {},
+    fetchDataModel(state, action) {
+      state.schema = null;
+    },
     fetchDataModelFulfilled(state, action) {
       const { schema } = action.payload;
       state.schema = schema;

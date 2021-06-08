@@ -1,4 +1,4 @@
-import reducer, { addField, addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -137,13 +137,13 @@ describe('SchemaEditorSlice', () => {
     // });
   });
 
-  it('handles addField', () => {
+  it('handles addRestriction', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
       key: 'key',
       value: '',
     };
-    let nextState = reducer(state, addField(payload));
+    let nextState = reducer(state, addRestriction(payload));
 
     let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.restrictions).toContainEqual({
@@ -152,10 +152,10 @@ describe('SchemaEditorSlice', () => {
 
     payload.key = 'test';
     payload.value = '';
-    nextState = reducer(nextState, addField(payload));
+    nextState = reducer(nextState, addRestriction(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.restrictions).toContainEqual({
-      key: 'test', value: '',
+      key: 'key1', value: '',
     });
   });
 

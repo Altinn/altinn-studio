@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addField, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired } from '../features/editor/schemaEditorSlice';
+import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
@@ -189,14 +189,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
     if (path) {
-      props.onAddPropertyClick(path);
+      // props.onAddPropertyClick(path);
+      dispatch(addProperty({
+        path,
+      }));
     }
   };
 
   const onAddRestrictionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
-    dispatch(addField({
+    dispatch(addRestriction({
       path,
       key: '',
       value: '',
@@ -257,7 +260,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   );
 
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
-    // render const
+    // render names, restricted checkboxes and delete buttons
     const field = p.restrictions?.find((f) => f.key === 'const');
     if (field) {
       return renderConst(p, field);
@@ -278,7 +281,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />;
     }
 
-    return null;
+    return <InputField
+      language={props.language}
+      key={`field-${p.id}`}
+      value={p.value}
+      readOnly={readOnly}
+      label={p.displayName ?? p.id}
+      fullPath={p.id}
+      onChangeValue={onChangeValue}
+      onChangeRef={onChangeRef}
+      onChangeKey={onChangPropertyName}
+      onDeleteField={onDeleteObjectClick}
+    />;
   });
 
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
@@ -360,6 +374,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onChange={(onChangeType)}
       />}
       { renderDefUrl() }
+      <FormControlLabel
+        control={<Checkbox
+          checked={isArray} onChange={handleIsArrayChanged}
+          name='checkedArray'
+        />}
+        label={getTranslation('schema_editor.multiple_answers', props.language)}
+      />
       <hr className={classes.divider} />
       <p className={classes.label}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
       <p className={classes.label}>{getTranslation('schema_editor.title', props.language)}</p>
@@ -426,6 +447,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
             />
             <Tab
+              hidden={itemToDisplay?.type !== 'object'}
               label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
             />
           </TabList>
@@ -447,15 +469,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                 />
               </Grid>
               <Grid item xs={1} />
-              <Grid item xs={7}>
-                <FormControlLabel
-                  control={<Checkbox
-                    checked={isArray} onChange={handleIsArrayChanged}
-                    name='checkedArray'
-                  />}
-                  label={getTranslation('schema_editor.multiple_answers', props.language)}
-                />
-              </Grid>
+              <Grid item xs={7} />
               <Grid item xs={12}>
                 <hr className={classes.divider} />
               </Grid>
@@ -470,7 +484,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             </Grid>
           </div>
           <IconButton
-            id='add-property-button'
+            id='add-restriction-button'
             aria-label='Add property'
             onClick={onAddRestrictionClick}
           ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
