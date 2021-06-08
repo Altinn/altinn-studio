@@ -95,7 +95,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [objectType, setObjectType] = React.useState<string>('');
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
+  const [nameError, setNameError]= React.useState('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  
   const referencedItem = useSelector(
     (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
   );
@@ -306,7 +308,15 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeObjectKind = (e: any) => {
     setObjectKind(e.target.value);
   };
-
+  const onNameChange = (e: any) => {
+    const name: string = e.target.value;
+    setNodeName(name);
+    if (!name.match(/[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      setNameError('Invalid character in name');
+    } else {
+      setNameError('');
+    }
+  };
   const renderItemData = () => (
     <div>
       <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
@@ -316,7 +326,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         placeholder='Name'
         fullWidth={true}
         value={nodeName}
-        onChange={(e) => setNodeName(e.target.value)}
+        error={!!nameError}
+        helperText={nameError}
+        onChange={onNameChange}
         onBlur={onChangeNodeName}
         InputProps={{
           disableUnderline: true,
