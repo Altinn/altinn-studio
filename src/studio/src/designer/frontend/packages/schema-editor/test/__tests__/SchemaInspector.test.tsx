@@ -111,8 +111,8 @@ it('dispatches correctly when changing property name', (done) => {
   expect(wrapper).not.toBeNull();
   const input = wrapper.find('#input-RA-0678_M-properties-InternInformasjon-key-InternInformasjon').last();
   input.simulate('change', { target: { value: 'Test' } });
-    wrapper.update();
-    input.simulate('blur');
+  wrapper.update();
+  input.simulate('blur');
 
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/setPropertyName',
