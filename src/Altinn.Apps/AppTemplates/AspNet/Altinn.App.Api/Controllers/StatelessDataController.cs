@@ -97,14 +97,14 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid party. Only one allowed");
             }
 
-            int? partyId = await GetPartyId(HttpContext);
+            InstanceOwner owner = await GetPartyId(HttpContext);
 
-            if (!partyId.HasValue)
+            if (string.IsNullOrEmpty(owner.PartyId))
             {
                 return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
 
             if (!enforcementResult.Authorized)
             {
@@ -112,11 +112,11 @@ namespace Altinn.App.Api.Controllers
             }
         
             object appModel = _altinnApp.CreateNewAppModel(classRef);
-   
-            // runs prefill from repo configuration if config exists
-            await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = partyId.ToString() } };
+            // runs prefill from repo configuration if config exists
+            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
+
+            Instance virutalInstance = new Instance() { InstanceOwner = owner };
             await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);
 
             return Ok(appModel);
@@ -156,14 +156,14 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid party. Only one allowed");
             }
 
-            int? partyId = await GetPartyId(HttpContext);
+            InstanceOwner owner = await GetPartyId(HttpContext);
 
-            if (!partyId.HasValue)
+            if (string.IsNullOrEmpty(owner.PartyId))
             {
                return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, partyId.Value, "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
 
             if (!enforcementResult.Authorized)
             {
@@ -179,9 +179,9 @@ namespace Altinn.App.Api.Controllers
             }
 
             // runs prefill from repo configuration if config exists
-            await _prefillService.PrefillDataModel(partyId.ToString(), dataType, appModel);
+            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = partyId.ToString() } };
+            Instance virutalInstance = new Instance() { InstanceOwner = owner };
             await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);
 
             return Ok(appModel);
@@ -198,41 +198,44 @@ namespace Altinn.App.Api.Controllers
             return partyValues;
         }
 
-        private async Task<int?> GetPartyId(HttpContext context)
+        private async Task<InstanceOwner> GetPartyId(HttpContext context)
         {
+            InstanceOwner owner = new InstanceOwner();
             StringValues partyValues;
             if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
             {
-                return await GetPartyId(partyValues[0]);
+                return await GetPartyId(partyValues[0], owner);
             }
             else
             {
-               return context.User.GetPartyIdAsInt();
+                owner.PartyId = context.User.GetPartyIdAsInt().ToString();
+                return owner;
             }
         }
 
-        private async Task<int?> GetPartyId(string partyValue)
+        private async Task<InstanceOwner> GetPartyId(string partyValue, InstanceOwner owner)
         {
             Party party = null;
             if (partyValue.StartsWith(PartyPrefix))
             {
-                return Convert.ToInt32(partyValue.Replace(PartyPrefix, string.Empty));
+                owner.PartyId = partyValue.Replace(PartyPrefix, string.Empty));
+                return owner;
             }
             else if (partyValue.StartsWith(PersonPrefix))
             {
-                party = await _registerService.LookupParty(new PartyLookup { Ssn = partyValue.Replace(PersonPrefix, string.Empty) });
+                string ssn = partyValue.Replace(PersonPrefix, string.Empty);
+                party = await _registerService.LookupParty(new PartyLookup { Ssn = ssn });
+                owner.PartyId = party.PartyId.ToString();
+                owner.PersonNumber = ssn;
             }
             else if (partyValue.StartsWith(OrgPrefix))
             {
-                party = await _registerService.LookupParty(new PartyLookup { OrgNo = partyValue.Replace(OrgPrefix, string.Empty) });
+                string orgno = partyValue.Replace(OrgPrefix, string.Empty);
+                party = await _registerService.LookupParty(new PartyLookup { OrgNo = orgno });
+                owner.PartyId = party.PartyId.ToString();
             }
 
-            if (party != null)
-            {
-                return party.PartyId;
-            }
-
-            return null;
+            return owner;
         }
 
         private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
