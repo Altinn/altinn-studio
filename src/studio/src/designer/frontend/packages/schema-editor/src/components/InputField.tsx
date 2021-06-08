@@ -13,11 +13,6 @@ import { getDomFriendlyID, getTranslation } from '../utils';
 import { setRequired } from '../features/editor/schemaEditorSlice';
 
 const useStyles = (readonly?: boolean) => makeStyles({
-  root: {
-    display: 'flex',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
   field: {
     background: 'white',
     color: 'black',
@@ -40,7 +35,6 @@ const useStyles = (readonly?: boolean) => makeStyles({
   },
   delete: {
     marginLeft: '8px',
-    marginTop: '12px',
     padding: '12px',
   },
   checkBox: {
@@ -85,13 +79,14 @@ export function InputField(props: IInputFieldProps) {
   };
   const baseId = getDomFriendlyID(props.fullPath);
   return (
-    <Grid className={classes.root}>
+    <>
       <Grid item xs={4}>
         <FormControl>
           <Input
             id={`${baseId}-key-${label}`}
             value={label}
             disableUnderline={true}
+            fullWidth
             disabled={props.readOnly}
             onChange={onChangeKey}
             onBlur={onBlurKey}
@@ -99,6 +94,7 @@ export function InputField(props: IInputFieldProps) {
           />
         </FormControl>
       </Grid>
+      <Grid item xs={1} />
       <Grid item xs={4}>
         <FormControl>
           <FormControlLabel
@@ -111,7 +107,8 @@ export function InputField(props: IInputFieldProps) {
           />
         </FormControl>
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={2} />
+      <Grid item xs={1}>
         { props.onDeleteField &&
         <IconButton
           id={`${baseId}-delete-${label}`}
@@ -123,6 +120,6 @@ export function InputField(props: IInputFieldProps) {
         </IconButton>
         }
       </Grid>
-    </Grid>
+    </>
   );
 }

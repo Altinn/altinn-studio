@@ -127,6 +127,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
+    setTabIndex('0');
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined) {
@@ -444,7 +445,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         <TabPanel value='1'>
           <div className={classes.restrictions}>
             <Grid container spacing={0}>
-              <Grid item xs={4}>
+              <Grid item xs={12}>
                 <FormControlLabel
                   control={<Checkbox
                     checked={isRequired} onChange={handleRequiredChanged}
@@ -453,8 +454,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                   label={getTranslation('schema_editor.required', props.language)}
                 />
               </Grid>
-              <Grid item xs={1} />
-              <Grid item xs={7} />
               <Grid item xs={12}>
                 <hr className={classes.divider} />
               </Grid>
@@ -465,8 +464,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               <Grid item xs={7}>
                 <p>Verdi</p>
               </Grid>
+              { itemToDisplay && renderItemRestrictions(itemToDisplay) }
             </Grid>
-            { itemToDisplay && renderItemRestrictions(itemToDisplay) }
           </div>
           <IconButton
             id='add-restriction-button'
@@ -476,7 +475,16 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           </IconButton>
         </TabPanel>
         <TabPanel value='2'>
-          { itemToDisplay && renderItemProperties(itemToDisplay) }
+          <Grid container spacing={0}>
+            <Grid item xs={4}>
+              <p>Nøkkelord</p>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={7}>
+              <p>Verdi</p>
+            </Grid>
+            { itemToDisplay && renderItemProperties(itemToDisplay) }
+          </Grid>
           { !readOnly && renderAddPropertyButton() }
         </TabPanel>
       </TabContext>

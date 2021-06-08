@@ -237,10 +237,10 @@ it('dispatches correctly when deleting fields', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   });
 
   setImmediate(() => {
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
     wrapper.update();
     wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-dataFormatProvider').hostNodes().at(0).simulate('click');
     expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -257,10 +257,10 @@ it('dispatches correctly when deleting restrictions', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
   });
 
   setImmediate(() => {
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
     wrapper.update();
     wrapper.find('#definitionsKommentar2000Restriksjon-delete-maxLength').hostNodes().at(0).simulate('click');
     expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -278,10 +278,10 @@ it('dispatches correctly when adding restrictions', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
   });
 
   setImmediate(() => {
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
     wrapper.update();
     wrapper.find('#add-restriction-button').hostNodes().at(0).simulate('click');
     expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -307,10 +307,10 @@ it('dispatches correctly when adding fields', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   });
 
   setImmediate(() => {
+    wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
     wrapper.update();
     wrapper.find('#add-property-button').hostNodes().at(0).simulate('click');
     expect(mockStore.dispatch).toHaveBeenCalledWith({

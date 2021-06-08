@@ -21,14 +21,8 @@ export interface IRestrictionFieldProps {
 
 export const RestrictionField = (props: IRestrictionFieldProps) => {
   const classes = makeStyles({
-    root: {
-      display: 'flex',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-    },
     delete: {
       marginLeft: '8px',
-      marginTop: '12px',
       padding: '12px',
     },
     field: {
@@ -59,7 +53,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
   const options = getRestrictions(props.type ?? '');
   const baseId = getDomFriendlyID(props.path);
   return (
-    <Grid className={classes.root}>
+    <>
       <Grid item xs={4}>
         <Autocomplete
           freeSolo={true}
@@ -103,5 +97,5 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           <DeleteOutline/>
         </IconButton>
       </Grid>}
-    </Grid>);
+    </>);
 };
