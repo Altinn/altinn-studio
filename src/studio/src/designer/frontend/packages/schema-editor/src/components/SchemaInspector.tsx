@@ -326,7 +326,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <Select
         className={classes.field}
         id='type-kind-select'
-        disabled={readOnly}
         value={objectKind}
         onChange={onChangeObjectKind}
         disableUnderline={true}
@@ -336,16 +335,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         <MenuItem value='reference'>{getTranslation('schema_editor.reference', props.language)}</MenuItem>
         <MenuItem value='group'>{getTranslation('schema_editor.group', props.language)}</MenuItem>
       </Select>
-      <p className={classes.label}>Type</p>
-      {selectedItem && <TypeSelect
-        label='Type'
-        language={props.language}
-        fullWidth={true}
-        readOnly={readOnly}
-        value={objectType}
-        id={selectedItem.id}
-        onChange={(onChangeType)}
-      />}
+      {selectedItem && objectKind === 'type' &&
+      <>
+        <p className={classes.label}>Type</p>
+        <TypeSelect
+          label='Type'
+          language={props.language}
+          fullWidth={true}
+          readOnly={readOnly}
+          value={objectType}
+          id={selectedItem.id}
+          onChange={(onChangeType)}
+        />
+      </>}
       { renderDefUrl() }
       <FormControlLabel
         control={<Checkbox
