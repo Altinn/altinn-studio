@@ -124,6 +124,9 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   }
 
   Object.keys(schema).forEach((key) => {
+    if (key === '$schema') {
+      return;
+    }
     const item = schema[key];
     const id = `${rootPath}/${key}`;
     const displayName = includeDisplayName ? key : id;

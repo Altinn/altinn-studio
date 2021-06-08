@@ -95,18 +95,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [objectType, setObjectType] = React.useState<string>('');
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
-  const [nameError, setNameError]= React.useState('');
+  const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
-  
-  const referencedItem = useSelector(
-    (state: ISchemaState) => state.uiSchema.find((i: UiSchemaItem) => i.id === selectedItem?.$ref),
-  );
+  const [tabIndex, setTabIndex] = React.useState('0');
+
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
     }
     return null;
   });
+  // if item is a reference, we want to show the properties of the reference.
+  const itemToDisplay = useSelector(
+    (state: ISchemaState) => (selectedItem?.$ref ? state.uiSchema
+      .find((i: UiSchemaItem) => i.id === selectedItem.$ref) : selectedItem),
+  );
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -124,6 +127,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
+    setTabIndex('0');
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined) {
@@ -142,10 +146,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
   }, [selectedItem]);
-
-  // if item is a reference, we want to show the properties of the reference.
-  const itemToDisplay = referencedItem ?? selectedItem;
-  const [tabIndex, setTabIndex] = React.useState('0');
 
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
