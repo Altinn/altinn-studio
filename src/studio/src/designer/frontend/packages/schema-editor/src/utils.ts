@@ -71,7 +71,7 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
     const item = createJsonSchemaItem(uiItem);
     JsonPointer.set(result, uiItem.id.replace(/^#/, ''), item);
   });
-
+  result.$schema = 'https://json-schema.org/draft/2020-12/schema';
   return result;
 }
 
