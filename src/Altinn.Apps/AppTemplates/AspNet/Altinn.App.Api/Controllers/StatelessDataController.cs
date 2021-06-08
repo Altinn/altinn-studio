@@ -97,7 +97,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid party. Only one allowed");
             }
 
-            InstanceOwner owner = await GetPartyId(HttpContext);
+            InstanceOwner owner = await GetInstanceOwner(HttpContext);
 
             if (string.IsNullOrEmpty(owner.PartyId))
             {
@@ -156,7 +156,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid party. Only one allowed");
             }
 
-            InstanceOwner owner = await GetPartyId(HttpContext);
+            InstanceOwner owner = await GetInstanceOwner(HttpContext);
 
             if (string.IsNullOrEmpty(owner.PartyId))
             {
@@ -198,13 +198,13 @@ namespace Altinn.App.Api.Controllers
             return partyValues;
         }
 
-        private async Task<InstanceOwner> GetPartyId(HttpContext context)
+        private async Task<InstanceOwner> GetInstanceOwner(HttpContext context)
         {
             InstanceOwner owner = new InstanceOwner();
             StringValues partyValues;
             if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
             {
-                return await GetPartyId(partyValues[0], owner);
+                return await GetInstanceOwner(partyValues[0], owner);
             }
             else
             {
@@ -213,7 +213,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<InstanceOwner> GetPartyId(string partyValue, InstanceOwner owner)
+        private async Task<InstanceOwner> GetInstanceOwner(string partyValue, InstanceOwner owner)
         {
             Party party = null;
             if (partyValue.StartsWith(PartyPrefix))
