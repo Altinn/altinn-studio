@@ -252,7 +252,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderAddPropertyButton = () => (
     <IconButton
-      id='add-reference-button'
+      id='add-property-button'
       aria-label='Add reference'
       onClick={onAddPropertyClicked}
     ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}

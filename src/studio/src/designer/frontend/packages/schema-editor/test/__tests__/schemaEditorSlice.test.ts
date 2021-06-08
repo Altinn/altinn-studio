@@ -126,7 +126,7 @@ describe('SchemaEditorSlice', () => {
 
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.properties).toContainEqual({
-      id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', restrictions: [{ key: 'type', value: 'object' }],
+      id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', type: 'object',
     });
 
     // test add second time to get more case coverage.
@@ -150,8 +150,6 @@ describe('SchemaEditorSlice', () => {
       key: 'key', value: '',
     });
 
-    payload.key = 'test';
-    payload.value = '';
     nextState = reducer(nextState, addRestriction(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.restrictions).toContainEqual({
