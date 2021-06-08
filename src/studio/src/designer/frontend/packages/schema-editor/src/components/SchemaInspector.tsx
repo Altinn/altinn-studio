@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, Tab, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, Tab, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -93,6 +93,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
+  const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const referencedItem = useSelector(
@@ -123,8 +124,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setObjectType(selectedItem?.type ?? '');
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
+      if (selectedItem.$ref) {
+        setObjectKind('reference');
+      } else {
+        setObjectKind('type');
+      }
     } else {
       setIsRequired(false);
+      setObjectKind('type');
     }
   }, [selectedItem, parentItem]);
 
@@ -296,6 +303,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setIsRequired(checked);
   };
 
+  const onChangeObjectKind = (e: any) => {
+    setObjectKind(e.target.value);
+  };
+
   const renderItemData = () => (
     <div>
       <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
@@ -311,6 +322,20 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
+      <p className={classes.label}>{getTranslation('schema_editor.object_kind_label', props.language)}</p>
+      <Select
+        className={classes.field}
+        id='type-kind-select'
+        disabled={readOnly}
+        value={objectKind}
+        onChange={onChangeObjectKind}
+        disableUnderline={true}
+        fullWidth={true}
+      >
+        <MenuItem value='type'>{getTranslation('schema_editor.type', props.language)}</MenuItem>
+        <MenuItem value='reference'>{getTranslation('schema_editor.reference', props.language)}</MenuItem>
+        <MenuItem value='group'>{getTranslation('schema_editor.group', props.language)}</MenuItem>
+      </Select>
       <p className={classes.label}>Type</p>
       {selectedItem && <TypeSelect
         label='Type'
