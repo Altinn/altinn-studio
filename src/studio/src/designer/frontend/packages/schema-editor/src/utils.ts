@@ -102,7 +102,6 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       }
       case 'id':
       case 'displayName':
-      case 'isRequiredInParent':
         break;
       default:
         item[key] = uiSchemaItem[key];

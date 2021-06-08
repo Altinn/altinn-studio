@@ -127,7 +127,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
-    setTabIndex('0');
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined) {
