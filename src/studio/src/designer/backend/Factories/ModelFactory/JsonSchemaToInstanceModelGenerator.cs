@@ -611,6 +611,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case "integer":
                 case "decimal":
                 case "positiveInteger":
+                case "nonNegativeInteger":
                 case "number":
                     {
                         int totalDigits = 0;

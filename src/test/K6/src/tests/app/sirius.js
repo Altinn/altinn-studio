@@ -21,6 +21,7 @@
 */
 
 import { check, sleep, group } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as apps from '../../api/platform/storage/applications.js';
@@ -40,7 +41,10 @@ let instanceFormDataXml = open('../../data/' + appName + '.xml');
 let attachmentXml1 = open('../../data/xml1.xml', 'b');
 let attachmentXml2 = open('../../data/xml2.xml', 'b');
 let pdfAttachment = open('../../data/test_file_pdf.pdf', 'b');
-let users = JSON.parse(open('../../data/' + fileName));
+let users = new SharedArray('test users', function () {
+  var usersArray = JSON.parse(open('../../data/' + fileName));
+  return usersArray;
+});
 const usersCount = users.length;
 
 export const options = {

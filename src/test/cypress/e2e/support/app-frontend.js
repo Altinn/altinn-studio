@@ -70,9 +70,14 @@ Cypress.Commands.add('compelteTask3Form', () => {
   cy.get(appFrontend.group.addNewItem).should('be.visible').click();
   cy.get(appFrontend.group.currentValue).type('1');
   cy.get(appFrontend.group.newValue).type('2');
+  cy.get(appFrontend.group.mainGroup)
+    .siblings(appFrontend.group.editContainer)
+    .find(appFrontend.group.next)
+    .should('be.visible')
+    .click();
   cy.get(appFrontend.group.addNewItem).should('be.visible').click();
   cy.get(appFrontend.group.comments).type('automation');
-  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click();
+  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
   cy.contains(mui.button, texts.next).click();
