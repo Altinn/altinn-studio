@@ -141,11 +141,17 @@ function SchemaItem(props: SchemaItemProps) {
     }));
   };
 
-  const renderLabel = () => {
+  const getIconStr = () => {
     const type = item.type;
-    // eslint-disable-next-line no-nested-ternary
-    const iconStr = refItem ? 'fa-datamodel-ref' : type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
-    const label = refItem ? `${item.displayName ?? item.id} : ${itemToDisplay.displayName ?? itemToDisplay.id}` : item.displayName ?? item.id;
+    if (refItem) {
+      return 'fa-datamodel-ref';
+    }
+    return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
+  };
+
+  const renderLabel = () => {
+    const iconStr = getIconStr();
+    const label = refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName;
     return <SchemaItemLabel
       language={props.language}
       icon={iconStr}
