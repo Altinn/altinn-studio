@@ -3,26 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.6.0</AssemblyVersion>
-    <FileVersion>4.6.0</FileVersion>
-    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{7D2FF2B1-7F21-4934-9D77-DBCDC15BD8CC}</ProjectGuid>
-
-    <!-- NuGet package properties -->
+    <Version>4.6.2</Version>
+    <AssemblyVersion>4.6.2.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
-    <PackageVersion>4.6.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
       This class library holds classes with logic that is common for the other Altinn.App packages.
     </Description>
-    <PackageReleaseNotes>
-      https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
+    
+    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
+    <ProjectGuid>{7D2FF2B1-7F21-4934-9D77-DBCDC15BD8CC}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,7 +47,6 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>4.4.0</Version>
   </PropertyGroup>
 
 </Project>

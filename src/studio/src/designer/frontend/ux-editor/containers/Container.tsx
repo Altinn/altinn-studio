@@ -443,7 +443,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             xs={12}
           >
             {!this.props.itemOrder?.length && this.renderContainerPlaceholder()}
-            {this.state.expanded && this.props.itemOrder?.length &&
+            {this.state.expanded && (this.props.itemOrder?.length > 0) &&
               this.props.itemOrder.map((id: string, index: number) => {
                 const component = this.props.components[id];
                 if (component) {

@@ -47,7 +47,7 @@ const styles = createStyles({
   },
 });
 
-export const appNameRegex = /^(?!datamodels$)[a-z]+[a-z0-9\-]+[a-z0-9]$/;
+export const appNameRegex = /^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$/;
 export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
   public _isMounted = false;
 

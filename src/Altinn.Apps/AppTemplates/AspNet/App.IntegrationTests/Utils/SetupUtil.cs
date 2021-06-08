@@ -167,7 +167,7 @@ namespace App.IntegrationTestsRef.Utils
 
         private static string GetAppPath(string org, string app)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
         }
     }

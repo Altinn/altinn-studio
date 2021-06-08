@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
-import { ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { ISchema, ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -31,16 +31,47 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    addRootProperty(state, action) {
+      const { name } = action.payload;
+      state.uiSchema.push(
+        {
+          id: `#/properties/${name}`,
+          displayName: name,
+          keywords: [
+            { key: 'type', value: 'object' },
+          ],
+        },
+      );
+    },
     addProperty(state, action) {
+      const { path } = action.payload;
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
+      const item: UiSchemaItem = {
+        id: `${path}/properties/name`,
+        displayName: 'name',
+        keywords: [
+          {
+            key: 'type',
+            value: 'object',
+          },
+        ],
+      };
+      if (addToItem.properties) {
+        addToItem.properties.push(item);
+      } else {
+        addToItem.properties = [item];
+      }
+    },
+    addRefProperty(state, action) {
       const {
         path, newKey, content,
       } = action.payload;
 
-      const addToItem = state.uiSchema.find((i) => i.id === path);
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item = content[0];
-      const propertyItem = {
+      const propertyItem: UiSchemaItem = {
         id: `${path}/properties/${newKey}`,
-        name: newKey,
+        displayName: newKey,
         $ref: item.id,
       };
 
@@ -56,22 +87,6 @@ const schemaEditorSlice = createSlice({
         }
       });
     },
-    addRootItem(state, action) {
-      const { itemsToAdd } = action.payload;
-      const rootItem = itemsToAdd[0];
-
-      const baseItem = {
-        id: '#/properties/melding',
-        $ref: rootItem.id,
-      };
-      state.uiSchema.push(baseItem);
-
-      itemsToAdd.forEach((item: UiSchemaItem) => {
-        state.uiSchema.push(item);
-      });
-
-      state.rootName = rootItem.id;
-    },
     deleteField(state, action) {
       const { path, key } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
@@ -83,23 +98,31 @@ const schemaEditorSlice = createSlice({
       }
     },
     deleteProperty(state, action) {
-      const { path } = action.payload;
-      const [rootPath, propertyName] = path.split('/properties/');
-      if (rootPath && propertyName) {
-        const removeFromItem = state.uiSchema.find((item) => item.id === rootPath);
+      const path: string = action.payload.path;
+      if (state.selectedId === path) {
+        state.selectedId = undefined;
+      }
+      // eslint-disable-next-line no-useless-escape
+      if (path.match('[^#]\/properties')) {
+        // find parent of item to delete property.
+        const index = path.lastIndexOf('/properties/');
+        const parentPath = path.substring(0, index);
+        const propertyName = path.substring(index + 12);
+        const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
-            .properties?.findIndex((property: any) => property.name === propertyName) ?? -1;
+            .properties?.findIndex((property) => property.displayName === propertyName) ?? -1;
           if (removeIndex >= 0) {
             removeFromItem.properties?.splice(removeIndex, 1);
           }
         }
         return;
       }
-      // delete definition, here we need to find all references to this definition, and remove them (?)
-      const index = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
-      if (index >= 0) {
-        state.uiSchema.splice(index, 1);
+      // delete root property / definition
+      // if this is a definition, we need to find all references to this definition, and remove them (?)
+      const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path);
+      if (rootIndex >= 0) {
+        state.uiSchema.splice(rootIndex, 1);
       }
     },
     setFieldValue(state, action) {
@@ -144,10 +167,12 @@ const schemaEditorSlice = createSlice({
       const {
         path, name, navigate,
       } = action.payload;
-
+      if (!name || name.length === 0) {
+        return;
+      }
       const item = getUiSchemaItem(state.uiSchema, path);
       if (item) {
-        item.name = name;
+        item.displayName = name;
         const arr = item.id.split('/');
         arr[arr.length - 1] = name;
         item.id = arr.join('/');
@@ -174,9 +199,9 @@ const schemaEditorSlice = createSlice({
       const { rootElementPath } = action.payload; // state.schema.properties.melding.$ref;
       let uiSchema: any[] = [];
 
-      const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties');
+      const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties', true);
       uiSchema = uiSchema.concat(uiSchemaProps);
-      const uiSchemaDefs = buildUISchema(state.schema.definitions, '#/definitions');
+      const uiSchemaDefs = buildUISchema(state.schema.definitions, '#/definitions', true);
       uiSchema = uiSchema.concat(uiSchemaDefs);
 
       state.uiSchema = uiSchema;
@@ -184,7 +209,10 @@ const schemaEditorSlice = createSlice({
     },
     updateJsonSchema(state, action) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema = buildJsonSchema(state.uiSchema);
+      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
+      if (!updatedSchema.definitions) {
+        updatedSchema.definitions = {};
+      }
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
@@ -195,8 +223,9 @@ const schemaEditorSlice = createSlice({
 
 export const {
   addField,
+  addRootProperty,
   addProperty,
-  addRootItem,
+  addRefProperty,
   deleteField,
   deleteProperty,
   setFieldValue,

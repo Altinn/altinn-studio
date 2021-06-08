@@ -49,18 +49,6 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic.Valida
         /// </example>
         public async Task ValidateData(object data, ModelStateDictionary validationResults)
         {
-        //_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("ValidationTriggerField", out StringValues value);
-
-            /*if (data is ePOB_M testModel)
-            {
-                string firstName = testModel?.PersonInformasjon?.harpostadrsammesombosted;
-                if (firstName != null && firstName.Contains("1337")) 
-                {
-                    validationResults.AddModelError(
-                    "Person.FirstName", 
-                    "*WARNING*Are you sure your first name contains 1337?");
-                }
-            }*/
             await Task.CompletedTask;
         }
 

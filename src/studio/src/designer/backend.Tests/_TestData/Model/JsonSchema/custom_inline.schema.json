@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "melding": {
+      "properties": {
+        "test": {
+          "type": "object",
+          "properties": {
+            "navn": {
+              "type": "string" } }
+        }
+      },
+      "type": "object"
+    }
+  },
+  "definitions": {},
+  "required": [ "melding" ]
+}

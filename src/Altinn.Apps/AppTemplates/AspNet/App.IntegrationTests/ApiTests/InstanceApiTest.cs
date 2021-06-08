@@ -248,7 +248,6 @@ namespace App.IntegrationTests
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
-
         }
 
         /// <summary>
@@ -305,7 +304,7 @@ namespace App.IntegrationTests
         /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
         /// </summary>
         [Fact]
-        public async void Instance_Post_NabovarselWithMessageAndForm ()
+        public async void Instance_Post_NabovarselWithMessageAndForm()
         {
             // Arrange
             string instanceOwnerPartyId = "1337";

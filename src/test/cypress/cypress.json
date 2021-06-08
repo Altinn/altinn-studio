@@ -26,5 +26,9 @@
   "reporter": "junit",
   "reporterOptions": {
     "mochaFile": "reports/result-[hash].xml"
+  },
+  "retries": {
+    "runMode": 1,
+    "openMode": 0
   }
 }

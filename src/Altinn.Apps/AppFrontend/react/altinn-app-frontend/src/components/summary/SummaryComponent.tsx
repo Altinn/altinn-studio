@@ -15,6 +15,7 @@ import SingleInputSummary from './SingleInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
 import { makeGetHidden } from '../../selectors/getLayoutData';
 import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
+import MultipleChoiceSummary from './MultipleChoiceSummary';
 
 export interface ISummaryComponent {
   id: string;
@@ -77,6 +78,7 @@ export function SummaryComponent(props: ISummaryComponent) {
       formComponent as ILayoutComponent,
       state.textResources.resources,
       state.optionState.options,
+      true,
     );
   }, shallowEqual);
   const title = useSelector((state: IRuntimeState) => {
@@ -128,6 +130,19 @@ export function SummaryComponent(props: ISummaryComponent) {
             hasValidationMessages={hasValidationMessages}
             componentRef={props.componentRef}
             changeText={changeText}
+          />
+        );
+      }
+      case 'Checkboxes': {
+        return (
+          <MultipleChoiceSummary
+            onChangeClick={onChangeClick}
+            label={title}
+            hasValidationMessages={hasValidationMessages}
+            changeText={changeText}
+            {...props}
+            formData={formData}
+            readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
           />
         );
       }

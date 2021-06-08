@@ -29,10 +29,11 @@ export type UiSchemaItem = {
   keywords?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
-  name?: string;
+  displayName: string;
   required?: string[];
 }
+
 export interface ISchema {
-  properties: { [key: string]: UiSchemaItem };
-  definitions: { [key: string]: UiSchemaItem };
+  properties: { [key: string]: {[key: string]: any} };
+  definitions: { [key: string]: {[key: string]: any} };
 }
