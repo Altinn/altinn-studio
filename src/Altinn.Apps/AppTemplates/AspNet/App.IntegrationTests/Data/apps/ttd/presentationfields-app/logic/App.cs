@@ -22,7 +22,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
-        private readonly IAltinnAppContextAccessor _altinnAppContext;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -52,7 +51,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
             IText textService,
-            IAltinnAppContextAccessor altinnAppContext,
             IHttpContextAccessor httpContextAccessor) : base(
                 appResourcesService,
                 logger,
@@ -68,7 +66,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
                 httpContextAccessor)
         {
             _logger = logger;
-            _altinnAppContext = altinnAppContext;
         }
 
         /// <inheritdoc />

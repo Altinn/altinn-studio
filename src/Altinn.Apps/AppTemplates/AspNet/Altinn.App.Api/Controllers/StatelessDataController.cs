@@ -218,7 +218,7 @@ namespace Altinn.App.Api.Controllers
             Party party = null;
             if (partyValue.StartsWith(PartyPrefix))
             {
-                owner.PartyId = partyValue.Replace(PartyPrefix, string.Empty));
+                owner.PartyId = partyValue.Replace(PartyPrefix, string.Empty);
                 return owner;
             }
             else if (partyValue.StartsWith(PersonPrefix))
