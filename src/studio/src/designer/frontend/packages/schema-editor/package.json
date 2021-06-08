@@ -7,9 +7,6 @@
   "module": "dist/index.es.js",
   "jsnext:main": "dist/index.es.js",
   "types": "dist/index.d.ts",
-  "resolutions": {
-    "@types/react": "16.9.56"
-  },
   "dependencies": {},
   "peerDependencies": {
     "@material-ui/core": "~4.11.4",
@@ -90,7 +87,8 @@
       "tsx",
       "js"
     ],
-    "setupFilesAfterEnv": [
+    "testEnvironment": "jsdom",
+    "setupFiles": [
       "<rootDir>/test/setupTests.js"
     ]
   },

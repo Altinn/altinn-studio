@@ -81,21 +81,19 @@ it('dispatches correctly when changing key', (done) => {
   wrapper.find('#input-Kommentar2000Restriksjon-key-minLength').last()
     .simulate('change', { target: { value: 'color' } });
 
-  setImmediate(() => {
-    wrapper.update();
-    wrapper.find('#input-Kommentar2000Restriksjon-key-color').last().simulate('blur');
+  wrapper.update();
+  wrapper.find('#input-Kommentar2000Restriksjon-key-color').last().simulate('blur');
 
-    expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/setKey',
-      payload: {
-        newKey: 'color',
-        oldKey: 'minLength',
-        path: '#/definitions/Kommentar2000Restriksjon',
-      },
-    });
-
-    done();
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setKey',
+    payload: {
+      newKey: 'color',
+      oldKey: 'minLength',
+      path: '#/definitions/Kommentar2000Restriksjon',
+    },
   });
+
+  done();
 });
 
 it('dispatches correctly when changing property name', (done) => {
@@ -113,21 +111,17 @@ it('dispatches correctly when changing property name', (done) => {
   expect(wrapper).not.toBeNull();
   const input = wrapper.find('#input-RA-0678_M-properties-InternInformasjon-key-InternInformasjon').last();
   input.simulate('change', { target: { value: 'Test' } });
-
-  setImmediate(() => {
     wrapper.update();
     input.simulate('blur');
 
-    expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/setPropertyName',
-      payload: {
-        name: 'Test',
-        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      },
-    });
-
-    done();
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setPropertyName',
+    payload: {
+      name: 'Test',
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+    },
   });
+  done();
 });
 
 it('dispatches correctly when changing ref', () => {

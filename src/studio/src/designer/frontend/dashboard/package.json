@@ -108,7 +108,8 @@
       "tsx",
       "js"
     ],
-    "setupFilesAfterEnv": [
+    "testEnvironment": "jsdom",
+    "setupFiles": [
       "<rootDir>/test/setupTests.js"
     ]
   },

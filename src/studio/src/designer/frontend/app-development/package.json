@@ -16,9 +16,6 @@
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
-  "resolutions": {
-    "@types/react": "16.9.43"
-  },
   "dependencies": {
     "@babel/polyfill": "~7.12.1",
     "@material-ui/core": "~4.11.4",
@@ -64,7 +61,7 @@
     "cross-env": "~7.0.3",
     "css-loader": "~5.2.6",
     "enzyme": "~3.11.0",
-    "enzyme-adapter-react-16": "~1.15.6",
+    "@wojtekmaj/enzyme-adapter-react-17": "~0.6.1",
     "eslint": "~7.27.0",
     "eslint-config-airbnb-base": "~14.2.1",
     "fork-ts-checker-notifier-webpack-plugin": "~4.0.0",
@@ -114,7 +111,8 @@
       "tsx",
       "js"
     ],
-    "setupFilesAfterEnv": [
+    "testEnvironment": "jsdom",
+    "setupFiles": [
       "<rootDir>/test/setupTests.js"
     ]
   },
