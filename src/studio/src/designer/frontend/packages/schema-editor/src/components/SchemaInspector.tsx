@@ -147,14 +147,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     };
     dispatch(setFieldValue(data));
   };
-  const onChangeConst = (path: string, value: any) => {
-    const data = {
-      path,
-      value,
-      key: 'const',
-    };
-    dispatch(setFieldValue(data));
-  };
+  // const onChangeConst = (path: string, value: any) => {
+  //   const data = {
+  //     path,
+  //     value,
+  //     key: 'const',
+  //   };
+  //   dispatch(setFieldValue(data));
+  // };
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -237,18 +237,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return null;
   };
 
-  const renderConst = (p: UiSchemaItem, field: Field) => <InputField
-    key={`field-${p.id}`}
-    value={field?.value}
-    language={props.language}
-    label={p.displayName ?? p.id}
-    readOnly={readOnly}
-    fullPath={p.id}
-    onChangeValue={onChangeConst}
-    onChangeRef={onChangeRef}
-    onChangeKey={onChangeKey}
-    onDeleteField={onDeleteObjectClick}
-  />;
+  // const renderConst = (p: UiSchemaItem, field: Field) => <InputField
+  //   key={`field-${p.id}`}
+  //   value={field?.value}
+  //   language={props.language}
+  //   label={p.displayName ?? p.id}
+  //   readOnly={readOnly}
+  //   fullPath={p.id}
+  //   onChangeValue={onChangeConst}
+  //   onChangeRef={onChangeRef}
+  //   onChangeKey={onChangeKey}
+  //   onDeleteField={onDeleteObjectClick}
+  // />;
 
   const renderAddPropertyButton = () => (
     <IconButton
@@ -260,36 +260,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   );
 
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
-    // render names, restricted checkboxes and delete buttons
-    const field = p.restrictions?.find((f) => f.key === 'const');
-    if (field) {
-      return renderConst(p, field);
-    }
-    if (p.$ref) {
-      return <InputField
-        language={props.language}
-        key={`field-${p.id}`}
-        value={p.$ref ?? ''}
-        isRef={true}
-        readOnly={readOnly}
-        label={p.displayName ?? p.id}
-        fullPath={p.id}
-        onChangeValue={onChangeValue}
-        onChangeRef={onChangeRef}
-        onChangeKey={onChangPropertyName}
-        onDeleteField={onDeleteObjectClick}
-      />;
-    }
-
     return <InputField
       language={props.language}
       key={`field-${p.id}`}
-      value={p.value}
+      required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
-      label={p.displayName ?? p.id}
+      label={p.displayName}
       fullPath={p.id}
-      onChangeValue={onChangeValue}
-      onChangeRef={onChangeRef}
       onChangeKey={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
     />;
@@ -337,8 +314,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
-  const handleIsArrayChanged = (e: any) => {
-    console.log(e);
+  const handleIsArrayChanged = (e: any, checked: boolean) => {
+    console.log(checked);
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
@@ -347,7 +324,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
     setIsRequired(checked);
   };
-
+  // const handleRequiredChangedChild = (path: string, checked: boolean) => {
+  //   dispatch(setRequired({
+  //     path, key: selectedItem?.displayName, required: checked,
+  //   }));
+  //   setIsRequired(checked);
+  // };
   const renderItemData = () => (
     <div>
       <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
@@ -377,7 +359,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <FormControlLabel
         control={<Checkbox
           checked={isArray} onChange={handleIsArrayChanged}
-          name='checkedArray'
+          name='checkedMultipleAnswers'
         />}
         label={getTranslation('schema_editor.multiple_answers', props.language)}
       />
