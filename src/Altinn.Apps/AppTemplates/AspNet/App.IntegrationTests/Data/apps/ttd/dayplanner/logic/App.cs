@@ -1,9 +1,5 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.App.AppLogic.DataProcessing;
-using Altinn.App.AppLogic.Print;
-using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
@@ -16,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.AppLogic
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
 {
     /// <summary>
     /// Represents the core logic of an App
@@ -139,7 +135,7 @@ namespace Altinn.App.AppLogic
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-           await _validationHandler.ValidateData(data, validationResults);
+            await _validationHandler.ValidateData(data, validationResults);
         }
 
         /// <summary>
@@ -170,7 +166,7 @@ namespace Altinn.App.AppLogic
         /// <param name="data">The data object being created</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-           await _instantiationHandler.DataCreation(instance, data);
+            await _instantiationHandler.DataCreation(instance, data);
         }
 
         /// <inheritdoc />

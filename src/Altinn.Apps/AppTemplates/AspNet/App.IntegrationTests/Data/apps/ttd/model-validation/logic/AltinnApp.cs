@@ -81,6 +81,17 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         }
 
         /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
+        {
+            return _calculationHandler.Calculate(data);
+        }
+
+        /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
         /// <param name="instance">Object to contain any validation errors/warnings</param>
