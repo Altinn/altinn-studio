@@ -124,7 +124,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setObjectType(selectedItem?.type ?? '');
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
-      if (selectedItem.$ref) {
+      if (selectedItem.$ref !== undefined) {
         setObjectKind('reference');
       } else {
         setObjectKind('type');
@@ -213,13 +213,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const renderDefUrl = () => {
-    if (selectedItem?.$ref) {
+    if (selectedItem && objectKind === 'reference') {
       return (
         <div>
           <p className={classes.header}>Refererer til</p>
           <RefSelect
             id={selectedItem.id}
-            value={selectedItem.$ref}
+            value={selectedItem.$ref ?? ''}
             onChange={onChangeRef}
             fullWidth={true}
           />
@@ -342,7 +342,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           label='Type'
           language={props.language}
           fullWidth={true}
-          readOnly={readOnly}
           value={objectType}
           id={selectedItem.id}
           onChange={(onChangeType)}
@@ -422,7 +421,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
             />
             <Tab
-              hidden={itemToDisplay?.type !== 'object'}
+              hidden={objectKind !== 'type' || itemToDisplay?.type !== 'object'}
               label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
             />
           </TabList>

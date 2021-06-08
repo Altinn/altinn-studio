@@ -149,6 +149,7 @@ const schemaEditorSlice = createSlice({
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem) {
         schemaItem.$ref = ref;
+        schemaItem.type = undefined;
       }
     },
     setKey(state, action) {
@@ -166,6 +167,7 @@ const schemaEditorSlice = createSlice({
     setType(state, action) {
       const { path, value }: ISetTypeAction = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.$ref = undefined;
       schemaItem.type = value;
     },
     setTitle(state, action) {
