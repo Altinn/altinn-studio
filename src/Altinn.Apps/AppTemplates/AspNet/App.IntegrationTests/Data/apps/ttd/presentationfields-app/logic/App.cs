@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
 
-using Altinn.App.AppLogic.Calculation;
-using Altinn.App.AppLogic.Print;
-using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -39,6 +37,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="instanceService">A service with access to instances</param>
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
+        /// <param name="altinnAppContext">The app context service</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
@@ -99,6 +98,17 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
             _logger.LogInformation($"RunAppEvent {appEvent}");
 
             return await Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
+        {
+            return await CalculationHandler.Calculate(data);
         }
 
         /// <summary>

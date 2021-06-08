@@ -25,7 +25,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Post_ObjectSucessfullyPrefilledAndCalculated()
+        public async Task StatelessData_Get_ObjectSucessfullyPrefilledAndCalculated()
         {
             // Arrange
             string org = "ttd";
@@ -39,7 +39,75 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.Ttd.PresentationTextsApp.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.PresentationTextsApp.Skjema>(responseContent);
+            string actualPrefillValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Arbeidsforholdgrp8856?.AnsattSammenhengendeAnsattAnsettelsedatadef33267?.value;
+            string actualCalculatedValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(actualPrefillValue);
+            Assert.NotNull(actualCalculatedValue);
+            Assert.Equal(expectedPrefillValue, actualPrefillValue);
+            Assert.Equal(expectedCalculatedValue, actualCalculatedValue);
+        }
+
+        [Fact]
+        public async Task StatelessData_Get_WithPartyHeader_ObjectSucessfullyPrefilledAndCalculated()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string expectedPrefillValue = "Sophie Salt";
+            string expectedCalculatedValue = "calculatedValue";
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+       
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            httpRequestMessage.Headers.Add("party", "partyid:1337");
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.Ttd.PresentationTextsApp.Skjema dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.PresentationTextsApp.Skjema>(responseContent);
+            string actualPrefillValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Arbeidsforholdgrp8856?.AnsattSammenhengendeAnsattAnsettelsedatadef33267?.value;
+            string actualCalculatedValue = dataObject?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(actualPrefillValue);
+            Assert.NotNull(actualCalculatedValue);
+            Assert.Equal(expectedPrefillValue, actualPrefillValue);
+            Assert.Equal(expectedCalculatedValue, actualCalculatedValue);
+        }
+
+        [Fact]
+        public async Task StatelessData_Get_WithPartyHeaderSSN_ObjectSucessfullyPrefilledAndCalculated()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+            string expectedPrefillValue = "Sophie Salt";
+            string expectedCalculatedValue = "calculatedValue";
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            httpRequestMessage.Headers.Add("party", "person:01039012345");
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
@@ -81,7 +149,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_CalculationsRunAndDataReturned()
+        public async Task StatelessData_Post_CalculationsRunAndDataReturned()
         {
             // Arrange
             string org = "ttd";
@@ -96,7 +164,7 @@ namespace App.IntegrationTests.ApiTests
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
             string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
@@ -115,7 +183,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_InvalidDataType()
+        public async Task StatelessData_Post_InvalidDataType()
         {
             // Arrange
             string org = "ttd";
@@ -128,7 +196,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=tix";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent("{}", Encoding.UTF8, "application/json")
             };
@@ -141,7 +209,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task StatelessData_Put_RequestMissingBodyBadRequest()
+        public async Task StatelessData_Post_RequestMissingBodyBadRequest()
         {
             // Arrange
             string org = "ttd";
@@ -154,13 +222,41 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatelessData_Get_CalculationsRunAndDataReturned()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "dayplanner";
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/v1/data?dataType=default";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            httpRequestMessage.Headers.Add("party", "org:897069650");
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await res.Content.ReadAsStringAsync();
+            Mocks.Apps.Ttd.Dayplanner.MyDay dataObject = JsonConvert.DeserializeObject<Mocks.Apps.Ttd.Dayplanner.MyDay>(responseContent);
+ 
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotNull(dataObject);
         }
     }
 }
