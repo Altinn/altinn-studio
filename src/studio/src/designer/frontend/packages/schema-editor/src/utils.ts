@@ -32,8 +32,7 @@ export const getParentPath = (path: string): string | null => {
   // eslint-disable-next-line no-useless-escape
   if (path.match('[^#]\/properties')) {
     const index = path.lastIndexOf('/properties/');
-    const parentPath = path.substring(0, index);
-    return parentPath;
+    return path.substring(0, index);
   }
   return null;
 };
