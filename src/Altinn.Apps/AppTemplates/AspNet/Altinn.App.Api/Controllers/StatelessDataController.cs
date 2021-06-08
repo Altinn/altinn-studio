@@ -233,6 +233,7 @@ namespace Altinn.App.Api.Controllers
                 string orgno = partyValue.Replace(OrgPrefix, string.Empty);
                 party = await _registerService.LookupParty(new PartyLookup { OrgNo = orgno });
                 owner.PartyId = party.PartyId.ToString();
+                owner.OrganisationNumber = orgno;
             }
 
             return owner;
