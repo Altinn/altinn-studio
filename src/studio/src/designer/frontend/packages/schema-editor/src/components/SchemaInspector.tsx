@@ -147,14 +147,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     };
     dispatch(setFieldValue(data));
   };
-  // const onChangeConst = (path: string, value: any) => {
-  //   const data = {
-  //     path,
-  //     value,
-  //     key: 'const',
-  //   };
-  //   dispatch(setFieldValue(data));
-  // };
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -189,7 +181,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
     if (path) {
-      // props.onAddPropertyClick(path);
       dispatch(addProperty({
         path,
       }));
@@ -237,19 +228,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return null;
   };
 
-  // const renderConst = (p: UiSchemaItem, field: Field) => <InputField
-  //   key={`field-${p.id}`}
-  //   value={field?.value}
-  //   language={props.language}
-  //   label={p.displayName ?? p.id}
-  //   readOnly={readOnly}
-  //   fullPath={p.id}
-  //   onChangeValue={onChangeConst}
-  //   onChangeRef={onChangeRef}
-  //   onChangeKey={onChangeKey}
-  //   onDeleteField={onDeleteObjectClick}
-  // />;
-
   const renderAddPropertyButton = () => (
     <IconButton
       id='add-property-button'
@@ -273,30 +251,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
-    // Keywords - Work in progress, needs sets of rules for different types etc.
-    // Need to check for a type field field, and if for example value is "array", "items" are required.
-
     if (field.key.startsWith('@')) {
       return null;
     }
     return (
-      <Grid
-        item xs={12}
+      <RestrictionField
         key={field.key}
-      >
-        <RestrictionField
-          key={field.key}
-          language={props.language}
-          type={itemToDisplay?.type}
-          value={field.value}
-          keyName={field.key}
-          readOnly={readOnly}
-          path={item.id}
-          onChangeValue={onChangeValue}
-          onChangeKey={onChangeKey}
-          onDeleteField={onDeleteFieldClick}
-        />
-      </Grid>);
+        language={props.language}
+        type={itemToDisplay?.type}
+        value={field.value}
+        keyName={field.key}
+        readOnly={readOnly}
+        path={item.id}
+        onChangeValue={onChangeValue}
+        onChangeKey={onChangeKey}
+        onDeleteField={onDeleteFieldClick}
+      />
+    );
   });
 
   const handleTabChange = (event: any, newValue: string) => {
@@ -324,12 +295,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
     setIsRequired(checked);
   };
-  // const handleRequiredChangedChild = (path: string, checked: boolean) => {
-  //   dispatch(setRequired({
-  //     path, key: selectedItem?.displayName, required: checked,
-  //   }));
-  //   setIsRequired(checked);
-  // };
+
   const renderItemData = () => (
     <div>
       <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
@@ -440,7 +406,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         </TabPanel>
         <TabPanel value='1'>
           <div className={classes.restrictions}>
-            <Grid container>
+            <Grid container spacing={0}>
               <Grid item xs={4}>
                 <FormControlLabel
                   control={<Checkbox
@@ -462,8 +428,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               <Grid item xs={7}>
                 <p>Verdi</p>
               </Grid>
-              { itemToDisplay && renderItemRestrictions(itemToDisplay) }
             </Grid>
+            { itemToDisplay && renderItemRestrictions(itemToDisplay) }
           </div>
           <IconButton
             id='add-restriction-button'

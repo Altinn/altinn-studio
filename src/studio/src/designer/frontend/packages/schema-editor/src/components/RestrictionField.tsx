@@ -83,7 +83,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
         />
       </Grid>
       <Grid item xs={1} />
-      <Grid item xs={4}><Input
+      <Grid item xs={6}><Input
         id={`${baseId}-${props.keyName}-value`}
         disabled={props.readOnly}
         className={classes.field}

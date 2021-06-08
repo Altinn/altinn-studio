@@ -343,11 +343,9 @@ it('dispatches correctly when adding fields', (done) => {
     wrapper.update();
     wrapper.find('#add-property-button').hostNodes().at(0).simulate('click');
     expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/addRestriction',
+      type: 'schemaEditor/addProperty',
       payload: {
-        key: '',
-        path: '#/definitions/Kommentar2000Restriksjon',
-        value: '',
+        path: '#/definitions/RA-0678_M',
       },
     });
     done();

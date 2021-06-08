@@ -49,17 +49,13 @@ const useStyles = (readonly?: boolean) => makeStyles({
 });
 
 export interface IInputFieldProps {
-  // value: string;
   label: string;
   fullPath: string;
   language: ILanguage;
   required?: boolean;
-  // onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
-  // onChangeRef?: (path: string, ref: string) => void;
   onChangeRequired?: (path: string, required: boolean) => void;
   onDeleteField?: (path: string, key: string) => void;
-  // isRef?: boolean;
   readOnly?: boolean;
 }
 
@@ -71,20 +67,6 @@ export function InputField(props: IInputFieldProps) {
   React.useEffect(() => {
     setLabel(props.label);
   }, [props.label]);
-
-  // const onChangeValue = (val: string) => {
-  //   const newValue = props.label === 'enum' ? val.split(',') : val;
-  //   props.onChangeValue(props.fullPath, newValue, props.label);
-  // };
-
-  // const onChangeType = (id: string, type: string) => {
-  //   props.onChangeValue(props.fullPath, type, id);
-  // };
-
-  // const onChangeRef = (id: string, ref: string) => {
-  //   props.onChangeRef?.(props.fullPath, ref);
-  // };
-
   const onChangeKey = (e: any) => {
     setLabel(e.target.value);
   };
@@ -96,34 +78,6 @@ export function InputField(props: IInputFieldProps) {
   const onClickDelete = () => {
     props.onDeleteField?.(props.fullPath, props.label);
   };
-
-  // const renderValueField = () => {
-  //   if (label === 'type') {
-  //     return <TypeSelect
-  //       language={props.language}
-  //       readOnly={props.readOnly}
-  //       value={props.value}
-  //       id={label}
-  //       onChange={onChangeType}
-  //     />;
-  //   }
-  //   if (props.isRef) {
-  //     return <RefSelect
-  //       id={label}
-  //       value={props.value}
-  //       readOnly={props.readOnly}
-  //       onChange={onChangeRef}
-  //     />;
-  //   }
-  //   return <Input
-  //     id={`${baseId}-${label}-value`}
-  //     disabled={props.readOnly}
-  //     className={classes.field}
-  //     value={props.value}
-  //     disableUnderline={true}
-  //     onChange={(e) => onChangeValue(e.target.value)}
-  //   />;
-  // };
   const onChangeRequired = (e: any, checked: boolean) => {
     dispatch(setRequired({
       path: props.fullPath, key: props.label, required: checked,
