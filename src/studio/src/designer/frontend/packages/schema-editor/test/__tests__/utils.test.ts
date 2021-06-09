@@ -17,14 +17,15 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     id: '#/id3',
     displayName: 'id3',
-    keywords: [
-      { key: 'type', value: 'string' },
+    type: 'string',
+    restrictions: [
       { key: 'maxLength', value: 10 },
     ],
   },
 ];
 
 const mockJsonSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
   id1: {
     $ref: '#/id2',
   },
@@ -46,8 +47,8 @@ test('gets UI schema item', () => {
   expect(result).toEqual({
     id: '#/id3',
     displayName: 'id3',
-    keywords: [
-      { key: 'type', value: 'string' },
+    type: 'string',
+    restrictions: [
       { key: 'maxLength', value: 10 },
     ],
   });

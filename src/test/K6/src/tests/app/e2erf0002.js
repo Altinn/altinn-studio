@@ -13,6 +13,7 @@
 */
 
 import { check } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as appData from '../../api/app/data.js';
@@ -30,7 +31,10 @@ const toDelete = __ENV.delete ? __ENV.delete.toLowerCase() : 'true';
 const hardDelete = __ENV.harddelete ? __ENV.harddelete.toLowerCase() : 'true';
 
 let instanceFormDataXml = open('../../data/' + level2App + '.xml');
-let users = JSON.parse(open('../../data/' + fileName));
+let users = new SharedArray('test users', function () {
+  var usersArray = JSON.parse(open('../../data/' + fileName));
+  return usersArray;
+});
 const usersCount = users.length;
 
 export const options = {

@@ -74,5 +74,10 @@ namespace Altinn.Platform.Register.Models
         /// Gets or sets the postal city business
         /// </summary>
         public string BusinessPostalCity { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unit status
+        /// </summary>
+        public string UnitStatus { get; set; }
     }
 }

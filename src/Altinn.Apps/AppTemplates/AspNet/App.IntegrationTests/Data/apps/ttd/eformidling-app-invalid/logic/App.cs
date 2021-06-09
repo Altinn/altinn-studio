@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 
-using Altinn.App.AppLogic.Calculation;
 using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
@@ -29,7 +28,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
     {
         private readonly ILogger<App> _logger;
         private readonly ValidationHandler _validationHandler;
-        private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
         private readonly PdfHandler _pdfHandler;
 
@@ -83,7 +81,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);
-            _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
             _pdfHandler = new PdfHandler();
         }
@@ -141,15 +138,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
-        }
-
-        /// <summary>
-        /// Is called to run custom calculation events defined by app developer.
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object data)
-        {
-            return await _calculationHandler.Calculate(data);
         }
 
         /// <summary>
