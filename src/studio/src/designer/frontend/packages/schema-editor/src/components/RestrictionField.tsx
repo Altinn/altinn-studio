@@ -19,28 +19,29 @@ export interface IRestrictionFieldProps {
   onDeleteField?: (path: string, key: string) => void;
 }
 
-export const RestrictionField = (props: IRestrictionFieldProps) => {
-  const classes = makeStyles({
-    delete: {
-      marginLeft: '8px',
-      padding: '12px',
-    },
-    field: {
-      background: 'white',
+const useStyles = makeStyles({
+  delete: {
+    marginLeft: '8px',
+    padding: '12px',
+  },
+  field: {
+    background: 'white',
+    color: 'black',
+    border: '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    width: 150,
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
       color: 'black',
-      border: '1px solid #006BD8',
-      boxSsizing: 'border-box',
-      padding: 4,
-      width: 150,
-      '&.Mui-disabled': {
-        background: '#f4f4f4',
-        color: 'black',
-        border: '1px solid #6A6A6A',
-        boxSizing: 'border-box',
-      },
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
     },
-  })();
+  },
+});
 
+export const RestrictionField = (props: IRestrictionFieldProps) => {
+  const classes = useStyles();
   const [val, setVal] = React.useState(props.value);
   React.useEffect(() => {
     setVal(props.value);

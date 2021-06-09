@@ -29,8 +29,7 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
 }
 
 export const getParentPath = (path: string): string | null => {
-  // eslint-disable-next-line no-useless-escape
-  if (path.match('[^#]\/properties')) {
+  if (path.match(/[^#]\/properties/)) {
     const index = path.lastIndexOf('/properties/');
     return path.substring(0, index);
   }

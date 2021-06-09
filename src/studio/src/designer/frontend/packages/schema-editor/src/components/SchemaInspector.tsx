@@ -124,8 +124,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
-
     if (selectedItem) {
+      if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
+        setTabIndex('0');
+      }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined) {
         setObjectKind('reference');
@@ -135,8 +137,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     } else {
       setIsRequired(false);
       setObjectKind('type');
+      setTabIndex('0');
     }
-  }, [selectedItem, parentItem]);
+  }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
 
   const readOnly = selectedItem?.$ref !== undefined;
 
@@ -291,8 +294,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleIsArrayChanged = (e: any, checked: boolean) => {
-    console.log(checked);
+    // will be fixed in #6116
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
@@ -360,7 +365,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <FormControlLabel
         className={classes.header}
         control={<Checkbox
-          checked={isArray} onChange={handleIsArrayChanged}
+          checked={isArray}
+          onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
         />}
         label={getTranslation('schema_editor.multiple_answers', props.language)}
@@ -456,18 +462,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                 <hr className={classes.divider} />
               </Grid>
               <Grid item xs={4}>
-                <p>Nøkkelord</p>
+                <p>{getTranslation('schema_editor.keyword', props.language)}</p>
               </Grid>
               <Grid item xs={1} />
               <Grid item xs={7}>
-                <p>Verdi</p>
+                <p>{getTranslation('schema_editor.value', props.language)}</p>
               </Grid>
               { itemToDisplay && renderItemRestrictions(itemToDisplay) }
             </Grid>
           </div>
           <IconButton
             id='add-restriction-button'
-            aria-label='Add property'
+            aria-label={getTranslation('schema_editor.add_restriction', props.language)}
             onClick={onAddRestrictionClick}
           ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
           </IconButton>
