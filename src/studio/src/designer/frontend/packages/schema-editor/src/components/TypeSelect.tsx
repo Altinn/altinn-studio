@@ -54,8 +54,6 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       <MenuItem value='integer'>{getTranslation('schema_editor.integer', props.language)}</MenuItem>
       <MenuItem value='number'>{getTranslation('schema_editor.number', props.language)}</MenuItem>
       <MenuItem value='boolean'>{getTranslation('schema_editor.boolean', props.language)}</MenuItem>
-      <MenuItem value='array'>{getTranslation('schema_editor.array', props.language)}</MenuItem>
-      <MenuItem value='enum'>{getTranslation('schema_editor.enum', props.language)}</MenuItem>
       <MenuItem value='object'>{getTranslation('schema_editor.object', props.language)}</MenuItem>
     </Select>
   );

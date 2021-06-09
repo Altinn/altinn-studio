@@ -27,15 +27,12 @@ const useStyles = makeStyles(
         width: 150,
       },
     },
-    label: {
-      margin: '4px 0px 0px 0px',
-      padding: 0,
-    },
     header: {
-      padding: 4,
+      padding: 0,
       fontWeight: 400,
       fontSize: 16,
-      marginTop: 2,
+      marginTop: 24,
+      marginBottom: 6,
     },
     divider: {
       marginTop: 2,
@@ -127,7 +124,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
-    setTabIndex('0');
+
     if (selectedItem) {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined) {
@@ -260,7 +257,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
-    if (field.key.startsWith('@')) {
+    if (!field || field.key.startsWith('@')) {
       return null;
     }
     return (
@@ -319,7 +316,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      <p className={classes.label}>{getTranslation('schema_editor.name', props.language)}</p>
+      <p className={classes.header}>{getTranslation('schema_editor.name', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
@@ -334,7 +331,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.label}>{getTranslation('schema_editor.object_kind_label', props.language)}</p>
+      <p className={classes.header}>{getTranslation('schema_editor.object_kind_label', props.language)}</p>
       <Select
         className={classes.field}
         id='type-kind-select'
@@ -349,7 +346,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       </Select>
       {selectedItem && objectKind === 'type' &&
       <>
-        <p className={classes.label}>Type</p>
+        <p className={classes.header}>Type</p>
         <TypeSelect
           label='Type'
           language={props.language}
@@ -361,6 +358,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       </>}
       { renderDefUrl() }
       <FormControlLabel
+        className={classes.header}
         control={<Checkbox
           checked={isArray} onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
@@ -368,8 +366,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         label={getTranslation('schema_editor.multiple_answers', props.language)}
       />
       <hr className={classes.divider} />
-      <p className={classes.label}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
-      <p className={classes.label}>{getTranslation('schema_editor.title', props.language)}</p>
+      <p className={classes.header}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
+      <p className={classes.header}>{getTranslation('schema_editor.title', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
@@ -382,7 +380,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.label}>{getTranslation('schema_editor.description', props.language)}</p>
+      <p className={classes.header}>{getTranslation('schema_editor.description', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}
@@ -433,7 +431,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
             />
             <Tab
-              hidden={objectKind !== 'type' || itemToDisplay?.type !== 'object'}
+              hidden={itemToDisplay?.type !== 'object'}
               label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
             />
           </TabList>
@@ -476,13 +474,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         </TabPanel>
         <TabPanel value='2'>
           <Grid container spacing={0}>
-            <Grid item xs={4}>
-              <p>Nøkkelord</p>
-            </Grid>
-            <Grid item xs={1} />
-            <Grid item xs={7}>
-              <p>Verdi</p>
-            </Grid>
             { itemToDisplay && renderItemProperties(itemToDisplay) }
           </Grid>
           { !readOnly && renderAddPropertyButton() }

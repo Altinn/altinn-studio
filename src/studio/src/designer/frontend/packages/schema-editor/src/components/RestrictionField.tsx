@@ -77,7 +77,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
         />
       </Grid>
       <Grid item xs={1} />
-      <Grid item xs={6}><Input
+      <Grid item xs={4}><Input
         id={`${baseId}-${props.keyName}-value`}
         disabled={props.readOnly}
         className={classes.field}
@@ -87,7 +87,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
       />
       </Grid>
       { props.onDeleteField &&
-      <Grid item xs={1}>
+      <Grid item xs={3}>
         <IconButton
           id={`${baseId}-delete-${props.keyName}`}
           aria-label='Delete field'

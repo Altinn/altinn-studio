@@ -107,8 +107,7 @@ export function InputField(props: IInputFieldProps) {
           />
         </FormControl>
       </Grid>
-      <Grid item xs={2} />
-      <Grid item xs={1}>
+      <Grid item xs={3}>
         { props.onDeleteField &&
         <IconButton
           id={`${baseId}-delete-${label}`}
