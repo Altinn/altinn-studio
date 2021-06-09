@@ -4,7 +4,7 @@ import { AxiosRequestConfig } from 'axios';
 import { IRuntimeState } from 'src/types';
 import { getDataValidationUrl } from 'src/utils/urlHelper';
 import { getCurrentTaskDataElementId } from 'altinn-shared/utils';
-import { get } from '../../../../utils/networking';
+import { get } from 'src/utils/networking';
 import { mapDataElementValidationToRedux, mergeValidationObjects } from '../../../../utils/validation';
 import { runSingleFieldValidation,
   runSingleFieldValidationFulfilled,
@@ -18,7 +18,7 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
     state.instanceData.instance,
   );
   const url = getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId);
-  const currentSingleFieldValidation = state.formValidations.currentSingleFieldValidation;
+  const { currentSingleFieldValidation } = state.formValidations;
 
   if (currentSingleFieldValidation) {
     const options: AxiosRequestConfig = {
