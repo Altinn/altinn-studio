@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+
+using Altinn.App.Api.Filters;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
