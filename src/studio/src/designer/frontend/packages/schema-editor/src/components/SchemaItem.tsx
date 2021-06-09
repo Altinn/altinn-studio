@@ -103,7 +103,7 @@ function SchemaItem(props: SchemaItemProps) {
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
     setItemToDisplay(refItem ?? item);
-  }, [item.keywords, item, refItem]);
+  }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
     dispatch(setSelectedId({ id: e.id }));
@@ -141,9 +141,17 @@ function SchemaItem(props: SchemaItemProps) {
     }));
   };
 
+  const getIconStr = () => {
+    const type = item.type;
+    if (refItem) {
+      return 'fa-datamodel-ref';
+    }
+    return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
+  };
+
   const renderLabel = () => {
-    const iconStr = refItem ? 'fa-datamodel-ref' : 'fa-datamodel-object';
-    const label = refItem ? `${item.displayName ?? item.id} : ${itemToDisplay.displayName ?? itemToDisplay.id}` : item.displayName ?? item.id;
+    const iconStr = getIconStr();
+    const label = refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName;
     return <SchemaItemLabel
       language={props.language}
       icon={iconStr}

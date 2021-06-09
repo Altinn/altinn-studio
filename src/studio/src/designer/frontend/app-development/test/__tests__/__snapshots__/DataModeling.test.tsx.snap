@@ -157,10 +157,10 @@ exports[`DataModeling Should match snapshot 1`] = `
       class="makeStyles-root-19"
     >
       <div
-        class="MuiGrid-root MuiGrid-container"
+        class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"
       >
         <div
-          class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-7"
+          class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-6"
         >
           <div
             class="makeStyles-root-19"
@@ -256,7 +256,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-383"
+                        class="MuiTreeItem-root makeStyles-treeItem-386"
                         language="[object Object]"
                         role="treeitem"
                         tabindex="-1"
@@ -369,7 +369,43 @@ exports[`DataModeling Should match snapshot 1`] = `
                   <div
                     class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                   >
-                    definitions
+                    <div
+                      class="makeStyles-propertiesLabel-36"
+                    >
+                      <div
+                        class="makeStyles-label-37"
+                      >
+                        <span
+                          class="makeStyles-iconContainer-38"
+                        >
+                          <i
+                            class="fa fa-datamodel-properties"
+                            style="color: white; text-align: center;"
+                          />
+                        </span>
+                         
+                        schema_editor.definitions
+                      </div>
+                      <button
+                        aria-controls="simple-menu"
+                        aria-haspopup="true"
+                        class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-35"
+                        id="open-context-menu-button"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label"
+                        >
+                          <i
+                            class="fa fa-ellipsismenu"
+                          />
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <ul
@@ -385,7 +421,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                     >
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-64"
+                        class="MuiTreeItem-root makeStyles-treeItem-67"
                         id="definitionsForhåndsmeldingMidlertidigArbeidssted2011_M"
                         language="[object Object]"
                         role="treeitem"
@@ -452,7 +488,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-75"
+                        class="MuiTreeItem-root makeStyles-treeItem-78"
                         id="definitionsengasjertEnhet"
                         language="[object Object]"
                         role="treeitem"
@@ -509,7 +545,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-86"
+                        class="MuiTreeItem-root makeStyles-treeItem-89"
                         id="definitionsInnrapporterteData"
                         language="[object Object]"
                         role="treeitem"
@@ -577,7 +613,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-97"
+                        class="MuiTreeItem-root makeStyles-treeItem-100"
                         id="definitionsProsjekt"
                         language="[object Object]"
                         role="treeitem"
@@ -645,7 +681,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-108"
+                        class="MuiTreeItem-root makeStyles-treeItem-111"
                         id="definitionsAdresse"
                         language="[object Object]"
                         role="treeitem"
@@ -713,7 +749,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-119"
+                        class="MuiTreeItem-root makeStyles-treeItem-122"
                         id="definitionsByggherre"
                         language="[object Object]"
                         role="treeitem"
@@ -781,7 +817,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-130"
+                        class="MuiTreeItem-root makeStyles-treeItem-133"
                         id="definitionsKontaktperson"
                         language="[object Object]"
                         role="treeitem"
@@ -849,7 +885,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-141"
+                        class="MuiTreeItem-root makeStyles-treeItem-144"
                         id="definitionsByggherrePerson"
                         language="[object Object]"
                         role="treeitem"
@@ -917,7 +953,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-152"
+                        class="MuiTreeItem-root makeStyles-treeItem-155"
                         id="definitionsByggherreEnhet"
                         language="[object Object]"
                         role="treeitem"
@@ -985,7 +1021,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-163"
+                        class="MuiTreeItem-root makeStyles-treeItem-166"
                         id="definitionsByggherrensRepresentant"
                         language="[object Object]"
                         role="treeitem"
@@ -1053,7 +1089,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-174"
+                        class="MuiTreeItem-root makeStyles-treeItem-177"
                         id="definitionsEngasjertEnhet"
                         language="[object Object]"
                         role="treeitem"
@@ -1121,7 +1157,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-185"
+                        class="MuiTreeItem-root makeStyles-treeItem-188"
                         id="definitionsProsjektgjennomføring"
                         language="[object Object]"
                         role="treeitem"
@@ -1189,7 +1225,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-196"
+                        class="MuiTreeItem-root makeStyles-treeItem-199"
                         id="definitionsTidsrom"
                         language="[object Object]"
                         role="treeitem"
@@ -1257,7 +1293,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-207"
+                        class="MuiTreeItem-root makeStyles-treeItem-210"
                         id="definitionsKoordinator"
                         language="[object Object]"
                         role="treeitem"
@@ -1325,7 +1361,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-218"
+                        class="MuiTreeItem-root makeStyles-treeItem-221"
                         id="definitionsKoordinatorrolle"
                         language="[object Object]"
                         role="treeitem"
@@ -1393,7 +1429,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                       </li>
                       <li
                         aria-expanded="false"
-                        class="MuiTreeItem-root makeStyles-treeItem-229"
+                        class="MuiTreeItem-root makeStyles-treeItem-232"
                         id="definitionsMelder"
                         language="[object Object]"
                         role="treeitem"
@@ -1460,7 +1496,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-240"
+                        class="MuiTreeItem-root makeStyles-treeItem-243"
                         id="definitionsAlternativ"
                         language="[object Object]"
                         role="treeitem"
@@ -1485,7 +1521,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-boolean"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1516,7 +1552,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-251"
+                        class="MuiTreeItem-root makeStyles-treeItem-254"
                         id="definitionsTekst"
                         language="[object Object]"
                         role="treeitem"
@@ -1541,7 +1577,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1572,7 +1608,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-394"
+                        class="MuiTreeItem-root makeStyles-treeItem-397"
                         id="definitionsPostnummer"
                         language="[object Object]"
                         role="treeitem"
@@ -1628,7 +1664,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-273"
+                        class="MuiTreeItem-root makeStyles-treeItem-276"
                         id="definitionsPostnummer_RestriksjonPostnummer"
                         language="[object Object]"
                         role="treeitem"
@@ -1653,7 +1689,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1684,7 +1720,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-284"
+                        class="MuiTreeItem-root makeStyles-treeItem-287"
                         id="definitionsPoststed"
                         language="[object Object]"
                         role="treeitem"
@@ -1709,7 +1745,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1740,7 +1776,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-295"
+                        class="MuiTreeItem-root makeStyles-treeItem-298"
                         id="definitionsProsjektetsArt"
                         language="[object Object]"
                         role="treeitem"
@@ -1765,7 +1801,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1796,7 +1832,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-306"
+                        class="MuiTreeItem-root makeStyles-treeItem-309"
                         id="definitionsMeldingstype"
                         language="[object Object]"
                         role="treeitem"
@@ -1821,7 +1857,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1852,7 +1888,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-317"
+                        class="MuiTreeItem-root makeStyles-treeItem-320"
                         id="definitionsNavn"
                         language="[object Object]"
                         role="treeitem"
@@ -1877,7 +1913,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1908,7 +1944,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-328"
+                        class="MuiTreeItem-root makeStyles-treeItem-331"
                         id="definitionsTelefonnummer"
                         language="[object Object]"
                         role="treeitem"
@@ -1933,7 +1969,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -1964,7 +2000,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-405"
+                        class="MuiTreeItem-root makeStyles-treeItem-408"
                         id="definitionsOrganisasjonsnummer"
                         language="[object Object]"
                         role="treeitem"
@@ -2020,7 +2056,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-350"
+                        class="MuiTreeItem-root makeStyles-treeItem-353"
                         id="definitionsOrganisasjonsnummer_RestriksjonOrganisasjonsnummer"
                         language="[object Object]"
                         role="treeitem"
@@ -2045,7 +2081,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2076,7 +2112,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-361"
+                        class="MuiTreeItem-root makeStyles-treeItem-364"
                         id="definitionsTidspunkt"
                         language="[object Object]"
                         role="treeitem"
@@ -2101,7 +2137,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-string"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2132,7 +2168,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         </div>
                       </li>
                       <li
-                        class="MuiTreeItem-root makeStyles-treeItem-372"
+                        class="MuiTreeItem-root makeStyles-treeItem-375"
                         id="definitionsAntall"
                         language="[object Object]"
                         role="treeitem"
@@ -2157,7 +2193,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                                   class="makeStyles-iconContainer-38"
                                 >
                                   <i
-                                    class="fa fa-datamodel-object"
+                                    class="fa fa-datamodel-integer"
                                     style="color: white; text-align: center;"
                                   />
                                 </span>
@@ -2195,26 +2231,17 @@ exports[`DataModeling Should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
+          class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-6"
         >
-          <div
-            class="makeStyles-root-39"
-          >
+          <div>
             <p
-              class="makeStyles-header-41"
+              class="no-item-selected"
             >
-              schema_editor.properties
+              schema_editor.no_item_selected
             </p>
-            <div>
-              <p
-                class="no-item-selected"
-              >
-                schema_editor.no_item_selected
-              </p>
-              <hr
-                class="makeStyles-divider-42"
-              />
-            </div>
+            <hr
+              class="makeStyles-divider-42"
+            />
           </div>
         </div>
       </div>

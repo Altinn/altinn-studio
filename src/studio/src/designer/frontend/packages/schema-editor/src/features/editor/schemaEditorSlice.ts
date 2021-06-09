@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getUiSchemaItem } from '../../utils';
-import { ISchema, ISchemaState, ISetRefAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem } from '../../utils';
+import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -16,18 +16,21 @@ const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
   reducers: {
-    addField(state, action) {
+    addRestriction(state, action) {
       const {
-        path, key, value,
+        path, value, key,
       } = action.payload;
 
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       if (addToItem) {
         const itemToAdd = { key, value };
-        if (addToItem.keywords) {
-          addToItem.keywords.push(itemToAdd);
+        if (addToItem.restrictions) {
+          while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+            itemToAdd.key += 1;
+          }
+          addToItem.restrictions.push(itemToAdd);
         } else {
-          addToItem.keywords = [itemToAdd];
+          addToItem.restrictions = [itemToAdd];
         }
       }
     },
@@ -36,10 +39,18 @@ const schemaEditorSlice = createSlice({
       state.uiSchema.push(
         {
           id: `#/properties/${name}`,
+          type: 'object',
           displayName: name,
-          keywords: [
-            { key: 'type', value: 'object' },
-          ],
+        },
+      );
+    },
+    addRootDefinition(state, action) {
+      const { name } = action.payload;
+      state.uiSchema.push(
+        {
+          id: `#/definitions/${name}`,
+          type: 'object',
+          displayName: name,
         },
       );
     },
@@ -49,14 +60,13 @@ const schemaEditorSlice = createSlice({
       const item: UiSchemaItem = {
         id: `${path}/properties/name`,
         displayName: 'name',
-        keywords: [
-          {
-            key: 'type',
-            value: 'object',
-          },
-        ],
+        type: 'object',
       };
       if (addToItem.properties) {
+        while (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
+          item.id += 1;
+          item.displayName += 1;
+        }
         addToItem.properties.push(item);
       } else {
         addToItem.properties = [item];
@@ -91,9 +101,9 @@ const schemaEditorSlice = createSlice({
       const { path, key } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
       if (removeFromItem) {
-        const removeIndex = removeFromItem.keywords?.findIndex((v: any) => v.key === key) ?? -1;
+        const removeIndex = removeFromItem.restrictions?.findIndex((v: any) => v.key === key) ?? -1;
         if (removeIndex >= 0) {
-          removeFromItem.keywords?.splice(removeIndex, 1);
+          removeFromItem.restrictions?.splice(removeIndex, 1);
         }
       }
     },
@@ -131,11 +141,15 @@ const schemaEditorSlice = createSlice({
       }: ISetValueAction = action.payload;
       // eslint-disable-next-line no-nested-ternary
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      if (schemaItem.keywords) {
-        const fieldItem = schemaItem.keywords.find((field) => field.key === key);
-        if (fieldItem) {
-          fieldItem.value = value;
-        }
+      if (!schemaItem.restrictions) {
+        schemaItem.restrictions = [];
+      }
+
+      const fieldItem = schemaItem.restrictions.find((field) => field.key === key);
+      if (fieldItem) {
+        fieldItem.value = value;
+      } else if (key) {
+        schemaItem.restrictions.push({ key, value });
       }
     },
     setRef(state, action) {
@@ -145,6 +159,7 @@ const schemaEditorSlice = createSlice({
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem) {
         schemaItem.$ref = ref;
+        schemaItem.type = undefined;
       }
     },
     setKey(state, action) {
@@ -152,15 +167,51 @@ const schemaEditorSlice = createSlice({
         path, oldKey, newKey,
       } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      if (schemaItem.keywords) {
-        const fieldItem = schemaItem.keywords.find((field) => field.key === oldKey);
+      if (schemaItem.restrictions) {
+        const fieldItem = schemaItem.restrictions.find((field) => field.key === oldKey);
         if (fieldItem) {
           fieldItem.key = newKey;
         }
       }
     },
+    setType(state, action) {
+      const { path, value }: ISetTypeAction = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.$ref = undefined;
+      schemaItem.type = value;
+    },
+    setTitle(state, action) {
+      const { path, title } = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.title = title;
+    },
+    setDescription(state, action) {
+      const { path, description } = action.payload;
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.description = description;
+    },
+    setRequired(state, action) {
+      const {
+        path, key, required,
+      } = action.payload;
+      // need to find parent object
+      const parent = getParentPath(path);
+      if (parent != null) {
+        const schemaItem = getUiSchemaItem(state.uiSchema, parent);
+        if (schemaItem.required === undefined) {
+          schemaItem.required = [];
+        }
+        if (!required) {
+          schemaItem.required = schemaItem.required.filter((k) => k !== key);
+        } else if (!schemaItem.required.includes(key)) {
+          schemaItem.required.push(key);
+        }
+      }
+    },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
+      state.selectedId = undefined;
+      state.selectedNodeId = undefined;
       state.schema = schema;
     },
     setPropertyName(state, action) {
@@ -222,8 +273,9 @@ const schemaEditorSlice = createSlice({
 });
 
 export const {
-  addField,
+  addRestriction,
   addRootProperty,
+  addRootDefinition,
   addProperty,
   addRefProperty,
   deleteField,
@@ -238,6 +290,10 @@ export const {
   setUiSchema,
   updateJsonSchema,
   setSelectedId,
+  setTitle,
+  setDescription,
+  setType,
+  setRequired,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

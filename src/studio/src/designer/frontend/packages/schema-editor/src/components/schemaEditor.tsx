@@ -6,7 +6,7 @@ import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
@@ -116,12 +116,20 @@ export const SchemaEditor = ({
       name: 'name',
     }));
   };
+  const handleAddDefinition = () => {
+    dispatch(addRootDefinition({
+      name: 'name',
+    }));
+  };
 
   const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
     <div className={classes.root}>
-      <Grid container={true} direction='row'>
-        <Grid item={true} xs={7}>
+      <Grid
+        container={true} direction='row'
+        spacing={2}
+      >
+        <Grid item={true} xs={6}>
           <div id='schema-editor' className={classes.root}>
             <button
               type='button' className={classes.button}
@@ -164,7 +172,15 @@ export const SchemaEditor = ({
                 />)}
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
-              <TreeItem nodeId='definitions' label='definitions'>
+              <TreeItem
+                nodeId='definitions'
+                label={<SchemaItemLabel
+                  language={language}
+                  label={getTranslation('schema_editor.definitions', language)}
+                  icon='fa-datamodel-properties'
+                  onAddProperty={handleAddDefinition}
+                />}
+              >
                 { definitions.map((def) => <SchemaItem
                   keyPrefix='definitions'
                   item={def}
@@ -177,7 +193,7 @@ export const SchemaEditor = ({
             </TreeView>
           </div>
         </Grid>
-        <Grid item={true} xs={5}>
+        <Grid item={true} xs={6}>
           <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>
