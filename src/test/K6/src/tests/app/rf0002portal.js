@@ -13,6 +13,7 @@
 */
 
 import { check, sleep } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as appData from '../../api/app/data.js';
@@ -28,7 +29,10 @@ const environment = __ENV.env.toLowerCase();
 const fileName = 'users_' + environment + '.json';
 
 let instanceFormDataXml = open('../../data/' + level2App + '.xml');
-let users = JSON.parse(open('../../data/' + fileName));
+let users = new SharedArray('test users', function () {
+  var usersArray = JSON.parse(open('../../data/' + fileName));
+  return usersArray;
+});
 const usersCount = users.length;
 
 export const options = {

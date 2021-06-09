@@ -29,8 +29,17 @@ export interface IDeleteDataModelRejected {
   error: any;
 }
 
+const newSchema: ISchema = {
+  properties: {
+    melding: {
+      type: 'object',
+    },
+  },
+  definitions: {},
+};
+
 const initialState: IDataModelingState = {
-  schema: { properties: {}, definitions: {} },
+  schema: newSchema,
   modelName: undefined,
   error: null,
   saving: false,
@@ -40,7 +49,9 @@ const dataModelingSlice = createSlice({
   name: 'dataModeling',
   initialState,
   reducers: {
-    fetchDataModel(state, action) {},
+    fetchDataModel(state, action) {
+      state.schema = null;
+    },
     fetchDataModelFulfilled(state, action) {
       const { schema } = action.payload;
       state.schema = schema;
@@ -71,14 +82,14 @@ const dataModelingSlice = createSlice({
       const { modelName } = action.payload;
       state.modelName = modelName;
       state.error = null;
-      state.schema = { properties: {}, definitions: {} };
+      state.schema = newSchema;
     },
     deleteDataModel(state) {
       state.saving = true;
     },
     deleteDataModelFulfilled(state) {
       state.saving = false;
-      state.schema = { properties: {}, definitions: {} };
+      state.schema = newSchema;
       state.modelName = '';
     },
     deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {

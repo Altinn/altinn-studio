@@ -15,6 +15,7 @@
 */
 
 import { check } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as appData from '../../api/app/data.js';
@@ -34,7 +35,10 @@ const instanceFormDataXml = open('../../data/' + level2App + '.xml');
 const smallAttachment = open('../../data/50kb.txt');
 const mediumAttachment = open('../../data/1mb.txt');
 const largeAttachment = open('../../data/99mb.txt');
-let users = JSON.parse(open('../../data/' + fileName));
+let users = new SharedArray('test users', function () {
+  var usersArray = JSON.parse(open('../../data/' + fileName));
+  return usersArray;
+});
 const usersCount = users.length;
 
 export const options = {

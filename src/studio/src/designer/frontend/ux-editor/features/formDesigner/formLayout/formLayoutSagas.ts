@@ -4,7 +4,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
-import { all, call, delay, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
+import { call, delay, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
@@ -458,18 +458,19 @@ export function* watchUpdateLayoutNameSaga(): SagaIterator {
 export function* fetchFormLayoutSettingSaga(): SagaIterator {
   try {
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
-    yield put(FormLayoutActions.fetchLayoutSettingsFulfilled({ settings }));
+    if (settings) {
+      yield put(FormLayoutActions.fetchLayoutSettingsFulfilled({ settings }));
+    }
   } catch (error) {
     yield put(FormLayoutActions.fetchLayoutSettingsRejected({ error }));
   }
 }
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
-  yield all([
-    take(FormLayoutActions.fetchFormLayoutFulfilled),
-    take(FormLayoutActions.fetchLayoutSettings),
-  ]);
-  yield call(fetchFormLayoutSettingSaga);
+  yield takeEvery([
+    FormLayoutActions.fetchFormLayoutFulfilled,
+    FormLayoutActions.fetchLayoutSettings,
+  ], fetchFormLayoutSettingSaga);
 }
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {

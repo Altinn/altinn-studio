@@ -4,7 +4,7 @@ using System.Reflection;
 
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
+using Designer.Tests.Utils;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -19,7 +19,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_LoadSchema()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -35,7 +35,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RepeatingGroupHasCorrectDataBinding()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.Skjema-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -63,7 +63,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RootNameCorrectlyTransferedToModelMetadata()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.RA-0678_M.schema.json");
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.RA-0678_M.schema.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -80,6 +80,39 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal("melding", rootElement.ID);
             Assert.Equal("melding", rootElement.Name);
             Assert.Equal("RA0678_M", rootElement.TypeName);
+        }
+
+        [Fact]
+        public void GetModelMetadata_RestrictIntegers()
+        {
+            // Arrange
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.restriction-max-min-integer.schema.json");
+
+            // Act
+            JsonSchemaToInstanceModelGenerator target =
+                new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
+            ModelMetadata actual = target.GetModelMetadata();
+
+            // Assert
+            Assert.Equal(BaseValueType.NonNegativeInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].XsdValueType);
+            Assert.Equal("999", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].Restrictions["maximum"].Value);
+            Assert.Equal("0", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncTo999Incl"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.PositiveInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].XsdValueType);
+            Assert.Equal("999", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].Restrictions["maximum"].Value);
+            Assert.Equal("1", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncTo999Incl"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.Integer, actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("-1", actual.Elements["RestrictedIntegersTests.RestrictedIntegerNegative1IncToMax"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.NonNegativeInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("0", actual.Elements["RestrictedIntegersTests.RestrictedInteger0IncToMax"].Restrictions["minimum"].Value);
+
+            Assert.Equal(BaseValueType.PositiveInteger, actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].XsdValueType);
+            Assert.False(actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].Restrictions.ContainsKey("maximum"));
+            Assert.Equal("1", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].Restrictions["minimum"].Value);
         }
 
         private JsonSchema LoadTestData(string resourceName)

@@ -867,6 +867,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
             }
+            else if ("http://www.w3.org/2001/XMLSchema:unsignedInt".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, uint.MinValue);
+                SetMaximum(appendToSchema, uint.MaxValue);
+            }
             else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
@@ -882,6 +888,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 appendToSchema.Type(JsonSchemaType.Integer);
                 SetMinimum(appendToSchema, short.MinValue);
                 SetMaximum(appendToSchema, short.MaxValue);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:unsignedShort".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, ushort.MinValue);
+                SetMaximum(appendToSchema, ushort.MaxValue);
             }
             else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
             {
