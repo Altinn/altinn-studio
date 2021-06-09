@@ -41,6 +41,7 @@ namespace Altinn.App.Api.Controllers
         /// Gets current party by reading cookie value and validating.
         /// </summary>
         /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
+        [NoCacheHeaderFilter]
         [HttpGet("{org}/{app}/api/authorization/parties/current")]
         public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
         {
