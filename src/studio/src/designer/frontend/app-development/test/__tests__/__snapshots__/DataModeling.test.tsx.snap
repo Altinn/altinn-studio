@@ -369,7 +369,43 @@ exports[`DataModeling Should match snapshot 1`] = `
                   <div
                     class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                   >
-                    definitions
+                    <div
+                      class="makeStyles-propertiesLabel-36"
+                    >
+                      <div
+                        class="makeStyles-label-37"
+                      >
+                        <span
+                          class="makeStyles-iconContainer-38"
+                        >
+                          <i
+                            class="fa fa-datamodel-properties"
+                            style="color: white; text-align: center;"
+                          />
+                        </span>
+                         
+                        schema_editor.definitions
+                      </div>
+                      <button
+                        aria-controls="simple-menu"
+                        aria-haspopup="true"
+                        class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-35"
+                        id="open-context-menu-button"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label"
+                        >
+                          <i
+                            class="fa fa-ellipsismenu"
+                          />
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <ul

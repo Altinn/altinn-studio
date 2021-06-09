@@ -6,7 +6,7 @@ import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
@@ -116,6 +116,11 @@ export const SchemaEditor = ({
       name: 'name',
     }));
   };
+  const handleAddDefinition = () => {
+    dispatch(addRootDefinition({
+      name: 'name',
+    }));
+  };
 
   const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
@@ -167,7 +172,15 @@ export const SchemaEditor = ({
                 />)}
               </TreeItem>
               <TreeItem nodeId='info' label='info' />
-              <TreeItem nodeId='definitions' label='definitions'>
+              <TreeItem
+                nodeId='definitions'
+                label={<SchemaItemLabel
+                  language={language}
+                  label={getTranslation('schema_editor.definitions', language)}
+                  icon='fa-datamodel-properties'
+                  onAddProperty={handleAddDefinition}
+                />}
+              >
                 { definitions.map((def) => <SchemaItem
                   keyPrefix='definitions'
                   item={def}
