@@ -34,6 +34,12 @@ const useStyles = makeStyles(
       marginTop: 24,
       marginBottom: 6,
     },
+    name: {
+      marginBottom: 6,
+      padding: 0,
+      fontWeight: 400,
+      fontSize: 16,
+    },
     divider: {
       marginTop: 2,
       marginBottom: 2,
@@ -72,8 +78,8 @@ const useStyles = makeStyles(
         backgroundColor: '#006BD8',
       },
     },
-    restrictions: {
-      flexGrow: 1,
+    gridContainer: {
+      maxWidth: 500,
     },
   }),
 );
@@ -321,7 +327,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      <p className={classes.header}>{getTranslation('schema_editor.name', props.language)}</p>
+      <p className={classes.name}>{getTranslation('schema_editor.name', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
@@ -447,30 +453,32 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           { renderItemData() }
         </TabPanel>
         <TabPanel value='1'>
-          <div className={classes.restrictions}>
-            <Grid container spacing={0}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox
-                    checked={isRequired} onChange={handleRequiredChanged}
-                    name='checkedRequired'
-                  />}
-                  label={getTranslation('schema_editor.required', props.language)}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <hr className={classes.divider} />
-              </Grid>
-              <Grid item xs={4}>
-                <p>{getTranslation('schema_editor.keyword', props.language)}</p>
-              </Grid>
-              <Grid item xs={1} />
-              <Grid item xs={7}>
-                <p>{getTranslation('schema_editor.value', props.language)}</p>
-              </Grid>
-              { itemToDisplay && renderItemRestrictions(itemToDisplay) }
+          <Grid
+            container
+            spacing={3}
+            className={classes.gridContainer}
+          >
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={<Checkbox
+                  checked={isRequired} onChange={handleRequiredChanged}
+                  name='checkedRequired'
+                />}
+                label={getTranslation('schema_editor.required', props.language)}
+              />
             </Grid>
-          </div>
+            <Grid item xs={12}>
+              <hr className={classes.divider} />
+            </Grid>
+            <Grid item xs={4}>
+              <p>{getTranslation('schema_editor.keyword', props.language)}</p>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={7}>
+              <p>{getTranslation('schema_editor.value', props.language)}</p>
+            </Grid>
+            { itemToDisplay && renderItemRestrictions(itemToDisplay) }
+          </Grid>
           <IconButton
             id='add-restriction-button'
             aria-label={getTranslation('schema_editor.add_restriction', props.language)}
@@ -479,7 +487,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           </IconButton>
         </TabPanel>
         <TabPanel value='2'>
-          <Grid container spacing={0}>
+          <Grid
+            container
+            spacing={3}
+            className={classes.gridContainer}
+          >
             { itemToDisplay && renderItemProperties(itemToDisplay) }
           </Grid>
           { !readOnly && renderAddPropertyButton() }

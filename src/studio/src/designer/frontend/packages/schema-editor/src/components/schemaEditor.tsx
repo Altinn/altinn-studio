@@ -120,8 +120,11 @@ export const SchemaEditor = ({
   const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
     <div className={classes.root}>
-      <Grid container={true} direction='row'>
-        <Grid item={true} xs={7}>
+      <Grid
+        container={true} direction='row'
+        spacing={2}
+      >
+        <Grid item={true} xs={6}>
           <div id='schema-editor' className={classes.root}>
             <button
               type='button' className={classes.button}
@@ -177,7 +180,7 @@ export const SchemaEditor = ({
             </TreeView>
           </div>
         </Grid>
-        <Grid item={true} xs={5}>
+        <Grid item={true} xs={6}>
           <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>

@@ -5,7 +5,7 @@ exports[`Should match snapshot 1`] = `
   class="makeStyles-root-1"
 >
   <header
-    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-6 MuiPaper-elevation4"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-7 MuiPaper-elevation4"
   >
     <div
       class="MuiTabs-root"
@@ -32,7 +32,7 @@ exports[`Should match snapshot 1`] = `
               schema_editor.properties
             </span>
             <span
-              class="PrivateTabIndicator-root-8 PrivateTabIndicator-colorSecondary-10 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
             />
           </button>
           <button
@@ -72,12 +72,12 @@ exports[`Should match snapshot 1`] = `
   >
     <div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-name-3"
       >
         schema_editor.name
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-5 MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
       >
         <div
           class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
@@ -99,7 +99,7 @@ exports[`Should match snapshot 1`] = `
         schema_editor.object_kind_label
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-field-5 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -134,7 +134,7 @@ exports[`Should match snapshot 1`] = `
         Type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-12 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-13 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -170,13 +170,13 @@ exports[`Should match snapshot 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-14 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-16"
+              class="PrivateSwitchBase-input-17"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -201,7 +201,7 @@ exports[`Should match snapshot 1`] = `
         </span>
       </label>
       <hr
-        class="makeStyles-divider-3"
+        class="makeStyles-divider-4"
       />
       <p
         class="makeStyles-header-2"
@@ -214,7 +214,7 @@ exports[`Should match snapshot 1`] = `
         schema_editor.title
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-5 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
       >
         <div
           class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
@@ -234,7 +234,7 @@ exports[`Should match snapshot 1`] = `
         schema_editor.description
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-5 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
         style="height: 100px;"
       >
         <div

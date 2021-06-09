@@ -19,7 +19,6 @@ const useStyles = (readonly?: boolean) => makeStyles({
     border: readonly ? '1px solid grey' : '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 12,
     '&.Mui-disabled': {
       background: '#f4f4f4',
       color: 'black',
@@ -29,9 +28,6 @@ const useStyles = (readonly?: boolean) => makeStyles({
   },
   inline: {
     display: 'inline-block',
-  },
-  label: {
-    margin: 12,
   },
   delete: {
     marginLeft: '8px',
