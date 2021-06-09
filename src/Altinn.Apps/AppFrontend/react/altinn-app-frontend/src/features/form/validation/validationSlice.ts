@@ -27,7 +27,7 @@ export interface ISetCurrentSingleFieldValidationAction {
   dataModelBinding?: string;
 }
 
-const initialState: IValidationState = {
+export const initialState: IValidationState = {
   validations: {},
   error: null,
   invalidDataTypes: [],
