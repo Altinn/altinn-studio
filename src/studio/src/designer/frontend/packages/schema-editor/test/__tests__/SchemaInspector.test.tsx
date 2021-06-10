@@ -91,7 +91,7 @@ it('dispatches correctly when changing restriction value', (done) => {
     wrapper.find('#definitionsKommentar2000Restriksjon-minLength-value').last().simulate('change', { target: { value: '666' } });
     wrapper.find('#definitionsKommentar2000Restriksjon-minLength-value').last().simulate('blur');
     expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/setFieldValue',
+      type: 'schemaEditor/setRestriction',
       payload: {
         key: 'minLength',
         path: '#/definitions/Kommentar2000Restriksjon',
