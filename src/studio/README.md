@@ -4,9 +4,9 @@
 
 Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn Platform, it makes a complete application development and hosting platform.
 
-Altinn Studio is available at https://altinn.studio.
+Altinn Studio is available at <https://altinn.studio>.
 
-Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
+Use the [Altinn Studio documentation](https://docs.altinn.studio/) to get started.
 
 ## Getting Started
 
@@ -20,26 +20,33 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
-6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values. On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`.
+6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values as an local administrator:
 
-```cmd
-localhost altinn3.no
-127.0.0.1 altinn3.no
-```
+   ```cmd
+   localhost altinn3.no
+   127.0.0.1 altinn3.no
+   127.0.0.1 altinn3local.no
+   ```
+
+   _On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`._
 
 7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives
    The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows container mode all files are automatically shared by Windows.
 
    On MacOS: Change docker-compose.yml (both)
+
     ```yaml
-      volumes:
-        - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+    volumes:
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     ```
+
     to:
+
     ```yaml
-      volumes:
-        - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
+    volumes:
+      - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
     ```
+
 8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
@@ -66,6 +73,7 @@ docker-compose up -d --build <container>
 ```
 
 Example
+
 ```cmd
 docker-compose up -d --build altinn_designer
 ```
@@ -91,6 +99,7 @@ npm run gulp-install-deps
 ```
 
 On MacOS you need two extra steps:
+
   1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
 
       ```json
@@ -124,11 +133,13 @@ dotnet run
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
 #### Building other react apps
+
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```cmd
 npm run build
 ```
+
 Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example  `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
