@@ -31,7 +31,7 @@ namespace Altinn.App.Api.Controllers
     /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
     [AutoValidateAntiforgeryTokenIfAuthCookie]
-    [NoCacheHeaderFilter]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
     {

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Api.Filters;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
@@ -40,7 +39,7 @@ namespace Altinn.App.Api.Controllers
         /// Method that returns the user information about the user that is logged in
         /// </summary>
         [Authorize]
-        [NoCacheHeaderFilter]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {
