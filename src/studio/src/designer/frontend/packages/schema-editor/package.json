@@ -7,9 +7,6 @@
   "module": "dist/index.es.js",
   "jsnext:main": "dist/index.es.js",
   "types": "dist/index.d.ts",
-  "resolutions": {
-    "@types/react": "16.9.56"
-  },
   "dependencies": {},
   "peerDependencies": {
     "@material-ui/core": "~4.11.4",
@@ -18,8 +15,8 @@
     "@reduxjs/toolkit": "~1.5.1",
     "axios": "~0.21.1",
     "jsonpointer": "~4.1.0",
-    "react": "~16.13.1",
-    "react-dom": "~16.13.1",
+    "react": "~17.0.2",
+    "react-dom": "~17.0.2",
     "react-redux": "~7.2.4"
   },
   "devDependencies": {
@@ -34,22 +31,22 @@
     "@testing-library/react": "~11.2.7",
     "@testing-library/user-event": "~12.8.3",
     "@types/jest": "~26.0.23",
-    "@types/react": "~16.9.56",
-    "@types/react-dom": "~16.9.12",
+    "@types/react": "~17.0.9",
+    "@types/react-dom": "~17.0.6",
     "@types/react-redux": "~7.1.16",
     "axios": "~0.21.1",
     "cross-env": "~7.0.3",
     "css-loader": "~5.2.6",
     "html-loader": "~1.3.2",
     "html-webpack-plugin": "~4.5.2",
-    "jest": "~26.6.3",
+    "jest": "~27.0.4",
     "jest-environment-enzyme": "~7.1.2",
     "jest-enzyme": "~7.1.2",
     "jest-junit": "~12.1.0",
     "jsonpointer": "~4.1.0",
     "mini-css-extract-plugin": "~1.6.0",
-    "react": "~16.13.1",
-    "react-dom": "~16.13.1",
+    "react": "~17.0.2",
+    "react-dom": "~17.0.2",
     "react-redux": "~7.2.4",
     "react-scripts": "4.0.3",
     "react-styleguidist": "~11.1.7",
@@ -57,7 +54,7 @@
     "rollup-plugin-css-only": "~3.1.0",
     "rollup-plugin-peer-deps-external": "~2.2.4",
     "rollup-plugin-typescript2": "~0.30.0",
-    "ts-jest": "~26.5.6",
+    "ts-jest": "~27.0.3",
     "ts-loader": "~9.2.2",
     "typescript": "~4.3.2",
     "webpack": "~5.38.1",
@@ -90,7 +87,8 @@
       "tsx",
       "js"
     ],
-    "setupFilesAfterEnv": [
+    "testEnvironment": "jsdom",
+    "setupFiles": [
       "<rootDir>/test/setupTests.js"
     ]
   },
