@@ -135,7 +135,7 @@ const schemaEditorSlice = createSlice({
         state.uiSchema.splice(rootIndex, 1);
       }
     },
-    setFieldValue(state, action) {
+    setRestriction(state, action) {
       const {
         path, value, key,
       }: ISetValueAction = action.payload;
@@ -280,7 +280,7 @@ export const {
   addRefProperty,
   deleteField,
   deleteProperty,
-  setFieldValue,
+  setRestriction,
   setKey,
   setRef,
   setJsonSchema,

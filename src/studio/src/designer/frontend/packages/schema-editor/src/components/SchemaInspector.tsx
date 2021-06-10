@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty } from '../features/editor/schemaEditorSlice';
+import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
@@ -96,6 +96,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
+  const [arrayType, setArrayType] = React.useState<string>('');
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
@@ -123,13 +124,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return null;
   });
-  const isArray = false;
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
+    setArrayType(selectedItem?.restrictions?.find((r) => r.key === 'items')?.value);
     if (selectedItem) {
       if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
         setTabIndex('0');
@@ -160,7 +161,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: isNaN(value) ? value : +value,
       key,
     };
-    dispatch(setFieldValue(data));
+    dispatch(setRestriction(data));
   };
   const onChangeRef = (path: string, ref: string) => {
     const data = {
@@ -294,6 +295,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
     setObjectType(type);
   };
+  const onChangeArrayType = (id: string, type: string) => {
+    dispatch(setRestriction({
+      path: id, value: type, key: 'items',
+    }));
+    setArrayType(type);
+  };
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
   };
@@ -301,9 +308,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(setDescription({ path: selectedId, description }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleIsArrayChanged = (e: any, checked: boolean) => {
-    // will be fixed in #6116
+    if (selectedItem) {
+      if (checked) {
+        dispatch(setRestriction({
+          path: selectedItem.id,
+          key: 'items',
+          value: selectedItem.type,
+        }));
+        onChangeType(selectedItem.id, 'array');
+      } else {
+        onChangeType(selectedItem.id, 'object');
+      }
+    }
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
@@ -358,6 +375,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       {selectedItem && objectKind === 'type' &&
       <>
         <p className={classes.header}>Type</p>
+        { selectedItem.type === 'object' &&
         <TypeSelect
           label='Type'
           language={props.language}
@@ -365,13 +383,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           value={objectType}
           id={selectedItem.id}
           onChange={(onChangeType)}
-        />
+        /> }
+        { selectedItem.type === 'array' &&
+        <TypeSelect
+          label='Type'
+          language={props.language}
+          fullWidth={true}
+          value={arrayType}
+          id={selectedItem.id}
+          onChange={onChangeArrayType}
+        /> }
       </>}
       { renderDefUrl() }
       <FormControlLabel
         className={classes.header}
         control={<Checkbox
-          checked={isArray}
+          checked={selectedItem?.type === 'array'}
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
         />}
