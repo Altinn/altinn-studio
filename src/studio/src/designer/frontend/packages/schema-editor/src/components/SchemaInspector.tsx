@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty } from '../features/editor/schemaEditorSlice';
+import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
@@ -130,13 +130,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
-    setArrayType(selectedItem?.restrictions?.find((r) => r.key === 'items')?.value);
+    setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
       if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
         setTabIndex('0');
       }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
-      if (selectedItem.$ref !== undefined) {
+      if (selectedItem.$ref !== undefined || selectedItem.items?.$ref !== undefined) {
         setObjectKind('reference');
       } else {
         setObjectKind('type');
@@ -221,17 +221,26 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     ));
   };
 
-  const renderDefUrl = () => {
+  const renderReferenceSelection = () => {
     if (selectedItem && objectKind === 'reference') {
       return (
         <div>
           <p className={classes.header}>Refererer til</p>
-          <RefSelect
-            id={selectedItem.id}
-            value={selectedItem.$ref ?? ''}
-            onChange={onChangeRef}
-            fullWidth={true}
-          />
+          { selectedItem.type === 'array' ?
+            <RefSelect
+              id={selectedItem.id}
+              value={arrayType ?? ''}
+              onChange={onChangeArrayType}
+              fullWidth={true}
+            />
+            :
+            <RefSelect
+              id={selectedItem.id}
+              value={selectedItem.$ref ?? ''}
+              onChange={onChangeRef}
+              fullWidth={true}
+            />
+          }
           <button
             type='button'
             className={classes.navButton}
@@ -295,11 +304,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
     setObjectType(type);
   };
-  const onChangeArrayType = (id: string, type: string) => {
-    dispatch(setRestriction({
-      path: id, value: type, key: 'items',
+  const onChangeArrayType = (id: string, type: string | undefined) => {
+    if (type === undefined) {
+      dispatch(setItems({
+        path: id, items: undefined,
+      }));
+    }
+    const items = objectKind === 'type' ? { type } : { $ref: type };
+    dispatch(setItems({
+      path: id, items,
     }));
-    setArrayType(type);
+    setArrayType(type ?? '');
   };
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
@@ -309,17 +324,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const handleIsArrayChanged = (e: any, checked: boolean) => {
-    if (selectedItem) {
-      if (checked) {
-        dispatch(setRestriction({
-          path: selectedItem.id,
-          key: 'items',
-          value: selectedItem.type,
-        }));
-        onChangeType(selectedItem.id, 'array');
+    if (!selectedItem) {
+      return;
+    }
+
+    if (checked) {
+      const type = objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
+      onChangeArrayType(selectedItem.id, type);
+      onChangeType(selectedItem.id, 'array');
+    } else {
+      // switching back from array
+      if (objectKind === 'reference') {
+        onChangeRef(selectedItem.id, arrayType);
       } else {
-        onChangeType(selectedItem.id, 'object');
+        onChangeType(selectedItem.id, arrayType);
       }
+      onChangeArrayType(selectedItem.id, undefined);
     }
   };
 
@@ -375,26 +395,25 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       {selectedItem && objectKind === 'type' &&
       <>
         <p className={classes.header}>Type</p>
-        { selectedItem.type === 'object' &&
-        <TypeSelect
-          label='Type'
-          language={props.language}
-          fullWidth={true}
-          value={objectType}
-          id={selectedItem.id}
-          onChange={(onChangeType)}
-        /> }
-        { selectedItem.type === 'array' &&
-        <TypeSelect
-          label='Type'
-          language={props.language}
-          fullWidth={true}
-          value={arrayType}
-          id={selectedItem.id}
-          onChange={onChangeArrayType}
-        /> }
+        { selectedItem.type === 'array' ?
+          <TypeSelect
+            label='Type'
+            language={props.language}
+            fullWidth={true}
+            value={arrayType}
+            id={selectedItem.id}
+            onChange={onChangeArrayType}
+          /> :
+          <TypeSelect
+            label='Type'
+            language={props.language}
+            fullWidth={true}
+            value={objectType}
+            id={selectedItem.id}
+            onChange={(onChangeType)}
+          /> }
       </>}
-      { renderDefUrl() }
+      { renderReferenceSelection() }
       <FormControlLabel
         className={classes.header}
         control={<Checkbox

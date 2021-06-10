@@ -152,6 +152,14 @@ const schemaEditorSlice = createSlice({
         schemaItem.restrictions.push({ key, value });
       }
     },
+    setItems(state, action) {
+      const {
+        path, items,
+      } = action.payload;
+      // eslint-disable-next-line no-nested-ternary
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+      schemaItem.items = items;
+    },
     setRef(state, action) {
       const {
         path, ref,
@@ -283,6 +291,7 @@ export const {
   setRestriction,
   setKey,
   setRef,
+  setItems,
   setJsonSchema,
   setPropertyName,
   setRootName,

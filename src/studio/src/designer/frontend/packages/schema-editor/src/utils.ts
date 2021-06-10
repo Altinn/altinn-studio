@@ -139,7 +139,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else if (typeof item === 'object' && item !== null) {
       const {
-        title, description, type, ...restrictions
+        title, description, type, items, ...restrictions
       } = item;
       result.push({
         id,
@@ -148,6 +148,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         title,
         description,
         type,
+        items,
       });
     } else {
       result.push({
