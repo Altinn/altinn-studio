@@ -52,8 +52,8 @@ namespace Altinn.App.AppLogic.DataProcessing
 
       if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == null)
       {
-        skjema.OpplysningerOmArbeidstakerengrp8819 = skjema.OpplysningerOmArbeidstakerengrp8819 ?? new OpplysningerOmArbeidstakerengrp8819();
-        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 = new Skjemainstansgrp8854()
+        skjema.OpplysningerOmArbeidstakerengrp8819 ??= new OpplysningerOmArbeidstakerengrp8819();
+        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 ??= new Skjemainstansgrp8854()
         {
           IdentifikasjonsnummerKravdatadef33317 = new IdentifikasjonsnummerKravdatadef33317()
           {
@@ -62,19 +62,15 @@ namespace Altinn.App.AppLogic.DataProcessing
         };
 
       }
-      else if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == "1337")
+      if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == "1337")
       {
         skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317.value = "1705";
       }
       if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == null)
       {
-        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 = new Skjemainstansgrp8854()
-        {
-          Journalnummerdatadef33316 = new Journalnummerdatadef33316()
-          {
-            value = 1364
-          }
-        };
+        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 ??= new Skjemainstansgrp8854();
+        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316 ??= new Journalnummerdatadef33316();
+        skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = 1364;
       }
       return await Task.FromResult(true);
     }
