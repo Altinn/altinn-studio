@@ -65,12 +65,12 @@ const removeStyling = (node: any): React.ReactElement | void | null => {
   }
 };
 
-const replaceParameters = (nameString: any, params: any[]) => {
+const replaceParameters = (nameString: string, params: string[]) => {
   let index = 0;
   // eslint-disable-next-line no-restricted-syntax
   for (const param of params) {
     // eslint-disable-next-line no-param-reassign
-    nameString = nameString.replace(`{${index}}`, param);
+    nameString = nameString.replaceAll(`{${index}}`, param);
     index += 1;
   }
   return nameString;

@@ -101,4 +101,20 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     textResource = mockTextResources.find((resource) => resource.id === 'mockId-1');
     expect(textResource.value).toEqual('Hello, cat!');
   });
+
+  it('+++ should replace multiple references to same value', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        unparsedValue: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        variables: [
+          { key: 'model.text.color', dataSource: 'dataModel.test' },
+        ],
+      },
+    ];
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual('This is a yellow apple. It will always be yellow. Yes, yellow is my favorite color.');
+  });
 });
