@@ -298,28 +298,31 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const handleTabChange = (event: any, newValue: string) => {
     setTabIndex(newValue);
   };
+
   const onChangeType = (id: string, type: string) => {
     dispatch(setType({
       path: id, value: type,
     }));
     setObjectType(type);
   };
+
   const onChangeArrayType = (id: string, type: string | undefined) => {
     setArrayType(type ?? '');
+    let items = null;
     if (type === undefined) {
-      dispatch(setItems({
-        path: id, items: undefined,
-      }));
-      return;
+      items = undefined;
+    } else {
+      items = objectKind === 'type' ? { type } : { $ref: type };
     }
-    const items = objectKind === 'type' ? { type } : { $ref: type };
     dispatch(setItems({
       path: id, items,
     }));
   };
+
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
   };
+
   const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
@@ -334,7 +337,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       onChangeArrayType(selectedItem.id, type);
       onChangeType(selectedItem.id, 'array');
     } else {
-      // switching back from array
       if (objectKind === 'reference') {
         onChangeRef(selectedItem.id, arrayType);
       } else {
