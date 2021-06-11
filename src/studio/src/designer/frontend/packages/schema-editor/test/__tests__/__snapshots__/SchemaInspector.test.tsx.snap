@@ -167,6 +167,7 @@ exports[`Should match snapshot 1`] = `
       </div>
       <label
         class="MuiFormControlLabel-root makeStyles-header-2"
+        id="multiple-answers-checkbox"
       >
         <span
           aria-disabled="false"

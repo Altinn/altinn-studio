@@ -324,7 +324,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const handleIsArrayChanged = (e: any, checked: boolean) => {
+    console.log(checked);
     if (!selectedItem) {
+      console.log('no selected item');
       return;
     }
 
@@ -415,6 +417,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       </>}
       { renderReferenceSelection() }
       <FormControlLabel
+        id='multiple-answers-checkbox'
         className={classes.header}
         control={<Checkbox
           checked={selectedItem?.type === 'array'}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
@@ -185,6 +185,38 @@ it('dispatches correctly when changing ref', (done) => {
       },
     });
 
+    done();
+  });
+});
+
+it('supports switching a reference into a array and back', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M/properties/InternInformasjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper:any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  });
+
+  setImmediate(() => {
+    wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+      .simulate('change', { target: { checked: true } });
+    wrapper.update();
+
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setItems',
+      payload: {
+        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+        items: {
+          $ref: '#/definitions/InternInformasjon',
+        },
+      },
+    });
     done();
   });
 });
