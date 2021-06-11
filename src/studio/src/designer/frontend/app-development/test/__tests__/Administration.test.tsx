@@ -9,6 +9,12 @@ import * as renderer from 'react-test-renderer';
 import { AdministrationComponent, IAdministrationComponentProps } from '../../features/administration/components/Administration';
 import { ICommit, IRepository } from '../../types/global';
 
+jest.mock('app-shared/version-control/versionControlHeader', () => {
+  return {
+    default: () => 'VersionControlHeader',
+  };
+});
+
 describe('Administration', () => {
   let mockLanguage: any;
   let mockService: IRepository;
@@ -140,6 +146,8 @@ describe('Administration', () => {
       },
     };
     mockStore = createStore(initialState);
+    jest.mock('app-shared/version-control/versionControlHeader', () => <></>);
+    jest.mock('../../../shared/version-control/versionControlHeader', () => <></>);
   });
 
   // Todo: Refactor to test onBlurServiceDescription()
