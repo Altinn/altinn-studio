@@ -105,7 +105,9 @@ On MacOS you need two extra steps:
       ```json
       "ServiceRepositorySettings": {
         "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
-      ````
+        ...
+      }
+      ```
 
   2. Change location where the application stores the DataProtectionKeys
 
