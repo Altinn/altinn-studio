@@ -66,14 +66,11 @@ const removeStyling = (node: any): React.ReactElement | void | null => {
 };
 
 const replaceParameters = (nameString: string, params: string[]) => {
-  let index = 0;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const param of params) {
-    // eslint-disable-next-line no-param-reassign
-    nameString = nameString.replaceAll(`{${index}}`, param);
-    index += 1;
-  }
-  return nameString;
+  let mutatingString = nameString.slice();
+  params.forEach((param: string, index: number) => {
+    mutatingString = nameString.replaceAll(`{${index}}`, param);
+  });
+  return mutatingString;
 };
 
 export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
