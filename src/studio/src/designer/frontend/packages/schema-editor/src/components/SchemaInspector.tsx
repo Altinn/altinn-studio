@@ -305,16 +305,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setObjectType(type);
   };
   const onChangeArrayType = (id: string, type: string | undefined) => {
+    setArrayType(type ?? '');
     if (type === undefined) {
       dispatch(setItems({
         path: id, items: undefined,
       }));
+      return;
     }
     const items = objectKind === 'type' ? { type } : { $ref: type };
     dispatch(setItems({
       path: id, items,
     }));
-    setArrayType(type ?? '');
   };
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
@@ -324,9 +325,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const handleIsArrayChanged = (e: any, checked: boolean) => {
-    console.log(checked);
     if (!selectedItem) {
-      console.log('no selected item');
       return;
     }
 

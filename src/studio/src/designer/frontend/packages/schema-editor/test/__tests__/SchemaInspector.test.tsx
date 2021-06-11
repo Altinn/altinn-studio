@@ -189,7 +189,61 @@ it('dispatches correctly when changing ref', (done) => {
   });
 });
 
-it('supports switching a reference into a array and back', (done) => {
+it('supports switching a type into an array and back', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper:any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  });
+
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: true } });
+  wrapper.update();
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      value: 'array',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      items: {
+        type: 'string',
+      },
+    },
+  });
+  // switch back into string
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: false } });
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      value: 'string',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      items: undefined,
+    },
+  });
+});
+
+it('supports switching a reference into an array and back', () => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
@@ -203,21 +257,43 @@ it('supports switching a reference into a array and back', (done) => {
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   });
 
-  setImmediate(() => {
-    wrapper.find('input[type="checkbox"]').hostNodes().at(0)
-      .simulate('change', { target: { checked: true } });
-    wrapper.update();
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: true } });
+  wrapper.update();
 
-    expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/setItems',
-      payload: {
-        path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-        items: {
-          $ref: '#/definitions/InternInformasjon',
-        },
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      value: 'array',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      items: {
+        $ref: '#/definitions/InternInformasjon',
       },
-    });
-    done();
+    },
+  });
+  // switch back into reference
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: false } });
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setRef',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      ref: '#/definitions/InternInformasjon',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      items: undefined,
+    },
   });
 });
 
