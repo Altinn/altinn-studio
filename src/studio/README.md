@@ -22,13 +22,13 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
 6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values as an local administrator:
 
-   ```cmd
+   ```txt
    localhost altinn3.no
    127.0.0.1 altinn3.no
    127.0.0.1 altinn3local.no
    ```
 
-   _On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`._
+   _On MacOS add the same values to values `/private/etc/hosts` with `sudo nano /private/etc/hosts` in treminal._
 
 7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives
    The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows container mode all files are automatically shared by Windows.
@@ -53,14 +53,14 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 
 Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the `studio` folder.
 
-```cmd
+```bash
 git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio/src/studio
 ```
 
 Run all parts of the solution in containers (Make sure docker is running)
 
-```cmd
+```bash
 docker-compose up -d --build
 ```
 
@@ -68,13 +68,13 @@ The solution is now available locally at [altinn3.no](http://altinn3.no)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
 
-```cmd
+```bash
 docker-compose up -d --build <container>
 ```
 
 Example
 
-```cmd
+```bash
 docker-compose up -d --build altinn_designer
 ```
 
@@ -86,13 +86,13 @@ The Designer component can be run locally when developing/debugging. The rest of
 
 Stop the container running Designer.
 
-```cmd
+```bash
 docker stop altinn-designer
 ```
 
 Navigate to the designer backend folder. The first time running, or after any package changes, get the latest packages.
 
-```cmd
+```bash
 cd src/studio/src/designer/backend
 npm ci
 npm run gulp-install-deps
@@ -104,20 +104,19 @@ On MacOS you need two extra steps:
 
       ```json
       "ServiceRepositorySettings": {
-        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/",
-        ...
+        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
       }
       ```
 
   2. Change location where the application stores the DataProtectionKeys
 
-      ```cmd
+      ```bash
       export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
       ```
 
 Build and run the code.
 
-```cmd
+```bash
 dotnet build
 npm run gulp # first time only
 npm run gulp-develop
@@ -125,7 +124,7 @@ npm run gulp-develop
 
 If you are not going to edit the designer react app (frontend) you can use
 
-```cmd
+```bash
 cd src/studio/src/designer/backend
 npm ci
 npm run gulp # first time only
@@ -138,7 +137,7 @@ Which will build the Designer .net backend and the designer react app, but not l
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
-```cmd
+```bash
 npm run build
 ```
 
@@ -156,7 +155,7 @@ Coding style tests are available for the React front end application, using _tsl
 
 Navigate to the React front end applications and run linting.
 
-```cmd
+```bash
 cd src/studio/src/designer/frontend
 npm run lint
 ```

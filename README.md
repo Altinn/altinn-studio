@@ -48,7 +48,7 @@ See deployment for notes on how to deploy the project on a live system.
 
 Clone the [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
 
-```cmd
+```bash
 git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio
 ```
@@ -65,7 +65,7 @@ _If you only need to develop and debug App-Frontend, you can follow the descript
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
 
-```cmd
+```bash
 docker-compose down
 ```
 
@@ -73,20 +73,20 @@ docker-compose down
 
 1. Navigate to the `development` folder in the altinn-studio repo
 
-   ```cmd
+   ```bash
    cd src/development
    ```
 
 2. Start the loadbalancer container that routes between the local platform services and the app
 
-   ```cmd
+   ```bash
    docker-compose up -d --build
    ```
 
 3. Set path to app folder in local platform services:
    - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
 
-   ```cmd
+   ```bash
    cd LocalTest
    code appSettings.json
    ```
@@ -95,14 +95,14 @@ docker-compose down
 
 4. Start the local platform services (make sure you are in the LocalTest folder)
 
-   ```cmd
+   ```bash
    dotnet run
    ```
 
 5. Navigate to the app folder (specified in the step above)
 
-   ```cmd
-   cd \.\<path to app on disk>
+   ```bash
+   cd /<path to app on disk>
    ```
 
    - If you need to debug (or run locally) the app front-end:
@@ -120,7 +120,7 @@ docker-compose down
 
      - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
   
-     ```cmd
+     ```bash
      npm install # only needed first time, or when dependencies are updated
      npm run install-deps # only needed first time, or when dependencies are updated
      cd altinn-app-frontend
@@ -129,7 +129,7 @@ docker-compose down
 
 6. Start the app locally
 
-  ```cmd
+  ```bash
   dotnet run -p App.csproj
   ```
 
@@ -141,7 +141,7 @@ Log in with a test user, using your app name and org name. This will redirect yo
 
 If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/react-apps/applications/dashboard` and then run the following build script
 
-```cmd
+```bash
 npm run build
 ```
 
@@ -181,7 +181,7 @@ Coding style tests are available for the React front end application, using _tsl
 
 Navigate to the React front end application and run linting.
 
-```cmd
+```bash
 cd src/react-apps/applications/ux-editor
 npm run lint
 ```
