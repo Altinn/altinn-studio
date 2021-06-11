@@ -29,7 +29,7 @@ exports[`Should match snapshot 1`] = `
             <span
               class="MuiTab-wrapper"
             >
-              schema_editor.properties
+              properties
             </span>
             <span
               class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
@@ -45,7 +45,7 @@ exports[`Should match snapshot 1`] = `
             <span
               class="MuiTab-wrapper"
             >
-              schema_editor.restrictions
+              restrictions
             </span>
           </button>
           <button
@@ -59,7 +59,7 @@ exports[`Should match snapshot 1`] = `
             <span
               class="MuiTab-wrapper"
             >
-              schema_editor.fields
+              fields
             </span>
           </button>
         </div>
@@ -74,7 +74,7 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-name-3"
       >
-        schema_editor.name
+        name
       </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
@@ -96,7 +96,7 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        schema_editor.object_kind_label
+        object_kind_label
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-field-6 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -109,7 +109,7 @@ exports[`Should match snapshot 1`] = `
           role="button"
           tabindex="0"
         >
-          schema_editor.type
+          type
         </div>
         <input
           aria-hidden="true"
@@ -198,7 +198,7 @@ exports[`Should match snapshot 1`] = `
         <span
           class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
         >
-          schema_editor.multiple_answers
+          multiple_answers
         </span>
       </label>
       <hr
@@ -207,12 +207,12 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        schema_editor.descriptive_fields
+        descriptive_fields
       </p>
       <p
         class="makeStyles-header-2"
       >
-        schema_editor.title
+        title
       </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
@@ -232,7 +232,7 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        schema_editor.description
+        description
       </p>
       <div
         class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"

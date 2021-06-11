@@ -330,7 +330,7 @@ it('renders no item if nothing is selected', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('.no-item-selected').last().text()).toBe('schema_editor.no_item_selected');
+    expect(wrapper.find('.no-item-selected').last().text()).toBe('no_item_selected');
   });
 });
 

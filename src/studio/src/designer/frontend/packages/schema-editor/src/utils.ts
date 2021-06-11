@@ -218,7 +218,8 @@ export const getTranslation = (key: string, language: ILanguage) => {
   if (!key) {
     return key;
   }
-  return getNestedObject(language, key.split('.')) ?? key;
+  const string = `schema_editor.${key}`;
+  return getNestedObject(language, string.split('.')) ?? key;
 };
 
 const getNestedObject = (nestedObj: any, pathArr: string[]) => {
@@ -228,7 +229,7 @@ const getNestedObject = (nestedObj: any, pathArr: string[]) => {
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];
 const objectRestrictions = ['minProperties', 'maxProperties'];
-const arrayRestrictions = ['items', 'additionalItems', 'minItems', 'maxItems'];
+const arrayRestrictions = ['minItems', 'maxItems'];
 
 const restrictionMap = new Map([
   ['string', stringRestrictions],

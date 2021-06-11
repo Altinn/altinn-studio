@@ -246,7 +246,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             className={classes.navButton}
             onClick={onGoToDefButtonClick}
           >
-            {getTranslation('schema_editor.go_to_main_component', props.language)}
+            {getTranslation('go_to_main_component', props.language)}
           </button>
         </div>);
     }
@@ -258,7 +258,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       id='add-property-button'
       aria-label='Add reference'
       onClick={onAddPropertyClicked}
-    ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}
+    ><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}
     </IconButton>
   );
 
@@ -367,7 +367,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      <p className={classes.name}>{getTranslation('schema_editor.name', props.language)}</p>
+      <p className={classes.name}>{getTranslation('name', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
@@ -382,7 +382,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.header}>{getTranslation('schema_editor.object_kind_label', props.language)}</p>
+      <p className={classes.header}>{getTranslation('object_kind_label', props.language)}</p>
       <Select
         className={classes.field}
         id='type-kind-select'
@@ -391,9 +391,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         disableUnderline={true}
         fullWidth={true}
       >
-        <MenuItem value='type'>{getTranslation('schema_editor.type', props.language)}</MenuItem>
-        <MenuItem value='reference'>{getTranslation('schema_editor.reference', props.language)}</MenuItem>
-        <MenuItem value='group'>{getTranslation('schema_editor.group', props.language)}</MenuItem>
+        <MenuItem value='type'>{getTranslation('type', props.language)}</MenuItem>
+        <MenuItem value='reference'>{getTranslation('reference', props.language)}</MenuItem>
+        <MenuItem value='group'>{getTranslation('group', props.language)}</MenuItem>
       </Select>
       {selectedItem && objectKind === 'type' &&
       <>
@@ -425,11 +425,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
         />}
-        label={getTranslation('schema_editor.multiple_answers', props.language)}
+        label={getTranslation('multiple_answers', props.language)}
       />
       <hr className={classes.divider} />
-      <p className={classes.header}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
-      <p className={classes.header}>{getTranslation('schema_editor.title', props.language)}</p>
+      <p className={classes.header}>{getTranslation('descriptive_fields', props.language)}</p>
+      <p className={classes.header}>{getTranslation('title', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
@@ -442,7 +442,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.header}>{getTranslation('schema_editor.description', props.language)}</p>
+      <p className={classes.header}>{getTranslation('description', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}
@@ -468,7 +468,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   if (!selectedId) {
     return (
       <div>
-        <p className='no-item-selected'>{getTranslation('schema_editor.no_item_selected', props.language)}</p>
+        <p className='no-item-selected'>{getTranslation('no_item_selected', props.language)}</p>
         <hr className={classes.divider} />
       </div>);
   }
@@ -487,14 +487,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             aria-label='inspector tabs'
           >
             <Tab
-              label={getTranslation('schema_editor.properties', props.language)} {...a11yProps(0)}
+              label={getTranslation('properties', props.language)} {...a11yProps(0)}
             />
             <Tab
-              label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
+              label={getTranslation('restrictions', props.language)} {...a11yProps(1)}
             />
             <Tab
               hidden={itemToDisplay?.type !== 'object'}
-              label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
+              label={getTranslation('fields', props.language)} {...a11yProps(2)}
             />
           </TabList>
 
@@ -514,26 +514,26 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                   checked={isRequired} onChange={handleRequiredChanged}
                   name='checkedRequired'
                 />}
-                label={getTranslation('schema_editor.required', props.language)}
+                label={getTranslation('required', props.language)}
               />
             </Grid>
             <Grid item xs={12}>
               <hr className={classes.divider} />
             </Grid>
             <Grid item xs={4}>
-              <p>{getTranslation('schema_editor.keyword', props.language)}</p>
+              <p>{getTranslation('keyword', props.language)}</p>
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={7}>
-              <p>{getTranslation('schema_editor.value', props.language)}</p>
+              <p>{getTranslation('value', props.language)}</p>
             </Grid>
             { itemToDisplay && renderItemRestrictions(itemToDisplay) }
           </Grid>
           <IconButton
             id='add-restriction-button'
-            aria-label={getTranslation('schema_editor.add_restriction', props.language)}
+            aria-label={getTranslation('add_restriction', props.language)}
             onClick={onAddRestrictionClick}
-          ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
+          ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
           </IconButton>
         </TabPanel>
         <TabPanel value='2'>
