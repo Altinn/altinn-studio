@@ -5,6 +5,12 @@ import * as React from 'react';
 import configureStore from 'redux-mock-store';
 import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes } from '../../features/accessControl/containers/AccessControlContainer';
 
+jest.mock('app-shared/version-control/versionControlHeader', () => {
+  return {
+    default: () => 'VersionControlHeader',
+  };
+});
+
 describe('AccessControl', () => {
   let nextAccessContainerProps: IAccessControlContainerProps;
   let currentAccessContainerProps: IAccessControlContainerProps;
