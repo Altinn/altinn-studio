@@ -60,7 +60,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
         fetchedData = yield call(get, getFetchStatelessFormDataUrl(dataType));
       } catch (error) {
         // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
-        if (error?.response?.status === 400) {
+        if (error?.response?.status === 405) {
           fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
         } else {
           throw error;
