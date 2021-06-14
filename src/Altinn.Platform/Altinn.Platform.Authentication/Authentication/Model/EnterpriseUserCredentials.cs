@@ -19,5 +19,10 @@ namespace Altinn.Platform.Authentication.Model
         /// Gets or sets the password
         /// </summary>
         public string Password { get; set; }
+
+        /// <summary>
+        /// Gets or sets the organization number
+        /// </summary>
+        public string OrganizationNumber { get; set; }
     }
 }
