@@ -66,7 +66,9 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.js"
+    ],
     "testURL": "http://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
     "testEnvironment": "jsdom"
   },
