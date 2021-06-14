@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.Serialization.Json;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -25,7 +30,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
@@ -304,7 +309,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
                 if (issOriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
                 {
-                _logger.LogInformation("Invalid issuer " + issOriginal);
+                    _logger.LogInformation("Invalid issuer " + issOriginal);
                     return Unauthorized();
                 }
 
@@ -340,8 +345,65 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
 
+                string authenticatemethod = "maskinporten";
+
+                if (!string.IsNullOrEmpty(Request.Headers["X-Altinn-EnterpriseUser-Authentication"]))
+                {
+                    string enterpriseUserHeader = Request.Headers["X-Altinn-EnterpriseUser-Authentication"];
+                    byte[] decodedCredentials = Convert.FromBase64String(enterpriseUserHeader);
+                    string decodedString = Encoding.UTF8.GetString(decodedCredentials);
+                    string[] decodedStringArray = decodedString.Split(":");
+                    string usernameFromRequest = decodedStringArray[0];
+                    string password = decodedStringArray[1];
+
+                    string bridgeApiEndpoint = _generalSettings.BridgeAuthnApiEndpoint + "enterpriseuser";
+
+                    EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
+
+                    HttpClient client = new HttpClient();
+                    var credentialsJson = JsonConvert.SerializeObject(credentials);
+
+                    var request = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(bridgeApiEndpoint),
+                        Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
+                    };
+
+                    string requestString = request.ToString();
+                    var response = client.SendAsync(request).ConfigureAwait(false);
+                    var responseInfo = response.GetAwaiter().GetResult();
+                    string content = await response.GetAwaiter().GetResult().Content.ReadAsStringAsync();
+
+                    if (responseInfo.StatusCode.ToString() == "OK")
+                    {
+                        authenticatemethod = "virksomhetsbruker";
+
+                        UserAuthenticationResult userAuthenticationResult = new UserAuthenticationResult();
+                        userAuthenticationResult = JsonConvert.DeserializeObject<UserAuthenticationResult>(content);
+
+                        string userID = userAuthenticationResult.UserID.ToString();
+                        string username = userAuthenticationResult.Username;
+                        string partyId = userAuthenticationResult.PartyID.ToString();
+
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
+                    }
+                    else if (responseInfo.StatusCode.ToString() == "BadRequest")
+                    {
+                        ObjectResult result = StatusCode(400, responseInfo.ReasonPhrase);
+                        return result;
+                    }
+                    else if (responseInfo.StatusCode.ToString() == "TooManyRequests")
+                    {
+                        ObjectResult result = this.StatusCode(429, string.Format("User Locked out. Try again in {0} hours, {1} minutes and {2} seconds.", responseInfo.Headers.RetryAfter.Delta.Value.Hours, responseInfo.Headers.RetryAfter.Delta.Value.Minutes, responseInfo.Headers.RetryAfter.Delta.Value.Seconds));
+                        return result;
+                    }
+                }
+
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.Integer32, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, authenticatemethod, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
 
                 string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
@@ -359,7 +421,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
                 string serializedToken = await GenerateToken(principal);
-
                 return Ok(serializedToken);
             }
             catch (Exception ex)
