@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
 const Enzyme = require('enzyme');
+require('core-js/es/string/replace-all');
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import 'jest';
 
