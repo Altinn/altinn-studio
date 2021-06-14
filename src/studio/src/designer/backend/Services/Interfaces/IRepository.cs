@@ -43,12 +43,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         ModelMetadata GetModelMetadata(string org, string app);
 
         /// <summary>
-        /// List the available apps on local disk
-        /// </summary>
-        /// <returns>A list of apps</returns>
-        List<ModelMetadata> GetAvailableApps();
-
-        /// <summary>
         /// Get content of configuration file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

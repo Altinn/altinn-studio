@@ -113,6 +113,19 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Method that returns all datamodels within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public async Task<IActionResult> GetDatamodels(string org, string repository)
+        {
+            return Ok(Task.FromResult(string.Empty));
+        }
+
+        /// <summary>
         /// Returns datamodel
         /// </summary>
         /// <param name="org">The org</param>

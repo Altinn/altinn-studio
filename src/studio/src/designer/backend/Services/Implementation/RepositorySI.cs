@@ -93,16 +93,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                 : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
 
-            string appPath = orgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
+            string appPath = $"{orgPath}/{serviceMetadata.RepositoryName.AsFileName()}";
 
             Directory.CreateDirectory(orgPath);
             Directory.CreateDirectory(appPath);
 
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
-
-            // CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());            
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
@@ -220,7 +218,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
                 applicationForm.AllowedContentTypes = new List<string>();
 
-                if (!(attachmentMetadata.GetValue("fileType") == null))
+                if (attachmentMetadata.GetValue("fileType") != null)
                 {
                     string fileTypes = attachmentMetadata.GetValue("fileType").Value;
                     string[] fileType = fileTypes.Split(",");
@@ -1082,40 +1080,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// List the available apps on local disk.
-        /// </summary>
-        /// <returns>A list of apps.</returns>
-        public List<ModelMetadata> GetAvailableApps()
-        {
-            List<ModelMetadata> apps = new List<ModelMetadata>();
-            string[] orgPaths = null;
-
-            orgPaths = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-                            : Directory.GetDirectories(_settings.RepositoryLocation);
-
-            foreach (string orgPath in orgPaths)
-            {
-                string[] appPaths = Directory.GetDirectories(orgPath);
-
-                foreach (string appPath in appPaths)
-                {
-                    string app = Path.GetFileName(appPath);
-
-                    // TODO: figure out if this code is critical for dashboard.
-                    /*
-                    string metadataPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    if (Directory.Exists(metadataPath))
-                    {
-                        apps.Add(GetServiceMetaData(org, app));
-                    }*/
-                }
-            }
-
-            return apps;
-        }
-
-        /// <summary>
         /// Returns a list of all organisations present in the local repository
         /// </summary>
         /// <returns>A list of all organisations</returns>
@@ -1144,16 +1108,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="config"/>
+        /// given <paramref name="serviceConfig"/>
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="config">The ServiceConfiguration to save</param>
+        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration config)
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string repoPath = _settings.GetServicePath(org, config.RepositoryName, userName);
-            var options = new RepositoryClient.Model.CreateRepoOption(config.RepositoryName);
+            string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
+            var options = new RepositoryClient.Model.CreateRepoOption(serviceConfig.RepositoryName);
 
             RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
 
@@ -1162,24 +1126,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (Directory.Exists(repoPath))
                 {
                     // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                    string backupPath = _settings.GetServicePath(org, $"{config.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                    string backupPath = _settings.GetServicePath(org, $"{serviceConfig.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
                     Directory.Move(repoPath, backupPath);
                 }
 
-                _sourceControl.CloneRemoteRepository(org, config.RepositoryName);
+                _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
                 ModelMetadata metadata = new ModelMetadata
                 {
                     Org = org,
-                    ServiceName = config.ServiceName,
-                    RepositoryName = config.RepositoryName,
+                    ServiceName = serviceConfig.ServiceName,
+                    RepositoryName = serviceConfig.RepositoryName,
                 };
 
                 // This creates all files
                 CreateServiceMetadata(metadata);
-                CreateApplicationMetadata(org, config.RepositoryName, config.ServiceName);
+                CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
-                if (!string.IsNullOrEmpty(config.ServiceName))
+                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
                     // This creates the language resources file for nb
                     JObject json = JObject.FromObject(new
@@ -1187,14 +1151,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         language = "nb",
                         resources = new[]
                         {
-                            new { id = "ServiceName", value = config.ServiceName }
+                            new { id = "ServiceName", value = serviceConfig.ServiceName }
                         },
                     });
 
-                    SaveLanguageResource(org, config.RepositoryName, "nb", json.ToString());
+                    SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
                 }
 
-                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = config.RepositoryName, Message = "App created" };
+                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
@@ -1620,7 +1584,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateAppTitle(string org, string app, string languageId, string newTitle)
+        public bool UpdateAppTitle(string org, string app, string languageId, string title)
         {
             PlatformStorageModels.Application appMetadata = GetApplication(org, app);
 
@@ -1632,11 +1596,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, string> titles = appMetadata.Title;
             if (titles.ContainsKey(languageId))
             {
-                titles[languageId] = newTitle;
+                titles[languageId] = title;
             }
             else
             {
-                titles.Add(languageId, newTitle);
+                titles.Add(languageId, title);
             }
 
             appMetadata.Title = titles;
@@ -1807,11 +1771,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             // setting all paths relative to repository
-            contents.All(c =>
-            {
-                c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/");
-                return true;
-            });
+            contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/"));
 
             return contents;
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-
+using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
@@ -42,7 +42,7 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
-        public async void GetRemainingSessionTime_Ok()
+        public async Task GetRemainingSessionTime_Ok()
         {
             // Arrange
             string uri = $"{_versionPrefix}/remaining";
@@ -65,17 +65,17 @@ namespace Designer.Tests.TestingControllers
         [Fact]
         public void GetRemainingSessionTime_NoCookie()
         {
-            HttpRequestMessage mes = new HttpRequestMessage();
-
             DefaultHttpContext context = new DefaultHttpContext();
             _contextAccessorMock.Setup(m => m.HttpContext).Returns(context);
             _controller = new SessionController(_contextAccessorMock.Object, _generalSettings);
 
             int actual = _controller.GetRemainingSessionTime();
+
+            Assert.Equal(-1, actual);
         }
 
         [Fact]
-        public async void KeepAlive_SessionIsExtended()
+        public async Task KeepAlive_SessionIsExtended()
         {
             // Arrange
             string uri = $"{_versionPrefix}/keepalive";
@@ -93,10 +93,8 @@ namespace Designer.Tests.TestingControllers
         }
 
         [Fact]
-        public async void KeepAlive_NoTimeoutCookie()
+        public async Task KeepAlive_NoTimeoutCookie()
         {
-            HttpRequestMessage mes = new HttpRequestMessage();
-
             DefaultHttpContext context = new DefaultHttpContext();
             _contextAccessorMock.Setup(m => m.HttpContext).Returns(context);
             _controller = new SessionController(_contextAccessorMock.Object, _generalSettings);
@@ -120,21 +118,5 @@ namespace Designer.Tests.TestingControllers
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
         }
-
-        private static IRequestCookieCollection MockRequestCookieCollection(string key, string value)
-        {
-            var requestFeature = new HttpRequestFeature();
-            var featureCollection = new FeatureCollection();
-
-            requestFeature.Headers = new HeaderDictionary();
-            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(key + "=" + value));
-
-            featureCollection.Set<IHttpRequestFeature>(requestFeature);
-
-            var cookiesFeature = new RequestCookiesFeature(featureCollection);
-
-            return cookiesFeature.Cookies;
-        }
-
     }
 }
