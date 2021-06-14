@@ -170,7 +170,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               class="makeStyles-button-21"
               type="button"
             >
-              schema_editor.save_data_model
+              save_data_model
             </button>
             <ul
               aria-multiselectable="false"
@@ -219,7 +219,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                           />
                         </span>
                          
-                        schema_editor.properties
+                        properties
                       </div>
                       <button
                         aria-controls="simple-menu"
@@ -384,7 +384,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                           />
                         </span>
                          
-                        schema_editor.definitions
+                        definitions
                       </div>
                       <button
                         aria-controls="simple-menu"
@@ -2237,7 +2237,7 @@ exports[`DataModeling Should match snapshot 1`] = `
             <p
               class="no-item-selected"
             >
-              schema_editor.no_item_selected
+              no_item_selected
             </p>
             <hr
               class="makeStyles-divider-42"

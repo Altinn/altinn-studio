@@ -96,10 +96,18 @@ function SchemaItem(props: SchemaItemProps) {
   const {
     item, keyPrefix, ...other
   } = props;
-  const classes = useStyles(item.$ref !== undefined)();
+  const classes = useStyles(item.$ref !== undefined || item.items?.$ref !== undefined)();
 
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
+  const refItem: UiSchemaItem | undefined = useSelector((state: ISchemaState) => {
+    if (item.$ref) {
+      return getRefItem(state.uiSchema, item.$ref);
+    }
+    if (item.items?.$ref) {
+      return getRefItem(state.uiSchema, item.items.$ref);
+    }
+    return undefined;
+  });
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
     setItemToDisplay(refItem ?? item);
@@ -122,15 +130,6 @@ function SchemaItem(props: SchemaItemProps) {
     );
   });
 
-  const renderRefLink = () => <SchemaItem
-    keyPrefix={`${keyPrefix}-${refItem.id}`}
-    key={`${keyPrefix}-${refItem.id}`}
-    onClick={() => onItemClick(refItem)}
-    item={refItem}
-    nodeId={`${keyPrefix}-${refItem.id}-ref`}
-    language={props.language}
-  />;
-
   const handleDeleteClick = () => {
     dispatch(deleteProperty({ path: item.id }));
   };
@@ -143,7 +142,7 @@ function SchemaItem(props: SchemaItemProps) {
 
   const getIconStr = () => {
     const type = item.type;
-    if (refItem) {
+    if (type !== 'array' && refItem) {
       return 'fa-datamodel-ref';
     }
     return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
@@ -164,7 +163,14 @@ function SchemaItem(props: SchemaItemProps) {
   const renderTreeChildren = () => {
     const items = [];
     if (itemToDisplay.$ref && refItem) {
-      items.push(renderRefLink());
+      items.push(<SchemaItem
+        keyPrefix={`${keyPrefix}-${refItem.id}`}
+        key={`${keyPrefix}-${refItem.id}`}
+        onClick={() => onItemClick(refItem)}
+        item={refItem}
+        nodeId={`${keyPrefix}-${refItem.id}-ref`}
+        language={props.language}
+      />);
     }
     if (itemToDisplay.properties) {
       items.push(renderProperties(itemToDisplay.properties));

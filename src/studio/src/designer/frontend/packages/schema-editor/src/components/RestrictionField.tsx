@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Grid, IconButton, Input, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { getDomFriendlyID, getRestrictions } from '../utils';
+import { getDomFriendlyID, getRestrictions, getTranslation } from '../utils';
 import { ILanguage } from '../types';
 
 export interface IRestrictionFieldProps {
@@ -51,6 +51,11 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
     props.onChangeKey(props.path, props.keyName, val);
   };
 
+  const onChange = (e: any, v: any) => {
+    e.stopPropagation();
+    setVal(v);
+  };
+
   const options = getRestrictions(props.type ?? '');
   const baseId = getDomFriendlyID(props.path);
   return (
@@ -62,10 +67,12 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           disabled={props.readOnly}
           value={props.keyName}
           onInputChange={(e, v) => setVal(v)}
+          onChange={onChange}
           onBlur={onBlur}
           className={classes.field}
           disableClearable={true}
           options={options ?? []}
+          getOptionLabel={(option) => getTranslation(option, props.language)}
           renderInput={(params) => {
             // eslint-disable-next-line no-param-reassign
             (params.InputProps as any).disableUnderline = true;

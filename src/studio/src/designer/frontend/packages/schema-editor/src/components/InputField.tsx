@@ -99,7 +99,7 @@ export function InputField(props: IInputFieldProps) {
               checked={props.required} onChange={onChangeRequired}
               name='checkedArray'
             />}
-            label={getTranslation('schema_editor.required', props.language)}
+            label={getTranslation('required', props.language)}
           />
         </FormControl>
       </Grid>

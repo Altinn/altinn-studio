@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setFieldValue, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty } from '../features/editor/schemaEditorSlice';
+import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems } from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
@@ -96,6 +96,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
+  const [arrayType, setArrayType] = React.useState<string>('');
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
@@ -123,19 +124,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
     return null;
   });
-  const isArray = false;
 
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName);
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
+    setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
       if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
         setTabIndex('0');
       }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
-      if (selectedItem.$ref !== undefined) {
+      if (selectedItem.$ref !== undefined || selectedItem.items?.$ref !== undefined) {
         setObjectKind('reference');
       } else {
         setObjectKind('type');
@@ -160,7 +161,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: isNaN(value) ? value : +value,
       key,
     };
-    dispatch(setFieldValue(data));
+    dispatch(setRestriction(data));
   };
   const onChangeRef = (path: string, ref: string) => {
     const data = {
@@ -220,23 +221,32 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     ));
   };
 
-  const renderDefUrl = () => {
+  const renderReferenceSelection = () => {
     if (selectedItem && objectKind === 'reference') {
       return (
         <div>
           <p className={classes.header}>Refererer til</p>
-          <RefSelect
-            id={selectedItem.id}
-            value={selectedItem.$ref ?? ''}
-            onChange={onChangeRef}
-            fullWidth={true}
-          />
+          { selectedItem.type === 'array' ?
+            <RefSelect
+              id={selectedItem.id}
+              value={arrayType ?? ''}
+              onChange={onChangeArrayType}
+              fullWidth={true}
+            />
+            :
+            <RefSelect
+              id={selectedItem.id}
+              value={selectedItem.$ref ?? ''}
+              onChange={onChangeRef}
+              fullWidth={true}
+            />
+          }
           <button
             type='button'
             className={classes.navButton}
             onClick={onGoToDefButtonClick}
           >
-            {getTranslation('schema_editor.go_to_main_component', props.language)}
+            {getTranslation('go_to_main_component', props.language)}
           </button>
         </div>);
     }
@@ -248,7 +258,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       id='add-property-button'
       aria-label='Add reference'
       onClick={onAddPropertyClicked}
-    ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_property', props.language)}
+    ><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}
     </IconButton>
   );
 
@@ -288,22 +298,52 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const handleTabChange = (event: any, newValue: string) => {
     setTabIndex(newValue);
   };
+
   const onChangeType = (id: string, type: string) => {
     dispatch(setType({
       path: id, value: type,
     }));
     setObjectType(type);
   };
+
+  const onChangeArrayType = (id: string, type: string | undefined) => {
+    setArrayType(type ?? '');
+    let items = null;
+    if (type === undefined) {
+      items = undefined;
+    } else {
+      items = objectKind === 'type' ? { type } : { $ref: type };
+    }
+    dispatch(setItems({
+      path: id, items,
+    }));
+  };
+
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
   };
+
   const onChangeDescription = () => {
     dispatch(setDescription({ path: selectedId, description }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleIsArrayChanged = (e: any, checked: boolean) => {
-    // will be fixed in #6116
+    if (!selectedItem) {
+      return;
+    }
+
+    if (checked) {
+      const type = objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
+      onChangeArrayType(selectedItem.id, type);
+      onChangeType(selectedItem.id, 'array');
+    } else {
+      if (objectKind === 'reference') {
+        onChangeRef(selectedItem.id, arrayType);
+      } else {
+        onChangeType(selectedItem.id, arrayType);
+      }
+      onChangeArrayType(selectedItem.id, undefined);
+    }
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
@@ -327,7 +367,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      <p className={classes.name}>{getTranslation('schema_editor.name', props.language)}</p>
+      <p className={classes.name}>{getTranslation('name', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-name`}
         className={classes.field}
@@ -342,7 +382,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.header}>{getTranslation('schema_editor.object_kind_label', props.language)}</p>
+      <p className={classes.header}>{getTranslation('object_kind_label', props.language)}</p>
       <Select
         className={classes.field}
         id='type-kind-select'
@@ -351,35 +391,45 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         disableUnderline={true}
         fullWidth={true}
       >
-        <MenuItem value='type'>{getTranslation('schema_editor.type', props.language)}</MenuItem>
-        <MenuItem value='reference'>{getTranslation('schema_editor.reference', props.language)}</MenuItem>
-        <MenuItem value='group'>{getTranslation('schema_editor.group', props.language)}</MenuItem>
+        <MenuItem value='type'>{getTranslation('type', props.language)}</MenuItem>
+        <MenuItem value='reference'>{getTranslation('reference', props.language)}</MenuItem>
+        <MenuItem value='group'>{getTranslation('group', props.language)}</MenuItem>
       </Select>
       {selectedItem && objectKind === 'type' &&
       <>
         <p className={classes.header}>Type</p>
-        <TypeSelect
-          label='Type'
-          language={props.language}
-          fullWidth={true}
-          value={objectType}
-          id={selectedItem.id}
-          onChange={(onChangeType)}
-        />
+        { selectedItem.type === 'array' ?
+          <TypeSelect
+            label='Type'
+            language={props.language}
+            fullWidth={true}
+            value={arrayType}
+            id={selectedItem.id}
+            onChange={onChangeArrayType}
+          /> :
+          <TypeSelect
+            label='Type'
+            language={props.language}
+            fullWidth={true}
+            value={objectType}
+            id={selectedItem.id}
+            onChange={(onChangeType)}
+          /> }
       </>}
-      { renderDefUrl() }
+      { renderReferenceSelection() }
       <FormControlLabel
+        id='multiple-answers-checkbox'
         className={classes.header}
         control={<Checkbox
-          checked={isArray}
+          checked={selectedItem?.type === 'array'}
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
         />}
-        label={getTranslation('schema_editor.multiple_answers', props.language)}
+        label={getTranslation('multiple_answers', props.language)}
       />
       <hr className={classes.divider} />
-      <p className={classes.header}>{getTranslation('schema_editor.descriptive_fields', props.language)}</p>
-      <p className={classes.header}>{getTranslation('schema_editor.title', props.language)}</p>
+      <p className={classes.header}>{getTranslation('descriptive_fields', props.language)}</p>
+      <p className={classes.header}>{getTranslation('title', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
@@ -392,7 +442,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.header}>{getTranslation('schema_editor.description', props.language)}</p>
+      <p className={classes.header}>{getTranslation('description', props.language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}
@@ -418,7 +468,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   if (!selectedId) {
     return (
       <div>
-        <p className='no-item-selected'>{getTranslation('schema_editor.no_item_selected', props.language)}</p>
+        <p className='no-item-selected'>{getTranslation('no_item_selected', props.language)}</p>
         <hr className={classes.divider} />
       </div>);
   }
@@ -437,14 +487,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             aria-label='inspector tabs'
           >
             <Tab
-              label={getTranslation('schema_editor.properties', props.language)} {...a11yProps(0)}
+              label={getTranslation('properties', props.language)} {...a11yProps(0)}
             />
             <Tab
-              label={getTranslation('schema_editor.restrictions', props.language)} {...a11yProps(1)}
+              label={getTranslation('restrictions', props.language)} {...a11yProps(1)}
             />
             <Tab
               hidden={itemToDisplay?.type !== 'object'}
-              label={getTranslation('schema_editor.fields', props.language)} {...a11yProps(2)}
+              label={getTranslation('fields', props.language)} {...a11yProps(2)}
             />
           </TabList>
 
@@ -464,26 +514,26 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
                   checked={isRequired} onChange={handleRequiredChanged}
                   name='checkedRequired'
                 />}
-                label={getTranslation('schema_editor.required', props.language)}
+                label={getTranslation('required', props.language)}
               />
             </Grid>
             <Grid item xs={12}>
               <hr className={classes.divider} />
             </Grid>
             <Grid item xs={4}>
-              <p>{getTranslation('schema_editor.keyword', props.language)}</p>
+              <p>{getTranslation('keyword', props.language)}</p>
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={7}>
-              <p>{getTranslation('schema_editor.value', props.language)}</p>
+              <p>{getTranslation('value', props.language)}</p>
             </Grid>
             { itemToDisplay && renderItemRestrictions(itemToDisplay) }
           </Grid>
           <IconButton
             id='add-restriction-button'
-            aria-label={getTranslation('schema_editor.add_restriction', props.language)}
+            aria-label={getTranslation('add_restriction', props.language)}
             onClick={onAddRestrictionClick}
-          ><i className='fa fa-plus'/>{getTranslation('schema_editor.add_restriction', props.language)}
+          ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
           </IconButton>
         </TabPanel>
         <TabPanel value='2'>
