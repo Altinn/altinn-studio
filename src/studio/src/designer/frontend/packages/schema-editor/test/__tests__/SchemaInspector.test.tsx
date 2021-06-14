@@ -87,7 +87,7 @@ it('dispatches correctly when changing restriction value', (done) => {
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-value').last().simulate('change', { target: { value: '666' } });
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-value').last().simulate('blur');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setFieldValue',
+    type: 'schemaEditor/setRestriction',
     payload: {
       key: 'minLength',
       path: '#/definitions/Kommentar2000Restriksjon',
@@ -174,6 +174,114 @@ it('dispatches correctly when changing ref', (done) => {
   done();
 });
 
+it('supports switching a type into an array and back', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper:any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  });
+
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: true } });
+  wrapper.update();
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      value: 'array',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      items: {
+        type: 'string',
+      },
+    },
+  });
+  // switch back into string
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: false } });
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      value: 'string',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
+      items: undefined,
+    },
+  });
+});
+
+it('supports switching a reference into an array and back', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/RA-0678_M/properties/InternInformasjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper:any = null;
+  act(() => {
+    wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  });
+
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: true } });
+  wrapper.update();
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setType',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      value: 'array',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      items: {
+        $ref: '#/definitions/InternInformasjon',
+      },
+    },
+  });
+  // switch back into reference
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0)
+    .simulate('change', { target: { checked: false } });
+
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setRef',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      ref: '#/definitions/InternInformasjon',
+    },
+  });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setItems',
+    payload: {
+      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
+      items: undefined,
+    },
+  });
+});
+
 it('refSelect does not set invalid refs', (done) => {
   mockStore = createStore({
     ...mockInitialState,
@@ -204,7 +312,7 @@ it('renders no item if nothing is selected', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('.no-item-selected').last().text()).toBe('schema_editor.no_item_selected');
+    expect(wrapper.find('.no-item-selected').last().text()).toBe('no_item_selected');
   });
 });
 
