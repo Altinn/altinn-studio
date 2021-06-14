@@ -57,9 +57,9 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const runPageValidations = !returnToView && triggers && triggers.includes(Triggers.ValidatePage);
-    const runAllValidations = returnToView || (triggers && triggers.includes(Triggers.ValidateAllPages));
-    const runValidations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
+    const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
+    const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
+    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
     if (triggers?.includes(Triggers.CalculatePageOrder)) {
       dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ runValidations }));
     } else {
