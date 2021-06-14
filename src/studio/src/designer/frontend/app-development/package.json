@@ -5,7 +5,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --hot",
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
-    "build-develop": "cross-env NODE_ENV=production webpack --config webpack.config.production --progress --watch",
+    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "test": "jest",
     "compile-ts": "tsc",
     "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
