@@ -80,7 +80,9 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.js"
+    ],
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
