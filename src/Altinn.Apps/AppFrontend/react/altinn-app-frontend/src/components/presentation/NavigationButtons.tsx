@@ -57,15 +57,15 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    const runPageValidations = !returnToView && triggers && triggers.includes(Triggers.ValidatePage);
-    const runAllValidations = returnToView || (triggers && triggers.includes(Triggers.ValidateAllPages));
-    const validations = runAllValidations ? 'allPages' : (runPageValidations ? 'page' : null);
+    const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
+    const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
+    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
     if (triggers?.includes(Triggers.CalculatePageOrder)) {
-      dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ validations }));
+      dispatch(FormLayoutActions.calculatePageOrderAndMoveToNextPage({ runValidations }));
     } else {
       const goToView = returnToView || next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
       if (goToView) {
-        dispatch(FormLayoutActions.updateCurrentView({ newView: goToView, runValidations: validations }));
+        dispatch(FormLayoutActions.updateCurrentView({ newView: goToView, runValidations }));
       }
     }
   };
