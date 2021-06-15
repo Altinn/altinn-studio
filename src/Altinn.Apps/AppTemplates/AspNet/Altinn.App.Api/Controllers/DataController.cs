@@ -31,6 +31,7 @@ namespace Altinn.App.Api.Controllers
     /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
     [AutoValidateAntiforgeryTokenIfAuthCookie]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
     {
@@ -195,7 +196,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if ((bool)appLogic)
                 {
-                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType);
+                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType, instance);
                 }
 
                 return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
@@ -485,7 +486,8 @@ namespace Altinn.App.Api.Controllers
         int instanceOwnerId,
         Guid instanceGuid,
         Guid dataGuid,
-        string dataType)
+        string dataType,
+        Instance instance)
         {
             string appModelclassRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
@@ -503,8 +505,15 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
-            // Trigger application business logic
-            await _altinnApp.RunCalculation(appModel);
+            try
+            {
+                await _altinnApp.RunProcessDataRead(instance, dataGuid, appModel);
+            }
+            catch (NotImplementedException)
+            {
+                // Trigger application business logic the old way. DEPRICATED
+                await _altinnApp.RunCalculation(appModel);
+            }
 
             string userOrgClaim = User.GetOrg();
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
@@ -545,8 +554,16 @@ namespace Altinn.App.Api.Controllers
 
             string serviceModelJsonString = JsonSerializer.Serialize(serviceModel);
 
-            // Trigger application business logic
-            bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+            bool changedByCalculation = false;
+            try
+            {
+                changedByCalculation = await _altinnApp.RunProcessDataWrite(instance, dataGuid, serviceModel);
+            }
+            catch (NotImplementedException)
+            {
+                // Trigger application business logic the old way. DEPRICATED
+                 changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+            }
 
             await UpdatePresentationTextsOnInstance(instance, dataType, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType, serviceModel);

@@ -28,7 +28,7 @@ namespace App.IntegrationTests.ApiTests
         
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
-            _factory = factory;            
+            _factory = factory;
         }
 
         [Fact]
@@ -87,9 +87,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1337/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -111,9 +109,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
@@ -134,9 +130,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -155,9 +149,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             await response.Content.ReadAsStringAsync();
@@ -174,9 +166,7 @@ namespace App.IntegrationTests.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
@@ -194,9 +184,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -226,18 +214,14 @@ namespace App.IntegrationTests.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data?dataType=default")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data?dataType=default");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data/{dataElement.Id}")
-            {
-            };
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/custom-validation/instances/1337/609efc9d-4496-4f0b-9d20-808dc2c1876d/data/{dataElement.Id}");
 
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
@@ -905,7 +889,10 @@ namespace App.IntegrationTests.ApiTests
 
             string dataRequestUri = $"{instanceUri}/data/{dataGuid}?dataType=default";
             string dataRequestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"12\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"160694\"}}}}";
-            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri) { Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json") };
+            HttpRequestMessage dataHttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataRequestUri)
+            {
+                Content = new StringContent(dataRequestBody, Encoding.UTF8, "application/json")
+            };
 
             await client.SendAsync(dataHttpRequestMessage);
 
@@ -943,7 +930,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task Data_Post_NoInstanceReferences_ObjectSucessfullyPrefilledCalculatedAndReturned()
+        public async Task Data_Get_NoInstanceReferences_ObjectSucessfullyPrefilledCalculatedAndReturned()
         {
             // Arrange
             string org = "ttd";
@@ -957,7 +944,7 @@ namespace App.IntegrationTests.ApiTests
 
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
             // Act
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
@@ -976,7 +963,7 @@ namespace App.IntegrationTests.ApiTests
         }
 
         [Fact]
-        public async Task Data_Put_NoInstanceReferences_CalculationsRunAndDataReturned()
+        public async Task Data_Post_NoInstanceReferences_CalculationsRunAndDataReturned()
         {
             // Arrange
             string org = "ttd";
@@ -991,7 +978,7 @@ namespace App.IntegrationTests.ApiTests
             string requestUri = $"/{org}/{app}/v1/data?dataType=default";
             string requestBody = "{\"skjemanummer\":\"1472\",\"spesifikasjonsnummer\":\"9812\",\"blankettnummer\":\"AFP-01\",\"tittel\":\"ArbeidsgiverskjemaAFP\",\"gruppeid\":\"8818\",\"OpplysningerOmArbeidstakerengrp8819\":{\"Arbeidsforholdgrp8856\":{\"AnsattSammenhengendeAnsattAnsettelsedatadef33267\":{\"value\":\"SophieSalt\",\"orid\":\"33267\"},},\"Skjemainstansgrp8854\":{\"Journalnummerdatadef33316\":{\"value\":\"1000\"}}}}";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };

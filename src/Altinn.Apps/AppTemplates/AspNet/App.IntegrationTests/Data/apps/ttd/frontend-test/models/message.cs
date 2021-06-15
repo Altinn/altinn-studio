@@ -38,6 +38,5 @@ namespace Altinn.App.Models
     [JsonProperty("Sender")]
     [JsonPropertyName("Sender")]
     public string Sender { get; set; }
-
   }
 }

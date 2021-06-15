@@ -61,7 +61,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             StringBuilder classBuilder = new StringBuilder();
-            classBuilder.AppendLine("  public class " + parentElement.TypeName + "{");
+            if (parentElement.ParentElement == null)
+            {
+                classBuilder.AppendLine("  [XmlRoot(ElementName=\"" + parentElement.Name + "\")]");
+            }
+            else
+            {
+                classBuilder.AppendLine(string.Empty);
+            }
+
+            classBuilder.AppendLine("  public class " + parentElement.TypeName);
+            classBuilder.AppendLine("  {");
 
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
@@ -132,7 +142,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         classBuilder.AppendLine("    [BindNever]");
                         if (dataType.Equals("string"))
                         {
-                            classBuilder.AppendLine("    public  " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
+                            classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
                         }
                         else
                         {

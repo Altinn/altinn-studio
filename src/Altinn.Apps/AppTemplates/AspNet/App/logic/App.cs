@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-using Altinn.App.AppLogic.Calculation;
+using Altinn.App.AppLogic.DataProcessing;
 using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
@@ -25,9 +25,9 @@ namespace Altinn.App.AppLogic
     {
         private readonly ILogger<App> _logger;
         private readonly ValidationHandler _validationHandler;
-        private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
         private readonly PdfHandler _pdfHandler;
+        private readonly DataProcessingHandler _dataProcessingHandler;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="App"/> class.
@@ -72,7 +72,7 @@ namespace Altinn.App.AppLogic
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);
-            _calculationHandler = new CalculationHandler();
+            _dataProcessingHandler = new DataProcessingHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
             _pdfHandler = new PdfHandler();
         }
@@ -110,6 +110,28 @@ namespace Altinn.App.AppLogic
         }
 
         /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
+        {
+            return await _dataProcessingHandler.ProcessDataRead(instance, dataId, data);
+        }
+
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is written to app.
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataWrite(Instance instance, Guid? dataId, object data)
+        {
+            return await _dataProcessingHandler.ProcessDataWrite(instance, dataId, data);
+        }
+
+        /// <summary>
         /// Run data validation event to perform custom validations on data
         /// </summary>
         /// <param name="data">An instance of the data to be validated.</param>
@@ -130,15 +152,6 @@ namespace Altinn.App.AppLogic
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
-        }
-
-        /// <summary>
-        /// Is called to run custom calculation events defined by app developer.
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object data)
-        {
-            return await _calculationHandler.Calculate(data);
         }
 
         /// <summary>

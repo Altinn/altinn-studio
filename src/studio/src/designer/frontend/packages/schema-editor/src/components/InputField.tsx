@@ -2,10 +2,15 @@ import * as React from 'react';
 import { makeStyles,
   FormControl,
   Input,
-  IconButton } from '@material-ui/core';
+  IconButton,
+  FormControlLabel,
+  Checkbox,
+  Grid } from '@material-ui/core';
+import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
-import { TypeSelect } from './TypeSelect';
-import { RefSelect } from './RefSelect';
+import { ILanguage } from '../types';
+import { getDomFriendlyID, getTranslation } from '../utils';
+import { setRequired } from '../features/editor/schemaEditorSlice';
 
 const useStyles = (readonly?: boolean) => makeStyles({
   field: {
@@ -14,9 +19,6 @@ const useStyles = (readonly?: boolean) => makeStyles({
     border: readonly ? '1px solid grey' : '1px solid #006BD8',
     boxSsizing: 'border-box',
     padding: 4,
-    margin: 12,
-    minWidth: 150,
-    maxWidth: 200,
     '&.Mui-disabled': {
       background: '#f4f4f4',
       color: 'black',
@@ -27,32 +29,23 @@ const useStyles = (readonly?: boolean) => makeStyles({
   inline: {
     display: 'inline-block',
   },
-  label: {
-    margin: 12,
-  },
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    '& >.MuiFormControl-root': {
-      width: 200,
-    },
-  },
   delete: {
     marginLeft: '8px',
-    marginTop: '12px',
     padding: '12px',
+  },
+  checkBox: {
+    marginTop: 4,
   },
 });
 
 export interface IInputFieldProps {
-  value: string;
   label: string;
   fullPath: string;
-  onChangeValue: (path: string, value: any, key?: string) => void;
+  language: ILanguage;
+  required?: boolean;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
-  onChangeRef?: (path: string, ref: string) => void;
-  onDeleteField: (path: string, key: string) => void;
-  isRef?: boolean;
+  onChangeRequired?: (path: string, required: boolean) => void;
+  onDeleteField?: (path: string, key: string) => void;
   readOnly?: boolean;
 }
 
@@ -60,24 +53,10 @@ export function InputField(props: IInputFieldProps) {
   const classes = useStyles(props.readOnly)();
 
   const [label, setLabel] = React.useState<string>(props.label || '');
-
+  const dispatch = useDispatch();
   React.useEffect(() => {
     setLabel(props.label);
   }, [props.label]);
-
-  const onChangeValue = (val: string) => {
-    const newValue = props.label === 'enum' ? val.split(',') : val;
-    props.onChangeValue(props.fullPath, newValue, props.label);
-  };
-
-  const onChangeType = (id: string, type: string) => {
-    props.onChangeValue(props.fullPath, type, id);
-  };
-
-  const onChangeRef = (id: string, ref: string) => {
-    props.onChangeRef?.(props.fullPath, ref);
-  };
-
   const onChangeKey = (e: any) => {
     setLabel(e.target.value);
   };
@@ -87,60 +66,55 @@ export function InputField(props: IInputFieldProps) {
   };
 
   const onClickDelete = () => {
-    props.onDeleteField(props.fullPath, props.label);
+    props.onDeleteField?.(props.fullPath, props.label);
   };
-
-  const renderValueField = () => {
-    if (label === 'type') {
-      return <TypeSelect
-        readOnly={props.readOnly}
-        itemType={props.value}
-        id={label}
-        onChange={onChangeType}
-      />;
-    }
-    if (props.isRef) {
-      return <RefSelect
-        id={label}
-        value={props.value}
-        readOnly={props.readOnly}
-        onChange={onChangeRef}
-      />;
-    }
-    return <Input
-      id={`${baseId}-value-${label}`}
-      disabled={props.readOnly}
-      className={classes.field}
-      value={props.value}
-      disableUnderline={true}
-      onChange={(e) => onChangeValue(e.target.value)}
-    />;
+  const onChangeRequired = (e: any, checked: boolean) => {
+    dispatch(setRequired({
+      path: props.fullPath, key: props.label, required: checked,
+    }));
   };
-  const baseId = `input-${props.fullPath.replace('#/definitions/', '').replace(/\//g, '-')}`;
+  const baseId = getDomFriendlyID(props.fullPath);
   return (
-    <div className={classes.container}>
-      <FormControl>
-        <Input
-          id={`${baseId}-key-${label}`}
-          value={label}
-          disableUnderline={true}
-          disabled={props.readOnly}
-          onChange={onChangeKey}
-          onBlur={onBlurKey}
-          className={classes.field}
-        />
-      </FormControl>
-      <FormControl>
-        { renderValueField() }
-      </FormControl>
-      <IconButton
-        id={`${baseId}-delete-${label}`}
-        aria-label='Delete field'
-        onClick={onClickDelete}
-        className={classes.delete}
-      >
-        <DeleteOutline/>
-      </IconButton>
-    </div>
+    <>
+      <Grid item xs={4}>
+        <FormControl>
+          <Input
+            id={`${baseId}-key-${label}`}
+            value={label}
+            disableUnderline={true}
+            fullWidth
+            disabled={props.readOnly}
+            onChange={onChangeKey}
+            onBlur={onBlurKey}
+            className={classes.field}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={1} />
+      <Grid item xs={4}>
+        <FormControl>
+          <FormControlLabel
+            className={classes.checkBox}
+            control={<Checkbox
+              checked={props.required} onChange={onChangeRequired}
+              name='checkedArray'
+            />}
+            label={getTranslation('required', props.language)}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={3}>
+        { props.onDeleteField &&
+        <IconButton
+          id={`${baseId}-delete-${label}`}
+          aria-label='Delete field'
+          onClick={onClickDelete}
+          className={classes.delete}
+        >
+          <DeleteOutline/>
+        </IconButton>
+        }
+      </Grid>
+    </>
   );
 }

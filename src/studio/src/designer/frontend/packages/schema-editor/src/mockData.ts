@@ -38,6 +38,7 @@ const mockString = `
 		},
 	"definitions" : {
 			"RA-0678_M" : {
+					"type": "object",
 					"properties" : {
 							"dataFormatProvider" : {
 									"const" : "SERES",

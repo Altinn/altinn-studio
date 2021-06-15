@@ -39,6 +39,7 @@ namespace Altinn.App.Api.Controllers
         /// Method that returns the user information about the user that is logged in
         /// </summary>
         [Authorize]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {

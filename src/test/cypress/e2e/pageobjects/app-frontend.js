@@ -48,6 +48,7 @@ export default class AppFrontend {
       upload: '#fileUpload-changename',
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
+      mobilenummer: '#mobilnummer',
     };
 
     //group - task 3
@@ -65,6 +66,8 @@ export default class AppFrontend {
       editContainer: '[class^="makeStyles-editContainer"]',
       sendersName: '#sendersName',
       summaryText: '#send-in-text',
+      next: 'button[aria-label="Neste"]',
+      back: 'button[aria-label="Tilbake"]',
     };
   }
 }

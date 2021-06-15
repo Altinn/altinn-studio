@@ -1,0 +1,40 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="RestrictedIntegersTests">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="1" maxOccurs="1" name="RestrictedInteger0IncTo999Incl" type="RestrictedInteger0IncTo999Incl" />
+        <xs:element minOccurs="1" maxOccurs="1" name="RestrictedInteger1IncTo999Incl" type="RestrictedInteger1IncTo999Incl" />
+        <xs:element minOccurs="1" maxOccurs="1" name="RestrictedIntegerNegative1IncToMax" type="RestrictedIntegerNegative1IncToMax" />
+        <xs:element minOccurs="1" maxOccurs="1" name="RestrictedInteger0IncToMax" type="RestrictedInteger0IncToMax" />
+        <xs:element minOccurs="1" maxOccurs="1" name="RestrictedInteger1IncToMax" type="RestrictedInteger1IncToMax" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="RestrictedInteger0IncTo999Incl">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="999"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RestrictedInteger1IncTo999Incl">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="1"/>
+      <xs:maxInclusive value="999"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RestrictedIntegerNegative1IncToMax">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="-1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RestrictedInteger0IncToMax">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RestrictedInteger1IncToMax">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call,
   select,
@@ -5,18 +6,19 @@ import { call,
   all,
   take,
   put } from 'redux-saga/effects';
-import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
+import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
+import { getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';
-import { IRuntimeState } from '../../../../types';
+import { ILayoutSets, IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getFetchFormDynamicsUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getFetchStatelessFormDataUrl } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
@@ -29,7 +31,6 @@ function* fetchFormDataSaga(): SagaIterator {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-
     const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance);
     const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
     const formData = convertModelToDataBinding(fetchedData);
@@ -48,9 +49,28 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
+    const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
 
-    const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
-    const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
+    let fetchedData: any;
+
+    if (applicationMetadata?.onEntry?.show && applicationMetadata.onEntry.show !== 'new-instance') {
+      // stateless app
+      const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
+      try {
+        fetchedData = yield call(get, getFetchStatelessFormDataUrl(dataType));
+      } catch (error) {
+        // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
+        if (error?.response?.status === 405) {
+          fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      // app with instance
+      const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
+      fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
+    }
 
     const formData = convertModelToDataBinding(fetchedData);
     yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
@@ -59,10 +79,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       FormRulesActions.fetchRuleModel,
     );
 
-    yield call(
-      FormDynamicsActions.fetchFormDynamics,
-      getFetchFormDynamicsUrl(),
-    );
+    yield call(FormDynamicsActions.fetchFormDynamics);
   } catch (error) {
     yield put(FormDataActions.fetchFormDataRejected({ error }));
     yield call(dataTaskQueueError, error);
@@ -74,7 +91,8 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     yield take(FormDataActions.fetchFormDataInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-    if (!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {
+    const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+    if ((!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) && !application.onEntry?.show) {
       yield all([
         take(GET_INSTANCEDATA_FULFILLED),
         take(fetchJsonSchemaFulfilled),

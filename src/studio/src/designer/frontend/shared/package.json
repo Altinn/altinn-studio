@@ -10,18 +10,15 @@
     "styleguide": "styleguidist server",
     "styleguide:build": "styleguidist build"
   },
-  "resolutions": {
-    "@types/react": "16.9.43"
-  },
   "dependencies": {
     "@babel/polyfill": "~7.12.1",
     "@material-ui/core": "~4.11.4",
     "@material-ui/icons": "~4.11.2",
     "axios": "~0.21.1",
     "classnames": "~2.3.1",
-    "core-js": "~3.12.0",
+    "core-js": "~3.14.0",
     "diff": "~5.0.0",
-    "dompurify": "~2.2.8",
+    "dompurify": "~2.2.9",
     "marked": "~1.2.9",
     "moment": "~2.29.1",
     "react-content-loader": "~6.0.3",
@@ -29,42 +26,42 @@
     "react-monaco-editor": "~0.43.0",
     "react-router-dom": "~5.2.0",
     "react-truncate-markup": "~5.1.0",
-    "typescript": "~4.2.4"
+    "typescript": "~4.3.2"
   },
   "devDependencies": {
-    "@babel/core": "~7.14.0",
-    "@babel/preset-env": "~7.14.1",
-    "@babel/preset-react": "~7.13.13",
+    "@babel/core": "~7.14.5",
+    "@babel/preset-env": "~7.14.5",
+    "@babel/preset-react": "~7.14.5",
     "@types/classnames": "~2.3.1",
     "@types/diff": "~5.0.0",
     "@types/dompurify": "~2.2.2",
     "@types/enzyme": "~3.10.8",
     "@types/jest": "~26.0.23",
-    "@types/jsdom": "~16.2.10",
+    "@types/jsdom": "~16.2.11",
     "@types/marked": "~1.2.2",
-    "@types/react": "~16.9.56",
+    "@types/react": "~17.0.11",
     "@types/react-html-parser": "~2.0.1",
     "@types/react-router-dom": "~5.1.7",
-    "@types/react-test-renderer": "~16.9.5",
+    "@types/react-test-renderer": "~17.0.1",
     "altinn-designsystem": "2.7.12",
-    "babel-jest": "~26.6.3",
+    "babel-jest": "~27.0.2",
     "babel-loader": "~8.2.2",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "~1.15.6",
-    "fork-ts-checker-notifier-webpack-plugin": "~3.0.0",
-    "fork-ts-checker-webpack-plugin": "~6.2.6",
-    "jest": "~26.6.3",
+    "fork-ts-checker-notifier-webpack-plugin": "~4.0.0",
+    "fork-ts-checker-webpack-plugin": "~6.2.10",
+    "jest": "~27.0.4",
     "jest-environment-enzyme": "~7.1.2",
     "jest-enzyme": "~7.1.2",
-    "jest-junit": "~12.0.0",
-    "jsdom": "~16.5.3",
+    "jest-junit": "~12.2.0",
+    "jsdom": "~16.6.0",
     "parse5": "6.0.1",
-    "react": "~16.13.1",
+    "react": "~17.0.2",
     "react-docgen-typescript": "~1.22.0",
-    "react-dom": "~16.13.1",
-    "react-styleguidist": "~11.1.6",
-    "react-test-renderer": "~16.13.1",
-    "ts-jest": "~26.5.6"
+    "react-dom": "~17.0.2",
+    "react-styleguidist": "~11.1.7",
+    "react-test-renderer": "~17.0.2",
+    "ts-jest": "~27.0.3"
   },
   "jest": {
     "transform": {
@@ -84,7 +81,10 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/test/setupTests.js"
+    "testEnvironment": "jsdom",
+    "setupFiles": [
+      "<rootDir>/test/setupTests.js"
+    ]
   },
   "browserslist": [
     ">0.2%",

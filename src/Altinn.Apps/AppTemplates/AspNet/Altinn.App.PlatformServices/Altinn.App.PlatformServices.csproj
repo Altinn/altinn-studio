@@ -3,26 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.6.0</AssemblyVersion>
-    <FileVersion>4.6.0</FileVersion>
-    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
-    <ProjectGuid>{98E6200A-ED99-418E-B30C-81BA564B509A}</ProjectGuid>
-
-    <!-- NuGet package properties -->
+    <Version>4.7.1</Version>
+    <AssemblyVersion>4.7.1.0</AssemblyVersion>
     <PackageId>Altinn.App.PlatformServices</PackageId>
-    <PackageVersion>4.6.0</PackageVersion>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
     </Description>
-    <PackageReleaseNotes>
-      https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>true</IsPackable>
+
+    <!-- SonarCloud requires a ProjectGuid to separate projects. -->
+    <ProjectGuid>{98E6200A-ED99-418E-B30C-81BA564B509A}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,9 +30,9 @@
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
     <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.0.0-alpha" />
-    <PackageReference Include="Altinn.Platform.Models" Version="1.0.5" />
+    <PackageReference Include="Altinn.Platform.Models" Version="1.1.0" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.33" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
@@ -63,7 +60,6 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>4.4.0</Version>
   </PropertyGroup>
 
 </Project>

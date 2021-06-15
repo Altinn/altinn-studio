@@ -1,5 +1,5 @@
-import reducer, { addField, addProperty, addRootItem, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
-import { ISchemaState } from '../../src/types';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
 describe('SchemaEditorSlice', () => {
@@ -18,10 +18,10 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setKey(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
-    expect(item.keywords).toContainEqual({ key: 'color', value: 1 });
+    expect(item.restrictions).toContainEqual({ key: 'color', value: 1 });
   });
 
   it('handles setFieldValue', () => {
@@ -30,12 +30,12 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kommentar2000Restriksjon',
       value: '666',
     };
-    const nextState = reducer(state, setFieldValue(payload));
+    const nextState = reducer(state, setRestriction(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
-    const field = item.keywords.find((f) => f.key === 'minLength');
+    const field = item.restrictions.find((f) => f.key === 'minLength');
     if (!field) {
       fail('field not found');
     }
@@ -53,7 +53,7 @@ describe('SchemaEditorSlice', () => {
       fail('item not found');
     }
     expect(item.properties).toContainEqual({
-      id: '#/definitions/Kontaktperson/properties/navn_endret', name: 'navn_endret', $ref: '#/definitions/NavnSomToken',
+      id: '#/definitions/Kontaktperson/properties/navn_endret', displayName: 'navn_endret', $ref: '#/definitions/NavnSomToken',
     });
   });
 
@@ -63,12 +63,12 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kontaktperson/properties/navn',
     };
     const nextState = reducer(state, setRef(payload));
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    const item: UiSchemaItem | undefined = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     if (!item || !item.properties) {
       fail('item not found');
     }
     expect(item.properties).toContainEqual({
-      id: '#/definitions/Kontaktperson/properties/navn', name: 'navn', $ref: '#/definitions/Adresse',
+      id: '#/definitions/Kontaktperson/properties/navn', displayName: 'navn', $ref: '#/definitions/Adresse',
     });
   });
 
@@ -87,11 +87,11 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, deleteField(payload));
 
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
-    if (!item || !item.keywords) {
+    if (!item || !item.restrictions) {
       fail('item not found');
     }
 
-    expect(item.keywords).not.toContainEqual({ key: 'maxLength' });
+    expect(item.restrictions).not.toContainEqual({ key: 'maxLength' });
   });
 
   it('handles deleteProperty', () => {
@@ -121,49 +121,39 @@ describe('SchemaEditorSlice', () => {
   it('handles addProperty', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
-      newKey: 'test',
-      content: [
-        {
-          id: '#/definitions/test',
-        },
-      ],
     };
     const nextState = reducer(state, addProperty(payload));
 
-    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.properties).toContainEqual({
-      $ref: '#/definitions/test', id: '#/definitions/Kontaktperson/properties/test', name: 'test',
+      id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', type: 'object',
     });
 
     // test add second time to get more case coverage.
-    payload.newKey = 'test2';
-    payload.content = [{ id: '#/definitions/test2' }];
-    const state2 = reducer(nextState, addProperty(payload));
-    item = state2.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    expect(item && item.properties).toContainEqual({
-      $ref: '#/definitions/test2', id: '#/definitions/Kontaktperson/properties/test2', name: 'test2',
-    });
+    // const state2 = reducer(nextState, addProperty(payload));
+    // item = state2.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    // expect(item && item.properties).toContainEqual({
+    //   id: '#/definitions/Kontaktperson/properties/navn', name: 'test2',
+    // });
   });
 
-  it('handles addField', () => {
+  it('handles addRestriction', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
       key: 'key',
-      value: 'value',
+      value: '',
     };
-    let nextState = reducer(state, addField(payload));
+    let nextState = reducer(state, addRestriction(payload));
 
     let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    expect(item && item.keywords).toContainEqual({
-      key: 'key', value: 'value',
+    expect(item && item.restrictions).toContainEqual({
+      key: 'key', value: '',
     });
 
-    payload.key = 'test';
-    payload.value = 'test';
-    nextState = reducer(nextState, addField(payload));
+    nextState = reducer(nextState, addRestriction(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    expect(item && item.keywords).toContainEqual({
-      key: 'test', value: 'test',
+    expect(item && item.restrictions).toContainEqual({
+      key: 'key1', value: '',
     });
   });
 
@@ -173,46 +163,5 @@ describe('SchemaEditorSlice', () => {
     };
     reducer(state, updateJsonSchema(payload));
     expect(payload.onSaveSchema).toBeCalled();
-  });
-
-  it('handles addRootItem', () => {
-    const payload = {
-      itemsToAdd: [
-        {
-          id: '#/definitions/Foretak',
-          properties: [
-            {
-              id: '#/definitions/Foretak/properties/organisasjonsnummerForetak',
-              name: 'organisasjonsnummerForetak',
-              $ref: '#/definitions/Organisasjonsnummer',
-            },
-            {
-              id: '#/definitions/Foretak/properties/navnForetak',
-              name: 'navnForetak',
-              $ref: '#/definitions/Tekst',
-            },
-            {
-              id: '#/definitions/Foretak/properties/adresseForetak',
-              name: 'adresseForetak',
-              $ref: '#/definitions/Besoeksadresse',
-            },
-          ],
-          name: 'Foretak',
-          '@xsdUnhandledAttribute1': 'seres:elementtype=Dataobjekttype',
-          '@xsdUnhandledAttribute2': 'seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Foretak/492157',
-        },
-      ],
-    };
-    const nextState = reducer(state, addRootItem(payload));
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Foretak');
-    expect(item).not.toBeUndefined();
-    if (item == null) {
-      fail('item is null');
-    }
-    expect(item.properties).toContainEqual({
-      id: '#/definitions/Foretak/properties/adresseForetak',
-      name: 'adresseForetak',
-      $ref: '#/definitions/Besoeksadresse',
-    });
   });
 });

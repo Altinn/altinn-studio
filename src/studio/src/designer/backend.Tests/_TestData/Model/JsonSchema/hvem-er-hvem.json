@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "melding": {
+      "$ref": "#/definitions/HvemErHvem_M"
+    }
+  },
+  "info": {
+    "XSLT-skriptnavn": "SERES_XSD_GEN",
+    "XSD-generatorversjon": "2.0.23",
+    "XSLT-prosessor": "SAXON versjon 9.1.0.7",
+    "generert": "2021-04-08T18:54:19.034+02:00",
+    "navneromprefix": "http://seres.no/xsd",
+    "namespace": "http://seres.no/xsd/Kursdomene/HvemErHvem_M/2021",
+    "meldingsnavn": "melding",
+    "domenenavn": "Kursdomene",
+    "modellnavn": "HvemErHvem_M",
+    "metamodellversjon": "1.2",
+    "guid": "true",
+    "orid": "false",
+    "nillable": "true",
+    "tillat-gjenbruk": "true",
+    "elementtype": "true",
+    "forvaltningsdata": "true",
+    "forvaltningsdata-navnerom": "http://seres.no/xsd/forvaltningsdata",
+    "saernorske-bokstaver-i-navn": "false",
+    "ft_guid_som_attributt": "false",
+    "sem-ref": "false",
+    "kodebibliotek": "false",
+    "spraak": "nb",
+    "XSD-variant": "Altinn 1.3.2"
+  },
+  "definitions": {
+    "HvemErHvem_M": {
+      "properties": {
+        "dataFormatProvider": {
+          "const": "SERES",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "dataFormatId": {
+          "const": "5742",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "dataFormatVersion": {
+          "const": "34627",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "Innrapportoer": {
+          "$ref": "#/definitions/Innrapportoer",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Meldingsdel",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
+        },
+        "InnrapporterteData": {
+          "$ref": "#/definitions/InnrapporterteData",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Meldingsdel",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
+        }
+      },
+      "required": [
+        "dataFormatProvider",
+        "dataFormatId",
+        "dataFormatVersion",
+        "Innrapportoer",
+        "InnrapporterteData"
+      ],
+      "@xsdAnyAttribute": true,
+      "@xsdUnhandledAttribute1": "seres:elementtype=Meldingsmodell",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Meldingsmodell/HvemErHvem_M/784912"
+    },
+    "Innrapportoer": {
+      "properties": {
+        "geek": {
+          "$ref": "#/definitions/Geek",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Relasjonsegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Relasjonsegenskap/geek/784941"
+        }
+      },
+      "required": [
+        "geek"
+      ],
+      "@xsdUnhandledAttribute1": "seres:elementtype=Meldingsdel",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
+    },
+    "Geek": {
+      "properties": {
+        "navn": {
+          "$ref": "#/definitions/Navn",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Dataegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataegenskap/Navn/784939"
+        },
+        "foedselsdato": {
+          "$ref": "#/definitions/Tekst",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Dataegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataegenskap/Fødselsdato/784938"
+        },
+        "epost": {
+          "$ref": "#/definitions/EPost",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Dataegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataegenskap/epost/784954"
+        }
+      },
+      "required": [
+        "navn",
+        "foedselsdato",
+        "epost"
+      ],
+      "@xsdUnhandledAttribute1": "seres:elementtype=Dataobjekttype",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataobjekttype/Geek/784940"
+    },
+    "InnrapporterteData": {
+      "properties": {
+        "geekType": {
+          "$ref": "#/definitions/GeekType",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Dataegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataegenskap/geekType/784948"
+        },
+        "altinnErfaringAAr": {
+          "$ref": "#/definitions/AltinnErfaringAAr",
+          "@xsdUnhandledAttribute1": "seres:elementtype=Dataegenskap",
+          "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataegenskap/altinnErfaringÅr/784955"
+        }
+      },
+      "required": [
+        "geekType"
+      ],
+      "@xsdUnhandledAttribute1": "seres:elementtype=Meldingsdel",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
+    },
+    "Navn": {
+      "type": "string",
+      "@xsdUnhandledAttribute1": "seres:elementtype=Dataenkeltype",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007"
+    },
+    "Tekst": {
+      "type": "string",
+      "@xsdUnhandledAttribute1": "seres:elementtype=Dataenkeltype",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataenkeltype/Tekst/4008"
+    },
+    "EPost": {
+      "type": "string",
+      "@xsdUnhandledAttribute1": "seres:elementtype=Dataenkeltype",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataenkeltype/EPost/4003"
+    },
+    "GeekType": {
+      "enum": [
+        "frontend",
+        "backend",
+        "other"
+      ],
+      "type": "string",
+      "@xsdUnhandledAttribute1": "seres:elementtype=Datakodeliste",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953"
+    },
+    "AltinnErfaringAAr": {
+      "type": "integer",
+      "@xsdUnhandledAttribute1": "seres:elementtype=Dataenkeltype",
+      "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/Kursdomene/Dataenkeltype/YearsInDigdir/784949"
+    }
+  }
+}

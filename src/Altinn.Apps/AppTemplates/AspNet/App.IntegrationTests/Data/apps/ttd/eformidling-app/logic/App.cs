@@ -6,8 +6,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-
-using Altinn.App.AppLogic.Calculation;
 using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
@@ -19,7 +17,7 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Apps.Ttd.EFormidling.Calculation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;

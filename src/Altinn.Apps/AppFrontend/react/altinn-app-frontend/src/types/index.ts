@@ -149,6 +149,7 @@ export interface ILayoutSettings {
 export interface IPagesSettings {
   order: string[];
   triggers?: Triggers[];
+  hideCloseButton?: boolean;
 }
 
 export interface ILayoutNavigation {
@@ -253,6 +254,7 @@ export interface IUiConfig {
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
   pageTriggers?: Triggers[];
+  hideCloseButton?: boolean;
 }
 
 export interface IValidationResult {
@@ -279,6 +281,10 @@ export enum ProcessTaskType {
   Archived = 'ended',
   Confirm = 'confirmation',
   Feedback = 'feedback',
+}
+
+export enum PresentationType {
+  Stateless = 'stateless',
 }
 
 export enum Severity {

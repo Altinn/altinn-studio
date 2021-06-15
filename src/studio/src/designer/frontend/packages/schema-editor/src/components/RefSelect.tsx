@@ -3,6 +3,7 @@ import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
 import { ISchemaState } from '../types';
+import { getDomFriendlyID } from '../utils';
 
 export interface IRefSelectProps {
   id: string;
@@ -20,7 +21,7 @@ export const RefSelect = (props: IRefSelectProps) => {
       border: '1px solid #006BD8',
       boxSsizing: 'border-box',
       padding: 4,
-      margin: 12,
+      marginTop: 4,
       '&.Mui-disabled': {
         background: '#f4f4f4',
         color: 'black',
@@ -52,7 +53,7 @@ export const RefSelect = (props: IRefSelectProps) => {
     <Autocomplete
       freeSolo={false}
       fullWidth={props.fullWidth}
-      id={`ref-select-${id}`}
+      id={`${getDomFriendlyID(id)}-ref-select`}
       disabled={props.readOnly}
       value={value?.replace('#/definitions/', '')}
       onChange={onChangeValue}

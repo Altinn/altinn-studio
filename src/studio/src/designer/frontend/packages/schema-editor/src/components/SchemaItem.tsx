@@ -2,18 +2,18 @@
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
-import Typography from '@material-ui/core/Typography';
 import { useDispatch, useSelector } from 'react-redux';
-import { IconButton, Menu, MenuItem } from '@material-ui/core';
-import { addField, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { Field, ISchemaState, UiSchemaItem } from '../types';
+import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { SchemaItemLabel } from './SchemaItemLabel';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
   keyPrefix: string;
+  language: ILanguage;
 };
 
-const useStyles = makeStyles({
+const useStyles = (isRef: boolean) => makeStyles({
   root: {
     height: 216,
     flexGrow: 1,
@@ -35,7 +35,7 @@ const useStyles = makeStyles({
   },
   buttonRoot: {
     backgroundColor: 'white',
-    border: '1px solid black',
+    border: isRef ? '1px dashed black' : '1px solid black',
     borderRadius: 5,
     marginLeft: 12,
     width: 90,
@@ -73,7 +73,7 @@ const useStyles = makeStyles({
     marginLeft: 8,
     '&.Mui-selected': {
       background: '#E3F7FF',
-      border: '1px dashed #006BD8',
+      border: isRef ? '1px dashed #006BD8' : '1px solid #006BD8',
       boxSizing: 'border-box',
       borderRadius: '5px',
     },
@@ -92,184 +92,91 @@ const getRefItem = (schema: any[], id: string | undefined): UiSchemaItem => {
 };
 
 function SchemaItem(props: SchemaItemProps) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const {
     item, keyPrefix, ...other
   } = props;
+  const classes = useStyles(item.$ref !== undefined || item.items?.$ref !== undefined)();
 
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const refItem: UiSchemaItem = useSelector((state: ISchemaState) => getRefItem(state.uiSchema, item.$ref));
-  const [contextAnchor, setContextAnchor] = React.useState<any>(null);
-
+  const refItem: UiSchemaItem | undefined = useSelector((state: ISchemaState) => {
+    if (item.$ref) {
+      return getRefItem(state.uiSchema, item.$ref);
+    }
+    if (item.items?.$ref) {
+      return getRefItem(state.uiSchema, item.items.$ref);
+    }
+    return undefined;
+  });
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
     setItemToDisplay(refItem ?? item);
-  }, [item.keywords, item, refItem]);
+  }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
     dispatch(setSelectedId({ id: e.id }));
   };
-  const icon = (name: string) => <span className={classes.iconContainer}><i className={`fa ${name}`} style={{ color: 'white', textAlign: 'center' }} /></span>;
 
-  const renderProperties = (itemProperties: UiSchemaItem[] | undefined) => {
-    if (itemProperties && itemProperties.length > 0) {
-      return (
-        itemProperties.map((property: UiSchemaItem) => {
-          return (
-            <SchemaItem
-              keyPrefix={`${keyPrefix}-properties`}
-              key={`${keyPrefix}-${property.id}`}
-              item={property}
-              nodeId={`${keyPrefix}-${property.id}`}
-              onClick={() => onItemClick(property)}
-            />
-          );
-        })
-      );
-    }
-    return null;
-  };
+  const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
+    return (
+      <SchemaItem
+        keyPrefix={`${keyPrefix}-properties`}
+        key={`${keyPrefix}-${property.id}`}
+        item={property}
+        nodeId={`${keyPrefix}-${property.id}`}
+        onClick={() => onItemClick(property)}
+        language={props.language}
+      />
+    );
+  });
 
-  const renderEnums = (field: Field, path: string) => (
-    <TreeItem
-      classes={{ root: classes.treeItem }}
-      nodeId={`${item.id}-${field.key}`}
-      className={classes.filler}
-      key={`field-${path}-${field.key}`}
-      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item)}
-    >
-      {field.value.map((e: string) => <TreeItem
-        classes={{ root: classes.treeItem }}
-        nodeId={`${item.id}-${field.key}-${e}`}
-        className={classes.filler}
-        key={`field-${path}-${field.key}-${e}`}
-        label={<>{ icon('fa-datamodel-element') } {e}</>}
-        onClick={() => onItemClick(item)}
-      />)}
-    </TreeItem>);
-
-  const renderRefArray = (field: Field, path: string) => (
-    <TreeItem
-      classes={{ root: classes.treeItem }}
-      nodeId={`${item.id}-${field.key}`}
-      className={classes.filler}
-      key={`field-${path}-${field.key}`}
-      label={<>{ icon('fa-datamodel-element') } {field.key}</>}
-      onClick={() => onItemClick(item)}
-    >
-      {field.value.map((e: {$ref: string}) => {
-        const el = uiSchema.find((s) => s.id === e.$ref);
-        if (el) {
-          return <SchemaItem
-            keyPrefix={`${keyPrefix}-${el.id}`}
-            key={`${keyPrefix}-${el.id}`}
-            onClick={() => onItemClick(el)}
-            item={el}
-            nodeId={`${keyPrefix}-${el.id}-ref`}
-          />;
-        }
-        console.error(`No uiSchema found with matching id ${e}`);
-        return null;
-      })}
-    </TreeItem>);
-
-  const renderKeywords = (keywords: Field[] | undefined, path: string) => {
-    if (keywords && keywords.length > 0) {
-      return (keywords.map((field) => {
-        if (field.key.startsWith('@')) {
-          return null;
-        }
-        switch (field.key) {
-          case 'allOf':
-          case 'oneOf':
-          case 'anyOf':
-            return renderRefArray(field, path);
-          case 'enum':
-            return renderEnums(field, path);
-          default:
-            return (
-              <TreeItem
-                classes={{ root: classes.treeItem }}
-                nodeId={`${itemToDisplay.id}-${field.key}`}
-                className={classes.filler}
-                key={`field-${path}-${field.key}`}
-                label={<>{ icon('fa-datamodel-element') } {field.key}: {field.value.$ref ?? field.value}</>}
-                onClick={() => onItemClick(itemToDisplay)}
-              />
-            );
-        }
-      })
-      );
-    }
-    return null;
-  };
-
-  const handleCloseContextMenu = (e: React.MouseEvent) => {
-    setContextAnchor(null);
-    e.stopPropagation();
-  };
-
-  const renderRefLink = () => <SchemaItem
-    keyPrefix={`${keyPrefix}-${refItem.id}`}
-    key={`${keyPrefix}-${refItem.id}`}
-    onClick={() => onItemClick(refItem)}
-    item={refItem}
-    nodeId={`${keyPrefix}-${refItem.id}-ref`}
-  />;
-
-  const renderLabelText = () => {
-    if (refItem) {
-      return <>{ icon('fa-datamodel-ref') } {item.name ?? item.id.replace('#/definitions/', '')} {`: ${itemToDisplay.name ?? itemToDisplay.id.replace('#/definitions/', '')}`}</>;
-    }
-    return <>{ icon('fa-datamodel-object') } {item.name ?? item.id.replace('#/definitions/', '')}</>;
-  };
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextAnchor(null);
+  const handleDeleteClick = () => {
     dispatch(deleteProperty({ path: item.id }));
   };
 
-  const handleAddProperty = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextAnchor(null);
-    dispatch(addField({
+  const handleAddProperty = () => {
+    dispatch(addProperty({
       path: itemToDisplay.id,
-      key: 'key',
-      value: 'value',
     }));
   };
-  const handleContextMenuClick = (e: React.MouseEvent) => {
-    setContextAnchor(e.currentTarget);
-    e.stopPropagation();
+
+  const getIconStr = () => {
+    const type = item.type;
+    if (type !== 'array' && refItem) {
+      return 'fa-datamodel-ref';
+    }
+    return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
   };
-  const renderLabel = () => (
-    <div className={classes.labelRoot}>
-      <Typography className={classes.label}>{renderLabelText()}</Typography>
-      <IconButton
-        className={classes.contextButton}
-        aria-controls='simple-menu' aria-haspopup='true'
-        id='open-context-menu-button'
-        onClick={handleContextMenuClick}
-      ><i className='fa fa-ellipsismenu'/>
-      </IconButton>
-      <Menu
-        id={`${item.id}-context-menu`}
-        anchorEl={contextAnchor}
-        keepMounted
-        open={Boolean(contextAnchor)}
-        onClose={handleCloseContextMenu}
-      >
-        { !itemToDisplay.$ref &&
-          <MenuItem onClick={handleAddProperty}><i className={`${classes.menuItem} fa fa-plus`}/> Add property</MenuItem>
-        }
-        <MenuItem><i className='fa fa-clone'/> Import</MenuItem>
-        <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem>
-      </Menu>
-    </div>
-  );
+
+  const renderLabel = () => {
+    const iconStr = getIconStr();
+    const label = refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName;
+    return <SchemaItemLabel
+      language={props.language}
+      icon={iconStr}
+      label={label}
+      onAddProperty={handleAddProperty}
+      onDelete={handleDeleteClick}
+    />;
+  };
+
+  const renderTreeChildren = () => {
+    const items = [];
+    if (itemToDisplay.$ref && refItem) {
+      items.push(<SchemaItem
+        keyPrefix={`${keyPrefix}-${refItem.id}`}
+        key={`${keyPrefix}-${refItem.id}`}
+        onClick={() => onItemClick(refItem)}
+        item={refItem}
+        nodeId={`${keyPrefix}-${refItem.id}-ref`}
+        language={props.language}
+      />);
+    }
+    if (itemToDisplay.properties) {
+      items.push(renderProperties(itemToDisplay.properties));
+    }
+    return items;
+  };
   return (
     <TreeItem
       classes={{ root: classes.treeItem }}
@@ -277,9 +184,7 @@ function SchemaItem(props: SchemaItemProps) {
       onClick={() => onItemClick(itemToDisplay)}
       {...other}
     >
-      { itemToDisplay.$ref && refItem && renderRefLink()}
-      {renderProperties(itemToDisplay.properties)}
-      {renderKeywords(itemToDisplay.keywords, itemToDisplay.id)}
+      { renderTreeChildren() }
     </TreeItem>
   );
 }

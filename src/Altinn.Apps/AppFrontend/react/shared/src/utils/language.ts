@@ -65,15 +65,12 @@ const removeStyling = (node: any): React.ReactElement | void | null => {
   }
 };
 
-const replaceParameters = (nameString: any, params: any[]) => {
-  let index = 0;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const param of params) {
-    // eslint-disable-next-line no-param-reassign
-    nameString = nameString.replace(`{${index}}`, param);
-    index += 1;
-  }
-  return nameString;
+const replaceParameters = (nameString: string, params: string[]) => {
+  let mutatingString = nameString.slice();
+  params.forEach((param: string, index: number) => {
+    mutatingString = nameString.replaceAll(`{${index}}`, param);
+  });
+  return mutatingString;
 };
 
 export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
@@ -90,8 +87,8 @@ export function replaceTextResourceParams(
   repeatingGroups?: any,
 ): ITextResource[] {
   let replaceValues: string[];
-  const resourcesWithVariables = textResources.filter((resource) => resource.variables);
-  resourcesWithVariables.forEach((resource) => {
+  const resourcesWithVariables = textResources?.filter((resource) => resource.variables);
+  resourcesWithVariables?.forEach((resource) => {
     const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
     if (repeatingGroups && variableForRepeatingGroup) {
       const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {

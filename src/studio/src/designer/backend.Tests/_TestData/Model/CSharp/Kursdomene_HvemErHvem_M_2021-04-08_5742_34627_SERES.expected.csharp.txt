@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json;
+namespace Altinn.App.Models
+{
+  public class HvemErHvem_M{
+    [XmlAttribute("dataFormatProvider")]
+    [BindNever]
+    public  string dataFormatProvider {get; set; } = "SERES";
+
+    [XmlAttribute("dataFormatId")]
+    [BindNever]
+    public  string dataFormatId {get; set; } = "5742";
+
+    [XmlAttribute("dataFormatVersion")]
+    [BindNever]
+    public  string dataFormatVersion {get; set; } = "34627";
+
+    [XmlElement("Innrapportoer")]
+    [JsonProperty("Innrapportoer")]
+    [JsonPropertyName("Innrapportoer")]
+    public Innrapportoer Innrapportoer { get; set; }
+
+    [XmlElement("InnrapporterteData")]
+    [JsonProperty("InnrapporterteData")]
+    [JsonPropertyName("InnrapporterteData")]
+    public InnrapporterteData InnrapporterteData { get; set; }
+
+  }
+  public class Innrapportoer{
+    [XmlElement("geek")]
+    [JsonProperty("geek")]
+    [JsonPropertyName("geek")]
+    public Geek geek { get; set; }
+
+  }
+  public class Geek{
+    [XmlElement("navn")]
+    [JsonProperty("navn")]
+    [JsonPropertyName("navn")]
+    public string navn { get; set; }
+
+    [XmlElement("foedselsdato")]
+    [JsonProperty("foedselsdato")]
+    [JsonPropertyName("foedselsdato")]
+    public string foedselsdato { get; set; }
+
+    [XmlElement("epost")]
+    [JsonProperty("epost")]
+    [JsonPropertyName("epost")]
+    public string epost { get; set; }
+
+  }
+  public class InnrapporterteData{
+    [XmlElement("geekType")]
+    [JsonProperty("geekType")]
+    [JsonPropertyName("geekType")]
+    public string geekType { get; set; }
+
+    [Range(Int32.MinValue,Int32.MaxValue)]
+    [XmlElement("altinnErfaringAAr")]
+    [JsonProperty("altinnErfaringAAr")]
+    [JsonPropertyName("altinnErfaringAAr")]
+    public decimal? altinnErfaringAAr { get; set; }
+
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "globals": {
+    "__ENV": "readonly"
+  },
+  "parser": "babel-eslint",
+  "ignorePatterns": ["src/data", "src/reports"],
+  "rules": {
+    "import/no-unresolved": "off",
+    "no-restricted-globals": "off",
+    "import/extensions": "off",
+    "eol-last": "error",
+    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "quotes": [
+      "warn",
+      "single",
+      {
+        "avoidEscape": true,
+        "allowTemplateLiterals": true
+      }
+    ],
+    "semi": ["warn", "always", { "omitLastInOneLineBlock": true }]
+  }
+}

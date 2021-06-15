@@ -14,6 +14,10 @@ export interface ISetValueAction {
   value: any,
   key?: string,
 }
+export interface ISetTypeAction {
+  path: string;
+  value: string;
+}
 export interface ISetRefAction {
   path: string,
   ref: string,
@@ -23,16 +27,22 @@ export type Field = {
   value: any;
 }
 
-export type UiSchemaItem = {
+export interface UiSchemaItem {
   id: string;
+  type?: string;
   $ref?: string;
-  keywords?: Field[];
+  restrictions?: Field[];
   properties?: UiSchemaItem[];
   value?: any;
-  name?: string;
+  displayName: string;
   required?: string[];
+  title?: string;
+  description?: string;
+  items?: {type?: string, $ref?: string};
 }
+
 export interface ISchema {
-  properties: { [key: string]: UiSchemaItem };
-  definitions: { [key: string]: UiSchemaItem };
+  properties: { [key: string]: {[key: string]: any} };
+  definitions: { [key: string]: {[key: string]: any} };
+  $schema?: string;
 }

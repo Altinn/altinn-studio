@@ -11,7 +11,7 @@ describe('Prefill', () => {
   });
 
   it('Check Prefill from register and readonly input', () => {
-    var currentName = Cypress.env('environment') === 'local' ? 'Ola Nordmann' : 'RIBE AMUND';
+    var currentName = Cypress.env('userFullName');
     cy.get(appFrontend.changeOfName.currentName).then((name) => {
       cy.get(name).should('be.visible').and('have.value', currentName).and('have.attr', 'readonly');
     });
