@@ -197,5 +197,14 @@ namespace Altinn.App.Services.Configuration
         /// Integration will not work if value is overrided in staging or prodution.
         /// </remarks>
         public string EFormidlingSender { get; set; } = "910075918";
+
+        /// <summary>
+        /// Gets or sets the version of the application. 
+        /// </summary>
+        /// <remarks>
+        /// The property will not be set when running app locally
+        /// unless the property is defined in appsettings.json
+        /// </remarks>
+        public string AppVersion { get; set; }
     }
 }
