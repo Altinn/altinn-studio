@@ -36,9 +36,10 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                     Mock<ILogger<UserProfilesWrapper>> logger;
                     logger = new Mock<ILogger<UserProfilesWrapper>>();
 
-                    // Using the real/actual implementation of IUserProfiles. This way it's included in the
-                    // integration test while we can mock a HttpMessageHandler to test different responses.
-                    services.AddSingleton<IUserProfiles>(new UserProfilesWrapper(new HttpClient(httpMessageHandler), logger.Object, generalSettingsOptions.Object));
+                    // Using the real/actual implementation of IUserProfiles instead of a mock. This way it's included
+                    // in the integration test while we can mock a HttpMessageHandler to test different responses.
+                    services.AddSingleton<IUserProfiles>(new UserProfilesWrapper(
+                            new HttpClient(httpMessageHandler), logger.Object, generalSettingsOptions.Object));
                 });
             }).CreateClient();
         }
