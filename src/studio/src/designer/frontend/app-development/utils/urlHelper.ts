@@ -32,7 +32,7 @@ export const getFetchDataModelUrl = (modelName: string) => {
 };
 
 export const getStaticDataModelUrl = (modelName: string) => {
-  return `${origin}/designer/api/${org}/${app}/models/${encodeURIComponent(modelName)}.schema.json`;
+  return `${origin}/repos/${org}/${app}/models/${encodeURIComponent(modelName)}.schema.json`;
 };
 
 export const getSaveDataModelUrl = (modelName: string) => {

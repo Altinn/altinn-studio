@@ -7,6 +7,7 @@ import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
 import DataModelingContainer from '../../features/dataModeling/containers/DataModelingContainer';
 import * as testData from '../__testdata__/schemaTestData.json';
+import { ISchema } from '../../../packages/schema-editor/src/types';
 
 describe('DataModeling', () => {
   const language = { administration: {} };
@@ -143,5 +144,21 @@ describe('DataModeling', () => {
     expect(store.dispatch).not.toHaveBeenCalledWith({
       type: 'dataModeling/createNewDataModel',
     });
+  });
+
+  it('adds $id to schema when saving', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mount(
+        <Provider store={store}>
+          <DataModelingContainer language={language} />
+        </Provider>,
+        { context: { store } },
+      );
+    });
+    wrapper.find('#schema-editor button').at(0).simulate('click');
+    expect(store.dispatch.mock.calls.length).toBe(3);
+    const schema: ISchema = store.dispatch.mock.calls[2][0].payload.schema;
+    expect(schema.$id).toBe('http://localhost/repos/undefined/undefined/models/some-existing-model.schema.json');
   });
 });

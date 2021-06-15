@@ -25,12 +25,11 @@ const mountComponent = () => mount(
 );
 
 beforeEach(() => {
-  const rootPath = '#/definitions/RA-0678_M';
   addPropertyMock = jest.fn();
   mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
 
   mockInitialState = {
-    rootName: rootPath,
+    name: 'test',
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
