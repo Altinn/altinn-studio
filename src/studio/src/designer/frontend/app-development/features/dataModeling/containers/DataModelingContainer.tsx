@@ -6,6 +6,7 @@ import { AddCircleOutline, DeleteOutline } from '@material-ui/icons';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
+import { getStaticDataModelUrl } from 'utils/urlHelper';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaSelect } from '../schemaSelect';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
@@ -61,6 +62,8 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     fetchModel(schema.id);
   };
   const onSaveSchema = (schema: any) => {
+    // eslint-disable-next-line no-param-reassign
+    schema.$id = getStaticDataModelUrl(dataModelName);
     dispatch(saveDataModel({ schema }));
   };
   const onCreateClick = (event: any) => {
@@ -157,7 +160,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
           language={props.language}
           schema={jsonSchema}
           onSaveSchema={onSaveSchema}
-          rootItemId={`#/definitions/${selectedDataModelName}`}
+          name={selectedDataModelName}
         /> : null}
     </div>
   );

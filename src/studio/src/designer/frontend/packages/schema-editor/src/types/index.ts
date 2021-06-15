@@ -1,7 +1,7 @@
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];
-  rootName: string;
+  name: string;
   saveSchemaUrl: string;
   selectedId?: string;
   selectedNodeId?: string;
@@ -44,5 +44,6 @@ export interface UiSchemaItem {
 export interface ISchema {
   properties: { [key: string]: {[key: string]: any} };
   definitions: { [key: string]: {[key: string]: any} };
-  $schema?: string;
+  $schema?: string
+  $id?: string;
 }

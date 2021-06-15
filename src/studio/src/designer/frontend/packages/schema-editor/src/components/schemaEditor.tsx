@@ -6,7 +6,7 @@ import { TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setSchemaName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
@@ -44,12 +44,12 @@ const useStyles = makeStyles(
 export interface ISchemaEditor {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
-  rootItemId?: string;
+  name?: string;
   language: ILanguage;
 }
 
 export const SchemaEditor = ({
-  schema, onSaveSchema, rootItemId, language,
+  schema, onSaveSchema, name, language,
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -62,14 +62,14 @@ export const SchemaEditor = ({
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
 
   React.useEffect(() => {
-    dispatch(setRootName({ rootName: rootItemId }));
-  }, [dispatch, rootItemId]);
+    dispatch(setSchemaName({ name }));
+  }, [dispatch, name]);
 
   React.useEffect(() => {
     if (jsonSchema) {
-      dispatch(setUiSchema({ rootElementPath: rootItemId }));
+      dispatch(setUiSchema({ name }));
     }
-  }, [dispatch, jsonSchema, rootItemId]);
+  }, [dispatch, jsonSchema, name]);
 
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));

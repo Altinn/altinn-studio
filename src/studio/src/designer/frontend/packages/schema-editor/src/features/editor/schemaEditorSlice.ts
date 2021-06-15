@@ -6,7 +6,7 @@ import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
   uiSchema: [],
-  rootName: '/',
+  name: '/',
   saveSchemaUrl: '',
   selectedId: '',
   selectedNodeId: '',
@@ -240,9 +240,9 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setRootName(state, action) {
-      const { rootName } = action.payload;
-      state.rootName = rootName;
+    setSchemaName(state, action) {
+      const { name } = action.payload;
+      state.name = name;
     },
     setSelectedId(state, action) {
       const {
@@ -255,7 +255,7 @@ const schemaEditorSlice = createSlice({
       state.saveSchemaUrl = action.payload.saveUrl;
     },
     setUiSchema(state, action) {
-      const { rootElementPath } = action.payload; // state.schema.properties.melding.$ref;
+      const { name } = action.payload;
       let uiSchema: any[] = [];
 
       const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties', true);
@@ -264,7 +264,7 @@ const schemaEditorSlice = createSlice({
       uiSchema = uiSchema.concat(uiSchemaDefs);
 
       state.uiSchema = uiSchema;
-      state.rootName = rootElementPath;
+      state.name = name;
     },
     updateJsonSchema(state, action) {
       const { onSaveSchema } = action.payload;
@@ -294,7 +294,7 @@ export const {
   setItems,
   setJsonSchema,
   setPropertyName,
-  setRootName,
+  setSchemaName,
   setSaveSchemaUrl,
   setUiSchema,
   updateJsonSchema,

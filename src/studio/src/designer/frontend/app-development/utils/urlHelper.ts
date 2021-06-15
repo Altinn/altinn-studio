@@ -31,6 +31,10 @@ export const getFetchDataModelUrl = (modelName: string) => {
   return `${origin}/designer/api/${org}/${app}/datamodels/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
 
+export const getStaticDataModelUrl = (modelName: string) => {
+  return `${origin}/designer/api/${org}/${app}/models/${encodeURIComponent(modelName)}.schema.json`;
+};
+
 export const getSaveDataModelUrl = (modelName: string) => {
   return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 };
