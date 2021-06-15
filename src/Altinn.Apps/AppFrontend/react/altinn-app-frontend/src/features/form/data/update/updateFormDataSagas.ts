@@ -9,7 +9,7 @@ import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import { IUpdateFormData } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
 import { getKeyWithoutIndex } from '../../../../utils/databindings';
 
 function* updateFormDataSaga({ payload: {
@@ -57,11 +57,13 @@ function* runValidations(
   if (!componentId) {
     yield put(FormDataActions.updateFormDataRejected({ error: new Error('Missing component ID!') }));
   }
-  const currentDataTaskDataTypeId = getDataTaskDataTypeId(
-    state.instanceData.instance.process.currentTask.elementId,
-    state.applicationMetadata.applicationMetadata.dataTypes,
+
+  const currentDataTypeId = getCurrentDataTypeForApplication(
+    state.applicationMetadata.applicationMetadata,
+    state.instanceData.instance,
+    state.formLayout.layoutsets,
   );
-  const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+  const schema = state.formDataModel.schemas[currentDataTypeId];
   const validator = createValidator(schema);
   const component = getLayoutComponentById(componentId, state.formLayout.layouts);
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);

@@ -5,9 +5,10 @@ import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { post } from 'src/utils/networking';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
-import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
+import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
   createValidator,
   getNumberOfComponentsWithErrors,
@@ -21,7 +22,7 @@ import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import { ISubmitDataAction } from '../formDataTypes';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getCurrentDataTypeForApplication, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
@@ -151,9 +152,12 @@ function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
-    const defaultDataElementGuid = getCurrentTaskDataElementId(
-      state.applicationMetadata.applicationMetadata,
+    const application = state.applicationMetadata.applicationMetadata;
+
+    const currentDataTypeId = getCurrentDataTypeForApplication(
+      application,
       state.instanceData.instance,
+      state.formLayout.layoutsets,
     );
 
     const model = convertDataBindingToModel(
@@ -161,17 +165,21 @@ function* saveFormDataSaga(): SagaIterator {
     );
 
     try {
-      yield call(put, dataElementUrl(defaultDataElementGuid), model);
+      if (isStatelessApp(application)) {
+        yield call(post, getStatelessFormDataUrl(currentDataTypeId), model);
+      } else {
+        yield call(put, dataElementUrl(currentDataTypeId), model);
+      }
     } catch (error) {
       if (isIE) {
         // 303 is treated as en error in IE - we try to fetch.
-        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(currentDataTypeId) }));
       } else if (error.response && error.response.status === 303) {
         // 303 means that data has been changed by calculation on server. Try to update from response.
         const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
         if (!calculationUpdateHandled) {
           // No changedFields property returned, try to fetch
-          yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+          yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(currentDataTypeId) }));
         } else {
           yield sagaPut(FormLayoutActions.initRepeatingGroups());
         }
