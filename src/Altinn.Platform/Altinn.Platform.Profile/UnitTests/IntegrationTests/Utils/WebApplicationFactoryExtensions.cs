@@ -22,6 +22,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
     {
         public static HttpClient CreateHttpClient(this WebApplicationFactory<Startup> factory, HttpMessageHandler httpMessageHandler)
         {
+            Program.ConfigureSetupLogging();
             return factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
@@ -33,8 +34,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                     GeneralSettings generalSettings = new GeneralSettings { BridgeApiEndpoint = "http://localhost/" };
                     generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
-                    Mock<ILogger<UserProfilesWrapper>> logger;
-                    logger = new Mock<ILogger<UserProfilesWrapper>>();
+                    Mock<ILogger<UserProfilesWrapper>> logger = new Mock<ILogger<UserProfilesWrapper>>();
 
                     // Using the real/actual implementation of IUserProfiles instead of a mock. This way it's included
                     // in the integration test while we can mock a HttpMessageHandler to test different responses.

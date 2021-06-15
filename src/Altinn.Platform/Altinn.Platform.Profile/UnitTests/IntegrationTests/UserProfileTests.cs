@@ -1,15 +1,19 @@
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 
 using Newtonsoft.Json;
-
 using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests
@@ -26,19 +30,37 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         [Fact]
         public async Task Profile_GetCurrent_OK()
         {
-            string token = PrincipalUtil.GetToken(1337);
+            // Arrange
+            var messageHandlerMock = new DelegatingHandlerStub(async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                string path = "../../../Testdata/Profile/User/1337.json";
+                string fileContent = File.ReadAllText(path);
+                UserProfile userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(fileContent);
+                HttpResponseMessage response = new HttpResponseMessage();
+                response.Content = JsonContent.Create(userProfile);
+                return await Task.FromResult(response);
+            });
 
-            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_webApplicationFactory);
+            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandlerMock);
+
+            string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
                 new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/current");
 
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            UserProfile user = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
-            Assert.Equal(1337, user.UserId);
-            Assert.Equal("SophieDDG", user.UserName);
-            Assert.Equal("Sophie Salt", user.Party.Name);
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
+            JsonSerializerOptions jsonSerializerOptions = new()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(responseContent, jsonSerializerOptions);
+            Assert.Equal(1337, actualUser.UserId);
+            Assert.Equal("SophieDDG", actualUser.UserName);
+            Assert.Equal("Sophie Salt", actualUser.Party.Name);
         }
 
         [Fact]
@@ -55,7 +77,8 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            UserProfile user = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
+            string responseContent = await response.Content.ReadAsStringAsync();
+            UserProfile user = JsonConvert.DeserializeObject<UserProfile>(responseContent);
             Assert.Equal(1337, user.UserId);
         }
 
