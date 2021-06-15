@@ -53,13 +53,13 @@ git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio
 ```
 
-#### Develop [Altinn Studio](/src/studio/README.md)
+#### Develop Altinn Studio
 
 To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studio/README.md).
 
 #### Develop or run Apps
 
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#Prerequisites)  
+First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites)  
 _If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  
@@ -110,7 +110,7 @@ docker-compose down
 
      ```html
      <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
-       ```
+     ```
 
      to
 
