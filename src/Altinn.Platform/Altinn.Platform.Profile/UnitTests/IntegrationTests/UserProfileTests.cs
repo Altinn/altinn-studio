@@ -28,7 +28,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1337);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory);
+            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
                 new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/current");
@@ -46,7 +46,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1337);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory);
+            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
                 new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1337");
@@ -64,7 +64,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1337);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory);
+            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpStatusCode expected = HttpStatusCode.NotFound;
 
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             string token = PrincipalUtil.GetToken(12345);
             StringContent requestBody = new StringContent(JsonConvert.SerializeObject("01017512345"), Encoding.UTF8, "application/json");
 
-            HttpClient client = SetupUtil.GetTestClient(_factory);
+            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             int expectedUserId = 12345;
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             string token = PrincipalUtil.GetToken(12345);
             StringContent requestBody = new StringContent(JsonConvert.SerializeObject("123456789"), Encoding.UTF8, "application/json");
 
-            HttpClient client = SetupUtil.GetTestClient(_factory);
+            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpStatusCode expected = HttpStatusCode.NotFound;
