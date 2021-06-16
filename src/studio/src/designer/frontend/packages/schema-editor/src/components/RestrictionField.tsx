@@ -10,7 +10,6 @@ export interface IRestrictionFieldProps {
   path: string;
   keyName: string;
   value: string;
-  readonly?: boolean;
   language: ILanguage;
   readOnly?: boolean;
   fullWidth?: boolean;

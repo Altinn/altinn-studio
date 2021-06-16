@@ -34,6 +34,30 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
+    addEnum(state, action) {
+      const {
+        path, value, oldValue,
+      } = action.payload;
+
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
+      if (!addToItem) {
+        return;
+      }
+      if (!addToItem.enum) {
+        addToItem.enum = [value];
+        return;
+      }
+      if (!oldValue) {
+        addToItem.enum.push(value);
+        return;
+      }
+      const index = addToItem.enum.indexOf(oldValue);
+      if (index >= -1) {
+        addToItem.enum[index] = value;
+      } else {
+        addToItem.enum.push(value);
+      }
+    },
     addRootProperty(state, action) {
       const { name } = action.payload;
       state.uiSchema.push(
@@ -104,6 +128,16 @@ const schemaEditorSlice = createSlice({
         const removeIndex = removeFromItem.restrictions?.findIndex((v: any) => v.key === key) ?? -1;
         if (removeIndex >= 0) {
           removeFromItem.restrictions?.splice(removeIndex, 1);
+        }
+      }
+    },
+    deleteEnum(state, action) {
+      const { path, value } = action.payload;
+      const removeFromItem = getUiSchemaItem(state.uiSchema, path);
+      if (removeFromItem) {
+        const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
+        if (removeIndex >= 0) {
+          removeFromItem.enum?.splice(removeIndex, 1);
         }
       }
     },
@@ -282,11 +316,13 @@ const schemaEditorSlice = createSlice({
 
 export const {
   addRestriction,
+  addEnum,
   addRootProperty,
   addRootDefinition,
   addProperty,
   addRefProperty,
   deleteField,
+  deleteEnum,
   deleteProperty,
   setRestriction,
   setKey,
