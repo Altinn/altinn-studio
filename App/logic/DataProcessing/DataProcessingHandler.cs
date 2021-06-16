@@ -49,7 +49,7 @@ namespace Altinn.App.AppLogic.DataProcessing
                 NestedGroup model = (NestedGroup) data;
                 if (model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
                 {
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1339;
+                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1338;
                     return true;
                 }
             }
