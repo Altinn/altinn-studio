@@ -159,40 +159,10 @@ function* saveFormDataSaga(): SagaIterator {
     );
 
     if (isStatelessApp(application)) {
-      const currentDataType = getCurrentDataTypeForApplication(
-        application,
-        state.instanceData.instance,
-        state.formLayout.layoutsets,
-      );
-      const response = yield call(post, getStatelessFormDataUrl(currentDataType), null, model);
-      const formData = convertModelToDataBinding(response?.data);
-      yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
-      yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);
+      yield call(saveStatelessData, state, model);
     } else {
       // app with instance
-      const defaultDataElementGuid = getCurrentTaskDataElementId(
-        state.applicationMetadata.applicationMetadata,
-        state.instanceData.instance,
-      );
-      try {
-        yield call(put, dataElementUrl(defaultDataElementGuid), model);
-      } catch (error) {
-        if (isIE) {
-          // 303 is treated as en error in IE - we try to fetch.
-          yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
-        } else if (error.response && error.response.status === 303) {
-          // 303 means that data has been changed by calculation on server. Try to update from response.
-          const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
-          if (!calculationUpdateHandled) {
-            // No changedFields property returned, try to fetch
-            yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
-          } else {
-            yield sagaPut(FormLayoutActions.initRepeatingGroups());
-          }
-        } else {
-          throw error;
-        }
-      }
+      yield call(saveData, state, model);
     }
 
     if (state.formValidations.currentSingleFieldValidation) {
@@ -203,6 +173,44 @@ function* saveFormDataSaga(): SagaIterator {
   } catch (error) {
     console.error(error);
     yield sagaPut(FormDataActions.submitFormDataRejected({ error }));
+  }
+}
+
+function* saveStatelessData(state: IRuntimeState, model: any) {
+  const currentDataType = getCurrentDataTypeForApplication(
+    state.applicationMetadata.applicationMetadata,
+    state.instanceData.instance,
+    state.formLayout.layoutsets,
+  );
+  const response = yield call(post, getStatelessFormDataUrl(currentDataType), null, model);
+  const formData = convertModelToDataBinding(response?.data);
+  yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
+  yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);
+}
+
+function* saveData(state: IRuntimeState, model: any) {
+  const defaultDataElementGuid = getCurrentTaskDataElementId(
+    state.applicationMetadata.applicationMetadata,
+    state.instanceData.instance,
+  );
+  try {
+    yield call(put, dataElementUrl(defaultDataElementGuid), model);
+  } catch (error) {
+    if (isIE) {
+      // 303 is treated as en error in IE - we try to fetch.
+      yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+    } else if (error.response && error.response.status === 303) {
+      // 303 means that data has been changed by calculation on server. Try to update from response.
+      const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
+      if (!calculationUpdateHandled) {
+        // No changedFields property returned, try to fetch
+        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+      } else {
+        yield sagaPut(FormLayoutActions.initRepeatingGroups());
+      }
+    } else {
+      throw error;
+    }
   }
 }
 
