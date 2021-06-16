@@ -1501,7 +1501,7 @@ describe('>>> utils/validations.ts', () => {
     const merged = validation.mergeComponentBindingValidations(original, newValidations);
     expect(merged).toEqual({
       errors: original.errors.concat(newValidations.errors),
-      warnings: newValidations.errors,
+      warnings: newValidations.warnings,
     });
   });
 
@@ -1510,8 +1510,8 @@ describe('>>> utils/validations.ts', () => {
       simpleBinding: {
         errors: ['This is a new error'],
         warnings: ['warning!'],
-      }
-    }
+      },
+    };
     const newValidations: IValidations = {
       FormLayout: {
         componentId_new: componentValidation,
