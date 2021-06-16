@@ -134,7 +134,7 @@ export const SchemaEditor = ({
             <button
               type='button' className={classes.button}
               onClick={onClickSaveJsonSchema}
-            >{getTranslation('schema_editor.save_data_model', language)}
+            >{getTranslation('save_data_model', language)}
             </button>
             <AddPropertyModal
               isOpen={addPropertyModalOpen}
@@ -142,7 +142,7 @@ export const SchemaEditor = ({
               onClose={onCancelAddItemModal}
               onConfirm={onCloseAddPropertyModal}
               sharedTypes={sharedItems}
-              title={getTranslation('schema_editor.add_property', language)}
+              title={getTranslation('add_property', language)}
             />
 
             <TreeView
@@ -158,7 +158,7 @@ export const SchemaEditor = ({
                 className={classes.treeItem}
                 label={<SchemaItemLabel
                   language={language}
-                  label={getTranslation('schema_editor.properties', language)}
+                  label={getTranslation('properties', language)}
                   icon='fa-datamodel-properties'
                   onAddProperty={handleAddProperty}
                 />}
@@ -176,7 +176,7 @@ export const SchemaEditor = ({
                 nodeId='definitions'
                 label={<SchemaItemLabel
                   language={language}
-                  label={getTranslation('schema_editor.definitions', language)}
+                  label={getTranslation('definitions', language)}
                   icon='fa-datamodel-properties'
                   onAddProperty={handleAddDefinition}
                 />}

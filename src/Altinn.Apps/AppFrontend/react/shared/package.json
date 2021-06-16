@@ -19,7 +19,7 @@
     "@material-ui/icons": "~4.11.2",
     "axios": "~0.21.1",
     "classnames": "~2.3.1",
-    "core-js": "~3.13.1",
+    "core-js": "~3.14.0",
     "diff": "~5.0.0",
     "dompurify": "~2.2.9",
     "marked": "~1.2.9",
@@ -38,10 +38,10 @@
     "@types/dompurify": "~2.2.2",
     "@types/enzyme": "~3.10.8",
     "@types/jest": "~26.0.23",
-    "@types/jsdom": "~16.2.10",
+    "@types/jsdom": "~16.2.11",
     "@types/marked": "~1.2.2",
-    "@types/react": "~17.0.9",
-    "@types/react-dom": "~17.0.6",
+    "@types/react": "~17.0.11",
+    "@types/react-dom": "~17.0.7",
     "@types/react-html-parser": "~2.0.1",
     "@types/react-router-dom": "~5.1.7",
     "@types/react-test-renderer": "~17.0.1",
@@ -53,7 +53,7 @@
     "jest": "~27.0.4",
     "jest-environment-enzyme": "~7.1.2",
     "jest-enzyme": "~7.1.2",
-    "jest-junit": "~12.1.0",
+    "jest-junit": "~12.2.0",
     "jsdom": "~16.6.0",
     "react": "~17.0.2",
     "react-docgen-typescript": "~1.22.0",
@@ -80,7 +80,9 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.js"
+    ],
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"

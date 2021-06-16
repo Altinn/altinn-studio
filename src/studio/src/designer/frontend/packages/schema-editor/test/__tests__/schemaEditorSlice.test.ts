@@ -1,4 +1,4 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setFieldValue, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -30,7 +30,7 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kommentar2000Restriksjon',
       value: '666',
     };
-    const nextState = reducer(state, setFieldValue(payload));
+    const nextState = reducer(state, setRestriction(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
     if (!item || !item.restrictions) {
       fail('item not found');

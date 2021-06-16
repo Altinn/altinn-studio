@@ -31,8 +31,8 @@
     "@babel/preset-env": "~7.14.4",
     "@babel/preset-react": "~7.13.13",
     "@types/jest": "~26.0.23",
-    "@types/react": "~17.0.9",
-    "@types/react-dom": "~17.0.6",
+    "@types/react": "~17.0.11",
+    "@types/react-dom": "~17.0.7",
     "cross-env": "~7.0.3",
     "css-loader": "~5.2.6",
     "enzyme": "~3.11.0",
@@ -66,7 +66,9 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.js"
+    ],
     "testURL": "http://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
     "testEnvironment": "jsdom"
   },
