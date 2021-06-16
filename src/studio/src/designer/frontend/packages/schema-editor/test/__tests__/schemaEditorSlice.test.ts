@@ -1,4 +1,4 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -128,13 +128,17 @@ describe('SchemaEditorSlice', () => {
     expect(item && item.properties).toContainEqual({
       id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', type: 'object',
     });
+  });
 
-    // test add second time to get more case coverage.
-    // const state2 = reducer(nextState, addProperty(payload));
-    // item = state2.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    // expect(item && item.properties).toContainEqual({
-    //   id: '#/definitions/Kontaktperson/properties/navn', name: 'test2',
-    // });
+  it('handles addEnum', () => {
+    const payload = {
+      path: '#/definitions/StatistiskeEnhetstyper',
+      value: 'test',
+    };
+    const nextState = reducer(state, addEnum(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
+    expect(item && item.enum).toContainEqual('test');
   });
 
   it('handles addRestriction', () => {

@@ -565,18 +565,20 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               onClick={onAddRestrictionClick}
             ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
             </IconButton>
-            <Grid item xs={12}>
-              <hr className={classes.divider} />
-              <p className={classes.header}>{getTranslation('enum', props.language)}</p>
-            </Grid>
-            {itemToDisplay && renderEnums(itemToDisplay)}
-            <IconButton
-              id='add-enum-button'
-              aria-label={getTranslation('add_enum', props.language)}
-              onClick={onAddEnumButtonClick}
-            ><i className='fa fa-plus'/>{getTranslation('add_enum', props.language)}
-            </IconButton>
-
+            { objectType !== 'object' &&
+              <>
+                <Grid item xs={12}>
+                  <hr className={classes.divider} />
+                  <p className={classes.header}>{getTranslation('enum', props.language)}</p>
+                </Grid>
+                {itemToDisplay && renderEnums(itemToDisplay)}
+                <IconButton
+                  id='add-enum-button'
+                  aria-label={getTranslation('add_enum', props.language)}
+                  onClick={onAddEnumButtonClick}
+                ><i className='fa fa-plus'/>{getTranslation('add_enum', props.language)}
+                </IconButton>
+              </>}
           </Grid>
         </TabPanel>
         <TabPanel value='2'>
