@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { IValidationIssue, Severity, IValidations, IRepeatingGroups, IRuntimeState } from '../../src/types';
+import { IValidationIssue, Severity, IValidations, IRepeatingGroups, IRuntimeState, IComponentBindingValidation, IComponentValidations } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
 import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
@@ -1489,5 +1489,50 @@ describe('>>> utils/validations.ts', () => {
     const expected = [4, 5, { test: 'something' }];
     const actual = validation.getUniqueNewElements(originalArray, newArray);
     expect(actual).toEqual(expected);
+  });
+
+  it('mergeComponentBindingValidations should return merged validation object', () => {
+    const original: IComponentBindingValidation = mockReduxFormat.FormLayout.componentId_1.simpleBinding;
+    const newValidations: IComponentBindingValidation = {
+      errors: ['newError'],
+      warnings: ['warning'],
+    };
+
+    const merged = validation.mergeComponentBindingValidations(original, newValidations);
+    expect(merged).toEqual({
+      errors: original.errors.concat(newValidations.errors),
+      warnings: newValidations.errors,
+    });
+  });
+
+  it('mergeValidationObjects should return merged validation object', () => {
+    const componentValidation: IComponentValidations = {
+      simpleBinding: {
+        errors: ['This is a new error'],
+        warnings: ['warning!'],
+      }
+    }
+    const newValidations: IValidations = {
+      FormLayout: {
+        componentId_new: componentValidation,
+        componentId_1: componentValidation,
+      },
+    };
+
+    const merged = validation.mergeValidationObjects(mockReduxFormat, newValidations);
+    expect(merged).toEqual({
+      ...mockReduxFormat,
+      FormLayout: {
+        ...mockReduxFormat.FormLayout,
+        componentId_1: {
+          simpleBinding: {
+            errors: mockReduxFormat.FormLayout.componentId_1.simpleBinding.errors
+              .concat(componentValidation.simpleBinding.errors),
+            warnings: componentValidation.simpleBinding.warnings,
+          },
+        },
+        componentId_new: componentValidation,
+      },
+    });
   });
 });
