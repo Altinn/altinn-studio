@@ -21,6 +21,10 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
     public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _webApplicationFactory;
+        private readonly JsonSerializerOptions serializerOptionsCamelCase = new ()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         public UserProfileTests(WebApplicationFactory<Startup> factory)
         {
@@ -31,36 +35,42 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         public async Task Profile_GetCurrent_OK()
         {
             // Arrange
-            var messageHandlerMock = new DelegatingHandlerStub(async (HttpRequestMessage request, CancellationToken token) =>
+            const int UserId = 2516356;
+
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandlerMock = new (async (HttpRequestMessage request, CancellationToken token) =>
             {
-                string path = "../../../Testdata/Profile/User/1337.json";
-                string fileContent = File.ReadAllText(path);
-                UserProfile userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(fileContent);
-                HttpResponseMessage response = new HttpResponseMessage();
-                response.Content = JsonContent.Create(userProfile);
+                sblRequest = request;
+
+                UserProfile userProfile = LoadTestData<UserProfile>(UserId.ToString());
+                HttpResponseMessage response = new () { Content = JsonContent.Create(userProfile) };
                 return await Task.FromResult(response);
             });
 
+            string token = PrincipalUtil.GetToken(UserId);
             HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandlerMock);
-
-            string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/current");
+            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/api/v1/users/current");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             // Assert
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Get, sblRequest.Method);
+            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonSerializerOptions jsonSerializerOptions = new()
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(responseContent, jsonSerializerOptions);
-            Assert.Equal(1337, actualUser.UserId);
-            Assert.Equal("SophieDDG", actualUser.UserName);
+
+            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
+                responseContent, serializerOptionsCamelCase);
+
+            // Indirectly verifying that the response use camel casing by checking properties
+            Assert.Equal(UserId, actualUser.UserId);
+            Assert.Equal("sophie", actualUser.UserName);
             Assert.Equal("Sophie Salt", actualUser.Party.Name);
+            Assert.Equal("Sophie", actualUser.Party.Person.FirstName);
+            Assert.Equal("nb", actualUser.ProfileSettingPreference.Language);
         }
 
         [Fact]
@@ -154,6 +164,14 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        private static T LoadTestData<T>(string id)
+        {
+            string path = $"../../../Testdata/{typeof(T).Name}/{id}.json";
+            string fileContent = File.ReadAllText(path);
+            T userProfile = System.Text.Json.JsonSerializer.Deserialize<T>(fileContent);
+            return userProfile;
         }
     }
 }
