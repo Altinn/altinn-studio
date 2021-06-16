@@ -317,6 +317,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderEnums = (item: UiSchemaItem) => {
     return item.enum?.map((value: string) => (
       <EnumField
+        key={value}
         language={props.language}
         path={item.id}
         fullWidth={true}
