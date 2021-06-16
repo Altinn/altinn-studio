@@ -6,13 +6,21 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   let mockTextResources : ITextResource[];
   let mockDataSources : IDataSources;
   let mockDataSource : IDataSource;
+  let adjectiveValue: string;
+  let colorValue: string;
+  let animal0Value: string;
+  let animal1Value: string;
 
   beforeEach(() => {
+    adjectiveValue = 'awesome';
+    colorValue = 'yellow';
+    animal0Value = 'dog';
+    animal1Value = 'cat';
     mockDataSource = {
-      'model.text.adjective': 'awesome',
-      'model.text.color': 'yellow',
-      'model.group[0].animal': 'dog',
-      'model.group[1].animal': 'cat',
+      'model.text.adjective': adjectiveValue,
+      'model.text.color': colorValue,
+      'model.group[0].animal': animal0Value,
+      'model.group[1].animal': animal1Value,
     };
     mockDataSources = {
       dataModel: mockDataSource,
@@ -28,7 +36,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId1');
-    expect(textResource.value).toEqual('This is an awesome text.');
+    expect(textResource.value).toEqual(`This is an ${adjectiveValue} text.`);
   });
 
   it('+++ should replace parameter for previously parsed value', () => {
@@ -39,7 +47,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual('This is a yellow apple.');
+    expect(textResource.value).toEqual(`This is a ${colorValue} apple.`);
   });
 
   it('+++ should replace parameter with text key', () => {
@@ -97,8 +105,24 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     };
     replaceTextResourceParams(mockTextResources, mockDataSources, mockRepeatingGroups);
     let textResource = mockTextResources.find((resource) => resource.id === 'mockId-0');
-    expect(textResource.value).toEqual('Hello, dog!');
+    expect(textResource.value).toEqual(`Hello, ${animal0Value}!`);
     textResource = mockTextResources.find((resource) => resource.id === 'mockId-1');
-    expect(textResource.value).toEqual('Hello, cat!');
+    expect(textResource.value).toEqual(`Hello, ${animal1Value}!`);
+  });
+
+  it('+++ should replace multiple references to same value', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        unparsedValue: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        variables: [
+          { key: 'model.text.color', dataSource: 'dataModel.test' },
+        ],
+      },
+    ];
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual(`This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`);
   });
 });

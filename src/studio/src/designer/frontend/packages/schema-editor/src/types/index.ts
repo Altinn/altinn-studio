@@ -38,6 +38,7 @@ export interface UiSchemaItem {
   required?: string[];
   title?: string;
   description?: string;
+  items?: {type?: string, $ref?: string};
 }
 
 export interface ISchema {

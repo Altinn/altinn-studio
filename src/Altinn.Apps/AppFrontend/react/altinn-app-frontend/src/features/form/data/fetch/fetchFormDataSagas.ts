@@ -54,9 +54,20 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     let fetchedData: any;
 
     if (applicationMetadata?.onEntry?.show && applicationMetadata.onEntry.show !== 'new-instance') {
+      // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
-      fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
+      try {
+        fetchedData = yield call(get, getFetchStatelessFormDataUrl(dataType));
+      } catch (error) {
+        // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
+        if (error?.response?.status === 405) {
+          fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
+        } else {
+          throw error;
+        }
+      }
     } else {
+      // app with instance
       const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
       fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
     }
