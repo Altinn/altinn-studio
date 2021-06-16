@@ -7,7 +7,7 @@ import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from 'src/utils/networking';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
+import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
   createValidator,
@@ -21,6 +21,7 @@ import { canFormBeSaved,
 import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
+import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
 import { getCurrentDataTypeForApplication, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
 
@@ -166,7 +167,10 @@ function* saveFormDataSaga(): SagaIterator {
 
     try {
       if (isStatelessApp(application)) {
-        yield call(post, getStatelessFormDataUrl(currentDataTypeId), model);
+        const response = yield call(post, getStatelessFormDataUrl(currentDataTypeId), null, model);
+        const formData = convertModelToDataBinding(response?.data);
+        yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
+        yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);
       } else {
         yield call(put, dataElementUrl(currentDataTypeId), model);
       }
