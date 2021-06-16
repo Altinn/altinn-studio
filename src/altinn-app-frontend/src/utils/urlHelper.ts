@@ -46,11 +46,7 @@ export function getProcessStateUrl() {
 }
 
 export function getStartProcessUrl(instanceId?: string) {
-  if (!instanceId) {
-    // eslint-disable-next-line no-param-reassign
-    instanceId = altinnWindow.instanceId;
-  }
-  return `${appPath}/instances/${instanceId}/process/start`;
+  return `${appPath}/instances/${instanceId || altinnWindow.instanceId}/process/start`;
 }
 
 export function getCreateInstancesUrl(partyId: string) {

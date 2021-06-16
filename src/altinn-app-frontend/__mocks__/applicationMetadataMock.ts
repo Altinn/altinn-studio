@@ -14,7 +14,7 @@ const applicationMetadataJSON = `{
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjema"
       },
-      "taskId": "Task_1",
+      "taskId": "mockElementId",
       "maxCount": 1,
       "minCount": 1
     },
