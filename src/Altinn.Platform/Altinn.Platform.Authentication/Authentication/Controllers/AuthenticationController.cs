@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -30,9 +32,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Altinn.Platform.Authentication.Controllers
@@ -357,21 +358,11 @@ namespace Altinn.Platform.Authentication.Controllers
                     string password = decodedStringArray[1];
 
                     string bridgeApiEndpoint = _generalSettings.BridgeAuthnApiEndpoint + "enterpriseuser";
+                    EnterpriseUserAuthenticationService enterpriseUserAuthenticationService = new EnterpriseUserAuthenticationService();
 
                     EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
+                    ConfiguredTaskAwaitable<HttpResponseMessage> response = enterpriseUserAuthenticationService.GetResponseMessage(credentials, bridgeApiEndpoint);
 
-                    HttpClient client = new HttpClient();
-                    var credentialsJson = JsonConvert.SerializeObject(credentials);
-
-                    var request = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Post,
-                        RequestUri = new Uri(bridgeApiEndpoint),
-                        Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
-                    };
-
-                    string requestString = request.ToString();
-                    var response = client.SendAsync(request).ConfigureAwait(false);
                     var responseInfo = response.GetAwaiter().GetResult();
                     string content = await response.GetAwaiter().GetResult().Content.ReadAsStringAsync();
 
@@ -380,7 +371,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         authenticatemethod = "virksomhetsbruker";
 
                         UserAuthenticationResult userAuthenticationResult = new UserAuthenticationResult();
-                        userAuthenticationResult = JsonConvert.DeserializeObject<UserAuthenticationResult>(content);
+                        userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
 
                         string userID = userAuthenticationResult.UserID.ToString();
                         string username = userAuthenticationResult.Username;
