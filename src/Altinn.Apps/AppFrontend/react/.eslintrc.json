@@ -176,6 +176,7 @@
     ],
     "react/jsx-boolean-value": "off",
     "linebreak-style": "off",
-    "import/no-cycle": "off"
+    "import/no-cycle": "off",
+    "no-param-reassign": ["error", { "props": false }]
   }
 }

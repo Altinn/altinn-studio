@@ -12,6 +12,7 @@ import { IInstanceDataState } from '../../../src/shared/resources/instanceData/i
 import { getInitialStateMock,
   getInstanceDataStateMock,
   applicationMetadataMock } from '../../../__mocks__/mocks';
+import { IData } from '../../../../shared/src';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockApplicationMetadata: IApplicationMetadata;
@@ -24,36 +25,31 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     const createStore = configureStore();
     mockId = 'mockId';
     mockApplicationMetadata = applicationMetadataMock;
-    const instanceDataMock = getInstanceDataStateMock();
-    const instanceData = {
-      data: [
-        {
-          id: 'test-data-element-1',
-          dataType: 'test-data-type-1',
-          filename: 'testData1.pdf',
-          contentType: 'application/pdf',
-          blobStoragePath: '',
-          selfLinks: {
-            apps: null,
-            platform: null,
-          },
-          size: 1234,
-          locked: false,
-          refs: [],
-          created: new Date('2021-01-01'),
-          createdBy: 'testUser',
-          lastChanged: new Date('2021-01-01'),
-          lastChangedBy: 'testUser',
-        },
-      ],
+    const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
+    const dataElement: IData = {
+      id: 'test-data-element-1',
+      instanceGuid: instanceDataMock.instance.id,
+      dataType: 'test-data-type-1',
+      filename: 'testData1.pdf',
+      contentType: 'application/pdf',
+      blobStoragePath: '',
+      selfLinks: {
+        apps: null,
+        platform: null,
+      },
+      size: 1234,
+      locked: false,
+      refs: [],
+      created: new Date('2021-01-01'),
+      createdBy: 'testUser',
+      lastChanged: new Date('2021-01-01'),
+      lastChangedBy: 'testUser',
     };
     mockInstanceData = {
       ...instanceDataMock,
-      instance: {
-        ...instanceDataMock.instance,
-        ...instanceData,
-      },
     };
+
+    mockInstanceData.instance.data = [dataElement];
 
     mockInitialState = getInitialStateMock({
       applicationMetadata: {
