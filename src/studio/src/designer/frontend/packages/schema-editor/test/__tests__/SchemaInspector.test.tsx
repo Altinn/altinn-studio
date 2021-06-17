@@ -57,6 +57,36 @@ it('Should match snapshot', () => {
   });
 });
 
+it('Should match snapshot (enums)', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/StatistiskeEnhetstyper',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  act(() => {
+    const wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+    expect(wrapper.getDOMNode()).toMatchSnapshot('enums');
+  });
+});
+
+it('Should match snapshot (restrictions)', () => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/Tekst_09Restriksjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  act(() => {
+    const wrapper = mountComponent();
+    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+    expect(wrapper.getDOMNode()).toMatchSnapshot('restrictions');
+  });
+});
+
 it('dispatches correctly when changing restriction key', (done) => {
   let wrapper: any = null;
   act(() => {
