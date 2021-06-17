@@ -142,7 +142,10 @@ export function* updateCurrentViewSaga({ payload: {
       const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
       const validator = createValidator(schema);
       const model = convertDataBindingToModel(state.formData.formData);
-      const validationResult = validateFormData(model, state.formLayout.layouts, layoutOrder, validator, state.language.language);
+      const validationResult = validateFormData(
+        model, state.formLayout.layouts, layoutOrder,
+        validator, state.language.language, state.textResources.resources,
+      );
       let validations = validationResult.validations;
       const componentSpecificValidations =
         validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,

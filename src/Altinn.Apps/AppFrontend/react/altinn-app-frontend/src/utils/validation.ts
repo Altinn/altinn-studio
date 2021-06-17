@@ -380,6 +380,7 @@ export function validateComponentFormData(
   dataModelField: string,
   component: ILayoutComponent,
   language: any,
+  textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
   existingValidationErrors?: IComponentValidations,
   componentIdWithIndex?: string,
@@ -418,11 +419,18 @@ export function validateComponentFormData(
       if (Array.isArray(errorParams)) {
         errorParams = errorParams.join(', ');
       }
-      const errorMessage = getParsedLanguageFromKey(
-        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-        language,
-        [errorParams],
-      );
+      let errorMessage;
+
+      if (fieldSchema.errorMessage) {
+        errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
+      } else {
+        errorMessage = getParsedLanguageFromKey(
+          `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+          language,
+          [errorParams],
+        );
+      }
+
       mapToComponentValidations(
         layoutId,
         null,
@@ -489,13 +497,14 @@ export function validateFormData(
   layoutOrder: string[],
   schemaValidator: ISchemaValidator,
   language: any,
+  textResources: ITextResource[],
 ): IValidationResult {
   let validations: any = {};
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
     if (layoutOrder.includes(id)) {
-      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
+      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language, textResources);
       validations = result.validations;
       if (!invalidDataTypes) {
         invalidDataTypes = result.invalidDataTypes;
@@ -515,8 +524,14 @@ export function validateFormDataForLayout(
   layoutKey: string,
   schemaValidator: ISchemaValidator,
   language: any,
+  textResources: ITextResource[],
 ): IValidationResult {
-  const { validator, rootElementPath } = schemaValidator;
+  const {
+    validator,
+    rootElementPath,
+    schema,
+    rootElement,
+  } = schemaValidator;
   const valid = validator.validate(`schema${rootElementPath}`, formData);
   const result: IValidationResult = {
     validations: {},
@@ -534,13 +549,21 @@ export function validateFormDataForLayout(
         if (Array.isArray(errorParams)) {
           errorParams = errorParams.join(', ');
         }
-        const errorMessage = getParsedLanguageFromKey(
-          `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-          language,
-          [errorParams],
-        );
 
         const dataBindingName = processInstancePath(error.instancePath);
+        const fieldSchema = getSchemaPart(dataBindingName.split('.'), rootElement, schema);
+
+        let errorMessage;
+        if (fieldSchema?.errorMessage) {
+          errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
+        } else {
+          errorMessage = getParsedLanguageFromKey(
+            `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+            language,
+            [errorParams],
+          );
+        }
+
         mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
       }
     });
@@ -1056,6 +1079,7 @@ function removeFixedValidations(validations: any[], fixed?: any[]): any[] {
  */
 export function validateGroup(groupId: string, state: IRuntimeState): IValidations {
   const language = state.language.language;
+  const textResources = state.textResources.resources;
   const hiddenFields = state.formLayout.uiConfig.hiddenFields;
   const attachments = state.attachments.attachments;
   const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
@@ -1095,7 +1119,7 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const validator = createValidator(schema);
   const emptyFieldsValidations: ILayoutValidations = validateEmptyFieldsForLayout(formData, filteredLayout, language, hiddenFields, repeatingGroups);
   const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
-  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language).validations;
+  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language, textResources).validations;
   return mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
 }
 

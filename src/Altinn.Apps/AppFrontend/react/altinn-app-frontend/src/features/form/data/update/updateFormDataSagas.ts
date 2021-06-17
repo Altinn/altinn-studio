@@ -73,6 +73,7 @@ function* runValidations(
     fieldWithoutIndex,
     component,
     state.language.language,
+    state.textResources.resources,
     validator,
     state.formValidations.validations[componentId],
     componentId !== component.id ? componentId : null,
