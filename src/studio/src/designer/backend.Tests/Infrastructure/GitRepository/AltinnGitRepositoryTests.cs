@@ -1,7 +1,10 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
+using Designer.Tests.Utils;
 using Xunit;
 
 namespace Designer.Tests.Infrastructure.GitRepository
@@ -32,8 +35,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("ttd", "apps-test", "testUser")]
         public void Constructor_ValidParameters_ShouldInstantiate(string org, string repository, string developer)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            string repositoriesRootPath = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+            string repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
 
             var altinnGitRepository = new AltinGitRepository(org, repository, developer, repositoriesRootPath);
 
@@ -41,6 +43,31 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Equal(repository, altinnGitRepository.Repository);
             Assert.Equal(developer, altinnGitRepository.Developer);
             Assert.Contains(repositoriesRootPath, altinnGitRepository.RepositoriesRootPath);
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", 0)]
+        [InlineData("ttd", "ttd-datamodels", "testUser", 4)]
+        public void GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
+        {
+            var repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+
+            var altinnGitRepository = new AltinGitRepository(org, repository, developer, repositoriesRootPath);
+            var files = altinnGitRepository.GetSchemaFiles();
+
+            Assert.Equal(expectedSchemaFiles, files.Count);
+        }
+
+        [Fact]        
+        public void GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
+        {
+            var repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+
+            var altinnGitRepository = new AltinGitRepository("ttd", "ttd-datamodels", "testUser", repositoriesRootPath);
+            var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "0678.xsd");
+
+            Assert.Equal(".xsd", file.FileType);
+            Assert.Equal(@"/App/models/0678.xsd", file.RepositoryRelativeUrl);
         }
     }
 }

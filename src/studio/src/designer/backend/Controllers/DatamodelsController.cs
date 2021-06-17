@@ -27,14 +27,16 @@ namespace Altinn.Studio.Designer.Controllers
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
+        private readonly ISchemaModelService _schemaModelService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
-        public DatamodelsController(IRepository repository)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
+            _schemaModelService = schemaModelService;
         }
 
         /// <summary>

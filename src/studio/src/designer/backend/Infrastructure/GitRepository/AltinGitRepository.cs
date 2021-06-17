@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -10,6 +13,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     public class AltinGitRepository
     {
+        const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
+        const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinGitRepository"/> class.
         /// </summary>
@@ -29,6 +35,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Repository = repository;
             Developer = developer;
             RepositoriesRootPath = repositoriesRootPath;
+            RepositoryDirectory = SetRepositoryDirectory();
         }
 
         /// <summary>
@@ -52,14 +59,51 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string RepositoriesRootPath { get; private set; }
 
         /// <summary>
+        /// The path to where this particular repository recides on-disk.
+        /// </summary>
+        public string RepositoryDirectory { get; private set; }
+
+        /// <summary>
         /// Gets the full path to the on-disk repository directory based
         /// on basepath, developer, org and repository for the current repository.
         /// </summary>        
         /// <returns>The full path, ending with "/"</returns>
-        public string GetRepositoryPath()
+        private string SetRepositoryDirectory()
         {
             string[] paths = { RepositoriesRootPath, Developer.AsFileName(), Org.AsFileName(), Repository.AsFileName() };
             return Path.Combine(paths);
+        }
+
+        /// <summary>
+        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// </summary>
+        /// <returns></returns>
+        public IList<AltinnCoreFile> GetSchemaFiles()
+        {
+            var altinnCoreSchemaFiles = new List<AltinnCoreFile>();
+            
+            var schemaFiles = GetFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
+
+            foreach (string file in schemaFiles)
+            {
+                string fileName = file.Substring(RepositoryDirectory.Length + 1); // "App\\models\\0678.xsd"
+                
+                altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
+            }
+            
+            return altinnCoreSchemaFiles;
+        }
+
+        private IEnumerable<string> GetFiles(string[] searchPatterns)
+        {
+            var files = new List<string>();
+
+            foreach (var searchPattern in searchPatterns)
+            {
+                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true }));
+            }
+
+            return files;
         }
 
         private static void AssertNotNullOrEmpty(string paramValue, string paramName)
