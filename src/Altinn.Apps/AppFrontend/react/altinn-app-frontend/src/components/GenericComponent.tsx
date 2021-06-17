@@ -99,7 +99,11 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     const dataModelBinding = props.dataModelBindings[key];
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      dispatch(setCurrentSingleFieldValidation({ dataModelBinding }));
+      dispatch(setCurrentSingleFieldValidation({
+        dataModelBinding,
+        componentId: props.id,
+        layoutId: currentView,
+      }));
     }
 
     dispatch(FormDataActions.updateFormData({

@@ -668,6 +668,66 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
   return canBeSaved;
 }
 
+export function findLayoutIdFromValidationIssue(layouts: ILayouts, validationIssue: IValidationIssue) {
+  return Object.keys(layouts).find((id) => {
+    const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
+      // Special handling for FileUpload component
+      if (c.type === 'FileUpload') {
+        return c.id === validationIssue.field;
+      }
+      return c.dataModelBindings
+        && Object.values(c.dataModelBindings).includes(getKeyWithoutIndex(validationIssue.field));
+    });
+    return !!foundInLayout;
+  });
+}
+
+export function findComponentFromValidationIssue(
+  layout: ILayout,
+  validation: IValidationIssue,
+  textResources: ITextResource[],
+) {
+  let componentId;
+  const componentValidations: IComponentValidations = {};
+  const component = layout.find((layoutElement) => {
+    const componentCandidate = layoutElement as ILayoutComponent;
+    let found = false;
+    const match = matchLayoutComponent(validation.field, componentCandidate.id);
+    if (validation.field && match && match.length > 0) {
+      found = true;
+      componentValidations.simpleBinding = addValidation(componentValidations, validation, textResources);
+      componentId = validation.field;
+    } else {
+      let index: string;
+      if (validation.field) {
+        index = getIndex(validation.field);
+      }
+      if (!componentCandidate.dataModelBindings) {
+        return found;
+      }
+      Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+        const fieldToCheck = getKeyWithoutIndex(validation.field.toLowerCase());
+        if (validation.field
+          && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === fieldToCheck) {
+          found = true;
+          componentId = index ? `${layoutElement.id}-${index}` : layoutElement.id;
+          componentValidations[dataModelBindingKey] = addValidation(
+            componentValidations, validation, textResources,
+          );
+        }
+      });
+    }
+
+    return found;
+  });
+
+  return {
+    componentId,
+    component,
+    componentValidations,
+  };
+}
+
 /* Function to map the new data element validations to our internal redux structure */
 export function mapDataElementValidationToRedux(
   validations: IValidationIssue[],
@@ -680,51 +740,17 @@ export function mapDataElementValidationToRedux(
   }
   validations.forEach((validation) => {
     // for each validation, map to correct component and field key
-    const componentValidations: IComponentValidations = {};
-    let component;
-    let componentId;
-    let layoutId = Object.keys(layouts).find((id) => {
-      const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
-        // Special handling for FileUpload component
-        if (c.type === 'FileUpload') {
-          return c.id === validation.field;
-        }
-        return c.dataModelBindings && Object.values(c.dataModelBindings).includes(getKeyWithoutIndex(validation.field));
-      });
-      return !!foundInLayout;
-    });
-    if (layoutId && layouts[layoutId]) {
-      component = layouts[layoutId].find((layoutElement) => {
-        const componentCandidate = layoutElement as ILayoutComponent;
-        let found = false;
-        const match = matchLayoutComponent(validation.field, componentCandidate.id);
-        if (validation.field && match && match.length > 0) {
-          found = true;
-          addValidation(componentValidations, validation, 'simpleBinding', textResources);
-          componentId = validation.field;
-        } else {
-          let index: string;
-          if (validation.field) {
-            index = getIndex(validation.field);
-          }
-          if (!componentCandidate.dataModelBindings) {
-            return found;
-          }
-          Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
-            const fieldToCheck = getKeyWithoutIndex(validation.field.toLowerCase());
-            // tslint:disable-next-line: max-line-length
-            if (validation.field
-              && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === fieldToCheck) {
-              found = true;
-              componentId = index ? `${layoutElement.id}-${index}` : layoutElement.id;
-              addValidation(componentValidations, validation, dataModelBindingKey, textResources);
-            }
-          });
-        }
+    let layoutId = findLayoutIdFromValidationIssue(layouts, validation);
 
-        return found;
-      });
+    if (!layoutId || !layouts[layoutId]) {
+      return;
     }
+
+    const {
+      componentId,
+      component,
+      componentValidations,
+    } = findComponentFromValidationIssue(layouts[layoutId], validation, textResources);
 
     if (component) {
       // we have found a matching component
@@ -795,21 +821,34 @@ export function getIndex(dataModelBinding: string) {
 }
 
 function addValidation(
-  componentValidations: IComponentValidations,
+  componentValidations: IComponentBindingValidation,
   validation: IValidationIssue,
-  dataModelBindingKey: string,
   textResources: ITextResource[],
-) {
-  if (!componentValidations[dataModelBindingKey]) {
-    // eslint-disable-next-line no-param-reassign
-    componentValidations[dataModelBindingKey] = { errors: [], warnings: [] };
+): IComponentBindingValidation {
+  const updatedValidations: IComponentBindingValidation = {
+    errors: componentValidations.errors || [],
+    warnings: componentValidations.warnings || [],
+    fixed: componentValidations.fixed || [],
+  };
+
+  switch (validation.severity) {
+    case (Severity.Error): {
+      updatedValidations.errors.push(getParsedTextResourceByKey(validation.description, textResources) as any);
+      break;
+    }
+    case (Severity.Warning): {
+      updatedValidations.warnings.push(getParsedTextResourceByKey(validation.description, textResources) as any);
+      break;
+    }
+    case (Severity.Unspecified): {
+      updatedValidations.fixed.push(getParsedTextResourceByKey(validation.description, textResources));
+      break;
+    }
+    default:
+      break;
   }
-  if (validation.severity === Severity.Error) {
-    componentValidations[dataModelBindingKey].errors.push(getParsedTextResourceByKey(validation.description, textResources) as any);
-  } else {
-    componentValidations[dataModelBindingKey].warnings
-      .push(getParsedTextResourceByKey(validation.description, textResources) as any);
-  }
+
+  return updatedValidations;
 }
 
 /**
@@ -978,8 +1017,8 @@ export function mergeComponentBindingValidations(
   const uniqueNewWarnings = getUniqueNewElements(existingWarnings, newValidations?.warnings);
 
   return {
-    errors: existingErrors.concat(uniqueNewErrors),
-    warnings: existingWarnings.concat(uniqueNewWarnings),
+    errors: removeFixedValidations(existingErrors.concat(uniqueNewErrors), newValidations?.fixed),
+    warnings: removeFixedValidations(existingWarnings.concat(uniqueNewWarnings), newValidations?.fixed),
   };
 }
 
@@ -996,6 +1035,16 @@ export function getUniqueNewElements(originalArray: any[], newArray?: any[]) {
     return originalArray.findIndex((existingElement) => {
       return JSON.stringify(existingElement) === JSON.stringify(element);
     }) < 0;
+  });
+}
+
+function removeFixedValidations(validations: any[], fixed?: any[]): any[] {
+  if (!fixed || fixed.length === 0) {
+    return validations;
+  }
+
+  return validations.filter((element) => {
+    return fixed.findIndex((fixedElement) => JSON.stringify(fixedElement) === JSON.stringify(element)) < 0;
   });
 }
 
