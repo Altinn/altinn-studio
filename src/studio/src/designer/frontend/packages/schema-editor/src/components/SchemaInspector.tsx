@@ -537,7 +537,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         <TabPanel value='1'>
           <Grid
             container
-            spacing={3}
+            spacing={1}
             className={classes.gridContainer}
           >
             <Grid item xs={12}>
