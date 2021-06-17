@@ -36,7 +36,7 @@
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.10.0" />
   </ItemGroup>
 
   <ItemGroup>
