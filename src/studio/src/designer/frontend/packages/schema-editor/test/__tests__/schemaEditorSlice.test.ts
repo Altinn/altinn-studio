@@ -1,4 +1,4 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum, setTitle, setDescription, setType } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -79,6 +79,7 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, setSelectedId(payload));
     expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
   });
+
   it('handles deleteField', () => {
     const payload = {
       path: '#/definitions/Kommentar2000Restriksjon',
@@ -167,5 +168,36 @@ describe('SchemaEditorSlice', () => {
     };
     reducer(state, updateJsonSchema(payload));
     expect(payload.onSaveSchema).toBeCalled();
+  });
+
+  it('handles setTitle', () => {
+    const payload = {
+      title: 'test12312',
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, setTitle(payload));
+    const item: UiSchemaItem | undefined = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.title).toBe('test12312');
+  });
+
+  it('handles setDescription', () => {
+    const payload = {
+      description: 'descriptionasdsfsa',
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, setDescription(payload));
+    const item: UiSchemaItem | undefined = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.description).toBe('descriptionasdsfsa');
+  });
+
+  it('handles setType', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      value: 'string',
+    };
+    const nextState = reducer(state, setType(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.type).toBe('string');
   });
 });
