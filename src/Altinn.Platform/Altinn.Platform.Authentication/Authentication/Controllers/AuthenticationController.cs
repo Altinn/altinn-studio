@@ -61,6 +61,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly ISblCookieDecryptionService _cookieDecryptionService;
         private readonly ISigningKeysRetriever _signingKeysRetriever;
         private readonly IUserProfileService _userProfileService;
+        private readonly IEnterpriseUserAuthenticationService _enterpriseUserAuthenticationService;
         private readonly JwtSecurityTokenHandler _validator;
         private readonly ISigningKeysResolver _designerSigningKeysResolver;
 
@@ -82,6 +83,7 @@ namespace Altinn.Platform.Authentication.Controllers
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
+            IEnterpriseUserAuthenticationService enterpriseUserAuthenticationService,
             IOrganisationsService organisationRepository,
             ISigningKeysResolver signingKeysResolver)
         {
@@ -92,6 +94,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _cookieDecryptionService = cookieDecryptionService;
             _organisationService = organisationRepository;
             _userProfileService = userProfileService;
+            _enterpriseUserAuthenticationService = enterpriseUserAuthenticationService;
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
         }
@@ -358,10 +361,9 @@ namespace Altinn.Platform.Authentication.Controllers
                     string password = decodedStringArray[1];
 
                     string bridgeApiEndpoint = _generalSettings.BridgeAuthnApiEndpoint + "enterpriseuser";
-                    EnterpriseUserAuthenticationService enterpriseUserAuthenticationService = new EnterpriseUserAuthenticationService();
 
                     EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
-                    ConfiguredTaskAwaitable<HttpResponseMessage> response = enterpriseUserAuthenticationService.GetResponseMessage(credentials, bridgeApiEndpoint);
+                    ConfiguredTaskAwaitable<HttpResponseMessage> response = _enterpriseUserAuthenticationService.GetResponseMessage(credentials, bridgeApiEndpoint);
 
                     var responseInfo = response.GetAwaiter().GetResult();
                     string content = await response.GetAwaiter().GetResult().Content.ReadAsStringAsync();
