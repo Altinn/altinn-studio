@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,12 +11,14 @@ using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json;
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -121,9 +124,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
         /// <returns></returns>
+        [Authorize]
         [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public async Task<IActionResult> GetDatamodels(string org, string repository)
+        public async Task<ActionResult<IEnumerable<AltinnCoreFile>>> GetDatamodels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var schemaFiles = _schemaModelService.GetSchemaFilesAsync(org, repository, developer);

@@ -1,9 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using Xunit;
 
