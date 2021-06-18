@@ -23,7 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.TestingControllers
+namespace Designer.Tests.Controllers
 {
     public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -41,7 +41,7 @@ namespace Designer.Tests.TestingControllers
             HttpClient client = GetTestClient();
 
             string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
-   
+
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -108,9 +108,9 @@ namespace Designer.Tests.TestingControllers
             {
                 File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
-  
+
             File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
-  
+
             HttpClient client = GetTestClient();
 
             string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=32578";
@@ -333,7 +333,7 @@ namespace Designer.Tests.TestingControllers
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
                     services.AddSingleton<IGitea, IGiteaMock>();
 
-                    services.AddSingleton<IRepository>(repositoryMock.Object);
+                    services.AddSingleton(repositoryMock.Object);
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;

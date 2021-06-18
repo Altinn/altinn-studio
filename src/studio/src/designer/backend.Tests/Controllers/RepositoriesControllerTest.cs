@@ -30,7 +30,7 @@ using Moq;
 
 using Xunit;
 
-namespace Designer.Tests.TestingControllers
+namespace Designer.Tests.Controllers
 {
     public class RepositoriesControllerTest : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -98,7 +98,7 @@ namespace Designer.Tests.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
-      
+
         private HttpClient GetTestClient(IRepository repositoryService)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoriesControllerTest).Assembly.Location).LocalPath);
@@ -121,7 +121,7 @@ namespace Designer.Tests.TestingControllers
 
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddSingleton<IRepository>(repositoryService);
+                    services.AddSingleton(repositoryService);
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
                     services.AddSingleton<IGitea, IGiteaMock>();
                 });

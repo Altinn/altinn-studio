@@ -86,8 +86,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             foreach (string file in schemaFiles)
             {
-                string fileName = file.Substring(RepositoryDirectory.Length + 1); // "App\\models\\0678.xsd"
-                
                 altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
             }
             

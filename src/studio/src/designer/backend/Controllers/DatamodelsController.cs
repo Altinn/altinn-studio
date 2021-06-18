@@ -33,6 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
+        /// <param name="schemaModelService">Interface for working with models.</param>
         public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
@@ -124,7 +125,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> GetDatamodels(string org, string repository)
         {
-            return Ok(Task.FromResult(string.Empty));
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFilesAsync(org, repository, developer);
+
+            return Ok(schemaFiles);
         }
 
         /// <summary>

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,20 +10,17 @@ using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
 
 using Moq;
 
 using Xunit;
 
-namespace Designer.Tests.TestingControllers
+namespace Designer.Tests.Controllers
 {
     public class SessionControllerTest : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -105,7 +100,7 @@ namespace Designer.Tests.TestingControllers
             // Assert
             Assert.IsType<UnauthorizedResult>(actual);
         }
-  
+
         private HttpClient GetTestClient()
         {
             Program.ConfigureSetupLogging();
