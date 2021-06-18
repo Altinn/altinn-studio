@@ -1,4 +1,3 @@
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
+using Altinn.Platform.Profile.Tests.Testdata;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -42,15 +42,15 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             {
                 sblRequest = request;
 
-                UserProfile userProfile = LoadTestData<UserProfile>(UserId.ToString());
+                UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
                 HttpResponseMessage response = new () { Content = JsonContent.Create(userProfile) };
-                return await Task.FromResult(response);
+                return response;
             });
 
             string token = PrincipalUtil.GetToken(UserId);
             HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandlerMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/api/v1/users/current");
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, "/profile/api/v1/users/current");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -65,7 +65,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
                 responseContent, serializerOptionsCamelCase);
 
-            // Indirectly verifying that the response use camel casing by checking properties
+            // These asserts check that deserializing with camel casing was successful.
             Assert.Equal(UserId, actualUser.UserId);
             Assert.Equal("sophie", actualUser.UserName);
             Assert.Equal("Sophie Salt", actualUser.Party.Name);
@@ -164,14 +164,6 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             // Assert
             Assert.Equal(expected, actual);
-        }
-
-        private static T LoadTestData<T>(string id)
-        {
-            string path = $"../../../Testdata/{typeof(T).Name}/{id}.json";
-            string fileContent = File.ReadAllText(path);
-            T userProfile = System.Text.Json.JsonSerializer.Deserialize<T>(fileContent);
-            return userProfile;
         }
     }
 }
