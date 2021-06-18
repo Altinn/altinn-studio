@@ -2,9 +2,9 @@ import * as React from 'react';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import { TreeItem, TreeView } from '@material-ui/lab';
+import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { Grid } from '@material-ui/core';
+import { AppBar, Grid, Tab } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
@@ -38,6 +38,18 @@ const useStyles = makeStyles(
         backgroundColor: 'transparent',
       },
     },
+    appBar: {
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: '#fff',
+      color: '#000',
+      '& .Mui-Selected': {
+        color: '#6A6A6A',
+      },
+      '& .MuiTabs-indicator': {
+        backgroundColor: '#006BD8',
+      },
+    },
   }),
 );
 
@@ -57,9 +69,11 @@ export const SchemaEditor = ({
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const selectedNodeId = useSelector((state :ISchemaState) => state.selectedNodeId);
+  // const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
+  const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
+  const [tabIndex, setTabIndex] = React.useState('0');
 
   React.useEffect(() => {
     dispatch(setRootName({ rootName: rootItemId }));
@@ -121,76 +135,116 @@ export const SchemaEditor = ({
       name: 'name',
     }));
   };
+  const a11yProps = (index: number) => ({
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+    value: `${index}`,
+  });
 
-  const properties = uiSchema.filter((i) => i.id.includes('#/properties/'));
   return (
     <div className={classes.root}>
+
+      <button
+        type='button' className={classes.button}
+        onClick={onClickSaveJsonSchema}
+      >{getTranslation('save_data_model', language)}
+      </button>
+      <AddPropertyModal
+        isOpen={addPropertyModalOpen}
+        path={addPropertyPath}
+        onClose={onCancelAddItemModal}
+        onConfirm={onCloseAddPropertyModal}
+        sharedTypes={sharedItems}
+        title={getTranslation('add_property', language)}
+      />
+
       <Grid
         container={true} direction='row'
         spacing={2}
       >
         <Grid item={true} xs={6}>
           <div id='schema-editor' className={classes.root}>
-            <button
-              type='button' className={classes.button}
-              onClick={onClickSaveJsonSchema}
-            >{getTranslation('save_data_model', language)}
-            </button>
-            <AddPropertyModal
-              isOpen={addPropertyModalOpen}
-              path={addPropertyPath}
-              onClose={onCancelAddItemModal}
-              onConfirm={onCloseAddPropertyModal}
-              sharedTypes={sharedItems}
-              title={getTranslation('add_property', language)}
-            />
+            <TabContext value={tabIndex}>
+              <AppBar
+                position='static' color='default'
+                className={classes.appBar}
+              >
+                <TabList
+                  onChange={(e, v) => setTabIndex(v)}
+                  aria-label='inspector tabs'
+                >
+                  <Tab
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    label={getTranslation('properties', language)} {...a11yProps(0)}
+                  />
+                  <Tab
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    label={getTranslation('restrictions', language)} {...a11yProps(1)}
+                  />
+                </TabList>
 
-            <TreeView
-              multiSelect={false}
-              className={classes.tree}
-              defaultExpanded={['properties', 'definitions']}
-              defaultCollapseIcon={<ArrowDropDownIcon />}
-              defaultExpandIcon={<ArrowRightIcon />}
-            >
-              <TreeItem
-                id='properties'
-                nodeId='properties'
-                className={classes.treeItem}
-                label={<SchemaItemLabel
-                  language={language}
-                  label={getTranslation('properties', language)}
-                  icon='fa-datamodel-properties'
-                  onAddProperty={handleAddProperty}
-                />}
-              >
-                { properties?.map((item: UiSchemaItem) => <SchemaItem
-                  keyPrefix='properties'
-                  key={item.id}
-                  item={item}
-                  nodeId={`${item.id}`}
-                  language={language}
-                />)}
-              </TreeItem>
-              <TreeItem nodeId='info' label='info' />
-              <TreeItem
-                nodeId='definitions'
-                label={<SchemaItemLabel
-                  language={language}
-                  label={getTranslation('definitions', language)}
-                  icon='fa-datamodel-properties'
-                  onAddProperty={handleAddDefinition}
-                />}
-              >
-                { definitions.map((def) => <SchemaItem
-                  keyPrefix='definitions'
-                  item={def}
-                  key={def.id}
-                  nodeId={`def-${def.id}`}
-                  id={getDomFriendlyID(def.id)}
-                  language={language}
-                />)}
-              </TreeItem>
-            </TreeView>
+              </AppBar>
+              <TabPanel value='0'>
+                <TreeView
+                  multiSelect={false}
+                  className={classes.tree}
+                  defaultExpanded={['properties', 'definitions']}
+                  defaultCollapseIcon={<ArrowDropDownIcon />}
+                  defaultExpandIcon={<ArrowRightIcon />}
+                >
+                  <TreeItem
+                    id='properties'
+                    nodeId='properties'
+                    className={classes.treeItem}
+                    label={<SchemaItemLabel
+                      language={language}
+                      label={getTranslation('properties', language)}
+                      icon='fa-datamodel-properties'
+                      onAddProperty={handleAddProperty}
+                    />}
+                  >
+                    {properties?.map((item: UiSchemaItem) => <SchemaItem
+                      keyPrefix='properties'
+                      key={item.id}
+                      item={item}
+                      nodeId={`${item.id}`}
+                      language={language}
+                    />)}
+                  </TreeItem>
+                  <TreeItem nodeId='info' label='info' />
+                </TreeView>
+              </TabPanel>
+              <TabPanel value='1'>
+                <TreeView
+                  multiSelect={false}
+                  className={classes.tree}
+                  defaultExpanded={['properties', 'definitions']}
+                  defaultCollapseIcon={<ArrowDropDownIcon />}
+                  defaultExpandIcon={<ArrowRightIcon />}
+                >
+                  <TreeItem
+                    nodeId='definitions'
+                    label={<SchemaItemLabel
+                      language={language}
+                      label={getTranslation('definitions', language)}
+                      icon='fa-datamodel-properties'
+                      onAddProperty={handleAddDefinition}
+                    />}
+                  >
+                    {definitions.map((def) => <SchemaItem
+                      keyPrefix='definitions'
+                      item={def}
+                      key={def.id}
+                      nodeId={`def-${def.id}`}
+                      id={getDomFriendlyID(def.id)}
+                      language={language}
+                    />)}
+                  </TreeItem>
+                  <TreeItem nodeId='info' label='info' />
+                </TreeView>
+              </TabPanel>
+            </TabContext>
+
           </div>
         </Grid>
         <Grid item={true} xs={6}>
