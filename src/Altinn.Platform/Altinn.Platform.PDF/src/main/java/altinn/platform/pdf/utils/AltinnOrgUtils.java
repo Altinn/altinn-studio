@@ -5,13 +5,12 @@ import altinn.platform.pdf.models.AltinnOrgs;
 import altinn.platform.pdf.services.BasicLogger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -48,8 +47,8 @@ public class AltinnOrgUtils {
       URL url = new URL("https://altinncdn.no/orgs/altinn-orgs.json");
       connection = (HttpURLConnection) url.openConnection();
       connection.setRequestMethod("GET");
-      try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charset.forName("UTF-8")))) {
-          ObjectMapper mapper = new ObjectMapper();
+      try (var in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+          var mapper = new ObjectMapper();
           mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
           altinnOrgs = mapper.readValue(in, AltinnOrgs.class);
       }
