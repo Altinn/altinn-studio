@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -17,9 +16,9 @@ using Moq;
 
 using Xunit;
 
-namespace Designer.Tests.TestingServices
+namespace Designer.Tests.Services
 {
-    public class RepositoryServiceTest
+    public class RepositorySITests
     {
         [Fact]
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
@@ -123,7 +122,7 @@ namespace Designer.Tests.TestingServices
         private RepositorySI GetServiceForTest(Mock<IHttpContextAccessor> httpContextAccsessorMock)
         {
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTest).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
 
             RepositorySI service = new RepositorySI(
