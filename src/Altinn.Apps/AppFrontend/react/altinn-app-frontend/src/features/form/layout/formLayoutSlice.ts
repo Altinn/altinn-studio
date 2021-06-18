@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ILayoutSets, IUiConfig } from 'src/types';
 import { ILayouts } from './index';

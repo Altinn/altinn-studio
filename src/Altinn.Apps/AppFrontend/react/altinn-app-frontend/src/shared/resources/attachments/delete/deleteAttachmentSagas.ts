@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeEvery } from 'redux-saga/effects';
+import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { updateComponentValidations } from 'src/features/form/validation/validationSlice';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
 import { IRuntimeState } from '../../../../types';
 import { httpDelete } from '../../../../utils/networking';
 import { dataElementUrl } from '../../../../utils/urlHelper';
@@ -24,20 +24,32 @@ export function* deleteAttachmentSaga({
   try {
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
-    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, newValidations, componentId);
+    yield put(updateComponentValidations({
+      componentId,
+      layoutId: currentView,
+      validations: newValidations,
+    }));
 
     const response: any = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
       yield call(AttachmentDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {
       const validations = getFileUploadComponentValidations('delete', language);
-      yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
+      yield put(updateComponentValidations({
+        componentId,
+        layoutId: currentView,
+        validations,
+      }));
       yield call(AttachmentDispatcher.deleteAttachmentRejected,
         attachment, attachmentType, componentId);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('delete', language);
-    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
+    yield put(updateComponentValidations({
+      componentId,
+      layoutId: currentView,
+      validations,
+    }));
     yield call(AttachmentDispatcher.deleteAttachmentRejected,
       attachment, attachmentType, componentId);
     console.error(err);
