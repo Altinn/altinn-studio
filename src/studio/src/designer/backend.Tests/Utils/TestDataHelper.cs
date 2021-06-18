@@ -59,7 +59,7 @@ namespace Designer.Tests.Utils
         public static string GetTestDataDirectory()
         {
             var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            return Path.GetFullPath(Path.Combine(unitTestFolder, @"..\..\..\_TestData\"));
         }
 
         public static string GetTestDataRepositoriesRootDirectory()

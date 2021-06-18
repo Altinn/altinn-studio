@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Org = org;
             Repository = repository;
             Developer = developer;
-            RepositoriesRootPath = repositoriesRootPath;
+            RepositoriesRootPath = Path.GetFullPath(repositoriesRootPath); // We do this to normalize the path according to the OS and avoid slashes in all directions.
             RepositoryDirectory = SetRepositoryDirectory();
         }
 
