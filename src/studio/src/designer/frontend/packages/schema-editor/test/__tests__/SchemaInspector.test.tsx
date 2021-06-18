@@ -387,6 +387,55 @@ it('dispatches correctly when deleting restrictions', (done) => {
   });
   done();
 });
+it('dispatches correctly when adding enum', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/Kommentar2000Restriksjon',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+  });
+  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+  wrapper.update();
+  wrapper.find('#add-enum-button').hostNodes().at(0).simulate('click');
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/addEnum',
+    payload: {
+      value: 'value',
+      path: '#/definitions/Kommentar2000Restriksjon',
+    },
+  });
+  done();
+});
+
+it('dispatches correctly when deleting enum', (done) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: '#/definitions/DriftsstatusPeriode',
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  let wrapper: any = null;
+  act(() => {
+    wrapper = mountComponent();
+  });
+  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
+  wrapper.update();
+  wrapper.find('#definitionsDriftsstatusPeriode-delete-jaDrift').hostNodes().at(0).simulate('click');
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/deleteEnum',
+    payload: {
+      value: 'jaDrift',
+      path: '#/definitions/DriftsstatusPeriode',
+    },
+  });
+  done();
+});
 
 it('dispatches correctly when adding restrictions', (done) => {
   let wrapper: any = null;

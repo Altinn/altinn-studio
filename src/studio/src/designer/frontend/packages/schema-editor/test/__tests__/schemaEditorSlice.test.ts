@@ -1,4 +1,7 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum, setItems } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
+  setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema,
+  updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
+  setItems } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -224,6 +227,7 @@ describe('SchemaEditorSlice', () => {
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item?.items?.type).toBe('string');
   });
+
   it('handles setRequired', () => {
     const payload = {
       path: '#/definitions/Kontaktperson/properties/navn',

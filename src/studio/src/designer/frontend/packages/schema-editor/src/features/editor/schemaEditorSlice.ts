@@ -22,16 +22,14 @@ const schemaEditorSlice = createSlice({
       } = action.payload;
 
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      if (addToItem) {
-        const itemToAdd = { key, value };
-        if (addToItem.restrictions) {
-          while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
-            itemToAdd.key += 1;
-          }
-          addToItem.restrictions.push(itemToAdd);
-        } else {
-          addToItem.restrictions = [itemToAdd];
+      const itemToAdd = { key, value };
+      if (addToItem.restrictions) {
+        while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+          itemToAdd.key += 1;
         }
+        addToItem.restrictions.push(itemToAdd);
+      } else {
+        addToItem.restrictions = [itemToAdd];
       }
     },
     addEnum(state, action) {
@@ -40,9 +38,6 @@ const schemaEditorSlice = createSlice({
       } = action.payload;
 
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      if (!addToItem) {
-        return;
-      }
       if (!addToItem.enum) {
         addToItem.enum = [value];
         return;
@@ -124,21 +119,17 @@ const schemaEditorSlice = createSlice({
     deleteField(state, action) {
       const { path, key } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
-      if (removeFromItem) {
-        const removeIndex = removeFromItem.restrictions?.findIndex((v: any) => v.key === key) ?? -1;
-        if (removeIndex >= 0) {
-          removeFromItem.restrictions?.splice(removeIndex, 1);
-        }
+      const removeIndex = removeFromItem.restrictions?.findIndex((v: any) => v.key === key) ?? -1;
+      if (removeIndex >= 0) {
+        removeFromItem.restrictions?.splice(removeIndex, 1);
       }
     },
     deleteEnum(state, action) {
       const { path, value } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
-      if (removeFromItem) {
-        const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
-        if (removeIndex >= 0) {
-          removeFromItem.enum?.splice(removeIndex, 1);
-        }
+      const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
+      if (removeIndex >= 0) {
+        removeFromItem.enum?.splice(removeIndex, 1);
       }
     },
     deleteProperty(state, action) {
