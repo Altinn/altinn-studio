@@ -133,7 +133,8 @@ docker-compose down
   dotnet run -p App.csproj
   ```
 
-The app and local platform services are now running locally. If you have configured your hosts. The app can be accessed on altinn3local.no.
+The app and local platform services are now running locally.
+If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
