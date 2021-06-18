@@ -1,4 +1,4 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum, setItems } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -135,15 +135,24 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       path: '#/definitions/StatistiskeEnhetstyper',
       value: 'test',
+      oldValue: '',
     };
-    let nextState = reducer(state, addEnum(payload));
 
+    // add
+    let nextState = reducer(state, addEnum(payload));
     let item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
     expect(item && item.enum).toContainEqual('test');
-
-    nextState = reducer(state, deleteEnum(payload));
+    // rename
+    payload.oldValue = 'test';
+    payload.value = 'test2';
+    nextState = reducer(nextState, addEnum(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
     expect(item && item.enum).not.toContainEqual('test');
+    expect(item && item.enum).toContainEqual('test2');
+    // delete
+    nextState = reducer(nextState, deleteEnum(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
+    expect(item && item.enum).not.toContainEqual('test2');
   });
 
   it('handles addRestriction', () => {
@@ -205,6 +214,16 @@ describe('SchemaEditorSlice', () => {
     expect(item?.type).toBe('string');
   });
 
+  it('handles setItems', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      items: { type: 'string' },
+    };
+    const nextState = reducer(state, setItems(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.items?.type).toBe('string');
+  });
   it('handles setRequired', () => {
     const payload = {
       path: '#/definitions/Kontaktperson/properties/navn',
