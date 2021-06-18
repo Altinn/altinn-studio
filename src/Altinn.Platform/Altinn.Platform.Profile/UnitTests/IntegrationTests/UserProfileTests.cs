@@ -47,10 +47,9 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 return response;
             });
 
-            string token = PrincipalUtil.GetToken(UserId);
+            HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, "/profile/api/v1/users/current");
+
             HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandlerMock);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, "/profile/api/v1/users/current");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -164,6 +163,14 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        private static HttpRequestMessage CreateGetRequest(int authenticatedUserId, string requestUri)
+        {
+            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, requestUri);
+            string token = PrincipalUtil.GetToken(authenticatedUserId);
+            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return httpRequestMessage;
         }
     }
 }
