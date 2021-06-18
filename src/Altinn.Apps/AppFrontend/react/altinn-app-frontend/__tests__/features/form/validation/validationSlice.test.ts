@@ -5,13 +5,13 @@ import reducer, { initialState,
   setCurrentSingleFieldValidation,
   updateComponentValidations,
   updateValidations } from '../../../../src/features/form/validation/validationSlice';
-import { IComponentValidations, IValidations } from '../../../../src/types';
+import { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from '../../../../src/types';
 
 describe('validationSlice', () => {
   let state: IValidationState;
   let mockValidations: IValidations;
   let mockError: Error;
-  let mockSingleFieldValidationField: string;
+  let mockSingleFieldValidationField: ICurrentSingleFieldValidation;
 
   beforeEach(() => {
     state = initialState;
@@ -26,7 +26,11 @@ describe('validationSlice', () => {
       },
     };
     mockError = new Error('Something went wrong');
-    mockSingleFieldValidationField = 'mockComponent';
+    mockSingleFieldValidationField = {
+      dataModelField: 'mockField',
+      componentId: 'mockComponent',
+      layoutId: 'formLayout',
+    };
   });
 
   it('handles runSingleFieldValidationFulfilled action', () => {

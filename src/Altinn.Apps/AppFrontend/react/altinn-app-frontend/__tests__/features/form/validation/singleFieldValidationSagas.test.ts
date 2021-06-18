@@ -17,7 +17,11 @@ describe('singleFieldValidationSagas', () => {
 
   beforeEach(() => {
     mockState = getInitialStateMock();
-    mockState.formValidations.currentSingleFieldValidation = mockTriggerField;
+    mockState.formValidations.currentSingleFieldValidation = {
+      dataModelField: mockTriggerField,
+      componentId: 'mockId',
+      layoutId: 'formLayout',
+    };
   });
 
   it('runSingleFieldValidationSaga, single field validation is triggered', () => {

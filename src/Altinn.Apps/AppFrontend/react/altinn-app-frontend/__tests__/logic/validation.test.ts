@@ -8,7 +8,7 @@ import { getParsedLanguageFromKey } from '../../../shared/src';
 import { ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
 import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
-import { getParsedTextResourceByKey } from '../../src/utils/textResource';
+import { getParsedTextResourceByKey, getTextResourceByKey } from '../../src/utils/textResource';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 
 describe('>>> utils/validations.ts', () => {
@@ -179,32 +179,37 @@ describe('>>> utils/validations.ts', () => {
           simpleBinding: {
             errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
             warnings: [],
+            fixed: [],
           },
         },
         componentId_2: {
           customBinding: {
             errors: [],
             warnings: [getParsedTextResourceByKey('Warning message 1', []), getParsedTextResourceByKey('Warning message 2', [])],
+            fixed: [],
           },
         },
         'componentId_4-1': {
           simpleBinding: {
             errors: [getParsedTextResourceByKey('test error', [])],
             warnings: [],
+            fixed: [],
           },
         },
         'componentId_5-0-1': {
           simpleBinding: {
             errors: [getParsedTextResourceByKey('test error', [])],
             warnings: [],
+            fixed: [],
           },
         },
       },
       unmapped: {
         unmapped: {
           random_key: {
-            errors: ['test error'],
-            warnings: ['test warning'],
+            errors: [getParsedTextResourceByKey('test error', [])],
+            warnings: [getParsedTextResourceByKey('test warning', [])],
+            fixed: [],
           },
         },
       },
@@ -250,6 +255,11 @@ describe('>>> utils/validations.ts', () => {
             },
             dataModelField_3: {
               type: 'string',
+            },
+            dataModelField_custom: {
+              type: 'string',
+              enum: ['Hello'],
+              errorMessage: 'custom_error',
             },
             group_1: {
               type: 'array',
@@ -668,7 +678,7 @@ describe('>>> utils/validations.ts', () => {
     expect(validations).toEqual(mockResult);
   });
 
-  it('+++ data element validations should be mapped correctly to our redux format', () => {
+  it.only('+++ data element validations should be mapped correctly to our redux format', () => {
     const mappedDataElementValidaitons =
       validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layouts, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
@@ -682,6 +692,7 @@ describe('>>> utils/validations.ts', () => {
       Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage.language,
+      [],
     );
     expect(mockResult).toEqual(mockFormValidationResult);
   });
@@ -694,8 +705,36 @@ describe('>>> utils/validations.ts', () => {
       Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage,
+      [],
     );
     expect(mockResult.validations).toEqual({});
+  });
+
+  it('+++ validateFormData should return custom error message when this is defined', () => {
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockTexts = [{ id: 'custom_error', value: 'This is a custom error message' }];
+    const formData = {
+      ...mockValidFormData,
+      dataModelField_custom: 'abcdefg',
+    };
+    const mockResult = validation.validateFormData(
+      formData,
+      mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
+      mockValidator,
+      mockLanguage,
+      mockTexts,
+    );
+    expect(mockResult.validations).toEqual({
+      formLayout: {
+        dataModelField_4: {
+          simpleBinding: {
+            errors: [getTextResourceByKey('custom_error', mockTexts)],
+            warnings: [],
+          },
+        },
+      },
+    });
   });
 
   it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
@@ -703,7 +742,14 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_1: 'abc',
     };
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(data, mockLayoutState.layouts, Object.keys(mockLayoutState.layouts), mockValidator, mockLanguage);
+    const mockResult = validation.validateFormData(
+      data,
+      mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
+      mockValidator,
+      mockLanguage,
+      [],
+    );
     expect(mockResult.invalidDataTypes).toBeTruthy();
   });
 
@@ -715,6 +761,7 @@ describe('>>> utils/validations.ts', () => {
       [],
       mockValidator,
       mockLanguage.language,
+      [],
     );
     expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
   });

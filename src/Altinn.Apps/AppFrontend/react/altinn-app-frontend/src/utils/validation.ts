@@ -765,15 +765,15 @@ export function mapDataElementValidationToRedux(
     // for each validation, map to correct component and field key
     let layoutId = findLayoutIdFromValidationIssue(layouts, validation);
 
-    if (!layoutId || !layouts[layoutId]) {
-      return;
+    if (!layoutId) {
+      layoutId = 'unmapped';
     }
 
     const {
       componentId,
       component,
       componentValidations,
-    } = findComponentFromValidationIssue(layouts[layoutId], validation, textResources);
+    } = findComponentFromValidationIssue(layouts[layoutId] || [], validation, textResources);
 
     if (component) {
       // we have found a matching component
@@ -799,24 +799,18 @@ export function mapDataElementValidationToRedux(
       }
     } else {
       // unmapped error
-      if (!layoutId) {
-        layoutId = 'unmapped';
-      }
-
       if (!validationResult[layoutId]) {
         validationResult[layoutId] = {};
       }
       if (!validationResult[layoutId].unmapped) {
         validationResult[layoutId].unmapped = {};
       }
-      if (!validationResult[layoutId].unmapped[validation.field]) {
-        validationResult[layoutId].unmapped[validation.field] = { errors: [], warnings: [] };
-      }
-      if (validation.severity === Severity.Error) {
-        validationResult[layoutId].unmapped[validation.field].errors.push(validation.description);
-      } else {
-        validationResult[layoutId].unmapped[validation.field].warnings.push(validation.description);
-      }
+
+      validationResult[layoutId].unmapped[validation.field] = addValidation(
+        validationResult[layoutId].unmapped[validation.field],
+        validation,
+        textResources,
+      );
     }
   });
 
@@ -849,9 +843,9 @@ function addValidation(
   textResources: ITextResource[],
 ): IComponentBindingValidation {
   const updatedValidations: IComponentBindingValidation = {
-    errors: componentValidations.errors || [],
-    warnings: componentValidations.warnings || [],
-    fixed: componentValidations.fixed || [],
+    errors: componentValidations?.errors || [],
+    warnings: componentValidations?.warnings || [],
+    fixed: componentValidations?.fixed || [],
   };
 
   switch (validation.severity) {
