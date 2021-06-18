@@ -201,10 +201,6 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// Gets or sets the version of the application. 
         /// </summary>
-        /// <remarks>
-        /// The property will not be set when running app locally
-        /// unless the property is defined in appsettings.json
-        /// </remarks>
         public string AppVersion { get; set; }
     }
 }
