@@ -62,9 +62,8 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     fetchModel(schema.id);
   };
   const onSaveSchema = (schema: any) => {
-    // eslint-disable-next-line no-param-reassign
-    schema.$id = getStaticDataModelUrl(dataModelName);
-    dispatch(saveDataModel({ schema }));
+    const s = { ...schema, $id: getStaticDataModelUrl(dataModelName) };
+    dispatch(saveDataModel({ schema: s }));
   };
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
