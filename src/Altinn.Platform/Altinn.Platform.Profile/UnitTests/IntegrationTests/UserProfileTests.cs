@@ -75,20 +75,44 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         [Fact]
         public async Task Profile_GetById_OK()
         {
-            string token = PrincipalUtil.GetToken(1337);
+            // Arrange
+            const int UserId = 2516356;
 
-            HttpClient client = WebApplicationFactoryExtensions.GetTestClient(_webApplicationFactory);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1337");
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandlerMock = new (async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
+                HttpResponseMessage response = new () { Content = JsonContent.Create(userProfile) };
+                return response;
+            });
+
+            HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
+            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandlerMock);
+
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
+            // Assert
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Get, sblRequest.Method);
+            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            UserProfile user = JsonConvert.DeserializeObject<UserProfile>(responseContent);
-            Assert.Equal(1337, user.UserId);
+
+            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
+                responseContent, serializerOptionsCamelCase);
+
+            // These asserts check that deserializing with camel casing was successful.
+            Assert.Equal(UserId, actualUser.UserId);
+            Assert.Equal("sophie", actualUser.UserName);
+            Assert.Equal("Sophie Salt", actualUser.Party.Name);
+            Assert.Equal("Sophie", actualUser.Party.Person.FirstName);
+            Assert.Equal("nb", actualUser.ProfileSettingPreference.Language);
         }
 
         [Fact]
