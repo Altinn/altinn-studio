@@ -18,6 +18,16 @@ let mockUiSchema: UiSchemaItem[];
 const dispatchMock = () => Promise.resolve({});
 let addPropertyMock = jest.fn();
 
+const mountWithId = (id: string) => {
+  mockStore = createStore({
+    ...mockInitialState,
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedId: id,
+  });
+  mockStore.dispatch = jest.fn(dispatchMock);
+  return mountComponent();
+};
 const mountComponent = () => mount(
   <Provider store={mockStore}>
     <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
@@ -58,30 +68,16 @@ it('Should match snapshot', () => {
 });
 
 it('Should match snapshot (enums)', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/StatistiskeEnhetstyper',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   act(() => {
-    const wrapper = mountComponent();
+    const wrapper = mountWithId('#/definitions/StatistiskeEnhetstyper');
     wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
     expect(wrapper.getDOMNode()).toMatchSnapshot('enums');
   });
 });
 
 it('Should match snapshot (restrictions)', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/Tekst_09Restriksjon',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   act(() => {
-    const wrapper = mountComponent();
+    const wrapper = mountWithId('#/definitions/Tekst_09Restriksjon');
     wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
     expect(wrapper.getDOMNode()).toMatchSnapshot('restrictions');
   });
@@ -111,7 +107,6 @@ it('dispatches correctly when changing restriction value', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    expect(wrapper).not.toBeNull();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-value').last().simulate('change', { target: { value: '666' } });
@@ -132,7 +127,6 @@ it('dispatches correctly when changing node name', (done) => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
-    expect(wrapper).not.toBeNull();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   const input = wrapper.find('#definitionsKommentar2000Restriksjon-name').hostNodes().at(0);
@@ -151,16 +145,9 @@ it('dispatches correctly when changing node name', (done) => {
 });
 
 it('dispatches correctly when changing field key', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-InternInformasjon').hostNodes().at(0);
@@ -179,16 +166,9 @@ it('dispatches correctly when changing field key', (done) => {
 });
 
 it('dispatches correctly when changing ref', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M/properties/InternInformasjon',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   });
   wrapper.update();
@@ -205,16 +185,9 @@ it('dispatches correctly when changing ref', (done) => {
 });
 
 it('supports switching a type into an array and back', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper:any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M/properties/dataFormatVersion');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   });
 
@@ -259,16 +232,9 @@ it('supports switching a type into an array and back', () => {
 });
 
 it('supports switching a reference into an array and back', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M/properties/InternInformasjon',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper:any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   });
 
@@ -313,16 +279,9 @@ it('supports switching a reference into an array and back', () => {
 });
 
 it('refSelect does not set invalid refs', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M/properties/InternInformasjon',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   });
   wrapper.update();
@@ -347,16 +306,9 @@ it('renders no item if nothing is selected', () => {
 });
 
 it('dispatches correctly when deleting fields', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   wrapper.update();
@@ -388,16 +340,9 @@ it('dispatches correctly when deleting restrictions', (done) => {
   done();
 });
 it('dispatches correctly when adding enum', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/Kommentar2000Restriksjon',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/Kommentar2000Restriksjon');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
   wrapper.update();
@@ -413,16 +358,9 @@ it('dispatches correctly when adding enum', (done) => {
 });
 
 it('dispatches correctly when deleting enum', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/DriftsstatusPeriode',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/DriftsstatusPeriode');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
   wrapper.update();
@@ -457,16 +395,9 @@ it('dispatches correctly when adding restrictions', (done) => {
 });
 
 it('dispatches correctly when adding fields', (done) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedId: '#/definitions/RA-0678_M',
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
   let wrapper: any = null;
   act(() => {
-    wrapper = mountComponent();
+    wrapper = mountWithId('#/definitions/RA-0678_M');
   });
 
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
