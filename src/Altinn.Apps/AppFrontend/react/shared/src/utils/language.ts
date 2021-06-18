@@ -66,9 +66,9 @@ const removeStyling = (node: any): React.ReactElement | void | null => {
 };
 
 const replaceParameters = (nameString: string, params: string[]) => {
-  let mutatingString = nameString.slice();
+  let mutatingString = nameString;
   params.forEach((param: string, index: number) => {
-    mutatingString = nameString.replaceAll(`{${index}}`, param);
+    mutatingString = mutatingString.replaceAll(`{${index}}`, param);
   });
   return mutatingString;
 };
