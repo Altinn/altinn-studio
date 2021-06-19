@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -61,6 +62,31 @@ namespace Altinn.Studio.Designer.Helpers
         {
             AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
             AssertArgumentNotNullOrWhiteSpace(app, nameof(app));
+        }
+
+        /// <summary>
+        /// Assert that
+        /// </summary>
+        /// <param name="paramValue">Parameter value to be checked.</param>
+        /// <param name="paramName">Parameter name.</param>
+        public static void AssertNotNullOrEmpty(string paramValue, string paramName)
+        {
+            if (string.IsNullOrEmpty(paramValue))
+            {
+                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
+        }
+
+        /// <summary>
+        /// Assert that a specified directory exists.
+        /// </summary>
+        /// <param name="path">Full path to directory.</param>
+        public static void AssertDirectoryExists(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                throw new DirectoryNotFoundException($"Could not find the specified path: {path}");
+            }
         }
     }
 }

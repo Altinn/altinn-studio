@@ -1,5 +1,6 @@
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,7 @@ namespace Altinn.Studio.Designer.Infrastructure
         {
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
+            services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
             services.AddTransient<ISourceControl, SourceControlSI>();
 
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();

@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -18,21 +14,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class SchemaModelService : ISchemaModelService
     {
-        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;        
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
         /// </summary>
-        /// <param name="serviceRepositorySettings">Settings controlling the repository</param>
-        public SchemaModelService(IOptions<ServiceRepositorySettings> serviceRepositorySettings)
+        /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
+        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            _serviceRepositorySettings = serviceRepositorySettings;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <inheritdoc/>
         public Task<IList<AltinnCoreFile>> GetSchemaFilesAsync(string org, string repository, string developer)
         {
-            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, _serviceRepositorySettings.Value.RepositoryLocation);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
 
             return Task.FromResult(altinnGitRepository.GetSchemaFiles());            
         }
