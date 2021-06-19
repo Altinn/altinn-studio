@@ -129,13 +129,13 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public async Task<ActionResult<IEnumerable<AltinnCoreFile>>> GetDatamodels(string org, string repository)
+        public async Task<ActionResult<IEnumerable<AltinnCoreFile>>> GetDatamodels(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var schemaFiles = _schemaModelService.GetSchemaFilesAsync(org, repository, developer);
 
             return Ok(schemaFiles);
-        }
+        }        
 
         /// <summary>
         /// Returns datamodel

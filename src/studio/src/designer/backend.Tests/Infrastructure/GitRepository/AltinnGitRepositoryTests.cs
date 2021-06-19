@@ -17,7 +17,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("orgCode", "repoName", "developerName", null)]
         public void Constructor_EmptyParameters_ShouldFail(string org, string repository, string developer, string repositoriesRootPath)
         {
-            Assert.Throws<ArgumentException>(() => new AltinGitRepository(org, repository, developer, repositoriesRootPath));
+            Assert.Throws<ArgumentException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootPath));
         }
 
         [Theory]
@@ -26,7 +26,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("orgCode", "repoName", "developerName", @"c:\there\should\not\be\anything\here\either")]
         public void Constructor_InvalidBasePath_ShouldFail(string org, string repository, string developer, string repositoriesRootPath)
         {
-            Assert.Throws<DirectoryNotFoundException>(() => new AltinGitRepository(org, repository, developer, repositoriesRootPath));
+            Assert.Throws<DirectoryNotFoundException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootPath));
         }
 
         [Theory]
@@ -35,7 +35,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             string repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
 
-            var altinnGitRepository = new AltinGitRepository(org, repository, developer, repositoriesRootPath);
+            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootPath);
 
             Assert.Equal(org, altinnGitRepository.Org);
             Assert.Equal(repository, altinnGitRepository.Repository);
@@ -50,7 +50,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
 
-            var altinnGitRepository = new AltinGitRepository(org, repository, developer, repositoriesRootPath);
+            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootPath);
             var files = altinnGitRepository.GetSchemaFiles();
 
             Assert.Equal(expectedSchemaFiles, files.Count);
@@ -61,7 +61,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var repositoriesRootPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
 
-            var altinnGitRepository = new AltinGitRepository("ttd", "ttd-datamodels", "testUser", repositoriesRootPath);
+            var altinnGitRepository = new AltinnGitRepository("ttd", "ttd-datamodels", "testUser", repositoriesRootPath);
             var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "0678.xsd");
 
             Assert.Equal(".xsd", file.FileType);

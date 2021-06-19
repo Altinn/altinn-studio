@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public Task<IList<AltinnCoreFile>> GetSchemaFilesAsync(string org, string repository, string developer)
         {
-            var altinnGitRepository = new AltinGitRepository(org, repository, developer, _serviceRepositorySettings.Value.RepositoryLocation);
+            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, _serviceRepositorySettings.Value.RepositoryLocation);
 
             return Task.FromResult(altinnGitRepository.GetSchemaFiles());            
         }

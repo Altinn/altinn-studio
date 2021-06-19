@@ -11,19 +11,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// Class representing a Altinn Git Repository, either an app or a datamodels repository,
     /// ie. the shared properties and functionallity between the different types of repositories.
     /// </summary>
-    public class AltinGitRepository
+    public class AltinnGitRepository
     {
         const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";        
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AltinGitRepository"/> class.
+        /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developer that is working on the repository.</param>
         /// <param name="repositoriesRootPath">Base path for where the repository recides on-disk.</param>
-        public AltinGitRepository(string org, string repository, string developer, string repositoriesRootPath)
+        public AltinnGitRepository(string org, string repository, string developer, string repositoriesRootPath)
         {            
             AssertNotNullOrEmpty(org, nameof(org));
             AssertNotNullOrEmpty(repository, nameof(repository));
