@@ -538,36 +538,39 @@ export function validateFormDataForLayout(
     invalidDataTypes: false,
   };
 
-  if (!valid) {
-    validator.errors.forEach((error) => {
-      if (error.keyword !== 'required') {
-        if (error.keyword === 'type' || error.keyword === 'format') {
-          result.invalidDataTypes = true;
-        }
-
-        let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
-        if (Array.isArray(errorParams)) {
-          errorParams = errorParams.join(', ');
-        }
-
-        const dataBindingName = processInstancePath(error.instancePath);
-        const fieldSchema = getSchemaPart(dataBindingName.split('.'), rootElement, schema);
-
-        let errorMessage;
-        if (fieldSchema?.errorMessage) {
-          errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
-        } else {
-          errorMessage = getParsedLanguageFromKey(
-            `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-            language,
-            [errorParams],
-          );
-        }
-
-        mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
-      }
-    });
+  if (valid) {
+    return result;
   }
+
+  validator.errors.forEach((error) => {
+    // Required fields are handled separately
+    if (error.keyword === 'required') {
+      return;
+    }
+
+    result.invalidDataTypes = error.keyword === 'type' || error.keyword === 'format';
+
+    let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+    if (Array.isArray(errorParams)) {
+      errorParams = errorParams.join(', ');
+    }
+
+    const dataBindingName = processInstancePath(error.instancePath);
+    const fieldSchema = getSchemaPart(dataBindingName.split('.'), rootElement, schema);
+
+    let errorMessage;
+    if (fieldSchema?.errorMessage) {
+      errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
+    } else {
+      errorMessage = getParsedLanguageFromKey(
+        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+        language,
+        [errorParams],
+      );
+    }
+
+    mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
+  });
 
   return result;
 }
@@ -845,7 +848,6 @@ function addValidation(
   const updatedValidations: IComponentBindingValidation = {
     errors: componentValidations?.errors || [],
     warnings: componentValidations?.warnings || [],
-    fixed: componentValidations?.fixed || [],
   };
 
   switch (validation.severity) {
