@@ -279,7 +279,7 @@ namespace Altinn.App.Services.Implementation
             if (_generalSettings.FixedValidationPrefix != null 
                 && originalMessage.StartsWith(_generalSettings.FixedValidationPrefix))
             {
-                return (ValidationIssueSeverity.Unspecified,
+                return (ValidationIssueSeverity.Fixed,
                     originalMessage.Remove(0, _generalSettings.FixedValidationPrefix.Length));
             }
 
