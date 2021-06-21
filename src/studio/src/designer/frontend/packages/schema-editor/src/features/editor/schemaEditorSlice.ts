@@ -53,25 +53,18 @@ const schemaEditorSlice = createSlice({
         addToItem.enum.push(value);
       }
     },
-    addRootProperty(state, action) {
-      const { name } = action.payload;
+    addRootItem(state, action) {
+      const { name, location } = action.payload;
+      const path = `#/${location}/${name}`;
       state.uiSchema.push(
         {
-          id: `#/properties/${name}`,
+          id: path,
           type: 'object',
           displayName: name,
         },
       );
-    },
-    addRootDefinition(state, action) {
-      const { name } = action.payload;
-      state.uiSchema.push(
-        {
-          id: `#/definitions/${name}`,
-          type: 'object',
-          displayName: name,
-        },
-      );
+      state.selectedId = path;
+      state.selectedNodeId = getDomFriendlyID(path);
     },
     addProperty(state, action) {
       const { path } = action.payload;
@@ -308,8 +301,7 @@ const schemaEditorSlice = createSlice({
 export const {
   addRestriction,
   addEnum,
-  addRootProperty,
-  addRootDefinition,
+  addRootItem,
   addProperty,
   addRefProperty,
   deleteField,

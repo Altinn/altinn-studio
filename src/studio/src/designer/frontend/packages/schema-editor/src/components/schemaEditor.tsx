@@ -6,13 +6,12 @@ import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Grid, Tab } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootProperty, addRootDefinition } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootItem } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
-import { SchemaItemLabel } from './SchemaItemLabel';
 
 const useStyles = makeStyles(
   createStyles({
@@ -69,7 +68,6 @@ export const SchemaEditor = ({
   const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  // const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
@@ -125,14 +123,18 @@ export const SchemaEditor = ({
   const onCancelAddItemModal = () => {
     setAddPropertyModalOpen(false);
   };
-  const handleAddProperty = () => {
-    dispatch(addRootProperty({
+  const handleAddProperty = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(addRootItem({
       name: 'name',
+      location: 'properties',
     }));
   };
-  const handleAddDefinition = () => {
-    dispatch(addRootDefinition({
+  const handleAddDefinition = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(addRootItem({
       name: 'name',
+      location: 'definitions',
     }));
   };
   const a11yProps = (index: number) => ({
@@ -192,26 +194,21 @@ export const SchemaEditor = ({
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
+                  {properties?.map((item: UiSchemaItem) => <SchemaItem
+                    keyPrefix='properties'
+                    key={item.id}
+                    item={item}
+                    nodeId={`${item.id}`}
+                    language={language}
+                    id={getDomFriendlyID(item.id)}
+                  />)}
+
                   <TreeItem
-                    id='properties'
-                    nodeId='properties'
-                    className={classes.treeItem}
-                    label={<SchemaItemLabel
-                      language={language}
-                      label={getTranslation('properties', language)}
-                      icon='fa-datamodel-properties'
-                      onAddProperty={handleAddProperty}
-                    />}
-                  >
-                    {properties?.map((item: UiSchemaItem) => <SchemaItem
-                      keyPrefix='properties'
-                      key={item.id}
-                      item={item}
-                      nodeId={`${item.id}`}
-                      language={language}
-                    />)}
-                  </TreeItem>
-                  <TreeItem nodeId='info' label='info' />
+                    nodeId='info'
+                    icon={<i className='fa fa-plus'/>}
+                    label={getTranslation('add_property', language)}
+                    onClick={handleAddProperty}
+                  />
                 </TreeView>
               </TabPanel>
               <TabPanel value='1'>
@@ -222,25 +219,21 @@ export const SchemaEditor = ({
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
+                  {definitions.map((def) => <SchemaItem
+                    keyPrefix='definitions'
+                    item={def}
+                    key={def.id}
+                    nodeId={`def-${def.id}`}
+                    id={getDomFriendlyID(def.id)}
+                    language={language}
+                  />)}
+
                   <TreeItem
-                    nodeId='definitions'
-                    label={<SchemaItemLabel
-                      language={language}
-                      label={getTranslation('definitions', language)}
-                      icon='fa-datamodel-properties'
-                      onAddProperty={handleAddDefinition}
-                    />}
-                  >
-                    {definitions.map((def) => <SchemaItem
-                      keyPrefix='definitions'
-                      item={def}
-                      key={def.id}
-                      nodeId={`def-${def.id}`}
-                      id={getDomFriendlyID(def.id)}
-                      language={language}
-                    />)}
-                  </TreeItem>
-                  <TreeItem nodeId='info' label='info' />
+                    nodeId='info'
+                    icon={<i className='fa fa-plus'/>}
+                    label={getTranslation('add_property', language)}
+                    onClick={handleAddDefinition}
+                  />
                 </TreeView>
               </TabPanel>
             </TabContext>
