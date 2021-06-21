@@ -1,4 +1,7 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState, setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema, updateJsonSchema } from '../../src/features/editor/schemaEditorSlice';
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
+  setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema,
+  updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
+  setItems } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 
@@ -79,6 +82,7 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, setSelectedId(payload));
     expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
   });
+
   it('handles deleteField', () => {
     const payload = {
       path: '#/definitions/Kommentar2000Restriksjon',
@@ -128,13 +132,30 @@ describe('SchemaEditorSlice', () => {
     expect(item && item.properties).toContainEqual({
       id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', type: 'object',
     });
+  });
 
-    // test add second time to get more case coverage.
-    // const state2 = reducer(nextState, addProperty(payload));
-    // item = state2.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
-    // expect(item && item.properties).toContainEqual({
-    //   id: '#/definitions/Kontaktperson/properties/navn', name: 'test2',
-    // });
+  it('handles addEnum & deleteEnum', () => {
+    const payload = {
+      path: '#/definitions/StatistiskeEnhetstyper',
+      value: 'test',
+      oldValue: '',
+    };
+
+    // add
+    let nextState = reducer(state, addEnum(payload));
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
+    expect(item && item.enum).toContainEqual('test');
+    // rename
+    payload.oldValue = 'test';
+    payload.value = 'test2';
+    nextState = reducer(nextState, addEnum(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
+    expect(item && item.enum).not.toContainEqual('test');
+    expect(item && item.enum).toContainEqual('test2');
+    // delete
+    nextState = reducer(nextState, deleteEnum(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/StatistiskeEnhetstyper');
+    expect(item && item.enum).not.toContainEqual('test2');
   });
 
   it('handles addRestriction', () => {
@@ -163,5 +184,63 @@ describe('SchemaEditorSlice', () => {
     };
     reducer(state, updateJsonSchema(payload));
     expect(payload.onSaveSchema).toBeCalled();
+  });
+
+  it('handles setTitle', () => {
+    const payload = {
+      title: 'test12312',
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, setTitle(payload));
+    const item: UiSchemaItem | undefined = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.title).toBe('test12312');
+  });
+
+  it('handles setDescription', () => {
+    const payload = {
+      description: 'descriptionasdsfsa',
+      path: '#/definitions/Kontaktperson',
+    };
+    const nextState = reducer(state, setDescription(payload));
+    const item: UiSchemaItem | undefined = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.description).toBe('descriptionasdsfsa');
+  });
+
+  it('handles setType', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      value: 'string',
+    };
+    const nextState = reducer(state, setType(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.type).toBe('string');
+  });
+
+  it('handles setItems', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson',
+      items: { type: 'string' },
+    };
+    const nextState = reducer(state, setItems(payload));
+
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item?.items?.type).toBe('string');
+  });
+
+  it('handles setRequired', () => {
+    const payload = {
+      path: '#/definitions/Kontaktperson/properties/navn',
+      key: 'navn',
+      required: true,
+    };
+    let nextState = reducer(state, setRequired(payload));
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.required).toContainEqual('navn');
+
+    payload.required = false;
+    nextState = reducer(state, setRequired(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    expect(item && item.required).not.toContainEqual('navn');
   });
 });
