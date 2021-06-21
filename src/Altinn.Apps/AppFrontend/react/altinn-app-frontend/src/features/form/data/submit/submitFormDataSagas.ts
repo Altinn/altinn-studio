@@ -183,7 +183,7 @@ function* saveFormDataSaga(): SagaIterator {
       }
     }
 
-    if (state.formValidations.currentSingleFieldValidation?.dataModelField) {
+    if (state.formValidations.currentSingleFieldValidation?.dataModelBinding) {
       yield sagaPut(runSingleFieldValidation());
     }
 

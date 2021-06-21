@@ -27,7 +27,7 @@ describe('validationSlice', () => {
     };
     mockError = new Error('Something went wrong');
     mockSingleFieldValidationField = {
-      dataModelField: 'mockField',
+      dataModelBinding: 'mockField',
       componentId: 'mockComponent',
       layoutId: 'formLayout',
     };
@@ -47,7 +47,7 @@ describe('validationSlice', () => {
 
   it('handles setCurrentSingleFieldValidation action', () => {
     const nextState = reducer(state, setCurrentSingleFieldValidation({
-      dataModelBinding: mockSingleFieldValidationField,
+      ...mockSingleFieldValidationField,
     }));
     expect(nextState.currentSingleFieldValidation).toEqual(mockSingleFieldValidationField);
   });

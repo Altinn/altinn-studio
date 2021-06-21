@@ -272,7 +272,7 @@ export interface ILayoutValidations {
 }
 
 export interface ICurrentSingleFieldValidation {
-  dataModelField?: string;
+  dataModelBinding?: string;
   componentId?: string;
   layoutId?: string;
 }

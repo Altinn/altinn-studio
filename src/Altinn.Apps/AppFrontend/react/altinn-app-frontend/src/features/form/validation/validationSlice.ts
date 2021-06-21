@@ -60,7 +60,7 @@ const validationSlice = createSlice({
         layoutId,
       } = action.payload;
       state.currentSingleFieldValidation = {
-        dataModelField: dataModelBinding,
+        dataModelBinding,
         componentId,
         layoutId,
       };

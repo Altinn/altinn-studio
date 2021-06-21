@@ -20,10 +20,10 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
   const url = getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId);
   const { currentSingleFieldValidation } = state.formValidations;
 
-  if (currentSingleFieldValidation && currentSingleFieldValidation.dataModelField) {
+  if (currentSingleFieldValidation && currentSingleFieldValidation.dataModelBinding) {
     const options: AxiosRequestConfig = {
       headers: {
-        ValidationTriggerField: currentSingleFieldValidation.dataModelField,
+        ValidationTriggerField: currentSingleFieldValidation.dataModelBinding,
       },
     };
 
