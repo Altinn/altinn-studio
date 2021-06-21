@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -39,5 +40,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Full path to where this particular repository recides on-disk.
         /// </summary>
         public string RepositoryDirectory { get; private set; }
+
+        /// <summary>
+        /// Find all files based on the specified search pattern(s). If multiple patterns are provided
+        /// a search will be done for each pattern and the resultsets will be merged.
+        /// </summary>
+        /// <param name="searchPatterns">The pattern to search for ie. *.json.schema.</param>
+        /// <returns></returns>
+        public IEnumerable<string> FindFiles(string[] searchPatterns)
+        {
+            var files = new List<string>();
+
+            foreach (var searchPattern in searchPatterns)
+            {
+                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true }));
+            }
+
+            return files;
+        }
     }
 }

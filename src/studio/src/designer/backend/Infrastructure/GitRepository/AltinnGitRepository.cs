@@ -55,28 +55,24 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns></returns>
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
+            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
+
+            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
+
+            return altinnCoreSchemaFiles;
+        }
+
+        private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
+        {
             var altinnCoreSchemaFiles = new List<AltinnCoreFile>();
-            
-            var schemaFiles = GetFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
 
             foreach (string file in schemaFiles)
             {
                 altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
             }
-            
+
             return altinnCoreSchemaFiles;
         }
 
-        private IEnumerable<string> GetFiles(string[] searchPatterns)
-        {
-            var files = new List<string>();
-
-            foreach (var searchPattern in searchPatterns)
-            {
-                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true }));
-            }
-
-            return files;
-        }       
     }
 }
