@@ -43,17 +43,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Find all files based on the specified search pattern(s). If multiple patterns are provided
-        /// a search will be done for each pattern and the resultsets will be merged.
+        /// a search will be done for each pattern and the resultsets will be merged. The search is
+        /// case insensitive.
         /// </summary>
         /// <param name="searchPatterns">The pattern to search for ie. *.json.schema.</param>
+        /// <param name="recursive">True if it should search recursively through all sub-folders, false if it should only search the provided folder.</param>
         /// <returns></returns>
-        public IEnumerable<string> FindFiles(string[] searchPatterns)
+        public IEnumerable<string> FindFiles(string[] searchPatterns, bool recursive = true)
         {
             var files = new List<string>();
 
             foreach (var searchPattern in searchPatterns)
             {
-                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true }));
+                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive }));
             }
 
             return files;
