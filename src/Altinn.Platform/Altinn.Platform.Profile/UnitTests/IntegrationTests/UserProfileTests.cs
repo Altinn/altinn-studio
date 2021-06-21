@@ -43,8 +43,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 sblRequest = request;
 
                 UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
-                HttpResponseMessage response = new () { Content = JsonContent.Create(userProfile) };
-                return response;
+                return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, "/profile/api/v1/users/current");
@@ -84,8 +83,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 sblRequest = request;
 
                 UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
-                HttpResponseMessage response = new () { Content = JsonContent.Create(userProfile) };
-                return response;
+                return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
