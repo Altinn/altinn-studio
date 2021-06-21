@@ -1025,7 +1025,7 @@ describe('>>> utils/validations.ts', () => {
       layout1: {
         component1: {
           binding: {
-            errors: ['some error'],
+            errors: ['some error', 'another error'],
             warnings: ['some warning'],
           },
         },
@@ -1037,6 +1037,7 @@ describe('>>> utils/validations.ts', () => {
           binding: {
             errors: ['some other error'],
             warnings: ['some other warning'],
+            fixed: ['another error'],
           },
         },
       },
