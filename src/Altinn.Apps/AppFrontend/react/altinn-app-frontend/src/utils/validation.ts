@@ -859,7 +859,7 @@ function addValidation(
       updatedValidations.warnings.push(getParsedTextResourceByKey(validation.description, textResources) as any);
       break;
     }
-    case (Severity.Unspecified): {
+    case (Severity.Fixed): {
       updatedValidations.fixed.push(getParsedTextResourceByKey(validation.description, textResources));
       break;
     }

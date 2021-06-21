@@ -299,6 +299,7 @@ export enum Severity {
   Error = 1,
   Warning = 2,
   Informational = 3,
+  Fixed = 4,
 }
 
 export enum Triggers {
