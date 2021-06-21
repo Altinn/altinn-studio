@@ -276,6 +276,13 @@ namespace Altinn.App.Services.Implementation
                     originalMessage.Remove(0, _generalSettings.SoftValidationPrefix.Length));
             }
 
+            if (_generalSettings.FixedValidationPrefix != null 
+                && originalMessage.StartsWith(_generalSettings.FixedValidationPrefix))
+            {
+                return (ValidationIssueSeverity.Unspecified,
+                    originalMessage.Remove(0, _generalSettings.FixedValidationPrefix.Length));
+            }
+
             return (ValidationIssueSeverity.Error, originalMessage);
         }
     }

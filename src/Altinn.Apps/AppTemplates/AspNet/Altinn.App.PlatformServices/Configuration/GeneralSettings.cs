@@ -18,6 +18,11 @@ namespace Altinn.App.Services.Configuration
         public string SoftValidationPrefix { get; set; }
 
         /// <summary>
+        /// Gets or sets the fixed validation prefix.
+        /// </summary>
+        public string FixedValidationPrefix { get; set;}
+
+        /// <summary>
         /// Gets or sets the host name.
         /// </summary>
         public string HostName { get; set; }
