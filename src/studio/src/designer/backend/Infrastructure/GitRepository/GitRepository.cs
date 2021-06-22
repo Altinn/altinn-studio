@@ -55,7 +55,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             foreach (var searchPattern in searchPatterns)
             {
-                files.AddRange(Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive }));
+                var foundFiles = Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive });                
+                files.AddRange(foundFiles);
             }
 
             return files;

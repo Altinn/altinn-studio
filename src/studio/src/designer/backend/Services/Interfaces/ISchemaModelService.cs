@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -18,6 +17,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
         /// <returns></returns>
-        Task<IList<AltinnCoreFile>> GetSchemaFilesAsync(string org, string repository, string developer);
+        IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer);
     }
 }

@@ -18,7 +18,6 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -129,10 +128,10 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public async Task<ActionResult<IEnumerable<AltinnCoreFile>>> GetDatamodels(string org, string repository)
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var schemaFiles = _schemaModelService.GetSchemaFilesAsync(org, repository, developer);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
 
             return Ok(schemaFiles);
         }        
