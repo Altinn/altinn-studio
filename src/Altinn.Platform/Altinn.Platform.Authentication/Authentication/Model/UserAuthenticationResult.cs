@@ -1,11 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Altinn.Platform.Authentication.Enum;
-using Microsoft.AspNetCore.Authentication;
 
 namespace Altinn.Platform.Authentication.Model
 {

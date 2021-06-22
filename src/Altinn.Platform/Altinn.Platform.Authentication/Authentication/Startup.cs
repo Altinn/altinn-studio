@@ -7,7 +7,6 @@ using Altinn.Platform.Authentication.Health;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
-using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -110,7 +109,6 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
-            services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationService>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

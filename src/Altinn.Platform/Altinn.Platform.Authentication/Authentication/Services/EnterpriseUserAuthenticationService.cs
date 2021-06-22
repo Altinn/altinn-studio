@@ -1,12 +1,11 @@
 using System;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authentication.Services
@@ -32,7 +31,7 @@ namespace Altinn.Platform.Authentication.Services
         /// Method for authenticating enterpriseuser at the SBLbridge
         /// </summary>
         /// <param name="credentials">Credentials of the enterpriseuser</param>
-        public ConfiguredTaskAwaitable<HttpResponseMessage> GetResponseMessage(EnterpriseUserCredentials credentials)
+        public async Task<HttpResponseMessage> AuthenticateEnterpriseUser(EnterpriseUserCredentials credentials)
         {
             string credentialsJson = JsonSerializer.Serialize(credentials);
             var request = new HttpRequestMessage
@@ -42,7 +41,7 @@ namespace Altinn.Platform.Authentication.Services
                 Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
             };
 
-            return _client.SendAsync(request).ConfigureAwait(false);
+            return await _client.SendAsync(request).ConfigureAwait(false);
         }
     }
 }

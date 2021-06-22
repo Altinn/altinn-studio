@@ -6,9 +6,9 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
-
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
@@ -17,7 +17,6 @@ using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +27,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Altinn.Platform.Authentication.Controllers
@@ -357,7 +355,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     string password = decodedStringArray[1];
 
                     EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
-                    HttpResponseMessage response = await _enterpriseUserAuthenticationService.GetResponseMessage(credentials);
+                    HttpResponseMessage response = await _enterpriseUserAuthenticationService.AuthenticateEnterpriseUser(credentials);
                     string content = await response.Content.ReadAsStringAsync();
 
                     switch (response.StatusCode)
