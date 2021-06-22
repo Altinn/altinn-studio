@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, Tab, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -14,6 +14,7 @@ import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
+import { SchemaTab } from './SchemaTab';
 
 const useStyles = makeStyles(
   createStyles({
@@ -21,7 +22,6 @@ const useStyles = makeStyles(
       minHeight: 600,
       minWidth: 500,
       flexGrow: 1,
-      margin: 4,
       padding: 14,
       background: 'white',
       zIndex: 2,
@@ -491,12 +491,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
     </div>);
 
-  const a11yProps = (index: number) => ({
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-    value: `${index}`,
-  });
-
   if (!selectedId) {
     return (
       <div>
@@ -518,15 +512,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onChange={handleTabChange}
             aria-label='inspector tabs'
           >
-            <Tab
-              label={getTranslation('properties', props.language)} {...a11yProps(0)}
+            <SchemaTab
+              label='properties'
+              language={props.language}
+              value='0'
             />
-            <Tab
-              label={getTranslation('restrictions', props.language)} {...a11yProps(1)}
+            <SchemaTab
+              label='restrictions'
+              language={props.language}
+              value='1'
             />
-            <Tab
-              hidden={itemToDisplay?.type !== 'object'}
-              label={getTranslation('fields', props.language)} {...a11yProps(2)}
+            <SchemaTab
+              label='fields'
+              language={props.language}
+              value='2'
+              hide={itemToDisplay?.type !== 'object'}
             />
           </TabList>
 
