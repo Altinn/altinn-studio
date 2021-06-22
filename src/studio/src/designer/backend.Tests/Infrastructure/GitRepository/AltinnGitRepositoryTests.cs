@@ -58,6 +58,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Contains(repositoriesRootDirectory, altinnGitRepository.RepositoriesRootDirectory);
         }
 
+        [Fact]
+        public void Constructor_InvalidPathParameters_ShouldThrowException()
+        {
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = @"c:\not\part\of\root\directory";
+
+            Assert.Throws<DirectoryNotFoundException>(() => new AltinnGitRepository("ttd", "apps-test", "testUser", repositoriesRootDirectory, repositoryDirectory));
+        }
+
         [Theory]
         [InlineData("ttd", "apps-test", "testUser", 0)]
         [InlineData("ttd", "ttd-datamodels", "testUser", 4)]
@@ -87,6 +96,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             Assert.Equal(".xsd", file.FileType);
             Assert.Equal(@"/App/models/0678.xsd", file.RepositoryRelativeUrl);
-        }
+        }        
     }
 }
