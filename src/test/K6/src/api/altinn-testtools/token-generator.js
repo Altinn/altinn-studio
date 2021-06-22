@@ -7,7 +7,7 @@ import { stopIterationOnFail } from '../../errorcounter.js';
 /**
  * only for test environments - api call to get enterprise or personal token with requested scopes and other params
  * @param {string} tokenFor enterprise or personal
- * @param {string} userName user name for basic authentication 
+ * @param {string} userName user name for basic authentication
  * @param {string} userPwd password for basic authentication
  * @param {JSON} queryParams for enterprise: { env: 'at22', scopes: 'altinn:serviceowner/instances.read', org: 'ttd', orgNo: '991825827', }
  * for personal: { env: 'at22', scopes: 'altinn:instances.read', userId: 123, partyId: 123, authLvl: 3, pid: '11 digit ssn', }
