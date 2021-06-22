@@ -48,7 +48,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         {
             if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)
             {
-                validationResults.AddModelError( validationField, validationMessage);
+                validationResults.AddModelError(validationField, validationMessage);
             }
             else if (singleFieldValidation)
             {

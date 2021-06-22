@@ -104,7 +104,6 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Single(messages);
             Assert.Equal(ValidationIssueSeverity.Fixed, messages[0].Severity);
             Assert.Equal("Value cannot be 1234", messages[0].Code);
-
         }
 
         /// <summary>
