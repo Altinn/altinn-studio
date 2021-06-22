@@ -19,8 +19,10 @@ const useStyles = makeStyles(
       marginTop: 24,
       height: '100%',
     },
-    tree: {
-      flexGrow: 1,
+    treeView: {
+      backgroundColor: 'white',
+      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
+      minHeight: 200,
     },
     button: {
       marginLeft: 24,
@@ -137,11 +139,12 @@ export const SchemaEditor = ({
       location: 'definitions',
     }));
   };
-  const a11yProps = (index: number) => ({
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-    value: `${index}`,
-  });
+
+  const renderTab = (label: string, index: number) => <Tab
+    label={getTranslation(label, language)}
+    id={`simple-tab-${index}`}
+    value={`${index}`}
+  />;
 
   return (
     <div className={classes.root}>
@@ -165,7 +168,7 @@ export const SchemaEditor = ({
         spacing={2}
       >
         <Grid item={true} xs={6}>
-          <div id='schema-editor' className={classes.root}>
+          <div id='schema-editor' className={classes.treeView}>
             <TabContext value={tabIndex}>
               <AppBar
                 position='static' color='default'
@@ -173,24 +176,16 @@ export const SchemaEditor = ({
               >
                 <TabList
                   onChange={(e, v) => setTabIndex(v)}
-                  aria-label='inspector tabs'
+                  aria-label='model-tabs'
                 >
-                  <Tab
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    label={getTranslation('properties', language)} {...a11yProps(0)}
-                  />
-                  <Tab
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    label={getTranslation('restrictions', language)} {...a11yProps(1)}
-                  />
+                  {renderTab('model', 0)}
+                  {renderTab('types', 1)}
                 </TabList>
 
               </AppBar>
               <TabPanel value='0'>
                 <TreeView
                   multiSelect={false}
-                  className={classes.tree}
-                  defaultExpanded={['properties', 'definitions']}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
@@ -214,8 +209,6 @@ export const SchemaEditor = ({
               <TabPanel value='1'>
                 <TreeView
                   multiSelect={false}
-                  className={classes.tree}
-                  defaultExpanded={['properties', 'definitions']}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >

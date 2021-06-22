@@ -21,7 +21,6 @@ const useStyles = makeStyles(
       minHeight: 600,
       minWidth: 500,
       flexGrow: 1,
-      margin: 4,
       padding: 14,
       background: 'white',
       zIndex: 2,
