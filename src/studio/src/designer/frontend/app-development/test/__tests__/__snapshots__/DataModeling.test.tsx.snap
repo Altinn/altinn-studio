@@ -188,10 +188,10 @@ exports[`DataModeling Should match snapshot 1`] = `
                     role="tablist"
                   >
                     <button
-                      aria-controls="mui-p-3108-P-0"
+                      aria-controls="mui-p-3271-P-0"
                       aria-selected="true"
-                      class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit makeStyles-tab-24 Mui-selected"
-                      id="mui-p-3108-T-0"
+                      class="MuiButtonBase-root MuiTab-root Component-root-37 MuiTab-textColorInherit Mui-selected Component-selected-38"
+                      id="mui-p-3271-T-0"
                       role="tab"
                       tabindex="0"
                       type="button"
@@ -199,17 +199,17 @@ exports[`DataModeling Should match snapshot 1`] = `
                       <span
                         class="MuiTab-wrapper"
                       >
-                        model
+                        models
                       </span>
                       <span
                         class="MuiTouchRipple-root"
                       />
                     </button>
                     <button
-                      aria-controls="mui-p-3108-P-1"
+                      aria-controls="mui-p-3271-P-1"
                       aria-selected="false"
-                      class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit makeStyles-tab-24"
-                      id="mui-p-3108-T-1"
+                      class="MuiButtonBase-root MuiTab-root Component-root-37 MuiTab-textColorInherit"
+                      id="mui-p-3271-T-1"
                       role="tab"
                       tabindex="-1"
                       type="button"
@@ -225,16 +225,16 @@ exports[`DataModeling Should match snapshot 1`] = `
                     </button>
                   </div>
                   <span
-                    class="PrivateTabIndicator-root-37 PrivateTabIndicator-colorSecondary-39 MuiTabs-indicator"
+                    class="PrivateTabIndicator-root-39 PrivateTabIndicator-colorSecondary-41 MuiTabs-indicator"
                     style="left: 0px; width: 0px;"
                   />
                 </div>
               </div>
             </header>
             <div
-              aria-labelledby="mui-p-3108-T-0"
+              aria-labelledby="mui-p-3271-T-0"
               class="MuiTabPanel-root"
-              id="mui-p-3108-P-0"
+              id="mui-p-3271-P-0"
               role="tabpanel"
             >
               <ul
@@ -244,7 +244,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               >
                 <li
                   aria-expanded="false"
-                  class="MuiTreeItem-root makeStyles-treeItem-74"
+                  class="MuiTreeItem-root makeStyles-treeItem-75"
                   id="propertiesmelding"
                   language="[object Object]"
                   role="treeitem"
@@ -271,13 +271,13 @@ exports[`DataModeling Should match snapshot 1`] = `
                       class="MuiTypography-root MuiTreeItem-label MuiTypography-body1"
                     >
                       <div
-                        class="makeStyles-propertiesLabel-62"
+                        class="makeStyles-propertiesLabel-63"
                       >
                         <div
-                          class="makeStyles-label-63"
+                          class="makeStyles-label-64"
                         >
                           <span
-                            class="makeStyles-iconContainer-64"
+                            class="makeStyles-iconContainer-65"
                           >
                             <i
                               class="fa fa-datamodel-ref"
@@ -290,7 +290,7 @@ exports[`DataModeling Should match snapshot 1`] = `
                         <button
                           aria-controls="simple-menu"
                           aria-haspopup="true"
-                          class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-61"
+                          class="MuiButtonBase-root MuiIconButton-root makeStyles-contextButton-62"
                           id="open-context-menu-button"
                           tabindex="0"
                           type="button"
@@ -335,10 +335,10 @@ exports[`DataModeling Should match snapshot 1`] = `
               </ul>
             </div>
             <div
-              aria-labelledby="mui-p-3108-T-1"
+              aria-labelledby="mui-p-3271-T-1"
               class="MuiTabPanel-root"
               hidden=""
-              id="mui-p-3108-P-1"
+              id="mui-p-3271-P-1"
               role="tabpanel"
             />
           </div>
@@ -353,7 +353,7 @@ exports[`DataModeling Should match snapshot 1`] = `
               no_item_selected
             </p>
             <hr
-              class="makeStyles-divider-44"
+              class="makeStyles-divider-46"
             />
           </div>
         </div>

@@ -4,7 +4,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppBar, Grid, Tab } from '@material-ui/core';
+import { AppBar, Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootItem } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
@@ -12,6 +12,7 @@ import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
 import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
 import SchemaInspector from './SchemaInspector';
+import { SchemaTab } from './SchemaTab';
 
 const useStyles = makeStyles(
   createStyles({
@@ -147,13 +148,6 @@ export const SchemaEditor = ({
     }));
   };
 
-  const renderTab = (label: string, index: number) => <Tab
-    className={classes.tab}
-    label={getTranslation(label, language)}
-    id={`simple-tab-${index}`}
-    value={`${index}`}
-  />;
-
   return (
     <div className={classes.root}>
 
@@ -186,10 +180,17 @@ export const SchemaEditor = ({
                   onChange={(e, v) => setTabIndex(v)}
                   aria-label='model-tabs'
                 >
-                  {renderTab('model', 0)}
-                  {renderTab('types', 1)}
+                  <SchemaTab
+                    label='models'
+                    language={language}
+                    value='0'
+                  />
+                  <SchemaTab
+                    label='types'
+                    language={language}
+                    value='1'
+                  />
                 </TabList>
-
               </AppBar>
               <TabPanel value='0'>
                 <TreeView

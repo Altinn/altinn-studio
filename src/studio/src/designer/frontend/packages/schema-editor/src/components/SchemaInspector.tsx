@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, Tab, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -14,6 +14,7 @@ import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
+import { SchemaTab } from './SchemaTab';
 
 const useStyles = makeStyles(
   createStyles({
@@ -82,9 +83,6 @@ const useStyles = makeStyles(
     },
     gridContainer: {
       maxWidth: 500,
-    },
-    tab: {
-      minWidth: 70,
     },
   }),
 );
@@ -493,14 +491,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
     </div>);
 
-  const renderTab = (label: string, index: number, hide: boolean = false) => <Tab
-    className={classes.tab}
-    label={getTranslation(label, props.language)}
-    id={`inspector-tab-${index}`}
-    value={`${index}`}
-    hidden={hide}
-  />;
-
   if (!selectedId) {
     return (
       <div>
@@ -521,11 +511,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <TabList
             onChange={handleTabChange}
             aria-label='inspector tabs'
-
           >
-            {renderTab('properties', 0)}
-            {renderTab('restrictions', 1)}
-            {renderTab('fields', 2, itemToDisplay?.type !== 'object')}
+            <SchemaTab
+              label='properties'
+              language={props.language}
+              value='0'
+            />
+            <SchemaTab
+              label='restrictions'
+              language={props.language}
+              value='1'
+            />
+            <SchemaTab
+              label='fields'
+              language={props.language}
+              value='2'
+              hide={itemToDisplay?.type !== 'object'}
+            />
           </TabList>
 
         </AppBar>
