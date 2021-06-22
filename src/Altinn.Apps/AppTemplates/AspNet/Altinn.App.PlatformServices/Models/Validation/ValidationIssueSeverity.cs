@@ -23,6 +23,11 @@ namespace Altinn.App.Services.Models.Validation
         /// <summary>
         /// Immediate feedback provided through validation.
         /// </summary>
-        Informational = 3
+        Informational = 3,
+
+        /// <summary>
+        /// The issue has been corrected.
+        /// </summary>
+        Fixed = 4,
     }
 }
