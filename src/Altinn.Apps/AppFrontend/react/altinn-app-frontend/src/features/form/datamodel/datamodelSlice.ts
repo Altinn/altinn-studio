@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IJsonSchemas {

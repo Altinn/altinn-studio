@@ -139,7 +139,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else if (typeof item === 'object' && item !== null) {
       const {
-        title, description, type, items, ...restrictions
+        title, description, type, enum: enums, items, ...restrictions
       } = item;
       result.push({
         id,
@@ -149,6 +149,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         description,
         type,
         items,
+        enum: enums,
       });
     } else {
       result.push({

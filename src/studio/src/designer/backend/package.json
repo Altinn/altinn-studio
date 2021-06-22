@@ -12,7 +12,7 @@
     "gulp-develop-dashboard": "gulp develop-dashboard"
   },
   "devDependencies": {
-    "chokidar": "3.5.1",
+    "chokidar": "3.5.2",
     "cross-env": "7.0.3",
     "del": "6.0.0",
     "gulp": "4.0.2",
@@ -29,9 +29,9 @@
     "jquery-ui-dist": "1.12.1",
     "jquery-validation": "1.19.3",
     "jquery-validation-unobtrusive": "3.2.12",
-    "js-beautify": "1.13.13",
+    "js-beautify": "1.14.0",
     "json-editor": "0.7.28",
-    "monaco-editor": "0.24.0",
+    "monaco-editor": "0.25.2",
     "popper.js": "1.16.1",
     "requirejs": "2.3.6",
     "requirejs-text": "2.0.16",
