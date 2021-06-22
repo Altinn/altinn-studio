@@ -105,6 +105,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton(Configuration);
             services.AddHttpClient<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddHttpClient<IUserProfileService, UserProfileService>();
+            services.AddHttpClient<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationService>();
             services.AddHttpClient<IOrganisationsService, OrganisationsService>();
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();

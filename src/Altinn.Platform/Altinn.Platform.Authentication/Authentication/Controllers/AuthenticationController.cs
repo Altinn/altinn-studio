@@ -1,16 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Json;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -74,6 +69,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="organisationRepository">the repository object that holds valid organisations</param>
         /// <param name="certificateProvider">Service that can obtain a list of certificates that can be used to generate JSON Web Tokens.</param>
         /// <param name="userProfileService">Service that can retrieve user profiles.</param>
+        /// <param name="enterpriseUserAuthenticationService">Service that can retrieve enterprise user profile.</param>
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         /// <param name="signingKeysResolver">Signing keys resolver for Altinn Common AccessToken</param>
         public AuthenticationController(
@@ -360,38 +356,42 @@ namespace Altinn.Platform.Authentication.Controllers
                     string usernameFromRequest = decodedStringArray[0];
                     string password = decodedStringArray[1];
 
-                    string bridgeApiEndpoint = _generalSettings.BridgeAuthnApiEndpoint + "enterpriseuser";
-
                     EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
-                    ConfiguredTaskAwaitable<HttpResponseMessage> response = _enterpriseUserAuthenticationService.GetResponseMessage(credentials, bridgeApiEndpoint);
+                    HttpResponseMessage response = await _enterpriseUserAuthenticationService.GetResponseMessage(credentials);
+                    string content = await response.Content.ReadAsStringAsync();
 
-                    var responseInfo = response.GetAwaiter().GetResult();
-                    string content = await response.GetAwaiter().GetResult().Content.ReadAsStringAsync();
-
-                    if (responseInfo.StatusCode.ToString() == "OK")
+                    switch (response.StatusCode)
                     {
-                        authenticatemethod = "virksomhetsbruker";
+                        case System.Net.HttpStatusCode.BadRequest:
+                            return StatusCode(400);
+                        case System.Net.HttpStatusCode.NotFound:
+                            ObjectResult result = StatusCode(404, "The user either does not exist or the password is incorrect.");
+                            return result;
+                        case System.Net.HttpStatusCode.InternalServerError:
+                            return StatusCode(502);
+                        case System.Net.HttpStatusCode.TooManyRequests:
+                            if (response.Headers.RetryAfter != null)
+                            {
+                                Response.Headers.Add("Retry-After", response.Headers.RetryAfter.ToString());
+                            }
 
-                        UserAuthenticationResult userAuthenticationResult = new UserAuthenticationResult();
-                        userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
+                            return StatusCode(429);
+                        case System.Net.HttpStatusCode.OK:
+                            authenticatemethod = "virksomhetsbruker";
 
-                        string userID = userAuthenticationResult.UserID.ToString();
-                        string username = userAuthenticationResult.Username;
-                        string partyId = userAuthenticationResult.PartyID.ToString();
+                            UserAuthenticationResult userAuthenticationResult = new UserAuthenticationResult();
+                            userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
 
-                        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
-                    }
-                    else if (responseInfo.StatusCode.ToString() == "BadRequest")
-                    {
-                        ObjectResult result = StatusCode(400, responseInfo.ReasonPhrase);
-                        return result;
-                    }
-                    else if (responseInfo.StatusCode.ToString() == "TooManyRequests")
-                    {
-                        ObjectResult result = this.StatusCode(429, string.Format("User Locked out. Try again in {0} hours, {1} minutes and {2} seconds.", responseInfo.Headers.RetryAfter.Delta.Value.Hours, responseInfo.Headers.RetryAfter.Delta.Value.Minutes, responseInfo.Headers.RetryAfter.Delta.Value.Seconds));
-                        return result;
+                            string userID = userAuthenticationResult.UserID.ToString();
+                            string username = userAuthenticationResult.Username;
+                            string partyId = userAuthenticationResult.PartyID.ToString();
+
+                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
+                            break;
+                        default:
+                            return StatusCode(401);
                     }
                 }
 
