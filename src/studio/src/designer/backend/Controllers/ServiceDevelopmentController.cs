@@ -225,10 +225,5 @@ namespace Altinn.Studio.Designer.Controllers
 
             return fileList.ToString();
         }
-
-        private object StringBuilder()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

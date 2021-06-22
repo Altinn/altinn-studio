@@ -105,7 +105,7 @@ namespace Designer.Tests.Services
             Assert.Null(actual);
         }
 
-        private HttpContext GetHttpContextForTestUser(string userName)
+        private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
@@ -119,7 +119,7 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private RepositorySI GetServiceForTest(Mock<IHttpContextAccessor> httpContextAccsessorMock)
+        private static RepositorySI GetServiceForTest(Mock<IHttpContextAccessor> httpContextAccsessorMock)
         {
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);

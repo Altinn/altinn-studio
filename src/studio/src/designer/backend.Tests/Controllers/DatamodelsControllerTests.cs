@@ -337,21 +337,6 @@ namespace Designer.Tests.Controllers
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
-        }
-
-        private JsonSchema LoadTestData(string resourceName)
-        {
-            Assembly assembly = typeof(DatamodelsControllerTests).GetTypeInfo().Assembly;
-            using Stream resource = assembly.GetManifestResourceStream(resourceName);
-
-            if (resource == null)
-            {
-                throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
-            }
-
-            using StreamReader streamReader = new StreamReader(resource);
-            JsonValue jsonValue = JsonValue.Parse(streamReader);
-            return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
-        }
+        }       
     }
 }

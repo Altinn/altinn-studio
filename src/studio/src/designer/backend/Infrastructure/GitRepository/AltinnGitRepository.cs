@@ -12,8 +12,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
-        const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";        
+        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
+        private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -73,6 +73,5 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             return altinnCoreSchemaFiles;
         }
-
     }
 }
