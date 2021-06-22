@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
@@ -287,6 +289,35 @@ namespace Designer.Tests.Controllers
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetDatamodels_NoInput_ShouldReturnAllModels()
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/";
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);            
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            var response = await client.SendAsync(httpRequestMessage);
+            var json = await response.Content.ReadAsStringAsync();
+            var altinnCoreFiles = System.Text.Json.JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(4, altinnCoreFiles.Count);
+        }
+
+        [Fact]
+        public async Task GetDatamodels_NotAuthenticated_ShouldReturn401()
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/";
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            
+            var response = await client.SendAsync(httpRequestMessage);
+            
+            Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+            Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());
         }
 
         private HttpClient GetTestClient()

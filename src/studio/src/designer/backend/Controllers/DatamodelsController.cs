@@ -126,7 +126,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpGet]
         [ProducesResponseType(200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(302)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
