@@ -104,7 +104,7 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   return yield call(ProcessDispatcher.completeProcess);
 }
 
-function* putFormData(state: IRuntimeState, model: any) {
+export function* putFormData(state: IRuntimeState, model: any) {
   // updates the default data element
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
@@ -149,7 +149,7 @@ function* handleCalculationUpdate(changedFields) {
 }
 
 // eslint-disable-next-line consistent-return
-function* saveFormDataSaga(): SagaIterator {
+export function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
@@ -176,7 +176,7 @@ function* saveFormDataSaga(): SagaIterator {
   }
 }
 
-function* saveStatelessData(state: IRuntimeState, model: any) {
+export function* saveStatelessData(state: IRuntimeState, model: any) {
   const currentDataType = getCurrentDataTypeForApplication(
     state.applicationMetadata.applicationMetadata,
     state.instanceData.instance,
