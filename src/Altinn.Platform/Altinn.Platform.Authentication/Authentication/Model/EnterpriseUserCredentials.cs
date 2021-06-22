@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Altinn.Platform.Authentication.Model
 {
     /// <summary>
-    /// Handles credentials for EnterpriseUsers
+    /// Handles credentials for an enterprise user.
     /// </summary>
     public class EnterpriseUserCredentials
     {

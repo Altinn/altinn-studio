@@ -5,7 +5,7 @@ using Altinn.Platform.Authentication.Model;
 namespace Altinn.Platform.Authentication.Services.Interfaces
 {
     /// <summary>
-    /// Interface handling methods for operations related to authentication of enterpriseusers
+    /// Interface describing methods related to authentication of enterprise users.
     /// </summary>
     public interface IEnterpriseUserAuthenticationService
     {
