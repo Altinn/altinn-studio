@@ -62,9 +62,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void Constructor_InvalidPathParameters_ShouldThrowException()
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = @"c:\not\part\of\root\directory";
+            string repositoryDirectory = Path.Combine(new string[] { repositoriesRootDirectory, $"..\\Model" });
 
-            Assert.Throws<DirectoryNotFoundException>(() => new AltinnGitRepository("ttd", "apps-test", "testUser", repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "apps-test", "testUser", repositoriesRootDirectory, repositoryDirectory));
         }
 
         [Theory]
