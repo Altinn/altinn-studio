@@ -7,6 +7,7 @@
   "Party": {
     "PartyId": 5780927,
     "Name": "Sophie Salt",
+    "SSN": "01017512345",
     "Person": {
       "FirstName": "Sophie"
     }
