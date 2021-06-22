@@ -10,6 +10,7 @@ import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 import { getParsedTextResourceByKey } from '../../src/utils/textResource';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
+import { getMockValidationState } from '../../__mocks__/validationStateMock';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -183,42 +184,7 @@ describe('>>> utils/validations.ts', () => {
       error: null,
     };
 
-    mockReduxFormat = {
-      FormLayout: {
-        componentId_1: {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
-            warnings: [],
-          },
-        },
-        componentId_2: {
-          customBinding: {
-            errors: [],
-            warnings: [getParsedTextResourceByKey('Warning message 1', []), getParsedTextResourceByKey('Warning message 2', [])],
-          },
-        },
-        'componentId_4-1': {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('test error', [])],
-            warnings: [],
-          },
-        },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('test error', [])],
-            warnings: [],
-          },
-        },
-      },
-      unmapped: {
-        unmapped: {
-          random_key: {
-            errors: [getParsedTextResourceByKey('test error', [])],
-            warnings: [getParsedTextResourceByKey('test warning', [])],
-          },
-        },
-      },
-    };
+    mockReduxFormat = getMockValidationState();
 
     mockFormData = {
       dataModelField_1: '-1',
@@ -685,9 +651,10 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidaitons =
+    const mappedDataElementValidations =
       validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layouts, []);
-    expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
+    const expected = getMockValidationState(true);
+    expect(mappedDataElementValidations).toEqual(expected);
   });
 
   it('+++ validateFormData should return error if form data is invalid', () => {

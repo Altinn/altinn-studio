@@ -848,6 +848,7 @@ function addValidation(
   const updatedValidations: IComponentBindingValidation = {
     errors: componentValidations?.errors || [],
     warnings: componentValidations?.warnings || [],
+    fixed: componentValidations?.fixed || [],
   };
 
   switch (validation.severity) {
