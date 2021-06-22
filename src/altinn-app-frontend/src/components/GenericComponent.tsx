@@ -65,9 +65,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[currentView]?.[props.id], shallowEqual);
 
   React.useEffect(() => {
-    if (props.dataModelBindings && props.type) {
-      setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
-    }
+    setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
   }, []);
 
   React.useEffect(() => {
