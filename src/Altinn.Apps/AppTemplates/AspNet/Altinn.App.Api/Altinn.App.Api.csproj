@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.8.0-alpha</Version>
-    <AssemblyVersion>4.8.0.0</AssemblyVersion>
+    <Version>4.9.0-alpha</Version>
+    <AssemblyVersion>4.9.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
