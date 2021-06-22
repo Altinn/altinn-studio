@@ -51,6 +51,9 @@ const useStyles = makeStyles(
         backgroundColor: '#006BD8',
       },
     },
+    tab: {
+      minWidth: 70,
+    },
   }),
 );
 
@@ -91,11 +94,15 @@ export const SchemaEditor = ({
 
   React.useEffect(() => {
     if (selectedNodeId) {
-      const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
-      if (node) {
-        node.focus();
-        (node.firstChild as HTMLElement).click();
-      }
+      const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
+      setTabIndex(tab);
+      setTimeout(() => {
+        const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
+        if (node) {
+          node.focus();
+          (node.firstChild as HTMLElement).click();
+        }
+      }, 50);
     }
   }, [selectedNodeId]);
 
@@ -141,6 +148,7 @@ export const SchemaEditor = ({
   };
 
   const renderTab = (label: string, index: number) => <Tab
+    className={classes.tab}
     label={getTranslation(label, language)}
     id={`simple-tab-${index}`}
     value={`${index}`}

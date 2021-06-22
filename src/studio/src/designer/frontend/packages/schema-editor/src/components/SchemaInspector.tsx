@@ -83,6 +83,9 @@ const useStyles = makeStyles(
     gridContainer: {
       maxWidth: 500,
     },
+    tab: {
+      minWidth: 70,
+    },
   }),
 );
 
@@ -490,11 +493,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
     </div>);
 
-  const a11yProps = (index: number) => ({
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-    value: `${index}`,
-  });
+  const renderTab = (label: string, index: number, hide: boolean = false) => <Tab
+    className={classes.tab}
+    label={getTranslation(label, props.language)}
+    id={`inspector-tab-${index}`}
+    value={`${index}`}
+    hidden={hide}
+  />;
 
   if (!selectedId) {
     return (
@@ -516,17 +521,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <TabList
             onChange={handleTabChange}
             aria-label='inspector tabs'
+
           >
-            <Tab
-              label={getTranslation('properties', props.language)} {...a11yProps(0)}
-            />
-            <Tab
-              label={getTranslation('restrictions', props.language)} {...a11yProps(1)}
-            />
-            <Tab
-              hidden={itemToDisplay?.type !== 'object'}
-              label={getTranslation('fields', props.language)} {...a11yProps(2)}
-            />
+            {renderTab('properties', 0)}
+            {renderTab('restrictions', 1)}
+            {renderTab('fields', 2, itemToDisplay?.type !== 'object')}
           </TabList>
 
         </AppBar>
