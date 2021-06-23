@@ -42,7 +42,11 @@ export function renderValidationMessagesForComponent(
   return validationMessageElements.length > 0 ? validationMessageElements : null;
 }
 
-export function renderValidationMessages(messages: string[], id: string, messageType: any) {
+export function renderValidationMessages(
+  messages: (string | React.ReactElement<any, string | React.JSXElementConstructor<any>>[])[],
+  id: string,
+  messageType: any,
+) {
   return (
     <MessageComponent
       messageType={messageType}
@@ -51,10 +55,15 @@ export function renderValidationMessages(messages: string[], id: string, message
       id={id}
     >
       <ol>
-        {messages.map((message: string, idx: number) => {
+        {messages.map((message: any, idx: number) => {
+          if (typeof message === 'string') {
+            return (
+              <li key={`validationMessage-${id}-${message}`}><p role='alert'>{message}</p></li>
+            );
+          }
           return (
             // eslint-disable-next-line react/no-array-index-key
-            <li key={idx}><p role='alert'>{message}</p></li>
+            <li key={`validationMessage-${id}-${idx}`}>{message}</li>
           );
         })}
       </ol>

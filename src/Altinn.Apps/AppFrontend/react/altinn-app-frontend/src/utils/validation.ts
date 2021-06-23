@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-param-reassign */
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
@@ -290,7 +289,7 @@ export function validateFormComponents(
 }
 
 /*
-  Fetches component spesific validations
+  Fetches component specific validations
 */
 export function validateFormComponentsForLayout(
   attachments: any,
@@ -589,6 +588,7 @@ export function mapToComponentValidations(
     const index = getIndex(dataBindingName);
     const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
     if (!validations[layoutId]) {
+      // eslint-disable-next-line no-param-reassign
       validations[layoutId] = {};
     }
     if (validations[layoutId][componentId]) {
@@ -775,7 +775,7 @@ export function mapDataElementValidationToRedux(
 }
 
 /**
- * Returns index of a datamodelbinding. If it is part of a repeating group we return it on the form {group1-index}-{group2-index}-{groupN-index}
+ * Returns index of a data model binding. If it is part of a repeating group we return it on the form {group1-index}-{group2-index}-{groupN-index}
  * @param dataModelBinding the data model binding
  */
 export function getIndex(dataModelBinding: string) {
@@ -814,7 +814,7 @@ function addValidation(
 
 /**
  * gets unmapped errors from validations as string array
- * @param validations the validaitons
+ * @param validations the validations
  */
 export function getUnmappedErrors(validations: IValidations): string[] {
   const messages: string[] = [];
@@ -931,25 +931,72 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
 
   sources.forEach((source: IValidations) => {
     Object.keys(source).forEach((layout: string) => {
-      if (!validations[layout]) {
-        validations[layout] = {};
-      }
-      Object.keys(source[layout] || {}).forEach((component: string) => {
-        if (!validations[layout][component]) {
-          validations[layout][component] = {};
-        }
-        Object.keys(source[layout][component] || {}).forEach((binding: string) => {
-          if (!validations[layout][component][binding]) {
-            validations[layout][component][binding] = { errors: [], warnings: [] };
-          }
-          validations[layout][component][binding].errors = validations[layout][component][binding].errors.concat(source[layout][component][binding]?.errors);
-          validations[layout][component][binding].warnings = validations[layout][component][binding].warnings.concat(source[layout][component][binding]?.warnings);
-        });
-      });
+      validations[layout] = mergeLayoutValidations(validations[layout] || {}, source[layout] || {});
     });
   });
 
   return validations;
+}
+
+export function mergeLayoutValidations(
+  currentLayoutValidations: ILayoutValidations,
+  newLayoutValidations: ILayoutValidations,
+): ILayoutValidations {
+  const mergedValidations: ILayoutValidations = { ...currentLayoutValidations };
+  Object.keys(newLayoutValidations).forEach((component) => {
+    mergedValidations[component] = mergeComponentValidations(
+      currentLayoutValidations[component] || {},
+      newLayoutValidations[component] || {},
+    );
+  });
+  return mergedValidations;
+}
+
+export function mergeComponentValidations(
+  currentComponentValidations: IComponentValidations,
+  newComponentValidations: IComponentValidations,
+): IComponentValidations {
+  const mergedValidations: IComponentValidations = { ...currentComponentValidations };
+  Object.keys(newComponentValidations).forEach((binding) => {
+    mergedValidations[binding] = mergeComponentBindingValidations(
+      currentComponentValidations[binding],
+      newComponentValidations[binding],
+    );
+  });
+  return mergedValidations;
+}
+
+export function mergeComponentBindingValidations(
+  existingValidations?: IComponentBindingValidation,
+  newValidations?: IComponentBindingValidation,
+): IComponentBindingValidation {
+  const existingErrors = existingValidations?.errors || [];
+  const existingWarnings = existingValidations?.warnings || [];
+
+  // Only merge items that are not already in the existing components errors/warnings array
+  const uniqueNewErrors = getUniqueNewElements(existingErrors, newValidations?.errors);
+  const uniqueNewWarnings = getUniqueNewElements(existingWarnings, newValidations?.warnings);
+
+  return {
+    errors: existingErrors.concat(uniqueNewErrors),
+    warnings: existingWarnings.concat(uniqueNewWarnings),
+  };
+}
+
+export function getUniqueNewElements(originalArray: any[], newArray?: any[]) {
+  if (!newArray || newArray.length === 0) {
+    return [];
+  }
+
+  if (originalArray.length === 0) {
+    return newArray;
+  }
+
+  return newArray.filter((element) => {
+    return originalArray.findIndex((existingElement) => {
+      return JSON.stringify(existingElement) === JSON.stringify(element);
+    }) < 0;
+  });
 }
 
 /**
@@ -1004,7 +1051,7 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
 }
 
 /*
- * Removes the validations for a given group index and shifts higher indexes if nesseccary.
+ * Removes the validations for a given group index and shifts higher indexes if necessary.
  * @param id the group id
  * @param index the index to remove
  * @param currentLayout the current layout
@@ -1046,7 +1093,7 @@ export function removeGroupValidationsByIndex(
       // delete component directly
       delete result[currentLayout][childKey];
     } else {
-      // recursivly call delete if we have a child group
+      // recursively call delete if we have a child group
       const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.count;
       for (let i = 0; i <= childGroupCount; i++) {
         result = removeGroupValidationsByIndex(`${element.id}-${index}`, i, currentLayout, layout, repeatingGroups, result, false);
@@ -1055,7 +1102,7 @@ export function removeGroupValidationsByIndex(
   });
 
   if (shift) {
-  // Shift validations if nessessarry
+  // Shift validations if necessary
     if (index < repeatingGroup.count + 1) {
       for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
         const key = `${id}-${i}`;

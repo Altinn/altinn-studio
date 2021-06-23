@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { AnyAction } from 'redux';
 import { createReducer, PayloadAction } from '@reduxjs/toolkit';
 import FormDataActions from './formDataActions';

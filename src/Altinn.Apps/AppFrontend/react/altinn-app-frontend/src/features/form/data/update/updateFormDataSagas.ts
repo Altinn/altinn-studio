@@ -5,7 +5,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
 import { createValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
-import FormValidationActions from '../../validation/validationActions';
+import { updateComponentValidations } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
 import { IUpdateFormData } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
@@ -85,13 +85,12 @@ function* runValidations(
     updatedInvalidDataComponents.push(field);
   }
 
-  yield call(
-    FormValidationActions.updateComponentValidations,
-    layoutId,
-    componentValidations,
+  yield put(updateComponentValidations({
     componentId,
-    updatedInvalidDataComponents,
-  );
+    layoutId,
+    validations: componentValidations,
+    invalidDataTypes: updatedInvalidDataComponents,
+  }));
 }
 
 function shouldUpdateFormData(currentData: any, newData: any): boolean {

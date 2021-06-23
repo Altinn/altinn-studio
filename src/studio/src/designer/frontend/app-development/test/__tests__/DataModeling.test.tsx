@@ -43,18 +43,6 @@ describe('DataModeling', () => {
     store.dispatch = jest.fn(dispatchMock);
   });
 
-  it('Should match snapshot', () => {
-    let wrapper: any = null;
-    act(() => {
-      wrapper = mount(
-        <Provider store={store}>
-          <DataModelingContainer language={language} />
-        </Provider>,
-      );
-    });
-    expect(wrapper.getDOMNode()).toMatchSnapshot();
-  });
-
   it('fetches model on mount', () => {
     let wrapper: any = null;
     act(() => {
