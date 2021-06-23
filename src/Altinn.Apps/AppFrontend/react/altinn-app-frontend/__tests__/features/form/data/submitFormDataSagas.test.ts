@@ -11,6 +11,8 @@ import { post } from '../../../../src/utils/networking';
 import { getCurrentTaskDataElementId } from '../../../../../shared/src/utils';
 import { dataElementUrl, getStatelessFormDataUrl } from '../../../../src/utils/urlHelper';
 import { getCurrentDataTypeForApplication } from '../../../../src/utils/appMetadata';
+import { IInstanceDataState } from '../../../../src/shared/resources/instanceData/instanceDataReducers';
+import { IData } from '../../../../../shared/src';
 
 describe('submitFormDataSagas', () => {
   let stateMock: IRuntimeState;
@@ -19,34 +21,30 @@ describe('submitFormDataSagas', () => {
   });
 
   it('saveFormDataSaga', () => {
-    const instanceDataMock = getInstanceDataStateMock();
-    const instanceData = {
-      data: [
-        {
-          id: 'test-data-element-1',
-          dataType: 'test-data-model',
-          filename: 'testData1.pdf',
-          contentType: 'application/pdf',
-          blobStoragePath: '',
-          selfLinks: {
-            apps: null,
-            platform: null,
-          },
-          size: 1234,
-          locked: false,
-          refs: [],
-          created: new Date('2021-01-01'),
-          createdBy: 'testUser',
-          lastChanged: new Date('2021-01-01'),
-          lastChangedBy: 'testUser',
-        },
-      ],
+    const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
+    const dataElement: IData = {
+      id: 'test-data-element-1',
+      dataType: 'test-data-model',
+      filename: 'testData1.pdf',
+      contentType: 'application/pdf',
+      blobStoragePath: '',
+      selfLinks: {
+        apps: null,
+        platform: null,
+      },
+      size: 1234,
+      locked: false,
+      refs: [],
+      created: new Date('2021-01-01'),
+      createdBy: 'testUser',
+      lastChanged: new Date('2021-01-01'),
+      lastChangedBy: 'testUser',
     };
-    const mockInstanceData = {
+    const mockInstanceData: IInstanceDataState = {
       ...instanceDataMock,
       instance: {
         ...instanceDataMock.instance,
-        ...instanceData,
+        data: [dataElement],
       },
     };
     const state: IRuntimeState = {
