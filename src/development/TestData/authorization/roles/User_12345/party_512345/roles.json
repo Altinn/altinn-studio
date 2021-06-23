@@ -6,6 +6,10 @@
   {
     "Type": "altinn",
     "value": "dagl"
+  },
+  {
+    "Type": "altinn",
+    "value": "priv"
   }
 ]
 
