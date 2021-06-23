@@ -24,6 +24,7 @@ describe('submitFormDataSagas', () => {
     const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
     const dataElement: IData = {
       id: 'test-data-element-1',
+      instanceGuid: instanceDataMock.instance.id,
       dataType: 'test-data-model',
       filename: 'testData1.pdf',
       contentType: 'application/pdf',
