@@ -6,7 +6,7 @@ import { getParties } from './api/platform/authorization.js';
 import { addErrorCount, stopIterationOnFail } from './errorcounter.js';
 import * as support from './support.js';
 import { convertMaskinPortenToken } from './api/platform/authentication.js';
-import { getEnterpriseToken } from './api/altinn-testtools/token-generator.js';
+import { generateToken } from './api/altinn-testtools/token-generator.js';
 
 const environment = __ENV.env.toLowerCase();
 const tokenGeneratorUserName = __ENV.tokengenuser;
@@ -128,6 +128,6 @@ export function getAltinnTokenForTTD() {
       org: 'ttd',
       orgNo: '991825827',
     };
-    return getEnterpriseToken(tokenGeneratorUserName, tokenGeneratorUserPwd, queryParams);
+    return generateToken('enterprise', tokenGeneratorUserName, tokenGeneratorUserPwd, queryParams);
   }
 }
