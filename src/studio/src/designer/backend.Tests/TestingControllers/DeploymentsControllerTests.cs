@@ -4,16 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;

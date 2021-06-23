@@ -4,16 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
@@ -75,7 +71,7 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal(5, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
             pipelineService.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            releaseService.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            releaseService.VerifyAll();
         }
 
         [Fact]
@@ -112,7 +108,7 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal(5, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
             pipelineService.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            releaseService.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            releaseService.VerifyAll();
         }
 
         private List<ReleaseEntity> GetReleasesList(string filename)
