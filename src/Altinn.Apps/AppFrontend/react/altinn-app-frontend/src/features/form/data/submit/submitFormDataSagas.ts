@@ -19,7 +19,7 @@ import { canFormBeSaved,
   validateFormComponents,
   validateFormData } from '../../../../utils/validation';
 import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
-import FormValidationActions from '../../validation/validationActions';
+import { runSingleFieldValidation, updateValidations } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
@@ -63,7 +63,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
     }
     validationResult.validations = validations;
     if (!canFormBeSaved(validationResult, apiMode)) {
-      FormValidationActions.updateValidations(validations);
+      yield sagaPut(updateValidations({ validations }));
       return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
     }
 
@@ -86,7 +86,7 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   const layoutState: ILayoutState = yield select(LayoutSelector);
   const mappedValidations =
     mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
-  FormValidationActions.updateValidations(mappedValidations);
+  yield sagaPut(updateValidations({ validations: mappedValidations }));
   const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
   const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
   if (hasErrors || (stopWithWarnings && hasWarnings)) {
@@ -166,7 +166,7 @@ export function* saveFormDataSaga(): SagaIterator {
     }
 
     if (state.formValidations.currentSingleFieldValidation) {
-      yield call(FormValidationActions.runSingleFieldValidation);
+      yield sagaPut(runSingleFieldValidation());
     }
 
     yield sagaPut(FormDataActions.submitFormDataFulfilled());

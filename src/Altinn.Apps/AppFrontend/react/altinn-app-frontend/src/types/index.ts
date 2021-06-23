@@ -6,7 +6,7 @@ import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/formLayoutSlice';
-import { IValidationState } from '../features/form/validation/validationReducer';
+import { IValidationState } from '../features/form/validation/validationSlice';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';

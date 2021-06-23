@@ -1,16 +1,20 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, Tab, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty, setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems } from '../features/editor/schemaEditorSlice';
+import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
+  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems, addEnum, deleteEnum }
+  from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
+import { EnumField } from './EnumField';
+import { SchemaTab } from './SchemaTab';
 
 const useStyles = makeStyles(
   createStyles({
@@ -18,7 +22,6 @@ const useStyles = makeStyles(
       minHeight: 600,
       minWidth: 500,
       flexGrow: 1,
-      margin: 4,
       padding: 14,
       background: 'white',
       zIndex: 2,
@@ -102,13 +105,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const [tabIndex, setTabIndex] = React.useState('0');
-
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
     }
     return null;
   });
+
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector(
     (state: ISchemaState) => (selectedItem?.$ref ? state.uiSchema
@@ -187,9 +190,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
+  const onDeleteEnumClick = (path: string, value: string) => {
+    dispatch(deleteEnum({ path, value }));
+  };
   const onChangeNodeName = () => {
     dispatch(setPropertyName({
       path: selectedItem?.id, name: nodeName, navigate: true,
+    }));
+  };
+  const onChangeEnumValue = (value: string, oldValue?: string) => {
+    dispatch(addEnum({
+      path: itemToDisplay?.id, value, oldValue,
     }));
   };
 
@@ -210,6 +221,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path,
       key: '',
       value: '',
+    }));
+  };
+  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const path = itemToDisplay?.id;
+    dispatch(addEnum({
+      path,
+      value: 'value',
     }));
   };
 
@@ -294,6 +313,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
     );
   });
+
+  const renderEnums = (item: UiSchemaItem) => {
+    return item.enum?.map((value: string) => (
+      <EnumField
+        key={value}
+        language={props.language}
+        path={item.id}
+        fullWidth={true}
+        value={value}
+        onChange={onChangeEnumValue}
+        onDelete={onDeleteEnumClick}
+      />));
+  };
 
   const handleTabChange = (event: any, newValue: string) => {
     setTabIndex(newValue);
@@ -459,12 +491,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       />
     </div>);
 
-  const a11yProps = (index: number) => ({
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-    value: `${index}`,
-  });
-
   if (!selectedId) {
     return (
       <div>
@@ -486,15 +512,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onChange={handleTabChange}
             aria-label='inspector tabs'
           >
-            <Tab
-              label={getTranslation('properties', props.language)} {...a11yProps(0)}
+            <SchemaTab
+              label='properties'
+              language={props.language}
+              value='0'
             />
-            <Tab
-              label={getTranslation('restrictions', props.language)} {...a11yProps(1)}
+            <SchemaTab
+              label='restrictions'
+              language={props.language}
+              value='1'
             />
-            <Tab
-              hidden={itemToDisplay?.type !== 'object'}
-              label={getTranslation('fields', props.language)} {...a11yProps(2)}
+            <SchemaTab
+              label='fields'
+              language={props.language}
+              value='2'
+              hide={itemToDisplay?.type !== 'object'}
             />
           </TabList>
 
@@ -505,7 +537,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         <TabPanel value='1'>
           <Grid
             container
-            spacing={3}
+            spacing={1}
             className={classes.gridContainer}
           >
             <Grid item xs={12}>
@@ -528,13 +560,27 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               <p>{getTranslation('value', props.language)}</p>
             </Grid>
             { itemToDisplay && renderItemRestrictions(itemToDisplay) }
+            <IconButton
+              id='add-restriction-button'
+              aria-label={getTranslation('add_restriction', props.language)}
+              onClick={onAddRestrictionClick}
+            ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
+            </IconButton>
+            { objectType !== 'object' &&
+              <>
+                <Grid item xs={12}>
+                  <hr className={classes.divider} />
+                  <p className={classes.header}>{getTranslation('enum', props.language)}</p>
+                </Grid>
+                {itemToDisplay && renderEnums(itemToDisplay)}
+                <IconButton
+                  id='add-enum-button'
+                  aria-label={getTranslation('add_enum', props.language)}
+                  onClick={onAddEnumButtonClick}
+                ><i className='fa fa-plus'/>{getTranslation('add_enum', props.language)}
+                </IconButton>
+              </>}
           </Grid>
-          <IconButton
-            id='add-restriction-button'
-            aria-label={getTranslation('add_restriction', props.language)}
-            onClick={onAddRestrictionClick}
-          ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
-          </IconButton>
         </TabPanel>
         <TabPanel value='2'>
           <Grid
