@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 
@@ -47,11 +48,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(query);
 
-            List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals("inProgress") && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
+            List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
 
             foreach (ReleaseEntity release in laggingReleases)
             {
-                await _pipelineService.UpdateDeploymentStatus(release.Build.Id, release.Org);
+                await _pipelineService.UpdateReleaseStatus(release.Build.Id, release.Org);
             }
 
             return releases;
