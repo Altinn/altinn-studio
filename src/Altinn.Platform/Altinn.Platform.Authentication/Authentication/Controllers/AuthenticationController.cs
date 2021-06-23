@@ -348,8 +348,17 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (!string.IsNullOrEmpty(Request.Headers["X-Altinn-EnterpriseUser-Authentication"]))
                 {
                     string enterpriseUserHeader = Request.Headers["X-Altinn-EnterpriseUser-Authentication"];
-                    byte[] decodedCredentials = Convert.FromBase64String(enterpriseUserHeader);
-                    string decodedString = Encoding.UTF8.GetString(decodedCredentials);
+                    string decodedString;
+
+                    try
+                    {
+                        decodedString = DecodeEnterpriseUserHeader(enterpriseUserHeader);
+                    }
+                    catch (Exception)
+                    {
+                        return StatusCode(400);
+                    }
+
                     string[] decodedStringArray = decodedString.Split(":");
                     string usernameFromRequest = decodedStringArray[0];
                     string password = decodedStringArray[1];
@@ -363,10 +372,8 @@ namespace Altinn.Platform.Authentication.Controllers
                         case System.Net.HttpStatusCode.BadRequest:
                             return StatusCode(400);
                         case System.Net.HttpStatusCode.NotFound:
-                            ObjectResult result = StatusCode(404, "The user either does not exist or the password is incorrect.");
+                            ObjectResult result = StatusCode(401, "The user either does not exist or the password is incorrect.");
                             return result;
-                        case System.Net.HttpStatusCode.InternalServerError:
-                            return StatusCode(502);
                         case System.Net.HttpStatusCode.TooManyRequests:
                             if (response.Headers.RetryAfter != null)
                             {
@@ -389,7 +396,8 @@ namespace Altinn.Platform.Authentication.Controllers
                             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
                             break;
                         default:
-                            return StatusCode(401);
+                            _logger.LogWarning("Unexpected response from SBLBridge during enterprise user authentication. HttpStatusCode={statusCode} Content={content}", response.StatusCode, content);
+                            return StatusCode(502);
                     }
                 }
 
@@ -419,6 +427,20 @@ namespace Altinn.Platform.Authentication.Controllers
                 _logger.LogWarning($"Organisation authentication failed. {ex.Message}");
                 return Unauthorized();
             }
+        }
+
+        private string DecodeEnterpriseUserHeader(string encodedCredentials)
+        {
+            try
+            {
+                byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
+                string decodedString = Encoding.UTF8.GetString(decodedCredentials);
+                return decodedString;
+            }
+            catch (Exception)
+            {
+                throw;
+            }     
         }
 
         /// <summary>
