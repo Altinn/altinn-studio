@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             RepositoriesRootDirectory = Path.GetFullPath(repositoriesRootDirectory);
             RepositoryDirectory = Path.GetFullPath(repositoryDirectory);
 
-            if (!RepositoryDirectory.Contains(RepositoriesRootDirectory))
+            if (!RepositoryDirectory.StartsWith(RepositoriesRootDirectory))
             {
                 throw new ArgumentException($"The repository directory '{RepositoryDirectory}' must be below the repositories root directory '{RepositoriesRootDirectory}'.");
             }
