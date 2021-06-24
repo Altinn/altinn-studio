@@ -37,10 +37,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData(@"app/models/35721.xsd")]
         [InlineData(@"app/models/41111.xsd")]
         public async Task WriteTextByRelativePathAsync_ReadWriteRoundtrip_ShouldReadBackEqual(string expectedFilePath)
-        {
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "ttd-datamodels", "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+        {            
+            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
             var expectedContent = await gitRepository.ReadTextByRelativePathAsync(expectedFilePath);
 
@@ -61,11 +59,34 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task WriteTextByRelativePathAsync_RelativePathOutsideParent_ShouldThrowArgumentException()
         {
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "ttd-datamodels", "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
             await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"..\should.not.exist", "some content"));
+        }
+
+        [Fact]
+        public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse()
+        {
+            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+
+            Assert.False(gitRepository.FileExistsByRelativePath("this.dont.exists.schema.json"));
+        }
+
+        [Fact]
+        public void FileExistsByRelativePath_FileExits_ShouldReturnTrue()
+        {
+            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+
+            Assert.True(gitRepository.FileExistsByRelativePath("App/models/41111.xsd"));
+        }
+
+        private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)
+        {
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            return gitRepository;
         }
     }
 }

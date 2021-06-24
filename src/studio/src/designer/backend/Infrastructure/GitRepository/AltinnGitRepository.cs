@@ -71,11 +71,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
                 return _altinnStudioSettings;
             }
-
-            private set
-            {
-                _altinnStudioSettings = value;
-            }
         }
 
         /// <summary>
@@ -91,11 +86,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 }
 
                 return _repositoryType;
-            }
-
-            private set
-            {
-                _repositoryType = value;
             }
         }
 
