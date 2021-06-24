@@ -43,7 +43,7 @@
     "@types/react-html-parser": "~2.0.1",
     "@types/react-router-dom": "~5.1.7",
     "@types/react-test-renderer": "~17.0.1",
-    "altinn-designsystem": "3.1.0",
+    "altinn-designsystem": "2.7.12",
     "babel-jest": "~27.0.5",
     "babel-loader": "~8.2.2",
     "enzyme": "~3.11.0",
