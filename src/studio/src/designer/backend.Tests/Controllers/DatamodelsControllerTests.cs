@@ -296,7 +296,9 @@ namespace Designer.Tests.Controllers
         {
             var client = GetTestClient();
             var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/";
+
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);            
+
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             var response = await client.SendAsync(httpRequestMessage);
@@ -318,6 +320,42 @@ namespace Designer.Tests.Controllers
             
             Assert.Equal(HttpStatusCode.Found, response.StatusCode);
             Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());
+        }
+
+        [Theory]
+        [InlineData("testModel.schema.json")]
+        [InlineData("App/testModel.schema.json")]
+        [InlineData("App/models/testModel.schema.json")]
+        public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
+        {
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "ttd-datamodels", "testUser");
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            if (gitRepository.FileExistsByRelativePath(modelPath))
+            {
+                gitRepository.DeleteFileByRelativePath(modelPath);
+            }
+
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/?modelPath={modelPath}";
+            string requestBody = "{}";
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
+            finally
+            {
+                gitRepository.DeleteFileByRelativePath(modelPath);
+            }
         }
 
         private HttpClient GetTestClient()

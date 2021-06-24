@@ -34,11 +34,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task UpdateSchemaFile(string org, string repository, string developer, string filePath, string content)
+        public async Task UpdateSchemaFile(string org, string repository, string developer, string relativeFilePath, string content)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
 
-            throw new System.NotImplementedException();
+            await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, content);
         }
     }
 }

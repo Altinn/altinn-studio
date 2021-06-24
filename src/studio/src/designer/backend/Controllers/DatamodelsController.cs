@@ -126,13 +126,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpPut]
         [ProducesResponseType(201)]
-        [Route("/designer/api/{org}/{app}/datamodels")]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            //await _schemaModelService.UpdateSchemaFile(org, app, modelPath, content);
+            await _schemaModelService.UpdateSchemaFile(org, repository, developer, modelPath, content);
 
             return NoContent();
         }

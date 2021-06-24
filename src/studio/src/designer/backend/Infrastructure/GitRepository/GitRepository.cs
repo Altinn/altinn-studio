@@ -83,8 +83,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
-            return await ReadTextAsync(absoluteFilePath);
+
+            // In a weird case this returns something else than the one below on one character in 0678.xsd. return await ReadTextAsync(absoluteFilePath);
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);            
         }
 
         /// <summary>
@@ -104,7 +105,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Deletes the specified file
         /// </summary>
-        /// <param name="relativeFilePath">File to be deleted.</param>
+        /// <param name="relativeFilePath">Relative path to file to be deleted.</param>
         public void DeleteFileByRelativePath(string relativeFilePath)
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
@@ -112,6 +113,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
             File.Delete(absoluteFilePath);
+        }
+
+        /// <summary>
+        /// Checks if a file exists within the repository.
+        /// </summary>
+        /// <param name="relativeFilePath">Relative path to file to check for existense.</param>        
+        public bool FileExistsByRelativePath(string relativeFilePath)
+        {
+            var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+
+            if (!absoluteFilePath.StartsWith(RepositoryDirectory))
+            {
+                return false;
+            }
+
+            return File.Exists(absoluteFilePath);
         }
 
         private string GetAbsoluteFilePathSanitized(string relativeFilePath)
