@@ -78,14 +78,52 @@ namespace Altinn.Studio.Designer.Helpers
         }
 
         /// <summary>
+        /// Assert that a full path to a sub directory is below a full path to a parent directory.
+        /// </summary>
+        /// <param name="parentDirectory">Full path to the parent directory.</param>
+        /// <param name="subDirectory">Full path to the sub directory including the parent directory.</param>
+        public static void AssertSubDirectoryWithinParentDirectory(string parentDirectory, string subDirectory)
+        {
+            if (!subDirectory.StartsWith(parentDirectory))
+            {
+                throw new ArgumentException($"The sub directory '{subDirectory}' must be below the parent directory '{parentDirectory}'.");
+            }
+        }
+
+        /// <summary>
+        /// Assert that a full path to a file is below a full path to a parent directory.
+        /// </summary>
+        /// <param name="parentDirectory">Full path to the parent directory.</param>
+        /// <param name="filePath">Full path to a file including the parent directory.</param>
+        public static void AssertFilePathWithinParentDirectory(string parentDirectory, string filePath)
+        {
+            if (!filePath.StartsWith(parentDirectory))
+            {
+                throw new ArgumentException($"The file '{filePath}' must be below the parent directory '{parentDirectory}'.");
+            }
+        }
+
+        /// <summary>
         /// Assert that a specified directory exists.
         /// </summary>
-        /// <param name="path">Full path to directory.</param>
-        public static void AssertDirectoryExists(string path)
+        /// <param name="directoryPath">Full path to directory.</param>
+        public static void AssertDirectoryExists(string directoryPath)
         {
-            if (!Directory.Exists(path))
+            if (!Directory.Exists(directoryPath))
             {
-                throw new DirectoryNotFoundException($"Could not find the specified path: {path}");
+                throw new DirectoryNotFoundException($"Could not find the specified directory at '{directoryPath}'");
+            }
+        }
+
+        /// <summary>
+        /// Assert that a specified file exists.
+        /// </summary>
+        /// <param name="filePath">Full path to file.</param>
+        public static void AssertFileExists(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Could not find the specified file at '{filePath}.");
             }
         }
     }

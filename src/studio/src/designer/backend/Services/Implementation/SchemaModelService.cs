@@ -32,5 +32,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return altinnGitRepository.GetSchemaFiles();            
         }
+
+        /// <inheritdoc/>
+        public Task UpdateSchemaFile(string org, string repository, string developer, string filePath, string content)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+
+            throw new System.NotImplementedException();
+        }
     }
 }

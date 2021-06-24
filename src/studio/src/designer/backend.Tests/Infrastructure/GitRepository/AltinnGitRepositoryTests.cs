@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Designer.Tests.Utils;
@@ -83,19 +84,38 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
         [Fact]        
         public void GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
-        {
-            var org = "ttd";
-            var repository = "ttd-datamodels";
-            var developer = "testUser";
-
-            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-
-            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+        {            
+            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testuser");
             var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "0678.xsd");
 
             Assert.Equal(".xsd", file.FileType);
             Assert.Equal(@"/App/models/0678.xsd", file.RepositoryRelativeUrl);
-        }        
+        }
+
+        [Fact]
+        public void RepositoryType_SettingsExists_ShouldUseThat()
+        {            
+            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+
+            Assert.Equal(AltinnRepositoryType.Datamodels, altinnGitRepository.RepositoryType);
+        }
+
+        [Fact]
+        public void RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
+        {
+            var altinnGitRepository = GetTestRepository("ttd", "apps-test", "testUser");
+
+            Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
+        }
+
+        private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)
+        {
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+
+            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            return altinnGitRepository;
+        }
     }
 }

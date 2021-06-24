@@ -118,6 +118,26 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Updates the specified datamodel in the git repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository</param>
+        /// <param name="modelPath">The path to the file to be updated.</param>        
+        [Authorize]
+        [HttpPut]
+        [ProducesResponseType(201)]
+        [Route("/designer/api/{org}/{app}/datamodels")]
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var content = await ReadRequestBodyContentAsync();
+
+            //await _schemaModelService.UpdateSchemaFile(org, app, modelPath, content);
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Method that returns all datamodels within repository.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
@@ -221,6 +241,18 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return BadRequest();
+        }
+
+        private async Task<string> ReadRequestBodyContentAsync()
+        {
+            string content;
+
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            {
+                content = await reader.ReadToEndAsync();
+            }
+
+            return content;
         }
     }
 }

@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -13,7 +17,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
         private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
-        private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";        
+        private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
+        private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
+
+        private AltinnStudioSettings _altinnStudioSettings;
+        private AltinnRepositoryType _repositoryType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -50,9 +58,50 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string Developer { get; private set; }
 
         /// <summary>
-        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// <inheritdoc/>
         /// </summary>
-        /// <returns></returns>
+        internal AltinnStudioSettings AltinnStudioSettings
+        {
+            get
+            {
+                if (_altinnStudioSettings == null)
+                {
+                    _altinnStudioSettings = GetAltinnStudioSettings();
+                }
+
+                return _altinnStudioSettings;
+            }
+
+            private set
+            {
+                _altinnStudioSettings = value;
+            }
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public AltinnRepositoryType RepositoryType
+        {
+            get
+            {
+                if (_repositoryType == AltinnRepositoryType.Unknown)
+                {
+                    _repositoryType = GetRepositoryType();
+                }
+
+                return _repositoryType;
+            }
+
+            private set
+            {
+                _repositoryType = value;
+            }
+        }
+
+        /// <summary>
+        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// </summary>        
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
             var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
@@ -60,6 +109,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
             return altinnCoreSchemaFiles;
+        }
+
+        private AltinnStudioSettings GetAltinnStudioSettings()
+        {
+            var studioSettingsFilePath = Path.Combine(RepositoryDirectory, STUDIO_SETTINGS_FILEPATH);
+
+            // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
+            // for these we return a default which assumes that it is an app repo.
+            if (!File.Exists(studioSettingsFilePath))
+            {
+                return new AltinnStudioSettings() { RepoType = "app" };
+            }
+
+            var altinnStudioSettingsJson = ReadTextByAbsolutePathAsync(studioSettingsFilePath).Result;
+            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+
+            return altinnStudioSettings;
+        }
+
+        private AltinnRepositoryType GetRepositoryType()
+        {            
+            return Enum.Parse<AltinnRepositoryType>(AltinnStudioSettings.RepoType, true);
         }
 
         private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
