@@ -36,6 +36,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData(@"app/models/HvemErHvem.json")]
         [InlineData(@"app/models/HvemErHvem_FlatNoTypes.schema.json")]
         [InlineData(@"app/models/HvemErHvem_SERES.schema.json")]
+        [InlineData(@"/app/models/HvemErHvem_SERES.schema.json")]
         public async Task WriteTextByRelativePathAsync_ReadWriteRoundtrip_ShouldReadBackEqual(string expectedFilePath)
         {            
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
