@@ -133,6 +133,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private string GetAbsoluteFilePathSanitized(string relativeFilePath)
         {
+            if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
+            {
+                relativeFilePath = relativeFilePath[1..];
+            }
+
             // We do this to avoid paths like c:\altinn\repositories\developer\org\repo\..\..\somefile.txt
             // By first combining the paths, the getting the full path you will get c:\altinn\repositories\developer\org\repo\somefile.txt
             // This also makes it easier to avoid people trying to get outside their repository directory.

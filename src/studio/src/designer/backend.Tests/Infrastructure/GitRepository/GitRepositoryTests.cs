@@ -72,12 +72,16 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.False(gitRepository.FileExistsByRelativePath("this.dont.exists.schema.json"));
         }
 
-        [Fact]
-        public void FileExistsByRelativePath_FileExits_ShouldReturnTrue()
+        [Theory]
+        [InlineData(@"App/models/HvemErHvem.json")]
+        [InlineData(@"App\models\HvemErHvem.json")]
+        [InlineData(@"/App/models/HvemErHvem.json")]
+        [InlineData(@"\App\models\HvemErHvem.json")]
+        public void FileExistsByRelativePath_FileExits_ShouldReturnTrue(string relativePath)
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            Assert.True(gitRepository.FileExistsByRelativePath("App/models/HvemErHvem.json"));
+            Assert.True(gitRepository.FileExistsByRelativePath(relativePath));
         }
 
         private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)
