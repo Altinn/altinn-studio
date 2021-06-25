@@ -22,6 +22,7 @@ const styles = createStyles({
 
 export interface IInstantiateContainerProps extends WithStyles<typeof styles> {
   children?: any;
+  type: 'normal' | 'partyChoice';
 }
 
 function InstantiateContainer(props: IInstantiateContainerProps) {
@@ -40,7 +41,7 @@ function InstantiateContainer(props: IInstantiateContainerProps) {
       <Header
         language={language}
         profile={profile}
-        type='normal'
+        type={props.type}
       />
       {children}
     </Grid>

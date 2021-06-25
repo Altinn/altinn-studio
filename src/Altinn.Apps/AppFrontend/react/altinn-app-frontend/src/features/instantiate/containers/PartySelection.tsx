@@ -278,7 +278,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   }
 
   return (
-    <InstantiationContainer>
+    <InstantiationContainer type='partyChoice'>
       <Grid
         container={true}
         direction='row'

@@ -19,7 +19,7 @@ function InstantiationErrorPage(props: IInstantiationErrorPageProps) {
   } = props;
 
   return (
-    <InstantiateContainer>
+    <InstantiateContainer type='partyChoice'>
       <Grid
         container={true}
         direction='row'
