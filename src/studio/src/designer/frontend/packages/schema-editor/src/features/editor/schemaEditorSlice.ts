@@ -236,8 +236,6 @@ const schemaEditorSlice = createSlice({
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
-      state.selectedId = undefined;
-      state.selectedNodeId = undefined;
       state.schema = schema;
     },
     setPropertyName(state, action) {
@@ -283,6 +281,13 @@ const schemaEditorSlice = createSlice({
 
       state.uiSchema = uiSchema;
       state.rootName = rootElementPath;
+
+      // set first item as selected
+      if (state.uiSchema.length > 0) {
+        const id = state.uiSchema[0].id;
+        state.selectedId = id;
+        state.selectedNodeId = getDomFriendlyID(id);
+      }
     },
     updateJsonSchema(state, action) {
       const { onSaveSchema } = action.payload;
