@@ -348,22 +348,17 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (!string.IsNullOrEmpty(Request.Headers["X-Altinn-EnterpriseUser-Authentication"]))
                 {
                     string enterpriseUserHeader = Request.Headers["X-Altinn-EnterpriseUser-Authentication"];
-                    string decodedString;
+                    EnterpriseUserCredentials credentials;
 
                     try
                     {
-                        decodedString = DecodeEnterpriseUserHeader(enterpriseUserHeader);
+                        credentials = DecodeEnterpriseUserHeader(enterpriseUserHeader, orgNumber);
                     }
                     catch (Exception)
                     {
                         return StatusCode(400);
                     }
 
-                    string[] decodedStringArray = decodedString.Split(":");
-                    string usernameFromRequest = decodedStringArray[0];
-                    string password = decodedStringArray[1];
-
-                    EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
                     HttpResponseMessage response = await _enterpriseUserAuthenticationService.AuthenticateEnterpriseUser(credentials);
                     string content = await response.Content.ReadAsStringAsync();
 
@@ -429,13 +424,19 @@ namespace Altinn.Platform.Authentication.Controllers
             }
         }
 
-        private string DecodeEnterpriseUserHeader(string encodedCredentials)
+        private EnterpriseUserCredentials DecodeEnterpriseUserHeader(string encodedCredentials, string orgNumber)
         {
             try
             {
                 byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
                 string decodedString = Encoding.UTF8.GetString(decodedCredentials);
-                return decodedString;
+
+                string[] decodedStringArray = decodedString.Split(":");
+                string usernameFromRequest = decodedStringArray[0];
+                string password = decodedStringArray[1];
+
+                EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
+                return credentials;
             }
             catch (Exception)
             {
