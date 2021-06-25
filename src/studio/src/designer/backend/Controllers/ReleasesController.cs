@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,14 +24,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class ReleasesController : ControllerBase
     {
         private readonly IReleaseService _releaseService;
+        private readonly IPipelineService _pipelineService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="releaseService">Release service</param>
-        public ReleasesController(IReleaseService releaseService)
+        /// <param name="pipelineService">IPipelineService</param>
+        public ReleasesController(IReleaseService releaseService, IPipelineService pipelineService)
         {
             _releaseService = releaseService;
+            _pipelineService = pipelineService;
         }
 
         /// <summary>
@@ -35,8 +44,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>SearchResults of type ReleaseEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<ReleaseEntity>> Get([FromQuery]DocumentQueryModel query)
-            => await _releaseService.GetAsync(query);
+        public async Task<SearchResults<ReleaseEntity>> Get([FromQuery] DocumentQueryModel query)
+        {
+            SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(query);
+
+            List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
+
+            foreach (ReleaseEntity release in laggingReleases)
+            {
+                await _pipelineService.UpdateReleaseStatus(release.Build.Id, release.Org);
+            }
+
+            return releases;
+        }
 
         /// <summary>
         /// Creates a release
@@ -46,7 +66,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<ReleaseEntity>> Create([FromBody]CreateReleaseRequestViewModel createRelease)
+        public async Task<ActionResult<ReleaseEntity>> Create([FromBody] CreateReleaseRequestViewModel createRelease)
         {
             if (!ModelState.IsValid)
             {
