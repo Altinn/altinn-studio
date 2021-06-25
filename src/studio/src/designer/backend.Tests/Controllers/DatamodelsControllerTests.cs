@@ -326,6 +326,7 @@ namespace Designer.Tests.Controllers
         [InlineData("testModel.schema.json")]
         [InlineData("App/testModel.schema.json")]
         [InlineData("App/models/testModel.schema.json")]
+        [InlineData("/App/models/testModel.schema.json")]
         public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
