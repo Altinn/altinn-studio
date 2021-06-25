@@ -26,13 +26,14 @@ export const altinnLogo = (props: IAltinnLogoProps) => {
   const logoColor = getLogoColor(props.color);
   let filterClass: string = '';
   if (logoColor === 'black') {
-    filterClass = `logo-filter-${props.color.replace('#', '')}`;
+    filterClass = ` logo-filter-${props.color.replace('#', '')}`;
   }
   return (
     <img
       src={`https://altinncdn.no/img/Altinn-logo-${logoColor}.svg`}
-      className={`logo ${filterClass}`}
+      className={`logo${filterClass}`}
       alt='Altinn logo'
+      id='logo'
     />
   );
 };
