@@ -3,8 +3,7 @@ import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from 'src/fe
 import { IDataModelBindings, IComponentValidations, ITextResource, ITextResourceBindings, IOption, IOptions, IValidations } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
-  const simpleBinding = dataModelBindings.simpleBinding;
-  return simpleBinding && type !== 'FileUpload' && type !== 'Datepicker';
+  return !!dataModelBindings?.simpleBinding && type !== 'FileUpload' && type !== 'Datepicker';
 };
 
 export const componentHasValidationMessages = (componentValidations) => {
