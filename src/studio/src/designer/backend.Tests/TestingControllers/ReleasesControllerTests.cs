@@ -114,7 +114,7 @@ namespace Designer.Tests.TestingControllers
         private List<ReleaseEntity> GetReleasesList(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleasesControllerTests).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\Releases\{filename}");
+            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\ReleasesCollection\{filename}");
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
