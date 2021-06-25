@@ -295,7 +295,7 @@ namespace Designer.Tests.Controllers
         public async Task GetDatamodels_NoInput_ShouldReturnAllModels()
         {
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/";
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
 
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);            
 
@@ -306,14 +306,14 @@ namespace Designer.Tests.Controllers
             var altinnCoreFiles = System.Text.Json.JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(4, altinnCoreFiles.Count);
+            Assert.Equal(8, altinnCoreFiles.Count);
         }
 
         [Fact]
         public async Task GetDatamodels_NotAuthenticated_ShouldReturn401()
         {
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/";
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
             
             var response = await client.SendAsync(httpRequestMessage);
@@ -329,7 +329,7 @@ namespace Designer.Tests.Controllers
         public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "ttd-datamodels", "testUser");
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             if (gitRepository.FileExistsByRelativePath(modelPath))
@@ -338,7 +338,7 @@ namespace Designer.Tests.Controllers
             }
 
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/?modelPath={modelPath}";
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/?modelPath={modelPath}";
             string requestBody = "{}";
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {

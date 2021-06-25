@@ -14,7 +14,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public async Task WriteTextByRelativePathAsync_ValidText_ShouldReadBackEqual(string expectedContent)
         {   
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test", "testUser");
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var filename = $"{Guid.NewGuid()}.json";
@@ -32,13 +32,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Theory]
-        [InlineData(@"app/models/0678.xsd")]
-        [InlineData(@"app/models/32578.xsd")]
-        [InlineData(@"app/models/35721.xsd")]
-        [InlineData(@"app/models/41111.xsd")]
+        [InlineData(@"app/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.metadata.json")]
+        [InlineData(@"app/models/HvemErHvem.json")]
+        [InlineData(@"app/models/HvemErHvem_FlatNoTypes.schema.json")]
+        [InlineData(@"app/models/HvemErHvem_SERES.schema.json")]
         public async Task WriteTextByRelativePathAsync_ReadWriteRoundtrip_ShouldReadBackEqual(string expectedFilePath)
         {            
-            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             var expectedContent = await gitRepository.ReadTextByRelativePathAsync(expectedFilePath);
 
@@ -59,7 +59,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task WriteTextByRelativePathAsync_RelativePathOutsideParent_ShouldThrowArgumentException()
         {
-            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"..\should.not.exist", "some content"));
         }
@@ -67,7 +67,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse()
         {
-            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             Assert.False(gitRepository.FileExistsByRelativePath("this.dont.exists.schema.json"));
         }
@@ -75,9 +75,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public void FileExistsByRelativePath_FileExits_ShouldReturnTrue()
         {
-            var gitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            Assert.True(gitRepository.FileExistsByRelativePath("App/models/41111.xsd"));
+            Assert.True(gitRepository.FileExistsByRelativePath("App/models/HvemErHvem.json"));
         }
 
         private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)

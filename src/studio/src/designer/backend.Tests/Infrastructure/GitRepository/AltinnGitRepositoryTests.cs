@@ -35,17 +35,17 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("", "", "")]
         [InlineData("", "", "testUser")]
         [InlineData("ttd", "", "")]
-        [InlineData("", "apps-test", "")]
+        [InlineData("", "hvem-er-hvem", "")]
         public void Constructor_InValidParametersCorrectPath_ShouldFail(string org, string repository, string developer)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test", "testUser");
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
             
             Assert.Throws<ArgumentException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));            
         }
 
         [Theory]
-        [InlineData("ttd", "apps-test", "testUser")]
+        [InlineData("ttd", "hvem-er-hvem", "testUser")]
         public void Constructor_ValidParameters_ShouldInstantiate(string org, string repository, string developer)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
@@ -65,12 +65,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = Path.Combine(new string[] { repositoriesRootDirectory, $"..\\Model" });
 
-            Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "apps-test", "testUser", repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory));
         }
 
         [Theory]
         [InlineData("ttd", "apps-test", "testUser", 0)]
         [InlineData("ttd", "ttd-datamodels", "testUser", 4)]
+        [InlineData("ttd", "hvem-er-hvem", "testUser", 8)]
         public void GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
@@ -85,11 +86,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]        
         public void GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
         {            
-            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testuser");
-            var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "0678.xsd");
+            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testuser");
+            var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
 
-            Assert.Equal(".xsd", file.FileType);
-            Assert.Equal(@"/App/models/0678.xsd", file.RepositoryRelativeUrl);
+            Assert.Equal(".json", file.FileType);
+            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
         }
 
         [Fact]
@@ -103,7 +104,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public void RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
         {
-            var altinnGitRepository = GetTestRepository("ttd", "apps-test", "testUser");
+            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
         }
