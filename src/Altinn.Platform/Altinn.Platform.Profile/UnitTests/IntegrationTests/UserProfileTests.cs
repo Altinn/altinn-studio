@@ -59,7 +59,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
+            UserProfile actualUser = JsonSerializer.Deserialize<UserProfile>(
                 responseContent, serializerOptionsCamelCase);
 
             // These asserts check that deserializing with camel casing was successful.
@@ -101,7 +101,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
+            UserProfile actualUser = JsonSerializer.Deserialize<UserProfile>(
                 responseContent, serializerOptionsCamelCase);
 
             // These asserts check that deserializing with camel casing was successful.
@@ -123,7 +123,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             {
                 sblRequest = request;
 
-                return new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound };
+                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
             });
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
@@ -156,7 +156,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
 
-            StringContent content = new StringContent("\"01017512345\"", Encoding.UTF8, "application/json");
+            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
@@ -177,7 +177,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            UserProfile actualUser = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(
+            UserProfile actualUser = JsonSerializer.Deserialize<UserProfile>(
                 responseContent, serializerOptionsCamelCase);
 
             // These asserts check that deserializing with camel casing was successful.
@@ -197,10 +197,10 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             {
                 sblRequest = request;
 
-                return new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound };
+                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
             });
 
-            StringContent content = new StringContent("\"01017512345\"", Encoding.UTF8, "application/json");
+            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
