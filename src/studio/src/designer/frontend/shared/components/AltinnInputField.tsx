@@ -24,6 +24,8 @@ export interface IAltinnInputFieldComponentProvidedProps {
   type?: any;
   textFieldId?: string;
   fullWidth?: boolean;
+  error?: string;
+  onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -123,6 +125,8 @@ export class AltinnInputField extends
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
             multiline={!!this.props.textAreaRows}
+            error={!!this.props.error}
+            helperText={this.props.error}
             rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
@@ -130,6 +134,7 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
+            onKeyDown={this.props.onKeyDown}
           />
 
         </FormControl>
@@ -139,6 +144,7 @@ export class AltinnInputField extends
             secondaryButton={true}
             onClickFunction={this.props.onBtnClickFunction}
             className={classNames(classes.btn)}
+            disabled={!!this.props.error}
           />
         }
       </React.Fragment>

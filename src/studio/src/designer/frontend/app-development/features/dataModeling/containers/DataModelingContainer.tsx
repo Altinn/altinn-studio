@@ -50,6 +50,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
   const [newModelName, setNewModelName] = React.useState(null);
+  const [nameError, setNameError] = React.useState('');
 
   React.useEffect(() => {
     if (dataModelName) {
@@ -67,14 +68,28 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     setCreateButtonAnchor(event.currentTarget);
   };
   const onNewModelNameChanged = (e: any) => {
-    setNewModelName(e.target.value);
+    const name = e.target.value;
+    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      setNameError('Invalid name');
+    } else {
+      setNameError('');
+      setNewModelName(name);
+    }
   };
+
+  const onNameFieldKeyDown = (e: any) => {
+    if (e.keyCode === 13 && !nameError) {
+      e.preventDefault();
+      onCreateConfirmClick();
+    }
+  };
+
   const onCreateConfirmClick = () => {
     if (newModelName && newModelName.length > 0) {
       dispatch(createNewDataModel({ modelName: newModelName }));
+      setCreateButtonAnchor(null);
+      setNewModelName(null);
     }
-    setCreateButtonAnchor(null);
-    setNewModelName(null);
   };
   const onDeleteClick = (event: any) => {
     setDeleteButtonAnchor(event.currentTarget);
@@ -145,9 +160,11 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             id='newModelInput'
             placeholder='Name'
             btnText='Ok'
+            error={nameError}
             inputFieldStyling={{ width: '250px' }}
             onChangeFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
+            onKeyDown={onNameFieldKeyDown}
           />
 
         </AltinnPopoverSimple>

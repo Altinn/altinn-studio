@@ -391,7 +391,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
-    if (!name.match(/[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
       setNameError('Invalid character in name');
     } else {
       setNameError('');
