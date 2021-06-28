@@ -29,5 +29,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="relativeFilePath">Relative path to the file.</param>
         /// <param name="content">The contents of the file.</param>
         Task UpdateSchemaFile(string org, string repository, string developer, string relativeFilePath, string content);
+
+        /// <summary>
+        /// Deletes a schema file based on it's relative path within the repository.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file.</param>        
+        void DeleteSchemaFile(string org, string repository, string developer, string relativeFilePath);
     }
 }

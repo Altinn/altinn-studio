@@ -125,7 +125,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelPath">The path to the file to be updated.</param>        
         [Authorize]
         [HttpPut]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(204)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
         {
@@ -133,6 +133,24 @@ namespace Altinn.Studio.Designer.Controllers
             var content = await ReadRequestBodyContentAsync();
 
             await _schemaModelService.UpdateSchemaFile(org, repository, developer, modelPath, content);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Updates the specified datamodel in the git repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository</param>
+        /// <param name="modelPath">The path to the file to be deleted.</param>        
+        [Authorize]
+        [HttpDelete]
+        [ProducesResponseType(204)]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public IActionResult DeleteDatamodelNew(string org, string repository, [FromQuery] string modelPath)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            _schemaModelService.DeleteSchemaFile(org, repository, developer, modelPath);
 
             return NoContent();
         }

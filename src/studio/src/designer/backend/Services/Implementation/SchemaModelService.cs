@@ -40,5 +40,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, content);
         }
+
+        /// <inheritdoc/>
+        public void DeleteSchemaFile(string org, string repository, string developer, string relativeFilePath)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+
+            altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
+        }
     }
 }

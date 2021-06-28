@@ -131,7 +131,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return File.Exists(absoluteFilePath);
         }
 
-        private string GetAbsoluteFilePathSanitized(string relativeFilePath)
+        /// <summary>
+        /// Gets the absolute path for a file given a repository relative path.
+        /// </summary>
+        /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>        
+        protected string GetAbsoluteFilePathSanitized(string relativeFilePath)
         {
             if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
             {
