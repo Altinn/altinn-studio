@@ -75,8 +75,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               app={null}
               user={this.props.user.login}
               logoutButton={true}
-              showSubHeader={false}
-              backgroundColor={theme.altinnPalette.primary.white}
+              showSubMenu={false}
             />
             <Route
               path='/'

@@ -71,7 +71,7 @@ describe('AccessControl', () => {
         errors: null,
         releases: [],
       },
-      applicationMetadataState: {
+      repoMetadataState: {
         applicationMetadata: currentApplicationMetadata,
         error: null,
       },
@@ -137,7 +137,7 @@ describe('AccessControl', () => {
     const createStore = configureStore();
     const store = createStore({
       ...initialState,
-      applicationMetadataState: {
+      repoMetadataState: {
         applicationMetadata: {},
         error: null,
       },

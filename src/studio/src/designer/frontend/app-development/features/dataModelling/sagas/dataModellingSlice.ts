@@ -9,6 +9,8 @@ export interface IDataModelAction {
 }
 export interface IDataModelActionPayload {
   schema: ISchema;
+  repoType?: string;
+  metadata?: any;
 }
 
 export interface IDataModelErrorActionPayload extends Action {
@@ -18,9 +20,8 @@ export interface IDataModelErrorActionPayload extends Action {
 export interface ISetDataModelFilePathActionPayload extends Action {
   filePath: string;
 }
-export interface IDataModelingState {
+export interface IDataModellingState {
   schema: ISchema;
-  modelName: string;
   error: Error;
   saving: boolean;
 }
@@ -38,18 +39,17 @@ const newSchema: ISchema = {
   definitions: {},
 };
 
-const initialState: IDataModelingState = {
+const initialState: IDataModellingState = {
   schema: newSchema,
-  modelName: undefined,
   error: null,
   saving: false,
 };
 
-const dataModelingSlice = createSlice({
-  name: 'dataModeling',
+const dataModellingSlice = createSlice({
+  name: 'dataModelling',
   initialState,
   reducers: {
-    fetchDataModel(state, action) {
+    fetchDataModel(state, _) {
       state.schema = null;
     },
     fetchDataModelFulfilled(state, action) {
@@ -63,34 +63,27 @@ const dataModelingSlice = createSlice({
     },
     saveDataModel(state, action) {
       const { schema } = action.payload;
-      state.schema = schema;
       state.saving = true;
+      state.schema = schema;
     },
-    saveDataModelFulfilled(state, action) {
+    saveDataModelFulfilled(state) {
       state.saving = false;
     },
     saveDataModelRejected(state, action) {
       const { error } = action.payload;
-      state.error = error;
       state.saving = false;
+      state.error = error;
     },
-    setDataModelName(state, action) {
-      const { modelName } = action.payload;
-      state.modelName = modelName;
-    },
-    createNewDataModel(state, action) {
-      const { modelName } = action.payload;
-      state.modelName = modelName;
+    createNewDataModel(state, { payload }) {
       state.error = null;
       state.schema = newSchema;
+      payload.onNewNameCreated(payload.modelName);
     },
-    deleteDataModel(state) {
+    deleteDataModel(state, _) {
       state.saving = true;
     },
     deleteDataModelFulfilled(state) {
       state.saving = false;
-      state.schema = newSchema;
-      state.modelName = '';
     },
     deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
       state.error = action.payload.error;
@@ -106,11 +99,10 @@ export const {
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
-  setDataModelName,
   createNewDataModel,
   deleteDataModel,
   deleteDataModelFulfilled,
   deleteDataModelRejected,
-} = dataModelingSlice.actions;
+} = dataModellingSlice.actions;
 
-export default dataModelingSlice.reducer;
+export default dataModellingSlice.reducer;

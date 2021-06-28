@@ -16,8 +16,6 @@ using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
-using LibGit2Sharp;
-
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Http;

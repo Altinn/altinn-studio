@@ -6,19 +6,19 @@
 /* tslint:disable:jsx-boolean-value */
 // Extensive used in Material-UI's Grid
 
-import Grid from '@material-ui/core/Grid';
-import Hidden from '@material-ui/core/Hidden';
+import { Grid, Hidden, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { RouteChildrenProps } from 'react-router';
-import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { RouteChildrenProps, HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { compose, Dispatch } from 'redux';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
+import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
@@ -28,12 +28,11 @@ import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConfl
 import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
+import { DatamodelsMetadataActions } from './sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
-import { getRepoStatusUrl } from './utils/urlHelper';
+import { repoStatusUrl } from './utils/urlHelper';
+import getRepoTypeFromLocation from './utils/getRepoTypeFromLocation';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { Typography } from '@material-ui/core';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -71,11 +70,11 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, ISe
   serviceName: any;
   remainingSessionMinutes: number;
 }
-export interface IServiceDevelopmentAppState {
-  forceRepoStatusCheckComplete: boolean;
+interface IServiceDevelopmentAppState {
   sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
   remainingSessionMinutes: number;
   lastKeepAliveTimestamp: number;
+  repoType?: string;
 }
 
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
@@ -84,16 +83,33 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
     super(_props, _state);
     this.state = {
-      forceRepoStatusCheckComplete: true,
       sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
       remainingSessionMinutes: _props.remainingSessionMinutes,
       lastKeepAliveTimestamp: 0,
+      repoType: getRepoTypeFromLocation(),
     };
   }
 
+  public componentDidMount() {
+    const { org, repo } = window as Window as IAltinnWindow;
+    this.props.dispatch(fetchLanguage({
+      url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
+      languageCode: 'nb',
+    }));
+    this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
+      url: `${window.location.origin}/designer/${org}/${repo}/Text/GetServiceName`,
+    }));
+    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
+    this.props.dispatch(DatamodelsMetadataActions.getDatamodelsMetadata());
+    this.props.dispatch(fetchRemainingSession());
+    this.checkForMergeConflict();
+    this.setEventListeners(true);
+    window.addEventListener('message', this.windowEventReceived);
+  }
+
   public componentDidUpdate(_prevProps: IServiceDevelopmentProps) {
-    if (_prevProps.remainingSessionMinutes != this.props.remainingSessionMinutes) {
-      this.setState(_x => ({
+    if (_prevProps.remainingSessionMinutes !== this.props.remainingSessionMinutes) {
+      this.setState(() => ({
         remainingSessionMinutes: this.props.remainingSessionMinutes,
       }));
       return true;
@@ -101,35 +117,18 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     return false;
   }
 
-  public componentDidMount() {
-    const { org, app } = window as Window as IAltinnWindow;
-    this.props.dispatch(fetchLanguage({
-      url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
-      languageCode: 'nb',
-    }));
-    this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
-      url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-    }));
-    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-    this.props.dispatch(fetchRemainingSession());
-    this.checkForMergeConflict();
-    this.setUpEventListeners();
-    window.addEventListener('message', this.windowEventReceived);
-  }
-
   public componentWillUnmount() {
     window.removeEventListener('message', this.windowEventReceived);
-    this.removeEventListeners();
+    this.setEventListeners(false);
   }
 
   public checkForMergeConflict = () => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const repoStatusUrl = getRepoStatusUrl();
+    const { org, repo } = window as Window as IAltinnWindow;
 
     this.props.dispatch(fetchRepoStatus({
       url: repoStatusUrl,
       org,
-      repo: app,
+      repo,
     }));
   }
 
@@ -139,25 +138,18 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       (this.state.remainingSessionMinutes > 10) &&
       (this.state.remainingSessionMinutes <= 30) &&
       ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
-      this.setState(_x => ({
+      this.setState(() => ({
         lastKeepAliveTimestamp: timeNow,
       }));
       this.props.dispatch((keepAliveSession()));
     }
   }
 
-  public setUpEventListeners = () => {
-    window.addEventListener('mousemove', this.keepAliveSession);
-    window.addEventListener('scroll', this.keepAliveSession);
-    window.addEventListener('onfocus', this.keepAliveSession);
-    window.addEventListener('keydown', this.keepAliveSession);
-  }
-
-  public removeEventListeners = () => {
-    window.removeEventListener('mousemove', this.keepAliveSession);
-    window.removeEventListener('scroll', this.keepAliveSession);
-    window.removeEventListener('onfocus', this.keepAliveSession);
-    window.removeEventListener('keydown', this.keepAliveSession);
+  public setEventListeners = (subscribe: boolean) => {
+    const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
+    keepAliveListeners.forEach((listener) => (subscribe ? window.addEventListener : window.removeEventListener)(
+      listener, this.keepAliveSession,
+    ));
   }
 
   public windowEventReceived = (event: any) => {
@@ -177,7 +169,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     } else {
       // user clicked outside the popover or pressed "continue", keep signed in
       this.props.dispatch(keepAliveSession());
-      this.setState(_x => ({
+      this.setState(() => ({
         lastKeepAliveTimestamp: Date.now(),
       }));
     }
@@ -185,149 +177,144 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, repo } = window as Window as IAltinnWindow;
+    const { repoType } = this.state;
+    const isDatamodelsRepo = repoType === 'datamodels';
 
     return (
-      <React.Fragment>
-        <MuiThemeProvider theme={theme}>
-          <Router>
-            <div className={classes.container} ref={this.state.sessionExpiredPopoverRef}>
+      <MuiThemeProvider theme={theme}>
+        <Router>
+          {isDatamodelsRepo &&
+            <Redirect to='/datamodelling' />
+          }
+          <div className={classes.container} ref={this.state.sessionExpiredPopoverRef}>
             <AltinnPopoverSimple
               anchorEl={(this.state.remainingSessionMinutes < 11) ? this.state.sessionExpiredPopoverRef : null}
-              anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-              transformOrigin={{vertical: 'top', horizontal: 'center'}}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'center' }}
               handleClose={(event: string) => this.handleSessionExpiresClose(event)}
               btnCancelText={getLanguageFromKey('general.sign_out', this.props.language)}
               btnConfirmText={getLanguageFromKey('general.continue', this.props.language)}
               btnClick={this.handleSessionExpiresClose}
-              paperProps={{ style: { margin: '2.4rem' }}}
-              children={
-                <>
-                  <Typography variant={'h2'}>
-                    {getLanguageFromKey('session.expires', this.props.language)}
-                  </Typography>
-                  <Typography variant={'body1'} style={{ marginTop: '1.6rem'} }>
-                    {getLanguageFromKey('session.inactive', this.props.language)}
-                  </Typography>
-                </>
-              }
-              />
-              <Grid container={true} direction='row'>
-                <Grid item={true} xs={12}>
-                  {repoStatus.hasMergeConflict !== true ?
-                    redirects.map((route, index) => (
-                      <Route
-                        key={index}
-                        exact={true}
-                        path={route.from}
-                        render={() => (
-                          <Redirect to={route.to} />
-                        )}
-                      />
-                    ))
-                    :
-                    null
-                  }
-                  {routes.map((route, index) => (
+              paperProps={{ style: { margin: '2.4rem' } }}
+            >
+              <Typography variant='h2'>
+                {getLanguageFromKey('session.expires', this.props.language)}
+              </Typography>
+              <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
+                {getLanguageFromKey('session.inactive', this.props.language)}
+              </Typography>
+            </AltinnPopoverSimple>
+            <Grid container={true} direction='row'>
+              <Grid item xs={12}>
+                {!repoStatus.hasMergeConflict && !isDatamodelsRepo &&
+                  redirects.map((route) => (
                     <Route
-                      key={index}
-                      path={route.path}
-                      exact={route.exact}
-                      render={(props) => <AppBarComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                        activeLeftMenuSelection={route.activeLeftMenuSelection}
-                        activeSubHeaderSelection={route.activeSubHeaderSelection}
-                        logoutButton={repoStatus.hasMergeConflict}
-                        org={org}
-                        app={app}
-                        showBreadcrumbOnTablet={true}
-                        showSubHeader={!repoStatus.hasMergeConflict}
-                      />}
+                      key={route.to}
+                      exact={true}
+                      path={route.from}
+                      render={() => (
+                        <Redirect to={route.to} />
+                      )}
                     />
-                  ))}
-                </Grid>
-                <Grid item={true} xs={12}>
-                  {
-                    !repoStatus.hasMergeConflict ?
-                      <Hidden smDown>
-                        <div style={{ top: 50 }}>
-                          {routes.map((route, index) => (
-                            <Route
-                              key={index}
-                              path={route.path}
-                              exact={route.exact}
-                              render={(props) => <LeftDrawerMenu
-                                {...props}
-                                menuType={route.menu}
-                                activeLeftMenuSelection={route.activeLeftMenuSelection}
-                              />}
-                            />
-                          ))}
-                        </div>
-                      </Hidden>
-                      :
-                      null
-                  }
-
-                  {
-                    repoStatus.hasMergeConflict ?
-                      <div
-                        className={classNames({
-                          [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
-                          [classes.subApp]: !repoStatus.hasMergeConflict,
-                        })}
-                      >
-                        <Switch>
-                          <Route
-                            path='/mergeconflict'
-                            exact={true}
-                            component={HandleMergeConflict}
-                          />
-                          <Redirect to='/mergeconflict' />
-                        </Switch>
-                      </div>
-                      :
+                  ))
+                }
+                {routes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    exact={route.exact}
+                    render={(props) => <AppBarComponent
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...props}
+                      activeLeftMenuSelection={route.activeLeftMenuSelection}
+                      activeSubHeaderSelection={route.activeSubHeaderSelection}
+                      logoutButton={repoStatus.hasMergeConflict}
+                      org={org}
+                      app={repo}
+                      showBreadcrumbOnTablet={true}
+                      showSubMenu={!(repoStatus.hasMergeConflict || isDatamodelsRepo)}
+                    />}
+                  />
+                ))}
+              </Grid>
+              <Grid item xs={12}>
+                {
+                  !repoStatus.hasMergeConflict ?
+                    <>
+                      {!isDatamodelsRepo &&
+                        <Hidden smDown>
+                          <div style={{ top: 50 }}>
+                            {routes.map((route) => (
+                              <Route
+                                key={route.path}
+                                path={route.path}
+                                exact={route.exact}
+                                render={(props) => <LeftDrawerMenu
+                                  {...props}
+                                  menuType={route.menu}
+                                  activeLeftMenuSelection={route.activeLeftMenuSelection}
+                                />
+                                }
+                              />
+                            ))}
+                          </div>
+                        </Hidden>
+                      }
                       <div className={classes.subApp}>
-                        {routes.map((route, index) => (
+                        {routes.map((route) => (
                           <Route
-                            key={index}
+                            key={route.path}
                             path={route.path}
                             exact={route.exact}
                             render={(props) => <route.subapp
                               {...props}
                               {...route.props}
                               language={this.props.language}
+                              repoType={repoType}
                             />}
                           />
                         ))}
                       </div>
-                  }
-                </Grid>
+                    </>
+                    :
+                    <div
+                      className={classNames({
+                        [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
+                        [classes.subApp]: !repoStatus.hasMergeConflict,
+                      })}
+                    >
+                      <Switch>
+                        <Route
+                          path='/mergeconflict'
+                          exact={true}
+                          component={HandleMergeConflict}
+                        />
+                        <Redirect to='/mergeconflict' />
+                      </Switch>
+                    </div>
+                }
               </Grid>
-            </div>
-          </Router>
-        </MuiThemeProvider>
-      </React.Fragment>
+            </Grid>
+          </div>
+        </Router>
+      </MuiThemeProvider>
     );
   }
 }
 
 const makeMapStateToProps = () => {
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
-  const mapStateToProps = (
+  return (
     state: IServiceDevelopmentState,
     props: IServiceDevelopmentProvidedProps,
-  ) => {
-    return {
-      repoStatus: GetRepoStatusSelector(state),
-      language: state.languageState.language,
-      serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-      dispatch: props.dispatch,
-      remainingSessionMinutes: state.userState.session.remainingMinutes,
-    };
-  };
-  return mapStateToProps;
+  ) => ({
+    repoStatus: GetRepoStatusSelector(state),
+    language: state.languageState.language,
+    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
+    dispatch: props.dispatch,
+    remainingSessionMinutes: state.userState.session.remainingMinutes,
+  });
 };
 
 export default compose(

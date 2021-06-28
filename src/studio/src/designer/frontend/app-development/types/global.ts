@@ -5,11 +5,12 @@ import { IHandleMergeConflictState } from '../features/handleMergeConflict/handl
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
+import { IDatamodelsMetadataState } from '../sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
-import { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
+import { IDataModellingState } from '../features/dataModelling/sagas';
 import { IUserState } from '../sharedResources/user/userSlice';
 
 declare global {
@@ -17,13 +18,13 @@ declare global {
     languageState: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
-    applicationMetadataState: T4;
+    repoMetadataState: T4;
     appCluster: T5;
     repoStatus: T6;
     appReleases: T7;
     appDeployments: T8;
     configuration: T9;
-    dataModeling: T10;
+    dataModelling: T10;
     userState: T11;
   }
 
@@ -32,13 +33,13 @@ declare global {
     <IFetchedLanguageState,
     IHandleMergeConflictState,
     IHandleServiceInformationState,
-    IApplicationMetadataState,
+    IApplicationMetadataState | IDatamodelsMetadataState,
     IAppClusterState,
     IRepoStatusState,
     IAppReleaseState,
     IAppDeploymentState,
     IConfigurationState,
-    IDataModelingState,
+    IDataModellingState,
     IUserState> { }
 }
 

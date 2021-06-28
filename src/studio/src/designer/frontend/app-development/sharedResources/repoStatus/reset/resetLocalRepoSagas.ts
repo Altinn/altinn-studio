@@ -4,7 +4,7 @@ import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { IRepoStatusAction, RepoStatusActions } from '../repoStatusSlice';
 import { fetchRepoStatus } from '../../../features/handleMergeConflict/handleMergeConflictSlice';
-import { getRepoStatusUrl } from '../../../utils/urlHelper';
+import { repoStatusUrl } from '../../../utils/urlHelper';
 
 // GET MASTER REPO
 export function* resetLocalRepoSaga({ payload: {
@@ -16,7 +16,7 @@ export function* resetLocalRepoSaga({ payload: {
       `/designerapi/Repository/ResetLocalRepository?org=${org}&repository=${repo}`);
 
     yield put(fetchRepoStatus({
-      url: getRepoStatusUrl(),
+      url: repoStatusUrl,
       org,
       repo,
     }));

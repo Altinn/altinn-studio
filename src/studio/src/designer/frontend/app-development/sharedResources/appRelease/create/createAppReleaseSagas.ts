@@ -5,7 +5,7 @@ import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from '../../../utils/networking';
-import { releasesUrlPost } from '../../../utils/urlHelper';
+import { releasesPostUrl } from '../../../utils/urlHelper';
 import { AppReleaseActions } from '../appReleaseSlice';
 import { ICreateReleaseAction } from '../types';
 
@@ -16,7 +16,7 @@ function* createReleaseSaga({ payload: {
   targetCommitish,
 } }: PayloadAction<ICreateReleaseAction>): SagaIterator {
   try {
-    const responseData: any = yield call(post, releasesUrlPost, {
+    const responseData: any = yield call(post, releasesPostUrl, {
       tagName,
       name,
       body,

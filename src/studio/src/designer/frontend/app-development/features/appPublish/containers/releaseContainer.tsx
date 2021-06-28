@@ -1,4 +1,5 @@
-import { CircularProgress,
+import {
+  CircularProgress,
   createMuiTheme,
   createStyles,
   Grid,
@@ -8,19 +9,18 @@ import { CircularProgress,
   Tabs,
   Typography,
   withStyles,
-  WithStyles } from '@material-ui/core';
+  WithStyles
+} from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { AppReleaseActions, IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { RepoStatusActions, IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import { getGitCommitLink, getRepoStatusUrl, languageUrl } from '../../../utils/urlHelper';
+import { getGitCommitLink, repoStatusUrl, languageUrl } from '../../../utils/urlHelper';
 import { fetchRepoStatus, IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
@@ -50,7 +50,7 @@ const StyledTabs = withStyles(createStyles({
   flexContainer: {
     borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
-// eslint-disable-next-line react/jsx-props-no-spreading
+  // eslint-disable-next-line react/jsx-props-no-spreading
 }))((props: IStyledTabsProps) => <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />);
 
 const StyledTab = withStyles(createStyles({
@@ -159,21 +159,21 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
 
   React.useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, repo } = window as Window as IAltinnWindow;
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
       dispatch(fetchLanguage({ url: languageUrl, languageCode: 'nb' }));
     }
-    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
+    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo }));
     dispatch(fetchRepoStatus({
-      url: getRepoStatusUrl(),
+      url: repoStatusUrl,
       org,
-      repo: app,
+      repo,
     }));
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, []);
+  });
 
   function handleChangeTabIndex(event: React.ChangeEvent<{}>, value: number) {
     setTabIndex(value);
@@ -305,9 +305,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Grid>
       );
     }
-    if (appReleases.errors.fetchReleaseErrorCode !== null) {
-      return null;
-    }
     if (!appReleases.releases || !appReleases.releases.length) {
       return (
         <CreateReleaseComponent />
@@ -324,7 +321,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       !!appReleases.releases[0] &&
       appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
       (appReleases.releases[0].build.status === BuildStatus.completed &&
-      appReleases.releases[0].build.result === BuildResult.succeeded)
+        appReleases.releases[0].build.result === BuildResult.succeeded)
     ) {
       return null;
     }
@@ -408,7 +405,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       return (
         <Typography>
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
-          { /* eslint-disable-next-line no-extra-boolean-cast */ }
+          { /* eslint-disable-next-line no-extra-boolean-cast */}
           {!!repoStatus.branch.master ?
             <a
               href={getGitCommitLink(repoStatus.branch.master.commit.id)}

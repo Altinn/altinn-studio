@@ -109,7 +109,7 @@ describe('Administration', () => {
         errors: null,
         releases: [],
       },
-      applicationMetadataState: {
+      repoMetadataState: {
         applicationMetadata: {},
         error: null,
       },

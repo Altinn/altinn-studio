@@ -5,8 +5,6 @@ import 'jest';
 import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-// import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
-// import * as renderer from 'react-test-renderer';
 import '@testing-library/jest-dom/extend-expect';
 import ResetRepoModal, { IResetRepoModalProps } from '../../../features/administration/components/ResetRepoModal';
 
@@ -31,7 +29,9 @@ describe('<ResetRepoModal /> spec', () => {
         reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
       },
     };
+    console.log(`WE FOUND A ${document}`);
     mockAnchorEl = document.getElementsByTagName('body');
+    console.log(mockAnchorEl, process.env.NODE_ENV);
   });
 
   it('renders the component', () => {
@@ -80,7 +80,7 @@ describe('<ResetRepoModal /> spec', () => {
     };
     return (
       <Provider store={mockStore}>
-        <ResetRepoModal {...defaultProps} {...props}/>
+        <ResetRepoModal {...defaultProps} {...props} />
       </Provider>
     );
   };

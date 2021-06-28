@@ -11,7 +11,7 @@ describe('ApplicationMetadata', () => {
       mockNumber: 10,
     };
     mockState = {
-      applicationMetadataState: {
+      repoMetadataState: {
         applicationMetadata: mockApplicationMetadata,
         error: null,
       },

@@ -72,7 +72,7 @@ export class HandleMergeConflictDiscardChanges extends
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, repo } = window as Window as IAltinnWindow;
 
     try {
       this.setState({
@@ -85,7 +85,7 @@ export class HandleMergeConflictDiscardChanges extends
       });
 
       const discardUrl = `${window.location.origin}/` +
-        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${app}`;
+        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${repo}`;
       const discardRes = await get(discardUrl);
 
       if (discardRes.isSuccessStatusCode === true) {

@@ -14,7 +14,7 @@ import { HandleServiceInformationActions } from '../handleServiceInformationSlic
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
-import { getRepoStatusUrl } from '../../../utils/urlHelper';
+import { repoStatusUrl } from '../../../utils/urlHelper';
 
 export interface IAdministrationComponentProvidedProps {
   classes: any;
@@ -131,22 +131,22 @@ export class AdministrationComponent extends
   };
 
   public componentDidMount() {
-    const altinnWindow: any = window;
-    const { org, app } = altinnWindow;
+    const altinnWindow = window as Window as IAltinnWindow;
+    const { org, repo } = altinnWindow;
 
     this.props.dispatch(HandleServiceInformationActions.fetchService(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${repo}` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchInitialCommit(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${repo}` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
-      { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
+      { url: `${altinnWindow.location.origin}/designer/${org}/${repo}/Config/GetServiceConfig` },
     ));
     this.props.dispatch(fetchRepoStatus({
-      url: getRepoStatusUrl(),
+      url: repoStatusUrl,
       org,
-      repo: app,
+      repo,
     }));
   }
 
@@ -164,14 +164,14 @@ export class AdministrationComponent extends
         serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
     } else {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, repo } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
       this.props.dispatch(HandleServiceInformationActions.saveServiceName({
-        url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
+        url: `${window.location.origin}/designer/${org}/${repo}/Text/SetServiceName`,
         newServiceName: this.state.serviceName,
       }));
       this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        url: `${window.location.origin}/designer/${org}/${repo}/Config/SetServiceConfig`,
         newServiceDescription: this.state.serviceDescription,
         newServiceId: this.state.serviceId,
         newServiceName: this.state.serviceName,
@@ -186,10 +186,10 @@ export class AdministrationComponent extends
 
   public onBlurServiceDescription = () => {
     if (this.state.editServiceDescription) {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, repo } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
       this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        url: `${window.location.origin}/designer/${org}/${repo}/Config/SetServiceConfig`,
         newServiceDescription: this.state.serviceDescription,
         newServiceId: this.state.serviceId,
         newServiceName: this.state.serviceName,
@@ -204,10 +204,10 @@ export class AdministrationComponent extends
 
   public onBlurServiceId = () => {
     if (this.state.editServiceId) {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, repo } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
       this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+        url: `${window.location.origin}/designer/${org}/${repo}/Config/SetServiceConfig`,
         newServiceDescription: this.state.serviceDescription,
         newServiceId: this.state.serviceId,
         newServiceName: this.state.serviceName,
@@ -253,9 +253,9 @@ export class AdministrationComponent extends
     return (
       <div data-testid='administration-container'>
         {this.props.service &&
-        this.props.serviceName !== null &&
-        this.props.serviceDescription !== null &&
-        this.props.serviceId !== null ?
+          this.props.serviceName !== null &&
+          this.props.serviceDescription !== null &&
+          this.props.serviceId !== null ?
           <AltinnColumnLayout
             aboveColumnChildren={
               <div className={this.props.classes.versionControlHeaderMargin}>

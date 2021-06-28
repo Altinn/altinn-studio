@@ -1,60 +1,42 @@
-/* tslint:disable: max-line-length */
-const { org, app } = window as Window as IAltinnWindow;
-const origin = window.location.origin;
+const {
+  location, org, app,
+} = window as Window as IAltinnWindow;
+const { origin } = location;
+const cdn = 'https://altinncdn.no';
+const desingerApi = `${origin}/designer/api`;
+const repo = app;
 
-export const getRepoStatusUrl = (): string => {
-  return `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
-};
+export const datamodelsApi = `${desingerApi}/${org}/${repo}/datamodels`;
+export const repoStatusUrl = `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${repo}`;
+export const languageUrl = `${origin}/designerapi/Language/GetLanguageAsJSON`;
+export const giteaSignOutUrl = `${origin}/repos/user/logout`;
+export const studioSignOutUrl = `${origin}/Home/Logout`;
+export const releasesPostUrl = `${desingerApi}/v1/${org}/${repo}/releases`;
+export const appDeploymentsUrl = `${desingerApi}/v1/${org}/${repo}/Deployments`;
+export const keepAliveUrl = `${desingerApi}/v1/session/keepalive`;
+export const fetchDeployPermissionsUrl = `${desingerApi}/v1/${org}/${repo}/deployments/permissions`;
+export const remainingSessionTimeUrl = `${desingerApi}/v1/session/remaining`;
+export const releasesGetUrl = `${releasesPostUrl}?sortBy=created&sortDirection=Descending`;
+export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
+export const environmentsConfigUrl = `${cdn}/config/environments.json`;
 
-export const releasesUrlPost: string = `${origin}/designer/api/v1/${org}/${app}/releases`;
-export const releasesUrlGet: string = `${releasesUrlPost}?sortBy=created&sortDirection=Descending`;
-export const languageUrl: string = `${origin}/designerapi/Language/GetLanguageAsJSON`;
-export const getOrgsListUrl: string = 'https://altinncdn.no/orgs/altinn-orgs.json';
+export const getReleaseBuildPipelineLink =
+  (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
-export const getReleaseBuildPipelineLink = (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+export const getGitCommitLink =
+  (commitId: string) => `${origin}/repos/${org}/${repo}/commit/${commitId}`;
 
-export const getGitCommitLink = (commitId: string) => `${origin}/repos/${org}/${app}/commit/${commitId}`;
+export const getAzureDevopsBuildResultUrl =
+  (buildId: string | number) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
-export const getAzureDevopsBuildResultUrl = (buildId: string|number): string => {
-  return `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
-};
+export const getFetchDataModelUrl =
+  (modelName: string) => `${datamodelsApi}/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
-export const getEnvironmentsConfigUrl = (): string => {
-  return 'https://altinncdn.no/config/environments.json';
-};
+export const getSaveDataModelUrl =
+  (modelName: string) => `${datamodelsApi}/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
-export const getAppDeploymentsUrl = () => {
-  return `${origin}/designer/api/v1/${org}/${app}/Deployments`;
-};
+export const getDeleteDataModelUrl =
+  (modelName: string) => `${datamodelsApi}/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
-export const getFetchDataModelUrl = (modelName: string) => {
-  return `${origin}/designer/api/${org}/${app}/datamodels/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
-};
-
-export const getSaveDataModelUrl = (modelName: string) => {
-  return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
-};
-
-export const getDeleteDataModelUrl = (modelName: string) => {
-  return `${origin}/designer/api/${org}/${app}/datamodels/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;
-};
-
-export const getFetchDeployPermissionsUrl = () => {
-  return `${origin}/designer/api/v1/${org}/${app}/deployments/permissions`;
-};
-
-export const getRemainingSessionTimeUrl = () => {
-  return `${origin}/designer/api/v1/session/remaining`;
-};
-
-export const getKeepAliveUrl = () => {
-  return `${origin}/designer/api/v1/session/keepalive`;
-};
-
-export const getGiteaSignOutUrl = () => {
-  return `${origin}/repos/user/logout`;
-};
-
-export const getStudioSignOutUrl = () => {
-  return `${origin}/Home/Logout`;
-};
+export const createDatamodellingUrl =
+  (pathToModelFile: string) => `${datamodelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`;

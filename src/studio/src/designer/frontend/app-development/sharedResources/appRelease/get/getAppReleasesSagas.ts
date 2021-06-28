@@ -4,12 +4,12 @@ import { delay } from 'redux-saga/effects';
 import { call, fork, put, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { get } from '../../../utils/networking';
-import { releasesUrlGet } from '../../../utils/urlHelper';
+import { releasesGetUrl } from '../../../utils/urlHelper';
 import { AppReleaseActions } from '../appReleaseSlice';
 
 function* getReleasesSaga(): SagaIterator {
   try {
-    const result: any = yield call(get, releasesUrlGet);
+    const result: any = yield call(get, releasesGetUrl);
     yield put(AppReleaseActions.getAppReleasesFulfilled({ releases: result.results }));
   } catch (error) {
     if (checkIfAxiosError(error)) {

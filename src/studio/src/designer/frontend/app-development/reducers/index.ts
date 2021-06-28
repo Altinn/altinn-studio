@@ -4,11 +4,12 @@ import handleMergeConflictReducer, { IHandleMergeConflictState } from '../featur
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
+import datamodelsMetadataReducer, { IDatamodelsMetadataState } from '../sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
 import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
-import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
+import { dataModellingReducer, IDataModellingState } from '../features/dataModelling/sagas';
 import userReducer, { IUserState } from '../sharedResources/user/userSlice';
 
 export interface IServiceDevelopmentReducers
@@ -16,29 +17,32 @@ export interface IServiceDevelopmentReducers
   Reducer<IFetchedLanguageState>,
   Reducer<IHandleMergeConflictState>,
   Reducer<IHandleServiceInformationState>,
-  Reducer<IApplicationMetadataState>,
+  Reducer<IApplicationMetadataState | IDatamodelsMetadataState>,
   Reducer<IAppClusterState>,
   Reducer<IRepoStatusState>,
   Reducer<IAppReleaseState>,
   Reducer<IAppDeploymentState>,
   Reducer<IConfigurationState>,
-  Reducer<IDataModelingState>,
+  Reducer<IDataModellingState>,
   Reducer<IUserState>
   >,
   ReducersMapObject { }
 
-const reducers: IServiceDevelopmentReducers = {
-  languageState: languageReducer,
-  handleMergeConflict: handleMergeConflictReducer,
-  serviceInformation: handleServiceInformationReducer,
-  applicationMetadataState: applicationMetadataReducer,
-  appCluster: appClusterReducer,
-  repoStatus: repoStatusReducer,
-  appReleases: appReleaseReducer,
-  appDeployments: appDeploymentReducer,
-  configuration: configurationReducer,
-  dataModeling: dataModelingReducer,
-  userState: userReducer,
+const reducers = (repoType?: string): IServiceDevelopmentReducers => {
+  const repoMetadataState = repoType === 'datamodels' ? datamodelsMetadataReducer : applicationMetadataReducer;
+  return {
+    languageState: languageReducer,
+    handleMergeConflict: handleMergeConflictReducer,
+    serviceInformation: handleServiceInformationReducer,
+    repoMetadataState,
+    appCluster: appClusterReducer,
+    repoStatus: repoStatusReducer,
+    appReleases: appReleaseReducer,
+    appDeployments: appDeploymentReducer,
+    configuration: configurationReducer,
+    dataModelling: dataModellingReducer,
+    userState: userReducer,
+  };
 };
 
-export default combineReducers(reducers);
+export default (repoType?: string) => combineReducers(reducers(repoType));

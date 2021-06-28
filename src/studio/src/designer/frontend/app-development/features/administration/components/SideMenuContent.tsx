@@ -61,9 +61,9 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   };
 
   const handleResetRepoClick = () => {
-    const altinnWindow: any = window;
-    const { org, app } = altinnWindow;
-    dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
+    const altinnWindow = window as Window as IAltinnWindow;
+    const { org, repo } = altinnWindow;
+    dispatch(RepoStatusActions.resetLocalRepo({ org, repo }));
   };
 
   React.useEffect(() => {

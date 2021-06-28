@@ -5,7 +5,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface ISyncModalComponentProps {
   classes: any;
-  anchorEl: any;
+  anchorEl: Element;
   header?: string;
   descriptionText?: string[];
   isLoading?: boolean;
@@ -24,14 +24,14 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   button: {
-    'fontSize': '14px',
-    'color': theme.altinnPalette.primary.white,
-    'background': theme.altinnPalette.primary.blueDark,
-    'maxWidth': '150px',
-    'textTransform': 'none',
-    'fontWeight': 400,
-    'marginTop': '20px',
-    'borderRadius': '0',
+    fontSize: '14px',
+    color: theme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.blueDark,
+    maxWidth: '150px',
+    textTransform: 'none',
+    fontWeight: 400,
+    marginTop: '20px',
+    borderRadius: '0',
     '&:hover': {
       background: theme.altinnPalette.primary.blueDarker,
       color: theme.altinnPalette.primary.white,
@@ -67,7 +67,7 @@ const styles = createStyles({
     marginLeft: 'auto',
   },
   commitMessageField: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
     boxSizing: 'border-box',
     marginTop: '10px',
     fontSize: '16px !Important',
@@ -109,16 +109,15 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
       return (
         <CircularProgress className={classNames(classes.spinner)} />
       );
-    } else {
-      if (this.props.shouldShowDoneIcon) {
-        return (
-          <div className={classNames(classes.doneLoadingIcon)}>
-            <i className={classNames('fa fa-circlecheck')} />
-          </div>
-        );
-      }
-      return null;
     }
+    if (this.props.shouldShowDoneIcon) {
+      return (
+        <div className={classNames(classes.doneLoadingIcon)}>
+          <i className={classNames('fa fa-circlecheck')} />
+        </div>
+      );
+    }
+    return null;
   }
 
   public render() {
@@ -135,7 +134,10 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
         }}
         anchorReference='anchorEl'
       >
-        <Grid container={true} direction='column' className={classes.popover}>
+        <Grid
+          container={true} direction='column'
+          className={classes.popover}
+        >
           {this.props.header &&
             <Typography variant='h3' className={classNames(classes.header)}>
               {this.props.header}
@@ -175,7 +177,7 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
               color='primary'
               className={classes.button}
               onClick={this.btnClickedHandler}
-              id={'share_changes_modal_button'}
+              id='share_changes_modal_button'
             >
               {this.props.btnText}
             </Button>
