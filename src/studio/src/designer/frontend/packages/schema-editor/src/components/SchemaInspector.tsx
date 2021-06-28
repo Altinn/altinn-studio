@@ -36,6 +36,9 @@ const useStyles = makeStyles(
       fontSize: 16,
       marginTop: 24,
       marginBottom: 6,
+      '& .Mui-focusVisible': {
+        background: 'gray',
+      },
     },
     name: {
       marginBottom: 6,
@@ -295,7 +298,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
-    if (!field || field.key.startsWith('@')) {
+    if (!field.key && field.key.startsWith('@')) {
       return null;
     }
     return (

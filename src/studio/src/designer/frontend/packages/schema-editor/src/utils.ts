@@ -219,6 +219,7 @@ export const getTranslation = (key: string, language: ILanguage) => {
   if (!key) {
     return key;
   }
+  console.log(key);
   const string = `schema_editor.${key}`;
   return getNestedObject(language, string.split('.')) ?? key;
 };

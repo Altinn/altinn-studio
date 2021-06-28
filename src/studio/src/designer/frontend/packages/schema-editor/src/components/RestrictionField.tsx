@@ -40,18 +40,21 @@ const useStyles = makeStyles({
 
 export const RestrictionField = (props: IRestrictionFieldProps) => {
   const classes = useStyles();
-  const [val, setVal] = React.useState(props.value);
+  const [key, setKey] = React.useState(props.value);
   React.useEffect(() => {
-    setVal(props.value);
-  }, [props.value]);
+    setKey(props.keyName);
+  }, [props.keyName]);
 
   const onBlur = () => {
-    props.onChangeKey(props.path, props.keyName, val);
+    props.onChangeKey(props.path, props.keyName, key);
+  };
+  const onInputChange = (e: any, v: any) => {
+    setKey(v);
   };
 
-  const onChange = (e: any, v: any) => {
+  const onChangeKey = (e: any, v: any) => {
     e.stopPropagation();
-    setVal(v);
+    setKey(v);
   };
 
   const options = getRestrictions(props.type ?? '');
@@ -63,9 +66,9 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           freeSolo={true}
           id={`${baseId}-${props.keyName}-key`}
           disabled={props.readOnly}
-          value={props.keyName}
-          onInputChange={(e, v) => setVal(v)}
-          onChange={onChange}
+          value={key}
+          onInputChange={onInputChange}
+          onChange={onChangeKey}
           onBlur={onBlur}
           className={classes.field}
           disableClearable={true}
