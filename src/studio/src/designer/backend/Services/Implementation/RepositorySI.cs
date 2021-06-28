@@ -83,13 +83,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
         #region Service metadata
         public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
-        {
-            string orgPath = null;
+        {            
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            string orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                 ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                 : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
 
