@@ -78,11 +78,12 @@ describe('DataModeling', () => {
       );
     });
     expect(wrapper).not.toBeNull();
-
+    expect(wrapper.find('input').length).toBe(6);
     wrapper.find('#new-button').at(0).simulate('click');
-    expect(wrapper.find('input').length).toBe(2);
+    expect(wrapper.find('input').length).toBe(7);
 
-    wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
+    wrapper.find('#newModelInput').find('input').hostNodes().at(0)
+      .simulate('change', { target: { value: 'test' } });
     wrapper.find('#newModelInput').find('button').simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({
