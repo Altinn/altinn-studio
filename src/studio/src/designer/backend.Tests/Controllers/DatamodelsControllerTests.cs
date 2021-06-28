@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
@@ -23,7 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.TestingControllers
+namespace Designer.Tests.Controllers
 {
     public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -41,7 +43,7 @@ namespace Designer.Tests.TestingControllers
             HttpClient client = GetTestClient();
 
             string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
-   
+
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -108,9 +110,9 @@ namespace Designer.Tests.TestingControllers
             {
                 File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
-  
+
             File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
-  
+
             HttpClient client = GetTestClient();
 
             string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=32578";
@@ -289,6 +291,74 @@ namespace Designer.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async Task GetDatamodels_NoInput_ShouldReturnAllModels()
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);            
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            var response = await client.SendAsync(httpRequestMessage);
+            var json = await response.Content.ReadAsStringAsync();
+            var altinnCoreFiles = System.Text.Json.JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(8, altinnCoreFiles.Count);
+        }
+
+        [Fact]
+        public async Task GetDatamodels_NotAuthenticated_ShouldReturn401()
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            
+            var response = await client.SendAsync(httpRequestMessage);
+            
+            Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+            Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());
+        }
+
+        [Theory]
+        [InlineData("testModel.schema.json")]
+        [InlineData("App/testModel.schema.json")]
+        [InlineData("App/models/testModel.schema.json")]
+        [InlineData("/App/models/testModel.schema.json")]
+        public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
+        {
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            if (gitRepository.FileExistsByRelativePath(modelPath))
+            {
+                gitRepository.DeleteFileByRelativePath(modelPath);
+            }
+
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/?modelPath={modelPath}";
+            string requestBody = "{}";
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
+            finally
+            {
+                gitRepository.DeleteFileByRelativePath(modelPath);
+            }
+        }
+
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
@@ -333,25 +403,10 @@ namespace Designer.Tests.TestingControllers
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
                     services.AddSingleton<IGitea, IGiteaMock>();
 
-                    services.AddSingleton<IRepository>(repositoryMock.Object);
+                    services.AddSingleton(repositoryMock.Object);
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
-        }
-
-        private JsonSchema LoadTestData(string resourceName)
-        {
-            Assembly assembly = typeof(DatamodelsControllerTests).GetTypeInfo().Assembly;
-            using Stream resource = assembly.GetManifestResourceStream(resourceName);
-
-            if (resource == null)
-            {
-                throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
-            }
-
-            using StreamReader streamReader = new StreamReader(resource);
-            JsonValue jsonValue = JsonValue.Parse(streamReader);
-            return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
-        }
+        }       
     }
 }
