@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
 
@@ -50,9 +52,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 folder.ForEach(async textResourceFromRepo =>
                 {
+                    if (!Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success)
+                    {
+                        return;
+                    }
+
                     FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                     byte[] data = Convert.FromBase64String(populatedFile.Content);
-                    PlatformStorageModels.TextResource content = data.Deserialize<Altinn.Platform.Storage.Interface.Models.TextResource>();
+                    PlatformStorageModels.TextResource content;
+
+                    try
+                    {
+                        content = data.Deserialize<PlatformStorageModels.TextResource>();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to parse text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
+                        return;
+                    }
+
                     PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, environmentModel);
                     if (textResourceStorage == null)
                     {
@@ -66,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private async Task<Altinn.Platform.Storage.Interface.Models.TextResource> GetTextResourceFromStorage(string org, string app, string language, EnvironmentModel environmentModel)
+        private async Task<PlatformStorageModels.TextResource> GetTextResourceFromStorage(string org, string app, string language, EnvironmentModel environmentModel)
         {
             try
             {
