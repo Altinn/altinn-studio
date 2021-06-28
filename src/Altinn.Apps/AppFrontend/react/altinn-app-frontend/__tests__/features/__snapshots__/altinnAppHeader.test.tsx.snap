@@ -8,15 +8,16 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
     className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AltinnAppHeader-default-4 MuiPaper-elevation4"
   >
     <div
-      className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-13 MuiToolbar-gutters"
+      className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-12 MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root AltinnAppHeader-logo-10 MuiGrid-item"
+        className="MuiGrid-root AltinnAppHeader-logo-9 MuiGrid-item"
         style={Object {}}
       >
         <img
           alt="Altinn logo"
-          className="logo "
+          className="logo"
+          id="logo"
           src="https://altinncdn.no/img/Altinn-logo-blue.svg"
         />
       </div>
@@ -69,7 +70,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
         </span>
         <i
           aria-hidden="true"
-          className="fa fa-private-circle-big AltinnAppHeader-partyIcon-12 AltinnAppHeader-blueDark-2"
+          className="fa fa-private-circle-big AltinnAppHeader-partyIcon-11 AltinnAppHeader-blueDark-2"
         />
       </div>
     </div>

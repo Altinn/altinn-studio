@@ -30,6 +30,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
           <img
             alt="Altinn logo"
             className="logo logo-filter-022F51"
+            id="logo"
             src="https://altinncdn.no/img/Altinn-logo-black.svg"
           />
         </div>
