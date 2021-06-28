@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// <summary>
     /// Base class for handling files in a Git Repository.
     /// </summary>
-    public class GitRepository : IGitRepository
+    public class GitRepository
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GitRepository"/> class.
