@@ -146,7 +146,7 @@ export function* updateCurrentViewSaga({ payload: {
         model, state.formLayout.layouts, layoutOrder,
         validator, state.language.language, state.textResources.resources,
       );
-      let validations = validationResult.validations;
+
       const componentSpecificValidations =
         validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
           state.language.language, state.formLayout.uiConfig.hiddenFields);
@@ -158,8 +158,7 @@ export function* updateCurrentViewSaga({ payload: {
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
       );
-      validations = mergeValidationObjects(validations, componentSpecificValidations);
-      validations = mergeValidationObjects(validations, emptyFieldsValidations);
+      let validations = mergeValidationObjects(validationResult.validations, componentSpecificValidations, emptyFieldsValidations);
       const instanceId = state.instanceData.instance.id;
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {

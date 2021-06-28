@@ -499,13 +499,13 @@ export function validateFormData(
   language: any,
   textResources: ITextResource[],
 ): IValidationResult {
-  let validations: any = {};
+  const validations: any = {};
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
     if (layoutOrder.includes(id)) {
       const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language, textResources);
-      validations = result.validations;
+      validations[id] = result.validations[id];
       if (!invalidDataTypes) {
         invalidDataTypes = result.invalidDataTypes;
       }
@@ -577,7 +577,7 @@ export function validateFormDataForLayout(
 
 export function processInstancePath(path: string): string {
   let result = path.startsWith('.') ? path.slice(1) : path;
-  result = result.replace(/']\['/g, '.').replace(/\['/g, '').replace(/']/g, '');
+  result = result.replace(/"]\["|']\['/g, '.').replace(/\["|\['/g, '').replace(/"]|']/g, '');
   return result;
 }
 
