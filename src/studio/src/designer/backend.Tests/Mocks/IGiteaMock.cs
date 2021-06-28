@@ -108,11 +108,11 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        private string GetTextsResourcePath(string filePath, string shortCommitId)
+        private static string GetTextsResourcePath(string filePath, string shortCommitId)
         {
             string[] pathArray = filePath.Split("/");
 
-            return $"{ string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
+            return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
         }
     }
 }

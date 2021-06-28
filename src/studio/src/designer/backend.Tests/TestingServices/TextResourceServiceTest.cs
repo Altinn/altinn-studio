@@ -75,7 +75,7 @@ namespace Designer.Tests.TestingServices
             // Arrange
             HttpContext httpContext = GetHttpContextForTestUser("testUser");
             Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-       
+
             storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
               .Returns(Task.FromResult((StorageInterface.TextResource)null));
 
@@ -91,7 +91,7 @@ namespace Designer.Tests.TestingServices
                 Times.Never);
         }
 
-        private HttpContext GetHttpContextForTestUser(string userName)
+        private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
@@ -105,7 +105,7 @@ namespace Designer.Tests.TestingServices
             return c;
         }
 
-        private TextResourceService GetServiceForTest(Mock<IAltinnStorageTextResourceClient> storageClientMock = null)
+        private static TextResourceService GetServiceForTest(Mock<IAltinnStorageTextResourceClient> storageClientMock = null)
         {
             storageClientMock ??= new Mock<IAltinnStorageTextResourceClient>();
 
