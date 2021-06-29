@@ -98,7 +98,7 @@ export interface ISchemaInspectorProps {
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [nodeName, setNodeName] = React.useState<string | undefined>('');
+  const [nodeName, setNodeName] = React.useState<string>('');
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
@@ -107,7 +107,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
+  const nameFieldRef = React.createRef<HTMLInputElement>();
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -132,13 +134,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   React.useEffect(() => {
-    setNodeName(selectedItem?.displayName);
+    if (focusName) {
+      setTimeout(() => {
+        nameFieldRef?.current?.focus();
+      }, 100);
+    }
+  }, [nameFieldRef, focusName]);
+
+  React.useEffect(() => {
+    setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
-      if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
+      if ((tabIndex === '2' && itemToDisplay?.type !== 'object') || focusName) {
         setTabIndex('0');
       }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
@@ -152,12 +162,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       setObjectKind('type');
       setTabIndex('0');
     }
-  }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
+  }, [selectedItem, parentItem, tabIndex, itemToDisplay, focusName]);
 
   const readOnly = selectedItem?.$ref !== undefined;
 
   React.useEffect(() => {
-    setNodeName(selectedItem?.displayName);
+    setNodeName(selectedItem?.displayName ?? '');
   }, [selectedItem]);
 
   const onChangeValue = (path: string, value: any, key?: string) => {
@@ -404,8 +414,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div>
       <p className={classes.name}>{getTranslation('name', props.language)}</p>
       <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-name`}
+        id='selectedNodeName'
         className={classes.field}
+        inputRef={nameFieldRef}
         placeholder='Name'
         fullWidth={true}
         value={nodeName}

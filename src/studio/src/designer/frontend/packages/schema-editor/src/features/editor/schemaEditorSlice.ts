@@ -10,6 +10,7 @@ export const initialState: ISchemaState = {
   saveSchemaUrl: '',
   selectedId: '',
   selectedNodeId: '',
+  focusNameField: false,
 };
 
 const schemaEditorSlice = createSlice({
@@ -54,7 +55,13 @@ const schemaEditorSlice = createSlice({
       }
     },
     addRootItem(state, action) {
-      const { name, location } = action.payload;
+      let { name } = action.payload;
+      const { location } = action.payload;
+      // make sure name is unique.
+      // eslint-disable-next-line no-loop-func
+      while (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+        name += 1;
+      }
       const path = `#/${location}/${name}`;
       state.uiSchema.push(
         {
@@ -65,6 +72,7 @@ const schemaEditorSlice = createSlice({
       );
       state.selectedId = path;
       state.selectedNodeId = getDomFriendlyID(path);
+      state.focusNameField = true;
     },
     addProperty(state, action) {
       const { path } = action.payload;
@@ -83,6 +91,9 @@ const schemaEditorSlice = createSlice({
       } else {
         addToItem.properties = [item];
       }
+      state.selectedId = item.id;
+      state.selectedNodeId = getDomFriendlyID(item.id);
+      state.focusNameField = true;
     },
     addRefProperty(state, action) {
       const {
@@ -255,6 +266,7 @@ const schemaEditorSlice = createSlice({
         item.id = arr.join('/');
         if (navigate) {
           state.selectedId = item.id;
+          state.selectedNodeId = getDomFriendlyID(item.id);
         }
       }
     },
@@ -264,10 +276,11 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, navigate,
+        id, navigate, focusName,
       } = action.payload;
       state.selectedId = id;
       state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
+      state.focusNameField = focusName;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;

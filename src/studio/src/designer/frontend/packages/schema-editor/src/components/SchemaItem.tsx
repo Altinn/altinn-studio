@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
+import { getDomFriendlyID } from '../utils';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -123,7 +124,7 @@ function SchemaItem(props: SchemaItemProps) {
         keyPrefix={`${keyPrefix}-properties`}
         key={`${keyPrefix}-${property.id}`}
         item={property}
-        nodeId={`${keyPrefix}-${property.id}`}
+        nodeId={`${getDomFriendlyID(property.id)}`}
         onClick={() => onItemClick(property)}
         language={props.language}
       />

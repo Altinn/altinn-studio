@@ -97,14 +97,6 @@ export const SchemaEditor = ({
     if (selectedNodeId) {
       const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
-      setTimeout(() => {
-        const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
-        if (node) {
-          node.focus();
-          (node.firstChild as HTMLElement).click();
-        }
-      }, 50);
-    }
   }, [selectedNodeId]);
 
   const onClickSaveJsonSchema = () => {
@@ -195,6 +187,7 @@ export const SchemaEditor = ({
               <TabPanel value='0'>
                 <TreeView
                   multiSelect={false}
+                  selected={selectedNodeId ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
@@ -202,7 +195,7 @@ export const SchemaEditor = ({
                     keyPrefix='properties'
                     key={item.id}
                     item={item}
-                    nodeId={`${item.id}`}
+                    nodeId={getDomFriendlyID(item.id)}
                     language={language}
                     id={getDomFriendlyID(item.id)}
                   />)}
@@ -225,7 +218,7 @@ export const SchemaEditor = ({
                     keyPrefix='definitions'
                     item={def}
                     key={def.id}
-                    nodeId={`def-${def.id}`}
+                    nodeId={getDomFriendlyID(def.id)}
                     id={getDomFriendlyID(def.id)}
                     language={language}
                   />)}

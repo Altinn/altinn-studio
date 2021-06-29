@@ -5,6 +5,7 @@ export interface ISchemaState {
   saveSchemaUrl: string;
   selectedId?: string;
   selectedNodeId?: string;
+  focusNameField?: boolean;
 }
 export interface ILanguage {
   [key: string]: string;
