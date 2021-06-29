@@ -44,7 +44,6 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-                    services.AddSingleton<IUserProfiles, UserProfilesWrapperMock>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
 
                     Mock<IOptions<GeneralSettings>> generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
@@ -62,23 +61,6 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                             generalSettingsOptions.Object));
                 });
             }).CreateClient();
-            return client;
-        }
-
-        public static HttpClient GetTestClient(WebApplicationFactory<Startup> factory)
-        {
-            Program.ConfigureSetupLogging();
-            HttpClient client = factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-                    services.AddSingleton<IUserProfiles, UserProfilesWrapperMock>();
-                    services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
-                });
-            })
-            .CreateClient();
-
             return client;
         }
     }
