@@ -5,9 +5,10 @@ import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { post } from 'src/utils/networking';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
-import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
+import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
+import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
   createValidator,
   getNumberOfComponentsWithErrors,
@@ -20,8 +21,9 @@ import { canFormBeSaved,
 import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
 import { runSingleFieldValidation, updateValidations } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
+import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
+import { getCurrentDataTypeForApplication, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
@@ -102,7 +104,7 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   return yield call(ProcessDispatcher.completeProcess);
 }
 
-function* putFormData(state: IRuntimeState, model: any) {
+export function* putFormData(state: IRuntimeState, model: any) {
   // updates the default data element
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
@@ -147,37 +149,20 @@ function* handleCalculationUpdate(changedFields) {
 }
 
 // eslint-disable-next-line consistent-return
-function* saveFormDataSaga(): SagaIterator {
+export function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
-    const defaultDataElementGuid = getCurrentTaskDataElementId(
-      state.applicationMetadata.applicationMetadata,
-      state.instanceData.instance,
-    );
-
+    const application = state.applicationMetadata.applicationMetadata;
     const model = convertDataBindingToModel(
       filterOutInvalidData(state.formData.formData, state.formValidations.invalidDataTypes || []),
     );
 
-    try {
-      yield call(put, dataElementUrl(defaultDataElementGuid), model);
-    } catch (error) {
-      if (isIE) {
-        // 303 is treated as en error in IE - we try to fetch.
-        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
-      } else if (error.response && error.response.status === 303) {
-        // 303 means that data has been changed by calculation on server. Try to update from response.
-        const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
-        if (!calculationUpdateHandled) {
-          // No changedFields property returned, try to fetch
-          yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
-        } else {
-          yield sagaPut(FormLayoutActions.initRepeatingGroups());
-        }
-      } else {
-        throw error;
-      }
+    if (isStatelessApp(application)) {
+      yield call(saveStatelessData, state, model);
+    } else {
+      // app with instance
+      yield call(putFormData, state, model);
     }
 
     if (state.formValidations.currentSingleFieldValidation) {
@@ -189,6 +174,18 @@ function* saveFormDataSaga(): SagaIterator {
     console.error(error);
     yield sagaPut(FormDataActions.submitFormDataRejected({ error }));
   }
+}
+
+export function* saveStatelessData(state: IRuntimeState, model: any) {
+  const currentDataType = getCurrentDataTypeForApplication(
+    state.applicationMetadata.applicationMetadata,
+    state.instanceData.instance,
+    state.formLayout.layoutsets,
+  );
+  const response = yield call(post, getStatelessFormDataUrl(currentDataType), null, model);
+  const formData = convertModelToDataBinding(response?.data);
+  yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
+  yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);
 }
 
 function* autoSaveSaga(): SagaIterator {
