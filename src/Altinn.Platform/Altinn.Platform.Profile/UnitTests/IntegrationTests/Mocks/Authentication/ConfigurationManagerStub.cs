@@ -11,12 +11,13 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication
 {
     /// <summary>
-    /// Represents a stub of <see cref="ConfigurationManager{OpenIdConnectConfiguration}"/> to be used in integration tests.
+    /// Represents a stub of <see cref="ConfigurationManager{OpenIdConnectConfiguration}"/> to
+    /// be used in integration tests.
     /// </summary>
     public class ConfigurationManagerStub : IConfigurationManager<OpenIdConnectConfiguration>
     {
         /// <inheritdoc />
-        public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
+        public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken _)
         {
             ICollection<SecurityKey> signingKeys = await GetSigningKeys(string.Empty);
 
@@ -37,12 +38,10 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication
 
         private async Task<ICollection<SecurityKey>> GetSigningKeys(string _)
         {
-            List<SecurityKey> signingKeys = new List<SecurityKey>();
-
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
-            signingKeys.Add(key);
+            List<SecurityKey> signingKeys = new () { key };
 
             return await Task.FromResult(signingKeys);
         }
