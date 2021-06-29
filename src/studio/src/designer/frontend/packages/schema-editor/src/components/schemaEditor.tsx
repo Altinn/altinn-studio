@@ -97,6 +97,7 @@ export const SchemaEditor = ({
     if (selectedNodeId) {
       const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
+    }
   }, [selectedNodeId]);
 
   const onClickSaveJsonSchema = () => {
