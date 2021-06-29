@@ -55,5 +55,23 @@ namespace Designer.Tests.Utils
 
             return resource;
         }
+
+        public static string GetTestDataDirectory()
+        {
+            var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
+            return Path.GetFullPath(Path.Combine(unitTestFolder, @"..\..\..\_TestData\"));
+        }
+
+        public static string GetTestDataRepositoriesRootDirectory()
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, @"Repositories\");
+        }
+
+        public static string GetTestDataRepositoryDirectory(string org, string repository, string developer)
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
+        }
     }
 }

@@ -1,0 +1,91 @@
+[
+  {
+    "tagName": "0.0.5",
+    "name": "0.0.5",
+    "body": "norske tekster",
+    "targetCommitish": "457f2b19341e8817d6aedf05e38587464a815294",
+    "build": {
+      "id": "176938",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-06-15T13:31:43.4970182Z"
+    },
+    "id": "a9688936-8f3f-4c97-a1e0-ae97387c4ef8",
+    "created": "2021-06-15T13:31:26.5683911+00:00",
+    "createdBy": "acn-sbuad",
+    "app": "kjaerestebesok",
+    "org": "udi"
+  },
+  {
+    "tagName": "0.0.4",
+    "name": "0.0.4",
+    "body": "Kun EU / EØS land i listen",
+    "targetCommitish": "2cf518869130eee755644949feb59f369f28d87c",
+    "build": {
+      "id": "176795",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-06-15T10:24:14.2489297Z",
+      "finished": "2021-06-15T10:25:30.9943174Z"
+    },
+    "id": "8d0fc2d6-559a-4209-863d-71d89404bf49",
+    "created": "2021-06-15T10:23:58.0379685+00:00",
+    "createdBy": "acn-sbuad",
+    "app": "kjaerestebesok",
+    "org": "udi"
+  },
+  {
+    "tagName": "0.0.3",
+    "name": "0.0.3",
+    "body": "fixed dynamics for pdf",
+    "targetCommitish": "88cea1c7f52cfdc1e9946b71e298792c87dbd527",
+    "build": {
+      "id": "176740",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-06-15T08:50:34.3931411Z",
+      "finished": "2021-06-15T08:51:51.9702407Z"
+    },
+    "id": "73de2faf-ba83-4e58-8011-a1610d112b2c",
+    "created": "2021-06-15T08:50:19.0470781+00:00",
+    "createdBy": "acn-sbuad",
+    "app": "kjaerestebesok",
+    "org": "udi"
+  },
+  {
+    "tagName": "0.0.2",
+    "name": "0.0.2",
+    "body": "all yellow fields included",
+    "targetCommitish": "4557cc4d8431a16644214a158d75e068cc048e05",
+    "build": {
+      "id": "176719",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-06-15T08:20:33.3616651Z",
+      "finished": "2021-06-15T08:22:00.9145746Z"
+    },
+    "id": "15643fa7-7ecf-4928-96dd-6fc13ca9f802",
+    "created": "2021-06-15T08:20:10.9217624+00:00",
+    "createdBy": "acn-sbuad",
+    "app": "kjaerestebesok",
+    "org": "udi"
+  },
+  {
+    "tagName": "0.0.1",
+    "name": "0.0.1",
+    "body": "First occurence",
+    "targetCommitish": "c6928a0a61aff3ad5df2a1713c40c4b5a5902451",
+    "build": {
+      "id": "176220",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-06-14T16:02:06.0398626Z",
+      "finished": "2021-06-14T16:03:31.3857387Z"
+    },
+    "id": "56a4cee1-15d4-40de-9f2f-27bebf33ae01",
+    "created": "2021-06-14T16:01:50.308789+00:00",
+    "createdBy": "acn-sbuad",
+    "app": "kjaerestebesok",
+    "org": "udi"
+  }
+]

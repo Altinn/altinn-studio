@@ -39,6 +39,7 @@ export interface UiSchemaItem {
   title?: string;
   description?: string;
   items?: {type?: string, $ref?: string};
+  enum?: string[];
 }
 
 export interface ISchema {
