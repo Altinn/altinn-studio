@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -34,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateSchemaFile(string org, string repository, string developer, string relativeFilePath, string content)
+        public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string content)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
 
@@ -42,11 +44,65 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void DeleteSchemaFile(string org, string repository, string developer, string relativeFilePath)
+        public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);            
 
-            altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            {
+                altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);                
+            }
+            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            {                
+                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
+                var schemaName = GetSchemaName(altinnCoreFile);
+                await DeleteDatatypeFromApplicationMetadata(altinnGitRepository as AltinnAppGitRepository, schemaName);
+                DeletedRelatedSchemaFiles(altinnGitRepository as AltinnAppGitRepository, schemaName, altinnCoreFile.Directory);
+            }
+        }
+
+        private void DeletedRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
+        {
+            var files = GetRelatedSchemaFiles(schemaName, directory);
+            foreach (var file in files)
+            {
+                altinnAppGitRepository.DeleteFileByAbsolutePath(file);
+            }
+        }
+
+        private IEnumerable<string> GetRelatedSchemaFiles(string schemaName, string directory)
+        {
+            var xsdFile = Path.Combine(directory, $"{schemaName}.xsd");
+            var jsonSchemaFile = Path.Combine(directory, $"{schemaName}.schema.json");
+
+            return new List<string>() { jsonSchemaFile, xsdFile };
+        }
+
+        private string GetSchemaName(AltinnCoreFile altinnCoreFile)
+        {
+            if (altinnCoreFile.FileType.ToLower() == ".json" && altinnCoreFile.FileName.ToLower().EndsWith(".schema"))
+            {
+                return altinnCoreFile.FileName.Remove(altinnCoreFile.FileName.ToLower().IndexOf(".schema"));
+            }
+            else if (altinnCoreFile.FileType.ToLower() == ".xsd")
+            {
+                return altinnCoreFile.FileName;
+            }
+
+            return string.Empty;
+        }
+
+        private async Task DeleteDatatypeFromApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string id)
+        {
+            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+
+            if (applicationMetadata.DataTypes != null)
+            {
+                DataType removeForm = applicationMetadata.DataTypes.Find(m => m.Id == id);
+                applicationMetadata.DataTypes.Remove(removeForm);
+            }
+
+            await altinnAppGitRepository.UpdateApplicationMetadata(applicationMetadata);
         }
     }
 }

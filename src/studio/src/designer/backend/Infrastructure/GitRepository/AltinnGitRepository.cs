@@ -101,6 +101,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return altinnCoreSchemaFiles;
         }
 
+        /// <summary>
+        /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
+        /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
+        /// </summary>
+        /// <param name="realtiveFilepath">The relative path to the file seen from the repository root.</param>
+        public AltinnCoreFile GetAltinnCoreFileByRealtivePath(string realtiveFilepath)
+        {
+            var absoluteFilepath = GetAbsoluteFilePathSanitized(realtiveFilepath);
+            return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
+        }
+
         private AltinnStudioSettings GetAltinnStudioSettings()
         {
             var studioSettingsFilePath = Path.Combine(RepositoryDirectory, STUDIO_SETTINGS_FILEPATH);

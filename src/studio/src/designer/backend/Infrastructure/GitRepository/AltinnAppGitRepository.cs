@@ -36,5 +36,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             return JsonConvert.DeserializeObject<Application>(fileContent);            
         }
+
+        /// <summary>
+        /// Updates the application metadata file.
+        /// </summary>
+        /// <param name="applicationMetadata">The updated application metadata to persist.</param>
+        public async Task UpdateApplicationMetadata(Application applicationMetadata)
+        {
+            string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
+            var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+
+            await WriteTextByRelativePathAsync(appMetadataRealtiveFilePath, metadataAsJson);
+        }
     }
 }

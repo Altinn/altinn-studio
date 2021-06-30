@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -21,22 +22,27 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer);
 
         /// <summary>
-        /// Updates a schema file based on it's relative path within the repository.
+        /// Updates a schema based on the relative path to the JSON Schema within the repository.
+        /// For a datamodels repository this will only update the file itself. For a app
+        /// repository this will update the generated files as well e.g. the C# class.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
         /// <param name="relativeFilePath">Relative path to the file.</param>
         /// <param name="content">The contents of the file.</param>
-        Task UpdateSchemaFile(string org, string repository, string developer, string relativeFilePath, string content);
+        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string content);
 
         /// <summary>
-        /// Deletes a schema file based on it's relative path within the repository.
+        /// Deletes a schema based on the relative path to the JSON Schema within the repository.
+        /// For a datamodels repository this will only delete the file itself. For a app
+        /// repository this will remove the datatype from the <see cref="Application"/> as well
+        /// as clean up other generated files.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
         /// <param name="relativeFilePath">Relative path to the file.</param>        
-        void DeleteSchemaFile(string org, string repository, string developer, string relativeFilePath);
+        Task DeleteSchema(string org, string repository, string developer, string relativeFilePath);
     }
 }

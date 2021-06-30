@@ -116,6 +116,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Deletes the specified file
+        /// </summary>
+        /// <param name="absoluteFilePath">Absolute path to file to be deleted.</param>
+        public void DeleteFileByAbsolutePath(string absoluteFilePath)
+        {
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+
+            File.Delete(absoluteFilePath);
+        }
+
+        /// <summary>
         /// Checks if a file exists within the repository.
         /// </summary>
         /// <param name="relativeFilePath">Relative path to file to check for existense.</param>        

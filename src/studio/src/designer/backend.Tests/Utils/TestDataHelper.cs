@@ -73,5 +73,45 @@ namespace Designer.Tests.Utils
             var unitTestFolder = GetTestDataDirectory();
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
+
+        public static string CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        {
+            var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
+            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
+
+            CopyDirectory(sourceAppRepository, targetDirectory);
+
+            return targetDirectory;
+        }
+
+        private static void CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        {
+            DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
+
+            if (!sourceDirectoryInfo.Exists)
+            {
+                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDirectory}");
+            }
+
+            DirectoryInfo[] sourceSubDirectories = sourceDirectoryInfo.GetDirectories();
+
+            Directory.CreateDirectory(targetDirectory);
+
+            FileInfo[] files = sourceDirectoryInfo.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string tempPath = Path.Combine(targetDirectory, file.Name);
+                file.CopyTo(tempPath, false);
+            }
+
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in sourceSubDirectories)
+                {
+                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
+                    CopyDirectory(subdir.FullName, tempPath, copySubDirs);
+                }
+            }
+        }
     }
 }

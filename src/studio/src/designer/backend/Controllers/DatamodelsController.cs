@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Controllers
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            await _schemaModelService.UpdateSchemaFile(org, repository, developer, modelPath, content);
+            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content);
 
             return NoContent();
         }
@@ -147,10 +147,10 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [ProducesResponseType(204)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public IActionResult DeleteDatamodelNew(string org, string repository, [FromQuery] string modelPath)
+        public async Task<IActionResult> DeleteDatamodelNew(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            _schemaModelService.DeleteSchemaFile(org, repository, developer, modelPath);
+            await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
 
             return NoContent();
         }

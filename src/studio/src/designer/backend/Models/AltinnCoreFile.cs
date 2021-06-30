@@ -16,6 +16,11 @@ namespace Altinn.Studio.Designer.Models
         public string FilePath { get; set; }
 
         /// <summary>
+        /// Gets or sets the Directory of the file.
+        /// </summary>
+        public string Directory { get; set; }
+
+        /// <summary>
         /// Relataive url to the file in the repository.
         /// </summary>
         public string RepositoryRelativeUrl { get; set; }
@@ -62,6 +67,7 @@ namespace Altinn.Studio.Designer.Models
                 FilePath = filePath,
                 FileName = fileInfo.Name,
                 FileType = fileInfo.Extension,
+                Directory = fileInfo.DirectoryName,
                 RepositoryRelativeUrl = GetRepositoryRelativeUrl(filePath, repositoryRootDirectory),
                 LastChanged = fileInfo.LastWriteTime
             };

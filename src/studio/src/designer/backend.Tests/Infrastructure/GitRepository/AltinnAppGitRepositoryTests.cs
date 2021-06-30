@@ -12,7 +12,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
     public class AltinnAppGitRepositoryTests
     {
         [Fact]        
-        public async Task Constructor_ValidParameters_ShouldInstantiate()
+        public void Constructor_ValidParameters_ShouldInstantiate()
         {
             var org = "ttd";
             var repository = "hvem-er-hvem";
