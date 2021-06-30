@@ -77,7 +77,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(repositoriesRootDirectory);
             
-            var altinnGitRepository = altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+            var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
             var files = altinnGitRepository.GetSchemaFiles();
 
             Assert.Equal(expectedSchemaFiles, files.Count);

@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
             return altinnGitRepository.GetSchemaFiles();            
         }
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string content)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
             await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, content);
         }
@@ -46,22 +46,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetRepository(org, repository, developer);            
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);            
 
             if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
             {
                 altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);                
             }
             else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
-            {                
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
                 var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
                 var schemaName = GetSchemaName(altinnCoreFile);
-                await DeleteDatatypeFromApplicationMetadata(altinnGitRepository as AltinnAppGitRepository, schemaName);
-                DeletedRelatedSchemaFiles(altinnGitRepository as AltinnAppGitRepository, schemaName, altinnCoreFile.Directory);
+
+                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
+                DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
             }
         }
 
-        private void DeletedRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
+        private void DeleteRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
         {
             var files = GetRelatedSchemaFiles(schemaName, directory);
             foreach (var file in files)
@@ -80,9 +82,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetSchemaName(AltinnCoreFile altinnCoreFile)
         {
-            if (altinnCoreFile.FileType.ToLower() == ".json" && altinnCoreFile.FileName.ToLower().EndsWith(".schema"))
+            if (altinnCoreFile.FileType.ToLower() == ".json" && altinnCoreFile.FileName.ToLower().EndsWith(".schema.json"))
             {
-                return altinnCoreFile.FileName.Remove(altinnCoreFile.FileName.ToLower().IndexOf(".schema"));
+                return altinnCoreFile.FileName.Remove(altinnCoreFile.FileName.ToLower().IndexOf(".schema.json"));
             }
             else if (altinnCoreFile.FileType.ToLower() == ".xsd")
             {
