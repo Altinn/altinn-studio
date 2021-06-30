@@ -18,7 +18,7 @@
     "AltinnCoreDesigner": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5000",
+      "launchUrl": "http://altinn3.no/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

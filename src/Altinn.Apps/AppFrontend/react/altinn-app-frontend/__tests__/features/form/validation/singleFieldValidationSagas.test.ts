@@ -17,7 +17,11 @@ describe('singleFieldValidationSagas', () => {
 
   beforeEach(() => {
     mockState = getInitialStateMock();
-    mockState.formValidations.currentSingleFieldValidation = mockTriggerField;
+    mockState.formValidations.currentSingleFieldValidation = {
+      dataModelBinding: mockTriggerField,
+      componentId: 'mockId',
+      layoutId: 'formLayout',
+    };
   });
 
   it('runSingleFieldValidationSaga, single field validation is triggered', () => {
@@ -57,7 +61,7 @@ describe('singleFieldValidationSagas', () => {
         [select(), mockState],
         [call(get, url, options), validationIssues],
       ])
-      .put(setCurrentSingleFieldValidation({ dataModelBinding: null }))
+      .put(setCurrentSingleFieldValidation({}))
       .put(runSingleFieldValidationFulfilled({ validations: mappedValidations }))
       .run();
   });
@@ -78,7 +82,7 @@ describe('singleFieldValidationSagas', () => {
         [select(), mockState],
         [call(get, url, options), throwError(error)],
       ])
-      .put(setCurrentSingleFieldValidation({ dataModelBinding: null }))
+      .put(setCurrentSingleFieldValidation({}))
       .put(runSingleFieldValidationRejected({ error }))
       .run();
   });

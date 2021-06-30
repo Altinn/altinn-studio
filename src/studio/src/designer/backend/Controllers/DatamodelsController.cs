@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json;
@@ -27,14 +29,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
+        private readonly ISchemaModelService _schemaModelService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
-        public DatamodelsController(IRepository repository)
+        /// <param name="schemaModelService">Interface for working with models.</param>
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
+            _schemaModelService = schemaModelService;
         }
 
         /// <summary>
@@ -111,6 +116,45 @@ namespace Altinn.Studio.Designer.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Updates the specified datamodel in the git repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository</param>
+        /// <param name="modelPath">The path to the file to be updated.</param>        
+        [Authorize]
+        [HttpPut]
+        [ProducesResponseType(201)]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var content = await ReadRequestBodyContentAsync();
+
+            await _schemaModelService.UpdateSchemaFile(org, repository, developer, modelPath, content);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Method that returns all datamodels within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(302)]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+
+            return Ok(schemaFiles);
+        }        
 
         /// <summary>
         /// Returns datamodel
@@ -197,6 +241,18 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return BadRequest();
+        }
+
+        private async Task<string> ReadRequestBodyContentAsync()
+        {
+            string content;
+
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            {
+                content = await reader.ReadToEndAsync();
+            }
+
+            return content;
         }
     }
 }

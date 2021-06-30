@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
-import { IRuntimeState } from 'src/types';
+import { IRuntimeState, IValidationIssue } from 'src/types';
 import { getDataValidationUrl } from 'src/utils/urlHelper';
 import { getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { get } from 'src/utils/networking';
@@ -20,25 +20,40 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
   const url = getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId);
   const { currentSingleFieldValidation } = state.formValidations;
 
-  if (currentSingleFieldValidation) {
+  if (currentSingleFieldValidation && currentSingleFieldValidation.dataModelBinding) {
     const options: AxiosRequestConfig = {
       headers: {
-        ValidationTriggerField: currentSingleFieldValidation,
+        ValidationTriggerField: currentSingleFieldValidation.dataModelBinding,
       },
     };
 
     try {
       // Reset current single field validation for next potential validation
-      yield put(setCurrentSingleFieldValidation({ dataModelBinding: null }));
+      yield put(setCurrentSingleFieldValidation({}));
 
-      const serverValidation: any = yield call(get, url, options);
+      const serverValidation: IValidationIssue[] = yield call(get, url, options);
       const mappedValidations =
       mapDataElementValidationToRedux(serverValidation, state.formLayout.layouts, state.textResources.resources);
-      const validations = mergeValidationObjects(state.formValidations.validations, mappedValidations);
+
+      const validations = mergeValidationObjects(
+        state.formValidations.validations, mappedValidations,
+      );
+
+      // Replace/reset validations for field that triggered validation
+      const { layoutId, componentId } = currentSingleFieldValidation;
+      if (serverValidation.length === 0 && validations[layoutId]?.[componentId]) {
+        validations[layoutId][componentId].simpleBinding = { errors: [], warnings: [] };
+      } else if (mappedValidations[layoutId]?.[componentId]) {
+        if (!validations[layoutId]) {
+          validations[layoutId] = {};
+        }
+        validations[layoutId][componentId] = mappedValidations[layoutId][componentId];
+      }
+
       yield put(runSingleFieldValidationFulfilled({ validations }));
     } catch (error) {
       yield put(runSingleFieldValidationRejected({ error }));
-      yield put(setCurrentSingleFieldValidation({ dataModelBinding: null }));
+      yield put(setCurrentSingleFieldValidation({}));
     }
   }
 }
