@@ -74,13 +74,6 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     }
   };
 
-  const onNameFieldKeyDown = (e: any) => {
-    if (e.keyCode === 13 && !nameError) {
-      e.preventDefault();
-      onCreateConfirmClick();
-    }
-  };
-
   const onCreateConfirmClick = () => {
     if (newModelName && newModelName.length > 0) {
       if (dataModelNames.includes(newModelName)) {
@@ -165,7 +158,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             inputFieldStyling={{ width: '250px' }}
             onChangeFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
-            onKeyDown={onNameFieldKeyDown}
+            onReturn={onCreateConfirmClick}
           />
 
         </AltinnPopoverSimple>
