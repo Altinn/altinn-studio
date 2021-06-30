@@ -1,11 +1,11 @@
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IComponentValidations, IValidations } from 'src/types';
+import { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from 'src/types';
 
 export interface IValidationState {
   validations: IValidations;
   invalidDataTypes: string[];
   error: Error;
-  currentSingleFieldValidation: string;
+  currentSingleFieldValidation: ICurrentSingleFieldValidation;
 }
 
 export interface IUpdateComponentValidations {
@@ -25,13 +25,15 @@ export interface IValidationActionRejected {
 
 export interface ISetCurrentSingleFieldValidationAction {
   dataModelBinding?: string;
+  componentId?: string;
+  layoutId?: string;
 }
 
 export const initialState: IValidationState = {
   validations: {},
   error: null,
   invalidDataTypes: [],
-  currentSingleFieldValidation: null,
+  currentSingleFieldValidation: {},
 };
 
 const moduleName = 'validation';
@@ -52,8 +54,16 @@ const validationSlice = createSlice({
       state: IValidationState,
       action: PayloadAction<ISetCurrentSingleFieldValidationAction>,
     ) => {
-      const { dataModelBinding } = action.payload;
-      state.currentSingleFieldValidation = dataModelBinding;
+      const {
+        dataModelBinding,
+        componentId,
+        layoutId,
+      } = action.payload;
+      state.currentSingleFieldValidation = {
+        dataModelBinding,
+        componentId,
+        layoutId,
+      };
     },
     updateComponentValidations: (state: IValidationState, action: PayloadAction<IUpdateComponentValidations>) => {
       const {
