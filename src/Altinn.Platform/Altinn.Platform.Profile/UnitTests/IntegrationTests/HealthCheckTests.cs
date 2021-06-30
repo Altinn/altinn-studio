@@ -2,8 +2,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
+
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 
 using Xunit;
 
@@ -18,33 +19,19 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             _factory = factory;
         }
 
-        /// <summary>
-        /// Verify that component responds on health check
-        /// </summary>
-        /// <returns></returns>
         [Fact]
-        public async Task VerifyHealthCheck_OK()
+        public async Task GetHealth_ReturnsOk()
         {
-            HttpClient client = GetTestClient();
+            // Arrange
+            HttpClient client = _factory.CreateHttpClient(new DelegatingHandlerStub());
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health");
 
+            // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        private HttpClient GetTestClient()
-        {
-            Program.ConfigureSetupLogging();
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureTestServices(services =>
-                {
-                });
-            }).CreateClient();
-
-            return client;
         }
     }
 }
