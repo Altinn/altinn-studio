@@ -3,7 +3,7 @@ using System;
 namespace Altinn.Platform.Authentication.Model
 {
     /// <summary>
-    /// Handles UserProfile
+    /// Handles UserAuthenticationResult from SBL-bridge
     /// </summary>
     public class UserAuthenticationResult
     {
@@ -13,7 +13,7 @@ namespace Altinn.Platform.Authentication.Model
         public int UserID { get; set; }
 
         /// <summary>
-        /// Gets or sets Identifier used to uniquely identify PartyID for user
+        /// Gets or sets Username for user
         /// </summary>
         public string Username { get; set; }
 
