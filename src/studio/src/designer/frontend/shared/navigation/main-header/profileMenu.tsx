@@ -62,8 +62,8 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
 
   public shouldShowRepositoryLink = () => {
     if (window) {
-      const { org, repo } = (window as Window as IAltinnWindow);
-      if (org && repo) {
+      const {org, app} = (window as Window as IAltinnWindow);
+      if (org && app) {
         return true;
       }
     }
@@ -107,10 +107,10 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
         >
           <MenuItem
             key='placeholder'
-            style={{ display: 'none' }}
+            style={{display: 'none'}}
           />
           {// workaround for highlighted menu item not changing.
-            // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
+          // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
           {this.shouldShowRepositoryLink() &&
             <MenuItem
@@ -128,20 +128,20 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           <MenuItem
             className={classes.menuItem}
           >
-            <a
-              href={altinnStudioDocsUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              Dokumentasjon
-            </a>
+              <a
+                href={altinnStudioDocsUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                Dokumentasjon
+              </a>
           </MenuItem>
           {showlogout && (
             <MenuItem
               onClick={this.handleLogout}
               className={classes.menuItem}
             >
-              Logout
+                Logout
             </MenuItem>
           )}
         </Menu>

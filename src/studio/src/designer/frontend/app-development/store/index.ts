@@ -7,7 +7,7 @@ import {
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
-import getRepoTypeFromLocation from '../utils/getRepoTypeFromLocation';
+import getRepoTypeFromLocation from '../../shared/utils/getRepoTypeFromLocation';
 import createReducers from '../reducers';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();

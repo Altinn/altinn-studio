@@ -1,6 +1,6 @@
 import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import getRepoTypeFromLocation from '../utils/getRepoTypeFromLocation';
+import getRepoTypeFromLocation from '../../shared/utils/getRepoTypeFromLocation';
 import { sagaMiddleware } from '../store';
 
 import { watchHandleFetchInitialCommitSaga, watchHandleFetchServiceConfigSaga, watchHandleFetchServiceNameSaga, watchHandleFetchServiceSaga, watchHandleSaveServiceConfigSaga, watchHandleSaveServiceNameSaga } from '../features/administration/handleServiceInformationSagas';

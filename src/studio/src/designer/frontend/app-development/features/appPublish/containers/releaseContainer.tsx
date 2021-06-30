@@ -18,7 +18,7 @@ import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { AppReleaseActions, IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
-import { RepoStatusActions, IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { IRepoStatusState, RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
 import { getGitCommitLink, repoStatusUrl, languageUrl } from '../../../utils/urlHelper';
 import { fetchRepoStatus, IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
@@ -159,21 +159,21 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
 
   React.useEffect(() => {
-    const { org, repo } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
       dispatch(fetchLanguage({ url: languageUrl, languageCode: 'nb' }));
     }
-    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo }));
+    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(fetchRepoStatus({
       url: repoStatusUrl,
       org,
-      repo,
+      repo: app,
     }));
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  });
+  }, []);
 
   function handleChangeTabIndex(event: React.ChangeEvent<{}>, value: number) {
     setTabIndex(value);
@@ -304,6 +304,9 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           </Grid>
         </Grid>
       );
+    }
+    if (appReleases.errors.fetchReleaseErrorCode !== null) {
+      return null;
     }
     if (!appReleases.releases || !appReleases.releases.length) {
       return (

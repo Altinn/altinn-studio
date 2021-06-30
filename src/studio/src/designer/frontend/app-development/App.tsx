@@ -31,7 +31,7 @@ import { ApplicationMetadataActions } from './sharedResources/applicationMetadat
 import { DatamodelsMetadataActions } from './sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
-import getRepoTypeFromLocation from './utils/getRepoTypeFromLocation';
+import getRepoTypeFromLocation from '../shared/utils/getRepoTypeFromLocation';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 
 const theme = createMuiTheme(altinnTheme);
@@ -70,7 +70,7 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, ISe
   serviceName: any;
   remainingSessionMinutes: number;
 }
-interface IServiceDevelopmentAppState {
+export interface IServiceDevelopmentAppState {
   sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
   remainingSessionMinutes: number;
   lastKeepAliveTimestamp: number;
@@ -91,13 +91,13 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public componentDidMount() {
-    const { org, repo } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     this.props.dispatch(fetchLanguage({
       url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
       languageCode: 'nb',
     }));
     this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
-      url: `${window.location.origin}/designer/${org}/${repo}/Text/GetServiceName`,
+      url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
     this.props.dispatch(DatamodelsMetadataActions.getDatamodelsMetadata());
@@ -109,6 +109,8 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public componentDidUpdate(_prevProps: IServiceDevelopmentProps) {
     if (_prevProps.remainingSessionMinutes !== this.props.remainingSessionMinutes) {
+      // OK, because of the guard above
+      // eslint-disable-next-line react/no-did-update-set-state
       this.setState(() => ({
         remainingSessionMinutes: this.props.remainingSessionMinutes,
       }));
@@ -123,12 +125,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public checkForMergeConflict = () => {
-    const { org, repo } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
 
     this.props.dispatch(fetchRepoStatus({
       url: repoStatusUrl,
       org,
-      repo,
+      repo: app,
     }));
   }
 
@@ -177,7 +179,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { org, repo } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const { repoType } = this.state;
     const isDatamodelsRepo = repoType === 'datamodels';
 
@@ -231,7 +233,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       activeSubHeaderSelection={route.activeSubHeaderSelection}
                       logoutButton={repoStatus.hasMergeConflict}
                       org={org}
-                      app={repo}
+                      app={app}
                       showBreadcrumbOnTablet={true}
                       showSubMenu={!(repoStatus.hasMergeConflict || isDatamodelsRepo)}
                     />}

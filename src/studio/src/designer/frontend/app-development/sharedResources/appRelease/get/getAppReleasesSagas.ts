@@ -1,7 +1,6 @@
 import { AxiosError } from 'axios';
 import { SagaIterator } from 'redux-saga';
-import { delay } from 'redux-saga/effects';
-import { call, fork, put, race, take, takeLatest } from 'redux-saga/effects';
+import { delay, call, fork, put, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { get } from '../../../utils/networking';
 import { releasesGetUrl } from '../../../utils/urlHelper';

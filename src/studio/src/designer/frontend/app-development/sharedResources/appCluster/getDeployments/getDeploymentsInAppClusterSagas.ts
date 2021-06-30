@@ -10,24 +10,24 @@ const OrgsSelector = (store: IServiceDevelopmentState) => store.configuration.or
 
 function* getDeploymentsIntervalSaga(): SagaIterator {
   while (true) {
-    const { org, repo } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const environments: any = yield select(SelectEnvironments);
     const orgs: any = yield select(OrgsSelector);
 
     for (const env of environments) {
       if (orgs && orgs[org]?.environments?.includes(env.name)) {
-        yield fork(fetchEnvironmentDeployments, org, repo, env);
+        yield fork(fetchEnvironmentDeployments, org, app, env);
       }
     }
     yield delay(30000);
   }
 }
 
-function* fetchEnvironmentDeployments(org: string, repo: string, env: any): SagaIterator {
+function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaIterator {
   try {
     const result = yield call(get,
       // eslint-disable-next-line max-len
-      `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${repo}`);
+      `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`);
 
     yield put(getDeploymentsFulfilled({ result, env: env.name }));
   } catch (error) {

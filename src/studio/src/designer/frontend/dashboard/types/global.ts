@@ -15,7 +15,7 @@ declare global {
 
   export interface IAltinnWindow extends Window {
     org: string;
-    repo: string;
+    app: string;
     instanceId: string;
     reportee: string;
   }

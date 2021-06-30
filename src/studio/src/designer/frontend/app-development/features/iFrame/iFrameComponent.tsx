@@ -28,8 +28,8 @@ const styles = () => createStyles({
 });
 
 export function IFrameComponent({ classes, iframeEndingUrl }: IIFrameComponentProvidedProps) {
-  const { org, repo } = window as Window as IAltinnWindow;
-  const url = `${window.location.origin}/designer/${org}/${repo}/${iframeEndingUrl}`;
+  const { org, app } = window as Window as IAltinnWindow;
+  const url = `${window.location.origin}/designer/${org}/${app}/${iframeEndingUrl}`;
   return (
     <div className={classes.mainLayout}>
       {/* eslint-disable-next-line jsx-a11y/iframe-has-title */}

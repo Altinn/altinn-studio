@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
 import { get, put as axiosPut, del } from 'app-shared/utils/networking';
+import { createDatamodellingUrl } from 'app-shared/utils/urlHelper';
 import {
   fetchDataModel,
   fetchDataModelFulfilled,
@@ -13,7 +14,7 @@ import {
   deleteDataModelFulfilled,
   deleteDataModelRejected,
 } from './dataModellingSlice';
-import { createDatamodellingUrl, getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../../utils/urlHelper';
+import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../../utils/urlHelper';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { DatamodelsMetadataActions } from '../../../sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 
@@ -21,7 +22,7 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { repoType, metadata } = action.payload;
   yield put(fetchDataModelFulfilled({ schema: undefined })); // remove current schema from state before fetching
   try {
-    if (repoType === 'datamodels' && false) { // remove '&& false' once api is ready.
+    if (repoType === 'datamodel') { // add 's' to the end of comp once api is ready.
       const modelPath = metadata?.value?.repositoryRelativeUrl;
       const result = yield call(get, createDatamodellingUrl(modelPath));
       yield put(fetchDataModelFulfilled({ schema: result }));
