@@ -8,7 +8,7 @@ import { call,
   put } from 'redux-saga/effects';
 import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
-import { getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
+import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';
 import { ILayoutSets, IRuntimeState } from '../../../../types';
@@ -18,7 +18,7 @@ import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getFetchStatelessFormDataUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getStatelessFormDataUrl } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
@@ -53,15 +53,15 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
     let fetchedData: any;
 
-    if (applicationMetadata?.onEntry?.show && applicationMetadata.onEntry.show !== 'new-instance') {
+    if (isStatelessApp(applicationMetadata)) {
       // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
       try {
-        fetchedData = yield call(get, getFetchStatelessFormDataUrl(dataType));
+        fetchedData = yield call(get, getStatelessFormDataUrl(dataType));
       } catch (error) {
         // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
         if (error?.response?.status === 405) {
-          fetchedData = yield call(post, getFetchStatelessFormDataUrl(dataType));
+          fetchedData = yield call(post, getStatelessFormDataUrl(dataType));
         } else {
           throw error;
         }

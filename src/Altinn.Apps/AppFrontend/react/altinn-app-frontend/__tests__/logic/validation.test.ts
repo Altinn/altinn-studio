@@ -10,6 +10,7 @@ import { createRepeatingGroupComponents } from '../../src/utils/formLayout';
 import { mapToComponentValidations } from '../../src/utils/validation';
 import { getParsedTextResourceByKey } from '../../src/utils/textResource';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
+import { getMockValidationState } from '../../__mocks__/validationStateMock';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -155,6 +156,16 @@ describe('>>> utils/validations.ts', () => {
           readOnly: false,
           textResourceBindings: {},
         },
+        {
+          type: 'Input',
+          id: 'componentId_customError',
+          dataModelBindings: {
+            simpleBinding: 'dataModelField_custom',
+          },
+          required: false,
+          readOnly: false,
+          textResourceBindings: {},
+        },
       ],
     };
 
@@ -173,42 +184,7 @@ describe('>>> utils/validations.ts', () => {
       error: null,
     };
 
-    mockReduxFormat = {
-      FormLayout: {
-        componentId_1: {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
-            warnings: [],
-          },
-        },
-        componentId_2: {
-          customBinding: {
-            errors: [],
-            warnings: [getParsedTextResourceByKey('Warning message 1', []), getParsedTextResourceByKey('Warning message 2', [])],
-          },
-        },
-        'componentId_4-1': {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('test error', [])],
-            warnings: [],
-          },
-        },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('test error', [])],
-            warnings: [],
-          },
-        },
-      },
-      unmapped: {
-        unmapped: {
-          random_key: {
-            errors: ['test error'],
-            warnings: ['test warning'],
-          },
-        },
-      },
-    };
+    mockReduxFormat = getMockValidationState();
 
     mockFormData = {
       dataModelField_1: '-1',
@@ -224,6 +200,7 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_1: '12',
       dataModelField_2: 'Really quite long...',
       dataModelField_3: 'Test 123',
+      dataModelField_custom: 'abc',
       group_1: [
         { dataModelField_4: 'Hello, World!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'This is also long' }] },
         { dataModelField_4: 'Not now!', group_2: [{ dataModelField_5: 'This is long' }, { dataModelField_5: 'Something else that is long' }] },
@@ -250,6 +227,11 @@ describe('>>> utils/validations.ts', () => {
             },
             dataModelField_3: {
               type: 'string',
+            },
+            dataModelField_custom: {
+              type: 'string',
+              maxLength: 4,
+              errorMessage: 'custom_error',
             },
             group_1: {
               type: 'array',
@@ -669,9 +651,10 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidaitons =
+    const mappedDataElementValidations =
       validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layouts, []);
-    expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
+    const expected = getMockValidationState(true);
+    expect(mappedDataElementValidations).toEqual(expected);
   });
 
   it('+++ validateFormData should return error if form data is invalid', () => {
@@ -682,6 +665,7 @@ describe('>>> utils/validations.ts', () => {
       Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage.language,
+      [],
     );
     expect(mockResult).toEqual(mockFormValidationResult);
   });
@@ -694,8 +678,36 @@ describe('>>> utils/validations.ts', () => {
       Object.keys(mockLayoutState.layouts),
       mockValidator,
       mockLanguage,
+      [],
     );
     expect(mockResult.validations).toEqual({});
+  });
+
+  it('+++ validateFormData should return custom error message when this is defined', () => {
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockTexts = [{ id: 'custom_error', value: 'This is a custom error message' }];
+    const formData = {
+      ...mockValidFormData,
+      dataModelField_custom: 'abcdefg',
+    };
+
+    const mockResult = validation.validateFormData(
+      formData,
+      mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
+      mockValidator,
+      mockLanguage,
+      mockTexts,
+    );
+    expect(mockResult.validations).toEqual({
+      FormLayout: {
+        componentId_customError: {
+          simpleBinding: {
+            errors: [getParsedTextResourceByKey('custom_error', mockTexts)],
+          },
+        },
+      },
+    });
   });
 
   it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
@@ -703,7 +715,14 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_1: 'abc',
     };
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(data, mockLayoutState.layouts, Object.keys(mockLayoutState.layouts), mockValidator, mockLanguage);
+    const mockResult = validation.validateFormData(
+      data,
+      mockLayoutState.layouts,
+      Object.keys(mockLayoutState.layouts),
+      mockValidator,
+      mockLanguage,
+      [],
+    );
     expect(mockResult.invalidDataTypes).toBeTruthy();
   });
 
@@ -715,6 +734,7 @@ describe('>>> utils/validations.ts', () => {
       [],
       mockValidator,
       mockLanguage.language,
+      [],
     );
     expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
   });
@@ -972,7 +992,7 @@ describe('>>> utils/validations.ts', () => {
       layout1: {
         component1: {
           binding: {
-            errors: ['some error'],
+            errors: ['some error', 'another error'],
             warnings: ['some warning'],
           },
         },
@@ -984,6 +1004,7 @@ describe('>>> utils/validations.ts', () => {
           binding: {
             errors: ['some other error'],
             warnings: ['some other warning'],
+            fixed: ['another error'],
           },
         },
       },
