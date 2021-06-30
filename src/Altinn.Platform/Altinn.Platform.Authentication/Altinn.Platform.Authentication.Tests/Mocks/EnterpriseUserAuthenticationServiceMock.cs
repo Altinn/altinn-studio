@@ -46,6 +46,22 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
                 result.Headers.RetryAfter = retryAfter;
                 return result;
             }
+             else if (credentials.UserName == "ValidUser" && credentials.Password == "ValidPassword")
+            {
+                string credentialsJson = JsonSerializer.Serialize(credentials);
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_settings.BridgeAuthnApiEndpoint + "enterpriseuser"),
+                    Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
+                };
+
+                var result = await _client.SendAsync(request).ConfigureAwait(false);
+                result.StatusCode = HttpStatusCode.OK;
+                result.Content = GetEnterpriseUserContent();
+
+                return result;
+            }
              else
             {
                 string credentialsJson = JsonSerializer.Serialize(credentials);
@@ -60,6 +76,14 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
                 result.StatusCode = HttpStatusCode.NotFound;
                 return result;
             }
+        }
+
+        private HttpContent GetEnterpriseUserContent()
+        {
+            string jsonString = "{\r\n\t\"UserID\": 1234,\r\n\t\"Username\": \"ValidUser\",\r\n\t\"SSN\": null,\r\n\t\"PartyID\": 0,\r\n\t\"AuthenticateResult\": 1,\r\n\t\"AuthenticationMethod\": 9,\r\n\t\"LockedOutDate\": \"1753-01-01T00:00:00\",\r\n\t\"SmsPinUpgraded\": false,\r\n\t\"IsTestUser\": false,\r\n\t\"IDPortenNameID\": null,\r\n\t\"IDPortenSessionIndex\": null\r\n}";
+            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            return content;
         }
     }
 }
