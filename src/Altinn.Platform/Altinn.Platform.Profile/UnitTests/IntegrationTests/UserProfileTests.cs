@@ -144,6 +144,37 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetUsersById_SblBridgeReturnsUnavailable_ResponseNotFound()
+        {
+            // Arrange
+            const int UserId = 2222222;
+
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.ServiceUnavailable });
+            });
+
+            HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
+
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Get, sblRequest.Method);
+            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
+        }
+
+        [Fact]
         public async Task GetUsersBySsn_SblBridgeFindsProfile_ReturnsUserProfile()
         {
             // Arrange
@@ -198,6 +229,40 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 sblRequest = request;
 
                 return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
+            });
+
+            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
+
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Post, sblRequest.Method);
+            Assert.EndsWith($"users", sblRequest.RequestUri.ToString());
+
+            string requestContent = await sblRequest.Content.ReadAsStringAsync();
+
+            Assert.Equal("\"01017512345\"", requestContent);
+        }
+
+        [Fact]
+        public async Task GetUsersBySsn_SblBridgeReturnsUnavailable_RespondsNotFound()
+        {
+            // Arrange
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.ServiceUnavailable });
             });
 
             StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
