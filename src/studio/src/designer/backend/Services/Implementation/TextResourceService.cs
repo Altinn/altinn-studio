@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -65,9 +66,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         content = data.Deserialize<PlatformStorageModels.TextResource>();
                     }
-                    catch (Exception e)
+                    catch (SerializationException e)
                     {
-                        _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to parse text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
+                        _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
                         return;
                     }
 
