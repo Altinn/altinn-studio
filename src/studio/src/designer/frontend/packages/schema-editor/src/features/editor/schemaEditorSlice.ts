@@ -10,7 +10,7 @@ export const initialState: ISchemaState = {
   saveSchemaUrl: '',
   selectedId: '',
   selectedNodeId: '',
-  focusNameField: false,
+  focusNameField: '',
 };
 
 const schemaEditorSlice = createSlice({
@@ -72,7 +72,10 @@ const schemaEditorSlice = createSlice({
       );
       state.selectedId = path;
       state.selectedNodeId = getDomFriendlyID(path);
-      state.focusNameField = true;
+      state.focusNameField = name;
+    },
+    clearNameFocus(state) {
+      state.focusNameField = undefined;
     },
     addProperty(state, action) {
       const { path } = action.payload;
@@ -93,7 +96,7 @@ const schemaEditorSlice = createSlice({
       }
       state.selectedId = item.id;
       state.selectedNodeId = getDomFriendlyID(item.id);
-      state.focusNameField = true;
+      state.focusNameField = item.displayName;
     },
     addRefProperty(state, action) {
       const {
@@ -321,6 +324,7 @@ export const {
   addEnum,
   addRootItem,
   addProperty,
+  clearNameFocus,
   addRefProperty,
   deleteField,
   deleteEnum,

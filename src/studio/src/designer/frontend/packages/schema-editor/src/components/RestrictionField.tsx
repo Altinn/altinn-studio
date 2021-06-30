@@ -16,6 +16,7 @@ export interface IRestrictionFieldProps {
   onChangeKey: (id: string, oldKey: string, newKey: string) => void;
   onChangeValue: (id: string, key: string, value: string) => void;
   onDeleteField?: (path: string, key: string) => void;
+  onReturn?: (e: React.BaseSyntheticEvent) => void;
 }
 
 const useStyles = makeStyles({
@@ -57,6 +58,12 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
     setKey(v);
   };
 
+  const onValueKeyDown = (e: any) => {
+    if (props.onReturn && e.keyCode === 13) {
+      props.onReturn(e);
+    }
+  };
+
   const options = getRestrictions(props.type ?? '');
   const baseId = getDomFriendlyID(props.path);
   return (
@@ -92,6 +99,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
         className={classes.field}
         value={props.value}
         disableUnderline={true}
+        onKeyDown={onValueKeyDown}
         onChange={(e) => props.onChangeValue(props.path, e.target.value, props.keyName)}
       />
       </Grid>

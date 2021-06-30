@@ -7,7 +7,8 @@ import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
-  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems, addEnum, deleteEnum }
+  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
+  addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
@@ -109,7 +110,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
-  const nameFieldRef = React.createRef<HTMLInputElement>();
+
+  const nameFieldRef = React.useCallback((node: any) => {
+    if (node && focusName) {
+      node.focus();
+      node.select();
+    }
+  }, [focusName]);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -134,21 +141,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   React.useEffect(() => {
-    if (focusName) {
-      setTimeout(() => {
-        nameFieldRef?.current?.focus();
-      }, 100);
-    }
-  }, [nameFieldRef, focusName]);
-
-  React.useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
-      if ((tabIndex === '2' && itemToDisplay?.type !== 'object') || focusName) {
+      if ((tabIndex === '2' && itemToDisplay?.type !== 'object')) {
         setTabIndex('0');
       }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
@@ -162,7 +161,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       setObjectKind('type');
       setTabIndex('0');
     }
-  }, [selectedItem, parentItem, tabIndex, itemToDisplay, focusName]);
+  }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
 
   const readOnly = selectedItem?.$ref !== undefined;
 
@@ -217,7 +216,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
-  const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
     if (path) {
@@ -227,8 +226,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddRestrictionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+  const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
+    event?.preventDefault();
     const path = itemToDisplay?.id;
     dispatch(addRestriction({
       path,
@@ -307,6 +306,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     />;
   });
 
+  const onRestrictionReturn = (e: any) => {
+    onAddRestrictionClick(e);
+  };
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
     if (!field.key && field.key.startsWith('@')) {
       return null;
@@ -323,6 +325,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onChangeValue={onChangeValue}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
+        onReturn={onRestrictionReturn}
       />
     );
   });
@@ -414,7 +417,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div>
       <p className={classes.name}>{getTranslation('name', props.language)}</p>
       <TextField
-        id='selectedNodeName'
+        id='selectedItemName'
         className={classes.field}
         inputRef={nameFieldRef}
         placeholder='Name'
