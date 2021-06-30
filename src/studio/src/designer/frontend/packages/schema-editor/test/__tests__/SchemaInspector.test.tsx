@@ -129,7 +129,7 @@ it('dispatches correctly when changing node name', () => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  const input = wrapper.find('#definitionsKommentar2000Restriksjon-name').hostNodes().at(0);
+  const input = wrapper.find('#selectedItemName').hostNodes().at(0);
 
   input.simulate('change', { target: { value: '22test' } });
   input.simulate('blur');
