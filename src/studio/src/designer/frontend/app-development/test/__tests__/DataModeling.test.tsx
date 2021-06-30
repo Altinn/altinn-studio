@@ -31,30 +31,28 @@ describe('DataModeling', () => {
     },
     dataModeling: {
       schema: testData,
-      modelName: 'test',
       saving: false,
     },
   };
   let store: any;
   const dispatchMock = () => Promise.resolve({});
+
   beforeEach(() => {
     store = configureStore()(initialState);
     store.dispatch = jest.fn(dispatchMock);
   });
 
-  it('fetches model on mount', () => {
-    let wrapper: any = null;
-    act(() => {
-      wrapper = mount(
-        <Provider store={store}>
-          <DataModelingContainer language={language} />
-        </Provider>,
-        { context: { store } },
-      );
-    });
-    expect(wrapper).not.toBeNull();
-    wrapper.mount();
+  const mountComponent = () => mount(
+    <Provider store={store}>
+      <DataModelingContainer language={language} />
+    </Provider>,
+    { context: { store } },
+  );
 
+  it('fetches model on mount', () => {
+    act(async () => {
+      mountComponent();
+    });
     expect(store.dispatch).toHaveBeenCalledWith({
       type: 'dataModeling/setDataModelName',
       payload: {
@@ -70,19 +68,15 @@ describe('DataModeling', () => {
   it('dispatches correctly when clicking new', () => {
     let wrapper: any = null;
     act(() => {
-      wrapper = mount(
-        <Provider store={store}>
-          <DataModelingContainer language={language} />
-        </Provider>,
-        { context: { store } },
-      );
+      wrapper = mountComponent();
     });
     expect(wrapper).not.toBeNull();
-
+    expect(wrapper.find('input').length).toBe(1);
     wrapper.find('#new-button').at(0).simulate('click');
     expect(wrapper.find('input').length).toBe(2);
 
-    wrapper.find('input').last().simulate('change', { target: { value: 'test' } });
+    wrapper.find('#newModelInput').find('input').hostNodes().at(0)
+      .simulate('change', { target: { value: 'test' } });
     wrapper.find('#newModelInput').find('button').simulate('click');
 
     expect(store.dispatch).toHaveBeenCalledWith({
@@ -93,15 +87,28 @@ describe('DataModeling', () => {
     });
   });
 
+  it('checks for existing model name', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mountComponent();
+    });
+    wrapper.find('#new-button').at(0).simulate('click');
+    wrapper.find('#newModelInput').find('input').hostNodes().at(0)
+      .simulate('change', { target: { value: 'some-existing-model' } });
+    wrapper.find('#newModelInput').find('button').simulate('click');
+
+    expect(store.dispatch).not.toHaveBeenCalledWith({
+      type: 'dataModeling/createNewDataModel',
+      payload: {
+        modelName: 'some-existing-model',
+      },
+    });
+  });
+
   it('dispatches correctly when clicking delete', () => {
     let wrapper: any = null;
     act(() => {
-      wrapper = mount(
-        <Provider store={store}>
-          <DataModelingContainer language={language} />
-        </Provider>,
-        { context: { store } },
-      );
+      wrapper = mountComponent();
     });
     expect(wrapper).not.toBeNull();
 
@@ -117,12 +124,7 @@ describe('DataModeling', () => {
   it('does not dispatch create when name is missing', () => {
     let wrapper: any = null;
     act(() => {
-      wrapper = mount(
-        <Provider store={store}>
-          <DataModelingContainer language={language} />
-        </Provider>,
-        { context: { store } },
-      );
+      wrapper = mountComponent();
     });
     expect(wrapper).not.toBeNull();
     wrapper.find('#new-button').at(0).simulate('click');

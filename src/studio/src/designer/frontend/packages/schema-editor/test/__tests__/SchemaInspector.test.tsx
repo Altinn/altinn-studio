@@ -123,13 +123,19 @@ it('dispatches correctly when changing restriction value', (done) => {
   done();
 });
 
-it('dispatches correctly when changing node name', (done) => {
+it('dispatches correctly when changing node name', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   const input = wrapper.find('#definitionsKommentar2000Restriksjon-name').hostNodes().at(0);
+
+  input.simulate('change', { target: { value: '22test' } });
+  input.simulate('blur');
+  expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+    type: 'schemaEditor/setPropertyName',
+  });
 
   input.simulate('change', { target: { value: 'test' } });
   input.simulate('blur');
@@ -141,7 +147,13 @@ it('dispatches correctly when changing node name', (done) => {
       path: '#/definitions/Kommentar2000Restriksjon',
     },
   });
-  done();
+
+  input.simulate('change', { target: { value: 'æåå' } });
+  input.simulate('blur');
+  expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+    type: 'schemaEditor/setPropertyName',
+    name: 'æåå',
+  });
 });
 
 it('dispatches correctly when changing field key', (done) => {

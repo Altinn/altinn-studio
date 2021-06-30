@@ -81,6 +81,6 @@ namespace Altinn.Studio.Designer.Enums
         /// <summary>
         /// Conflicted due to a merge.
         /// </summary>
-        Conflicted = 32768,
+        Conflicted = 32768
     }
 }

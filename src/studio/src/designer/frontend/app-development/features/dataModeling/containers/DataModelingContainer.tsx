@@ -10,12 +10,6 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/l
 import { SchemaSelect } from '../schemaSelect';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel, setDataModelName } from '../dataModelingSlice';
 
-function getDataModelTypeName(applicationMetadata: any) {
-  if (!applicationMetadata || !applicationMetadata.dataTypes) return undefined;
-  const dataTypeWithLogic = applicationMetadata.dataTypes.find((dataType: any) => dataType.appLogic);
-  return dataTypeWithLogic?.id;
-}
-
 const useStyles = makeStyles(
   createStyles({
     root: {
@@ -30,32 +24,36 @@ const useStyles = makeStyles(
     },
   }),
 );
-
 export interface IDataModelingContainerProps {
   language: any;
 }
+
+const getDataModels = (applicationMetaData: any) => applicationMetaData
+  ?.dataTypes?.filter((dt: any) => dt.appLogic).map((d: any) => d.id) ?? [];
 
 export default function DataModelingContainer(props: IDataModelingContainerProps): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: IServiceDevelopmentState) => state.dataModeling.schema);
-  const dataModelName = useSelector(
-    (state: IServiceDevelopmentState) => getDataModelTypeName(state.applicationMetadataState.applicationMetadata),
-  );
+
+  const dataModelNames = useSelector((state: IServiceDevelopmentState) => getDataModels(state
+    .applicationMetadataState.applicationMetadata));
   const selectedDataModelName = useSelector((state: IServiceDevelopmentState) => state.dataModeling.modelName);
   const fetchModel = (name: string) => {
     dispatch(setDataModelName({ modelName: name }));
     dispatch(fetchDataModel({}));
   };
+
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
   const [newModelName, setNewModelName] = React.useState(null);
+  const [nameError, setNameError] = React.useState('');
 
   React.useEffect(() => {
-    if (dataModelName) {
-      fetchModel(dataModelName);
+    if (dataModelNames && dataModelNames.length > 0 && !selectedDataModelName) {
+      fetchModel(dataModelNames[0]);
     }
-  }, [dispatch, dataModelName]);
+  }, [dataModelNames]);
 
   const onSchemaSelected = (id: string, schema: any) => {
     fetchModel(schema.id);
@@ -67,14 +65,25 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     setCreateButtonAnchor(event.currentTarget);
   };
   const onNewModelNameChanged = (e: any) => {
-    setNewModelName(e.target.value);
+    const name = e.target.value;
+    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      setNameError('Invalid name');
+    } else {
+      setNameError('');
+      setNewModelName(name);
+    }
   };
+
   const onCreateConfirmClick = () => {
     if (newModelName && newModelName.length > 0) {
+      if (dataModelNames.includes(newModelName)) {
+        setNameError(`A model with name ${newModelName} already exists.`);
+        return;
+      }
       dispatch(createNewDataModel({ modelName: newModelName }));
+      setCreateButtonAnchor(null);
+      setNewModelName(null);
     }
-    setCreateButtonAnchor(null);
-    setNewModelName(null);
   };
   const onDeleteClick = (event: any) => {
     setDeleteButtonAnchor(event.currentTarget);
@@ -145,9 +154,11 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             id='newModelInput'
             placeholder='Name'
             btnText='Ok'
+            error={nameError}
             inputFieldStyling={{ width: '250px' }}
             onChangeFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
+            onReturn={onCreateConfirmClick}
           />
 
         </AltinnPopoverSimple>
