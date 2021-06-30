@@ -66,6 +66,10 @@ namespace Altinn.App.AppLogic.DataProcessing
       {
         skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317.value = "1705";
       }
+      if (skjema?.OpplysningerOmArbeidstakerengrp8819?.OpplysningerOmArbeidstakerengrp8855?.AnsattNavndatadef1223?.value == "test")
+      {
+        skjema.OpplysningerOmArbeidstakerengrp8819.OpplysningerOmArbeidstakerengrp8855.AnsattNavndatadef1223.value = "automation";
+      }
       if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == null)
       {
         skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854 ??= new Skjemainstansgrp8854();

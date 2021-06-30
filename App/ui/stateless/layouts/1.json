@@ -20,7 +20,7 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
         },
         "required": false,
-        "readOnly": true
+        "readOnly": false
       },
       {
         "id": "number",
@@ -32,7 +32,31 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
         },
         "required": false,
-        "readOnly": true
+        "readOnly": false
+      },
+      {
+        "id": "idnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "idnummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "idnummer2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "nummer 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": false,
+        "readOnly": false
       }
     ]
   }
