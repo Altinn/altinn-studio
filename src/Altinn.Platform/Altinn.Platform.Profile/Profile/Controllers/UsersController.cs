@@ -13,6 +13,8 @@ namespace Altinn.Platform.Profile.Controllers
     /// </summary>
     [Authorize]
     [Route("profile/api/v1/[controller]")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class UsersController : Controller
     {
         private readonly IUserProfiles _userProfilesWrapper;
@@ -33,6 +35,7 @@ namespace Altinn.Platform.Profile.Controllers
         /// <returns>The information about a given user</returns>
         [HttpGet("{userID}")]
         [Authorize(Policy = "PlatformAccess")]
+        [Produces(typeof(UserProfile))]
         public async Task<ActionResult> Get(int userID)
         {
             UserProfile result = await _userProfilesWrapper.GetUser(userID);
@@ -49,10 +52,12 @@ namespace Altinn.Platform.Profile.Controllers
         /// </summary>
         /// <returns>User profile of current user</returns>
         [HttpGet("current")]
+        [Produces(typeof(UserProfile))]
         public async Task<ActionResult> Get()
         {
-            string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
-           .Select(c => c.Value).SingleOrDefault();
+            string userIdString = Request.HttpContext.User.Claims
+                .Where(c => c.Type == AltinnCoreClaimTypes.UserId)
+                .Select(c => c.Value).SingleOrDefault();
 
             if (string.IsNullOrEmpty(userIdString))
             {
@@ -71,6 +76,7 @@ namespace Altinn.Platform.Profile.Controllers
         /// <returns>User profile connected to given SSN </returns>
         [HttpPost]
         [Authorize(Policy = "PlatformAccess")]
+        [Produces(typeof(UserProfile))]
         public async Task<ActionResult> GetUserFromSSN([FromBody]string ssn)
         {
             UserProfile result = await _userProfilesWrapper.GetUser(ssn);
