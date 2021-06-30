@@ -13,7 +13,7 @@ namespace Altinn.Platform.Authentication.Services.Interfaces
         /// Method that fetches a response from authentication on sblbridge
         /// </summary>
         /// <param name="credentials">Credentials for an enterpriseuser</param>
-        /// <returns>User profile connected to given credentials</returns>
+        /// <returns>UserAuthenticationResult based on the given credentials</returns>
         Task<HttpResponseMessage> AuthenticateEnterpriseUser(EnterpriseUserCredentials credentials);
     }
 }
