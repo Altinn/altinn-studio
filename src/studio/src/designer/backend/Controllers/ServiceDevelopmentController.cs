@@ -221,9 +221,7 @@ namespace Altinn.Studio.Designer.Controllers
                 fileList.Append(file.FileName + ",");                
             }
 
-            fileList.Remove(fileList.Length, -1);
-
-            return fileList.ToString();
+            return fileList.ToString().Substring(0, fileList.Length - 1);
         }
     }
 }
