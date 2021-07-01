@@ -3,7 +3,7 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addProperty, deleteProperty, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
@@ -131,6 +131,9 @@ function SchemaItem(props: SchemaItemProps) {
     );
   });
 
+  const handlePromoteClick = () => {
+    dispatch(promoteProperty({ path: item.id }));
+  };
   const handleDeleteClick = () => {
     dispatch(deleteProperty({ path: item.id }));
   };
@@ -158,6 +161,7 @@ function SchemaItem(props: SchemaItemProps) {
       label={label}
       onAddProperty={handleAddProperty}
       onDelete={handleDeleteClick}
+      onPromote={item.id.startsWith('#/def') ? undefined : handlePromoteClick}
     />;
   };
 

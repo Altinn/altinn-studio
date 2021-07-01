@@ -139,6 +139,40 @@ const schemaEditorSlice = createSlice({
         removeFromItem.enum?.splice(removeIndex, 1);
       }
     },
+    promoteProperty(state, action) {
+      // change property to be reference
+      const path: string = action.payload.path;
+      const item = getUiSchemaItem(state.uiSchema, path);
+
+      // copy item and give new id
+      const split = item.id.split('/');
+      const name = split[split.length - 1];
+      const copy = { ...item, id: `#/definitions/${name}` };
+      state.uiSchema.push(copy);
+
+      // create ref pointing to the new item
+      const ref: UiSchemaItem = {
+        id: path, $ref: copy.id, displayName: item.displayName,
+      };
+      // If this is a nested property,  we must add the ref to the properties array of the parent of the item
+      // eslint-disable-next-line no-useless-escape
+      if (path.match('[^#]\/properties')) {
+        const index = path.lastIndexOf('/properties/');
+        const parentPath = path.substring(0, index);
+        const parent = getUiSchemaItem(state.uiSchema, parentPath);
+        if (parent && parent.properties) {
+          parent.properties.splice(parent.properties.findIndex((i) => i.id === path), 1); // removing original item
+          parent.properties?.push(ref);
+        }
+      } else {
+        // if this is a root property, we can just create a new rooot item with ref
+        const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path); // remove original item
+        if (rootIndex >= 0) {
+          state.uiSchema.splice(rootIndex, 1);
+        }
+        state.uiSchema.push(ref);
+      }
+    },
     deleteProperty(state, action) {
       const path: string = action.payload.path;
       if (state.selectedId === path) {
@@ -329,6 +363,7 @@ export const {
   deleteField,
   deleteEnum,
   deleteProperty,
+  promoteProperty,
   setRestriction,
   setKey,
   setRef,

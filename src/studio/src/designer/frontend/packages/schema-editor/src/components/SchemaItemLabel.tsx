@@ -10,6 +10,7 @@ export interface SchemaItemLabelProps {
   onAddProperty: () => void;
   onDelete?: () => void;
   onImport?: () => void;
+  onPromote?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -51,6 +52,11 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     e.stopPropagation();
     props.onAddProperty();
   };
+  const handlePromoteClick = (e: React.MouseEvent) => {
+    setContextAnchor(null);
+    e.stopPropagation();
+    props.onPromote?.();
+  };
   const handleDeleteClick = (e: React.MouseEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
@@ -84,7 +90,8 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
       >
         <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}</MenuItem>
         {props.onImport && <MenuItem><i className='fa fa-clone'/> Import</MenuItem>}
-        {props.onDelete !== undefined && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem> }
+        {props.onDelete && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem> }
+        {props.onPromote && <MenuItem onClick={handlePromoteClick}><i className='fa fa-arrowup'/> Promote</MenuItem> }
       </Menu>
     </div>);
 };
