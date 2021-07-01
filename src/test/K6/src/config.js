@@ -126,7 +126,7 @@ export function appApiBaseUrl(appOwner, appName) {
 export var appValidateInstantiation = '/api/v1/parties/validateInstantiation';
 
 //Stateless
-export var statelessdata = '/v1/data/';
+export var statelessdata = '/v1/data';
 
 //App Profile
 export var appProfile = {
