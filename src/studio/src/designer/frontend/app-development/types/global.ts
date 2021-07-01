@@ -1,16 +1,15 @@
 /* eslint-disable camelcase */
+import { IDataModellingState } from 'app-shared/features/dataModelling/sagas';
 // eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
 import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { IDatamodelsMetadataState } from '../sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
-import { IDataModellingState } from '../features/dataModelling/sagas';
 import { IUserState } from '../sharedResources/user/userSlice';
 
 declare global {
@@ -18,7 +17,7 @@ declare global {
     languageState: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
-    repoMetadataState: T4;
+    applicationMetadataState: T4;
     appCluster: T5;
     repoStatus: T6;
     appReleases: T7;
@@ -33,7 +32,7 @@ declare global {
     <IFetchedLanguageState,
     IHandleMergeConflictState,
     IHandleServiceInformationState,
-    IApplicationMetadataState | IDatamodelsMetadataState,
+    IApplicationMetadataState,
     IAppClusterState,
     IRepoStatusState,
     IAppReleaseState,

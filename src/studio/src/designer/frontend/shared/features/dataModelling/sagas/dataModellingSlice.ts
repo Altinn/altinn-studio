@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-param-reassign */
-import { ISchema } from '@altinn/schema-editor/types';
 import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ISchema } from '@altinn/schema-editor/types';
+import { IDatamodelsMetadataState } from './datamodelsMetadata/datamodelsMetadataSlice';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -24,6 +25,7 @@ export interface IDataModellingState {
   schema: ISchema;
   error: Error;
   saving: boolean;
+  metadata?: IDatamodelsMetadataState;
 }
 
 export interface IDeleteDataModelRejected {

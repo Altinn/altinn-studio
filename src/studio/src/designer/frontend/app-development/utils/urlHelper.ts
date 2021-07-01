@@ -4,7 +4,6 @@ const {
 const { origin } = location;
 const cdn = 'https://altinncdn.no';
 const desingerApi = `${origin}/designer/api`;
-const repo = app;
 
 export const datamodelsApi = `${desingerApi}/${org}/${app}/datamodels`;
 export const repoStatusUrl = `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;

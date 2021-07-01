@@ -19,6 +19,7 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { DatamodelsMetadataActions } from 'app-shared/features/dataModelling/sagas/datamodelsMetadata/datamodelsMetadataSlice';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
@@ -28,10 +29,8 @@ import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConfl
 import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
-import { DatamodelsMetadataActions } from './sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
-import getRepoTypeFromLocation from '../shared/utils/getRepoTypeFromLocation';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 
 const theme = createMuiTheme(altinnTheme);
@@ -74,7 +73,6 @@ export interface IServiceDevelopmentAppState {
   sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
   remainingSessionMinutes: number;
   lastKeepAliveTimestamp: number;
-  repoType?: string;
 }
 
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
@@ -86,7 +84,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
       remainingSessionMinutes: _props.remainingSessionMinutes,
       lastKeepAliveTimestamp: 0,
-      repoType: getRepoTypeFromLocation(),
     };
   }
 
@@ -180,15 +177,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public render() {
     const { classes, repoStatus } = this.props;
     const { org, app } = window as Window as IAltinnWindow;
-    const { repoType } = this.state;
-    const isDatamodelsRepo = repoType === 'datamodels';
 
     return (
       <MuiThemeProvider theme={theme}>
         <Router>
-          {isDatamodelsRepo &&
-            <Redirect to='/datamodelling' />
-          }
           <div className={classes.container} ref={this.state.sessionExpiredPopoverRef}>
             <AltinnPopoverSimple
               anchorEl={(this.state.remainingSessionMinutes < 11) ? this.state.sessionExpiredPopoverRef : null}
@@ -209,7 +201,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
             </AltinnPopoverSimple>
             <Grid container={true} direction='row'>
               <Grid item xs={12}>
-                {!repoStatus.hasMergeConflict && !isDatamodelsRepo &&
+                {!repoStatus.hasMergeConflict &&
                   redirects.map((route) => (
                     <Route
                       key={route.to}
@@ -235,7 +227,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       org={org}
                       app={app}
                       showBreadcrumbOnTablet={true}
-                      showSubMenu={!(repoStatus.hasMergeConflict || isDatamodelsRepo)}
+                      showSubMenu={!repoStatus.hasMergeConflict}
                     />}
                   />
                 ))}
@@ -244,25 +236,23 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                 {
                   !repoStatus.hasMergeConflict ?
                     <>
-                      {!isDatamodelsRepo &&
-                        <Hidden smDown>
-                          <div style={{ top: 50 }}>
-                            {routes.map((route) => (
-                              <Route
-                                key={route.path}
-                                path={route.path}
-                                exact={route.exact}
-                                render={(props) => <LeftDrawerMenu
-                                  {...props}
-                                  menuType={route.menu}
-                                  activeLeftMenuSelection={route.activeLeftMenuSelection}
-                                />
-                                }
+                      <Hidden smDown>
+                        <div style={{ top: 50 }}>
+                          {routes.map((route) => (
+                            <Route
+                              key={route.path}
+                              path={route.path}
+                              exact={route.exact}
+                              render={(props) => <LeftDrawerMenu
+                                {...props}
+                                menuType={route.menu}
+                                activeLeftMenuSelection={route.activeLeftMenuSelection}
                               />
-                            ))}
-                          </div>
-                        </Hidden>
-                      }
+                              }
+                            />
+                          ))}
+                        </div>
+                      </Hidden>
                       <div className={classes.subApp}>
                         {routes.map((route) => (
                           <Route
@@ -273,7 +263,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                               {...props}
                               {...route.props}
                               language={this.props.language}
-                              repoType={repoType}
                             />}
                           />
                         ))}

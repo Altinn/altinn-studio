@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
-import { get, put as axiosPut, del } from 'app-shared/utils/networking';
-import { createDatamodellingUrl } from 'app-shared/utils/urlHelper';
+import { get, put as axiosPut, del } from '../../../utils/networking';
+import { createDatamodellingUrl } from '../../../utils/urlHelper';
 import {
   fetchDataModel,
   fetchDataModelFulfilled,
@@ -14,9 +14,9 @@ import {
   deleteDataModelFulfilled,
   deleteDataModelRejected,
 } from './dataModellingSlice';
-import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../../utils/urlHelper';
-import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { DatamodelsMetadataActions } from '../../../sharedResources/datamodelsMetadata/datamodelsMetadataSlice';
+import { getDeleteDataModelUrl, getFetchDataModelUrl, getSaveDataModelUrl } from '../../../../app-development/utils/urlHelper';
+import { ApplicationMetadataActions } from '../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';
+import { DatamodelsMetadataActions } from './datamodelsMetadata/datamodelsMetadataSlice';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { repoType, metadata } = action.payload;

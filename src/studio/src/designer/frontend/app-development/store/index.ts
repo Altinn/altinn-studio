@@ -3,12 +3,11 @@ import {
   compose,
   createStore,
   Middleware,
-  Store
+  Store,
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
-import getRepoTypeFromLocation from '../../shared/utils/getRepoTypeFromLocation';
-import createReducers from '../reducers';
+import reducers from '../reducers';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 export const store: Store<IServiceDevelopmentState> = configureStore();
@@ -17,7 +16,6 @@ function configureStore(): Store<IServiceDevelopmentState> {
   const middlewares: Middleware[] = [sagaMiddleware];
 
   let enhancer: any;
-  const repoType = getRepoTypeFromLocation();
 
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line global-require
@@ -29,7 +27,7 @@ function configureStore(): Store<IServiceDevelopmentState> {
   }
 
   return createStore(
-    createReducers(repoType),
+    reducers,
     undefined,
     enhancer,
   );

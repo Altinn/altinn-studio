@@ -18,7 +18,6 @@ export interface IRouteProps {
   iframeEndingUrl?: string;
   filePath?: string;
   language?: any;
-  repoType?: string;
 }
 
 export interface IRoute {

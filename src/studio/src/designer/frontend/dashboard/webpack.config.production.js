@@ -20,7 +20,8 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
     alias: {
-      "app-shared": path.resolve(__dirname, "../shared/")
+      "app-shared": path.resolve(__dirname, "../shared/"),
+      "@altinn/schema-editor": path.resolve(__dirname, "../packages/schema-editor/src/"),
     }
   },
   performance: {
@@ -34,36 +35,36 @@ module.exports = {
   },
   module: {
     rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [{
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: "css-loader",
-            options: {
-              url: false
-            }
-          }
-        ]
-      },
-      {
-        test: /\.tsx?/,
-        loader: "ts-loader",
+      test: /\.jsx?/,
+      exclude: /node_modules/,
+      use: {
+        loader: "babel-loader",
       }
+    },
+    {
+      test: /\.scss$/,
+      use: [
+        "style-loader",
+        "css-loader"
+      ]
+    },
+    {
+      test: /\.css$/,
+      use: [{
+        loader: MiniCssExtractPlugin.loader,
+      },
+      {
+        loader: "css-loader",
+        options: {
+          url: false
+        }
+      }
+      ]
+    },
+    {
+      test: /\.tsx?/,
+      loader: "ts-loader",
+    }
     ],
   },
   plugins: [
