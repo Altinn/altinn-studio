@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Text.Json;
+
+using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Mocks.Services;
 
@@ -74,6 +77,26 @@ namespace App.IntegrationTests.Utils
                     Directory.Delete(path, true);
                 }
             }
+        }
+
+        public static Application GetApplication(string org, string app)
+        {
+            string path = GetApplicationPath(org, app);
+
+            if (File.Exists(path))
+            {
+                string content = File.ReadAllText(path);
+                Application application = JsonSerializer.Deserialize<Application>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                return application;
+            }
+
+            return null;
+        }
+
+        private static string GetApplicationPath(string org, string app)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\", org + @"\", app + @"\config\applicationmetadata.json");
         }
 
         private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
