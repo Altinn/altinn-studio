@@ -6,7 +6,7 @@ import { call,
   all,
   take,
   put } from 'redux-saga/effects';
-import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
+import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import { putWithoutConfig } from 'src/utils/networking';
@@ -60,10 +60,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       try {
         fetchedData = yield call(get, getStatelessFormDataUrl(dataType));
       } catch (error) {
-        // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
-        if (error?.response?.status === 405) {
-          fetchedData = yield call(post, getStatelessFormDataUrl(dataType));
-        } else if (error?.response?.status === 403 && error.response.data) {
+        if (error?.response?.status === 403 && error.response.data) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
           if (reqAuthLevel) {
             putWithoutConfig(invalidateCookieUrl);
