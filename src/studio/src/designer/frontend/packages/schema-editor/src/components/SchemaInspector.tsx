@@ -112,7 +112,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [tabIndex, setTabIndex] = React.useState('0');
 
   const nameFieldRef = React.useCallback((node: any) => {
-    if (node && focusName) {
+    if (node && focusName && focusName === selectedId) {
       node.focus();
       node.select();
     }
@@ -206,9 +206,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    dispatch(setPropertyName({
-      path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
-    }));
+    if (!nameError) {
+      dispatch(setPropertyName({
+        path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
+      }));
+    }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     dispatch(addEnum({

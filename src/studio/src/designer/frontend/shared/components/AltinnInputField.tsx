@@ -136,7 +136,6 @@ export class AltinnInputField extends
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
             multiline={!!this.props.textAreaRows}
-            helperText={this.props.error}
             rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
