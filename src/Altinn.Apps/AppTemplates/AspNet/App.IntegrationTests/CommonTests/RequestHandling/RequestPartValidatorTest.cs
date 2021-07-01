@@ -161,5 +161,92 @@ namespace App.IntegrationTestsRef.CommonTests.RequestHandling
             // Assert
             Assert.Equal(expectedErrorMessage, actual);
         }
+
+        [Fact]
+        public void ValidatePart_ValidateInstance_ValidInstance()
+        {
+            // Arrange
+            Application app = TestDataUtil.GetApplication("ttd", "events");
+            string partName = "instance";
+            string contentType = "application/json";
+
+            RequestPart part = new RequestPart
+            {
+                Name = partName,
+                ContentType = contentType,
+            };
+
+            RequestPartValidator sut = new RequestPartValidator(app);
+
+            // Act
+            var actual = sut.ValidatePart(part);
+
+            // Assert
+            Assert.Null(actual);
+        }
+
+        [Fact]
+        public void ValidateParts_ExceedsAllowedNuberOfDataElements()
+        {
+            // Arrange
+            Application app = TestDataUtil.GetApplication("ttd", "events");
+            string partName = "hundebilde";
+            string dataTypeId = "hundebilde";
+            string contentType = "application/pdf";
+
+            RequestPart part = new RequestPart
+            {
+                Name = partName,
+                ContentType = contentType,
+                FileSize = 1337
+            };
+
+            List<RequestPart> parts = new List<RequestPart> { part, part };
+
+            string expectedErrorMessage = $"The list of parts contains more elements of type '{dataTypeId}' than the element type allows.";
+            RequestPartValidator sut = new RequestPartValidator(app);
+
+            // Act
+            string actual = sut.ValidateParts(parts);
+
+            // Assert
+            Assert.Equal(expectedErrorMessage, actual);
+        }
+
+        [Fact]
+        public void ValidateParts_ListContainsInvalidPart()
+        {
+            // Arrange
+            Application app = TestDataUtil.GetApplication("ttd", "events");
+            string partName = "hundebilde";
+            string dataTypeId = "hundebilde";
+            string contentType = "application/pdf";
+
+            RequestPart validPart = new RequestPart
+            {
+                Name = partName,
+                ContentType = contentType,
+                FileSize = 1337
+            };
+
+            RequestPart invalidPart = new RequestPart
+            {
+                Name = partName,
+                ContentType = contentType,
+                FileSize = 1337 * 1024 * 1024
+            };
+
+            List<RequestPart> parts = new List<RequestPart> { validPart, invalidPart };
+
+            string expectedErrorMessage = $"The multipart section named {partName} exceeds the size limit of element type '{dataTypeId}'";
+            RequestPartValidator sut = new RequestPartValidator(app);
+
+            // Act
+            string actual = sut.ValidateParts(parts);
+
+            // Assert
+            Assert.Equal(expectedErrorMessage, actual);
+        }
+
     }
 }
