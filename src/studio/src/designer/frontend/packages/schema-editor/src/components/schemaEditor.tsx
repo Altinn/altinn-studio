@@ -161,7 +161,6 @@ export const SchemaEditor = ({
 
       <Grid
         container={true} direction='row'
-        spacing={2}
       >
         <Grid item={true} xs={6}>
           <div id='schema-editor' className={classes.treeView}>
@@ -238,7 +237,8 @@ export const SchemaEditor = ({
 
           </div>
         </Grid>
-        <Grid item={true} xs={6}>
+        <Grid item xs={1} />
+        <Grid item={true} xs={5}>
           <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>

@@ -131,38 +131,40 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             {getLanguageFromKey('general.delete', props.language)}
           </Button>
         </Grid>
-        <AltinnPopover
-          anchorEl={deleteButtonAnchor}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText={getLanguageFromKey('general.cancel', props.language)}
-          descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
-          btnConfirmText={getLanguageFromKey('general.continue', props.language)}
-          btnPrimaryId='confirm-delete-button'
-          btnClick={onDeleteConfirmClick}
-          handleClose={onCancelDelete}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        />
-        <AltinnPopoverSimple
-          anchorEl={createButtonAnchor}
-          handleClose={onCancelCreate}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-        >
-          <AltinnInputField
-            id='newModelInput'
-            placeholder='Name'
-            btnText='Ok'
-            error={nameError}
-            clearError={() => setNameError(null)}
-            inputFieldStyling={{ width: '250px' }}
-            onChangeFunction={onNewModelNameChanged}
-            onBtnClickFunction={onCreateConfirmClick}
-            onReturn={onCreateConfirmClick}
+        <Grid item>
+          <AltinnPopover
+            anchorEl={deleteButtonAnchor}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            btnCancelText={getLanguageFromKey('general.cancel', props.language)}
+            descriptionText={getParsedLanguageFromKey('administration.delete_model_confirm', props.language, [selectedDataModelName], true)}
+            btnConfirmText={getLanguageFromKey('general.continue', props.language)}
+            btnPrimaryId='confirm-delete-button'
+            btnClick={onDeleteConfirmClick}
+            handleClose={onCancelDelete}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           />
+          <AltinnPopoverSimple
+            anchorEl={createButtonAnchor}
+            handleClose={onCancelCreate}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+          >
+            <AltinnInputField
+              id='newModelInput'
+              placeholder='Name'
+              btnText='Ok'
+              error={nameError}
+              clearError={() => setNameError(null)}
+              inputFieldStyling={{ width: '250px' }}
+              onChangeFunction={onNewModelNameChanged}
+              onBtnClickFunction={onCreateConfirmClick}
+              onReturn={onCreateConfirmClick}
+            />
 
-        </AltinnPopoverSimple>
+          </AltinnPopoverSimple>
+        </Grid>
       </Grid>
       { selectedDataModelName ?
         <SchemaEditorApp
