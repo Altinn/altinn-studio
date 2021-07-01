@@ -84,6 +84,40 @@ namespace Designer.Tests.Utils
             return targetDirectory;
         }
 
+        public static void DeleteAppRepository(string org, string repository, string developer)
+        {
+            var repositoryDirectory = GetTestDataRepositoryDirectory(org, repository, developer);
+            DeleteDirectory(repositoryDirectory);
+        }
+
+        private static void DeleteDirectory(string directoryToDelete, bool deleteSubDirs = true)
+        {
+            DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
+
+            if (!directoryToDeleteInfo.Exists)
+            {
+                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
+            }
+
+            DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
+
+            FileInfo[] files = directoryToDeleteInfo.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                File.Delete(file.FullName);
+            }
+
+            if (deleteSubDirs)
+            {
+                foreach (DirectoryInfo directory in subDirectories)
+                {
+                    DeleteDirectory(directory.FullName);
+                }
+            }
+
+            Directory.Delete(directoryToDeleteInfo.FullName);
+        }
+
         private static void CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
