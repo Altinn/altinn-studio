@@ -75,6 +75,7 @@ export const SchemaEditor = ({
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
+  const navigate = useSelector((state: ISchemaState) => state.navigate);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
@@ -98,7 +99,7 @@ export const SchemaEditor = ({
       const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
     }
-  }, [selectedNodeId]);
+  }, [navigate, selectedNodeId]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -197,8 +198,8 @@ export const SchemaEditor = ({
                     key={item.id}
                     item={item}
                     nodeId={getDomFriendlyID(item.id)}
-                    language={language}
                     id={getDomFriendlyID(item.id)}
+                    language={language}
                   />)}
 
                   <TreeItem
@@ -212,6 +213,7 @@ export const SchemaEditor = ({
               <TabPanel value='1'>
                 <TreeView
                   multiSelect={false}
+                  selected={selectedNodeId ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >

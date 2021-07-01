@@ -143,7 +143,7 @@ it('dispatches correctly when changing node name', () => {
     type: 'schemaEditor/setPropertyName',
     payload: {
       name: 'test',
-      navigate: true,
+      navigate: 'abc',
       path: '#/definitions/Kommentar2000Restriksjon',
     },
   });

@@ -207,7 +207,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const onChangeNodeName = () => {
     dispatch(setPropertyName({
-      path: selectedItem?.id, name: nodeName, navigate: true,
+      path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
     }));
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
@@ -222,6 +222,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (path) {
       dispatch(addProperty({
         path,
+        keepSelection: true,
       }));
     }
   };
@@ -247,7 +248,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onGoToDefButtonClick = () => {
     dispatch(setSelectedId(
       {
-        id: selectedItem?.$ref, readOnly: false, navigate: true,
+        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.id,
       },
     ));
   };

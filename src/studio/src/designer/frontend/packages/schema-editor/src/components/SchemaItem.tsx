@@ -115,7 +115,7 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
-    dispatch(setSelectedId({ id: e.id }));
+    dispatch(setSelectedId({ id: e.id, navigate: e.id }));
   };
 
   const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
@@ -173,7 +173,7 @@ function SchemaItem(props: SchemaItemProps) {
         key={`${keyPrefix}-${refItem.id}`}
         onClick={() => onItemClick(refItem)}
         item={refItem}
-        nodeId={`${keyPrefix}-${refItem.id}-ref`}
+        nodeId={getDomFriendlyID(refItem.id)}
         language={props.language}
       />);
     }

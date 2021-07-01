@@ -78,7 +78,7 @@ const schemaEditorSlice = createSlice({
       state.focusNameField = undefined;
     },
     addProperty(state, action) {
-      const { path } = action.payload;
+      const { path, keepSelection } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         id: `${path}/properties/name`,
@@ -94,9 +94,12 @@ const schemaEditorSlice = createSlice({
       } else {
         addToItem.properties = [item];
       }
-      state.selectedId = item.id;
-      state.selectedNodeId = getDomFriendlyID(item.id);
-      state.focusNameField = item.displayName;
+      if (!keepSelection) {
+        state.selectedId = item.id;
+        state.selectedNodeId = getDomFriendlyID(item.id);
+        state.navigate = item.id;
+        state.focusNameField = item.displayName;
+      }
     },
     addRefProperty(state, action) {
       const {
@@ -314,8 +317,9 @@ const schemaEditorSlice = createSlice({
         id, navigate, focusName,
       } = action.payload;
       state.selectedId = id;
-      state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
+      state.selectedNodeId = getDomFriendlyID(id);
       state.focusNameField = focusName;
+      state.navigate = navigate;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
