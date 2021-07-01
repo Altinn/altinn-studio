@@ -29,7 +29,7 @@ namespace Designer.Tests.Services
 
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
-                schemaFiles.Should().HaveCount(8);
+                schemaFiles.Should().HaveCount(7);
 
                 var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
                 var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();

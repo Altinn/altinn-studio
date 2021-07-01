@@ -90,11 +90,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// Finds all schema files regardless of location in repository.
         /// </summary>        
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
-            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
+            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 

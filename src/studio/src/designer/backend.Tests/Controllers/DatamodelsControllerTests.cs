@@ -306,7 +306,7 @@ namespace Designer.Tests.Controllers
             var altinnCoreFiles = System.Text.Json.JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(8, altinnCoreFiles.Count);
+            Assert.Equal(7, altinnCoreFiles.Count);
         }
 
         [Fact]

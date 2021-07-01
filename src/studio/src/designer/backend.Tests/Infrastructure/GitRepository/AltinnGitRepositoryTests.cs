@@ -70,8 +70,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
         [Theory]
         [InlineData("ttd", "apps-test", "testUser", 0)]
-        [InlineData("ttd", "ttd-datamodels", "testUser", 4)]
-        [InlineData("ttd", "hvem-er-hvem", "testUser", 8)]
+        [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
+        [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
         public void GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
