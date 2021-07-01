@@ -86,7 +86,9 @@ namespace App.IntegrationTests.Utils
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);
-                Application application = JsonSerializer.Deserialize<Application>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                Application application = JsonSerializer.Deserialize<Application>(
+                    content,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 return application;
             }
 

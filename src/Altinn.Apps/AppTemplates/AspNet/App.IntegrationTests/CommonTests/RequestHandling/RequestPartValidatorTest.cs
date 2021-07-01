@@ -161,6 +161,5 @@ namespace App.IntegrationTestsRef.CommonTests.RequestHandling
             // Assert
             Assert.Equal(expectedErrorMessage, actual);
         }
-
     }
 }
