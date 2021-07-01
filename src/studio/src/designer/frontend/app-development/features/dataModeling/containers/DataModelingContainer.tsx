@@ -155,6 +155,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             placeholder='Name'
             btnText='Ok'
             error={nameError}
+            clearError={() => setNameError(null)}
             inputFieldStyling={{ width: '250px' }}
             onChangeFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}

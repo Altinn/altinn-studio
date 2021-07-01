@@ -1,7 +1,7 @@
 import { Grid, Typography, createMuiTheme, makeStyles, createStyles } from '@material-ui/core';
-import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
 import * as React from 'react';
-import altinnTheme from '../../../shared/theme/altinnStudioTheme';
+import AltinnPopover from './molecules/AltinnPopoverSimple';
+import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IErrorPopoverProps {
   anchorEl: Element | ((element: Element) => Element);
