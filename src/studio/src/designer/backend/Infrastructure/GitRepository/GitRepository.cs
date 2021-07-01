@@ -93,11 +93,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="text">Text content to be written to the file.</param>        
-        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text)
+        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false)
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+
+            if (createDirectory)
+            {
+                var fileInfo = new FileInfo(absoluteFilePath);
+                if (!Directory.Exists(fileInfo.Directory.FullName))
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
+            }
 
             await WriteTextAsync(absoluteFilePath, text);
         }        

@@ -40,7 +40,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, content);
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            {              
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, content);
+            }
+            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+            }
         }
 
         /// <inheritdoc/>

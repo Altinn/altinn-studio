@@ -90,7 +90,7 @@ namespace Designer.Tests.Utils
             DeleteDirectory(repositoryDirectory);
         }
 
-        private static void DeleteDirectory(string directoryToDelete, bool deleteSubDirs = true)
+        public static void DeleteDirectory(string directoryToDelete, bool deleteSubDirs = true)
         {
             DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
 
@@ -118,7 +118,7 @@ namespace Designer.Tests.Utils
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
 
-        private static void CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        public static void CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 

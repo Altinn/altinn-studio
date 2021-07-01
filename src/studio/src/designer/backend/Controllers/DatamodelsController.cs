@@ -147,7 +147,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [ProducesResponseType(204)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public async Task<IActionResult> DeleteDatamodelNew(string org, string repository, [FromQuery] string modelPath)
+        public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
