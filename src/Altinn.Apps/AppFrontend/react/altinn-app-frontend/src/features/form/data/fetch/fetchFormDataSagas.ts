@@ -9,6 +9,7 @@ import { call,
 import { get, post, getCurrentTaskDataElementId } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
 import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
+import { putWithoutConfig } from 'src/utils/networking';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';
 import { ILayoutSets, IRuntimeState } from '../../../../types';
@@ -18,7 +19,7 @@ import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getStatelessFormDataUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =
@@ -62,6 +63,14 @@ function* fetchFormDataInitialSaga(): SagaIterator {
         // backward compatibility for https://github.com/Altinn/altinn-studio/issues/6227. Support for nugets < 4.7.0
         if (error?.response?.status === 405) {
           fetchedData = yield call(post, getStatelessFormDataUrl(dataType));
+        } else if (error?.response?.status === 403 && error.response.data) {
+          const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
+          if (reqAuthLevel) {
+            putWithoutConfig(invalidateCookieUrl);
+            yield call(redirectToUpgrade, reqAuthLevel);
+          } else {
+            throw error;
+          }
         } else {
           throw error;
         }
