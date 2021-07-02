@@ -340,7 +340,8 @@ namespace Designer.Tests.Controllers
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/?modelPath={modelPath}";
-            string requestBody = "{}";
+            var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
+            string requestBody = minimumValidJsonSchema;
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")

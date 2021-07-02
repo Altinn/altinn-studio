@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -10,7 +11,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// Class representing a application specific git repository.
     /// </summary>
     public class AltinnAppGitRepository : AltinnGitRepository
-    {        
+    {
+        private const string MODEL_METADATA_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";        
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
 
@@ -46,7 +48,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
             var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
 
-            await WriteTextByRelativePathAsync(appMetadataRealtiveFilePath, metadataAsJson);
+            await WriteTextByRelativePathAsync(appMetadataRealtiveFilePath, metadataAsJson, true);
+        }
+
+        /// <summary>
+        /// Updates the model metadata model for the application (a JSON where the model hierarchy is flatten,
+        /// in order to easier generate the C# class).
+        /// </summary>
+        /// <param name="modelMetadata">Model metadata to persist.</param>
+        /// <param name="modelName">The name of the model. </param>
+        /// <returns></returns>
+        public async Task UpdateModelMetadata(ModelMetadata modelMetadata, string modelName)
+        {
+            string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
+            string modelMetadataRelativeFilePath = Path.Combine(MODEL_METADATA_FOLDER_PATH, $"{modelName}.metadata.json");
+
+            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, metadataAsJson, true);
         }
     }
 }

@@ -82,5 +82,30 @@ namespace Designer.Tests.Services
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
+
+        [Fact]
+        public async Task UpdateSchema_AppRepo_ShouldUpdate()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+
+                // Act
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                var updatedSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
+                await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", updatedSchema);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
     }
 }
