@@ -348,51 +348,25 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (!string.IsNullOrEmpty(Request.Headers["X-Altinn-EnterpriseUser-Authentication"]))
                 {
                     string enterpriseUserHeader = Request.Headers["X-Altinn-EnterpriseUser-Authentication"];
-                    EnterpriseUserCredentials credentials;
 
-                    try
+                    (UserAuthenticationResult authenticatedEnterpriseUser, ActionResult error) = await HandleEnterpriseUserLogin(enterpriseUserHeader, orgNumber);
+
+                    if (error != null)
                     {
-                        credentials = DecodeEnterpriseUserHeader(enterpriseUserHeader, orgNumber);
-                    }
-                    catch (Exception)
-                    {
-                        return StatusCode(400);
+                        return error;
                     }
 
-                    HttpResponseMessage response = await _enterpriseUserAuthenticationService.AuthenticateEnterpriseUser(credentials);
-                    string content = await response.Content.ReadAsStringAsync();
-
-                    switch (response.StatusCode)
+                    if (authenticatedEnterpriseUser != null)
                     {
-                        case System.Net.HttpStatusCode.BadRequest:
-                            return StatusCode(400);
-                        case System.Net.HttpStatusCode.NotFound:
-                            ObjectResult result = StatusCode(401, "The user either does not exist or the password is incorrect.");
-                            return result;
-                        case System.Net.HttpStatusCode.TooManyRequests:
-                            if (response.Headers.RetryAfter != null)
-                            {
-                                Response.Headers.Add("Retry-After", response.Headers.RetryAfter.ToString());
-                            }
+                        authenticatemethod = "virksomhetsbruker";
 
-                            return StatusCode(429);
-                        case System.Net.HttpStatusCode.OK:
-                            authenticatemethod = "virksomhetsbruker";
+                        string userID = authenticatedEnterpriseUser.UserID.ToString();
+                        string username = authenticatedEnterpriseUser.Username;
+                        string partyId = authenticatedEnterpriseUser.PartyID.ToString();
 
-                            UserAuthenticationResult userAuthenticationResult = new UserAuthenticationResult();
-                            userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
-
-                            string userID = userAuthenticationResult.UserID.ToString();
-                            string username = userAuthenticationResult.Username;
-                            string partyId = userAuthenticationResult.PartyID.ToString();
-
-                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
-                            break;
-                        default:
-                            _logger.LogWarning("Unexpected response from SBLBridge during enterprise user authentication. HttpStatusCode={statusCode} Content={content}", response.StatusCode, content);
-                            return StatusCode(502);
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
                     }
                 }
 
@@ -424,24 +398,57 @@ namespace Altinn.Platform.Authentication.Controllers
             }
         }
 
-        private EnterpriseUserCredentials DecodeEnterpriseUserHeader(string encodedCredentials, string orgNumber)
+        private async Task<(UserAuthenticationResult, ActionResult)> HandleEnterpriseUserLogin(string enterpriseUserHeader, string orgNumber)
         {
+            EnterpriseUserCredentials credentials;
+
             try
             {
-                byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
-                string decodedString = Encoding.UTF8.GetString(decodedCredentials);
-
-                string[] decodedStringArray = decodedString.Split(":");
-                string usernameFromRequest = decodedStringArray[0];
-                string password = decodedStringArray[1];
-
-                EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
-                return credentials;
+                credentials = DecodeEnterpriseUserHeader(enterpriseUserHeader, orgNumber);
             }
             catch (Exception)
             {
-                throw;
-            }     
+                return (null, StatusCode(400));
+            }
+
+            HttpResponseMessage response = await _enterpriseUserAuthenticationService.AuthenticateEnterpriseUser(credentials);
+            string content = await response.Content.ReadAsStringAsync();
+
+            switch (response.StatusCode)
+            {
+                case System.Net.HttpStatusCode.BadRequest:
+                    return (null, StatusCode(400));
+                case System.Net.HttpStatusCode.NotFound:
+                    ObjectResult result = StatusCode(401, "The user either does not exist or the password is incorrect.");
+                    return (null, result);
+                case System.Net.HttpStatusCode.TooManyRequests:
+                    if (response.Headers.RetryAfter != null)
+                    {
+                        Response.Headers.Add("Retry-After", response.Headers.RetryAfter.ToString());
+                    }
+
+                    return (null, StatusCode(429));
+                case System.Net.HttpStatusCode.OK:
+                    UserAuthenticationResult userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
+
+                    return (userAuthenticationResult, null);
+                default:
+                    _logger.LogWarning("Unexpected response from SBLBridge during enterprise user authentication. HttpStatusCode={statusCode} Content={content}", response.StatusCode, content);
+                    return (null, StatusCode(502));
+            }
+        }
+
+        private EnterpriseUserCredentials DecodeEnterpriseUserHeader(string encodedCredentials, string orgNumber)
+        {
+            byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
+            string decodedString = Encoding.UTF8.GetString(decodedCredentials);
+
+            string[] decodedStringArray = decodedString.Split(":");
+            string usernameFromRequest = decodedStringArray[0];
+            string password = decodedStringArray[1];
+
+            EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
+            return credentials;
         }
 
         /// <summary>
