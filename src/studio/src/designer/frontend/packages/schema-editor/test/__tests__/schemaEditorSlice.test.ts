@@ -1,9 +1,11 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems } from '../../src/features/editor/schemaEditorSlice';
+  setItems,
+  promoteProperty} from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
+import { getUiSchemaItem } from '../../src/utils';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
@@ -242,5 +244,35 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(state, setRequired(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.required).not.toContainEqual('navn');
+  });
+
+  it('handles promotion of types', () => {
+    const schema = {
+      properties: {
+        melding: {
+          properties: {
+            name: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      definitions: {},
+    };
+    let nextState = reducer(state, setJsonSchema({ schema }));
+    nextState = reducer(nextState, setUiSchema({ rootElementPath: '#/properties/melding' }));
+
+    const prop = getUiSchemaItem(nextState.uiSchema, '#/properties/melding/properties/name');
+    getUiSchemaItem(nextState.uiSchema, '#/properties/melding/properties/name');
+    expect(prop && prop.type).toBe('string');
+
+    const payload = {
+      path: '#/properties/melding/properties/name',
+    };
+    nextState = reducer(nextState, promoteProperty(payload));
+    const ref = getUiSchemaItem(nextState.uiSchema, '#/properties/melding/properties/name');
+    expect(ref && ref.$ref).toBe('#/definitions/name');
+    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/name');
+    expect(item && item.type).toBe('string');
   });
 });

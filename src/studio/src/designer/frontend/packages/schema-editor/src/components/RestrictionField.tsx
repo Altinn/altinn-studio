@@ -41,7 +41,7 @@ const useStyles = makeStyles({
 
 export const RestrictionField = (props: IRestrictionFieldProps) => {
   const classes = useStyles();
-  const [key, setKey] = React.useState(props.value);
+  const [key, setKey] = React.useState(props.keyName);
   React.useEffect(() => {
     setKey(props.keyName);
   }, [props.keyName]);
