@@ -41,21 +41,21 @@ const useStyles = makeStyles({
 
 export const RestrictionField = (props: IRestrictionFieldProps) => {
   const classes = useStyles();
-  const [key, setKey] = React.useState(props.keyName);
+  const [keyName, setKeyName] = React.useState(props.keyName);
   React.useEffect(() => {
-    setKey(props.keyName);
+    setKeyName(props.keyName);
   }, [props.keyName]);
 
   const onBlur = () => {
-    props.onChangeKey(props.path, props.keyName, key);
+    props.onChangeKey(props.path, props.keyName, keyName);
   };
   const onInputChange = (e: any, v: any) => {
-    setKey(v);
+    setKeyName(v);
   };
 
   const onChangeKey = (e: any, v: any) => {
     e.stopPropagation();
-    setKey(v);
+    setKeyName(v);
   };
 
   const onValueKeyDown = (e: any) => {
@@ -73,7 +73,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           freeSolo={true}
           id={`${baseId}-${props.keyName}-key`}
           disabled={props.readOnly}
-          value={key}
+          value={keyName}
           onInputChange={onInputChange}
           onChange={onChangeKey}
           onBlur={onBlur}
