@@ -1,7 +1,7 @@
-import { Button, Grid } from '@material-ui/core'
-import { DeleteOutline } from '@material-ui/icons'
-import { getLanguageFromKey } from 'app-shared/utils/language'
-import * as React from 'react'
+import { Button, Grid } from '@material-ui/core';
+import { DeleteOutline } from '@material-ui/icons';
+import * as React from 'react';
+import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
 
 interface IDeleteWrapper {

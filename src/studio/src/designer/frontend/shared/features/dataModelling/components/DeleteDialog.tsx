@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Popover from 'app-shared/components/AltinnPopover';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language'
+import Popover from '../../../components/AltinnPopover';
+import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
 
 interface IDeleteDialogProps {
   anchor: any,

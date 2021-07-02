@@ -1,9 +1,9 @@
 import { Grid, Button } from '@material-ui/core';
 import { AddCircleOutline } from '@material-ui/icons';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import * as React from 'react';
+import AltinnInputField from '../../../components/AltinnInputField';
+import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
+import { getLanguageFromKey } from '../../../utils/language';
 
 interface ICreateNewWrapper {
   language: any,
@@ -69,6 +69,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
           placeholder='Name'
           btnText='Ok'
           error={nameError}
+          clearError={() => setNameError(null)}
           inputFieldStyling={{ width: '250px' }}
           onChangeFunction={onNewModelNameChanged}
           onBtnClickFunction={onCreateConfirmClick}
