@@ -1,9 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Profile.Controllers
@@ -35,8 +38,9 @@ namespace Altinn.Platform.Profile.Controllers
         /// <returns>The information about a given user</returns>
         [HttpGet("{userID}")]
         [Authorize(Policy = "PlatformAccess")]
-        [Produces(typeof(UserProfile))]
-        public async Task<ActionResult> Get(int userID)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserProfile>> Get(int userID)
         {
             UserProfile result = await _userProfilesWrapper.GetUser(userID);
             if (result == null)
@@ -52,8 +56,9 @@ namespace Altinn.Platform.Profile.Controllers
         /// </summary>
         /// <returns>User profile of current user</returns>
         [HttpGet("current")]
-        [Produces(typeof(UserProfile))]
-        public async Task<ActionResult> Get()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserProfile>> Get()
         {
             string userIdString = Request.HttpContext.User.Claims
                 .Where(c => c.Type == AltinnCoreClaimTypes.UserId)
@@ -76,8 +81,9 @@ namespace Altinn.Platform.Profile.Controllers
         /// <returns>User profile connected to given SSN </returns>
         [HttpPost]
         [Authorize(Policy = "PlatformAccess")]
-        [Produces(typeof(UserProfile))]
-        public async Task<ActionResult> GetUserFromSSN([FromBody]string ssn)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UserProfile>> GetUserFromSSN([FromBody]string ssn)
         {
             UserProfile result = await _userProfilesWrapper.GetUser(ssn);
             if (result == null)
