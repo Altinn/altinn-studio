@@ -14,19 +14,19 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/customer",
+      "$ref": "#/$defs/customer",
       "@xsdStructure": "0.Schema/0.Element"
     }
   },
-  "definitions": {
+  "$defs": {
     "customer": {
-      "$ref": "#/definitions/contact",
+      "$ref": "#/$defs/contact",
       "oneOf": [
         {
           "type": "object",
           "properties": {
             "address_norwegian": {
-              "$ref": "#/definitions/address_norwegian",
+              "$ref": "#/$defs/address_norwegian",
               "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/0.Choice/0.Element"
             }
           },
@@ -38,7 +38,7 @@
           "type": "object",
           "properties": {
             "address_swedish": {
-              "$ref": "#/definitions/address_swedish",
+              "$ref": "#/$defs/address_swedish",
               "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/0.Choice/1.Element"
             }
           },
@@ -49,7 +49,7 @@
       ],
       "allOf": [
         {
-          "$ref": "#/definitions/priorityAndTags",
+          "$ref": "#/$defs/priorityAndTags",
           "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/0.AttributeGroupRef"
         }
       ],
@@ -67,7 +67,7 @@
         "contacts": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/contact",
+            "$ref": "#/$defs/contact",
             "maxItems": 10
           },
           "@xsdStructure": "0.Schema/1.ComplexType/0.ComplexContent/0.Extension/1.Sequence/2.Element"
@@ -82,11 +82,11 @@
       "type": "object",
       "properties": {
         "priority": {
-          "$ref": "#/definitions/priority",
+          "$ref": "#/$defs/priority",
           "@xsdStructure": "0.Schema/2.AttributeGroup/0.Attribute"
         },
         "tags": {
-          "$ref": "#/definitions/tags",
+          "$ref": "#/$defs/tags",
           "@xsdStructure": "0.Schema/2.AttributeGroup/1.Attribute"
         }
       },
@@ -95,7 +95,7 @@
     "contact": {
       "allOf": [
         {
-          "$ref": "#/definitions/name",
+          "$ref": "#/$defs/name",
           "@xsdStructure": "0.Schema/3.ComplexType/0.Sequence/0.GroupRef"
         }
       ],
@@ -130,7 +130,7 @@
       "type": "object",
       "properties": {
         "title": {
-          "$ref": "#/definitions/title",
+          "$ref": "#/$defs/title",
           "@xsdStructure": "0.Schema/6.Group/0.Sequence/0.Element"
         },
         "firstName": {
@@ -206,7 +206,7 @@
       "@xsdStructure": "0.Schema/8.ComplexType"
     },
     "address_norwegian": {
-      "$ref": "#/definitions/address",
+      "$ref": "#/$defs/address",
       "type": "object",
       "properties": {
         "street": {
@@ -248,7 +248,7 @@
       "@xsdStructure": "0.Schema/9.ComplexType"
     },
     "address_swedish": {
-      "$ref": "#/definitions/address",
+      "$ref": "#/$defs/address",
       "type": "object",
       "properties": {
         "street": {

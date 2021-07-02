@@ -14,36 +14,36 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/main"
+      "$ref": "#/$defs/main"
     }
   },
-  "definitions": {
+  "$defs": {
     "main": {
       "allOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/g1",
+              "$ref": "#/$defs/g1",
               "@xsdType": "#ref"
             }
           ],
           "@xsdStructure": "sequence"
         },
         {
-          "$ref": "#/definitions/ag1",
+          "$ref": "#/$defs/ag1",
           "@xsdType": "#ref"
         },
         {
           "properties": {
             "a1": {
-              "$ref": "#/definitions/a1",
+              "$ref": "#/$defs/a1",
               "@xsdType": "#ref",
               "@xsdAttribute": true
             }
           }
         },
         {
-          "$ref": "#/definitions/ag2",
+          "$ref": "#/$defs/ag2",
           "@xsdType": "#ref"
         }
       ]
@@ -61,7 +61,7 @@
         {
           "properties": {
             "e1": {
-              "$ref": "#/definitions/e1",
+              "$ref": "#/$defs/e1",
               "@xsdType": "#ref"
             }
           },
@@ -77,7 +77,7 @@
       "@xsdType": "string"
     },
     "a1": {
-      "$ref": "#/definitions/st1",
+      "$ref": "#/$defs/st1",
       "@xsdAttribute": true
     },
     "ag1": {

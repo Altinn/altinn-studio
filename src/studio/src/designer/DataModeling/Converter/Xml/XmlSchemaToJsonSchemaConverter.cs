@@ -87,7 +87,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (items.Count > 1)
             {
-                builder.Definitions(items.Skip(1).Select(def => (def.name, def.schema.Build())).ToArray());
+                builder.Defs(items.Skip(1).Select(def => (def.name, def.schema.Build())).ToArray());
             }
 
             return builder;
@@ -996,7 +996,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 throw new InvalidOperationException("Cannot create reference to empty name");
             }
 
-            return $"#/definitions/{name}";
+            return $"#/$defs/{name}";
         }
 
         private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, JsonSchemaBuilder builder)
