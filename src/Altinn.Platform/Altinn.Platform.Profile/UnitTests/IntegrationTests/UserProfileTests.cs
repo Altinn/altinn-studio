@@ -71,6 +71,29 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetUsersCurrent_AsOrg_ResponseBadReqquest()
+        {
+            // Arrange
+            const int UserId = 2516356;
+
+            HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, "/profile/api/v1/users/current");
+
+            string token = PrincipalUtil.GetOrgToken("ttd");
+            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpClient client = _webApplicationFactory.CreateHttpClient(new DelegatingHandlerStub());
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("UserId must be provided in claims", responseContent);
+        }
+
+        [Fact]
         public async Task GetUsersById_SblBridgeFindsProfile_ResponseOk_ReturnsUserProfile()
         {
             // Arrange
