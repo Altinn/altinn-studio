@@ -4,5 +4,5 @@ export {
   DataModelsMetadataActions,
 } from './dataModelsMetadataSlice';
 export {
-  watchGetDataModelsMetadataSaga
+  watchGetDataModelsMetadataSaga,
 } from './get/getDataModelsMetadataSagas';

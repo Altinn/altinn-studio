@@ -11,6 +11,7 @@ import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import './App.css';
 import { Dispatch } from 'redux';
+import { StandaloneDataModelling } from './features';
 import { CloneService } from './features/cloneService/cloneServices';
 import { KnownIssues } from './features/knownIssues/knownIssues';
 import { ServicesOverview } from './features/serviceOverview/servicesOverview';
@@ -99,6 +100,11 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               path='/known-issues'
               exact={true}
               component={KnownIssues}
+            />
+            <Route
+              path='/datamodelling/:org/:repoName'
+              exact={true}
+              component={StandaloneDataModelling}
             />
           </div>
         </Router>
