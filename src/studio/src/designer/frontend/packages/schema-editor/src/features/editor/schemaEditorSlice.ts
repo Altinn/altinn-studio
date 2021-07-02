@@ -72,7 +72,7 @@ const schemaEditorSlice = createSlice({
       );
       state.selectedId = path;
       state.selectedNodeId = getDomFriendlyID(path);
-      state.focusNameField = name;
+      state.focusNameField = path;
     },
     clearNameFocus(state) {
       state.focusNameField = undefined;
@@ -97,7 +97,6 @@ const schemaEditorSlice = createSlice({
       if (!keepSelection) {
         state.selectedId = item.id;
         state.selectedNodeId = getDomFriendlyID(item.id);
-        state.navigate = item.id;
         state.focusNameField = item.displayName;
       }
     },

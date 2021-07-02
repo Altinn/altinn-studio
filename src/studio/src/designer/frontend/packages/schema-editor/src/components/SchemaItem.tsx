@@ -115,7 +115,7 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
-    dispatch(setSelectedId({ id: e.id, navigate: e.id }));
+    dispatch(setSelectedId({ id: e.id }));
   };
 
   const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {

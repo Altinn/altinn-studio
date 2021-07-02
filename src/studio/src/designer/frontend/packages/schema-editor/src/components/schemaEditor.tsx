@@ -99,7 +99,8 @@ export const SchemaEditor = ({
       const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
     }
-  }, [navigate, selectedNodeId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
