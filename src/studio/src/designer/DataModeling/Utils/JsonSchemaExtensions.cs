@@ -85,29 +85,6 @@ namespace Altinn.Studio.DataModeling.Utils
             return schema.Keywords.HasKeyword(filter);
         }
 
-        ///// <summary>
-        ///// Determine if a keyword is present in the schema
-        ///// </summary>
-        ///// <typeparam name="T">The keyword type to search for</typeparam>
-        ///// <param name="schema">Look for the keyword in this schema instance</param>
-        ///// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        //public static bool AnyOfExclusive(this JsonSchema schema, params Type[] keywordTypes)
-        //{
-        //    return schema.Keywords.HasKeyword<T>();
-        //}
-
-        ///// <summary>
-        ///// Determine if a keyword is present in the schema
-        ///// </summary>
-        ///// <typeparam name="T">The keyword type to search for</typeparam>
-        ///// <param name="schema">Look for the keyword in this schema instance</param>
-        ///// <param name="filter">A filter callback function</param>
-        ///// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        //public static bool AnyOfExclusive<T>(this JsonSchema schema, params Type[] keywordTypes)
-        //{
-        //    return schema.Keywords.HasKeyword<T>();
-        //}
-
         /// <summary>
         /// Determine if a keyword is present in the keyword list
         /// </summary>

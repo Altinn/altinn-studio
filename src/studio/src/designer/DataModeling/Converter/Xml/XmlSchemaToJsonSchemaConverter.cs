@@ -1218,19 +1218,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     return stepBuilder.Build();
                 }));
 
-                //if (_steps.Count == 1)
-                //{
-                //    _steps[0](builder);
-                //}
-                //else if (_steps.Count > 1)
-                //{
-                //    builder.AllOf(_steps.Select(step =>
-                //    {
-                //        JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-                //        step(stepBuilder);
-                //        return stepBuilder.Build();
-                //    }));
-                //}
+                // if (_steps.Count == 1)
+                // {
+                //     _steps[0](builder);
+                // }
+                // else if (_steps.Count > 1)
+                // {
+                //     builder.AllOf(_steps.Select(step =>
+                //     {
+                //         JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
+                //         step(stepBuilder);
+                //         return stepBuilder.Build();
+                //     }));
+                // }
             }
         }
     }
