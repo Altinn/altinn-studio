@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,257 +14,224 @@
   },
   "properties": {
     "Root": {
-      "type": "object",
-      "properties": {
-        "t01": {
-          "type": "string",
-          "format": "duration",
-          "@xsdType": "duration",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
-        },
-        "t02": {
-          "type": "string",
-          "format": "date-time",
-          "@xsdType": "dateTime",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/1.Element"
-        },
-        "t03": {
-          "type": "string",
-          "format": "time",
-          "@xsdType": "time",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/2.Element"
-        },
-        "t04": {
-          "type": "string",
-          "format": "date",
-          "@xsdType": "date",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/3.Element"
-        },
-        "t05": {
-          "type": "string",
-          "@xsdType": "gYearMonth",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/4.Element"
-        },
-        "t06": {
-          "type": "string",
-          "@xsdType": "gYear",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/5.Element"
-        },
-        "t07": {
-          "type": "string",
-          "@xsdType": "gMonthDay",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/6.Element"
-        },
-        "t08": {
-          "type": "string",
-          "@xsdType": "gDay",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/7.Element"
-        },
-        "t09": {
-          "type": "string",
-          "@xsdType": "gMonth",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/8.Element"
-        },
-        "t10": {
-          "type": "boolean",
-          "@xsdType": "boolean",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/9.Element"
-        },
-        "t11": {
-          "type": "string",
-          "@xsdType": "base64Binary",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/10.Element"
-        },
-        "t12": {
-          "type": "string",
-          "@xsdType": "hexBinary",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/11.Element"
-        },
-        "t13": {
-          "type": "number",
-          "@xsdType": "float",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/12.Element"
-        },
-        "t14": {
-          "type": "number",
-          "@xsdType": "double",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/13.Element"
-        },
-        "t15": {
-          "type": "string",
-          "format": "uri",
-          "@xsdType": "anyURI",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/14.Element"
-        },
-        "t16": {
-          "type": "string",
-          "@xsdType": "QName",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/15.Element"
-        },
-        "t17": {
-          "type": "number",
-          "@xsdType": "decimal",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/16.Element"
-        },
-        "t18": {
-          "type": "integer",
-          "@xsdType": "integer",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/17.Element"
-        },
-        "t19": {
-          "type": "integer",
-          "@xsdType": "long",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/18.Element"
-        },
-        "t20": {
-          "type": "integer",
-          "@xsdType": "unsignedLong",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/19.Element"
-        },
-        "t21": {
-          "type": "integer",
-          "@xsdType": "int",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/20.Element"
-        },
-        "t22": {
-          "type": "integer",
-          "@xsdType": "unsignedInt",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/21.Element"
-        },
-        "t23": {
-          "type": "integer",
-          "@xsdType": "short",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/22.Element"
-        },
-        "t24": {
-          "type": "integer",
-          "@xsdType": "unsignedShort",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/23.Element"
-        },
-        "t25": {
-          "type": "integer",
-          "@xsdType": "byte",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/24.Element"
-        },
-        "t26": {
-          "type": "integer",
-          "@xsdType": "unsignedByte",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/25.Element"
-        },
-        "t27": {
-          "type": "integer",
-          "@xsdType": "nonPositiveInteger",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/26.Element"
-        },
-        "t28": {
-          "type": "integer",
-          "@xsdType": "nonNegativeInteger",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/27.Element"
-        },
-        "t29": {
-          "type": "integer",
-          "@xsdType": "negativeInteger",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/28.Element"
-        },
-        "t30": {
-          "type": "integer",
-          "@xsdType": "positiveInteger",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/29.Element"
-        },
-        "t31": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/30.Element"
-        },
-        "t32": {
-          "type": "string",
-          "@xsdType": "normalizedString",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/31.Element"
-        },
-        "t33": {
-          "type": "string",
-          "@xsdType": "token",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/32.Element"
-        },
-        "t34": {
-          "type": "string",
-          "@xsdType": "language",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/33.Element"
-        },
-        "t35": {
-          "type": "string",
-          "@xsdType": "Name",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/34.Element"
-        },
-        "t36": {
-          "type": "string",
-          "@xsdType": "NCName",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/35.Element"
-        },
-        "t37": {
-          "type": "string",
-          "@xsdType": "ID",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/36.Element"
-        },
-        "t38": {
-          "type": "string",
-          "@xsdType": "IDREF",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/37.Element"
-        },
-        "t39": {
-          "type": "string",
-          "@xsdType": "ENTITY",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/38.Element"
-        },
-        "t40": {
-          "type": "string",
-          "@xsdType": "NMTOKEN",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/39.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "t01": {
+                  "type": "string",
+                  "format": "duration",
+                  "@xsdType": "duration"
+                },
+                "t02": {
+                  "type": "string",
+                  "format": "date-time",
+                  "@xsdType": "dateTime"
+                },
+                "t03": {
+                  "type": "string",
+                  "format": "time",
+                  "@xsdType": "time"
+                },
+                "t04": {
+                  "type": "string",
+                  "format": "date",
+                  "@xsdType": "date"
+                },
+                "t05": {
+                  "type": "string",
+                  "@xsdType": "gYearMonth"
+                },
+                "t06": {
+                  "type": "string",
+                  "@xsdType": "gYear"
+                },
+                "t07": {
+                  "type": "string",
+                  "@xsdType": "gMonthDay"
+                },
+                "t08": {
+                  "type": "string",
+                  "@xsdType": "gDay"
+                },
+                "t09": {
+                  "type": "string",
+                  "@xsdType": "gMonth"
+                },
+                "t10": {
+                  "type": "boolean",
+                  "@xsdType": "boolean"
+                },
+                "t11": {
+                  "type": "string",
+                  "@xsdType": "base64Binary"
+                },
+                "t12": {
+                  "type": "string",
+                  "@xsdType": "hexBinary"
+                },
+                "t13": {
+                  "type": "number",
+                  "@xsdType": "float"
+                },
+                "t14": {
+                  "type": "number",
+                  "@xsdType": "double"
+                },
+                "t15": {
+                  "type": "string",
+                  "format": "uri",
+                  "@xsdType": "anyURI"
+                },
+                "t16": {
+                  "type": "string",
+                  "@xsdType": "QName"
+                },
+                "t17": {
+                  "type": "number",
+                  "@xsdType": "decimal"
+                },
+                "t18": {
+                  "type": "integer",
+                  "@xsdType": "integer"
+                },
+                "t19": {
+                  "type": "integer",
+                  "@xsdType": "long"
+                },
+                "t20": {
+                  "type": "integer",
+                  "@xsdType": "unsignedLong"
+                },
+                "t21": {
+                  "type": "integer",
+                  "@xsdType": "int"
+                },
+                "t22": {
+                  "type": "integer",
+                  "@xsdType": "unsignedInt"
+                },
+                "t23": {
+                  "type": "integer",
+                  "@xsdType": "short"
+                },
+                "t24": {
+                  "type": "integer",
+                  "@xsdType": "unsignedShort"
+                },
+                "t25": {
+                  "type": "integer",
+                  "@xsdType": "byte"
+                },
+                "t26": {
+                  "type": "integer",
+                  "@xsdType": "unsignedByte"
+                },
+                "t27": {
+                  "type": "integer",
+                  "@xsdType": "nonPositiveInteger"
+                },
+                "t28": {
+                  "type": "integer",
+                  "@xsdType": "nonNegativeInteger"
+                },
+                "t29": {
+                  "type": "integer",
+                  "@xsdType": "negativeInteger"
+                },
+                "t30": {
+                  "type": "integer",
+                  "@xsdType": "positiveInteger"
+                },
+                "t31": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "t32": {
+                  "type": "string",
+                  "@xsdType": "normalizedString"
+                },
+                "t33": {
+                  "type": "string",
+                  "@xsdType": "token"
+                },
+                "t34": {
+                  "type": "string",
+                  "@xsdType": "language"
+                },
+                "t35": {
+                  "type": "string",
+                  "@xsdType": "Name"
+                },
+                "t36": {
+                  "type": "string",
+                  "@xsdType": "NCName"
+                },
+                "t37": {
+                  "type": "string",
+                  "@xsdType": "ID"
+                },
+                "t38": {
+                  "type": "string",
+                  "@xsdType": "IDREF"
+                },
+                "t39": {
+                  "type": "string",
+                  "@xsdType": "ENTITY"
+                },
+                "t40": {
+                  "type": "string",
+                  "@xsdType": "NMTOKEN"
+                }
+              },
+              "required": [
+                "t01",
+                "t02",
+                "t03",
+                "t04",
+                "t05",
+                "t06",
+                "t07",
+                "t08",
+                "t09",
+                "t10",
+                "t11",
+                "t12",
+                "t13",
+                "t14",
+                "t15",
+                "t16",
+                "t17",
+                "t18",
+                "t19",
+                "t20",
+                "t21",
+                "t22",
+                "t23",
+                "t24",
+                "t25",
+                "t26",
+                "t27",
+                "t28",
+                "t29",
+                "t30",
+                "t31",
+                "t32",
+                "t33",
+                "t34",
+                "t35",
+                "t36",
+                "t37",
+                "t38",
+                "t39",
+                "t40"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "t01",
-        "t02",
-        "t03",
-        "t04",
-        "t05",
-        "t06",
-        "t07",
-        "t08",
-        "t09",
-        "t10",
-        "t11",
-        "t12",
-        "t13",
-        "t14",
-        "t15",
-        "t16",
-        "t17",
-        "t18",
-        "t19",
-        "t20",
-        "t21",
-        "t22",
-        "t23",
-        "t24",
-        "t25",
-        "t26",
-        "t27",
-        "t28",
-        "t29",
-        "t30",
-        "t31",
-        "t32",
-        "t33",
-        "t34",
-        "t35",
-        "t36",
-        "t37",
-        "t38",
-        "t39",
-        "t40"
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   }
 }

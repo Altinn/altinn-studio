@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,61 +14,57 @@
   },
   "properties": {
     "Root": {
-      "oneOf": [
+      "allOf": [
         {
-          "type": "object",
-          "properties": {
-            "e1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/0.Element"
+          "oneOf": [
+            {
+              "properties": {
+                "e1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e1"
+              ]
+            },
+            {
+              "properties": {
+                "e2": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e2"
+              ]
+            },
+            {
+              "properties": {
+                "e3": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e3"
+              ]
+            },
+            {
+              "properties": {
+                "e4": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e4"
+              ]
             }
-          },
-          "required": [
-            "e1"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "e2": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/1.Element"
-            }
-          },
-          "required": [
-            "e2"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "e3": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/2.Element"
-            }
-          },
-          "required": [
-            "e3"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "e4": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/3.Element"
-            }
-          },
-          "required": [
-            "e4"
-          ]
+          ],
+          "@xsdStructure": "choice"
         }
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   }
 }

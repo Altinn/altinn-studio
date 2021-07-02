@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,65 +14,96 @@
   },
   "properties": {
     "Root": {
-      "oneOf": [
+      "allOf": [
         {
-          "oneOf": [
+          "allOf": [
             {
-              "type": "object",
               "properties": {
-                "i1": {
+                "e1": {
                   "type": "string",
-                  "@xsdType": "string",
-                  "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/0.Choice/0.Element"
+                  "@xsdType": "string"
+                },
+                "e2": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxItems": 100
+                  },
+                  "@xsdType": "string"
                 }
               },
               "required": [
-                "i1"
+                "e1"
               ]
             },
             {
-              "type": "object",
-              "properties": {
-                "i2": {
-                  "type": "string",
-                  "@xsdType": "string",
-                  "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/0.Choice/1.Element"
+              "allOf": [
+                {
+                  "properties": {
+                    "e3": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "@xsdType": "string"
+                    },
+                    "e4": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "@xsdType": "string"
+                    }
+                  }
+                },
+                {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "e5": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "@xsdType": "string"
+                        },
+                        "e6": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "@xsdType": "string"
+                        }
+                      }
+                    }
+                  ],
+                  "@xsdStructure": "sequence"
+                },
+                {
+                  "properties": {
+                    "e7": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "@xsdType": "string"
+                    },
+                    "e8": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "@xsdType": "string"
+                    }
+                  }
                 }
-              },
-              "required": [
-                "i2"
-              ]
+              ],
+              "@xsdStructure": "sequence"
             }
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "o1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/1.Element"
-            }
-          },
-          "required": [
-            "o1"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "o2": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Choice/2.Element"
-            }
-          },
-          "required": [
-            "o2"
-          ]
+          ],
+          "@xsdStructure": "sequence"
         }
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   }
 }

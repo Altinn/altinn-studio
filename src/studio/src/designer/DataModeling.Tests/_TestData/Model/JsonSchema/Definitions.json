@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,95 +14,107 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/main",
-      "@xsdStructure": "0.Schema/0.Element"
+      "$ref": "#/definitions/main"
     }
   },
   "definitions": {
     "main": {
       "allOf": [
         {
-          "$ref": "#/definitions/g1",
-          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.GroupRef"
+          "allOf": [
+            {
+              "$ref": "#/definitions/g1",
+              "@xsdType": "#ref"
+            }
+          ],
+          "@xsdStructure": "sequence"
         },
         {
           "$ref": "#/definitions/ag1",
-          "@xsdStructure": "0.Schema/1.ComplexType/1.AttributeGroupRef"
+          "@xsdType": "#ref"
+        },
+        {
+          "properties": {
+            "a1": {
+              "$ref": "#/definitions/a1",
+              "@xsdType": "#ref",
+              "@xsdAttribute": true
+            }
+          }
         },
         {
           "$ref": "#/definitions/ag2",
-          "@xsdStructure": "0.Schema/1.ComplexType/3.AttributeGroupRef"
+          "@xsdType": "#ref"
         }
-      ],
-      "type": "object",
-      "properties": {
-        "a1": {
-          "$ref": "#/definitions/a1",
-          "@xsdType": "#ref",
-          "@xsdStructure": "0.Schema/1.ComplexType/2.Attribute"
-        }
-      },
-      "@xsdStructure": "0.Schema/1.ComplexType"
+      ]
     },
     "st1": {
-      "type": "string",
-      "@xsdType": "string",
-      "@xsdStructure": "0.Schema/2.SimpleType"
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      ]
     },
     "g1": {
-      "type": "object",
-      "properties": {
-        "e1": {
-          "$ref": "#/definitions/e1",
-          "@xsdType": "#ref",
-          "@xsdStructure": "0.Schema/3.Group/0.Sequence/0.Element"
+      "allOf": [
+        {
+          "properties": {
+            "e1": {
+              "$ref": "#/definitions/e1",
+              "@xsdType": "#ref"
+            }
+          },
+          "required": [
+            "e1"
+          ]
         }
-      },
-      "required": [
-        "e1"
       ],
-      "@xsdStructure": "0.Schema/3.Group"
+      "@xsdStructure": "sequence"
     },
     "e1": {
       "type": "string",
-      "@xsdType": "string",
-      "@xsdStructure": "0.Schema/4.Element"
+      "@xsdType": "string"
     },
     "a1": {
       "$ref": "#/definitions/st1",
-      "@xsdStructure": "0.Schema/5.Attribute"
+      "@xsdAttribute": true
     },
     "ag1": {
-      "type": "object",
-      "properties": {
-        "ag1_1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/6.AttributeGroup/0.Attribute"
-        },
-        "ag1_2": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/6.AttributeGroup/1.Attribute"
+      "allOf": [
+        {
+          "properties": {
+            "ag1_1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "ag1_2": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            }
+          }
         }
-      },
-      "@xsdStructure": "0.Schema/6.AttributeGroup"
+      ]
     },
     "ag2": {
-      "type": "object",
-      "properties": {
-        "ag2_1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/7.AttributeGroup/0.Attribute"
-        },
-        "ag2_2": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/7.AttributeGroup/1.Attribute"
+      "allOf": [
+        {
+          "properties": {
+            "ag2_1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "ag2_2": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            }
+          }
         }
-      },
-      "@xsdStructure": "0.Schema/7.AttributeGroup"
+      ]
     }
   }
 }

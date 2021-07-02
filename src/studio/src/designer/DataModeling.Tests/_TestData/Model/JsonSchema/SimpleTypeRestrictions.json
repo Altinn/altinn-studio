@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,199 +14,210 @@
   },
   "properties": {
     "Root": {
-      "type": "object",
-      "properties": {
-        "t1": {
-          "$ref": "#/definitions/stringMinMaxLengthRestrictions",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
-        },
-        "t2": {
-          "$ref": "#/definitions/stringLengthRestrictions",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/1.Element"
-        },
-        "t3": {
-          "$ref": "#/definitions/stringEnumRestrictions",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/2.Element"
-        },
-        "t4": {
-          "$ref": "#/definitions/stringPatternRestrictions",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/3.Element"
-        },
-        "n1": {
-          "$ref": "#/definitions/numberRestrictions",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/4.Element"
-        },
-        "n2": {
-          "$ref": "#/definitions/numberRestrictions2",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/5.Element"
-        },
-        "f1": {
-          "$ref": "#/definitions/numberRestrictionsFractional0",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/6.Element"
-        },
-        "f2": {
-          "$ref": "#/definitions/numberRestrictionsFractional1",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/7.Element"
-        },
-        "f3": {
-          "$ref": "#/definitions/numberRestrictionsFractional2",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/8.Element"
-        },
-        "f4": {
-          "$ref": "#/definitions/numberRestrictionsFractional3",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/9.Element"
-        },
-        "f5": {
-          "$ref": "#/definitions/numberRestrictionsFractional4",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/10.Element"
-        },
-        "f6": {
-          "$ref": "#/definitions/numberRestrictionsFractional5",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/11.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "t1": {
+                  "$ref": "#/definitions/stringMinMaxLengthRestrictions"
+                },
+                "t2": {
+                  "$ref": "#/definitions/stringLengthRestrictions"
+                },
+                "t3": {
+                  "$ref": "#/definitions/stringEnumRestrictions"
+                },
+                "t4": {
+                  "$ref": "#/definitions/stringPatternRestrictions"
+                },
+                "n1": {
+                  "$ref": "#/definitions/numberRestrictions"
+                },
+                "n2": {
+                  "$ref": "#/definitions/numberRestrictions2"
+                },
+                "f1": {
+                  "$ref": "#/definitions/numberRestrictionsFractional0"
+                },
+                "f2": {
+                  "$ref": "#/definitions/numberRestrictionsFractional1"
+                },
+                "f3": {
+                  "$ref": "#/definitions/numberRestrictionsFractional2"
+                },
+                "f4": {
+                  "$ref": "#/definitions/numberRestrictionsFractional3"
+                },
+                "f5": {
+                  "$ref": "#/definitions/numberRestrictionsFractional4"
+                },
+                "f6": {
+                  "$ref": "#/definitions/numberRestrictionsFractional5"
+                }
+              },
+              "required": [
+                "t1",
+                "t2",
+                "t3",
+                "t4",
+                "n1",
+                "n2",
+                "f1",
+                "f2",
+                "f3",
+                "f4",
+                "f5",
+                "f6"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "t1",
-        "t2",
-        "t3",
-        "t4",
-        "n1",
-        "n2",
-        "f1",
-        "f2",
-        "f3",
-        "f4",
-        "f5",
-        "f6"
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   },
   "definitions": {
     "stringMinMaxLengthRestrictions": {
-      "type": "string",
-      "@xsdType": "string",
-      "maxLength": 20,
-      "minLength": 5,
-      "@xsdRestrictions": {
-        "maxLength": "20",
-        "minLength": "5"
-      },
-      "@xsdStructure": "0.Schema/1.SimpleType"
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "maxLength": 20,
+          "minLength": 5
+        }
+      ]
     },
     "stringLengthRestrictions": {
-      "type": "string",
-      "@xsdType": "string",
-      "maxLength": 10,
-      "minLength": 10,
-      "@xsdRestrictions": {
-        "length": "10"
-      },
-      "@xsdStructure": "0.Schema/2.SimpleType"
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "maxLength": 10,
+          "minLength": 10
+        }
+      ]
     },
     "stringEnumRestrictions": {
-      "type": "string",
-      "@xsdType": "string",
-      "enum": [
-        "v1",
-        "v2"
-      ],
-      "@xsdRestrictions": {
-        "enumeration": [
-          "v1",
-          "v2"
-        ]
-      },
-      "@xsdStructure": "0.Schema/3.SimpleType"
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "v1",
+            "v2"
+          ]
+        }
+      ]
     },
     "stringPatternRestrictions": {
-      "type": "string",
-      "@xsdType": "string",
-      "pattern": "^\\d\\.\\d\\.\\d$",
-      "@xsdRestrictions": {
-        "pattern": "^\\d\\.\\d\\.\\d$"
-      },
-      "@xsdStructure": "0.Schema/4.SimpleType"
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "pattern": "^\\d\\.\\d\\.\\d$"
+        }
+      ]
     },
     "numberRestrictions": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "maxLength": 10,
-      "maximum": 100,
-      "minimum": -100,
-      "@xsdRestrictions": {
-        "totalDigits": "10",
-        "maxInclusive": "100",
-        "minInclusive": "-100"
-      },
-      "@xsdStructure": "0.Schema/5.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "maxLength": 10,
+          "maximum": 100,
+          "minimum": -100
+        }
+      ]
     },
     "numberRestrictions2": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "maxLength": 10,
-      "exclusiveMaximum": 100,
-      "exclusiveMinimum": -100,
-      "@xsdRestrictions": {
-        "totalDigits": "10",
-        "maxExclusive": "100",
-        "minExclusive": "-100"
-      },
-      "@xsdStructure": "0.Schema/6.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "maxLength": 10,
+          "exclusiveMaximum": 100,
+          "exclusiveMinimum": -100
+        }
+      ]
     },
     "numberRestrictionsFractional0": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 1,
-      "@xsdRestrictions": {
-        "fractionDigits": "0"
-      },
-      "@xsdStructure": "0.Schema/7.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 1
+        }
+      ]
     },
     "numberRestrictionsFractional1": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 0.1,
-      "@xsdRestrictions": {
-        "fractionDigits": "1"
-      },
-      "@xsdStructure": "0.Schema/8.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.1
+        }
+      ]
     },
     "numberRestrictionsFractional2": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 0.01,
-      "@xsdRestrictions": {
-        "fractionDigits": "2"
-      },
-      "@xsdStructure": "0.Schema/9.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.01
+        }
+      ]
     },
     "numberRestrictionsFractional3": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 0.001,
-      "@xsdRestrictions": {
-        "fractionDigits": "3"
-      },
-      "@xsdStructure": "0.Schema/10.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.001
+        }
+      ]
     },
     "numberRestrictionsFractional4": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 0.0001,
-      "@xsdRestrictions": {
-        "fractionDigits": "4"
-      },
-      "@xsdStructure": "0.Schema/11.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.0001
+        }
+      ]
     },
     "numberRestrictionsFractional5": {
-      "type": "number",
-      "@xsdType": "decimal",
-      "multipleOf": 0.00001,
-      "@xsdRestrictions": {
-        "fractionDigits": "5"
-      },
-      "@xsdStructure": "0.Schema/12.SimpleType"
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.00001
+        }
+      ]
     }
   }
 }
