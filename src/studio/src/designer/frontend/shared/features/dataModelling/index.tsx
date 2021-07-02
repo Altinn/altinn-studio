@@ -4,7 +4,7 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import getDataModelsSchemaNames from './functions/getDataModelsSchemaNames';
-import { DataModelsMetadataActions } from './sagas/dataModelsMetadata';
+import { DataModelsMetadataActions } from './sagas/metadata';
 
 const useStyles = makeStyles(
   createStyles({

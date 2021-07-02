@@ -1,6 +1,6 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { dataModellingReducer, IDataModellingState } from 'app-shared/features/dataModelling/sagas';
-import { dataModelsMetadataReducer, IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/dataModelsMetadata';
+import { dataModelsMetadataReducer, IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/metadata';
 import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';

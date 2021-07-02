@@ -1,6 +1,7 @@
 import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchDeleteDataModelSaga, watchFetchDataModelSaga, watchSaveDataModelSaga } from 'app-shared/features/dataModelling/sagas';
+import { watchGetDataModelsMetadataSaga } from 'app-shared/features/dataModelling/sagas/metadata';
 import { sagaMiddleware } from '../store';
 
 import { watchHandleFetchInitialCommitSaga, watchHandleFetchServiceConfigSaga, watchHandleFetchServiceNameSaga, watchHandleFetchServiceSaga, watchHandleSaveServiceConfigSaga, watchHandleSaveServiceNameSaga } from '../features/administration/handleServiceInformationSagas';
@@ -13,7 +14,6 @@ import { appClusterSagas } from '../sharedResources/appCluster/appClusterSagas';
 import { configurationSagas } from '../sharedResources/configuration/configurationSagas';
 import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
 import userSagas from '../sharedResources/user/userSagas';
-import { watchGetDataModelsMetadataSaga } from 'app-shared/features/dataModelling/sagas/dataModelsMetadata/get/getDataModelsMetadataSagas';
 
 function* root(): SagaIterator {
   yield fork(languageSagas);

@@ -14,7 +14,7 @@ import {
   deleteDataModelFulfilled,
   deleteDataModelRejected,
 } from './dataModellingSlice';
-import { DataModelsMetadataActions } from './dataModelsMetadata';
+import { DataModelsMetadataActions } from './metadata';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;

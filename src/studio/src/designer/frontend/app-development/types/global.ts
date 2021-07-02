@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { IDataModellingState } from 'app-shared/features/dataModelling/sagas';
-import { IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/dataModelsMetadata';
+import { IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/metadata';
 // eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';

@@ -164,7 +164,7 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
 export var appResources = {
   textresources: '/api/textresources',
   applicationmetadata: '/api/v1/applicationmetadata',
-  servicemetadata: '/api/metadata/ServiceMetaData',
+  servicemetadata: '/api/metadata/ServiceMetadata',
   formlayout: '/api/resource/FormLayout.json',
   rulehandler: '/api/resource/RuleHandler.js',
   ruleconfiguration: '/api/resource/RuleConfiguration.json',

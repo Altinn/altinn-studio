@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ISchema } from '@altinn/schema-editor/types';
-import { IDataModelsMetadataState } from './dataModelsMetadata/dataModelsMetadataSlice';
+import { IDataModelsMetadataState } from './metadata';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
