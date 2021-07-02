@@ -8,12 +8,12 @@ import * as header from '../../buildrequestheaders.js';
  * @param {string} dataType
  * @param {string} appOwner
  * @param {string} appName
- * @returns reponse of http post call
+ * @returns reponse of http get call
  */
-export function postData(altinnStudioRuntimeCookie, dataType, appOwner, appName) {
+export function getStatelessData(altinnStudioRuntimeCookie, dataType, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.statelessdata + '?dataType=' + dataType;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
-  return http.post(endpoint, null, params);
+  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');  
+  return http.get(endpoint, params);
 }
 
 /**
@@ -23,11 +23,11 @@ export function postData(altinnStudioRuntimeCookie, dataType, appOwner, appName)
  * @param {XMLDocument} data
  * @param {string} appOwner
  * @param {string} appName
- * @returns reponse of http put call
+ * @returns reponse of http post call
  */
-export function putDataByType(altinnStudioRuntimeCookie, dataType, data, appOwner, appName) {
+export function postStatelessData(altinnStudioRuntimeCookie, dataType, data, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.statelessdata + '?dataType=' + dataType;
   var params = header.buildHeadersForData(false, altinnStudioRuntimeCookie, 'app');
   var requestBody = data;
-  return http.put(endpoint, requestBody, params);
+  return http.post(endpoint, requestBody, params);
 }

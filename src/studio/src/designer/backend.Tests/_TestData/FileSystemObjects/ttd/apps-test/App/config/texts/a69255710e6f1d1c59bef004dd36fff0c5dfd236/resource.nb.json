@@ -1,0 +1,20 @@
+{
+  "name": "resource.nb.json",
+  "path": "App/config/texts/resource.nb.json",
+  "sha": "eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
+  "type": "file",
+  "size": 8837,
+  "encoding": "base64",
+  "content": "Wwp7CiAgImlkIjogImNvbmZpcm0udGl0bGUiLAogICJ2YWx1ZSI6ICJWZW5ubGlnc3QgYmVrcmVmdCBhdCBkdSDDuG5za2VyIMOlIHNlbmRlIGlubiIKfSwKewogICJpZCI6ICJjb25maXJtLmJvZHkiLAogICJ2YWx1ZSI6ICJEdSBtw6Uga3VuIHRyeWtrZSBzZW5kIGlubiBvbSBkdSBlciBoZWx0IHNpa2tlciBww6UgYXQgZHUgdmlsIHNlbmRlIGlubi4gPGJyLz48YnIvPkkgZGV0IGR1IHRyeWtrZXIgc2VuZCBpbm4ga2FuIGR1IGlra2UgZ2rDuHJlIGVuZHJpbmdlci4iCn0sCnsKICAiaWQiOiAiY29uZmlybS5hdHRhY2htZW50cyIsCiAgInZhbHVlIjogIkRva3VtZW50ZXIgbWVkIG9wcGx5c25pbmdlciIKfSwKewogICJpZCI6ICJjb25maXJtLmJ1dHRvbl90ZXh0IiwKICAidmFsdWUiOiAiTGFncmUgb2cgZm9ydHNldHQiCn0KXQ==",
+  "target": null,
+  "url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/contents/App/config/texts/resource.nb.json?ref=a69255710e6f1d1c59bef004dd36fff0c5dfd236",
+  "html_url": "https://dev.altinn.studio/repos/ttd/apps-test/src/commit/a69255710e6f1d1c59bef004dd36fff0c5dfd236/App/config/texts/resource.nb.json",
+  "git_url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/git/blobs/eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
+  "download_url": "https://dev.altinn.studio/repos/ttd/apps-test/raw/commit/a69255710e6f1d1c59bef004dd36fff0c5dfd236/App/config/texts/resource.nb.json",
+  "submodule_git_url": null,
+  "_links": {
+    "self": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/contents/App/config/texts/resource.nb.json?ref=a69255710e6f1d1c59bef004dd36fff0c5dfd236",
+    "git": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/git/blobs/eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
+    "html": "https://dev.altinn.studio/repos/ttd/apps-test/src/commit/a69255710e6f1d1c59bef004dd36fff0c5dfd236/App/config/texts/resource.nb.json"
+  }
+}
