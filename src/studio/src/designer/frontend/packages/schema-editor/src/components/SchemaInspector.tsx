@@ -314,7 +314,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     onAddRestrictionClick(e);
   };
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
-    if (!field.key && field.key.startsWith('@')) {
+    if (field.key && field.key.startsWith('@')) {
       return null;
     }
     return (
