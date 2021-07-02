@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { IDataModellingState } from 'app-shared/features/dataModelling/sagas';
+import { IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/dataModelsMetadata';
 // eslint-disable-next-line import/no-cycle
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
@@ -13,7 +14,7 @@ import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice'
 import { IUserState } from '../sharedResources/user/userSlice';
 
 declare global {
-  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
+  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
     languageState: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
@@ -24,7 +25,8 @@ declare global {
     appDeployments: T8;
     configuration: T9;
     dataModelling: T10;
-    userState: T11;
+    dataModelsMetadataState: T11;
+    userState: T12;
   }
 
   export interface IServiceDevelopmentState
@@ -39,6 +41,7 @@ declare global {
     IAppDeploymentState,
     IConfigurationState,
     IDataModellingState,
+    IDataModelsMetadataState,
     IUserState> { }
 }
 

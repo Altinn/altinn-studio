@@ -13,6 +13,7 @@ import { appClusterSagas } from '../sharedResources/appCluster/appClusterSagas';
 import { configurationSagas } from '../sharedResources/configuration/configurationSagas';
 import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
 import userSagas from '../sharedResources/user/userSagas';
+import { watchGetDataModelsMetadataSaga } from 'app-shared/features/dataModelling/sagas/dataModelsMetadata/get/getDataModelsMetadataSagas';
 
 function* root(): SagaIterator {
   yield fork(languageSagas);
@@ -32,6 +33,7 @@ function* root(): SagaIterator {
   yield fork(watchFetchDataModelSaga);
   yield fork(watchSaveDataModelSaga);
   yield fork(watchDeleteDataModelSaga);
+  yield fork(watchGetDataModelsMetadataSaga);
   yield fork(userSagas);
 }
 

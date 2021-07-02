@@ -1,9 +1,7 @@
-import { IDatamodelsMetadataState } from "../sagas/datamodelsMetadata/datamodelsMetadataSlice";
-
-const getDatamodelsSchemaNames = (state: any) => {
-  const metaDataState = (state.repoMetadataState as IDatamodelsMetadataState);
-  return metaDataState.datamodelsMetadata?.length
-    ? metaDataState.datamodelsMetadata.map((d: { fileName: string }) => {
+const getDataModelsSchemaNames = (rootState: any) => {
+  const { dataModelsMetadata } = rootState.dataModelsMetadataState;
+  return dataModelsMetadata?.length
+    ? dataModelsMetadata.map((d: { fileName: string }) => {
       const id = d.fileName.split('.')[0];
       return {
         value: {
@@ -12,7 +10,7 @@ const getDatamodelsSchemaNames = (state: any) => {
         },
         label: id,
       };
-    }) : [];
+    }) : null;
 };
 
-export default getDatamodelsSchemaNames;
+export default getDataModelsSchemaNames;

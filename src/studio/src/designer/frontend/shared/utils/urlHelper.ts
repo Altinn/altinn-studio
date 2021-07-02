@@ -5,11 +5,11 @@ const { org } = altinnWindow;
 const origin = window.location.origin;
 const cdn = 'https://altinncdn.no';
 const repo = getRepoNameFromLocation();
-const desingerApi = `${origin}/designer/api`;
+const designerApi = `${origin}/designer/api`;
 
-export const datamodelsApi = `${desingerApi}/${org}/${repo}/datamodels`;
+export const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
 export const applicationMetadataUrl = `${origin}/designer/api/v1/${org}/${repo}`;
-export const datamodelsMetadataUrl = `${origin}/designer/api/${org}/${repo}/datamodels`;
+export const dataModelsMetadataUrl = `${origin}/designer/api/${org}/${repo}/datamodels`;
 export const altinnAppsIllustrationHelpCircleSvgUrl = `${cdn}/img/illustration-help-circle.svg`;
 export const altinnAppsImgLogoBlueSvgUrl = `${cdn}/img/a-logo-blue.svg`;
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
@@ -21,8 +21,8 @@ export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const repositoryGitUrl = `${origin}/repos/${org}/${repo}.git`;
 export const repositoryUrl = `${origin}/repos/${org}/${repo}`;
 
-export const createDatamodellingUrl =
-  (pathToModelFile: string) => `${datamodelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`;
+export const createDataModellingUrl =
+  (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`;
 
 export const returnUrlToMessagebox = (url: string): string => {
   const baseHostnameAltinnProd = 'altinn.no';

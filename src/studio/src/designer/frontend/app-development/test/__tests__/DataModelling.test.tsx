@@ -11,7 +11,7 @@ import * as testData from '../__testdata__/schemaTestData.json';
 describe('DataModelling', () => {
   const language = { administration: {} };
   const initialState = {
-    repoMetadataState: {
+    applicationMetadataState: {
       applicationMetadata: {
         dataTypes: [
           {

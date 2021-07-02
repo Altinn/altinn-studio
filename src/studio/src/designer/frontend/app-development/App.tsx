@@ -19,7 +19,6 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { DatamodelsMetadataActions } from 'app-shared/features/dataModelling/sagas/datamodelsMetadata/datamodelsMetadataSlice';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
@@ -97,7 +96,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-    this.props.dispatch(DatamodelsMetadataActions.getDatamodelsMetadata());
     this.props.dispatch(fetchRemainingSession());
     this.checkForMergeConflict();
     this.setEventListeners(true);

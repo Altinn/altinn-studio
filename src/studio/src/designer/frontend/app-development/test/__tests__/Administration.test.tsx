@@ -109,7 +109,7 @@ describe('Administration', () => {
         errors: null,
         releases: [],
       },
-      repoMetadataState: {
+      applicationMetadataState: {
         applicationMetadata: {},
         error: null,
       },
@@ -221,7 +221,7 @@ describe('Administration', () => {
 
     return (
       <Provider store={mockStore}>
-        <AdministrationComponent {...defaultProps} {...props}/>
+        <AdministrationComponent {...defaultProps} {...props} />
       </Provider>
     );
   };

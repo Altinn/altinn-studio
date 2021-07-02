@@ -5,7 +5,7 @@ const { origin } = location;
 const cdn = 'https://altinncdn.no';
 const desingerApi = `${origin}/designer/api`;
 
-export const datamodelsApi = `${desingerApi}/${org}/${app}/datamodels`;
+export const dataModelsApi = `${desingerApi}/${org}/${app}/dataModels`;
 export const repoStatusUrl = `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
 export const languageUrl = `${origin}/designerapi/Language/GetLanguageAsJSON`;
 export const giteaSignOutUrl = `${origin}/repos/user/logout`;
@@ -29,10 +29,10 @@ export const getAzureDevopsBuildResultUrl =
   (buildId: string | number) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
 export const getFetchDataModelUrl =
-  (modelName: string) => `${datamodelsApi}/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
+  (modelName: string) => `${dataModelsApi}/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
 export const getSaveDataModelUrl =
-  (modelName: string) => `${datamodelsApi}/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
+  (modelName: string) => `${dataModelsApi}/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
 export const getDeleteDataModelUrl =
-  (modelName: string) => `${datamodelsApi}/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;
+  (modelName: string) => `${dataModelsApi}/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;

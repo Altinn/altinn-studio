@@ -237,18 +237,15 @@ export class AccessControlContainerClass extends React.Component<
 
 const makeMapStateToProps = () => {
   const getApplicationMetadata = makeGetApplicationMetadata();
-  const mapStateToProps = (
+  return (
     state: IServiceDevelopmentState,
     props: IAccessControlContainerProvidedProps,
-  ): IAccessControlContainerProps => {
-    return {
-      language: state.languageState.language,
-      applicationMetadata: getApplicationMetadata(state),
-      dispatch: props.dispatch,
-      ...props,
-    };
-  };
-  return mapStateToProps;
+  ): IAccessControlContainerProps => ({
+    language: state.languageState.language,
+    applicationMetadata: getApplicationMetadata(state),
+    dispatch: props.dispatch,
+    ...props,
+  });
 };
 
 export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));

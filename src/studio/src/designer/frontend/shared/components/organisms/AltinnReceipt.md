@@ -9,7 +9,7 @@ const attachments = [
   },
 ];
 
-instanceMetaDataObject = {
+instanceMetadataObject = {
   'Dato sendt': '01.01.2020 / 12:21',
   'Avsender': '01017512345-Ola Privatperson',
   'Mottaker': 'matsgm',
@@ -26,7 +26,7 @@ instanceMetaDataObject = {
     title='Du har sendt inn ...'
     attachments={attachments}
     collapsibleTitle='Vedlegg'
-    instanceMetaDataObject={instanceMetaDataObject}
+    instanceMetadataObject={instanceMetadataObject}
     subtitle='Kopi av din kvittering er sendt til din innboks'
     subtitleurl='http://url.til/innboks'
     pdf={pdf}
@@ -70,7 +70,7 @@ const attachments = [
   },
 ];
 
-instanceMetaDataObject = {
+instanceMetadataObject = {
   'Dato sendt': '01.01.2020 / 12:21',
   'Avsender': '01017512345-Ola Privatperson',
   'Mottaker': 'matsgm',
@@ -87,7 +87,7 @@ instanceMetaDataObject = {
     title='Du har sendt inn ...'
     attachments={attachments}
     collapsibleTitle='Vedlegg'
-    instanceMetaDataObject={instanceMetaDataObject}
+    instanceMetadataObject={instanceMetadataObject}
     subtitle='Kopi av din kvittering er sendt til din innboks'
     subtitleurl='http://url.til/innboks'
     pdf={pdf}

@@ -3,7 +3,8 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
-import getDatamodelsSchemaNames from './functions/getDataModelsSchemaNames';
+import getDataModelsSchemaNames from './functions/getDataModelsSchemaNames';
+import { DataModelsMetadataActions } from './sagas/dataModelsMetadata';
 
 const useStyles = makeStyles(
   createStyles({
@@ -23,41 +24,43 @@ const useStyles = makeStyles(
 interface IDataModellingContainerProps {
   language: any;
   SchemaEditor: (props: any) => JSX.Element;
-  getMetadata?: (state: any) => { value: any, label: string }[];
 }
 
 export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
-  const { SchemaEditor, language, getMetadata } = props;
+  const { SchemaEditor, language } = props;
+  const dispatch = useDispatch();
   const repoType = 'datamod';
   const classes = useStyles();
-  const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
 
-  const datamodelsMetadata = useSelector(getMetadata || getDatamodelsSchemaNames, shallowEqual);
+  const dataModelsMetadata = useSelector(getDataModelsSchemaNames, shallowEqual);
+  if (!dataModelsMetadata) {
+    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
+  }
   const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
 
   const fetchModel = () => {
     dispatch(fetchDataModel({ repoType, metadata: selectedModelMetadata }));
   };
 
-  React.useEffect(() => { // selects an option that exists in the datamodels-metadata
-    if (!datamodelsMetadata?.length) { // no datamodels
+  React.useEffect(() => { // selects an option that exists in the dataModels-metadata
+    if (!dataModelsMetadata?.length) { // no dataModels
       return;
     }
     if (!selectedModelMetadata?.label) { // automatically select if no label (on initial load)
-      setSelectedModelMetadata(datamodelsMetadata[0]);
+      setSelectedModelMetadata(dataModelsMetadata[0]);
     }
     if (!selectedModelMetadata) {
       return;
     }
-    const option = datamodelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
+    const option = dataModelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
     if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the datamodel has been deleted
-      setSelectedModelMetadata(datamodelsMetadata[0]);
+      setSelectedModelMetadata(dataModelsMetadata[0]);
     }
     else if (!selectedModelMetadata.value && option) { // if the model was recently created and saved
       setSelectedModelMetadata(option);
     }
-  }, [datamodelsMetadata]);
+  }, [dataModelsMetadata]);
 
   React.useEffect(() => {
     if (selectedModelMetadata?.value) {
@@ -80,7 +83,7 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
     }));
   };
   const getModelNames = () => {
-    return datamodelsMetadata.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+    return dataModelsMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
   };
 
   return (
@@ -95,7 +98,7 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
         <SchemaSelect
           selectedOption={selectedModelMetadata}
           onChange={onSchemaSelected}
-          options={datamodelsMetadata}
+          options={dataModelsMetadata}
         />
         <Delete
           schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}

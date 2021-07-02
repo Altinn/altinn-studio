@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ISchema } from '@altinn/schema-editor/types';
-import { IDatamodelsMetadataState } from './datamodelsMetadata/datamodelsMetadataSlice';
+import { IDataModelsMetadataState } from './dataModelsMetadata/dataModelsMetadataSlice';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -25,7 +25,7 @@ export interface IDataModellingState {
   schema: ISchema;
   error: Error;
   saving: boolean;
-  metadata?: IDatamodelsMetadataState;
+  metadata?: IDataModelsMetadataState;
 }
 
 export interface IDeleteDataModelRejected {
