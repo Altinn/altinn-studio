@@ -10,45 +10,32 @@ import * as testData from '../__testdata__/schemaTestData.json';
 
 describe('DataModelling', () => {
   const language = { administration: {} };
+  const modelName = 'some-existing-model';
   const initialState = {
-    applicationMetadataState: {
-      applicationMetadata: {
-        dataTypes: [
-          {
-            id: 'ref-data-as-pdf',
-            allowedContentTypes: [
-              'application/pdf',
-            ],
-            maxCount: 0,
-            minCount: 0,
-          },
-          {
-            id: 'some-existing-model',
-            appLogic: {},
-          },
-        ],
-      },
+    dataModelsMetadataState: {
+      dataModelsMetadata: [
+        {
+          repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
+          fileName: `${modelName}.schema.json`,
+          fileType: '.json',
+          fileStatus: 0,
+          lastChanged: '2021-06-22T10:49:02.8440678+02:00',
+        },
+      ],
     },
     dataModelling: {
       schema: testData,
-      modelName: 'testing',
       saving: false,
     },
   };
   let store: any;
-  let repoType: any;
   const dispatchMock = () => Promise.resolve({});
-  const modelName = 'some-existing-model';
   const initialStoreCall = {
     type: 'dataModelling/fetchDataModel',
     payload: {
-      repoType,
       metadata: {
         label: modelName,
-        value: {
-          id: modelName,
-          appLogic: {},
-        },
+        value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
       },
     },
   };

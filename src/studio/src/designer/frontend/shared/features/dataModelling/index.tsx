@@ -3,8 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
-import getDataModelsSchemaNames from './functions/getDataModelsSchemaNames';
-import { DataModelsMetadataActions } from './sagas/metadata';
+import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 
 const useStyles = makeStyles(
   createStyles({
@@ -29,18 +28,15 @@ interface IDataModellingContainerProps {
 export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
   const { SchemaEditor, language } = props;
   const dispatch = useDispatch();
-  const repoType = 'datamod';
   const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
 
-  const dataModelsMetadata = useSelector(getDataModelsSchemaNames, shallowEqual);
-  if (!dataModelsMetadata) {
-    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-  }
+  const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
+
   const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
 
   const fetchModel = () => {
-    dispatch(fetchDataModel({ repoType, metadata: selectedModelMetadata }));
+    dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
   };
 
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
@@ -71,7 +67,7 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
   const onSchemaSelected = setSelectedModelMetadata;
 
   const onSaveSchema = (schema: any) => {
-    dispatch(saveDataModel({ schema, repoType, metadata: selectedModelMetadata }));
+    dispatch(saveDataModel({ schema, metadata: selectedModelMetadata }));
   };
 
   const createAction = (modelName: string) => {
@@ -98,11 +94,11 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
         <SchemaSelect
           selectedOption={selectedModelMetadata}
           onChange={onSchemaSelected}
-          options={dataModelsMetadata}
+          options={dataModelsMetadata || []}
         />
         <Delete
           schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}
-          deleteAction={() => dispatch(deleteDataModel({ repoType, metadata: selectedModelMetadata }))}
+          deleteAction={() => dispatch(deleteDataModel({ metadata: selectedModelMetadata }))}
           buttonClass={classes.button}
           language={language}
         />
