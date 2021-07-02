@@ -19,15 +19,12 @@ namespace DataModeling.Tests
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            // JsonSchemaToXmlSchemaVisitor visitor = new JsonSchemaToXmlSchemaVisitor();
             JsonSchemaToXmlSchemaConverter converter = new JsonSchemaToXmlSchemaConverter();
 
             JsonSchema jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(schemaPath);
             XmlSchema expected = ResourceHelpers.LoadXmlSchemaTestData(expectedPath);
 
             // Act
-            // jsonSchema.Accept(visitor);
-            // XmlSchema actual = visitor.Schema;
             XmlSchema actual = converter.Convert(jsonSchema);
 
             StringBuilder xmlStringBuilder = new StringBuilder();
