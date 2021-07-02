@@ -26,6 +26,19 @@
       "maxSize": 1,
       "maxCount": 1,
       "minCount": 0
+    },
+    {
+      "id": "hundebilde",
+      "taskId": "Task_1",
+      "allowedContentTypes": [
+        "text/plain",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ],
+      "maxSize": 1,
+      "maxCount": 1,
+      "minCount": 0
     }
   ]
 }
