@@ -2,7 +2,7 @@ import reducer, { addRestriction, addProperty, deleteField, deleteProperty, init
   setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
   setItems,
-  promoteProperty} from '../../src/features/editor/schemaEditorSlice';
+  promoteProperty } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem } from '../../src/utils';
