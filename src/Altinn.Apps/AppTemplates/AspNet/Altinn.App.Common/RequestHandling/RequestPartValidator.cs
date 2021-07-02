@@ -65,7 +65,7 @@ namespace Altinn.App.Common.RequestHandling
                     // TODO: Support for any content type?
                     if (!dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
                     {
-                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType}'";
+                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType.Id}'";
                     }
                 }
 
@@ -78,7 +78,7 @@ namespace Altinn.App.Common.RequestHandling
 
                 if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 && contentSize > (long)dataType.MaxSize.Value * 1024 * 1024)
                 {
-                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType}'";
+                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType.Id}'";
                 }
             }
 
