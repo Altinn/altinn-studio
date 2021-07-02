@@ -560,7 +560,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                 };
                 content.Content = restriction;
 
-                ((XmlSchemaComplexType) item).ContentModel = content;
+                ((XmlSchemaComplexType)item).ContentModel = content;
 
                 HandleDefinition(restriction, baseTypeSchema.AsWorkList(), false, null);
 
@@ -1255,7 +1255,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                 return false;
             }
 
-            if (keywords.TryGetKeyword(out TypeKeyword type) && type.Type is not (SchemaValueType.Null or SchemaValueType.Object))
+            if (keywords.TryGetKeyword(out TypeKeyword type) && type.Type is not(SchemaValueType.Null or SchemaValueType.Object))
             {
                 return false;
             }
@@ -1353,7 +1353,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                     attribute.Use = required ? XmlSchemaUse.Required : XmlSchemaUse.None;
                     break;
             }
-
         }
 
         private static XmlQualifiedName SetType(XmlSchemaObject item, SchemaValueType type, Format format, string xsdType)
@@ -1560,7 +1559,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                             default:
                                 throw new Exception("Unknown content type for complex type");
                         }
-
                     }
 
                     if (addElementContainer)
@@ -1615,7 +1613,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                             Particle = (XmlSchemaParticle)elementContainer
                         };
                         elementContainer.Parent = typeDefinition;
-                        x.SchemaType = (XmlSchemaType) typeDefinition;
+                        x.SchemaType = (XmlSchemaType)typeDefinition;
                     }
                     else
                     {
@@ -1654,7 +1652,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                     throw new Exception($"Unexpected @xsdType keyword value, expected #any found '{xsdType.Value}'");
                 }
 
-                ((XmlSchemaGroupBase) elementContainer).Items.Add(new XmlSchemaAny { Parent = elementContainer });
+                ((XmlSchemaGroupBase)elementContainer).Items.Add(new XmlSchemaAny { Parent = elementContainer });
             }
 
             if (contentType == ComplexTypeContentType.ComplexContent)
