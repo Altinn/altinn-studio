@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using Altinn.Studio.DataModeling.Visitor.Xml;
 using DataModeling.Tests.Assertions;
 using Json.Schema;
 using Xunit;

@@ -9,18 +9,21 @@ using Altinn.Studio.DataModeling.Utils;
 using Json.More;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Visitor.Xml
+namespace Altinn.Studio.DataModeling.Converter.Xml
 {
     /// <summary>
     /// Visitor class for converting XML schema to Json Schema, this will produce a Json Schema with custom keywords to preserve XML schema information
     /// </summary>
-    public class XmlSchemaToJsonSchemaConverter : IXmlSchemaConverter<JsonSchema>
+    public class XmlSchemaToJsonSchemaConverter
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
 
         private XmlSchemaSet _schemaSet;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Convert a schema into the give type
+        /// </summary>
+        /// <param name="schema">The object to visit</param>
         public JsonSchema Convert(XmlSchema schema)
         {
             _schemaSet = new XmlSchemaSet();

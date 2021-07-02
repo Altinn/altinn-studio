@@ -10,7 +10,7 @@ using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Visitor.Json
+namespace Altinn.Studio.DataModeling.Converter.Json
 {
     /// <summary>
     /// placeholder
@@ -895,7 +895,7 @@ namespace Altinn.Studio.DataModeling.Visitor.Json
 
         private void HandleRestrictions(XmlSchemaAnnotated item, XmlQualifiedName type, WorkList<IJsonSchemaKeyword> keywords)
         {
-            if (item is not (XmlSchemaSimpleTypeRestriction or XmlSchemaSimpleContentRestriction))
+            if (item is not(XmlSchemaSimpleTypeRestriction or XmlSchemaSimpleContentRestriction))
             {
                 throw new ArgumentException("Argument must be one of the XmlSchemaSimpleTypeRestriction or XmlSchemaSimpleContentRestriction", nameof(item));
             }
