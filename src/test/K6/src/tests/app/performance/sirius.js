@@ -105,7 +105,7 @@ export default function (data) {
     }
 
     //Test to edit a form data in an instance with App APi and validate the response
-    res = appData.putDataById(userRuntimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, appName);
+    res = appData.putDataById(userRuntimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, appName);
     success = check(res, {
       'Edit Data by Id status is 201': (r) => r.status === 201,
     });
@@ -113,7 +113,7 @@ export default function (data) {
     stopIterationOnFail('Edit Form Data by Id', success, res);
 
     //upload an XML attachment 1 to an instance with App API
-    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml1, appOwner, appName);
+    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml1, 'xml', appOwner, appName);
     success = check(res, {
       'Upload attachment 1 in data stage status is 201': (r) => r.status === 201,
     });
@@ -121,7 +121,7 @@ export default function (data) {
     stopIterationOnFail('Upload attachment 1 in data stage', success, res);
 
     //upload an XML attachment 2 to an instance with App API
-    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml2, appOwner, appName);
+    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml2, 'xml', appOwner, appName);
     success = check(res, {
       'Upload attachment 2 in data stage status is 201': (r) => r.status === 201,
     });
@@ -212,7 +212,7 @@ export default function (data) {
 
   group('AppOwner uploads attachment and archive', function () {
     //upload a upload attachment as app owner in feedback stage of the instance and verify response
-    res = appData.postData(orgRuntimeToken, partyId, instanceId, feedbackAttachmentDataType, pdfAttachment, appOwner, appName);
+    res = appData.postData(orgRuntimeToken, partyId, instanceId, feedbackAttachmentDataType, pdfAttachment, 'pdf', appOwner, appName);
     success = check(res, {
       'Upload attachment in feedback stage status is 201': (r) => r.status === 201,
     });

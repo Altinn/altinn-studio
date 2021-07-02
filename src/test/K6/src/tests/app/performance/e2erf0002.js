@@ -76,7 +76,7 @@ export default function () {
   }
 
   //Test to edit a form data in an instance with App APi and validate the response
-  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
+  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
   success = check(res, {
     'E2E PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });

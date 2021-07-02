@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
+import * as support from '../../../support.js';
 
 //Api call to Storage:Applications for an Org and returns response
 export function getAllApplications(altinnStudioRuntimeCookie, appOwner) {
@@ -46,7 +47,7 @@ export function findAttachmentDataType(appMetadata) {
   var dataTypes = appMetadata.dataTypes;
   var dataTypesCount = dataTypes.length;
   for (var i = 0; i < dataTypesCount; i++) {
-    if (header.isGuid(dataTypes[i].id)) {
+    if (support.isGuid(dataTypes[i].id)) {
       value = dataTypes[i].id;
       break;
     }
