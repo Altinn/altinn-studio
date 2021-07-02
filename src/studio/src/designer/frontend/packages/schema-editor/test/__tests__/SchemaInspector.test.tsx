@@ -191,7 +191,6 @@ it('dispatches correctly when changing ref', () => {
       path: '#/definitions/RA-0678_M/properties/InternInformasjon',
     },
   });
-
 });
 
 it('supports switching a type into an array and back', () => {

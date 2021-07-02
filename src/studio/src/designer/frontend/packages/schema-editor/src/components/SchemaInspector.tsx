@@ -116,6 +116,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       node.focus();
       node.select();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusName]);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
