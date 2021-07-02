@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -17,8 +16,6 @@ namespace DataModeling.Tests
 
         private static async Task TestFiles(string schemaPath, string expectedPath)
         {
-            schemaPath = Path.ChangeExtension(schemaPath, ".gen.json");
-
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 

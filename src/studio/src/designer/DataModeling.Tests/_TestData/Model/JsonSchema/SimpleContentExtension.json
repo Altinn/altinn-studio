@@ -1,10 +1,10 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
-    "xsd": "http://www.w3.org/2001/XMLSchema",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "xsd": "http://www.w3.org/2001/XMLSchema"
   },
   "@xsdSchemaAttributes": {
     "AttributeFormDefault": "Unqualified",
@@ -14,36 +14,52 @@
   },
   "properties": {
     "Root": {
-      "type": "object",
-      "properties": {
-        "e1": {
-          "$ref": "#/definitions/myBase",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "e1": {
+                  "$ref": "#/definitions/myBase"
+                }
+              },
+              "required": [
+                "e1"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "e1"
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   },
   "definitions": {
-    "myBase": {
-      "@xsdStructure": "0.Schema/1.ComplexType",
-      "type": "object",
-      "properties": {
-        "value": {
+    "valueBase": {
+      "allOf": [
+        {
           "type": "string",
           "@xsdType": "string"
-        },
-        "a1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/1.ComplexType/0.SimpleContent/0.Extension/0.Attribute"
         }
-      },
-      "required": [
-        "value"
+      ]
+    },
+    "myBase": {
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "value": {
+                  "$ref": "#/definitions/valueBase"
+                },
+                "a1": {
+                  "type": "string",
+                  "@xsdType": "string",
+                  "@xsdAttribute": true
+                }
+              }
+            }
+          ]
+        }
       ]
     }
   }

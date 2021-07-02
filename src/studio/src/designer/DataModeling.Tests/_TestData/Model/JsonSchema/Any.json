@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,28 +14,33 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/t1",
-      "@xsdStructure": "0.Schema/0.Element"
+      "$ref": "#/definitions/t1"
     }
   },
   "definitions": {
     "t1": {
-      "type": "object",
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "e1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e1"
+              ]
+            },
+            {
+              "@xsdType": "#any"
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "e1"
       ],
-      "@xsdAnyAttribute": true,
-      "@xsdStructure": "0.Schema/1.ComplexType",
-      "@xsdAny": [
-        "0.Schema/1.ComplexType/0.Sequence/1.Any"
-      ]
+      "@xsdAnyAttribute": true
     }
   }
 }

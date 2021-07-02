@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -14,36 +14,39 @@
   },
   "properties": {
     "Root": {
-      "type": "object",
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/0.Element"
-        },
-        "e2": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/1.Element"
-        },
-        "e3": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/2.Element"
-        },
-        "e4": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Sequence/3.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "e1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e2": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e3": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "e4": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "e1",
+                "e2",
+                "e3",
+                "e4"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "e1",
-        "e2",
-        "e3",
-        "e4"
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   }
 }

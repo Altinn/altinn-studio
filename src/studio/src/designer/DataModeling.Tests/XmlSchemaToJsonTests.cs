@@ -1,7 +1,3 @@
-using System.IO;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -24,11 +20,6 @@ namespace DataModeling.Tests
             XmlSchema xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
 
             JsonSchema actual = converter.Convert(xsd);
-            string json = JsonSerializer.Serialize(actual, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, WriteIndented = true });
-
-            string genPath = Path.GetFileNameWithoutExtension(expectedPath);
-            genPath = Path.Combine(@"C:\Dev\altinn-studio\src\studio\src\designer\DataModeling.Tests\_TestData\Model\JsonSchema", genPath + ".gen.json");
-            await File.WriteAllTextAsync(genPath, json, Encoding.UTF8);
 
             // Assert
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);

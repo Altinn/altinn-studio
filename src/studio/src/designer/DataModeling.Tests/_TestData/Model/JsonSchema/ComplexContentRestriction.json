@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -16,58 +16,84 @@
     "Root": {
       "allOf": [
         {
-          "$ref": "#/definitions/myBase"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "a1": {
-              "type": "integer",
-              "@xsdType": "int",
-              "exclusiveMinimum": 100,
-              "@xsdRestrictions": {
-                "minExclusive": "100"
-              },
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Restriction/0.Attribute"
+          "allOf": [
+            {
+              "$ref": "#/definitions/myBase"
             },
-            "be1": {
-              "type": "string",
-              "@xsdType": "string",
-              "maxLength": 10,
-              "minLength": 10,
-              "@xsdRestrictions": {
-                "length": "10"
-              },
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Restriction/1.Sequence/0.Element"
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "be1": {
+                      "allOf": [
+                        {
+                          "type": "string",
+                          "@xsdType": "string"
+                        },
+                        {
+                          "maxLength": 10,
+                          "minLength": 10
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "be1"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            },
+            {
+              "properties": {
+                "a1": {
+                  "allOf": [
+                    {
+                      "type": "integer",
+                      "@xsdType": "int"
+                    },
+                    {
+                      "exclusiveMinimum": 100
+                    }
+                  ],
+                  "@xsdAttribute": true
+                }
+              }
             }
-          },
-          "required": [
-            "be1"
           ]
         }
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   },
   "definitions": {
     "myBase": {
-      "type": "object",
-      "properties": {
-        "be1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "be1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "be1"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         },
-        "a1": {
-          "type": "integer",
-          "@xsdType": "int",
-          "@xsdStructure": "0.Schema/1.ComplexType/1.Attribute"
+        {
+          "properties": {
+            "a1": {
+              "type": "integer",
+              "@xsdType": "int",
+              "@xsdAttribute": true
+            }
+          }
         }
-      },
-      "required": [
-        "be1"
-      ],
-      "@xsdStructure": "0.Schema/1.ComplexType"
+      ]
     }
   }
 }

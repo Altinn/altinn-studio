@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -15,38 +15,40 @@
   },
   "properties": {
     "Root": {
-      "type": "object",
-      "properties": {
-        "a1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.Attribute"
-        },
-        "a2": {
-          "type": "string",
-          "@xsdType": "string",
-          "default": "def",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/1.Attribute"
-        },
-        "a3": {
-          "type": "string",
-          "@xsdType": "string",
-          "const": "fix",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/2.Attribute"
-        },
-        "a4": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/0.Element/0.ComplexType/3.Attribute"
+      "allOf": [
+        {
+          "properties": {
+            "a1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "a2": {
+              "type": "string",
+              "@xsdType": "string",
+              "default": "def",
+              "@xsdAttribute": true
+            },
+            "a3": {
+              "type": "string",
+              "@xsdType": "string",
+              "const": "fix",
+              "@xsdAttribute": true
+            },
+            "a4": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            }
+          },
+          "required": [
+            "a4"
+          ]
         }
-      },
-      "required": [
-        "a4"
       ],
       "@xsdUnhandledAttributes": {
         "test:unhandled": "Unhandled attribute"
-      },
-      "@xsdStructure": "0.Schema/0.Element"
+      }
     }
   }
 }

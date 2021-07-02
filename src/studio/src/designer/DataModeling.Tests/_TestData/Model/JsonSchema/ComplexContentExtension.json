@@ -1,5 +1,5 @@
-{
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
@@ -16,44 +16,60 @@
     "Root": {
       "allOf": [
         {
-          "$ref": "#/definitions/myBase"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "a1": {
-              "type": "integer",
-              "@xsdType": "int",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Extension/0.Attribute"
+          "allOf": [
+            {
+              "$ref": "#/definitions/myBase"
             },
-            "ce1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdStructure": "0.Schema/0.Element/0.ComplexType/0.ComplexContent/0.Extension/1.Sequence/0.Element"
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "ce1": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "ce1"
+                  ]
+                }
+              ],
+              "@xsdStructure": "sequence"
+            },
+            {
+              "properties": {
+                "a1": {
+                  "type": "integer",
+                  "@xsdType": "int",
+                  "@xsdAttribute": true
+                }
+              }
             }
-          },
-          "required": [
-            "ce1"
           ]
         }
-      ],
-      "@xsdStructure": "0.Schema/0.Element"
+      ]
     }
   },
   "definitions": {
     "myBase": {
-      "type": "object",
-      "properties": {
-        "be1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdStructure": "0.Schema/1.ComplexType/0.Sequence/0.Element"
+      "allOf": [
+        {
+          "allOf": [
+            {
+              "properties": {
+                "be1": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "be1"
+              ]
+            }
+          ],
+          "@xsdStructure": "sequence"
         }
-      },
-      "required": [
-        "be1"
-      ],
-      "@xsdStructure": "0.Schema/1.ComplexType"
+      ]
     }
   }
 }
