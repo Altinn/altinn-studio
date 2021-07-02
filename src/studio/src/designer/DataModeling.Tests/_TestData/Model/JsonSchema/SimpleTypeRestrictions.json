@@ -20,40 +20,40 @@
             {
               "properties": {
                 "t1": {
-                  "$ref": "#/definitions/stringMinMaxLengthRestrictions"
+                  "$ref": "#/$defs/stringMinMaxLengthRestrictions"
                 },
                 "t2": {
-                  "$ref": "#/definitions/stringLengthRestrictions"
+                  "$ref": "#/$defs/stringLengthRestrictions"
                 },
                 "t3": {
-                  "$ref": "#/definitions/stringEnumRestrictions"
+                  "$ref": "#/$defs/stringEnumRestrictions"
                 },
                 "t4": {
-                  "$ref": "#/definitions/stringPatternRestrictions"
+                  "$ref": "#/$defs/stringPatternRestrictions"
                 },
                 "n1": {
-                  "$ref": "#/definitions/numberRestrictions"
+                  "$ref": "#/$defs/numberRestrictions"
                 },
                 "n2": {
-                  "$ref": "#/definitions/numberRestrictions2"
+                  "$ref": "#/$defs/numberRestrictions2"
                 },
                 "f1": {
-                  "$ref": "#/definitions/numberRestrictionsFractional0"
+                  "$ref": "#/$defs/numberRestrictionsFractional0"
                 },
                 "f2": {
-                  "$ref": "#/definitions/numberRestrictionsFractional1"
+                  "$ref": "#/$defs/numberRestrictionsFractional1"
                 },
                 "f3": {
-                  "$ref": "#/definitions/numberRestrictionsFractional2"
+                  "$ref": "#/$defs/numberRestrictionsFractional2"
                 },
                 "f4": {
-                  "$ref": "#/definitions/numberRestrictionsFractional3"
+                  "$ref": "#/$defs/numberRestrictionsFractional3"
                 },
                 "f5": {
-                  "$ref": "#/definitions/numberRestrictionsFractional4"
+                  "$ref": "#/$defs/numberRestrictionsFractional4"
                 },
                 "f6": {
-                  "$ref": "#/definitions/numberRestrictionsFractional5"
+                  "$ref": "#/$defs/numberRestrictionsFractional5"
                 }
               },
               "required": [
@@ -77,7 +77,7 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "stringMinMaxLengthRestrictions": {
       "allOf": [
         {

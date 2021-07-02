@@ -20,7 +20,7 @@
             {
               "properties": {
                 "title": {
-                  "$ref": "#/definitions/title",
+                  "$ref": "#/$defs/title",
                   "@xsdType": "#ref"
                 }
               },
@@ -34,13 +34,13 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "title": {
       "allOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/tokenWithLangAndNote"
+              "$ref": "#/$defs/tokenWithLangAndNote"
             },
             {
               "properties": {

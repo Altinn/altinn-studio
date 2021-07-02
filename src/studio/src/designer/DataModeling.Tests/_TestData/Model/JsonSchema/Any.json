@@ -14,10 +14,10 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/t1"
+      "$ref": "#/$defs/t1"
     }
   },
-  "definitions": {
+  "$defs": {
     "t1": {
       "allOf": [
         {

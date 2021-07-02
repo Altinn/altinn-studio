@@ -14,16 +14,16 @@
   },
   "properties": {
     "Root": {
-      "$ref": "#/definitions/customer"
+      "$ref": "#/$defs/customer"
     }
   },
-  "definitions": {
+  "$defs": {
     "customer": {
       "allOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/contact"
+              "$ref": "#/$defs/contact"
             },
             {
               "allOf": [
@@ -32,7 +32,7 @@
                     {
                       "properties": {
                         "address_norwegian": {
-                          "$ref": "#/definitions/address_norwegian"
+                          "$ref": "#/$defs/address_norwegian"
                         }
                       },
                       "required": [
@@ -42,7 +42,7 @@
                     {
                       "properties": {
                         "address_swedish": {
-                          "$ref": "#/definitions/address_swedish"
+                          "$ref": "#/$defs/address_swedish"
                         }
                       },
                       "required": [
@@ -65,7 +65,7 @@
                     "contacts": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/contact",
+                        "$ref": "#/$defs/contact",
                         "maxItems": 10
                       }
                     }
@@ -78,7 +78,7 @@
               "@xsdStructure": "sequence"
             },
             {
-              "$ref": "#/definitions/priorityAndTags",
+              "$ref": "#/$defs/priorityAndTags",
               "@xsdType": "#ref"
             }
           ]
@@ -90,11 +90,11 @@
         {
           "properties": {
             "priority": {
-              "$ref": "#/definitions/priority",
+              "$ref": "#/$defs/priority",
               "@xsdAttribute": true
             },
             "tags": {
-              "$ref": "#/definitions/tags",
+              "$ref": "#/$defs/tags",
               "@xsdAttribute": true
             }
           }
@@ -106,7 +106,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/name",
+              "$ref": "#/$defs/name",
               "@xsdType": "#ref"
             }
           ],
@@ -141,7 +141,7 @@
         {
           "properties": {
             "title": {
-              "$ref": "#/definitions/title"
+              "$ref": "#/$defs/title"
             },
             "firstName": {
               "type": "string",
@@ -220,7 +220,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/address"
+              "$ref": "#/$defs/address"
             },
             {
               "allOf": [
@@ -273,7 +273,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/address"
+              "$ref": "#/$defs/address"
             },
             {
               "allOf": [

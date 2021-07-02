@@ -20,7 +20,7 @@
             {
               "properties": {
                 "intValues": {
-                  "$ref": "#/definitions/valueList"
+                  "$ref": "#/$defs/valueList"
                 }
               },
               "required": [
@@ -33,7 +33,7 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "valueList": {
       "type": "array",
       "items": {

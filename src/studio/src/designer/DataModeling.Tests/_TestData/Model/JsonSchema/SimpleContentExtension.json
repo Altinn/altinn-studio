@@ -20,7 +20,7 @@
             {
               "properties": {
                 "e1": {
-                  "$ref": "#/definitions/myBase"
+                  "$ref": "#/$defs/myBase"
                 }
               },
               "required": [
@@ -33,7 +33,7 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "valueBase": {
       "allOf": [
         {
@@ -49,7 +49,7 @@
             {
               "properties": {
                 "value": {
-                  "$ref": "#/definitions/valueBase"
+                  "$ref": "#/$defs/valueBase"
                 },
                 "a1": {
                   "type": "string",
