@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using Altinn.Studio.DataModeling.Visitor.Xml;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Utils
@@ -80,18 +79,6 @@ namespace Altinn.Studio.DataModeling.Utils
         public static JsonSchemaBuilder XsdType(this JsonSchemaBuilder builder, string type)
         {
             builder.Add(new XsdTypeKeyword(type));
-            return builder;
-        }
-
-        /// <summary>
-        /// Add <see cref="XsdStructureKeyword"/> keyword to the builder
-        /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="structure">The structure item (path) of the current Json Schema in xsd</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
-        public static JsonSchemaBuilder XsdStructure(this JsonSchemaBuilder builder, XmlStructureItem structure)
-        {
-            builder.Add(new XsdStructureKeyword(structure.GetPath()));
             return builder;
         }
 
