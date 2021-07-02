@@ -75,6 +75,7 @@ export const SchemaEditor = ({
   const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
+  const navigate = useSelector((state: ISchemaState) => state.navigate);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
@@ -97,15 +98,9 @@ export const SchemaEditor = ({
     if (selectedNodeId) {
       const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
-      setTimeout(() => {
-        const node = document.querySelector<HTMLElement>(`#${selectedNodeId}`);
-        if (node) {
-          node.focus();
-          (node.firstChild as HTMLElement).click();
-        }
-      }, 50);
     }
-  }, [selectedNodeId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -167,7 +162,6 @@ export const SchemaEditor = ({
 
       <Grid
         container={true} direction='row'
-        spacing={2}
       >
         <Grid item={true} xs={6}>
           <div id='schema-editor' className={classes.treeView}>
@@ -195,6 +189,7 @@ export const SchemaEditor = ({
               <TabPanel value='0'>
                 <TreeView
                   multiSelect={false}
+                  selected={selectedNodeId ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
@@ -202,9 +197,9 @@ export const SchemaEditor = ({
                     keyPrefix='properties'
                     key={item.id}
                     item={item}
-                    nodeId={`${item.id}`}
-                    language={language}
+                    nodeId={getDomFriendlyID(item.id)}
                     id={getDomFriendlyID(item.id)}
+                    language={language}
                   />)}
 
                   <TreeItem
@@ -218,6 +213,7 @@ export const SchemaEditor = ({
               <TabPanel value='1'>
                 <TreeView
                   multiSelect={false}
+                  selected={selectedNodeId ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
@@ -225,7 +221,7 @@ export const SchemaEditor = ({
                     keyPrefix='definitions'
                     item={def}
                     key={def.id}
-                    nodeId={`def-${def.id}`}
+                    nodeId={getDomFriendlyID(def.id)}
                     id={getDomFriendlyID(def.id)}
                     language={language}
                   />)}
@@ -242,7 +238,8 @@ export const SchemaEditor = ({
 
           </div>
         </Grid>
-        <Grid item={true} xs={6}>
+        <Grid item xs={1} />
+        <Grid item={true} xs={5}>
           <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
         </Grid>
       </Grid>

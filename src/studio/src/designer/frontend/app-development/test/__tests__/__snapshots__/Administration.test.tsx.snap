@@ -79,9 +79,10 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
+              <div />
             </div>
             <button
-              className="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-20 makeStyles-secondaryButton-25 MuiButton-textPrimary"
+              className="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-20 makeStyles-secondaryButton-32 MuiButton-textPrimary"
               disabled={false}
               onBlur={[Function]}
               onClick={[Function]}
@@ -107,7 +108,7 @@ exports[`Administration Should match snapshot 1`] = `
                 className="MuiButton-label"
               >
                 <span
-                  className="makeStyles-borderBottom-22"
+                  className="makeStyles-borderBottom-29"
                 >
                   general.edit
                 </span>
@@ -161,6 +162,7 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
+              <div />
             </div>
           </div>
           <div
@@ -209,6 +211,7 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
+              <div />
             </div>
           </div>
           <div
@@ -257,6 +260,7 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
+              <div />
             </div>
           </div>
         </div>
@@ -266,40 +270,40 @@ exports[`Administration Should match snapshot 1`] = `
         id="altinn-column-layout-side-menu"
       >
         <p
-          className="MuiTypography-root makeStyles-sidebarHeader-28 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarHeader-35 MuiTypography-body1"
         >
           general.service_owner
         </p>
         <p
-          className="MuiTypography-root makeStyles-sidebarInfoText-30 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarInfoText-37 MuiTypography-body1"
         >
           administration.service_owner_is
         </p>
         <p
-          className="MuiTypography-root makeStyles-sidebarServiceOwner-32 makeStyles-sidebarInfoText-30 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarServiceOwner-39 makeStyles-sidebarInfoText-37 MuiTypography-body1"
         >
           <img
             alt=""
-            className="makeStyles-avatar-27"
+            className="makeStyles-avatar-34"
             src=""
           />
            
           Mons Monsen
         </p>
         <p
-          className="MuiTypography-root makeStyles-sidebarCreatedBy-33 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarCreatedBy-40 MuiTypography-body1"
         >
           administration.created_by
            
           Per 
         </p>
         <p
-          className="MuiTypography-root makeStyles-sidebarHeader-28 makeStyles-sidebarHeaderSecond-29 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarHeader-35 makeStyles-sidebarHeaderSecond-36 MuiTypography-body1"
         >
           administration.reset_repo_heading
         </p>
         <div
-          className="MuiTypography-root makeStyles-sidebarInfoText-30 makeStyles-sidebarInfoTextList-31 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarInfoText-37 makeStyles-sidebarInfoTextList-38 MuiTypography-body1"
         >
           <ul>
             <li>
@@ -314,7 +318,7 @@ exports[`Administration Should match snapshot 1`] = `
           </ul>
         </div>
         <button
-          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-24 MuiButton-containedPrimary"
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-31 MuiButton-containedPrimary"
           disabled={false}
           id="reset-repo-button"
           onBlur={[Function]}

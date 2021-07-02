@@ -10,6 +10,7 @@ export const initialState: ISchemaState = {
   saveSchemaUrl: '',
   selectedId: '',
   selectedNodeId: '',
+  focusNameField: '',
 };
 
 const schemaEditorSlice = createSlice({
@@ -54,7 +55,13 @@ const schemaEditorSlice = createSlice({
       }
     },
     addRootItem(state, action) {
-      const { name, location } = action.payload;
+      let { name } = action.payload;
+      const { location } = action.payload;
+      // make sure name is unique.
+      // eslint-disable-next-line no-loop-func
+      while (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+        name += 1;
+      }
       const path = `#/${location}/${name}`;
       state.uiSchema.push(
         {
@@ -65,9 +72,13 @@ const schemaEditorSlice = createSlice({
       );
       state.selectedId = path;
       state.selectedNodeId = getDomFriendlyID(path);
+      state.focusNameField = path;
+    },
+    clearNameFocus(state) {
+      state.focusNameField = undefined;
     },
     addProperty(state, action) {
-      const { path } = action.payload;
+      const { path, keepSelection } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         id: `${path}/properties/name`,
@@ -82,6 +93,11 @@ const schemaEditorSlice = createSlice({
         addToItem.properties.push(item);
       } else {
         addToItem.properties = [item];
+      }
+      if (!keepSelection) {
+        state.selectedId = item.id;
+        state.selectedNodeId = getDomFriendlyID(item.id);
+        state.focusNameField = item.displayName;
       }
     },
     addRefProperty(state, action) {
@@ -123,6 +139,40 @@ const schemaEditorSlice = createSlice({
       const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
       if (removeIndex >= 0) {
         removeFromItem.enum?.splice(removeIndex, 1);
+      }
+    },
+    promoteProperty(state, action) {
+      // change property to be reference
+      const path: string = action.payload.path;
+      const item = getUiSchemaItem(state.uiSchema, path);
+
+      // copy item and give new id
+      const split = item.id.split('/');
+      const name = split[split.length - 1];
+      const copy = { ...item, id: `#/definitions/${name}` };
+      state.uiSchema.push(copy);
+
+      // create ref pointing to the new item
+      const ref: UiSchemaItem = {
+        id: path, $ref: copy.id, displayName: item.displayName,
+      };
+      // If this is a nested property,  we must add the ref to the properties array of the parent of the item
+      // eslint-disable-next-line no-useless-escape
+      if (path.match('[^#]\/properties')) {
+        const index = path.lastIndexOf('/properties/');
+        const parentPath = path.substring(0, index);
+        const parent = getUiSchemaItem(state.uiSchema, parentPath);
+        if (parent && parent.properties) {
+          parent.properties.splice(parent.properties.findIndex((i) => i.id === path), 1); // removing original item
+          parent.properties?.push(ref);
+        }
+      } else {
+        // if this is a root property, we can just create a new rooot item with ref
+        const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.id === path); // remove original item
+        if (rootIndex >= 0) {
+          state.uiSchema.splice(rootIndex, 1);
+        }
+        state.uiSchema.push(ref);
       }
     },
     deleteProperty(state, action) {
@@ -253,6 +303,7 @@ const schemaEditorSlice = createSlice({
         item.id = arr.join('/');
         if (navigate) {
           state.selectedId = item.id;
+          state.selectedNodeId = getDomFriendlyID(item.id);
         }
       }
     },
@@ -262,10 +313,12 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, navigate,
+        id, navigate, focusName,
       } = action.payload;
       state.selectedId = id;
-      state.selectedNodeId = navigate ? getDomFriendlyID(id) : undefined;
+      state.selectedNodeId = getDomFriendlyID(id);
+      state.focusNameField = focusName;
+      state.navigate = navigate;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
@@ -308,10 +361,12 @@ export const {
   addEnum,
   addRootItem,
   addProperty,
+  clearNameFocus,
   addRefProperty,
   deleteField,
   deleteEnum,
   deleteProperty,
+  promoteProperty,
   setRestriction,
   setKey,
   setRef,

@@ -3,9 +3,10 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addProperty, deleteProperty, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
+import { getDomFriendlyID } from '../utils';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -123,13 +124,16 @@ function SchemaItem(props: SchemaItemProps) {
         keyPrefix={`${keyPrefix}-properties`}
         key={`${keyPrefix}-${property.id}`}
         item={property}
-        nodeId={`${keyPrefix}-${property.id}`}
+        nodeId={`${getDomFriendlyID(property.id)}`}
         onClick={() => onItemClick(property)}
         language={props.language}
       />
     );
   });
 
+  const handlePromoteClick = () => {
+    dispatch(promoteProperty({ path: item.id }));
+  };
   const handleDeleteClick = () => {
     dispatch(deleteProperty({ path: item.id }));
   };
@@ -157,6 +161,7 @@ function SchemaItem(props: SchemaItemProps) {
       label={label}
       onAddProperty={handleAddProperty}
       onDelete={handleDeleteClick}
+      onPromote={item.id.startsWith('#/def') ? undefined : handlePromoteClick}
     />;
   };
 
@@ -168,7 +173,7 @@ function SchemaItem(props: SchemaItemProps) {
         key={`${keyPrefix}-${refItem.id}`}
         onClick={() => onItemClick(refItem)}
         item={refItem}
-        nodeId={`${keyPrefix}-${refItem.id}-ref`}
+        nodeId={getDomFriendlyID(refItem.id)}
         language={props.language}
       />);
     }
