@@ -1,19 +1,16 @@
 import * as React from 'react';
 import SchemaEditor from '@altinn/schema-editor/SchemaEditorApp';
 import { DataModelling } from 'app-shared/features';
-import { useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
 
-interface IStandaloneDataModellingProps extends RouteComponentProps {
+interface IStandaloneDataModellingProps {
   language: any;
   classes: any;
 }
 const styles = createStyles({
   containerGrid: {
-    marginLeft: 50,
-    marginRight: 50,
     marginTop: 70,
   },
 });
@@ -27,4 +24,15 @@ function DataModellingContainer(props: IStandaloneDataModellingProps): JSX.Eleme
     </Grid>
   );
 }
-export default withRouter(withStyles(styles)(DataModellingContainer));
+
+const mapStateToProps = (
+  state: IDashboardAppState,
+  props: IStandaloneDataModellingProps,
+): IStandaloneDataModellingProps => {
+  return {
+    classes: props.classes,
+    language: state.language.language,
+  };
+};
+const standaloneDataModelling = connect(mapStateToProps)(DataModellingContainer);
+export default withStyles(styles)(standaloneDataModelling);
