@@ -93,7 +93,6 @@ export default function () {
     try {
       dataId = appData.findDataId(res.body);
       instanceId = platformInstances.findInstanceId(res.body);
-      console.log(instanceId);
     } catch (error) {
       stopIterationOnFail('Instance id and data id not retrieved', false, null);
     }
