@@ -161,7 +161,7 @@ function SchemaItem(props: SchemaItemProps) {
       label={label}
       onAddProperty={handleAddProperty}
       onDelete={handleDeleteClick}
-      onPromote={item.id.startsWith('#/def') ? undefined : handlePromoteClick}
+      onPromote={!item.$ref || item.id.startsWith('#/def') ? undefined : handlePromoteClick}
     />;
   };
 
