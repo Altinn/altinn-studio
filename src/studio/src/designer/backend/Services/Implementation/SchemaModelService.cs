@@ -44,6 +44,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+            return await altinnGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
+        }
+
+        /// <inheritdoc/>
         public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);

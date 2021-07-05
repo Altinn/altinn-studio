@@ -22,6 +22,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer);
 
         /// <summary>
+        /// Gets the JSON content of the specified schema file.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name where the schema file recides.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file.</param>     
+        /// <returns>JSON content of the schema file specified.</returns>
+        Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath);
+
+        /// <summary>
         /// Updates a schema based on the relative path to the JSON Schema within the repository.
         /// For a datamodels repository this will only update the file itself. For a app
         /// repository this will update the generated files as well e.g. the C# class.

@@ -160,7 +160,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
-        /// <returns></returns>
         [Authorize]
         [HttpGet]
         [ProducesResponseType(200)]
@@ -172,7 +171,25 @@ namespace Altinn.Studio.Designer.Controllers
             var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
 
             return Ok(schemaFiles);
-        }        
+        }
+
+        /// <summary>
+        /// Method that returns the JSON contents of a specific datamodel.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        /// <param name="modelPath">The path to the file to get.</param>        
+        [Authorize]
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [Route("/designer/api/{org}/{repository}/datamodels/{modelPath}")]
+        public async Task<IActionResult> Get(string org, string repository, string modelPath)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var json = await _schemaModelService.GetSchema(org, repository, developer, modelPath);
+
+            return Ok(json);
+        }
 
         /// <summary>
         /// Returns datamodel

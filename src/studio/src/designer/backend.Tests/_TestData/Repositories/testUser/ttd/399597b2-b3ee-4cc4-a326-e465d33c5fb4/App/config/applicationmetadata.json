@@ -26,6 +26,18 @@
       "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1
+    },
+    {
+      "id": "testModel",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.root"
+      },
+      "maxCount": 1,
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {

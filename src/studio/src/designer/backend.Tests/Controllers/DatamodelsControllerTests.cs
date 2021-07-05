@@ -330,17 +330,15 @@ namespace Designer.Tests.Controllers
         [InlineData("App%2Fmodels%2FtestModel.schema.json")]
         public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
         {
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
 
-            if (gitRepository.FileExistsByRelativePath(modelPath))
-            {
-                gitRepository.DeleteFileByRelativePath(modelPath);
-            }
+            TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/?modelPath={modelPath}";
+            var url = $"{_versionPrefix}/ttd/{targetRepository}/Datamodels/?modelPath={modelPath}";
             var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
             string requestBody = minimumValidJsonSchema;
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
@@ -357,7 +355,7 @@ namespace Designer.Tests.Controllers
             }
             finally
             {
-                gitRepository.DeleteFileByRelativePath(modelPath);
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
 
