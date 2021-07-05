@@ -1,7 +1,7 @@
-import getOrgFromPath from "./getOrgFromPath";
-import getRepoNameFromPath from "./getRepoNameFromPath";
+import getOrgFromPath from './getOrgFromPath';
+import getRepoNameFromPath from './getRepoNameFromPath';
 
-function getRepoNameFromLocation(): string[] | undefined {
+function getNamesFromLocation(): string[] | undefined {
   if (!window) {
     return undefined;
   }
@@ -16,4 +16,4 @@ function getRepoNameFromLocation(): string[] | undefined {
     getRepoNameFromPath(window.location.hash),
   ];
 }
-export default getRepoNameFromLocation;
+export default getNamesFromLocation;

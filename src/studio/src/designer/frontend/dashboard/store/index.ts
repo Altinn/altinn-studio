@@ -24,11 +24,9 @@ function configureStore(initialState?: any): Store<IDashboardAppState> {
     enhancer = compose(applyMiddleware(...middlewares));
   }
 
-  const createdStore: Store<IDashboardAppState> = createStore(
+  return createStore(
     reducers,
     initialState,
     enhancer,
   );
-
-  return createdStore;
 }

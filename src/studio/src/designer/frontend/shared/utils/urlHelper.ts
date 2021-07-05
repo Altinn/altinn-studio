@@ -8,7 +8,6 @@ export const sharedUrls = () => {
   const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
   return {
     dataModelsApi,
-    applicationMetadataUrl: `${origin}/designer/api/v1/${org}/${repo}`,
     dataModelsMetadataUrl: `${origin}/designer/api/${org}/${repo}/datamodels`,
     altinnAppsIllustrationHelpCircleSvgUrl: `${cdn}/img/illustration-help-circle.svg`,
     altinnAppsImgLogoBlueSvgUrl: `${cdn}/img/a-logo-blue.svg`,

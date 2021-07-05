@@ -4,7 +4,7 @@ import { get } from 'app-shared/utils/networking';
 import { ConfigurationActions } from '../configurationSlice';
 import { orgsListUrl } from '../../../utils/urlHelper';
 
-function* getOrgsSaga(): SagaIterator {
+function* getOrgsSagas(): SagaIterator {
   try {
     const result: any = yield call(get, orgsListUrl);
     const orgObject = result.orgs;
@@ -15,5 +15,5 @@ function* getOrgsSaga(): SagaIterator {
 }
 
 export default function* watchGetOrgsSaga(): SagaIterator {
-  yield takeLatest(ConfigurationActions.getOrgs, getOrgsSaga);
+  yield takeLatest(ConfigurationActions.getOrgs, getOrgsSagas);
 }

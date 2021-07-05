@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
-import { applicationMetadataUrl } from 'app-shared/utils/urlHelper';
+import { applicationMetadataUrl } from '../../../utils/urlHelper';
 import { ApplicationMetadataActions } from '../applicationMetadataSlice';
 
 function* getApplicationMetadataSaga(): SagaIterator {

@@ -39,79 +39,76 @@ export interface IAltinnPopoverState {
 
 const theme = createMuiTheme(altinnTheme);
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    borderBottom: {
-      borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+const useStyles = makeStyles(() => createStyles({
+  borderBottom: {
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
+  },
+  buttonCancel: {
+    fontSize: '14px',
+    color: theme.altinnPalette.primary.blueDarker,
+    background: theme.altinnPalette.primary.white,
+    textTransform: 'none',
+    fontWeight: 400,
+    marginTop: '20px',
+    borderRadius: '0',
+    '&:hover': {
+      color: theme.altinnPalette.primary.blueDarker,
     },
-    buttonCancel: {
-      'fontSize': '14px',
-      'color': theme.altinnPalette.primary.blueDarker,
-      'background': theme.altinnPalette.primary.white,
-      'textTransform': 'none',
-      'fontWeight': 400,
-      'marginTop': '20px',
-      'borderRadius': '0',
-      '&:hover': {
-        color: theme.altinnPalette.primary.blueDarker,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-    },
-    buttonConfirm: {
-      'fontSize': '14px',
-      'color': theme.altinnPalette.primary.white,
-      'background': theme.altinnPalette.primary.blueDark,
-      'textTransform': 'none',
-      'fontWeight': 400,
-      'marginTop': '20px',
-      'borderRadius': '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-    },
-    commitMessageField: {
-      border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-      boxSizing: 'border-box',
-      marginTop: '10px',
-      fontSize: '16px !Important',
-      minHeight: '88px',
-      lineHeight: '1.3',
-    },
-    doneLoadingIcon: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.green,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    header: {
-      fontSize: '16px',
-      fontWeight: 500,
-    },
-    spinner: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.blueDark,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    subHeader: {
-      fontSize: '16px',
-      marginTop: '10px',
-    },
-    popover: {
-      width: '445px',
-      margin: '24px',
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
     },
   },
-  ),
-);
+  buttonConfirm: {
+    fontSize: '14px',
+    color: theme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.blueDark,
+    textTransform: 'none',
+    fontWeight: 400,
+    marginTop: '20px',
+    borderRadius: '0',
+    '&:hover': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
+  },
+  commitMessageField: {
+    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
+    boxSizing: 'border-box',
+    marginTop: '10px',
+    fontSize: '16px !Important',
+    minHeight: '88px',
+    lineHeight: '1.3',
+  },
+  doneLoadingIcon: {
+    marginTop: '20px',
+    color: theme.altinnPalette.primary.green,
+    marginRight: 'auto',
+    marginLeft: 'auto',
+  },
+  header: {
+    fontSize: '16px',
+    fontWeight: 500,
+  },
+  spinner: {
+    marginTop: '20px',
+    color: theme.altinnPalette.primary.blueDark,
+    marginRight: 'auto',
+    marginLeft: 'auto',
+  },
+  subHeader: {
+    fontSize: '16px',
+    marginTop: '10px',
+  },
+  popover: {
+    width: '445px',
+    margin: '24px',
+  },
+}));
 
 const AltinnPopoverComponent = (props: any) => {
   const classes = useStyles(props);
@@ -138,22 +135,21 @@ const AltinnPopoverComponent = (props: any) => {
       return (
         <CircularProgress className={classNames(classes.spinner)} />
       );
-    } else {
-      if (props.shouldShowDoneIcon) {
-        return (
-          <div className={classNames(classes.doneLoadingIcon)}>
-            <i className={classNames('fa fa-circlecheck')} />
-          </div>
-        );
-      }
-      return null;
     }
+    if (props.shouldShowDoneIcon) {
+      return (
+        <div className={classNames(classes.doneLoadingIcon)}>
+          <i className={classNames('fa fa-circlecheck')} />
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
     <>
       <Popover
-        open={props.anchorEl ? true : false}
+        open={!!props.anchorEl}
         anchorEl={props.anchorEl}
         onClose={handleClose}
         anchorOrigin={{
@@ -167,7 +163,10 @@ const AltinnPopoverComponent = (props: any) => {
         anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
       >
-        <Grid container={true} direction='column' className={classes.popover}>
+        <Grid
+          container={true} direction='column'
+          className={classes.popover}
+        >
           {props.header &&
             <Typography variant='h3' className={classNames(classes.header)}>
               {props.header}
