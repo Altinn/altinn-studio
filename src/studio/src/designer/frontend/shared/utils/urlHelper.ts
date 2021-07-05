@@ -19,6 +19,8 @@ export const sharedUrls = () => {
     orgsListUrl: `${cdn}/orgs/altinn-orgs.json`,
     repositoryGitUrl: `${origin}/repos/${org}/${repo}.git`,
     repositoryUrl: `${origin}/repos/${org}/${repo}`,
+    getDataModellingUrl:
+      (pathToModelFile: string) => `${dataModelsApi}${encodeURIComponent(pathToModelFile)}`,
     createDataModellingUrl:
       (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
   };

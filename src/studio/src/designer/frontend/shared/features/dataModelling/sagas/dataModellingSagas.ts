@@ -21,7 +21,7 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   yield put(fetchDataModelFulfilled({ schema: undefined })); // remove current schema from state before fetching
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, sharedUrls().createDataModellingUrl(modelPath));
+    const result = yield call(get, sharedUrls().getDataModellingUrl(modelPath));
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
