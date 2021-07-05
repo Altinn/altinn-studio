@@ -7,7 +7,8 @@ import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
-  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems, addEnum, deleteEnum }
+  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
+  addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
@@ -36,6 +37,9 @@ const useStyles = makeStyles(
       fontSize: 16,
       marginTop: 24,
       marginBottom: 6,
+      '& .Mui-focusVisible': {
+        background: 'gray',
+      },
     },
     name: {
       marginBottom: 6,
@@ -95,7 +99,7 @@ export interface ISchemaInspectorProps {
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [nodeName, setNodeName] = React.useState<string | undefined>('');
+  const [nodeName, setNodeName] = React.useState<string>('');
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
@@ -104,7 +108,16 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
+
+  const nameFieldRef = React.useCallback((node: any) => {
+    if (node && focusName && focusName === selectedId) {
+      node.focus();
+      node.select();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusName]);
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -129,13 +142,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   });
 
   React.useEffect(() => {
-    setNodeName(selectedItem?.displayName);
+    setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
     setObjectType(selectedItem?.type ?? '');
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
-      if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
+      if ((tabIndex === '2' && itemToDisplay?.type !== 'object')) {
         setTabIndex('0');
       }
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
@@ -154,7 +167,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const readOnly = selectedItem?.$ref !== undefined;
 
   React.useEffect(() => {
-    setNodeName(selectedItem?.displayName);
+    setNodeName(selectedItem?.displayName ?? '');
   }, [selectedItem]);
 
   const onChangeValue = (path: string, value: any, key?: string) => {
@@ -194,9 +207,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    dispatch(setPropertyName({
-      path: selectedItem?.id, name: nodeName, navigate: true,
-    }));
+    if (!nameError) {
+      dispatch(setPropertyName({
+        path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
+      }));
+    }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     dispatch(addEnum({
@@ -204,18 +219,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
-  const onAddPropertyClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
     if (path) {
       dispatch(addProperty({
         path,
+        keepSelection: true,
       }));
     }
   };
 
-  const onAddRestrictionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+  const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
+    event?.preventDefault();
     const path = itemToDisplay?.id;
     dispatch(addRestriction({
       path,
@@ -235,7 +251,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onGoToDefButtonClick = () => {
     dispatch(setSelectedId(
       {
-        id: selectedItem?.$ref, readOnly: false, navigate: true,
+        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.id,
       },
     ));
   };
@@ -294,8 +310,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     />;
   });
 
+  const onRestrictionReturn = (e: any) => {
+    onAddRestrictionClick(e);
+  };
   const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
-    if (!field || field.key.startsWith('@')) {
+    if (field.key && field.key.startsWith('@')) {
       return null;
     }
     return (
@@ -310,6 +329,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         onChangeValue={onChangeValue}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
+        onReturn={onRestrictionReturn}
       />
     );
   });
@@ -391,7 +411,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
-    if (!name.match(/[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
       setNameError('Invalid character in name');
     } else {
       setNameError('');
@@ -401,8 +421,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     <div>
       <p className={classes.name}>{getTranslation('name', props.language)}</p>
       <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-name`}
+        id='selectedItemName'
         className={classes.field}
+        inputRef={nameFieldRef}
         placeholder='Name'
         fullWidth={true}
         value={nodeName}

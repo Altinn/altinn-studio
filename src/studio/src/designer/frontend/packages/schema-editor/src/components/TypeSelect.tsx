@@ -35,6 +35,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   const {
     id, value, onChange,
   } = props;
+
   const onValueChange = (event: any) => {
     onChange(id, event.target.value);
   };
@@ -55,6 +56,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       <MenuItem value='number'>{getTranslation('number', props.language)}</MenuItem>
       <MenuItem value='boolean'>{getTranslation('boolean', props.language)}</MenuItem>
       <MenuItem value='object'>{getTranslation('object', props.language)}</MenuItem>
+      <MenuItem value='array'>{getTranslation('array', props.language)}</MenuItem>
     </Select>
   );
 };

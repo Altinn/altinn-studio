@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { AltinnButton } from './AltinnButton';
+import ErrorPopover from './ErrorPopover';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -24,6 +25,9 @@ export interface IAltinnInputFieldComponentProvidedProps {
   type?: any;
   textFieldId?: string;
   fullWidth?: boolean;
+  error?: string;
+  clearError?: () => void;
+  onReturn?: () => void;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -71,14 +75,23 @@ export class AltinnInputField extends
   React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;
 
+  public errorRef: any;
+
   constructor(props: any) {
     super(props);
     this.textInput = React.createRef();
+    this.errorRef = React.createRef();
   }
 
   public componentDidUpdate() {
     if (this.props.focusOnComponentDidUpdate) {
       this.textInput.current.focus();
+    }
+  }
+
+  private onKeyDown(e: any) {
+    if (e.keyCode === 13 && !this.props.error) {
+      this.props.onReturn();
     }
   }
 
@@ -130,6 +143,13 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
+            onKeyDown={this.props.onReturn ? this.onKeyDown : undefined}
+          />
+          <div ref={this.errorRef} />
+          <ErrorPopover
+            anchorEl={this.props.error ? this.errorRef.current : null}
+            onClose={this.props.clearError}
+            errorMessage={this.props.error}
           />
 
         </FormControl>
@@ -139,6 +159,7 @@ export class AltinnInputField extends
             secondaryButton={true}
             onClickFunction={this.props.onBtnClickFunction}
             className={classNames(classes.btn)}
+            disabled={!!this.props.error}
           />
         }
       </React.Fragment>

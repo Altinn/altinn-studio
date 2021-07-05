@@ -12,7 +12,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
@@ -52,6 +51,14 @@
     <EmbeddedResource Include="_TestData\**\*.*" />
   </ItemGroup>  
   <ItemGroup>
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.en.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.nb.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\resource.nb.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\resources.en.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\a69255710e6f1d1c59bef004dd36fff0c5dfd236\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\a69255710e6f1d1c59bef004dd36fff0c5dfd236\resource.nb.json" />
     <None Remove="_TestData\Model\CSharp\Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.csharp.txt" />
     <None Remove="_TestData\Model\CSharp\or-melding-2-12186.expected.csharp.txt" />
     <None Remove="_TestData\Model\JsonSchema\custom_inline.schema.json" />

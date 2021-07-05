@@ -1,0 +1,13 @@
+{
+  "language": "en",
+  "resources": [
+    {
+      "id": "11339.InnsenderPostnummerdatadef11339.Label",
+      "value": "Postnummer"
+    },   
+    {
+      "id": "attachment.desc",
+      "value": "This is a description for the attachment component"
+    }
+  ]
+}

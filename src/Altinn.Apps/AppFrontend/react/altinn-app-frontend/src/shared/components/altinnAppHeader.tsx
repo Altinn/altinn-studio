@@ -65,9 +65,6 @@ const styles = createStyles({
   headerProfile: {
     float: 'right',
   },
-  partyChoice: {
-    backgroundColor: '#F5F5F5',
-  },
   languageDropdown: {
     fontSize: '1.4rem',
   },
@@ -102,7 +99,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
     <div className={classes.appBarWrapper}>
       <AppBar
         position='static'
-        className={type === 'partyChoice' ? classes.partyChoice : classes.default}
+        className={classes.default}
       >
         <Toolbar className={`container ${classes.toolbarContainer}`}>
           <Grid
