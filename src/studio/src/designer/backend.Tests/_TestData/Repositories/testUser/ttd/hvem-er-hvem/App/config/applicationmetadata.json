@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "yabbin/hvem-er-hvem",
   "org": "yabbin",
   "title": {
@@ -26,6 +26,18 @@
       "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1
+    },
+    {
+      "id": "testModel",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.root"
+      },
+      "maxCount": 1,
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {
@@ -34,14 +46,14 @@
     "person": false,
     "subUnit": false
   },
+  "autoDeleteOnProcessEnd": false,
   "dataFields": [
     {
-      "id": "GeekType",
-      "path": "InnrapporterteData.geekType",
-      "dataTypeId": "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES"      
+      "Id": "GeekType",
+      "Path": "InnrapporterteData.geekType",
+      "DataTypeId": "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES"
     }
   ],
-  "autoDeleteOnProcessEnd": false,
   "created": "2021-04-08T17:42:09.0883842Z",
   "createdBy": "Ronny",
   "lastChanged": "2021-04-08T17:42:09.08847Z",

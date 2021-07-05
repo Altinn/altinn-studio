@@ -30,8 +30,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
         /// <param name="relativeFilePath">Relative path to the file.</param>
-        /// <param name="content">The contents of the file.</param>
-        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string content);
+        /// <param name="jsonContent">The JSON contents of the file.</param>
+        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent);
 
         /// <summary>
         /// Deletes a schema based on the relative path to the JSON Schema within the repository.

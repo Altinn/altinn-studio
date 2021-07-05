@@ -56,7 +56,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
-                // var altinnCoreFile = altinnAppGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
                 var schemaName = GetSchemaName(relativeFilePath);
                 var jsonSchema = await DeserializeJson(jsonContent);
                 var rootName = GetRootName(jsonSchema);
@@ -83,8 +82,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string rootName)
         {
-            //string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
-
             Application application = await altinnAppGitRepository.GetApplicationMetadata();
 
             UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + rootName);
@@ -123,6 +120,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            {
+                altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
+            }
+            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
+                var schemaName = GetSchemaName(altinnCoreFile);
+
+                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
+                DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
+            }
         }
 
         private static async Task UpdateJsonSchema(AltinnAppGitRepository altinnAppGitRepository, string relativeFilePath, string jsonContent)
@@ -167,26 +184,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
             return jsonSchema;
-        }
-
-        /// <inheritdoc/>
-        public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
-        {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);            
-
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
-            {
-                altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);                
-            }
-            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
-            {
-                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
-                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
-                var schemaName = GetSchemaName(altinnCoreFile);
-
-                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
-                DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
-            }
         }
 
         private void DeleteRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
