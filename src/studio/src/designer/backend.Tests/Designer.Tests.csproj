@@ -83,7 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\hvem-er-hvem\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json">

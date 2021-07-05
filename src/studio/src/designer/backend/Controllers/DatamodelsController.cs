@@ -182,7 +182,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpGet]
         [ProducesResponseType(200)]
-        [Route("/designer/api/{org}/{repository}/datamodels/{modelPath}")]
+        [Route("/designer/api/{org}/{repository}/datamodels/{*modelPath}")]
         public async Task<IActionResult> Get(string org, string repository, string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

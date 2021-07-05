@@ -323,6 +323,27 @@ namespace Designer.Tests.Controllers
         }
 
         [Theory]
+        [InlineData("App/models/HvemErHvem_SERES.schema.json")]
+        [InlineData("App/models/hvemerhvem_seres.schema.json")]
+        [InlineData("App%2Fmodels%2FHvemErHvem_SERES.schema.json")]
+        public async Task GetDatamodel_ValidPath_ShouldReturnContent(string modelPath)
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{repository}/datamodels/{modelPath}";
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            var response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Theory]
         [InlineData("testModel.schema.json")]
         [InlineData("App/testModel.schema.json")]
         [InlineData("App/models/testModel.schema.json")]
@@ -338,7 +359,7 @@ namespace Designer.Tests.Controllers
             TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/{targetRepository}/Datamodels/?modelPath={modelPath}";
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/?modelPath={modelPath}";
             var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
             string requestBody = minimumValidJsonSchema;
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
