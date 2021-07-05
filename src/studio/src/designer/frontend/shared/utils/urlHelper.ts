@@ -1,30 +1,32 @@
-import getRepoNameFromLocation from "./getRepoNameFromLocation";
+import getNamesFromLocation from "./getNamesFromLocation";
 
-const altinnWindow = window as any;
-const { org } = altinnWindow;
-const origin = window.location.origin;
-const cdn = 'https://altinncdn.no';
-const repo = getRepoNameFromLocation();
-const designerApi = `${origin}/designer/api`;
-
-export const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
-export const applicationMetadataUrl = `${origin}/designer/api/v1/${org}/${repo}`;
-export const dataModelsMetadataUrl = `${origin}/designer/api/${org}/${repo}/datamodels`;
-export const altinnAppsIllustrationHelpCircleSvgUrl = `${cdn}/img/illustration-help-circle.svg`;
-export const altinnAppsImgLogoBlueSvgUrl = `${cdn}/img/a-logo-blue.svg`;
-export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
-export const altinnImgLogoHeaderUrl = `${cdn}/img/altinn_logo_header.png`;
-export const dataModelUploadPageUrl = `${origin}/designer/${org}/${repo}#/datamodel`;
-export const dataModelXsdUrl = `${origin}/designer/${org}/${repo}/Model/GetXsd`;
-export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
-export const repositoryGitUrl = `${origin}/repos/${org}/${repo}.git`;
-export const repositoryUrl = `${origin}/repos/${org}/${repo}`;
-
-export const createDataModellingUrl =
-  (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`;
+export const sharedUrls = () => {
+  const [org, repo] = getNamesFromLocation();
+  const origin = window.location.origin;
+  const cdn = 'https://altinncdn.no';
+  const designerApi = `${origin}/designer/api`;
+  const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
+  return {
+    dataModelsApi,
+    applicationMetadataUrl: `${origin}/designer/api/v1/${org}/${repo}`,
+    dataModelsMetadataUrl: `${origin}/designer/api/${org}/${repo}/datamodels`,
+    altinnAppsIllustrationHelpCircleSvgUrl: `${cdn}/img/illustration-help-circle.svg`,
+    altinnAppsImgLogoBlueSvgUrl: `${cdn}/img/a-logo-blue.svg`,
+    altinnDocsUrl: 'https://docs.altinn.studio/',
+    altinnStudioDocsUrl: 'https://altinn.github.io/docs/altinn-studio/',
+    altinnImgLogoHeaderUrl: `${cdn}/img/altinn_logo_header.png`,
+    dataModelUploadPageUrl: `${origin}/designer/${org}/${repo}#/datamodel`,
+    dataModelXsdUrl: `${origin}/designer/${org}/${repo}/Model/GetXsd`,
+    orgsListUrl: `${cdn}/orgs/altinn-orgs.json`,
+    repositoryGitUrl: `${origin}/repos/${org}/${repo}.git`,
+    repositoryUrl: `${origin}/repos/${org}/${repo}`,
+    createDataModellingUrl:
+      (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
+  };
+};
 
 export const returnUrlToMessagebox = (url: string): string => {
+  const [org, repo] = getNamesFromLocation();
   const baseHostnameAltinnProd = 'altinn.no';
   const baseHostnameAltinnTest = 'altinn.cloud';
   const baseHostnameAltinnStudio = 'altinn3.no';

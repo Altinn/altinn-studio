@@ -6,7 +6,7 @@ import AltinnInputField from '../components/AltinnInputField';
 import AltinnAppTheme from '../theme/altinnAppTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
-import { altinnDocsUrl, dataModelUploadPageUrl, dataModelXsdUrl, repositoryGitUrl } from '../utils/urlHelper';
+import { sharedUrls } from '../utils/urlHelper';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -38,7 +38,7 @@ function CloneModal(props: ICloneModalProps) {
 
   const checkIfDataModelExists = async () => {
     try { // dataModelXsdUrl does not resolve in unit-tests
-      const dataModel: any = await get(dataModelXsdUrl);
+      const dataModel: any = await get(sharedUrls().dataModelXsdUrl);
       setHasDataModel(dataModel != null);
     } catch {
       setHasDataModel(false);
@@ -84,7 +84,7 @@ function CloneModal(props: ICloneModalProps) {
         <Grid item={true} className={props.classes.sectionSeparator}>
           <Typography variant='body1'>
             <a
-              href={altinnDocsUrl} target='_blank'
+              href={sharedUrls().altinnDocsUrl} target='_blank'
               rel='noopener noreferrer'
             >
               {getLanguageFromKey('sync_header.favourite_tool_link', props.language)}
@@ -111,7 +111,7 @@ function CloneModal(props: ICloneModalProps) {
             </Grid>
             <Grid item={true}>
               <Typography variant='body1'>
-                <a href={dataModelUploadPageUrl}>
+                <a href={sharedUrls().dataModelUploadPageUrl}>
                   {getLanguageFromKey('sync_header.data_model_missing_link', props.language)}
                 </a>
               </Typography>
@@ -126,7 +126,7 @@ function CloneModal(props: ICloneModalProps) {
         <Grid item={true} className={props.classes.itemSeparator}>
           <AltinnInputField
             id='repository-url-form'
-            inputValue={repositoryGitUrl}
+            inputValue={sharedUrls().repositoryGitUrl}
             textFieldId='repository-url'
             fullWidth={true}
           />

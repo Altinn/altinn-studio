@@ -8,7 +8,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { altinnImgLogoHeaderUrl } from '../../utils/urlHelper';
+import { sharedUrls } from '../../utils/urlHelper';
 import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
@@ -144,7 +144,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               >
                 <Grid item>
                   <a href='/' className={classes.aImgStyling}>
-                    <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
+                    <img src={sharedUrls().altinnImgLogoHeaderUrl} alt='Altinn logo' />
                   </a>
                 </Grid>
                 <Hidden mdUp>

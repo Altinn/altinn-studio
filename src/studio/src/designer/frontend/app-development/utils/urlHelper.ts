@@ -4,8 +4,8 @@ const {
 const { origin } = location;
 const cdn = 'https://altinncdn.no';
 const desingerApi = `${origin}/designer/api`;
+const dataModelsApi = `${desingerApi}/${org}/${app}/dataModels`;
 
-export const dataModelsApi = `${desingerApi}/${org}/${app}/dataModels`;
 export const repoStatusUrl = `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
 export const languageUrl = `${origin}/designerapi/Language/GetLanguageAsJSON`;
 export const giteaSignOutUrl = `${origin}/repos/user/logout`;

@@ -1,6 +1,7 @@
 export interface IAltinnWindow extends Window {
   org: string;
-  app: string;
+  app?: string;
+  repo?: string;
 }
 
 export interface IInstanceState {
@@ -169,8 +170,7 @@ export interface IRepository {
   owner: IUser
 }
 
-export interface IUser
-{
+export interface IUser {
   avatar_url: string;
   login: string;
 }

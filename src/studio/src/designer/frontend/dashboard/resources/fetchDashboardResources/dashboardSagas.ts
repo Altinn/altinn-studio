@@ -3,8 +3,8 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { IRepository } from 'app-shared/types';
 import { get } from 'app-shared/utils/networking';
+import { dataModellingSagas } from 'app-shared/features/dataModelling/sagas';
 import { DashboardActions, IFetchDashboardInfoAction } from './dashboardSlice';
-import { watchGetDataModelsMetadataSaga } from 'app-shared/features/dataModelling/sagas/metadata';
 
 export function* fetchServicesSaga({ payload: { url } }: PayloadAction<IFetchDashboardInfoAction>): SagaIterator {
   try {
@@ -51,5 +51,5 @@ export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);
   yield fork(watchFetchOrganisationsSaga);
-  yield fork(watchGetDataModelsMetadataSaga);
+  yield fork(dataModellingSagas);
 }

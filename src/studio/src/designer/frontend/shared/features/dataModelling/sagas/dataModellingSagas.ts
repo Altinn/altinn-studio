@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
 import { get, put as axiosPut, del } from '../../../utils/networking';
-import { createDataModellingUrl } from '../../../utils/urlHelper';
+import { sharedUrls } from '../../../utils/urlHelper';
 import {
   fetchDataModel,
   fetchDataModelFulfilled,
@@ -21,7 +21,7 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   yield put(fetchDataModelFulfilled({ schema: undefined })); // remove current schema from state before fetching
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, createDataModellingUrl(modelPath));
+    const result = yield call(get, sharedUrls().createDataModellingUrl(modelPath));
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -36,7 +36,7 @@ function* saveDataModelSaga(action: IDataModelAction) {
   const { schema, metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl || `/App/models/${metadata.label}.schema.json`;
-    yield call(axiosPut, createDataModellingUrl(modelPath), schema);
+    yield call(axiosPut, sharedUrls().createDataModellingUrl(modelPath), schema);
     yield put(saveDataModelFulfilled());
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
   } catch (err) {
@@ -52,7 +52,7 @@ function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(del, createDataModellingUrl(modelPath));
+    yield call(del, sharedUrls().createDataModellingUrl(modelPath));
     yield put(deleteDataModelFulfilled());
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
   } catch (err) {
