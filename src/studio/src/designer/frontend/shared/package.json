@@ -63,6 +63,10 @@
     "react-test-renderer": "~17.0.2",
     "ts-jest": "~27.0.3"
   },
+  "peerDependencies": {
+    "redux": "^4.1.0",
+    "redux-devtools-extension": "^2.13.9"
+  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"

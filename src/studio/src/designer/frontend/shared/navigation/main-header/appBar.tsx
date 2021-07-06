@@ -136,10 +136,12 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
           elevation={0}
         >
           <Toolbar>
-            <Grid container direction='row'
+            <Grid
+              container direction='row'
               alignItems='center' justify='space-between'
             >
-              <Grid item xs
+              <Grid
+                item xs
                 container
               >
                 <Grid item>
@@ -157,13 +159,18 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 </Hidden>
               </Grid>
               <Hidden smDown>
-                <Grid xs item
+                <Grid
+                  xs item
                   className={classes.paper}
                 >
                   {(org && app) ? `${org} / ${app}` : ''}
                 </Grid>
               </Hidden>
-              <Grid item xs container direction='row' alignItems='center' justify='flex-end'>
+              <Grid
+                item xs
+                container direction='row'
+                alignItems='center' justify='flex-end'
+              >
                 {user || ''}
                 <Hidden smDown>
                   <Grid item>
@@ -189,13 +196,14 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
           <Hidden smDown>
             {this.props.showSubMenu && (
               <Toolbar>
-                <Grid container direction='row'
+                <Grid
+                  container direction='row'
                   justify='center' alignItems='center'
                 >
-                  {menu.map((item, index) => (
+                  {menu.map((item) => (
                     <Grid
                       item
-                      key={index}
+                      key={item.key}
                       className={classNames(classes.subHeader)}
                     >
                       <Link

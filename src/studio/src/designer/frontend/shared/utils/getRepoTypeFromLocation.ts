@@ -1,5 +1,5 @@
-import getRepoNameFromPath from "./getRepoNameFromPath";
-import getRepoTypeFromName from "./getRepoTypeFromName";
+import getRepoNameFromPath from './getRepoNameFromPath';
+import getRepoTypeFromName from './getRepoTypeFromName';
 
 function getRepoTypeFromLocation(): string | undefined {
   if (!window) {

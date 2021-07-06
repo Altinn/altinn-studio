@@ -2,8 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
 import { get, put as axiosPut, del } from '../../../utils/networking';
 import { sharedUrls } from '../../../utils/urlHelper';
-import {
-  fetchDataModel,
+import { fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
   saveDataModel,
@@ -12,8 +11,7 @@ import {
   IDataModelAction,
   deleteDataModel,
   deleteDataModelFulfilled,
-  deleteDataModelRejected,
-} from './dataModellingSlice';
+  deleteDataModelRejected } from './dataModellingSlice';
 import { DataModelsMetadataActions } from './metadata';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {

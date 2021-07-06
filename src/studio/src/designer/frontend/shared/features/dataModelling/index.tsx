@@ -35,10 +35,6 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
 
   const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
 
-  const fetchModel = () => {
-    dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
-  };
-
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
     if (!dataModelsMetadata?.length) { // no dataModels
       return;
@@ -50,7 +46,7 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
       return;
     }
     const option = dataModelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
-    if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the datamodel has been deleted
+    if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the dataModel has been deleted
       setSelectedModelMetadata(dataModelsMetadata[0]);
     }
     else if (!selectedModelMetadata.value && option) { // if the model was recently created and saved
@@ -60,9 +56,12 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
 
   React.useEffect(() => {
     if (selectedModelMetadata?.value) {
+      const fetchModel = () => {
+        dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
+      };
       fetchModel();
     }
-  }, [selectedModelMetadata]);
+  }, [selectedModelMetadata, dispatch]);
 
   const onSchemaSelected = setSelectedModelMetadata;
 

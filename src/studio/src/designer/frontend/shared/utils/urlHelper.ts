@@ -1,4 +1,4 @@
-import getNamesFromLocation from "./getNamesFromLocation";
+import getNamesFromLocation from './getNamesFromLocation';
 
 export const sharedUrls = () => {
   const [org, repo] = getNamesFromLocation();
@@ -20,7 +20,7 @@ export const sharedUrls = () => {
     repositoryGitUrl: `${origin}/repos/${org}/${repo}.git`,
     repositoryUrl: `${origin}/repos/${org}/${repo}`,
     getDataModellingUrl:
-      (pathToModelFile: string) => `${dataModelsApi}${encodeURIComponent(pathToModelFile)}`,
+      (pathToModelFile: string) => `${dataModelsApi}${pathToModelFile}`,
     createDataModellingUrl:
       (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
   };
