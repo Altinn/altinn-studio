@@ -19,7 +19,6 @@ export interface IAltinnPopoverProvidedProps {
   handleClose: any;
   header?: string;
   isLoading?: boolean;
-  nextTobtnConfirmText?: string;
   paperProps?: any;
   shouldShowCommitBox?: boolean;
   shouldShowDoneIcon?: boolean;
@@ -29,51 +28,37 @@ export interface IAltinnPopoverProvidedProps {
   };
 }
 
-export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
-
-}
-
-export interface IAltinnPopoverState {
-  commitMessage: string;
-}
-
 const theme = createMuiTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   borderBottom: {
     borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
   },
-  buttonCancel: {
+  buttonCommon: {
     fontSize: '14px',
-    color: theme.altinnPalette.primary.blueDarker,
-    background: theme.altinnPalette.primary.white,
     textTransform: 'none',
     fontWeight: 400,
     marginTop: '20px',
     borderRadius: '0',
+  },
+  buttonCancel: {
+    color: theme.altinnPalette.primary.blueDarker,
+    background: theme.altinnPalette.primary.white,
     '&:hover': {
       color: theme.altinnPalette.primary.blueDarker,
     },
     '&:focus': {
       background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
     },
   },
   buttonConfirm: {
-    fontSize: '14px',
     color: theme.altinnPalette.primary.white,
     background: theme.altinnPalette.primary.blueDark,
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
     '&:hover': {
       background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
     },
     '&:focus': {
       background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
     },
   },
   commitMessageField: {
@@ -202,7 +187,7 @@ const AltinnPopoverComponent = (props: any) => {
                 id={props.btnPrimaryId}
                 variant='contained'
                 color='primary'
-                className={classes.buttonConfirm}
+                className={classNames([classes.buttonCommon, classes.buttonConfirm])}
                 onClick={btnClickedHandler}
               >
                 {props.btnConfirmText}
@@ -212,7 +197,7 @@ const AltinnPopoverComponent = (props: any) => {
               <Button
                 id={props.btnSecondaryId}
                 color='primary'
-                className={classes.buttonCancel}
+                className={classNames([classes.buttonCommon, classes.buttonCancel])}
                 onClick={props.handleClose}
               >
                 <span className={classes.borderBottom}>
