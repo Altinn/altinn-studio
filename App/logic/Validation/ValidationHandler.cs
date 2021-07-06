@@ -27,6 +27,15 @@ namespace Altinn.App.AppLogic.Validation
                 if (!string.IsNullOrEmpty(middleName) && middleName.Contains("test"))
                 {
                     validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*WARNING*test er ikke en gyldig verdi");
+                    validationResults.AddModelError("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", "*WARNING*test er ikke en gyldig verdi");                    
+                }
+                if (!string.IsNullOrEmpty(middleName) && !middleName.Contains("test"))
+                {
+                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*FIXED*test er ikke en gyldig verdi");                    
+                }
+                if (string.IsNullOrEmpty(firstName))
+                {
+                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "Feltet er påkrevd");
                 }
                 if (!string.IsNullOrEmpty(firstName) && firstName.Contains("test"))
                 {
@@ -42,6 +51,10 @@ namespace Altinn.App.AppLogic.Validation
                 if (!string.IsNullOrEmpty(name) && name.Contains("test"))
                 {
                     validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "Name cannot contain test");
+                }
+                if (!string.IsNullOrEmpty(name) && !name.Contains("test"))
+                {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "*FIXED*Name cannot contain test");
                 }
                 if (!string.IsNullOrEmpty(comments) && comments.Contains("test"))
                 {

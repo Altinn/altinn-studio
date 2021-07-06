@@ -720,7 +720,9 @@
 			"Tekst50-repformat-70" : {
 					"minLength" : 1,
 					"maxLength" : 50,
-					"type" : "string"
+					"type" : "string",
+					"pattern": "^((?!client).)*$",
+          "errorMessage": "client side validering"
 				},
 			"SignererEkstraMobiltelefonsnummer-datadef-34750" : {
 					"properties" : {
