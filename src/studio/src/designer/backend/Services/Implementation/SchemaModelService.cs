@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -77,7 +76,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private string GetRootName(JsonSchema jsonSchema)
+        private static string GetRootName(JsonSchema jsonSchema)
         {
             Guard.AssertArgumentNotNull(jsonSchema.Properties(), nameof(jsonSchema));
 
@@ -146,7 +145,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
                 var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
-                var schemaName = GetSchemaName(altinnCoreFile);
+                var schemaName = GetSchemaName(relativeFilePath);
 
                 await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
                 DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
@@ -208,7 +207,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private IEnumerable<string> GetRelatedSchemaFiles(string schemaName, string directory)
+        private static IEnumerable<string> GetRelatedSchemaFiles(string schemaName, string directory)
         {
             var xsdFile = Path.Combine(directory, $"{schemaName}.xsd");
             var jsonSchemaFile = Path.Combine(directory, $"{schemaName}.schema.json");
@@ -216,21 +215,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new List<string>() { jsonSchemaFile, xsdFile };
         }
 
-        private string GetSchemaName(AltinnCoreFile altinnCoreFile)
-        {
-            if (altinnCoreFile.FileType.ToLower() == ".json" && altinnCoreFile.FileName.ToLower().EndsWith(".schema.json"))
-            {
-                return altinnCoreFile.FileName.Remove(altinnCoreFile.FileName.ToLower().IndexOf(".schema.json"));
-            }
-            else if (altinnCoreFile.FileType.ToLower() == ".xsd")
-            {
-                return altinnCoreFile.FileName;
-            }
-
-            return string.Empty;
-        }
-
-        private string GetSchemaName(string filePath)
+        private static string GetSchemaName(string filePath)
         {
             var fileInfo = new FileInfo(filePath);
 
@@ -246,7 +231,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return string.Empty;
         }
 
-        private async Task DeleteDatatypeFromApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string id)
+        private static async Task DeleteDatatypeFromApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string id)
         {
             var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 

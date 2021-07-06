@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -16,7 +15,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
 
