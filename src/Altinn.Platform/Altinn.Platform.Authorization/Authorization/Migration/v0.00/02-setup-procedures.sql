@@ -1,5 +1,5 @@
 -- Procecure: insert_delegation
-CREATE OR REPLACE PROCEDURE delegatedPolicy.insert_delegation(
+CREATE OR REPLACE PROCEDURE delegation.insert_delegation(
 	_altinnAppId character varying,	
 	_offeredByPartyId integer,
 	_coveredByUserId integer,
@@ -7,11 +7,11 @@ CREATE OR REPLACE PROCEDURE delegatedPolicy.insert_delegation(
 	_performingUserId integer,
 	_blobStoragePolicyPath character varying,
 	_blobStorageVersionId character varying,
-	out _policy_id bigint)
+	inout _policy_id bigint)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
-INSERT INTO delegatedPolicy.delegatedPolicy(
+INSERT INTO delegation.delegatedPolicy(
     altinnAppId, 
 	offeredByPartyId, coveredByUserId, coveredByPartyId, performingUserId,
     blobStoragePolicyPath, blobStorageVersionId
@@ -27,15 +27,15 @@ $BODY$;
 
 
 -- Function: get_with_history
-CREATE OR REPLACE FUNCTION delegatedPolicy.get_with_history(
+CREATE OR REPLACE FUNCTION delegation.get_with_history(
 	IN _altinnAppId character varying,	
 	IN _offeredByPartyId integer,
 	IN _coveredByUserId integer,
 	IN _coveredByPartyId integer
     )
-    RETURNS SETOF delegatedPolicy.delegatedPolicy AS 
+    RETURNS SETOF delegation.delegatedPolicy AS 
 $BODY$
-	SELECT * FROM delegatedPolicy.delegatedPolicy
+	SELECT * FROM delegation.delegatedPolicy
 	WHERE 
 	    altinnAppId = _altinnAppId
 	AND offeredByPartyId = _offeredByPartyId
@@ -47,15 +47,15 @@ LANGUAGE sql;
 
 
 -- Function: get_current
-CREATE OR REPLACE FUNCTION delegatedPolicy.get_current(
+CREATE OR REPLACE FUNCTION delegation.get_current(
 	_altinnAppId character varying,	
 	_offeredByPartyId integer,
 	_coveredByUserId integer,
 	_coveredByPartyId integer
 )
-RETURNS delegatedPolicy.delegatedPolicy AS 
+RETURNS delegation.delegatedPolicy AS 
 $BODY$
-	SELECT * FROM delegatedPolicy.delegatedPolicy
+	SELECT * FROM delegation.delegatedPolicy
 	WHERE 
 	    altinnAppId = _altinnAppId
 	AND offeredByPartyId = _offeredByPartyId
@@ -67,12 +67,12 @@ $BODY$
 LANGUAGE sql;
 
 -- Function: get_single
-CREATE OR REPLACE FUNCTION delegatedPolicy.get_single(
+CREATE OR REPLACE FUNCTION delegation.get_single(
 	_policyId bigint
 )
-RETURNS delegatedPolicy.delegatedPolicy AS 
+RETURNS delegation.delegatedPolicy AS 
 $BODY$
-	SELECT * FROM delegatedPolicy.delegatedPolicy
+	SELECT * FROM delegation.delegatedPolicy
 	WHERE 
 	    policyId = _policyId
 $BODY$
