@@ -60,12 +60,6 @@
     <None Update="skd-org.pfx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Testdata\Bridge\Profile\User\2001607.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Testdata\Bridge\Profile\User\2001606.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="ttd-org.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

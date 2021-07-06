@@ -1,17 +1,18 @@
-using System;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Services.Implementation;
+using Altinn.Platform.Profile.Tests.Mocks;
+using Altinn.Platform.Profile.Tests.Testdata;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
-using Moq.Protected;
 
 using Xunit;
 
@@ -20,13 +21,15 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
     public class UserProfilesWrapperTest
     {
         private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
-        private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<ILogger<UserProfilesWrapper>> logger;
 
         public UserProfilesWrapperTest()
         {
             generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
-            handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Loose);
+
+            GeneralSettings generalSettings = new GeneralSettings { BridgeApiEndpoint = "http://localhost/" };
+            generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
+
             logger = new Mock<ILogger<UserProfilesWrapper>>();
         }
 
@@ -37,25 +40,29 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
         public async Task GetUserFromId_TC01()
         {
             // Arrange
-            string expectedLanguage = "ru";
-            int userId = 2001607;
+            const int UserId = 2001607;
 
-            HttpResponseMessage response = new HttpResponseMessage
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(File.ReadAllText(GetUserDataPath(userId)), Encoding.UTF8, "application/json")
-            };
+                sblRequest = request;
 
-            InitializeMocks(response);
-            HttpClient httpClient = new HttpClient(handlerMock.Object);
+                UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
+                return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
+            });
+
+            HttpClient httpClient = new HttpClient(messageHandler);
             UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object);
 
             // Act
-            UserProfile actual = await target.GetUser(userId);
+            UserProfile actual = await target.GetUser(UserId);
 
             // Assert
-            handlerMock.VerifyAll();
-            Assert.Equal(expectedLanguage, actual.ProfileSettingPreference.Language);
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Get, sblRequest.Method);
+            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
+
+            Assert.Equal("ru", actual.ProfileSettingPreference.Language);
         }
 
         /// <summary>
@@ -65,45 +72,29 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
         public async Task GetUserFromId_TC02()
         {
             // Arrange
-            string expectedLanguage = "nb";
-            int userId = 2001606;
+            const int UserId = 2001606;
 
-            HttpResponseMessage response = new HttpResponseMessage
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(File.ReadAllText(GetUserDataPath(userId)), Encoding.UTF8, "application/json")
-            };
+                sblRequest = request;
 
-            InitializeMocks(response);
-            HttpClient httpClient = new HttpClient(handlerMock.Object);
+                UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
+                return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
+            });
+
+            HttpClient httpClient = new HttpClient(messageHandler);
             UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object);
 
             // Act
-            UserProfile actual = await target.GetUser(userId);
+            UserProfile actual = await target.GetUser(UserId);
 
             // Assert
-            handlerMock.VerifyAll();
-            Assert.Equal(expectedLanguage, actual.ProfileSettingPreference.Language);
-        }
+            Assert.NotNull(sblRequest);
+            Assert.Equal(HttpMethod.Get, sblRequest.Method);
+            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
 
-        private string GetUserDataPath(int userId)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(UserProfilesWrapperTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @$"Testdata\Bridge\Profile\User\{userId}.json");
-        }
-
-        private void InitializeMocks(HttpResponseMessage httpResponseMessage)
-        {
-            GeneralSettings generalSettings = new GeneralSettings { BridgeApiEndpoint = "http://localhost/" };
-            generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
-
-            handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(httpResponseMessage)
-                .Verifiable();
+            Assert.Equal("nb", actual.ProfileSettingPreference.Language);
         }
     }
 }

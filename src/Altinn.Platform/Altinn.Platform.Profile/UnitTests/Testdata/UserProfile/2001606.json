@@ -1,5 +1,5 @@
 {
-  "UserId": 20000005,
+  "UserId": 2001606,
   "UserType": 1,
   "UserName": "",
   "PhoneNumber": null,
@@ -37,7 +37,7 @@
     "ChildParties": null
   },
   "ProfileSettingPreference": {
-    "LanguageType": 1044,
+    "LanguageType": "1044",
     "PreSelectedPartyId": 0,
     "DoNotPromptForParty": false
   }
