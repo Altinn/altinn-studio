@@ -68,12 +68,12 @@ LANGUAGE sql;
 
 -- Function: get_single
 CREATE OR REPLACE FUNCTION delegation.get_single(
-	_policyId bigint
+	_policyChangeId bigint
 )
 RETURNS delegation.delegatedPolicy AS 
 $BODY$
 	SELECT * FROM delegation.delegatedPolicy
 	WHERE 
-	    policyId = _policyId
+	    policyChangeId = _policyChangeId
 $BODY$
 LANGUAGE sql;

@@ -1,7 +1,7 @@
 -- Table: delegation.delegatedPolicy
 CREATE TABLE IF NOT EXISTS delegation.delegatedPolicy
 (
-    policyId bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    policyChangeId bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     altinnAppId character varying COLLATE pg_catalog."default" NOT NULL,
     offeredByPartyId integer NOT NULL,
     coveredByPartyId integer,
