@@ -1,5 +1,5 @@
--- Procecure: insert_delegation_policy_change
-CREATE OR REPLACE PROCEDURE delegation.insert_new_delegation_policy(
+-- Procecure: insert_change
+CREATE OR REPLACE PROCEDURE delegation.insert_change(
   _altinnAppId character varying,
   _offeredByPartyId integer,
   _coveredByUserId integer,

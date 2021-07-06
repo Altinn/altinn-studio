@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS delegation.delegatedPolicy
 )
 TABLESPACE pg_default;
 
--- Index: AltinnAppID_OfferedByPartyId_CoveredByUserId_CoveredByPartyId
-CREATE INDEX IF NOT EXISTS idx_altinnAppID_offeredByPartyId_coveredByUserId_coveredByPartyId
+-- Index: idx_app_offeredby_coveredby
+CREATE INDEX IF NOT EXISTS idx_app_offeredby_coveredby
   ON delegation.delegatedPolicy USING btree
   (altinnAppId COLLATE pg_catalog."default" ASC NULLS LAST, offeredByPartyId ASC NULLS LAST, coveredByPartyId ASC NULLS LAST, coveredByUserId ASC NULLS LAST)
   TABLESPACE pg_default;
