@@ -15,7 +15,7 @@ namespace Altinn.Platform.Profile.Controllers
     /// The users controller
     /// </summary>
     [Authorize]
-    [Route("profile/api/v1/[controller]")]
+    [Route("profile/api/v1/users")]
     [Consumes("application/json")]
     [Produces("application/json")]
     public class UsersController : Controller
