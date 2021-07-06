@@ -2,14 +2,14 @@ const appsAccessSubscriptionKey = __ENV.appsaccesskey;
 const sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
-export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, api) {
+export function buildHeadersForData(isBinaryAttachment, binaryAttachmentType, altinnStudioRuntimeCookie, api) {
   var params = {};
   if (isBinaryAttachment) {
     params = {
       headers: {
         Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=test.pdf',
+        'Content-Type': `${findContentType(binaryAttachmentType)}`,
+        'Content-Disposition': `attachment; filename=test.${binaryAttachmentType}`,
       },
     };
   } else {
@@ -109,12 +109,6 @@ export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, a
   return params;
 }
 
-//Check if a string is a guid
-export function isGuid(stringToTest) {
-  var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return regexGuid.test(stringToTest);
-}
-
 //Function to add subscription key to the header when sent as env variable from command line
 //and endpoint is a platform endpoint
 function addSubscriptionKey(params, subscriptionKey, api) {
@@ -125,4 +119,28 @@ function addSubscriptionKey(params, subscriptionKey, api) {
     params.headers['Ocp-Apim-Subscription-Key'] = subscriptionKey;
   }
   return params;
+}
+
+/**
+ * Find the content type for a given type
+ * @param {string} type xml, pdf, txt
+ * @returns content type
+ */
+function findContentType(type) {
+  var contentType;
+  switch (type) {
+    case 'xml':
+      contentType = 'text/xml';
+      break;
+    case 'pdf':
+      contentType = 'application/pdf';
+      break;
+    case 'txt':
+      contentType = 'text/plain';
+      break;
+    default:
+      contentType = 'application/octet-stream';
+      break;
+  }
+  return contentType;
 }

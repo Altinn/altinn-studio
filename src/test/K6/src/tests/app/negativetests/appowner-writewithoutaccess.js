@@ -83,14 +83,14 @@ export default function (data) {
   }
 
   //Test to edit a form data in an instance with App APi and validate that the app owner is forbidden.
-  res = appData.putDataById(orgRuntimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
+  res = appData.putDataById(orgRuntimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
   success = check(res, {
     'Edit Form Data as app owner without write access - status is 403': (r) => r.status === 403,
   });
   addErrorCount(success);
 
   //upload a valid attachment to an instance with App API and validate that the app owner is forbidden.
-  res = appData.postData(orgRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+  res = appData.postData(orgRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
   success = check(res, {
     'Upload attachment as app owner without write access - status is 403': (r) => r.status === 403,
   });

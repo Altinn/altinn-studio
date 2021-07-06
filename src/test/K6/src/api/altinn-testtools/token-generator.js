@@ -1,4 +1,5 @@
 import http from 'k6/http';
+import { check } from 'k6';
 import encoding from 'k6/encoding';
 import * as config from '../../config.js';
 import * as support from '../../support.js';
@@ -29,6 +30,9 @@ export function generateToken(tokenFor, userName, userPwd, queryParams) {
   };
 
   var token = http.get(endpoint, params);
+  check(token, {
+    'Token generation is success': (r) => r.status === 200,
+  });
   if (token.status != 200) stopIterationOnFail('token gen failed', false, token);
   token = token.body;
   return token;
