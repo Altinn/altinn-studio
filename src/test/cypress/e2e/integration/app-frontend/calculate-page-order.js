@@ -21,8 +21,8 @@ describe('Calculate Page Order', () => {
 
   it('Page two is hidden on a higher value', () => {
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).type('1');
-    cy.get(appFrontend.group.newValue).type('11');
+    cy.get(appFrontend.group.currentValue).should('be.visible').type('1');
+    cy.get(appFrontend.group.newValue).should('be.visible').type('11');
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
@@ -46,7 +46,7 @@ describe('Calculate Page Order', () => {
       .then((table) => {
         cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
       });
-    cy.get(appFrontend.group.newValue).clear().type('2');
+    cy.get(appFrontend.group.newValue).should('be.visible').clear().type('2');
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
     cy.intercept('POST', '**/pages/order*').as('getPageOrder');
     cy.contains(mui.button, texts.next).click();

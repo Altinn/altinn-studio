@@ -98,7 +98,7 @@ describe('Group', () => {
 
   it('Calculation on Item in Main Group should update value', () => {
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).type('1337').blur();
+    cy.get(appFrontend.group.currentValue).should('be.visible').type('1337').blur();
     // CalculationHandler.cs for frontend-test changes 1337 to 1338.
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
     // Deletes value from group
@@ -111,7 +111,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup)
       .find(mui.tableBody)
       .then((table) => {
-        cy.get(table).get(mui.tableElement).should('have.length', 0);
+        cy.get(table).get(mui.tableElement).should('not.exist');
       });
   });
 });
