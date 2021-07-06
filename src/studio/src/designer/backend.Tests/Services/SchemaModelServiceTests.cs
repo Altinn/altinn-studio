@@ -99,7 +99,7 @@ namespace Designer.Tests.Services
 
                 // Act
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
-                var updatedSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
+                var updatedSchema = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", updatedSchema);
             }
             finally

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -70,9 +71,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 await UpdateJsonSchema(altinnAppGitRepository, relativeFilePath, jsonContent);
                 await UpdateXsd(altinnAppGitRepository, jsonSchema, schemaName);
-                await UpdateModelMetadata(altinnAppGitRepository, jsonSchema, schemaName);
+                var modelMetadata = await UpdateModelMetadata(altinnAppGitRepository, jsonSchema, schemaName);
                 await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, rootName);
-                await UpdateCSharpClasses(altinnAppGitRepository);
+                await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
             }
         }
 
@@ -83,9 +84,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return jsonSchema.Properties().FirstOrDefault().Key;
         }
 
-        private async static Task<bool> UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository)
+        private async static Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
-            return true;
+            JsonMetadataParser modelGenerator = new JsonMetadataParser();
+            string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
+            await altinnAppGitRepository.UpdateCSharpClasses(classes, schemaName);
         }
 
         private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string rootName)
@@ -161,12 +164,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream);
         }
 
-        private async static Task UpdateModelMetadata(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
+        private async static Task<ModelMetadata> UpdateModelMetadata(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
         {
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(altinnAppGitRepository.Org, altinnAppGitRepository.Repository, jsonSchema);
             ModelMetadata modelMetadata = converter.GetModelMetadata();
 
             await altinnAppGitRepository.UpdateModelMetadata(modelMetadata, schemaName);
+
+            return modelMetadata;
         }
 
         private static Stream ConvertJsonSchemaToXsd(JsonSchema jsonSchema)

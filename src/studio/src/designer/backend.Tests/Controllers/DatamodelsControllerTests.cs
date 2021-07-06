@@ -360,7 +360,7 @@ namespace Designer.Tests.Controllers
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/?modelPath={modelPath}";
-            var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""/definitions/rootType""}},""definitions"":{""rootType"":{""keyword"":""value""}}}";
+            var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
             string requestBody = minimumValidJsonSchema;
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {

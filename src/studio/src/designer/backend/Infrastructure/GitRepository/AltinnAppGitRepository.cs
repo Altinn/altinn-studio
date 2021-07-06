@@ -65,5 +65,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, metadataAsJson, true);
         }
+
+        /// <summary>
+        /// Updates the generated C# classes for the application model.
+        /// </summary>
+        /// <param name="csharpClasses">All C# classes that should be percisted (in one file).</param>
+        /// <param name="modelName">The name of the model, will be used as filename.</param>
+        /// <returns></returns>
+        public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
+        {
+            string modelMetadataRelativeFilePath = Path.Combine(MODEL_METADATA_FOLDER_PATH, $"{modelName}.cs");
+
+            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+        }
     }
 }
