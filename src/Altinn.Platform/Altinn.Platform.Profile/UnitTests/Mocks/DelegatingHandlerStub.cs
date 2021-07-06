@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
+namespace Altinn.Platform.Profile.Tests.Mocks
 {
     public class DelegatingHandlerStub : DelegatingHandler
     {

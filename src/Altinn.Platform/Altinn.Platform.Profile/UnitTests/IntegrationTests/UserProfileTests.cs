@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
+using Altinn.Platform.Profile.Tests.Mocks;
 using Altinn.Platform.Profile.Tests.Testdata;
 
 using Microsoft.AspNetCore.Mvc.Testing;

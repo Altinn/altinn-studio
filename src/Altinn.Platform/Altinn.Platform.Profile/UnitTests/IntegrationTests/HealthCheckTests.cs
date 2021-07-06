@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
+using Altinn.Platform.Profile.Tests.Mocks;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
