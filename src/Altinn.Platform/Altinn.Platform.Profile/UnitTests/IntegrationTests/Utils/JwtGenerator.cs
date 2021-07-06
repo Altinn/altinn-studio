@@ -10,7 +10,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
     /// <summary>
     /// Represents a mechanism for creating JSON Web tokens for use in integration tests.
     /// </summary>
-    public static class JwtTokenMock
+    public static class JwtGenerator
     {
         /// <summary>
         /// Generates a token with a self signed certificate included in the integration test project.
