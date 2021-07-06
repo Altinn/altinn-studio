@@ -2,7 +2,6 @@
 CREATE TABLE IF NOT EXISTS delegation.delegatedPolicy
 (
   policyChangeId bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  policyId bigint NOT NULL,
   altinnAppId character varying COLLATE pg_catalog."default" NOT NULL,
   offeredByPartyId integer NOT NULL,
   coveredByPartyId integer,
@@ -20,14 +19,3 @@ CREATE INDEX IF NOT EXISTS idx_altinnAppID_offeredByPartyId_coveredByUserId_cove
   (altinnAppId COLLATE pg_catalog."default" ASC NULLS LAST, offeredByPartyId ASC NULLS LAST, coveredByPartyId ASC NULLS LAST, coveredByUserId ASC NULLS LAST)
   TABLESPACE pg_default;
 
--- Index: PolicyId
-CREATE INDEX IF NOT EXISTS idx_policyId
-  ON delegation.delegatedPolicy USING btree
-  (policyId ASC NULLS LAST)
-  TABLESPACE pg_default;
-
--- Index: Created
-CREATE INDEX IF NOT EXISTS idx_created
-  ON delegation.delegatedPolicy USING btree
-  (created ASC NULLS LAST)
-  TABLESPACE pg_default;
