@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS delegation.delegatedPolicy
   performingUserId integer NOT NULL,
   blobStoragePolicyPath character varying COLLATE pg_catalog."default" NOT NULL,
   blobStorageVersionId character varying COLLATE pg_catalog."default",
+  isDeleted bool default true,
   created timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
 TABLESPACE pg_default;
