@@ -37,34 +37,6 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
             return serializedToken;
         }
 
-        /// <summary>
-        /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
-        /// and is included in the integration test project as a separate file.
-        /// </summary>
-        /// <param name="token">The token to be validated.</param>
-        /// <returns>ClaimsPrincipal</returns>
-        public static ClaimsPrincipal ValidateToken(string token)
-        {
-            string certPath = "JWTValidationCert.cer";
-
-            X509Certificate2 cert = new X509Certificate2(certPath);
-            SecurityKey key = new X509SecurityKey(cert);
-
-            TokenValidationParameters validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                RequireExpirationTime = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-            return validator.ValidateToken(token, validationParameters, out SecurityToken _);
-        }
-
         private static SigningCredentials GetSigningCredentials(string issuer)
         {
             string certPath = "jwtselfsignedcert.pfx";
