@@ -10,7 +10,7 @@ const mui = new Common();
  * Start app instance of frontend-test and navigate to change name layout in task_2
  */
 Cypress.Commands.add('navigateToChangeName', () => {
-  cy.startAppInstance();
+  cy.startAppInstance(Cypress.env('multiData2Stage'));
   cy.get(appFrontend.closeButton).should('be.visible');
   cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
   cy.get(appFrontend.sendinButton).then((button) => {
