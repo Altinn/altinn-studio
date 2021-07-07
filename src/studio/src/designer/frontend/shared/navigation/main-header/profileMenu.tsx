@@ -5,7 +5,7 @@ import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
 import { IAltinnWindow } from '../../types';
-import { sharedUrls } from '../../utils/urlHelper';
+import { sharedUrls, altinnStudioDocsUrl } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 
 export interface IProfileMenuComponentProps {
@@ -129,7 +129,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
             className={classes.menuItem}
           >
             <a
-              href={sharedUrls().altinnStudioDocsUrl}
+              href={altinnStudioDocsUrl}
               target='_blank'
               rel='noopener noreferrer'
             >

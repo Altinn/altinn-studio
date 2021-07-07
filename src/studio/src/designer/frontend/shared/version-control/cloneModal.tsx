@@ -6,7 +6,7 @@ import AltinnInputField from '../components/AltinnInputField';
 import AltinnAppTheme from '../theme/altinnAppTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
-import { sharedUrls } from '../utils/urlHelper';
+import { sharedUrls, altinnDocsUrl } from '../utils/urlHelper';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -84,7 +84,7 @@ function CloneModal(props: ICloneModalProps) {
         <Grid item={true} className={props.classes.sectionSeparator}>
           <Typography variant='body1'>
             <a
-              href={sharedUrls().altinnDocsUrl} target='_blank'
+              href={altinnDocsUrl} target='_blank'
               rel='noopener noreferrer'
             >
               {getLanguageFromKey('sync_header.favourite_tool_link', props.language)}
