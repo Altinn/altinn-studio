@@ -31,7 +31,7 @@ namespace Altinn.App.PlatformServices.Helpers
         {
             if (!ValidateLegalFilePath(legalPath, filePath))
             {
-                throw new Exception("Invalid path");
+                throw new ArgumentException("Invalid path", nameof(filePath));
             }
         }
     }
