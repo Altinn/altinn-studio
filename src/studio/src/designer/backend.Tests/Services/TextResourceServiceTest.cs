@@ -19,7 +19,7 @@ using Xunit;
 
 using StorageInterface = Altinn.Platform.Storage.Interface.Models;
 
-namespace Designer.Tests.TestingServices
+namespace Designer.Tests.Services
 {
     public class TextResourceServiceTest
     {

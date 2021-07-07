@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Designer.Tests.Utils;
 using Xunit;
@@ -63,6 +64,32 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"..\should.not.exist", "some content"));
+        }
+
+        [Fact]
+        public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldThrowException()
+        {
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            var relativeFileUrl = "test_this/does/not/exits/deleteme.txt";
+            Assert.False(gitRepository.FileExistsByRelativePath(relativeFileUrl));
+            await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should not be here", false));
+        }
+
+        [Fact]
+        public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldCreateDirectory()
+        {
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            var relativeFileUrl = "test_directory/should/be/created/deleteme.txt";
+
+            Assert.False(gitRepository.FileExistsByRelativePath(relativeFileUrl));
+
+            await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should be here", true);
+
+            Assert.True(gitRepository.FileExistsByRelativePath(relativeFileUrl));
+
+            TestDataHelper.DeleteDirectory(Path.Join(gitRepository.RepositoryDirectory, "test_directory"));            
         }
 
         [Fact]
