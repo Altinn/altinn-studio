@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -74,12 +75,12 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
 
-        public static string CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public async static Task<string> CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
 
-            CopyDirectory(sourceAppRepository, targetDirectory);
+            await CopyDirectory(sourceAppRepository, targetDirectory);
 
             return targetDirectory;
         }
@@ -118,7 +119,7 @@ namespace Designer.Tests.Utils
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
 
-        public static void CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
@@ -135,15 +136,32 @@ namespace Designer.Tests.Utils
             foreach (FileInfo file in files)
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-                file.CopyTo(tempPath, false);
+                
+                var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
+                await File.WriteAllBytesAsync(tempPath, sourceBytes);
             }
 
             if (copySubDirs)
             {
                 foreach (DirectoryInfo subdir in sourceSubDirectories)
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
-                    CopyDirectory(subdir.FullName, tempPath, copySubDirs);
+                    string tempPath = Path.Combine(targetDirectory, subdir.Name);                    
+                    await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
+                }
+            }
+        }
+
+        /// <summary>
+        /// File.ReadAllBytes alternative to avoid read and/or write locking
+        /// </summary>
+        private static byte[] ReadAllBytesWithoutLocking(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    fs.CopyTo(ms);
+                    return ms.ToArray();
                 }
             }
         }

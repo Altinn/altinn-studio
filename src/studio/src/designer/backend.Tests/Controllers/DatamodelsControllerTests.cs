@@ -356,7 +356,7 @@ namespace Designer.Tests.Controllers
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/?modelPath={modelPath}";
