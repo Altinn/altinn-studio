@@ -16,7 +16,7 @@ export interface IAltinnPopoverProvidedProps {
   btnSecondaryId?: string;
   classes: any;
   descriptionText?: string;
-  handleClose: any;
+  handleClose: () => void;
   header?: string;
   isLoading?: boolean;
   paperProps?: any;

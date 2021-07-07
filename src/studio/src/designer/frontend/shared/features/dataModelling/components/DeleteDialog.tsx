@@ -3,11 +3,11 @@ import Popover from '../../../components/AltinnPopover';
 import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
 
 interface IDeleteDialogProps {
-  anchor: any,
+  anchor: Element,
   language: any,
-  schemaName: any,
-  onConfirm: any;
-  onCancel: any
+  schemaName: string,
+  onConfirm: () => void,
+  onCancel: () => void,
 }
 
 export default function DeleteDialog(props: IDeleteDialogProps) {

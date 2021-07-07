@@ -38,13 +38,13 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
           {getLanguageFromKey('general.delete', props.language)}
         </Button>
       </Grid>
-      <DeleteDialog
+      { deleteButtonAnchor && <DeleteDialog
         anchor={deleteButtonAnchor}
         language={props.language}
         schemaName={props.schemaName}
         onConfirm={onDeleteConfirmClick}
         onCancel={onCancelDelete}
-      />
+      /> }
     </>
   );
 }
