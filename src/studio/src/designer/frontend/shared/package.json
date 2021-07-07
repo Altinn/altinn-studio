@@ -48,6 +48,7 @@
     "babel-loader": "~8.2.2",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "~1.15.6",
+    "enzyme-to-json": "^3.6.2",
     "fork-ts-checker-notifier-webpack-plugin": "~4.0.0",
     "fork-ts-checker-webpack-plugin": "~6.2.12",
     "jest": "~27.0.6",

@@ -25,7 +25,7 @@ interface IDataModellingContainerProps {
   SchemaEditor: (props: any) => JSX.Element;
 }
 
-export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
+function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const { SchemaEditor, language } = props;
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -111,3 +111,4 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
     </div>
   );
 }
+export default DataModelling;

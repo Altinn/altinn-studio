@@ -29,8 +29,8 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     }
   };
   const onCreateConfirmClick = () => {
-    if (newModelName && newModelName.length > 0) {
-      if (props.dataModelNames.includes(newModelName.toLowerCase())) {
+    if (!nameError && newModelName && newModelName.length > 0) {
+      if (props.dataModelNames.includes(newModelName)) {
         setNameError(`A model with name ${newModelName} already exists.`);
         return;
       }
@@ -73,6 +73,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
           inputFieldStyling={{ width: '250px' }}
           onChangeFunction={onNewModelNameChanged}
           onBtnClickFunction={onCreateConfirmClick}
+          onReturn={onCreateConfirmClick}
         />
       </AltinnPopoverSimple>
     </>

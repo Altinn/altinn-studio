@@ -3,7 +3,9 @@ import SchemaEditor from '@altinn/schema-editor/SchemaEditorApp';
 import { IRouteProps } from 'config/routes';
 import { DataModelling } from 'app-shared/features';
 
-interface IDataModellingContainerProps extends IRouteProps { }
+interface IDataModellingContainerProps extends IRouteProps {
+  language: any;
+}
 
 export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
   return (

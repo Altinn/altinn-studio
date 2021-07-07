@@ -1,4 +1,5 @@
 import { mount } from 'enzyme';
+import toJson from 'enzyme-to-json';
 import 'jest';
 import * as React from 'react';
 import DeleteDialog from '../../../../features/dataModelling/components/DeleteDialog';
@@ -17,7 +18,7 @@ describe('>>> DeleteDialog.tsx', () => {
     onConfirm={() => {}}
   />);
   it('+++ Should match snapshot with the least amount of params', () => {
-    const rendered = mountComponent().html();
-    expect(rendered).toMatchSnapshot();
+    const wrapper = mountComponent();
+    expect(toJson(wrapper)).toMatchSnapshot();
   });
 });
