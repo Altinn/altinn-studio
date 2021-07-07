@@ -20,16 +20,6 @@ namespace Altinn.App.PlatformServices.Helpers
         /// <returns></returns>
         public static bool ValidateLegalFilePath(string legalPath, string filePath)
         {
-            if (!Path.IsPathFullyQualified(legalPath))
-            {
-                legalPath = Path.Combine(Directory.GetCurrentDirectory(), legalPath);
-            }
-
-            if (!Path.IsPathFullyQualified(filePath))
-            {
-                filePath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-            }
-
             var fullRootedFolder = Path.GetFullPath(legalPath + Path.DirectorySeparatorChar);
             var expandedFilename = Path.GetFullPath(filePath);
 
