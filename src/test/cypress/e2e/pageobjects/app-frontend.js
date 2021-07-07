@@ -69,5 +69,13 @@ export default class AppFrontend {
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
     };
+
+    //Stateless-app
+    this.stateless = {
+      name: '#name',
+      number: '#number',
+      idnumber: '#idnummer',
+      idnummer2: '#idnummer2',
+    };
   }
 }
