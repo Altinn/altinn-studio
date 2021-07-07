@@ -7,8 +7,7 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "text"
-        },
-        "dataModelBindings": {}
+        }        
       },
       {
         "id": "name",
@@ -20,7 +19,8 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "labelSettings": {"optionalIndicator": false}
       },
       {
         "id": "number",
@@ -32,7 +32,8 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "labelSettings": {"optionalIndicator": false}
       },
       {
         "id": "idnummer",
@@ -44,7 +45,8 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "labelSettings": {"optionalIndicator": false}
       },
       {
         "id": "idnummer2",
@@ -56,7 +58,8 @@
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "labelSettings": {"optionalIndicator": false}
       }
     ]
   }
