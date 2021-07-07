@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Altinn.App.PlatformServices.Helpers
 {
@@ -17,7 +13,7 @@ namespace Altinn.App.PlatformServices.Helpers
         /// </summary>
         /// <param name="legalPath">The legal path</param>
         /// <param name="filePath">The file path to check</param>
-        /// <returns></returns>
+        /// <returns>True for legal paths, false otherwise</returns>
         public static bool ValidateLegalFilePath(string legalPath, string filePath)
         {
             var fullRootedFolder = Path.GetFullPath(legalPath + Path.DirectorySeparatorChar);
