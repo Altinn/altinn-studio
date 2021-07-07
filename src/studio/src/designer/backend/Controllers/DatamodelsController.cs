@@ -18,6 +18,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -125,7 +126,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelPath">The path to the file to be updated.</param>        
         [Authorize]
         [HttpPut]
-        [ProducesResponseType(204)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
         {
@@ -145,7 +146,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelPath">The path to the file to be deleted.</param>        
         [Authorize]
         [HttpDelete]
-        [ProducesResponseType(204)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
@@ -162,8 +163,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">the model repos</param>
         [Authorize]
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(302)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
@@ -181,7 +182,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelPath">The path to the file to get.</param>        
         [Authorize]
         [HttpGet]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("/designer/api/{org}/{repository}/datamodels/{*modelPath}")]
         public async Task<IActionResult> Get(string org, string repository, string modelPath)
         {
