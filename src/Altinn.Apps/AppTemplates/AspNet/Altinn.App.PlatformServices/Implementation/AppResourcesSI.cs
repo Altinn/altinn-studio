@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -55,35 +56,24 @@ namespace Altinn.App.Services.Implementation
 
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
-                {
-                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
-                }
+                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
             }
             else if (resource == _settings.FormLayoutJSONFileName)
             {
-                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
-                {
-                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
-                }
+                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
             }
             else if (resource == _settings.RuleConfigurationJSONFileName)
             {
-                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
-                {
-                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
-                }
-                else
+                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
+
+                if (fileContent == null)
                 {
                     fileContent = new byte[0];
                 }
             }
             else
             {
-                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
-                {
-                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource);
-                }
+                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.GetResourceFolder(), resource);
             }
 
             return fileContent;
@@ -92,14 +82,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public byte[] GetText(string org, string app, string textResource)
         {
-            byte[] fileContent = null;
-
-            if (File.Exists(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource))
-            {
-                fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource);
-            }
-
-            return fileContent;
+            return ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder, textResource);
         }
 
         /// <inheritdoc />
@@ -153,7 +136,10 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public string GetModelJsonSchema(string modelId)
         {
-            string filename = $"{_settings.AppBasePath}{_settings.ModelsFolder}{modelId}.{_settings.JsonSchemaFileName}";
+            string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
+            string filename = $"{legalPath}{modelId}.{_settings.JsonSchemaFileName}";
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
 
             return filedata;
@@ -188,7 +174,10 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public string GetPrefillJson(string dataModelName = "ServiceModel")
         {
-            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataModelName + ".prefill.json";
+            string legalPath = _settings.AppBasePath + _settings.ModelsFolder;
+            string filename = legalPath + dataModelName + ".prefill.json";
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
             string filedata = null;
             if (File.Exists(filename))
             {
@@ -210,7 +199,7 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
-        
+
         /// <inheritdoc />
         public LayoutSettings GetLayoutSettings()
         {
@@ -236,7 +225,7 @@ namespace Altinn.App.Services.Implementation
             if (element != null)
             {
                 classRef = element.AppLogic.ClassRef;
-            }            
+            }
 
             return classRef;
         }
@@ -244,7 +233,10 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public List<AppOption> GetOptions(string optionId)
         {
-            string filename = _settings.AppBasePath + _settings.OptionsFolder + optionId + ".json";
+            string legalPath = _settings.AppBasePath + _settings.OptionsFolder;
+            string filename = legalPath + optionId + ".json";
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
             try
             {
                 if (File.Exists(filename))
@@ -353,14 +345,22 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public byte[] GetRuleConfigurationForSet(string id)
         {
-            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleConfigurationJSONFileName);
+            string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
+            string filename = Path.Join(legalPath, id, _settings.RuleConfigurationJSONFileName);
+
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
             return ReadFileByte(filename);
         }
 
         /// <inheritdoc />
         public byte[] GetRuleHandlerForSet(string id)
         {
-            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, id, _settings.RuleHandlerFileName);
+            string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
+            string filename = Path.Join(legalPath, id, _settings.RuleHandlerFileName);
+
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
             return ReadFileByte(filename);
         }
 
@@ -373,6 +373,22 @@ namespace Altinn.App.Services.Implementation
             }
 
             return filedata;
+        }
+       
+        private byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
+        {
+            var fullFileName = legalPath + filePath;
+            if (!PathHelper.ValidateLegalFilePath(legalPath, fullFileName))
+            {
+                throw new ArgumentException("Invalid argument", nameof(filePath));
+            }
+
+            if (File.Exists(fullFileName))
+            {
+                return File.ReadAllBytes(fullFileName);
+            }
+
+            return null;
         }
     }
 }
