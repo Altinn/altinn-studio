@@ -68,4 +68,12 @@ describe('Validation', () => {
       .should('be.visible')
       .should('contain.text', texts.attachmentError);
   });
+
+  it('Client side validation from json schema', () => {
+    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('client').blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substr(1)))
+      .should('exist')
+      .should('be.visible')
+      .should('have.text', texts.clientSide);
+  });
 });

@@ -9,5 +9,6 @@
   "next": "Neste",
   "goToRightPage": "Gå til riktig side i skjema",
   "ttd": "Testdepartementet",
-  "confirmBody": "Vennligst vent, endrer navn til a a."
+  "confirmBody": "Vennligst vent, endrer navn til a a.",
+  "clientSide": "client side validering"
 }
