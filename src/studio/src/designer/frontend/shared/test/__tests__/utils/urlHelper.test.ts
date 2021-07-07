@@ -9,7 +9,7 @@ describe('Shared urlHelper.ts', () => {
     });
     // const localContext =
     const runUrlTests = () => {
-      expect(sharedUrls().dataModelsApi).toBe('http://altinn3.no/designer/api/org/repo/datamodels');
+      expect(sharedUrls().dataModelsApi).toBe('https://altinn3.no/designer/api/org/repo/datamodels');
       expect(sharedUrls().dataModelUploadPageUrl).toContain('/designer/org/repo#/datamodel');
       expect(sharedUrls().dataModelXsdUrl).toContain('/designer/org/repo/Model/GetXsd');
       expect(sharedUrls().repositoryGitUrl).toContain('/repos/org/repo.git');
@@ -19,7 +19,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'http://altinn3.no',
+        origin: 'https://altinn3.no',
         hash: '#/datamodelling',
         pathname: '/designer/org/repo',
       };
@@ -29,7 +29,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'http://altinn3.no',
+        origin: 'https://altinn3.no',
         hash: '#/datamodelling/org/repo',
         pathname: '/Home/Index',
       };
