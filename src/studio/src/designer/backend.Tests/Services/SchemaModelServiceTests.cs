@@ -1,8 +1,10 @@
 using System;
-using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
@@ -99,8 +101,34 @@ namespace Designer.Tests.Services
 
                 // Act
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
-                var updatedSchema = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
-                await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", updatedSchema);
+                var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+                await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
+
+                // Assert
+                var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
+
+                var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
+                updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
+                
+                var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
+
+                // Generated XSD included for reference
+                // <?xml version="1.0"?>
+                // <xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                //   <xsd:element name="root" type="rootType" />
+                //   <xsd:complexType name="rootType">
+                //     <xsd:sequence>
+                //       <xsd:element minOccurs="0" name="keyword" nillable="true" type="xsd:string" />
+                //     </xsd:sequence>
+                //   </xsd:complexType>
+                // </xsd:schema>
+                var xsdSchema = XDocument.Parse(xsd);
+                xsdSchema.Root.Should().NotBeNull();
+                xsdSchema.Root.Elements().First().Attributes().First(a => a.Name.LocalName == "name").Should().HaveValue("root");
+
+                var metadataModelJson = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.metadata.json");
+                var jsonSchema = JsonSerializer.Deserialize<ModelMetadata>(metadataModelJson);
+                jsonSchema.Org.Should().Be(org);
             }
             finally
             {

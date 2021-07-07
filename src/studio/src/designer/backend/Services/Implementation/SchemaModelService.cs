@@ -198,7 +198,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return jsonSchema;
         }
 
-        private void DeleteRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
+        private static void DeleteRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
         {
             var files = GetRelatedSchemaFiles(schemaName, directory);
             foreach (var file in files)
