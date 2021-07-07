@@ -139,7 +139,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Updates the specified datamodel in the git repository.
+        /// Deletes the specified datamodel in the git repository.
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository</param>
@@ -184,7 +184,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("/designer/api/{org}/{repository}/datamodels/{*modelPath}")]
-        public async Task<IActionResult> Get(string org, string repository, string modelPath)
+        public async Task<ActionResult<string>> Get(string org, string repository, string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var json = await _schemaModelService.GetSchema(org, repository, developer, modelPath);
