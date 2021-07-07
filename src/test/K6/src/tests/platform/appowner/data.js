@@ -66,7 +66,7 @@ export default function (data) {
 
   //Test to add an form data to an instance with storage api and validate the response
   //that created by is an app owner
-  res = instanceData.postData(runtimeToken, partyId, instanceId, 'default', instanceFormDataXml);
+  res = instanceData.postData(runtimeToken, partyId, instanceId, 'default', instanceFormDataXml, null);
   success = check(res, {
     'POST Create Data status is 201': (r) => r.status === 201,
     'POST Create Instance Data Id is not null': (r) => JSON.parse(r.body).id != null,
@@ -84,14 +84,14 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to edit a data in an instance and validate the response
-  res = instanceData.putData(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml);
+  res = instanceData.putData(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml);
   success = check(res, {
     'PUT Edit Data by Id status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Test to add a pdf attachment to an instance with storage api and validate the response
-  res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);
+  res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf');
   success = check(res, {
     'POST Add Attachment status is 201': (r) => r.status === 201,
     'POST Add Attachment Data Id is not null': (r) => JSON.parse(r.body).id != null,

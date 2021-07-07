@@ -66,7 +66,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   };
   const onNewModelNameChanged = (e: any) => {
     const name = e.target.value;
-    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+    if (!name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
       setNameError('Invalid name');
     } else {
       setNameError('');
@@ -75,7 +75,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   };
 
   const onCreateConfirmClick = () => {
-    if (newModelName && newModelName.length > 0) {
+    if (!nameError && newModelName && newModelName.length > 0) {
       if (dataModelNames.includes(newModelName)) {
         setNameError(`A model with name ${newModelName} already exists.`);
         return;
@@ -98,6 +98,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
     setNewModelName(null);
+    setNameError(null);
   };
 
   return (
@@ -157,7 +158,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             error={nameError}
             clearError={() => setNameError(null)}
             inputFieldStyling={{ width: '250px' }}
-            onChangeFunction={onNewModelNameChanged}
+            onBlurFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
             onReturn={onCreateConfirmClick}
           />

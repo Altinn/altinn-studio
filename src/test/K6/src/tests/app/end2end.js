@@ -77,14 +77,14 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to edit a form data in an instance with App APi and validate the response
-  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
+  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
   success = check(res, {
     'E2E PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });
   addErrorCount(success);
 
   //upload a big attachment to an instance with App API
-  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment, appOwner, level2App);
+  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment, 'txt', appOwner, level2App);
 
   dataId = JSON.parse(res.body).id;
 
@@ -99,7 +99,7 @@ export default function (data) {
   appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
 
   //upload a valid attachment to an instance with App API
-  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
 
   dataId = JSON.parse(res.body).id;
 

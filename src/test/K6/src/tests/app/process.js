@@ -79,8 +79,8 @@ export default function (data) {
   addErrorCount(success);
 
   //update instance date for completing the process of the instance
-  appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
-  appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+  appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
+  appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
 
   //Test to get next process of an app instance again and verify response code  to be 200
   res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
