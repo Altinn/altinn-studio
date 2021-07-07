@@ -13,6 +13,7 @@ export default class AppFrontend {
     this.helpText = '.ai-circle-plus';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
+    this.altinnError = 'div[class*="AltinnError-contentMargin"]';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
