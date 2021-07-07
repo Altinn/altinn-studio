@@ -9,11 +9,8 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
-  before(() => {
-    cy.navigateToChangeName();
-  });
   beforeEach(() => {
-    cy.preserveCookies();
+    cy.navigateToChangeName();
   });
 
   it('Required field validation on blur', () => {

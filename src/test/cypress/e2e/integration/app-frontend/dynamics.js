@@ -6,11 +6,8 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Dynamics', () => {
-  before(() => {
-    cy.navigateToChangeName();
-  });
   beforeEach(() => {
-    cy.preserveCookies();
+    cy.navigateToChangeName();
   });
 
   it('Show and hide confirm name change checkbox on changing firstname', () => {
