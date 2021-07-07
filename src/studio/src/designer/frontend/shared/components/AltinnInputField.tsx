@@ -88,8 +88,8 @@ class AltinnInputFieldComponent extends
     }
   }
 
-  private onKeyDown(e: any) {
-    if (e.keyCode === 13 && !this.props.error) {
+  private onKeyDown(e: KeyboardEventInit) {
+    if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
       this.props.onReturn();
     }
   }
@@ -142,7 +142,7 @@ class AltinnInputFieldComponent extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn ? this.onKeyDown : undefined}
+            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown(e))}
           />
           <div ref={this.errorRef} />
           <ErrorPopover
