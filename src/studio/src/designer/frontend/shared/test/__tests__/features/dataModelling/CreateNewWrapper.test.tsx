@@ -24,7 +24,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     const rendered = renderer.create(
       <CreateNewWrapper
         language={language} buttonClass='button'
-        dataModelNames={[]} createAction={() => {}}
+        dataModelNames={[]} createAction={() => { /* intentional */ }}
       />,
     );
     expect(rendered).toMatchSnapshot();

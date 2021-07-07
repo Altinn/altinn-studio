@@ -25,7 +25,7 @@ describe('>>> DeleteWrapper.tsx', () => {
     const rendered = renderer.create(
       <DeleteWrapper
         language={language} buttonClass='button'
-        schemaName='deletable-model' deleteAction={() => {}}
+        schemaName='deletable-model' deleteAction={() => { /* intentional */ }}
       />,
     );
     expect(rendered).toMatchSnapshot();

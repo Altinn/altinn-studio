@@ -1,4 +1,5 @@
 import getNamesFromLocation from './getNamesFromLocation';
+
 const cdn = 'https://altinncdn.no';
 export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = `${cdn}/img/altinn_logo_header.png`;

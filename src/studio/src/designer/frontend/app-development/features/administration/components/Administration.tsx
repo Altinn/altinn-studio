@@ -237,36 +237,37 @@ export class AdministrationComponent extends
     );
   }
 
-  public RenderSideMenuContent = () => {
-    return (
+  public render() {
+    const {
+      classes, service, serviceName, serviceDescription, serviceId,
+    } = this.props;
+    const render = service &&
+      serviceName !== null &&
+      serviceDescription !== null &&
+      serviceId !== null;
+    const AboveColumnChildren = () => (
+      <div className={classes.versionControlHeaderMargin}>
+        <VersionControlHeader language={this.props.language} />
+      </div>
+    );
+    const SideMenuChildren = () => (
       <SideMenuContent
         initialCommit={this.props.initialCommit}
         language={this.props.language}
         service={this.props.service}
       />
     );
-  }
-
-  public render() {
-    const { classes } = this.props;
-
     return (
       <div data-testid='administration-container'>
-        {this.props.service &&
-          this.props.serviceName !== null &&
-          this.props.serviceDescription !== null &&
-          this.props.serviceId !== null ?
+        {render ? (
           <AltinnColumnLayout
-            aboveColumnChildren={
-              <div className={this.props.classes.versionControlHeaderMargin}>
-                <VersionControlHeader language={this.props.language} />
-              </div>}
-            sideMenuChildren={<this.RenderSideMenuContent />}
+            aboveColumnChildren={<AboveColumnChildren />}
+            sideMenuChildren={<SideMenuChildren />}
             header={getLanguageFromKey('administration.administration', this.props.language)}
           >
             <this.RenderMainContent />
           </AltinnColumnLayout>
-          :
+        ) :
           <Grid container={true}>
             <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
           </Grid>

@@ -14,8 +14,8 @@ describe('>>> DeleteDialog.tsx', () => {
     anchor={document.body}
     language={language}
     schemaName={schemaName}
-    onCancel={() => {}}
-    onConfirm={() => {}}
+    onCancel={() => { /* intentional */ }}
+    onConfirm={() => { /* intentional */ }}
   />);
   it('+++ Should match snapshot with the least amount of params', () => {
     const wrapper = mountComponent();

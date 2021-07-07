@@ -1,5 +1,4 @@
-import {
-  CircularProgress,
+import { CircularProgress,
   createMuiTheme,
   createStyles,
   Grid,
@@ -9,8 +8,7 @@ import {
   Tabs,
   Typography,
   withStyles,
-  WithStyles
-} from '@material-ui/core';
+  WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
