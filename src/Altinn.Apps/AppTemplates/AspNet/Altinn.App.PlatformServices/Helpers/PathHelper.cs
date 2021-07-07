@@ -20,12 +20,12 @@ namespace Altinn.App.PlatformServices.Helpers
         /// <returns></returns>
         public static bool ValidateLegalFilePath(string legalPath, string filePath)
         {
-            if (!Path.IsPathRooted(legalPath))
+            if (!Path.IsPathFullyQualified(legalPath))
             {
                 legalPath = Path.Combine(Directory.GetCurrentDirectory(), legalPath);
             }
 
-            if (!Path.IsPathRooted(filePath))
+            if (!Path.IsPathFullyQualified(filePath))
             {
                 filePath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
             }
@@ -40,7 +40,7 @@ namespace Altinn.App.PlatformServices.Helpers
         /// Ensures that the filePath is within the legalPath. Throws exception if the filePath is illegal.
         /// </summary>
         /// <param name="legalPath">The legal path</param>
-        /// <param name="filePath">The file path to check</param>        
+        /// <param name="filePath">The file path to check</param>
         public static void EnsureLegalPath(string legalPath, string filePath)
         {
             if (!ValidateLegalFilePath(legalPath, filePath))
