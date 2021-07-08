@@ -113,11 +113,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const nameFieldRef = React.useCallback((node: any) => {
     if (node && focusName && focusName === selectedId) {
-      node.focus();
-      node.select();
+      setTimeout(() => {
+        node.select();
+      }, 100);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusName]);
+  }, [focusName, selectedId]);
+
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -225,7 +227,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (path) {
       dispatch(addProperty({
         path,
-        keepSelection: true,
       }));
     }
   };

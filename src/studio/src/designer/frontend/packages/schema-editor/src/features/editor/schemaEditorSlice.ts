@@ -97,7 +97,7 @@ const schemaEditorSlice = createSlice({
       if (!keepSelection) {
         state.selectedId = item.id;
         state.selectedNodeId = getDomFriendlyID(item.id);
-        state.focusNameField = item.displayName;
+        state.focusNameField = item.id;
       }
     },
     addRefProperty(state, action) {
