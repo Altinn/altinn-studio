@@ -70,6 +70,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
     <>
       <Grid item xs={4}>
         <Autocomplete
+          selectOnFocus={true}
           freeSolo={true}
           id={`${baseId}-${props.keyName}-key`}
           disabled={props.readOnly}

@@ -242,11 +242,19 @@ const schemaEditorSlice = createSlice({
       const {
         path, oldKey, newKey,
       } = action.payload;
+      if (oldKey === newKey) {
+        return;
+      }
+      let key = newKey;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem.restrictions) {
+        // eslint-disable-next-line no-loop-func
+        while (schemaItem.restrictions.findIndex((f) => f.key === key) > -1) {
+          key += 1;
+        }
         const fieldItem = schemaItem.restrictions.find((field) => field.key === oldKey);
         if (fieldItem) {
-          fieldItem.key = newKey;
+          fieldItem.key = key;
         }
       }
     },

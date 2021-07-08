@@ -190,6 +190,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
+    if (oldKey === newKey) {
+      return;
+    }
     dispatch(setKey({
       path, oldKey, newKey,
     }));
