@@ -67,7 +67,7 @@ Cypress.Commands.add('compelteTask3Form', () => {
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
     cy.get(checkbox).should('be.visible').find('input').check();
   });
-  cy.addItemToGroup(1, 2, 'automation');  
+  cy.addItemToGroup(1, 2, 'automation');
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
   cy.contains(mui.button, texts.next).click();
