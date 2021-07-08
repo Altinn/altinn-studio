@@ -9,10 +9,10 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from '../../utils/urlHelper';
+import { IMenuItem } from '../drawer/drawerMenuSettings';
 import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
-
 import altinnStudioTheme from '../../theme/altinnStudioTheme';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
@@ -25,6 +25,8 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   user?: string;
   showBreadcrumbOnTablet?: boolean;
   showSubMenu?: boolean;
+  mainMenuItems?: IMenuItem[];
+  subMenuItems?: { [key: string]: IMenuItem[] };
 }
 export interface IAppBarComponentState {
   anchorEl?: any;
@@ -127,6 +129,8 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       app,
       user,
       showBreadcrumbOnTablet,
+      mainMenuItems,
+      subMenuItems,
     } = this.props;
     return (
       <div className={classes.root}>
@@ -182,11 +186,13 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 <Hidden mdUp>
                   <Grid item>
                     <TabletDrawerMenu
-                      handleTabletDrawerMenu={this.handleTabletDrawerMenu}
+                      handleTabletDrawerMenu={() => this.handleTabletDrawerMenu()}
                       tabletDrawerOpen={this.state.tabletDrawerOpen}
                       logoutButton={!logoutButton ? false : logoutButton}
                       activeSubHeaderSelection={activeSubHeaderSelection}
                       activeLeftMenuSelection={activeLeftMenuSelection}
+                      mainMenuItems={mainMenuItems}
+                      leftDrawerMenuItems={subMenuItems}
                     />
                   </Grid>
                 </Hidden>

@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
-import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
+import { IMenuItem } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -19,9 +19,12 @@ const useStyles = makeStyles(styles);
 export interface ILeftDrawerMenuProps {
   menuType: string;
   activeLeftMenuSelection: string;
+  leftMenuItems: { [key: string]: IMenuItem[] };
 }
 
-export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection }: ILeftDrawerMenuProps) {
+export default function LeftDrawerMenu({
+  menuType, activeLeftMenuSelection, leftMenuItems,
+}: ILeftDrawerMenuProps) {
   const classes = useStyles();
 
   const [iconColor, setIconColor] = React.useState<any>({});
@@ -44,8 +47,7 @@ export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection }: IL
     setIconColor(newIconColor);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onMouseLeaveListItem = (index: any) => (event: any) => {
+  const onMouseLeaveListItem = (index: any) => () => {
     const newIconColor = {
       ...iconColor,
       [index]: 'rgba(0, 0, 0, 0.54)',
@@ -53,13 +55,14 @@ export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection }: IL
     setIconColor(newIconColor);
   };
 
-  const menuToRender = leftDrawerMenuSettings[menuType];
+  const menuToRender = leftMenuItems[menuType];
 
   if (!menuType || !menuToRender) {
     return (
       <div />
     );
   }
+
   return (
     <div>
       <Drawer
@@ -80,7 +83,7 @@ export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection }: IL
       >
         <Divider />
         <List component='nav'>
-          {leftDrawerMenuSettings[menuType].map((menuItem: IMenuItem, index: number) => (
+          {menuToRender.map((menuItem: IMenuItem, index: number) => (
             <Link
               to={menuItem.navLink}
               style={{ borderBottom: 0 }}
