@@ -66,7 +66,6 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
   }
 
   public render() {
-    // const { classes } = this.props;
     return (
       <div className={classNames(this.props.className)}>
         <Grid container={true} direction='row'>

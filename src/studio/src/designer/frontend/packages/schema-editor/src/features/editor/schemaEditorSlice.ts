@@ -324,7 +324,7 @@ const schemaEditorSlice = createSlice({
       state.saveSchemaUrl = action.payload.saveUrl;
     },
     setUiSchema(state, action) {
-      const { rootElementPath } = action.payload; // state.schema.properties.melding.$ref;
+      const { rootElementPath } = action.payload;
       let uiSchema: any[] = [];
 
       const uiSchemaProps = buildUISchema(state.schema.properties, '#/properties', true);

@@ -23,14 +23,14 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = {
   chip: {
-    'color': theme.altinnPalette.primary.black,
-    'borderColor': theme.altinnPalette.primary.blueDark,
-    'borderWidth': '1px',
-    'borderStyle': 'dotted',
-    'backgroundColor': theme.altinnPalette.primary.white,
-    'borderRadius': '36px',
-    'minHeight': '36px',
-    'fontSize': '16px',
+    color: theme.altinnPalette.primary.black,
+    borderColor: theme.altinnPalette.primary.blueDark,
+    borderWidth: '1px',
+    borderStyle: 'dotted',
+    backgroundColor: theme.altinnPalette.primary.white,
+    borderRadius: '36px',
+    minHeight: '36px',
+    fontSize: '16px',
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -42,22 +42,22 @@ const styles = {
     },
   },
   chipActive: {
-    'backgroundColor': theme.altinnPalette.primary.blueLight + ' !Important',
-    'border': '1px solid ' + theme.altinnPalette.primary.blueDark,
-    'borderRadius': '36px',
-    'minHeight': '36px',
-    'fontSize': '16px',
+    backgroundColor: `${theme.altinnPalette.primary.blueLight} !Important`,
+    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
+    borderRadius: '36px',
+    minHeight: '36px',
+    fontSize: '16px',
     '&:hover': {
-      backgroundColor: theme.altinnPalette.primary.blueLighter + ' !Important',
+      backgroundColor: `${theme.altinnPalette.primary.blueLighter} !Important`,
     },
     '&:focus': {
-      backgroundColor: theme.altinnPalette.primary.blueLighter + ' !Important',
-      border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-      boxShadow: '0px 0px 6px ' + theme.altinnPalette.primary.blueDark,
+      backgroundColor: `${theme.altinnPalette.primary.blueLighter} !Important`,
+      border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
+      boxShadow: `0px 0px 6px ${theme.altinnPalette.primary.blueDark}`,
     },
   },
   down: {
-    borderTop: '10px solid' + theme.altinnPalette.primary.black,
+    borderTop: `10px solid ${theme.altinnPalette.primary.black}`,
     borderLeft: '8px solid transparent',
     borderRight: '8px solid transparent',
     margin: '4px 8px 2px 0px',
@@ -65,26 +65,25 @@ const styles = {
 };
 
 // eslint-disable-next-line max-len
-export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps, IAltinnFilterChipComponentState> {
-  public render() {
-    const { classes } = this.props;
-    return (
-      <Chip
-        key={this.props.key}
-        label={this.props.label}
-        clickable={true}
-        color='primary'
-        variant='outlined'
-        onClick={this.props.onclickFunction}
-        onDelete={this.props.onDeleteFunction}
-        deleteIcon={this.props.sortIcon ? <i className={classNames(classes.down)} /> : this.props.deleteIcon}
-        className={classNames(
-          this.props.className,
-          classes.chip,
-          { [classes.chipActive]: this.props.active })}
-      />
-    );
-  }
-}
+const AltinnFilterChip = (props: IAltinnFilterChipComponentProvidedProps) => {
+  const { classes } = props;
+  return (
+    <Chip
+      key={props.key}
+      label={props.label}
+      clickable={true}
+      color='primary'
+      variant='outlined'
+      onClick={props.onclickFunction}
+      onDelete={props.onDeleteFunction}
+      deleteIcon={props.sortIcon ? <i className={classNames(classes.down)} /> : props.deleteIcon}
+      className={classNames(
+        props.className,
+        classes.chip,
+        { [classes.chipActive]: props.active },
+      )}
+    />
+  );
+};
 
 export default withStyles(styles)(AltinnFilterChip);

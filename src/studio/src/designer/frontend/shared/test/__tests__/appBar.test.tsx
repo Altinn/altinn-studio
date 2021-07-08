@@ -32,7 +32,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           <AppBarComponent
             org={mockOrg}
             app={mockApp}
-            showSubHeader={mockShowSubheader}
+            showSubMenu={mockShowSubheader}
             activeSubHeaderSelection={mockActiveSubHeaderSelection}
           />
         </MemoryRouter>,
@@ -49,7 +49,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           <AppBarComponent
             org={mockOrg}
             app={mockApp}
-            showSubHeader={mockShowSubheader}
+            showSubMenu={mockShowSubheader}
             activeSubHeaderSelection={mockActiveSubHeaderSelection}
           />
         </MemoryRouter>,
@@ -66,7 +66,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           <AppBarComponent
             org={mockOrg}
             app={mockApp}
-            showSubHeader={mockShowSubheader}
+            showSubMenu={mockShowSubheader}
             activeSubHeaderSelection={mockActiveSubHeaderSelection}
           />
         </MemoryRouter>,
@@ -80,7 +80,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           <AppBarComponent
             org={mockOrg}
             app={mockApp}
-            showSubHeader={false}
+            showSubMenu={false}
           />
         </MemoryRouter>,
       );
@@ -91,23 +91,11 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       const rendered = renderer.create(
         <MemoryRouter>
           <AppBarComponent
-            showSubHeader={false}
+            showSubMenu={false}
           />
         </MemoryRouter>,
       );
       expect(rendered).toMatchSnapshot();
-    });
-
-    it('should match snapshot with backgroundColor prop', () => {
-      const wrapper = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent
-            showSubHeader={false}
-            backgroundColor={'pink'}
-          />
-        </MemoryRouter>,
-      );
-      expect(wrapper).toMatchSnapshot();
     });
   });
 
@@ -137,7 +125,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   //           <AppBarComponent
   //             org={mockOrg}
   //             app={mockApp}
-  //             showSubHeader={false}
+  //             showSubMenu={false}
   //             activeSubHeaderSelection={mockActiveSubHeaderSelection}
   //             activeLeftMenuSelection={mockActiveLeftMenuSelection}
   //           />
@@ -164,7 +152,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   //             org={mockOrg}
   //             app={mockApp}
   //             showBreadcrumbOnTablet={true}
-  //             showSubHeader={false}
+  //             showSubMenu={false}
   //             activeSubHeaderSelection={mockActiveSubHeaderSelection}
   //             activeLeftMenuSelection={mockActiveLeftMenuSelection}
   //           />
@@ -192,7 +180,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   //               org={mockOrg}
   //               app={mockApp}
   //               showBreadcrumbOnTablet={false}
-  //               showSubHeader={false}
+  //               showSubMenu={false}
   //               activeSubHeaderSelection={mockActiveSubHeaderSelection}
   //               activeLeftMenuSelection={mockActiveLeftMenuSelection}
   //             />
@@ -222,7 +210,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   //             org={mockOrg}
   //             app={mockApp}
   //             showBreadcrumbOnTablet={false}
-  //             showSubHeader={false}
+  //             showSubMenu={false}
   //             activeSubHeaderSelection={mockActiveSubHeaderSelection}
   //             activeLeftMenuSelection={mockActiveLeftMenuSelection}
   //           />
@@ -259,7 +247,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
                 org={mockOrg}
                 app={mockApp}
                 showBreadcrumbOnTablet={true}
-                showSubHeader={mockShowSubheader}
+                showSubMenu={mockShowSubheader}
                 activeSubHeaderSelection={entry.activeSubHeaderSelection}
               />
             </MuiThemeProvider>

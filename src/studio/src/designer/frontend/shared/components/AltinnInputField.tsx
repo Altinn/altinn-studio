@@ -2,7 +2,7 @@ import { createMuiTheme, createStyles, FormControl, TextField, Typography, withS
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { AltinnButton } from './AltinnButton';
+import AltinnButton from './AltinnButton';
 import ErrorPopover from './ErrorPopover';
 
 export interface IAltinnInputFieldComponentProvidedProps {
@@ -70,8 +70,7 @@ const styles = createStyles({
   },
 });
 
-// eslint-disable-next-line max-len
-export class AltinnInputField extends
+class AltinnInputFieldComponent extends
   React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;
 
@@ -89,8 +88,8 @@ export class AltinnInputField extends
     }
   }
 
-  private onKeyDown(e: any) {
-    if (e.keyCode === 13 && !this.props.error) {
+  private onKeyDown(e: KeyboardEventInit) {
+    if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
       this.props.onReturn();
     }
   }
@@ -143,7 +142,7 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn ? this.onKeyDown : undefined}
+            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown(e))}
           />
           <div ref={this.errorRef} />
           <ErrorPopover
@@ -167,4 +166,4 @@ export class AltinnInputField extends
   }
 }
 
-export default withStyles(styles)(AltinnInputField);
+export default withStyles(styles)(AltinnInputFieldComponent);

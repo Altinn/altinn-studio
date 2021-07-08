@@ -23,7 +23,7 @@ const theme = createMuiTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   borderBottom: {
-    borderBottom: `1px solid${altinnTheme.altinnPalette.primary.blueDark}`,
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
   },
   buttonCancel: {
     fontSize: '14px',
@@ -116,27 +116,27 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
           <Grid item={true}>
             <div>
               {props.btnConfirmText &&
-              <Button
-                id={props.btnPrimaryId}
-                variant='contained'
-                color='primary'
-                className={classes.buttonConfirm}
-                onClick={btnClickedHandler}
-              >
-                {props.btnConfirmText}
-              </Button>
+                <Button
+                  id={props.btnPrimaryId}
+                  variant='contained'
+                  color='primary'
+                  className={classes.buttonConfirm}
+                  onClick={btnClickedHandler}
+                >
+                  {props.btnConfirmText}
+                </Button>
               }
               {props.btnCancelText &&
-              <Button
-                id={props.btnSecondaryId}
-                color='primary'
-                className={classes.buttonCancel}
-                onClick={handleButtonClose}
-              >
-                <span className={classes.borderBottom}>
-                  {props.btnCancelText}
-                </span>
-              </Button>
+                <Button
+                  id={props.btnSecondaryId}
+                  color='primary'
+                  className={classes.buttonCancel}
+                  onClick={handleButtonClose}
+                >
+                  <span className={classes.borderBottom}>
+                    {props.btnCancelText}
+                  </span>
+                </Button>
               }
             </div>
           </Grid>

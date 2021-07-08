@@ -221,7 +221,7 @@ describe('Administration', () => {
 
     return (
       <Provider store={mockStore}>
-        <AdministrationComponent {...defaultProps} {...props}/>
+        <AdministrationComponent {...defaultProps} {...props} />
       </Provider>
     );
   };

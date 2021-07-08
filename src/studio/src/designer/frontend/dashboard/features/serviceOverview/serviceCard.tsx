@@ -63,8 +63,13 @@ const styles = {
 
 export class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
   public openService = () => {
+    const repoPath = this.props.service.full_name;
     if (this.props.service.is_cloned_to_local) {
-      window.location.assign(`/designer/${this.props.service.full_name}`);
+      if (repoPath.endsWith('-datamodels')) {
+        window.location.assign(`#/datamodelling/${repoPath}`);
+      } else {
+        window.location.assign(`/designer/${repoPath}`);
+      }
     } else {
       // eslint-disable-next-line max-len
       window.location.assign(`/Home/Index#/clone-app/${this.props.service.owner.login}/${this.props.service.name}`);

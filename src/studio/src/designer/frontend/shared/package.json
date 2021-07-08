@@ -48,6 +48,7 @@
     "babel-loader": "~8.2.2",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "~1.15.6",
+    "enzyme-to-json": "^3.6.2",
     "fork-ts-checker-notifier-webpack-plugin": "~4.0.0",
     "fork-ts-checker-webpack-plugin": "~6.2.12",
     "jest": "~27.0.6",
@@ -62,6 +63,10 @@
     "react-styleguidist": "~11.1.7",
     "react-test-renderer": "~17.0.2",
     "ts-jest": "~27.0.3"
+  },
+  "peerDependencies": {
+    "redux": "^4.1.0",
+    "redux-devtools-extension": "^2.13.9"
   },
   "jest": {
     "transform": {
@@ -83,7 +88,7 @@
     ],
     "testEnvironment": "jsdom",
     "setupFiles": [
-      "<rootDir>/test/setupTests.js"
+      "<rootDir>/test/setupTests.ts"
     ]
   },
   "browserslist": [

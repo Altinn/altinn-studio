@@ -1,0 +1,2593 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> DataModelling.tsx should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [MockFunction] {
+        "calls": Array [
+          Array [
+            Object {
+              "payload": Object {
+                "metadata": Object {
+                  "label": "some-existing-model",
+                  "value": Object {
+                    "fileName": "some-existing-model.schema.json",
+                    "fileStatus": 0,
+                    "fileType": ".json",
+                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                  },
+                },
+              },
+              "type": "dataModelling/fetchDataModel",
+            },
+          ],
+        ],
+        "results": Array [
+          Object {
+            "type": "return",
+            "value": Promise {},
+          },
+        ],
+      },
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <DataModelling
+    SchemaEditor={[Function]}
+    language={
+      Object {
+        "administration": Object {},
+      }
+    }
+  >
+    <div
+      className="makeStyles-root-1"
+    >
+      <WithStyles(ForwardRef(Grid))
+        container={true}
+      >
+        <ForwardRef(Grid)
+          classes={
+            Object {
+              "align-content-xs-center": "MuiGrid-align-content-xs-center",
+              "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+              "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+              "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+              "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+              "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+              "align-items-xs-center": "MuiGrid-align-items-xs-center",
+              "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+              "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+              "container": "MuiGrid-container",
+              "direction-xs-column": "MuiGrid-direction-xs-column",
+              "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+              "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+              "grid-lg-1": "MuiGrid-grid-lg-1",
+              "grid-lg-10": "MuiGrid-grid-lg-10",
+              "grid-lg-11": "MuiGrid-grid-lg-11",
+              "grid-lg-12": "MuiGrid-grid-lg-12",
+              "grid-lg-2": "MuiGrid-grid-lg-2",
+              "grid-lg-3": "MuiGrid-grid-lg-3",
+              "grid-lg-4": "MuiGrid-grid-lg-4",
+              "grid-lg-5": "MuiGrid-grid-lg-5",
+              "grid-lg-6": "MuiGrid-grid-lg-6",
+              "grid-lg-7": "MuiGrid-grid-lg-7",
+              "grid-lg-8": "MuiGrid-grid-lg-8",
+              "grid-lg-9": "MuiGrid-grid-lg-9",
+              "grid-lg-auto": "MuiGrid-grid-lg-auto",
+              "grid-lg-true": "MuiGrid-grid-lg-true",
+              "grid-md-1": "MuiGrid-grid-md-1",
+              "grid-md-10": "MuiGrid-grid-md-10",
+              "grid-md-11": "MuiGrid-grid-md-11",
+              "grid-md-12": "MuiGrid-grid-md-12",
+              "grid-md-2": "MuiGrid-grid-md-2",
+              "grid-md-3": "MuiGrid-grid-md-3",
+              "grid-md-4": "MuiGrid-grid-md-4",
+              "grid-md-5": "MuiGrid-grid-md-5",
+              "grid-md-6": "MuiGrid-grid-md-6",
+              "grid-md-7": "MuiGrid-grid-md-7",
+              "grid-md-8": "MuiGrid-grid-md-8",
+              "grid-md-9": "MuiGrid-grid-md-9",
+              "grid-md-auto": "MuiGrid-grid-md-auto",
+              "grid-md-true": "MuiGrid-grid-md-true",
+              "grid-sm-1": "MuiGrid-grid-sm-1",
+              "grid-sm-10": "MuiGrid-grid-sm-10",
+              "grid-sm-11": "MuiGrid-grid-sm-11",
+              "grid-sm-12": "MuiGrid-grid-sm-12",
+              "grid-sm-2": "MuiGrid-grid-sm-2",
+              "grid-sm-3": "MuiGrid-grid-sm-3",
+              "grid-sm-4": "MuiGrid-grid-sm-4",
+              "grid-sm-5": "MuiGrid-grid-sm-5",
+              "grid-sm-6": "MuiGrid-grid-sm-6",
+              "grid-sm-7": "MuiGrid-grid-sm-7",
+              "grid-sm-8": "MuiGrid-grid-sm-8",
+              "grid-sm-9": "MuiGrid-grid-sm-9",
+              "grid-sm-auto": "MuiGrid-grid-sm-auto",
+              "grid-sm-true": "MuiGrid-grid-sm-true",
+              "grid-xl-1": "MuiGrid-grid-xl-1",
+              "grid-xl-10": "MuiGrid-grid-xl-10",
+              "grid-xl-11": "MuiGrid-grid-xl-11",
+              "grid-xl-12": "MuiGrid-grid-xl-12",
+              "grid-xl-2": "MuiGrid-grid-xl-2",
+              "grid-xl-3": "MuiGrid-grid-xl-3",
+              "grid-xl-4": "MuiGrid-grid-xl-4",
+              "grid-xl-5": "MuiGrid-grid-xl-5",
+              "grid-xl-6": "MuiGrid-grid-xl-6",
+              "grid-xl-7": "MuiGrid-grid-xl-7",
+              "grid-xl-8": "MuiGrid-grid-xl-8",
+              "grid-xl-9": "MuiGrid-grid-xl-9",
+              "grid-xl-auto": "MuiGrid-grid-xl-auto",
+              "grid-xl-true": "MuiGrid-grid-xl-true",
+              "grid-xs-1": "MuiGrid-grid-xs-1",
+              "grid-xs-10": "MuiGrid-grid-xs-10",
+              "grid-xs-11": "MuiGrid-grid-xs-11",
+              "grid-xs-12": "MuiGrid-grid-xs-12",
+              "grid-xs-2": "MuiGrid-grid-xs-2",
+              "grid-xs-3": "MuiGrid-grid-xs-3",
+              "grid-xs-4": "MuiGrid-grid-xs-4",
+              "grid-xs-5": "MuiGrid-grid-xs-5",
+              "grid-xs-6": "MuiGrid-grid-xs-6",
+              "grid-xs-7": "MuiGrid-grid-xs-7",
+              "grid-xs-8": "MuiGrid-grid-xs-8",
+              "grid-xs-9": "MuiGrid-grid-xs-9",
+              "grid-xs-auto": "MuiGrid-grid-xs-auto",
+              "grid-xs-true": "MuiGrid-grid-xs-true",
+              "item": "MuiGrid-item",
+              "justify-xs-center": "MuiGrid-justify-xs-center",
+              "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
+              "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
+              "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
+              "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
+              "root": "MuiGrid-root",
+              "spacing-xs-1": "MuiGrid-spacing-xs-1",
+              "spacing-xs-10": "MuiGrid-spacing-xs-10",
+              "spacing-xs-2": "MuiGrid-spacing-xs-2",
+              "spacing-xs-3": "MuiGrid-spacing-xs-3",
+              "spacing-xs-4": "MuiGrid-spacing-xs-4",
+              "spacing-xs-5": "MuiGrid-spacing-xs-5",
+              "spacing-xs-6": "MuiGrid-spacing-xs-6",
+              "spacing-xs-7": "MuiGrid-spacing-xs-7",
+              "spacing-xs-8": "MuiGrid-spacing-xs-8",
+              "spacing-xs-9": "MuiGrid-spacing-xs-9",
+              "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+              "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+              "zeroMinWidth": "MuiGrid-zeroMinWidth",
+            }
+          }
+          container={true}
+        >
+          <div
+            className="MuiGrid-root MuiGrid-container"
+          >
+            <CreateNewWrapper
+              buttonClass="makeStyles-button-3"
+              createAction={[Function]}
+              dataModelNames={
+                Array [
+                  "some-existing-model",
+                ]
+              }
+              language={
+                Object {
+                  "administration": Object {},
+                }
+              }
+            >
+              <WithStyles(ForwardRef(Grid))
+                item={true}
+              >
+                <ForwardRef(Grid)
+                  classes={
+                    Object {
+                      "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                      "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                      "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                      "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                      "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                      "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                      "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                      "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                      "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                      "container": "MuiGrid-container",
+                      "direction-xs-column": "MuiGrid-direction-xs-column",
+                      "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                      "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                      "grid-lg-1": "MuiGrid-grid-lg-1",
+                      "grid-lg-10": "MuiGrid-grid-lg-10",
+                      "grid-lg-11": "MuiGrid-grid-lg-11",
+                      "grid-lg-12": "MuiGrid-grid-lg-12",
+                      "grid-lg-2": "MuiGrid-grid-lg-2",
+                      "grid-lg-3": "MuiGrid-grid-lg-3",
+                      "grid-lg-4": "MuiGrid-grid-lg-4",
+                      "grid-lg-5": "MuiGrid-grid-lg-5",
+                      "grid-lg-6": "MuiGrid-grid-lg-6",
+                      "grid-lg-7": "MuiGrid-grid-lg-7",
+                      "grid-lg-8": "MuiGrid-grid-lg-8",
+                      "grid-lg-9": "MuiGrid-grid-lg-9",
+                      "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                      "grid-lg-true": "MuiGrid-grid-lg-true",
+                      "grid-md-1": "MuiGrid-grid-md-1",
+                      "grid-md-10": "MuiGrid-grid-md-10",
+                      "grid-md-11": "MuiGrid-grid-md-11",
+                      "grid-md-12": "MuiGrid-grid-md-12",
+                      "grid-md-2": "MuiGrid-grid-md-2",
+                      "grid-md-3": "MuiGrid-grid-md-3",
+                      "grid-md-4": "MuiGrid-grid-md-4",
+                      "grid-md-5": "MuiGrid-grid-md-5",
+                      "grid-md-6": "MuiGrid-grid-md-6",
+                      "grid-md-7": "MuiGrid-grid-md-7",
+                      "grid-md-8": "MuiGrid-grid-md-8",
+                      "grid-md-9": "MuiGrid-grid-md-9",
+                      "grid-md-auto": "MuiGrid-grid-md-auto",
+                      "grid-md-true": "MuiGrid-grid-md-true",
+                      "grid-sm-1": "MuiGrid-grid-sm-1",
+                      "grid-sm-10": "MuiGrid-grid-sm-10",
+                      "grid-sm-11": "MuiGrid-grid-sm-11",
+                      "grid-sm-12": "MuiGrid-grid-sm-12",
+                      "grid-sm-2": "MuiGrid-grid-sm-2",
+                      "grid-sm-3": "MuiGrid-grid-sm-3",
+                      "grid-sm-4": "MuiGrid-grid-sm-4",
+                      "grid-sm-5": "MuiGrid-grid-sm-5",
+                      "grid-sm-6": "MuiGrid-grid-sm-6",
+                      "grid-sm-7": "MuiGrid-grid-sm-7",
+                      "grid-sm-8": "MuiGrid-grid-sm-8",
+                      "grid-sm-9": "MuiGrid-grid-sm-9",
+                      "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                      "grid-sm-true": "MuiGrid-grid-sm-true",
+                      "grid-xl-1": "MuiGrid-grid-xl-1",
+                      "grid-xl-10": "MuiGrid-grid-xl-10",
+                      "grid-xl-11": "MuiGrid-grid-xl-11",
+                      "grid-xl-12": "MuiGrid-grid-xl-12",
+                      "grid-xl-2": "MuiGrid-grid-xl-2",
+                      "grid-xl-3": "MuiGrid-grid-xl-3",
+                      "grid-xl-4": "MuiGrid-grid-xl-4",
+                      "grid-xl-5": "MuiGrid-grid-xl-5",
+                      "grid-xl-6": "MuiGrid-grid-xl-6",
+                      "grid-xl-7": "MuiGrid-grid-xl-7",
+                      "grid-xl-8": "MuiGrid-grid-xl-8",
+                      "grid-xl-9": "MuiGrid-grid-xl-9",
+                      "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                      "grid-xl-true": "MuiGrid-grid-xl-true",
+                      "grid-xs-1": "MuiGrid-grid-xs-1",
+                      "grid-xs-10": "MuiGrid-grid-xs-10",
+                      "grid-xs-11": "MuiGrid-grid-xs-11",
+                      "grid-xs-12": "MuiGrid-grid-xs-12",
+                      "grid-xs-2": "MuiGrid-grid-xs-2",
+                      "grid-xs-3": "MuiGrid-grid-xs-3",
+                      "grid-xs-4": "MuiGrid-grid-xs-4",
+                      "grid-xs-5": "MuiGrid-grid-xs-5",
+                      "grid-xs-6": "MuiGrid-grid-xs-6",
+                      "grid-xs-7": "MuiGrid-grid-xs-7",
+                      "grid-xs-8": "MuiGrid-grid-xs-8",
+                      "grid-xs-9": "MuiGrid-grid-xs-9",
+                      "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                      "grid-xs-true": "MuiGrid-grid-xs-true",
+                      "item": "MuiGrid-item",
+                      "justify-xs-center": "MuiGrid-justify-xs-center",
+                      "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
+                      "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
+                      "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
+                      "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
+                      "root": "MuiGrid-root",
+                      "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                      "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                      "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                      "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                      "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                      "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                      "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                      "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                      "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                      "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                      "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                      "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                      "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                    }
+                  }
+                  item={true}
+                >
+                  <div
+                    className="MuiGrid-root MuiGrid-item"
+                  >
+                    <WithStyles(ForwardRef(Button))
+                      className="makeStyles-button-3"
+                      id="new-button"
+                      onClick={[Function]}
+                      startIcon={<Memo />}
+                      variant="contained"
+                    >
+                      <ForwardRef(Button)
+                        className="makeStyles-button-3"
+                        classes={
+                          Object {
+                            "colorInherit": "MuiButton-colorInherit",
+                            "contained": "MuiButton-contained",
+                            "containedPrimary": "MuiButton-containedPrimary",
+                            "containedSecondary": "MuiButton-containedSecondary",
+                            "containedSizeLarge": "MuiButton-containedSizeLarge",
+                            "containedSizeSmall": "MuiButton-containedSizeSmall",
+                            "disableElevation": "MuiButton-disableElevation",
+                            "disabled": "Mui-disabled",
+                            "endIcon": "MuiButton-endIcon",
+                            "focusVisible": "Mui-focusVisible",
+                            "fullWidth": "MuiButton-fullWidth",
+                            "iconSizeLarge": "MuiButton-iconSizeLarge",
+                            "iconSizeMedium": "MuiButton-iconSizeMedium",
+                            "iconSizeSmall": "MuiButton-iconSizeSmall",
+                            "label": "MuiButton-label",
+                            "outlined": "MuiButton-outlined",
+                            "outlinedPrimary": "MuiButton-outlinedPrimary",
+                            "outlinedSecondary": "MuiButton-outlinedSecondary",
+                            "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                            "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                            "root": "MuiButton-root",
+                            "sizeLarge": "MuiButton-sizeLarge",
+                            "sizeSmall": "MuiButton-sizeSmall",
+                            "startIcon": "MuiButton-startIcon",
+                            "text": "MuiButton-text",
+                            "textPrimary": "MuiButton-textPrimary",
+                            "textSecondary": "MuiButton-textSecondary",
+                            "textSizeLarge": "MuiButton-textSizeLarge",
+                            "textSizeSmall": "MuiButton-textSizeSmall",
+                          }
+                        }
+                        id="new-button"
+                        onClick={[Function]}
+                        startIcon={<Memo />}
+                        variant="contained"
+                      >
+                        <WithStyles(ForwardRef(ButtonBase))
+                          className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                          component="button"
+                          disabled={false}
+                          focusRipple={true}
+                          focusVisibleClassName="Mui-focusVisible"
+                          id="new-button"
+                          onClick={[Function]}
+                          type="button"
+                        >
+                          <ForwardRef(ButtonBase)
+                            className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                            classes={
+                              Object {
+                                "disabled": "Mui-disabled",
+                                "focusVisible": "Mui-focusVisible",
+                                "root": "MuiButtonBase-root",
+                              }
+                            }
+                            component="button"
+                            disabled={false}
+                            focusRipple={true}
+                            focusVisibleClassName="Mui-focusVisible"
+                            id="new-button"
+                            onClick={[Function]}
+                            type="button"
+                          >
+                            <button
+                              className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
+                              disabled={false}
+                              id="new-button"
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onDragLeave={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              onKeyUp={[Function]}
+                              onMouseDown={[Function]}
+                              onMouseLeave={[Function]}
+                              onMouseUp={[Function]}
+                              onTouchEnd={[Function]}
+                              onTouchMove={[Function]}
+                              onTouchStart={[Function]}
+                              tabIndex={0}
+                              type="button"
+                            >
+                              <span
+                                className="MuiButton-label"
+                              >
+                                <span
+                                  className="MuiButton-startIcon MuiButton-iconSizeMedium"
+                                >
+                                  <ForwardRef(AddCircleOutlineIcon)>
+                                    <WithStyles(ForwardRef(SvgIcon))>
+                                      <ForwardRef(SvgIcon)
+                                        classes={
+                                          Object {
+                                            "colorAction": "MuiSvgIcon-colorAction",
+                                            "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                            "colorError": "MuiSvgIcon-colorError",
+                                            "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                            "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                            "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                            "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                            "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                            "root": "MuiSvgIcon-root",
+                                          }
+                                        }
+                                      >
+                                        <svg
+                                          aria-hidden={true}
+                                          className="MuiSvgIcon-root"
+                                          focusable="false"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                                          />
+                                        </svg>
+                                      </ForwardRef(SvgIcon)>
+                                    </WithStyles(ForwardRef(SvgIcon))>
+                                  </ForwardRef(AddCircleOutlineIcon)>
+                                </span>
+                                general.create_new
+                              </span>
+                              <WithStyles(memo)
+                                center={false}
+                              >
+                                <ForwardRef(TouchRipple)
+                                  center={false}
+                                  classes={
+                                    Object {
+                                      "child": "MuiTouchRipple-child",
+                                      "childLeaving": "MuiTouchRipple-childLeaving",
+                                      "childPulsate": "MuiTouchRipple-childPulsate",
+                                      "ripple": "MuiTouchRipple-ripple",
+                                      "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                      "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                      "root": "MuiTouchRipple-root",
+                                    }
+                                  }
+                                >
+                                  <span
+                                    className="MuiTouchRipple-root"
+                                  >
+                                    <TransitionGroup
+                                      childFactory={[Function]}
+                                      component={null}
+                                      exit={true}
+                                    />
+                                  </span>
+                                </ForwardRef(TouchRipple)>
+                              </WithStyles(memo)>
+                            </button>
+                          </ForwardRef(ButtonBase)>
+                        </WithStyles(ForwardRef(ButtonBase))>
+                      </ForwardRef(Button)>
+                    </WithStyles(ForwardRef(Button))>
+                  </div>
+                </ForwardRef(Grid)>
+              </WithStyles(ForwardRef(Grid))>
+            </CreateNewWrapper>
+            <SchemaSelect
+              onChange={[Function]}
+              options={
+                Array [
+                  Object {
+                    "label": "some-existing-model",
+                    "value": Object {
+                      "fileName": "some-existing-model.schema.json",
+                      "fileStatus": 0,
+                      "fileType": ".json",
+                      "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                      "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                    },
+                  },
+                ]
+              }
+              selectedOption={
+                Object {
+                  "label": "some-existing-model",
+                  "value": Object {
+                    "fileName": "some-existing-model.schema.json",
+                    "fileStatus": 0,
+                    "fileType": ".json",
+                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                  },
+                }
+              }
+            >
+              <WithStyles(ForwardRef(Grid))
+                item={true}
+                xs={4}
+              >
+                <ForwardRef(Grid)
+                  classes={
+                    Object {
+                      "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                      "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                      "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                      "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                      "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                      "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                      "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                      "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                      "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                      "container": "MuiGrid-container",
+                      "direction-xs-column": "MuiGrid-direction-xs-column",
+                      "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                      "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                      "grid-lg-1": "MuiGrid-grid-lg-1",
+                      "grid-lg-10": "MuiGrid-grid-lg-10",
+                      "grid-lg-11": "MuiGrid-grid-lg-11",
+                      "grid-lg-12": "MuiGrid-grid-lg-12",
+                      "grid-lg-2": "MuiGrid-grid-lg-2",
+                      "grid-lg-3": "MuiGrid-grid-lg-3",
+                      "grid-lg-4": "MuiGrid-grid-lg-4",
+                      "grid-lg-5": "MuiGrid-grid-lg-5",
+                      "grid-lg-6": "MuiGrid-grid-lg-6",
+                      "grid-lg-7": "MuiGrid-grid-lg-7",
+                      "grid-lg-8": "MuiGrid-grid-lg-8",
+                      "grid-lg-9": "MuiGrid-grid-lg-9",
+                      "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                      "grid-lg-true": "MuiGrid-grid-lg-true",
+                      "grid-md-1": "MuiGrid-grid-md-1",
+                      "grid-md-10": "MuiGrid-grid-md-10",
+                      "grid-md-11": "MuiGrid-grid-md-11",
+                      "grid-md-12": "MuiGrid-grid-md-12",
+                      "grid-md-2": "MuiGrid-grid-md-2",
+                      "grid-md-3": "MuiGrid-grid-md-3",
+                      "grid-md-4": "MuiGrid-grid-md-4",
+                      "grid-md-5": "MuiGrid-grid-md-5",
+                      "grid-md-6": "MuiGrid-grid-md-6",
+                      "grid-md-7": "MuiGrid-grid-md-7",
+                      "grid-md-8": "MuiGrid-grid-md-8",
+                      "grid-md-9": "MuiGrid-grid-md-9",
+                      "grid-md-auto": "MuiGrid-grid-md-auto",
+                      "grid-md-true": "MuiGrid-grid-md-true",
+                      "grid-sm-1": "MuiGrid-grid-sm-1",
+                      "grid-sm-10": "MuiGrid-grid-sm-10",
+                      "grid-sm-11": "MuiGrid-grid-sm-11",
+                      "grid-sm-12": "MuiGrid-grid-sm-12",
+                      "grid-sm-2": "MuiGrid-grid-sm-2",
+                      "grid-sm-3": "MuiGrid-grid-sm-3",
+                      "grid-sm-4": "MuiGrid-grid-sm-4",
+                      "grid-sm-5": "MuiGrid-grid-sm-5",
+                      "grid-sm-6": "MuiGrid-grid-sm-6",
+                      "grid-sm-7": "MuiGrid-grid-sm-7",
+                      "grid-sm-8": "MuiGrid-grid-sm-8",
+                      "grid-sm-9": "MuiGrid-grid-sm-9",
+                      "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                      "grid-sm-true": "MuiGrid-grid-sm-true",
+                      "grid-xl-1": "MuiGrid-grid-xl-1",
+                      "grid-xl-10": "MuiGrid-grid-xl-10",
+                      "grid-xl-11": "MuiGrid-grid-xl-11",
+                      "grid-xl-12": "MuiGrid-grid-xl-12",
+                      "grid-xl-2": "MuiGrid-grid-xl-2",
+                      "grid-xl-3": "MuiGrid-grid-xl-3",
+                      "grid-xl-4": "MuiGrid-grid-xl-4",
+                      "grid-xl-5": "MuiGrid-grid-xl-5",
+                      "grid-xl-6": "MuiGrid-grid-xl-6",
+                      "grid-xl-7": "MuiGrid-grid-xl-7",
+                      "grid-xl-8": "MuiGrid-grid-xl-8",
+                      "grid-xl-9": "MuiGrid-grid-xl-9",
+                      "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                      "grid-xl-true": "MuiGrid-grid-xl-true",
+                      "grid-xs-1": "MuiGrid-grid-xs-1",
+                      "grid-xs-10": "MuiGrid-grid-xs-10",
+                      "grid-xs-11": "MuiGrid-grid-xs-11",
+                      "grid-xs-12": "MuiGrid-grid-xs-12",
+                      "grid-xs-2": "MuiGrid-grid-xs-2",
+                      "grid-xs-3": "MuiGrid-grid-xs-3",
+                      "grid-xs-4": "MuiGrid-grid-xs-4",
+                      "grid-xs-5": "MuiGrid-grid-xs-5",
+                      "grid-xs-6": "MuiGrid-grid-xs-6",
+                      "grid-xs-7": "MuiGrid-grid-xs-7",
+                      "grid-xs-8": "MuiGrid-grid-xs-8",
+                      "grid-xs-9": "MuiGrid-grid-xs-9",
+                      "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                      "grid-xs-true": "MuiGrid-grid-xs-true",
+                      "item": "MuiGrid-item",
+                      "justify-xs-center": "MuiGrid-justify-xs-center",
+                      "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
+                      "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
+                      "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
+                      "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
+                      "root": "MuiGrid-root",
+                      "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                      "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                      "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                      "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                      "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                      "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                      "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                      "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                      "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                      "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                      "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                      "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                      "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                    }
+                  }
+                  item={true}
+                  xs={4}
+                >
+                  <div
+                    className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+                  >
+                    <StateManager
+                      className="makeStyles-select-5"
+                      defaultInputValue=""
+                      defaultMenuIsOpen={false}
+                      defaultValue={null}
+                      fullWidth={true}
+                      id="schema-select-schema"
+                      onChange={[Function]}
+                      options={
+                        Array [
+                          Object {
+                            "label": "some-existing-model",
+                            "value": Object {
+                              "fileName": "some-existing-model.schema.json",
+                              "fileStatus": 0,
+                              "fileType": ".json",
+                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                            },
+                          },
+                        ]
+                      }
+                      value={
+                        Object {
+                          "label": "some-existing-model",
+                          "value": Object {
+                            "fileName": "some-existing-model.schema.json",
+                            "fileStatus": 0,
+                            "fileType": ".json",
+                            "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                            "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                          },
+                        }
+                      }
+                    >
+                      <Select
+                        aria-live="polite"
+                        backspaceRemovesValue={true}
+                        blurInputOnSelect={true}
+                        captureMenuScroll={false}
+                        className="makeStyles-select-5"
+                        closeMenuOnScroll={false}
+                        closeMenuOnSelect={true}
+                        components={Object {}}
+                        controlShouldRenderValue={true}
+                        escapeClearsValue={false}
+                        filterOption={[Function]}
+                        formatGroupLabel={[Function]}
+                        fullWidth={true}
+                        getOptionLabel={[Function]}
+                        getOptionValue={[Function]}
+                        id="schema-select-schema"
+                        inputValue=""
+                        isDisabled={false}
+                        isLoading={false}
+                        isMulti={false}
+                        isOptionDisabled={[Function]}
+                        isRtl={false}
+                        isSearchable={true}
+                        loadingMessage={[Function]}
+                        maxMenuHeight={300}
+                        menuIsOpen={false}
+                        menuPlacement="bottom"
+                        menuPosition="absolute"
+                        menuShouldBlockScroll={false}
+                        menuShouldScrollIntoView={true}
+                        minMenuHeight={140}
+                        noOptionsMessage={[Function]}
+                        onChange={[Function]}
+                        onInputChange={[Function]}
+                        onMenuClose={[Function]}
+                        onMenuOpen={[Function]}
+                        openMenuOnClick={true}
+                        openMenuOnFocus={false}
+                        options={
+                          Array [
+                            Object {
+                              "label": "some-existing-model",
+                              "value": Object {
+                                "fileName": "some-existing-model.schema.json",
+                                "fileStatus": 0,
+                                "fileType": ".json",
+                                "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                              },
+                            },
+                          ]
+                        }
+                        pageSize={5}
+                        placeholder="Select..."
+                        screenReaderStatus={[Function]}
+                        styles={Object {}}
+                        tabIndex="0"
+                        tabSelectsValue={true}
+                        value={
+                          Object {
+                            "label": "some-existing-model",
+                            "value": Object {
+                              "fileName": "some-existing-model.schema.json",
+                              "fileStatus": 0,
+                              "fileType": ".json",
+                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                            },
+                          }
+                        }
+                      >
+                        <SelectContainer
+                          className="makeStyles-select-5"
+                          clearValue={[Function]}
+                          cx={[Function]}
+                          getStyles={[Function]}
+                          getValue={[Function]}
+                          hasValue={true}
+                          innerProps={
+                            Object {
+                              "id": "schema-select-schema",
+                              "onKeyDown": [Function],
+                            }
+                          }
+                          isDisabled={false}
+                          isFocused={false}
+                          isMulti={false}
+                          isRtl={false}
+                          options={
+                            Array [
+                              Object {
+                                "label": "some-existing-model",
+                                "value": Object {
+                                  "fileName": "some-existing-model.schema.json",
+                                  "fileStatus": 0,
+                                  "fileType": ".json",
+                                  "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                  "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                },
+                              },
+                            ]
+                          }
+                          selectOption={[Function]}
+                          selectProps={
+                            Object {
+                              "aria-live": "polite",
+                              "backspaceRemovesValue": true,
+                              "blurInputOnSelect": true,
+                              "captureMenuScroll": false,
+                              "className": "makeStyles-select-5",
+                              "closeMenuOnScroll": false,
+                              "closeMenuOnSelect": true,
+                              "components": Object {},
+                              "controlShouldRenderValue": true,
+                              "escapeClearsValue": false,
+                              "filterOption": [Function],
+                              "formatGroupLabel": [Function],
+                              "fullWidth": true,
+                              "getOptionLabel": [Function],
+                              "getOptionValue": [Function],
+                              "id": "schema-select-schema",
+                              "inputValue": "",
+                              "isDisabled": false,
+                              "isLoading": false,
+                              "isMulti": false,
+                              "isOptionDisabled": [Function],
+                              "isRtl": false,
+                              "isSearchable": true,
+                              "loadingMessage": [Function],
+                              "maxMenuHeight": 300,
+                              "menuIsOpen": false,
+                              "menuPlacement": "bottom",
+                              "menuPosition": "absolute",
+                              "menuShouldBlockScroll": false,
+                              "menuShouldScrollIntoView": true,
+                              "minMenuHeight": 140,
+                              "noOptionsMessage": [Function],
+                              "onChange": [Function],
+                              "onInputChange": [Function],
+                              "onMenuClose": [Function],
+                              "onMenuOpen": [Function],
+                              "openMenuOnClick": true,
+                              "openMenuOnFocus": false,
+                              "options": Array [
+                                Object {
+                                  "label": "some-existing-model",
+                                  "value": Object {
+                                    "fileName": "some-existing-model.schema.json",
+                                    "fileStatus": 0,
+                                    "fileType": ".json",
+                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                  },
+                                },
+                              ],
+                              "pageSize": 5,
+                              "placeholder": "Select...",
+                              "screenReaderStatus": [Function],
+                              "styles": Object {},
+                              "tabIndex": "0",
+                              "tabSelectsValue": true,
+                              "value": Object {
+                                "label": "some-existing-model",
+                                "value": Object {
+                                  "fileName": "some-existing-model.schema.json",
+                                  "fileStatus": 0,
+                                  "fileType": ".json",
+                                  "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                  "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                },
+                              },
+                            }
+                          }
+                          setValue={[Function]}
+                          theme={
+                            Object {
+                              "borderRadius": 4,
+                              "colors": Object {
+                                "danger": "#DE350B",
+                                "dangerLight": "#FFBDAD",
+                                "neutral0": "hsl(0, 0%, 100%)",
+                                "neutral10": "hsl(0, 0%, 90%)",
+                                "neutral20": "hsl(0, 0%, 80%)",
+                                "neutral30": "hsl(0, 0%, 70%)",
+                                "neutral40": "hsl(0, 0%, 60%)",
+                                "neutral5": "hsl(0, 0%, 95%)",
+                                "neutral50": "hsl(0, 0%, 50%)",
+                                "neutral60": "hsl(0, 0%, 40%)",
+                                "neutral70": "hsl(0, 0%, 30%)",
+                                "neutral80": "hsl(0, 0%, 20%)",
+                                "neutral90": "hsl(0, 0%, 10%)",
+                                "primary": "#2684FF",
+                                "primary25": "#DEEBFF",
+                                "primary50": "#B2D4FF",
+                                "primary75": "#4C9AFF",
+                              },
+                              "spacing": Object {
+                                "baseUnit": 4,
+                                "controlHeight": 38,
+                                "menuGutter": 8,
+                              },
+                            }
+                          }
+                        >
+                          <EmotionCssPropInternal
+                            __EMOTION_LABEL_PLEASE_DO_NOT_USE__="SelectContainer"
+                            __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                            className="makeStyles-select-5"
+                            css={
+                              Object {
+                                "boxSizing": "border-box",
+                                "direction": null,
+                                "label": "container",
+                                "pointerEvents": null,
+                                "position": "relative",
+                              }
+                            }
+                            id="schema-select-schema"
+                            onKeyDown={[Function]}
+                          >
+                            <div
+                              className="makeStyles-select-5 css-2b097c-container"
+                              id="schema-select-schema"
+                              onKeyDown={[Function]}
+                            >
+                              <LiveRegion
+                                ariaSelection={null}
+                                clearValue={[Function]}
+                                cx={[Function]}
+                                focusableOptions={Array []}
+                                focusedValue={null}
+                                getStyles={[Function]}
+                                getValue={[Function]}
+                                hasValue={true}
+                                isFocused={false}
+                                isMulti={false}
+                                isRtl={false}
+                                options={
+                                  Array [
+                                    Object {
+                                      "label": "some-existing-model",
+                                      "value": Object {
+                                        "fileName": "some-existing-model.schema.json",
+                                        "fileStatus": 0,
+                                        "fileType": ".json",
+                                        "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                        "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                      },
+                                    },
+                                  ]
+                                }
+                                selectOption={[Function]}
+                                selectProps={
+                                  Object {
+                                    "aria-live": "polite",
+                                    "backspaceRemovesValue": true,
+                                    "blurInputOnSelect": true,
+                                    "captureMenuScroll": false,
+                                    "className": "makeStyles-select-5",
+                                    "closeMenuOnScroll": false,
+                                    "closeMenuOnSelect": true,
+                                    "components": Object {},
+                                    "controlShouldRenderValue": true,
+                                    "escapeClearsValue": false,
+                                    "filterOption": [Function],
+                                    "formatGroupLabel": [Function],
+                                    "fullWidth": true,
+                                    "getOptionLabel": [Function],
+                                    "getOptionValue": [Function],
+                                    "id": "schema-select-schema",
+                                    "inputValue": "",
+                                    "isDisabled": false,
+                                    "isLoading": false,
+                                    "isMulti": false,
+                                    "isOptionDisabled": [Function],
+                                    "isRtl": false,
+                                    "isSearchable": true,
+                                    "loadingMessage": [Function],
+                                    "maxMenuHeight": 300,
+                                    "menuIsOpen": false,
+                                    "menuPlacement": "bottom",
+                                    "menuPosition": "absolute",
+                                    "menuShouldBlockScroll": false,
+                                    "menuShouldScrollIntoView": true,
+                                    "minMenuHeight": 140,
+                                    "noOptionsMessage": [Function],
+                                    "onChange": [Function],
+                                    "onInputChange": [Function],
+                                    "onMenuClose": [Function],
+                                    "onMenuOpen": [Function],
+                                    "openMenuOnClick": true,
+                                    "openMenuOnFocus": false,
+                                    "options": Array [
+                                      Object {
+                                        "label": "some-existing-model",
+                                        "value": Object {
+                                          "fileName": "some-existing-model.schema.json",
+                                          "fileStatus": 0,
+                                          "fileType": ".json",
+                                          "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                          "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                        },
+                                      },
+                                    ],
+                                    "pageSize": 5,
+                                    "placeholder": "Select...",
+                                    "screenReaderStatus": [Function],
+                                    "styles": Object {},
+                                    "tabIndex": "0",
+                                    "tabSelectsValue": true,
+                                    "value": Object {
+                                      "label": "some-existing-model",
+                                      "value": Object {
+                                        "fileName": "some-existing-model.schema.json",
+                                        "fileStatus": 0,
+                                        "fileType": ".json",
+                                        "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                        "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                      },
+                                    },
+                                  }
+                                }
+                                selectValue={
+                                  Array [
+                                    Object {
+                                      "label": "some-existing-model",
+                                      "value": Object {
+                                        "fileName": "some-existing-model.schema.json",
+                                        "fileStatus": 0,
+                                        "fileType": ".json",
+                                        "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                        "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                      },
+                                    },
+                                  ]
+                                }
+                                setValue={[Function]}
+                                theme={
+                                  Object {
+                                    "borderRadius": 4,
+                                    "colors": Object {
+                                      "danger": "#DE350B",
+                                      "dangerLight": "#FFBDAD",
+                                      "neutral0": "hsl(0, 0%, 100%)",
+                                      "neutral10": "hsl(0, 0%, 90%)",
+                                      "neutral20": "hsl(0, 0%, 80%)",
+                                      "neutral30": "hsl(0, 0%, 70%)",
+                                      "neutral40": "hsl(0, 0%, 60%)",
+                                      "neutral5": "hsl(0, 0%, 95%)",
+                                      "neutral50": "hsl(0, 0%, 50%)",
+                                      "neutral60": "hsl(0, 0%, 40%)",
+                                      "neutral70": "hsl(0, 0%, 30%)",
+                                      "neutral80": "hsl(0, 0%, 20%)",
+                                      "neutral90": "hsl(0, 0%, 10%)",
+                                      "primary": "#2684FF",
+                                      "primary25": "#DEEBFF",
+                                      "primary50": "#B2D4FF",
+                                      "primary75": "#4C9AFF",
+                                    },
+                                    "spacing": Object {
+                                      "baseUnit": 4,
+                                      "controlHeight": 38,
+                                      "menuGutter": 8,
+                                    },
+                                  }
+                                }
+                              >
+                                <A11yText
+                                  aria-atomic="false"
+                                  aria-live="polite"
+                                  aria-relevant="additions text"
+                                >
+                                  <EmotionCssPropInternal
+                                    __EMOTION_LABEL_PLEASE_DO_NOT_USE__="A11yText"
+                                    __EMOTION_TYPE_PLEASE_DO_NOT_USE__="span"
+                                    aria-atomic="false"
+                                    aria-live="polite"
+                                    aria-relevant="additions text"
+                                    css={
+                                      Object {
+                                        "map": "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkExMXlUZXh0LmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQVFJIiwiZmlsZSI6IkExMXlUZXh0LmpzIiwic291cmNlc0NvbnRlbnQiOlsiLy8gQGZsb3dcbi8qKiBAanN4IGpzeCAqL1xuaW1wb3J0IHsgdHlwZSBFbGVtZW50Q29uZmlnIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsganN4IH0gZnJvbSAnQGVtb3Rpb24vcmVhY3QnO1xuXG4vLyBBc3Npc3RpdmUgdGV4dCB0byBkZXNjcmliZSB2aXN1YWwgZWxlbWVudHMuIEhpZGRlbiBmb3Igc2lnaHRlZCB1c2Vycy5cbmNvbnN0IEExMXlUZXh0ID0gKHByb3BzOiBFbGVtZW50Q29uZmlnPCdzcGFuJz4pID0+IChcbiAgPHNwYW5cbiAgICBjc3M9e3tcbiAgICAgIGxhYmVsOiAnYTExeVRleHQnLFxuICAgICAgekluZGV4OiA5OTk5LFxuICAgICAgYm9yZGVyOiAwLFxuICAgICAgY2xpcDogJ3JlY3QoMXB4LCAxcHgsIDFweCwgMXB4KScsXG4gICAgICBoZWlnaHQ6IDEsXG4gICAgICB3aWR0aDogMSxcbiAgICAgIHBvc2l0aW9uOiAnYWJzb2x1dGUnLFxuICAgICAgb3ZlcmZsb3c6ICdoaWRkZW4nLFxuICAgICAgcGFkZGluZzogMCxcbiAgICAgIHdoaXRlU3BhY2U6ICdub3dyYXAnLFxuICAgIH19XG4gICAgey4uLnByb3BzfVxuICAvPlxuKTtcblxuZXhwb3J0IGRlZmF1bHQgQTExeVRleHQ7XG4iXX0= */",
+                                        "name": "1f43avz-a11yText-A11yText",
+                                        "styles": "label:a11yText;z-index:9999;border:0;clip:rect(1px, 1px, 1px, 1px);height:1px;width:1px;position:absolute;overflow:hidden;padding:0;white-space:nowrap;label:A11yText;",
+                                        "toString": [Function],
+                                      }
+                                    }
+                                  >
+                                    <span
+                                      aria-atomic="false"
+                                      aria-live="polite"
+                                      aria-relevant="additions text"
+                                      className="css-1f43avz-a11yText-A11yText"
+                                    />
+                                  </EmotionCssPropInternal>
+                                </A11yText>
+                              </LiveRegion>
+                              <Control
+                                clearValue={[Function]}
+                                cx={[Function]}
+                                getStyles={[Function]}
+                                getValue={[Function]}
+                                hasValue={true}
+                                innerProps={
+                                  Object {
+                                    "onMouseDown": [Function],
+                                    "onTouchEnd": [Function],
+                                  }
+                                }
+                                innerRef={[Function]}
+                                isDisabled={false}
+                                isFocused={false}
+                                isMulti={false}
+                                isRtl={false}
+                                menuIsOpen={false}
+                                options={
+                                  Array [
+                                    Object {
+                                      "label": "some-existing-model",
+                                      "value": Object {
+                                        "fileName": "some-existing-model.schema.json",
+                                        "fileStatus": 0,
+                                        "fileType": ".json",
+                                        "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                        "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                      },
+                                    },
+                                  ]
+                                }
+                                selectOption={[Function]}
+                                selectProps={
+                                  Object {
+                                    "aria-live": "polite",
+                                    "backspaceRemovesValue": true,
+                                    "blurInputOnSelect": true,
+                                    "captureMenuScroll": false,
+                                    "className": "makeStyles-select-5",
+                                    "closeMenuOnScroll": false,
+                                    "closeMenuOnSelect": true,
+                                    "components": Object {},
+                                    "controlShouldRenderValue": true,
+                                    "escapeClearsValue": false,
+                                    "filterOption": [Function],
+                                    "formatGroupLabel": [Function],
+                                    "fullWidth": true,
+                                    "getOptionLabel": [Function],
+                                    "getOptionValue": [Function],
+                                    "id": "schema-select-schema",
+                                    "inputValue": "",
+                                    "isDisabled": false,
+                                    "isLoading": false,
+                                    "isMulti": false,
+                                    "isOptionDisabled": [Function],
+                                    "isRtl": false,
+                                    "isSearchable": true,
+                                    "loadingMessage": [Function],
+                                    "maxMenuHeight": 300,
+                                    "menuIsOpen": false,
+                                    "menuPlacement": "bottom",
+                                    "menuPosition": "absolute",
+                                    "menuShouldBlockScroll": false,
+                                    "menuShouldScrollIntoView": true,
+                                    "minMenuHeight": 140,
+                                    "noOptionsMessage": [Function],
+                                    "onChange": [Function],
+                                    "onInputChange": [Function],
+                                    "onMenuClose": [Function],
+                                    "onMenuOpen": [Function],
+                                    "openMenuOnClick": true,
+                                    "openMenuOnFocus": false,
+                                    "options": Array [
+                                      Object {
+                                        "label": "some-existing-model",
+                                        "value": Object {
+                                          "fileName": "some-existing-model.schema.json",
+                                          "fileStatus": 0,
+                                          "fileType": ".json",
+                                          "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                          "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                        },
+                                      },
+                                    ],
+                                    "pageSize": 5,
+                                    "placeholder": "Select...",
+                                    "screenReaderStatus": [Function],
+                                    "styles": Object {},
+                                    "tabIndex": "0",
+                                    "tabSelectsValue": true,
+                                    "value": Object {
+                                      "label": "some-existing-model",
+                                      "value": Object {
+                                        "fileName": "some-existing-model.schema.json",
+                                        "fileStatus": 0,
+                                        "fileType": ".json",
+                                        "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                        "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                      },
+                                    },
+                                  }
+                                }
+                                setValue={[Function]}
+                                theme={
+                                  Object {
+                                    "borderRadius": 4,
+                                    "colors": Object {
+                                      "danger": "#DE350B",
+                                      "dangerLight": "#FFBDAD",
+                                      "neutral0": "hsl(0, 0%, 100%)",
+                                      "neutral10": "hsl(0, 0%, 90%)",
+                                      "neutral20": "hsl(0, 0%, 80%)",
+                                      "neutral30": "hsl(0, 0%, 70%)",
+                                      "neutral40": "hsl(0, 0%, 60%)",
+                                      "neutral5": "hsl(0, 0%, 95%)",
+                                      "neutral50": "hsl(0, 0%, 50%)",
+                                      "neutral60": "hsl(0, 0%, 40%)",
+                                      "neutral70": "hsl(0, 0%, 30%)",
+                                      "neutral80": "hsl(0, 0%, 20%)",
+                                      "neutral90": "hsl(0, 0%, 10%)",
+                                      "primary": "#2684FF",
+                                      "primary25": "#DEEBFF",
+                                      "primary50": "#B2D4FF",
+                                      "primary75": "#4C9AFF",
+                                    },
+                                    "spacing": Object {
+                                      "baseUnit": 4,
+                                      "controlHeight": 38,
+                                      "menuGutter": 8,
+                                    },
+                                  }
+                                }
+                              >
+                                <EmotionCssPropInternal
+                                  __EMOTION_LABEL_PLEASE_DO_NOT_USE__="Control"
+                                  __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                  className=""
+                                  css={
+                                    Object {
+                                      "&:hover": Object {
+                                        "borderColor": "hsl(0, 0%, 70%)",
+                                      },
+                                      "alignItems": "center",
+                                      "backgroundColor": "hsl(0, 0%, 100%)",
+                                      "borderColor": "hsl(0, 0%, 80%)",
+                                      "borderRadius": 4,
+                                      "borderStyle": "solid",
+                                      "borderWidth": 1,
+                                      "boxShadow": null,
+                                      "boxSizing": "border-box",
+                                      "cursor": "default",
+                                      "display": "flex",
+                                      "flexWrap": "wrap",
+                                      "justifyContent": "space-between",
+                                      "label": "control",
+                                      "minHeight": 38,
+                                      "outline": "0 !important",
+                                      "position": "relative",
+                                      "transition": "all 100ms",
+                                    }
+                                  }
+                                  onMouseDown={[Function]}
+                                  onTouchEnd={[Function]}
+                                >
+                                  <div
+                                    className=" css-yk16xz-control"
+                                    onMouseDown={[Function]}
+                                    onTouchEnd={[Function]}
+                                  >
+                                    <ValueContainer
+                                      clearValue={[Function]}
+                                      cx={[Function]}
+                                      getStyles={[Function]}
+                                      getValue={[Function]}
+                                      hasValue={true}
+                                      isDisabled={false}
+                                      isMulti={false}
+                                      isRtl={false}
+                                      options={
+                                        Array [
+                                          Object {
+                                            "label": "some-existing-model",
+                                            "value": Object {
+                                              "fileName": "some-existing-model.schema.json",
+                                              "fileStatus": 0,
+                                              "fileType": ".json",
+                                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                            },
+                                          },
+                                        ]
+                                      }
+                                      selectOption={[Function]}
+                                      selectProps={
+                                        Object {
+                                          "aria-live": "polite",
+                                          "backspaceRemovesValue": true,
+                                          "blurInputOnSelect": true,
+                                          "captureMenuScroll": false,
+                                          "className": "makeStyles-select-5",
+                                          "closeMenuOnScroll": false,
+                                          "closeMenuOnSelect": true,
+                                          "components": Object {},
+                                          "controlShouldRenderValue": true,
+                                          "escapeClearsValue": false,
+                                          "filterOption": [Function],
+                                          "formatGroupLabel": [Function],
+                                          "fullWidth": true,
+                                          "getOptionLabel": [Function],
+                                          "getOptionValue": [Function],
+                                          "id": "schema-select-schema",
+                                          "inputValue": "",
+                                          "isDisabled": false,
+                                          "isLoading": false,
+                                          "isMulti": false,
+                                          "isOptionDisabled": [Function],
+                                          "isRtl": false,
+                                          "isSearchable": true,
+                                          "loadingMessage": [Function],
+                                          "maxMenuHeight": 300,
+                                          "menuIsOpen": false,
+                                          "menuPlacement": "bottom",
+                                          "menuPosition": "absolute",
+                                          "menuShouldBlockScroll": false,
+                                          "menuShouldScrollIntoView": true,
+                                          "minMenuHeight": 140,
+                                          "noOptionsMessage": [Function],
+                                          "onChange": [Function],
+                                          "onInputChange": [Function],
+                                          "onMenuClose": [Function],
+                                          "onMenuOpen": [Function],
+                                          "openMenuOnClick": true,
+                                          "openMenuOnFocus": false,
+                                          "options": Array [
+                                            Object {
+                                              "label": "some-existing-model",
+                                              "value": Object {
+                                                "fileName": "some-existing-model.schema.json",
+                                                "fileStatus": 0,
+                                                "fileType": ".json",
+                                                "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                              },
+                                            },
+                                          ],
+                                          "pageSize": 5,
+                                          "placeholder": "Select...",
+                                          "screenReaderStatus": [Function],
+                                          "styles": Object {},
+                                          "tabIndex": "0",
+                                          "tabSelectsValue": true,
+                                          "value": Object {
+                                            "label": "some-existing-model",
+                                            "value": Object {
+                                              "fileName": "some-existing-model.schema.json",
+                                              "fileStatus": 0,
+                                              "fileType": ".json",
+                                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                            },
+                                          },
+                                        }
+                                      }
+                                      setValue={[Function]}
+                                      theme={
+                                        Object {
+                                          "borderRadius": 4,
+                                          "colors": Object {
+                                            "danger": "#DE350B",
+                                            "dangerLight": "#FFBDAD",
+                                            "neutral0": "hsl(0, 0%, 100%)",
+                                            "neutral10": "hsl(0, 0%, 90%)",
+                                            "neutral20": "hsl(0, 0%, 80%)",
+                                            "neutral30": "hsl(0, 0%, 70%)",
+                                            "neutral40": "hsl(0, 0%, 60%)",
+                                            "neutral5": "hsl(0, 0%, 95%)",
+                                            "neutral50": "hsl(0, 0%, 50%)",
+                                            "neutral60": "hsl(0, 0%, 40%)",
+                                            "neutral70": "hsl(0, 0%, 30%)",
+                                            "neutral80": "hsl(0, 0%, 20%)",
+                                            "neutral90": "hsl(0, 0%, 10%)",
+                                            "primary": "#2684FF",
+                                            "primary25": "#DEEBFF",
+                                            "primary50": "#B2D4FF",
+                                            "primary75": "#4C9AFF",
+                                          },
+                                          "spacing": Object {
+                                            "baseUnit": 4,
+                                            "controlHeight": 38,
+                                            "menuGutter": 8,
+                                          },
+                                        }
+                                      }
+                                    >
+                                      <EmotionCssPropInternal
+                                        __EMOTION_LABEL_PLEASE_DO_NOT_USE__="ValueContainer"
+                                        __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                        className=""
+                                        css={
+                                          Object {
+                                            "WebkitOverflowScrolling": "touch",
+                                            "alignItems": "center",
+                                            "boxSizing": "border-box",
+                                            "display": "flex",
+                                            "flex": 1,
+                                            "flexWrap": "wrap",
+                                            "overflow": "hidden",
+                                            "padding": "2px 8px",
+                                            "position": "relative",
+                                          }
+                                        }
+                                      >
+                                        <div
+                                          className=" css-g1d714-ValueContainer"
+                                        >
+                                          <SingleValue
+                                            clearValue={[Function]}
+                                            cx={[Function]}
+                                            data={
+                                              Object {
+                                                "label": "some-existing-model",
+                                                "value": Object {
+                                                  "fileName": "some-existing-model.schema.json",
+                                                  "fileStatus": 0,
+                                                  "fileType": ".json",
+                                                  "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                  "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                },
+                                              }
+                                            }
+                                            getStyles={[Function]}
+                                            getValue={[Function]}
+                                            hasValue={true}
+                                            isDisabled={false}
+                                            isMulti={false}
+                                            isRtl={false}
+                                            options={
+                                              Array [
+                                                Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              ]
+                                            }
+                                            selectOption={[Function]}
+                                            selectProps={
+                                              Object {
+                                                "aria-live": "polite",
+                                                "backspaceRemovesValue": true,
+                                                "blurInputOnSelect": true,
+                                                "captureMenuScroll": false,
+                                                "className": "makeStyles-select-5",
+                                                "closeMenuOnScroll": false,
+                                                "closeMenuOnSelect": true,
+                                                "components": Object {},
+                                                "controlShouldRenderValue": true,
+                                                "escapeClearsValue": false,
+                                                "filterOption": [Function],
+                                                "formatGroupLabel": [Function],
+                                                "fullWidth": true,
+                                                "getOptionLabel": [Function],
+                                                "getOptionValue": [Function],
+                                                "id": "schema-select-schema",
+                                                "inputValue": "",
+                                                "isDisabled": false,
+                                                "isLoading": false,
+                                                "isMulti": false,
+                                                "isOptionDisabled": [Function],
+                                                "isRtl": false,
+                                                "isSearchable": true,
+                                                "loadingMessage": [Function],
+                                                "maxMenuHeight": 300,
+                                                "menuIsOpen": false,
+                                                "menuPlacement": "bottom",
+                                                "menuPosition": "absolute",
+                                                "menuShouldBlockScroll": false,
+                                                "menuShouldScrollIntoView": true,
+                                                "minMenuHeight": 140,
+                                                "noOptionsMessage": [Function],
+                                                "onChange": [Function],
+                                                "onInputChange": [Function],
+                                                "onMenuClose": [Function],
+                                                "onMenuOpen": [Function],
+                                                "openMenuOnClick": true,
+                                                "openMenuOnFocus": false,
+                                                "options": Array [
+                                                  Object {
+                                                    "label": "some-existing-model",
+                                                    "value": Object {
+                                                      "fileName": "some-existing-model.schema.json",
+                                                      "fileStatus": 0,
+                                                      "fileType": ".json",
+                                                      "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                      "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                    },
+                                                  },
+                                                ],
+                                                "pageSize": 5,
+                                                "placeholder": "Select...",
+                                                "screenReaderStatus": [Function],
+                                                "styles": Object {},
+                                                "tabIndex": "0",
+                                                "tabSelectsValue": true,
+                                                "value": Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              }
+                                            }
+                                            setValue={[Function]}
+                                            theme={
+                                              Object {
+                                                "borderRadius": 4,
+                                                "colors": Object {
+                                                  "danger": "#DE350B",
+                                                  "dangerLight": "#FFBDAD",
+                                                  "neutral0": "hsl(0, 0%, 100%)",
+                                                  "neutral10": "hsl(0, 0%, 90%)",
+                                                  "neutral20": "hsl(0, 0%, 80%)",
+                                                  "neutral30": "hsl(0, 0%, 70%)",
+                                                  "neutral40": "hsl(0, 0%, 60%)",
+                                                  "neutral5": "hsl(0, 0%, 95%)",
+                                                  "neutral50": "hsl(0, 0%, 50%)",
+                                                  "neutral60": "hsl(0, 0%, 40%)",
+                                                  "neutral70": "hsl(0, 0%, 30%)",
+                                                  "neutral80": "hsl(0, 0%, 20%)",
+                                                  "neutral90": "hsl(0, 0%, 10%)",
+                                                  "primary": "#2684FF",
+                                                  "primary25": "#DEEBFF",
+                                                  "primary50": "#B2D4FF",
+                                                  "primary75": "#4C9AFF",
+                                                },
+                                                "spacing": Object {
+                                                  "baseUnit": 4,
+                                                  "controlHeight": 38,
+                                                  "menuGutter": 8,
+                                                },
+                                              }
+                                            }
+                                          >
+                                            <EmotionCssPropInternal
+                                              __EMOTION_LABEL_PLEASE_DO_NOT_USE__="SingleValue"
+                                              __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                              className=""
+                                              css={
+                                                Object {
+                                                  "boxSizing": "border-box",
+                                                  "color": "hsl(0, 0%, 20%)",
+                                                  "label": "singleValue",
+                                                  "marginLeft": 2,
+                                                  "marginRight": 2,
+                                                  "maxWidth": "calc(100% - 8px)",
+                                                  "overflow": "hidden",
+                                                  "position": "absolute",
+                                                  "textOverflow": "ellipsis",
+                                                  "top": "50%",
+                                                  "transform": "translateY(-50%)",
+                                                  "whiteSpace": "nowrap",
+                                                }
+                                              }
+                                            >
+                                              <div
+                                                className=" css-1uccc91-singleValue"
+                                              >
+                                                some-existing-model
+                                              </div>
+                                            </EmotionCssPropInternal>
+                                          </SingleValue>
+                                          <Input
+                                            aria-autocomplete="list"
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect="off"
+                                            clearValue={[Function]}
+                                            cx={[Function]}
+                                            getStyles={[Function]}
+                                            getValue={[Function]}
+                                            hasValue={true}
+                                            id="react-select-2-input"
+                                            innerRef={[Function]}
+                                            isDisabled={false}
+                                            isHidden={false}
+                                            isMulti={false}
+                                            isRtl={false}
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            options={
+                                              Array [
+                                                Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              ]
+                                            }
+                                            selectOption={[Function]}
+                                            selectProps={
+                                              Object {
+                                                "aria-live": "polite",
+                                                "backspaceRemovesValue": true,
+                                                "blurInputOnSelect": true,
+                                                "captureMenuScroll": false,
+                                                "className": "makeStyles-select-5",
+                                                "closeMenuOnScroll": false,
+                                                "closeMenuOnSelect": true,
+                                                "components": Object {},
+                                                "controlShouldRenderValue": true,
+                                                "escapeClearsValue": false,
+                                                "filterOption": [Function],
+                                                "formatGroupLabel": [Function],
+                                                "fullWidth": true,
+                                                "getOptionLabel": [Function],
+                                                "getOptionValue": [Function],
+                                                "id": "schema-select-schema",
+                                                "inputValue": "",
+                                                "isDisabled": false,
+                                                "isLoading": false,
+                                                "isMulti": false,
+                                                "isOptionDisabled": [Function],
+                                                "isRtl": false,
+                                                "isSearchable": true,
+                                                "loadingMessage": [Function],
+                                                "maxMenuHeight": 300,
+                                                "menuIsOpen": false,
+                                                "menuPlacement": "bottom",
+                                                "menuPosition": "absolute",
+                                                "menuShouldBlockScroll": false,
+                                                "menuShouldScrollIntoView": true,
+                                                "minMenuHeight": 140,
+                                                "noOptionsMessage": [Function],
+                                                "onChange": [Function],
+                                                "onInputChange": [Function],
+                                                "onMenuClose": [Function],
+                                                "onMenuOpen": [Function],
+                                                "openMenuOnClick": true,
+                                                "openMenuOnFocus": false,
+                                                "options": Array [
+                                                  Object {
+                                                    "label": "some-existing-model",
+                                                    "value": Object {
+                                                      "fileName": "some-existing-model.schema.json",
+                                                      "fileStatus": 0,
+                                                      "fileType": ".json",
+                                                      "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                      "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                    },
+                                                  },
+                                                ],
+                                                "pageSize": 5,
+                                                "placeholder": "Select...",
+                                                "screenReaderStatus": [Function],
+                                                "styles": Object {},
+                                                "tabIndex": "0",
+                                                "tabSelectsValue": true,
+                                                "value": Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              }
+                                            }
+                                            setValue={[Function]}
+                                            spellCheck="false"
+                                            tabIndex="0"
+                                            theme={
+                                              Object {
+                                                "borderRadius": 4,
+                                                "colors": Object {
+                                                  "danger": "#DE350B",
+                                                  "dangerLight": "#FFBDAD",
+                                                  "neutral0": "hsl(0, 0%, 100%)",
+                                                  "neutral10": "hsl(0, 0%, 90%)",
+                                                  "neutral20": "hsl(0, 0%, 80%)",
+                                                  "neutral30": "hsl(0, 0%, 70%)",
+                                                  "neutral40": "hsl(0, 0%, 60%)",
+                                                  "neutral5": "hsl(0, 0%, 95%)",
+                                                  "neutral50": "hsl(0, 0%, 50%)",
+                                                  "neutral60": "hsl(0, 0%, 40%)",
+                                                  "neutral70": "hsl(0, 0%, 30%)",
+                                                  "neutral80": "hsl(0, 0%, 20%)",
+                                                  "neutral90": "hsl(0, 0%, 10%)",
+                                                  "primary": "#2684FF",
+                                                  "primary25": "#DEEBFF",
+                                                  "primary50": "#B2D4FF",
+                                                  "primary75": "#4C9AFF",
+                                                },
+                                                "spacing": Object {
+                                                  "baseUnit": 4,
+                                                  "controlHeight": 38,
+                                                  "menuGutter": 8,
+                                                },
+                                              }
+                                            }
+                                            type="text"
+                                            value=""
+                                          >
+                                            <EmotionCssPropInternal
+                                              __EMOTION_LABEL_PLEASE_DO_NOT_USE__="Input"
+                                              __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                              css={
+                                                Object {
+                                                  "boxSizing": "border-box",
+                                                  "color": "hsl(0, 0%, 20%)",
+                                                  "margin": 2,
+                                                  "paddingBottom": 2,
+                                                  "paddingTop": 2,
+                                                  "visibility": "visible",
+                                                }
+                                              }
+                                            >
+                                              <div
+                                                className="css-b8ldur-Input"
+                                              >
+                                                <AutosizeInput
+                                                  aria-autocomplete="list"
+                                                  autoCapitalize="none"
+                                                  autoComplete="off"
+                                                  autoCorrect="off"
+                                                  className=""
+                                                  disabled={false}
+                                                  id="react-select-2-input"
+                                                  injectStyles={true}
+                                                  inputRef={[Function]}
+                                                  inputStyle={
+                                                    Object {
+                                                      "background": 0,
+                                                      "border": 0,
+                                                      "color": "inherit",
+                                                      "fontSize": "inherit",
+                                                      "label": "input",
+                                                      "opacity": 1,
+                                                      "outline": 0,
+                                                      "padding": 0,
+                                                    }
+                                                  }
+                                                  minWidth={1}
+                                                  onBlur={[Function]}
+                                                  onChange={[Function]}
+                                                  onFocus={[Function]}
+                                                  spellCheck="false"
+                                                  tabIndex="0"
+                                                  type="text"
+                                                  value=""
+                                                >
+                                                  <div
+                                                    className=""
+                                                    style={
+                                                      Object {
+                                                        "display": "inline-block",
+                                                      }
+                                                    }
+                                                  >
+                                                    <input
+                                                      aria-autocomplete="list"
+                                                      autoCapitalize="none"
+                                                      autoComplete="off"
+                                                      autoCorrect="off"
+                                                      disabled={false}
+                                                      id="react-select-2-input"
+                                                      onBlur={[Function]}
+                                                      onChange={[Function]}
+                                                      onFocus={[Function]}
+                                                      spellCheck="false"
+                                                      style={
+                                                        Object {
+                                                          "background": 0,
+                                                          "border": 0,
+                                                          "boxSizing": "content-box",
+                                                          "color": "inherit",
+                                                          "fontSize": "inherit",
+                                                          "label": "input",
+                                                          "opacity": 1,
+                                                          "outline": 0,
+                                                          "padding": 0,
+                                                          "width": "2px",
+                                                        }
+                                                      }
+                                                      tabIndex="0"
+                                                      type="text"
+                                                      value=""
+                                                    />
+                                                    <div
+                                                      style={
+                                                        Object {
+                                                          "height": 0,
+                                                          "left": 0,
+                                                          "overflow": "scroll",
+                                                          "position": "absolute",
+                                                          "top": 0,
+                                                          "visibility": "hidden",
+                                                          "whiteSpace": "pre",
+                                                        }
+                                                      }
+                                                    />
+                                                  </div>
+                                                </AutosizeInput>
+                                              </div>
+                                            </EmotionCssPropInternal>
+                                          </Input>
+                                        </div>
+                                      </EmotionCssPropInternal>
+                                    </ValueContainer>
+                                    <IndicatorsContainer
+                                      clearValue={[Function]}
+                                      cx={[Function]}
+                                      getStyles={[Function]}
+                                      getValue={[Function]}
+                                      hasValue={true}
+                                      isDisabled={false}
+                                      isMulti={false}
+                                      isRtl={false}
+                                      options={
+                                        Array [
+                                          Object {
+                                            "label": "some-existing-model",
+                                            "value": Object {
+                                              "fileName": "some-existing-model.schema.json",
+                                              "fileStatus": 0,
+                                              "fileType": ".json",
+                                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                            },
+                                          },
+                                        ]
+                                      }
+                                      selectOption={[Function]}
+                                      selectProps={
+                                        Object {
+                                          "aria-live": "polite",
+                                          "backspaceRemovesValue": true,
+                                          "blurInputOnSelect": true,
+                                          "captureMenuScroll": false,
+                                          "className": "makeStyles-select-5",
+                                          "closeMenuOnScroll": false,
+                                          "closeMenuOnSelect": true,
+                                          "components": Object {},
+                                          "controlShouldRenderValue": true,
+                                          "escapeClearsValue": false,
+                                          "filterOption": [Function],
+                                          "formatGroupLabel": [Function],
+                                          "fullWidth": true,
+                                          "getOptionLabel": [Function],
+                                          "getOptionValue": [Function],
+                                          "id": "schema-select-schema",
+                                          "inputValue": "",
+                                          "isDisabled": false,
+                                          "isLoading": false,
+                                          "isMulti": false,
+                                          "isOptionDisabled": [Function],
+                                          "isRtl": false,
+                                          "isSearchable": true,
+                                          "loadingMessage": [Function],
+                                          "maxMenuHeight": 300,
+                                          "menuIsOpen": false,
+                                          "menuPlacement": "bottom",
+                                          "menuPosition": "absolute",
+                                          "menuShouldBlockScroll": false,
+                                          "menuShouldScrollIntoView": true,
+                                          "minMenuHeight": 140,
+                                          "noOptionsMessage": [Function],
+                                          "onChange": [Function],
+                                          "onInputChange": [Function],
+                                          "onMenuClose": [Function],
+                                          "onMenuOpen": [Function],
+                                          "openMenuOnClick": true,
+                                          "openMenuOnFocus": false,
+                                          "options": Array [
+                                            Object {
+                                              "label": "some-existing-model",
+                                              "value": Object {
+                                                "fileName": "some-existing-model.schema.json",
+                                                "fileStatus": 0,
+                                                "fileType": ".json",
+                                                "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                              },
+                                            },
+                                          ],
+                                          "pageSize": 5,
+                                          "placeholder": "Select...",
+                                          "screenReaderStatus": [Function],
+                                          "styles": Object {},
+                                          "tabIndex": "0",
+                                          "tabSelectsValue": true,
+                                          "value": Object {
+                                            "label": "some-existing-model",
+                                            "value": Object {
+                                              "fileName": "some-existing-model.schema.json",
+                                              "fileStatus": 0,
+                                              "fileType": ".json",
+                                              "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                              "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                            },
+                                          },
+                                        }
+                                      }
+                                      setValue={[Function]}
+                                      theme={
+                                        Object {
+                                          "borderRadius": 4,
+                                          "colors": Object {
+                                            "danger": "#DE350B",
+                                            "dangerLight": "#FFBDAD",
+                                            "neutral0": "hsl(0, 0%, 100%)",
+                                            "neutral10": "hsl(0, 0%, 90%)",
+                                            "neutral20": "hsl(0, 0%, 80%)",
+                                            "neutral30": "hsl(0, 0%, 70%)",
+                                            "neutral40": "hsl(0, 0%, 60%)",
+                                            "neutral5": "hsl(0, 0%, 95%)",
+                                            "neutral50": "hsl(0, 0%, 50%)",
+                                            "neutral60": "hsl(0, 0%, 40%)",
+                                            "neutral70": "hsl(0, 0%, 30%)",
+                                            "neutral80": "hsl(0, 0%, 20%)",
+                                            "neutral90": "hsl(0, 0%, 10%)",
+                                            "primary": "#2684FF",
+                                            "primary25": "#DEEBFF",
+                                            "primary50": "#B2D4FF",
+                                            "primary75": "#4C9AFF",
+                                          },
+                                          "spacing": Object {
+                                            "baseUnit": 4,
+                                            "controlHeight": 38,
+                                            "menuGutter": 8,
+                                          },
+                                        }
+                                      }
+                                    >
+                                      <EmotionCssPropInternal
+                                        __EMOTION_LABEL_PLEASE_DO_NOT_USE__="IndicatorsContainer"
+                                        __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                        className=""
+                                        css={
+                                          Object {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "boxSizing": "border-box",
+                                            "display": "flex",
+                                            "flexShrink": 0,
+                                          }
+                                        }
+                                      >
+                                        <div
+                                          className=" css-1hb7zxy-IndicatorsContainer"
+                                        >
+                                          <IndicatorSeparator
+                                            clearValue={[Function]}
+                                            cx={[Function]}
+                                            getStyles={[Function]}
+                                            getValue={[Function]}
+                                            hasValue={true}
+                                            isDisabled={false}
+                                            isFocused={false}
+                                            isMulti={false}
+                                            isRtl={false}
+                                            options={
+                                              Array [
+                                                Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              ]
+                                            }
+                                            selectOption={[Function]}
+                                            selectProps={
+                                              Object {
+                                                "aria-live": "polite",
+                                                "backspaceRemovesValue": true,
+                                                "blurInputOnSelect": true,
+                                                "captureMenuScroll": false,
+                                                "className": "makeStyles-select-5",
+                                                "closeMenuOnScroll": false,
+                                                "closeMenuOnSelect": true,
+                                                "components": Object {},
+                                                "controlShouldRenderValue": true,
+                                                "escapeClearsValue": false,
+                                                "filterOption": [Function],
+                                                "formatGroupLabel": [Function],
+                                                "fullWidth": true,
+                                                "getOptionLabel": [Function],
+                                                "getOptionValue": [Function],
+                                                "id": "schema-select-schema",
+                                                "inputValue": "",
+                                                "isDisabled": false,
+                                                "isLoading": false,
+                                                "isMulti": false,
+                                                "isOptionDisabled": [Function],
+                                                "isRtl": false,
+                                                "isSearchable": true,
+                                                "loadingMessage": [Function],
+                                                "maxMenuHeight": 300,
+                                                "menuIsOpen": false,
+                                                "menuPlacement": "bottom",
+                                                "menuPosition": "absolute",
+                                                "menuShouldBlockScroll": false,
+                                                "menuShouldScrollIntoView": true,
+                                                "minMenuHeight": 140,
+                                                "noOptionsMessage": [Function],
+                                                "onChange": [Function],
+                                                "onInputChange": [Function],
+                                                "onMenuClose": [Function],
+                                                "onMenuOpen": [Function],
+                                                "openMenuOnClick": true,
+                                                "openMenuOnFocus": false,
+                                                "options": Array [
+                                                  Object {
+                                                    "label": "some-existing-model",
+                                                    "value": Object {
+                                                      "fileName": "some-existing-model.schema.json",
+                                                      "fileStatus": 0,
+                                                      "fileType": ".json",
+                                                      "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                      "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                    },
+                                                  },
+                                                ],
+                                                "pageSize": 5,
+                                                "placeholder": "Select...",
+                                                "screenReaderStatus": [Function],
+                                                "styles": Object {},
+                                                "tabIndex": "0",
+                                                "tabSelectsValue": true,
+                                                "value": Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              }
+                                            }
+                                            setValue={[Function]}
+                                            theme={
+                                              Object {
+                                                "borderRadius": 4,
+                                                "colors": Object {
+                                                  "danger": "#DE350B",
+                                                  "dangerLight": "#FFBDAD",
+                                                  "neutral0": "hsl(0, 0%, 100%)",
+                                                  "neutral10": "hsl(0, 0%, 90%)",
+                                                  "neutral20": "hsl(0, 0%, 80%)",
+                                                  "neutral30": "hsl(0, 0%, 70%)",
+                                                  "neutral40": "hsl(0, 0%, 60%)",
+                                                  "neutral5": "hsl(0, 0%, 95%)",
+                                                  "neutral50": "hsl(0, 0%, 50%)",
+                                                  "neutral60": "hsl(0, 0%, 40%)",
+                                                  "neutral70": "hsl(0, 0%, 30%)",
+                                                  "neutral80": "hsl(0, 0%, 20%)",
+                                                  "neutral90": "hsl(0, 0%, 10%)",
+                                                  "primary": "#2684FF",
+                                                  "primary25": "#DEEBFF",
+                                                  "primary50": "#B2D4FF",
+                                                  "primary75": "#4C9AFF",
+                                                },
+                                                "spacing": Object {
+                                                  "baseUnit": 4,
+                                                  "controlHeight": 38,
+                                                  "menuGutter": 8,
+                                                },
+                                              }
+                                            }
+                                          >
+                                            <EmotionCssPropInternal
+                                              __EMOTION_LABEL_PLEASE_DO_NOT_USE__="IndicatorSeparator"
+                                              __EMOTION_TYPE_PLEASE_DO_NOT_USE__="span"
+                                              className=""
+                                              css={
+                                                Object {
+                                                  "alignSelf": "stretch",
+                                                  "backgroundColor": "hsl(0, 0%, 80%)",
+                                                  "boxSizing": "border-box",
+                                                  "label": "indicatorSeparator",
+                                                  "marginBottom": 8,
+                                                  "marginTop": 8,
+                                                  "width": 1,
+                                                }
+                                              }
+                                            >
+                                              <span
+                                                className=" css-1okebmr-indicatorSeparator"
+                                              />
+                                            </EmotionCssPropInternal>
+                                          </IndicatorSeparator>
+                                          <DropdownIndicator
+                                            clearValue={[Function]}
+                                            cx={[Function]}
+                                            getStyles={[Function]}
+                                            getValue={[Function]}
+                                            hasValue={true}
+                                            innerProps={
+                                              Object {
+                                                "aria-hidden": "true",
+                                                "onMouseDown": [Function],
+                                                "onTouchEnd": [Function],
+                                              }
+                                            }
+                                            isDisabled={false}
+                                            isFocused={false}
+                                            isMulti={false}
+                                            isRtl={false}
+                                            options={
+                                              Array [
+                                                Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              ]
+                                            }
+                                            selectOption={[Function]}
+                                            selectProps={
+                                              Object {
+                                                "aria-live": "polite",
+                                                "backspaceRemovesValue": true,
+                                                "blurInputOnSelect": true,
+                                                "captureMenuScroll": false,
+                                                "className": "makeStyles-select-5",
+                                                "closeMenuOnScroll": false,
+                                                "closeMenuOnSelect": true,
+                                                "components": Object {},
+                                                "controlShouldRenderValue": true,
+                                                "escapeClearsValue": false,
+                                                "filterOption": [Function],
+                                                "formatGroupLabel": [Function],
+                                                "fullWidth": true,
+                                                "getOptionLabel": [Function],
+                                                "getOptionValue": [Function],
+                                                "id": "schema-select-schema",
+                                                "inputValue": "",
+                                                "isDisabled": false,
+                                                "isLoading": false,
+                                                "isMulti": false,
+                                                "isOptionDisabled": [Function],
+                                                "isRtl": false,
+                                                "isSearchable": true,
+                                                "loadingMessage": [Function],
+                                                "maxMenuHeight": 300,
+                                                "menuIsOpen": false,
+                                                "menuPlacement": "bottom",
+                                                "menuPosition": "absolute",
+                                                "menuShouldBlockScroll": false,
+                                                "menuShouldScrollIntoView": true,
+                                                "minMenuHeight": 140,
+                                                "noOptionsMessage": [Function],
+                                                "onChange": [Function],
+                                                "onInputChange": [Function],
+                                                "onMenuClose": [Function],
+                                                "onMenuOpen": [Function],
+                                                "openMenuOnClick": true,
+                                                "openMenuOnFocus": false,
+                                                "options": Array [
+                                                  Object {
+                                                    "label": "some-existing-model",
+                                                    "value": Object {
+                                                      "fileName": "some-existing-model.schema.json",
+                                                      "fileStatus": 0,
+                                                      "fileType": ".json",
+                                                      "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                      "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                    },
+                                                  },
+                                                ],
+                                                "pageSize": 5,
+                                                "placeholder": "Select...",
+                                                "screenReaderStatus": [Function],
+                                                "styles": Object {},
+                                                "tabIndex": "0",
+                                                "tabSelectsValue": true,
+                                                "value": Object {
+                                                  "label": "some-existing-model",
+                                                  "value": Object {
+                                                    "fileName": "some-existing-model.schema.json",
+                                                    "fileStatus": 0,
+                                                    "fileType": ".json",
+                                                    "lastChanged": "2021-06-22T10:49:02.8440678+02:00",
+                                                    "repositoryRelativeUrl": "/App/models/some-existing-model.schema.json",
+                                                  },
+                                                },
+                                              }
+                                            }
+                                            setValue={[Function]}
+                                            theme={
+                                              Object {
+                                                "borderRadius": 4,
+                                                "colors": Object {
+                                                  "danger": "#DE350B",
+                                                  "dangerLight": "#FFBDAD",
+                                                  "neutral0": "hsl(0, 0%, 100%)",
+                                                  "neutral10": "hsl(0, 0%, 90%)",
+                                                  "neutral20": "hsl(0, 0%, 80%)",
+                                                  "neutral30": "hsl(0, 0%, 70%)",
+                                                  "neutral40": "hsl(0, 0%, 60%)",
+                                                  "neutral5": "hsl(0, 0%, 95%)",
+                                                  "neutral50": "hsl(0, 0%, 50%)",
+                                                  "neutral60": "hsl(0, 0%, 40%)",
+                                                  "neutral70": "hsl(0, 0%, 30%)",
+                                                  "neutral80": "hsl(0, 0%, 20%)",
+                                                  "neutral90": "hsl(0, 0%, 10%)",
+                                                  "primary": "#2684FF",
+                                                  "primary25": "#DEEBFF",
+                                                  "primary50": "#B2D4FF",
+                                                  "primary75": "#4C9AFF",
+                                                },
+                                                "spacing": Object {
+                                                  "baseUnit": 4,
+                                                  "controlHeight": 38,
+                                                  "menuGutter": 8,
+                                                },
+                                              }
+                                            }
+                                          >
+                                            <EmotionCssPropInternal
+                                              __EMOTION_LABEL_PLEASE_DO_NOT_USE__="DropdownIndicator"
+                                              __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
+                                              aria-hidden="true"
+                                              className=""
+                                              css={
+                                                Object {
+                                                  ":hover": Object {
+                                                    "color": "hsl(0, 0%, 60%)",
+                                                  },
+                                                  "boxSizing": "border-box",
+                                                  "color": "hsl(0, 0%, 80%)",
+                                                  "display": "flex",
+                                                  "label": "indicatorContainer",
+                                                  "padding": 8,
+                                                  "transition": "color 150ms",
+                                                }
+                                              }
+                                              onMouseDown={[Function]}
+                                              onTouchEnd={[Function]}
+                                            >
+                                              <div
+                                                aria-hidden="true"
+                                                className=" css-tlfecz-indicatorContainer"
+                                                onMouseDown={[Function]}
+                                                onTouchEnd={[Function]}
+                                              >
+                                                <DownChevron>
+                                                  <Svg
+                                                    size={20}
+                                                  >
+                                                    <EmotionCssPropInternal
+                                                      __EMOTION_LABEL_PLEASE_DO_NOT_USE__="Svg"
+                                                      __EMOTION_TYPE_PLEASE_DO_NOT_USE__="svg"
+                                                      aria-hidden="true"
+                                                      css={
+                                                        Object {
+                                                          "map": "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGljYXRvcnMuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBa0JJIiwiZmlsZSI6ImluZGljYXRvcnMuanMiLCJzb3VyY2VzQ29udGVudCI6WyIvLyBAZmxvd1xuLyoqIEBqc3gganN4ICovXG5pbXBvcnQgeyB0eXBlIE5vZGUgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBqc3gsIGtleWZyYW1lcyB9IGZyb20gJ0BlbW90aW9uL3JlYWN0JztcblxuaW1wb3J0IHR5cGUgeyBDb21tb25Qcm9wcywgVGhlbWUgfSBmcm9tICcuLi90eXBlcyc7XG5cbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuLy8gRHJvcGRvd24gJiBDbGVhciBJY29uc1xuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbmNvbnN0IFN2ZyA9ICh7IHNpemUsIC4uLnByb3BzIH06IHsgc2l6ZTogbnVtYmVyIH0pID0+IChcbiAgPHN2Z1xuICAgIGhlaWdodD17c2l6ZX1cbiAgICB3aWR0aD17c2l6ZX1cbiAgICB2aWV3Qm94PVwiMCAwIDIwIDIwXCJcbiAgICBhcmlhLWhpZGRlbj1cInRydWVcIlxuICAgIGZvY3VzYWJsZT1cImZhbHNlXCJcbiAgICBjc3M9e3tcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgZmlsbDogJ2N1cnJlbnRDb2xvcicsXG4gICAgICBsaW5lSGVpZ2h0OiAxLFxuICAgICAgc3Ryb2tlOiAnY3VycmVudENvbG9yJyxcbiAgICAgIHN0cm9rZVdpZHRoOiAwLFxuICAgIH19XG4gICAgey4uLnByb3BzfVxuICAvPlxuKTtcblxuZXhwb3J0IGNvbnN0IENyb3NzSWNvbiA9IChwcm9wczogYW55KSA9PiAoXG4gIDxTdmcgc2l6ZT17MjB9IHsuLi5wcm9wc30+XG4gICAgPHBhdGggZD1cIk0xNC4zNDggMTQuODQ5Yy0wLjQ2OSAwLjQ2OS0xLjIyOSAwLjQ2OS0xLjY5NyAwbC0yLjY1MS0zLjAzMC0yLjY1MSAzLjAyOWMtMC40NjkgMC40NjktMS4yMjkgMC40NjktMS42OTcgMC0wLjQ2OS0wLjQ2OS0wLjQ2OS0xLjIyOSAwLTEuNjk3bDIuNzU4LTMuMTUtMi43NTktMy4xNTJjLTAuNDY5LTAuNDY5LTAuNDY5LTEuMjI4IDAtMS42OTdzMS4yMjgtMC40NjkgMS42OTcgMGwyLjY1MiAzLjAzMSAyLjY1MS0zLjAzMWMwLjQ2OS0wLjQ2OSAxLjIyOC0wLjQ2OSAxLjY5NyAwczAuNDY5IDEuMjI5IDAgMS42OTdsLTIuNzU4IDMuMTUyIDIuNzU4IDMuMTVjMC40NjkgMC40NjkgMC40NjkgMS4yMjkgMCAxLjY5OHpcIiAvPlxuICA8L1N2Zz5cbik7XG5leHBvcnQgY29uc3QgRG93bkNoZXZyb24gPSAocHJvcHM6IGFueSkgPT4gKFxuICA8U3ZnIHNpemU9ezIwfSB7Li4ucHJvcHN9PlxuICAgIDxwYXRoIGQ9XCJNNC41MTYgNy41NDhjMC40MzYtMC40NDYgMS4wNDMtMC40ODEgMS41NzYgMGwzLjkwOCAzLjc0NyAzLjkwOC0zLjc0N2MwLjUzMy0wLjQ4MSAxLjE0MS0wLjQ0NiAxLjU3NCAwIDAuNDM2IDAuNDQ1IDAuNDA4IDEuMTk3IDAgMS42MTUtMC40MDYgMC40MTgtNC42OTUgNC41MDItNC42OTUgNC41MDItMC4yMTcgMC4yMjMtMC41MDIgMC4zMzUtMC43ODcgMC4zMzVzLTAuNTctMC4xMTItMC43ODktMC4zMzVjMCAwLTQuMjg3LTQuMDg0LTQuNjk1LTQuNTAycy0wLjQzNi0xLjE3IDAtMS42MTV6XCIgLz5cbiAgPC9Tdmc+XG4pO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbi8vIERyb3Bkb3duICYgQ2xlYXIgQnV0dG9uc1xuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbmV4cG9ydCB0eXBlIEluZGljYXRvclByb3BzID0gQ29tbW9uUHJvcHMgJiB7XG4gIC8qKiBUaGUgY2hpbGRyZW4gdG8gYmUgcmVuZGVyZWQgaW5zaWRlIHRoZSBpbmRpY2F0b3IuICovXG4gIGNoaWxkcmVuOiBOb2RlLFxuICAvKiogUHJvcHMgdGhhdCB3aWxsIGJlIHBhc3NlZCBvbiB0byB0aGUgY2hpbGRyZW4uICovXG4gIGlubmVyUHJvcHM6IGFueSxcbiAgLyoqIFRoZSBmb2N1c2VkIHN0YXRlIG9mIHRoZSBzZWxlY3QuICovXG4gIGlzRm9jdXNlZDogYm9vbGVhbixcbiAgLyoqIFdoZXRoZXIgdGhlIHRleHQgaXMgcmlnaHQgdG8gbGVmdCAqL1xuICBpc1J0bDogYm9vbGVhbixcbn07XG5cbmNvbnN0IGJhc2VDU1MgPSAoe1xuICBpc0ZvY3VzZWQsXG4gIHRoZW1lOiB7XG4gICAgc3BhY2luZzogeyBiYXNlVW5pdCB9LFxuICAgIGNvbG9ycyxcbiAgfSxcbn06IEluZGljYXRvclByb3BzKSA9PiAoe1xuICBsYWJlbDogJ2luZGljYXRvckNvbnRhaW5lcicsXG4gIGNvbG9yOiBpc0ZvY3VzZWQgPyBjb2xvcnMubmV1dHJhbDYwIDogY29sb3JzLm5ldXRyYWwyMCxcbiAgZGlzcGxheTogJ2ZsZXgnLFxuICBwYWRkaW5nOiBiYXNlVW5pdCAqIDIsXG4gIHRyYW5zaXRpb246ICdjb2xvciAxNTBtcycsXG5cbiAgJzpob3Zlcic6IHtcbiAgICBjb2xvcjogaXNGb2N1c2VkID8gY29sb3JzLm5ldXRyYWw4MCA6IGNvbG9ycy5uZXV0cmFsNDAsXG4gIH0sXG59KTtcblxuZXhwb3J0IGNvbnN0IGRyb3Bkb3duSW5kaWNhdG9yQ1NTID0gYmFzZUNTUztcbmV4cG9ydCBjb25zdCBEcm9wZG93bkluZGljYXRvciA9IChwcm9wczogSW5kaWNhdG9yUHJvcHMpID0+IHtcbiAgY29uc3QgeyBjaGlsZHJlbiwgY2xhc3NOYW1lLCBjeCwgZ2V0U3R5bGVzLCBpbm5lclByb3BzIH0gPSBwcm9wcztcbiAgcmV0dXJuIChcbiAgICA8ZGl2XG4gICAgICBjc3M9e2dldFN0eWxlcygnZHJvcGRvd25JbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdkcm9wZG93bi1pbmRpY2F0b3InOiB0cnVlLFxuICAgICAgICB9LFxuICAgICAgICBjbGFzc05hbWVcbiAgICAgICl9XG4gICAgICB7Li4uaW5uZXJQcm9wc31cbiAgICA+XG4gICAgICB7Y2hpbGRyZW4gfHwgPERvd25DaGV2cm9uIC8+fVxuICAgIDwvZGl2PlxuICApO1xufTtcblxuZXhwb3J0IGNvbnN0IGNsZWFySW5kaWNhdG9yQ1NTID0gYmFzZUNTUztcbmV4cG9ydCBjb25zdCBDbGVhckluZGljYXRvciA9IChwcm9wczogSW5kaWNhdG9yUHJvcHMpID0+IHtcbiAgY29uc3QgeyBjaGlsZHJlbiwgY2xhc3NOYW1lLCBjeCwgZ2V0U3R5bGVzLCBpbm5lclByb3BzIH0gPSBwcm9wcztcbiAgcmV0dXJuIChcbiAgICA8ZGl2XG4gICAgICBjc3M9e2dldFN0eWxlcygnY2xlYXJJbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdjbGVhci1pbmRpY2F0b3InOiB0cnVlLFxuICAgICAgICB9LFxuICAgICAgICBjbGFzc05hbWVcbiAgICAgICl9XG4gICAgICB7Li4uaW5uZXJQcm9wc31cbiAgICA+XG4gICAgICB7Y2hpbGRyZW4gfHwgPENyb3NzSWNvbiAvPn1cbiAgICA8L2Rpdj5cbiAgKTtcbn07XG5cbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuLy8gU2VwYXJhdG9yXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cblxudHlwZSBTZXBhcmF0b3JTdGF0ZSA9IHsgaXNEaXNhYmxlZDogYm9vbGVhbiB9O1xuXG5leHBvcnQgY29uc3QgaW5kaWNhdG9yU2VwYXJhdG9yQ1NTID0gKHtcbiAgaXNEaXNhYmxlZCxcbiAgdGhlbWU6IHtcbiAgICBzcGFjaW5nOiB7IGJhc2VVbml0IH0sXG4gICAgY29sb3JzLFxuICB9LFxufTogQ29tbW9uUHJvcHMgJiBTZXBhcmF0b3JTdGF0ZSkgPT4gKHtcbiAgbGFiZWw6ICdpbmRpY2F0b3JTZXBhcmF0b3InLFxuICBhbGlnblNlbGY6ICdzdHJldGNoJyxcbiAgYmFja2dyb3VuZENvbG9yOiBpc0Rpc2FibGVkID8gY29sb3JzLm5ldXRyYWwxMCA6IGNvbG9ycy5uZXV0cmFsMjAsXG4gIG1hcmdpbkJvdHRvbTogYmFzZVVuaXQgKiAyLFxuICBtYXJnaW5Ub3A6IGJhc2VVbml0ICogMixcbiAgd2lkdGg6IDEsXG59KTtcblxuZXhwb3J0IGNvbnN0IEluZGljYXRvclNlcGFyYXRvciA9IChwcm9wczogSW5kaWNhdG9yUHJvcHMpID0+IHtcbiAgY29uc3QgeyBjbGFzc05hbWUsIGN4LCBnZXRTdHlsZXMsIGlubmVyUHJvcHMgfSA9IHByb3BzO1xuICByZXR1cm4gKFxuICAgIDxzcGFuXG4gICAgICB7Li4uaW5uZXJQcm9wc31cbiAgICAgIGNzcz17Z2V0U3R5bGVzKCdpbmRpY2F0b3JTZXBhcmF0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KHsgJ2luZGljYXRvci1zZXBhcmF0b3InOiB0cnVlIH0sIGNsYXNzTmFtZSl9XG4gICAgLz5cbiAgKTtcbn07XG5cbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuLy8gTG9hZGluZ1xuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbmNvbnN0IGxvYWRpbmdEb3RBbmltYXRpb25zID0ga2V5ZnJhbWVzYFxuICAwJSwgODAlLCAxMDAlIHsgb3BhY2l0eTogMDsgfVxuICA0MCUgeyBvcGFjaXR5OiAxOyB9XG5gO1xuXG5leHBvcnQgY29uc3QgbG9hZGluZ0luZGljYXRvckNTUyA9ICh7XG4gIGlzRm9jdXNlZCxcbiAgc2l6ZSxcbiAgdGhlbWU6IHtcbiAgICBjb2xvcnMsXG4gICAgc3BhY2luZzogeyBiYXNlVW5pdCB9LFxuICB9LFxufToge1xuICBpc0ZvY3VzZWQ6IGJvb2xlYW4sXG4gIHNpemU6IG51bWJlcixcbiAgdGhlbWU6IFRoZW1lLFxufSkgPT4gKHtcbiAgbGFiZWw6ICdsb2FkaW5nSW5kaWNhdG9yJyxcbiAgY29sb3I6IGlzRm9jdXNlZCA/IGNvbG9ycy5uZXV0cmFsNjAgOiBjb2xvcnMubmV1dHJhbDIwLFxuICBkaXNwbGF5OiAnZmxleCcsXG4gIHBhZGRpbmc6IGJhc2VVbml0ICogMixcbiAgdHJhbnNpdGlvbjogJ2NvbG9yIDE1MG1zJyxcbiAgYWxpZ25TZWxmOiAnY2VudGVyJyxcbiAgZm9udFNpemU6IHNpemUsXG4gIGxpbmVIZWlnaHQ6IDEsXG4gIG1hcmdpblJpZ2h0OiBzaXplLFxuICB0ZXh0QWxpZ246ICdjZW50ZXInLFxuICB2ZXJ0aWNhbEFsaWduOiAnbWlkZGxlJyxcbn0pO1xuXG50eXBlIERvdFByb3BzID0geyBkZWxheTogbnVtYmVyLCBvZmZzZXQ6IGJvb2xlYW4gfTtcbmNvbnN0IExvYWRpbmdEb3QgPSAoeyBkZWxheSwgb2Zmc2V0IH06IERvdFByb3BzKSA9PiAoXG4gIDxzcGFuXG4gICAgY3NzPXt7XG4gICAgICBhbmltYXRpb246IGAke2xvYWRpbmdEb3RBbmltYXRpb25zfSAxcyBlYXNlLWluLW91dCAke2RlbGF5fW1zIGluZmluaXRlO2AsXG4gICAgICBiYWNrZ3JvdW5kQ29sb3I6ICdjdXJyZW50Q29sb3InLFxuICAgICAgYm9yZGVyUmFkaXVzOiAnMWVtJyxcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgbWFyZ2luTGVmdDogb2Zmc2V0ID8gJzFlbScgOiBudWxsLFxuICAgICAgaGVpZ2h0OiAnMWVtJyxcbiAgICAgIHZlcnRpY2FsQWxpZ246ICd0b3AnLFxuICAgICAgd2lkdGg6ICcxZW0nLFxuICAgIH19XG4gIC8+XG4pO1xuXG5leHBvcnQgdHlwZSBMb2FkaW5nSWNvblByb3BzID0ge1xuICAvKiogUHJvcHMgdGhhdCB3aWxsIGJlIHBhc3NlZCBvbiB0byB0aGUgY2hpbGRyZW4uICovXG4gIGlubmVyUHJvcHM6IGFueSxcbiAgLyoqIFRoZSBmb2N1c2VkIHN0YXRlIG9mIHRoZSBzZWxlY3QuICovXG4gIGlzRm9jdXNlZDogYm9vbGVhbixcbiAgLyoqIFdoZXRoZXIgdGhlIHRleHQgaXMgcmlnaHQgdG8gbGVmdCAqL1xuICBpc1J0bDogYm9vbGVhbixcbn0gJiBDb21tb25Qcm9wcyAmIHtcbiAgICAvKiogU2V0IHNpemUgb2YgdGhlIGNvbnRhaW5lci4gKi9cbiAgICBzaXplOiBudW1iZXIsXG4gIH07XG5leHBvcnQgY29uc3QgTG9hZGluZ0luZGljYXRvciA9IChwcm9wczogTG9hZGluZ0ljb25Qcm9wcykgPT4ge1xuICBjb25zdCB7IGNsYXNzTmFtZSwgY3gsIGdldFN0eWxlcywgaW5uZXJQcm9wcywgaXNSdGwgfSA9IHByb3BzO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdlxuICAgICAgY3NzPXtnZXRTdHlsZXMoJ2xvYWRpbmdJbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdsb2FkaW5nLWluZGljYXRvcic6IHRydWUsXG4gICAgICAgIH0sXG4gICAgICAgIGNsYXNzTmFtZVxuICAgICAgKX1cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgID5cbiAgICAgIDxMb2FkaW5nRG90IGRlbGF5PXswfSBvZmZzZXQ9e2lzUnRsfSAvPlxuICAgICAgPExvYWRpbmdEb3QgZGVsYXk9ezE2MH0gb2Zmc2V0IC8+XG4gICAgICA8TG9hZGluZ0RvdCBkZWxheT17MzIwfSBvZmZzZXQ9eyFpc1J0bH0gLz5cbiAgICA8L2Rpdj5cbiAgKTtcbn07XG5Mb2FkaW5nSW5kaWNhdG9yLmRlZmF1bHRQcm9wcyA9IHsgc2l6ZTogNCB9O1xuIl19 */",
+                                                          "name": "tj5bde-Svg",
+                                                          "styles": "display:inline-block;fill:currentColor;line-height:1;stroke:currentColor;stroke-width:0;label:Svg;",
+                                                          "toString": [Function],
+                                                        }
+                                                      }
+                                                      focusable="false"
+                                                      height={20}
+                                                      viewBox="0 0 20 20"
+                                                      width={20}
+                                                    >
+                                                      <svg
+                                                        aria-hidden="true"
+                                                        className="css-tj5bde-Svg"
+                                                        focusable="false"
+                                                        height={20}
+                                                        viewBox="0 0 20 20"
+                                                        width={20}
+                                                      >
+                                                        <path
+                                                          d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                                        />
+                                                      </svg>
+                                                    </EmotionCssPropInternal>
+                                                  </Svg>
+                                                </DownChevron>
+                                              </div>
+                                            </EmotionCssPropInternal>
+                                          </DropdownIndicator>
+                                        </div>
+                                      </EmotionCssPropInternal>
+                                    </IndicatorsContainer>
+                                  </div>
+                                </EmotionCssPropInternal>
+                              </Control>
+                            </div>
+                          </EmotionCssPropInternal>
+                        </SelectContainer>
+                      </Select>
+                    </StateManager>
+                  </div>
+                </ForwardRef(Grid)>
+              </WithStyles(ForwardRef(Grid))>
+            </SchemaSelect>
+            <DeleteWrapper
+              buttonClass="makeStyles-button-3"
+              deleteAction={[Function]}
+              language={
+                Object {
+                  "administration": Object {},
+                }
+              }
+              schemaName="some-existing-model"
+            >
+              <WithStyles(ForwardRef(Grid))
+                item={true}
+              >
+                <ForwardRef(Grid)
+                  classes={
+                    Object {
+                      "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                      "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                      "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                      "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                      "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                      "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                      "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                      "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                      "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                      "container": "MuiGrid-container",
+                      "direction-xs-column": "MuiGrid-direction-xs-column",
+                      "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                      "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                      "grid-lg-1": "MuiGrid-grid-lg-1",
+                      "grid-lg-10": "MuiGrid-grid-lg-10",
+                      "grid-lg-11": "MuiGrid-grid-lg-11",
+                      "grid-lg-12": "MuiGrid-grid-lg-12",
+                      "grid-lg-2": "MuiGrid-grid-lg-2",
+                      "grid-lg-3": "MuiGrid-grid-lg-3",
+                      "grid-lg-4": "MuiGrid-grid-lg-4",
+                      "grid-lg-5": "MuiGrid-grid-lg-5",
+                      "grid-lg-6": "MuiGrid-grid-lg-6",
+                      "grid-lg-7": "MuiGrid-grid-lg-7",
+                      "grid-lg-8": "MuiGrid-grid-lg-8",
+                      "grid-lg-9": "MuiGrid-grid-lg-9",
+                      "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                      "grid-lg-true": "MuiGrid-grid-lg-true",
+                      "grid-md-1": "MuiGrid-grid-md-1",
+                      "grid-md-10": "MuiGrid-grid-md-10",
+                      "grid-md-11": "MuiGrid-grid-md-11",
+                      "grid-md-12": "MuiGrid-grid-md-12",
+                      "grid-md-2": "MuiGrid-grid-md-2",
+                      "grid-md-3": "MuiGrid-grid-md-3",
+                      "grid-md-4": "MuiGrid-grid-md-4",
+                      "grid-md-5": "MuiGrid-grid-md-5",
+                      "grid-md-6": "MuiGrid-grid-md-6",
+                      "grid-md-7": "MuiGrid-grid-md-7",
+                      "grid-md-8": "MuiGrid-grid-md-8",
+                      "grid-md-9": "MuiGrid-grid-md-9",
+                      "grid-md-auto": "MuiGrid-grid-md-auto",
+                      "grid-md-true": "MuiGrid-grid-md-true",
+                      "grid-sm-1": "MuiGrid-grid-sm-1",
+                      "grid-sm-10": "MuiGrid-grid-sm-10",
+                      "grid-sm-11": "MuiGrid-grid-sm-11",
+                      "grid-sm-12": "MuiGrid-grid-sm-12",
+                      "grid-sm-2": "MuiGrid-grid-sm-2",
+                      "grid-sm-3": "MuiGrid-grid-sm-3",
+                      "grid-sm-4": "MuiGrid-grid-sm-4",
+                      "grid-sm-5": "MuiGrid-grid-sm-5",
+                      "grid-sm-6": "MuiGrid-grid-sm-6",
+                      "grid-sm-7": "MuiGrid-grid-sm-7",
+                      "grid-sm-8": "MuiGrid-grid-sm-8",
+                      "grid-sm-9": "MuiGrid-grid-sm-9",
+                      "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                      "grid-sm-true": "MuiGrid-grid-sm-true",
+                      "grid-xl-1": "MuiGrid-grid-xl-1",
+                      "grid-xl-10": "MuiGrid-grid-xl-10",
+                      "grid-xl-11": "MuiGrid-grid-xl-11",
+                      "grid-xl-12": "MuiGrid-grid-xl-12",
+                      "grid-xl-2": "MuiGrid-grid-xl-2",
+                      "grid-xl-3": "MuiGrid-grid-xl-3",
+                      "grid-xl-4": "MuiGrid-grid-xl-4",
+                      "grid-xl-5": "MuiGrid-grid-xl-5",
+                      "grid-xl-6": "MuiGrid-grid-xl-6",
+                      "grid-xl-7": "MuiGrid-grid-xl-7",
+                      "grid-xl-8": "MuiGrid-grid-xl-8",
+                      "grid-xl-9": "MuiGrid-grid-xl-9",
+                      "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                      "grid-xl-true": "MuiGrid-grid-xl-true",
+                      "grid-xs-1": "MuiGrid-grid-xs-1",
+                      "grid-xs-10": "MuiGrid-grid-xs-10",
+                      "grid-xs-11": "MuiGrid-grid-xs-11",
+                      "grid-xs-12": "MuiGrid-grid-xs-12",
+                      "grid-xs-2": "MuiGrid-grid-xs-2",
+                      "grid-xs-3": "MuiGrid-grid-xs-3",
+                      "grid-xs-4": "MuiGrid-grid-xs-4",
+                      "grid-xs-5": "MuiGrid-grid-xs-5",
+                      "grid-xs-6": "MuiGrid-grid-xs-6",
+                      "grid-xs-7": "MuiGrid-grid-xs-7",
+                      "grid-xs-8": "MuiGrid-grid-xs-8",
+                      "grid-xs-9": "MuiGrid-grid-xs-9",
+                      "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                      "grid-xs-true": "MuiGrid-grid-xs-true",
+                      "item": "MuiGrid-item",
+                      "justify-xs-center": "MuiGrid-justify-xs-center",
+                      "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
+                      "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
+                      "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
+                      "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
+                      "root": "MuiGrid-root",
+                      "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                      "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                      "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                      "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                      "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                      "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                      "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                      "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                      "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                      "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                      "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                      "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                      "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                    }
+                  }
+                  item={true}
+                >
+                  <div
+                    className="MuiGrid-root MuiGrid-item"
+                  >
+                    <WithStyles(ForwardRef(Button))
+                      className="makeStyles-button-3"
+                      disabled={false}
+                      id="delete-button"
+                      onClick={[Function]}
+                      startIcon={<Memo />}
+                      variant="contained"
+                    >
+                      <ForwardRef(Button)
+                        className="makeStyles-button-3"
+                        classes={
+                          Object {
+                            "colorInherit": "MuiButton-colorInherit",
+                            "contained": "MuiButton-contained",
+                            "containedPrimary": "MuiButton-containedPrimary",
+                            "containedSecondary": "MuiButton-containedSecondary",
+                            "containedSizeLarge": "MuiButton-containedSizeLarge",
+                            "containedSizeSmall": "MuiButton-containedSizeSmall",
+                            "disableElevation": "MuiButton-disableElevation",
+                            "disabled": "Mui-disabled",
+                            "endIcon": "MuiButton-endIcon",
+                            "focusVisible": "Mui-focusVisible",
+                            "fullWidth": "MuiButton-fullWidth",
+                            "iconSizeLarge": "MuiButton-iconSizeLarge",
+                            "iconSizeMedium": "MuiButton-iconSizeMedium",
+                            "iconSizeSmall": "MuiButton-iconSizeSmall",
+                            "label": "MuiButton-label",
+                            "outlined": "MuiButton-outlined",
+                            "outlinedPrimary": "MuiButton-outlinedPrimary",
+                            "outlinedSecondary": "MuiButton-outlinedSecondary",
+                            "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                            "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                            "root": "MuiButton-root",
+                            "sizeLarge": "MuiButton-sizeLarge",
+                            "sizeSmall": "MuiButton-sizeSmall",
+                            "startIcon": "MuiButton-startIcon",
+                            "text": "MuiButton-text",
+                            "textPrimary": "MuiButton-textPrimary",
+                            "textSecondary": "MuiButton-textSecondary",
+                            "textSizeLarge": "MuiButton-textSizeLarge",
+                            "textSizeSmall": "MuiButton-textSizeSmall",
+                          }
+                        }
+                        disabled={false}
+                        id="delete-button"
+                        onClick={[Function]}
+                        startIcon={<Memo />}
+                        variant="contained"
+                      >
+                        <WithStyles(ForwardRef(ButtonBase))
+                          className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                          component="button"
+                          disabled={false}
+                          focusRipple={true}
+                          focusVisibleClassName="Mui-focusVisible"
+                          id="delete-button"
+                          onClick={[Function]}
+                          type="button"
+                        >
+                          <ForwardRef(ButtonBase)
+                            className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                            classes={
+                              Object {
+                                "disabled": "Mui-disabled",
+                                "focusVisible": "Mui-focusVisible",
+                                "root": "MuiButtonBase-root",
+                              }
+                            }
+                            component="button"
+                            disabled={false}
+                            focusRipple={true}
+                            focusVisibleClassName="Mui-focusVisible"
+                            id="delete-button"
+                            onClick={[Function]}
+                            type="button"
+                          >
+                            <button
+                              className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
+                              disabled={false}
+                              id="delete-button"
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onDragLeave={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              onKeyUp={[Function]}
+                              onMouseDown={[Function]}
+                              onMouseLeave={[Function]}
+                              onMouseUp={[Function]}
+                              onTouchEnd={[Function]}
+                              onTouchMove={[Function]}
+                              onTouchStart={[Function]}
+                              tabIndex={0}
+                              type="button"
+                            >
+                              <span
+                                className="MuiButton-label"
+                              >
+                                <span
+                                  className="MuiButton-startIcon MuiButton-iconSizeMedium"
+                                >
+                                  <ForwardRef(DeleteOutlineIcon)>
+                                    <WithStyles(ForwardRef(SvgIcon))>
+                                      <ForwardRef(SvgIcon)
+                                        classes={
+                                          Object {
+                                            "colorAction": "MuiSvgIcon-colorAction",
+                                            "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                            "colorError": "MuiSvgIcon-colorError",
+                                            "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                            "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                            "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                            "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                            "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                            "root": "MuiSvgIcon-root",
+                                          }
+                                        }
+                                      >
+                                        <svg
+                                          aria-hidden={true}
+                                          className="MuiSvgIcon-root"
+                                          focusable="false"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+                                          />
+                                        </svg>
+                                      </ForwardRef(SvgIcon)>
+                                    </WithStyles(ForwardRef(SvgIcon))>
+                                  </ForwardRef(DeleteOutlineIcon)>
+                                </span>
+                                general.delete
+                              </span>
+                              <WithStyles(memo)
+                                center={false}
+                              >
+                                <ForwardRef(TouchRipple)
+                                  center={false}
+                                  classes={
+                                    Object {
+                                      "child": "MuiTouchRipple-child",
+                                      "childLeaving": "MuiTouchRipple-childLeaving",
+                                      "childPulsate": "MuiTouchRipple-childPulsate",
+                                      "ripple": "MuiTouchRipple-ripple",
+                                      "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                      "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                      "root": "MuiTouchRipple-root",
+                                    }
+                                  }
+                                >
+                                  <span
+                                    className="MuiTouchRipple-root"
+                                  >
+                                    <TransitionGroup
+                                      childFactory={[Function]}
+                                      component={null}
+                                      exit={true}
+                                    />
+                                  </span>
+                                </ForwardRef(TouchRipple)>
+                              </WithStyles(memo)>
+                            </button>
+                          </ForwardRef(ButtonBase)>
+                        </WithStyles(ForwardRef(ButtonBase))>
+                      </ForwardRef(Button)>
+                    </WithStyles(ForwardRef(Button))>
+                  </div>
+                </ForwardRef(Grid)>
+              </WithStyles(ForwardRef(Grid))>
+            </DeleteWrapper>
+          </div>
+        </ForwardRef(Grid)>
+      </WithStyles(ForwardRef(Grid))>
+      <dummyComponent
+        language={
+          Object {
+            "administration": Object {},
+          }
+        }
+        onSaveSchema={[Function]}
+        rootItemId="#/definitions/some-existing-model"
+        schema={Object {}}
+      >
+        <div>
+          {"language":{"administration":{}},"schema":{},"rootItemId":"#/definitions/some-existing-model"}
+        </div>
+      </dummyComponent>
+    </div>
+  </DataModelling>
+</Provider>
+`;
