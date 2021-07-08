@@ -67,17 +67,7 @@ Cypress.Commands.add('compelteTask3Form', () => {
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
     cy.get(checkbox).should('be.visible').find('input').check();
   });
-  cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
-  cy.get(appFrontend.group.currentValue).should('be.visible').type('1').blur();
-  cy.get(appFrontend.group.newValue).should('be.visible').type('2').blur();
-  cy.get(appFrontend.group.mainGroup)
-    .siblings(appFrontend.group.editContainer)
-    .find(appFrontend.group.next)
-    .should('be.visible')
-    .click();
-  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
-  cy.get(appFrontend.group.comments).should('be.visible').type('automation').blur();
-  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
+  cy.addItemToGroup(1, 2, 'automation');  
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
   cy.contains(mui.button, texts.next).click();
@@ -88,4 +78,19 @@ Cypress.Commands.add('navigateToTask4', () => {
   cy.compelteTask3Form();
   cy.get(appFrontend.sendinButton).should('be.visible').click();
   cy.get(appFrontend.confirmContainer).should('be.visible');
+});
+
+Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
+  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+  cy.get(appFrontend.group.currentValue).should('be.visible').type(oldValue).blur();
+  cy.get(appFrontend.group.newValue).should('be.visible').type(newValue).blur();
+  cy.get(appFrontend.group.mainGroup)
+    .siblings(appFrontend.group.editContainer)
+    .find(appFrontend.group.next)
+    .should('be.visible')
+    .click();
+  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+  cy.get(appFrontend.group.comments).type(comment).blur();
+  cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 });
