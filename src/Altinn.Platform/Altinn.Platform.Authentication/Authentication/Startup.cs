@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Extensions;
 using Altinn.Platform.Authentication.Health;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
@@ -79,6 +80,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<AltinnCore.Authentication.Constants.CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+            services.ConfigureOidcProviders<OidcProviderSettings>(Configuration.GetSection("OidcProviders"));
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
@@ -109,6 +111,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
+            services.AddSingleton<IOidcProvider, OidcProviderService>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

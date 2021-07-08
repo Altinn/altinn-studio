@@ -171,5 +171,20 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Take care not to upload "old" certificates.
         /// </remarks>
         public int JwtSigningCertificateRolloverDelayHours { get; set; }
+
+        /// <summary>
+        /// Get or sets the value indicating if OIDC authentication is enabled
+        /// </summary>
+        public bool EnableOidc { get; set; }
+
+        /// <summary>
+        /// Get or sets the default oidc provider
+        /// </summary>
+        public string DefaultOidcProvider { get; set; }
+
+        /// <summary>
+        /// Get or sets the 
+        /// </summary>
+        public bool OidcDefault { get; set; } 
     }
 }

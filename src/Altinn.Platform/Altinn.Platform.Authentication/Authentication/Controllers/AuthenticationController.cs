@@ -57,30 +57,38 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly IUserProfileService _userProfileService;
         private readonly JwtSecurityTokenHandler _validator;
         private readonly ISigningKeysResolver _designerSigningKeysResolver;
+        private readonly IOidcProvider _oidcProvider;
+
+        private readonly OidcProviderSettings _oidcProviderSettings;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
         /// </summary>
         /// <param name="logger">A generic logger</param>
         /// <param name="generalSettings">Configuration for the authentication scope.</param>
+        /// <param name="oidcProviderSettings">Configuration for the oidcProviders</param>
         /// <param name="cookieDecryptionService">A service that can decrypt a .ASPXAUTH cookie.</param>
         /// <param name="organisationRepository">the repository object that holds valid organisations</param>
         /// <param name="certificateProvider">Service that can obtain a list of certificates that can be used to generate JSON Web Tokens.</param>
         /// <param name="userProfileService">Service that can retrieve user profiles.</param>
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         /// <param name="signingKeysResolver">Signing keys resolver for Altinn Common AccessToken</param>
+        /// <param name="oidcProvider">The OIDC provider</param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
+            IOptions<OidcProviderSettings> oidcProviderSettings,
             ISigningKeysRetriever signingKeysRetriever,
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
             IOrganisationsService organisationRepository,
-            ISigningKeysResolver signingKeysResolver)
+            ISigningKeysResolver signingKeysResolver,
+            IOidcProvider oidcProvider)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
+            _oidcProviderSettings = oidcProviderSettings.Value;
             _signingKeysRetriever = signingKeysRetriever;
             _certificateProvider = certificateProvider;
             _cookieDecryptionService = cookieDecryptionService;
@@ -88,6 +96,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _userProfileService = userProfileService;
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
+            _oidcProvider = oidcProvider;
         }
 
         /// <summary>
@@ -105,21 +114,41 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
-            if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
-            {
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
-            }
 
+            string oidcissuer = Request.Query["iss"];
             UserAuthenticationModel userAuthentication;
-            try
+            if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.OidcDefault))
             {
-                string encryptedTicket = Request.Cookies[_generalSettings.SblAuthCookieName];
-                userAuthentication = await _cookieDecryptionService.DecryptTicket(encryptedTicket);
+                OidcProvider provider = GetOidcProvider(oidcissuer);
+
+                string code = Request.Query["code"];
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    userAuthentication = await AuthenticateWithCode(code, provider); 
+                }
+                else
+                {
+                    return Redirect(GetAuthenticationUri(provider, encodedGoToUrl));
+                }
             }
-            catch (SblBridgeResponseException sblBridgeException)
+            else
             {
-                _logger.LogWarning($"SBL Bridge replied with {sblBridgeException.Response.StatusCode} - {sblBridgeException.Response.ReasonPhrase}");
-                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
+                {
+                    return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                }
+
+                try
+                {
+                    string encryptedTicket = Request.Cookies[_generalSettings.SblAuthCookieName];
+                    userAuthentication = await _cookieDecryptionService.DecryptTicket(encryptedTicket);
+                }
+                catch (SblBridgeResponseException sblBridgeException)
+                {
+                    _logger.LogWarning($"SBL Bridge replied with {sblBridgeException.Response.StatusCode} - {sblBridgeException.Response.ReasonPhrase}");
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
             }
 
             if (userAuthentication != null && userAuthentication.IsAuthenticated)
@@ -304,7 +333,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
                 if (issOriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
                 {
-                _logger.LogInformation("Invalid issuer " + issOriginal);
+                    _logger.LogInformation("Invalid issuer " + issOriginal);
                     return Unauthorized();
                 }
 
@@ -377,24 +406,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             try
             {
-                ICollection<SecurityKey> signingKeys =
-                   await _signingKeysRetriever.GetSigningKeys(_generalSettings.IdPortenWellKnownConfigEndpoint);
-
-                TokenValidationParameters validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKeys = signingKeys,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-
-                _validator.ValidateToken(originalToken, validationParameters, out _);
-                _logger.LogInformation("Token is valid");
-
-                JwtSecurityToken token = _validator.ReadJwtToken(originalToken);
+                JwtSecurityToken token = await ValidateAndExtractIdPortToken(originalToken);
 
                 string pid = token.Claims.Where(c => c.Type.Equals(PidClaimName)).Select(c => c.Value).FirstOrDefault();
                 string authLevel = token.Claims.Where(c => c.Type.Equals(AuthLevelClaimName)).Select(c => c.Value).FirstOrDefault();
@@ -582,6 +594,122 @@ namespace Altinn.Platform.Authentication.Controllers
             return potentialCerts
                 .OrderByDescending(c => c.NotBefore)
                 .FirstOrDefault();
+        }
+
+        private async Task<UserAuthenticationModel> AuthenticateWithCode(string authorizationCode, OidcProvider oidcProvider)
+        {
+            OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(authorizationCode, oidcProvider);
+            JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.Id_token, oidcProvider);
+
+            UserAuthenticationModel userAuthenticationModel = GetUserFromToken(jwtSecurityToken);
+            return userAuthenticationModel;
+        }
+
+        private UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
+        {
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel();
+            foreach (Claim claim in jwtSecurityToken.Claims)
+            {
+                if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
+                {
+                    userAuthenticationModel.UserID = Convert.ToInt32(claim.Value);
+                }
+
+                if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID))
+                {
+                    userAuthenticationModel.PartyID = Convert.ToInt32(claim.Value);
+                }
+
+                if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticateMethod))
+                {
+                    userAuthenticationModel.AuthenticationMethod = (Enum.AuthenticationMethod)System.Enum.Parse(typeof(Enum.AuthenticationMethod), claim.Value);
+                }
+
+                if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
+                {
+                    userAuthenticationModel.AuthenticationLevel = (Enum.SecurityLevel)System.Enum.Parse(typeof(Enum.SecurityLevel), claim.Value);
+                }
+            }
+
+            return userAuthenticationModel;
+        }
+
+        private async Task<JwtSecurityToken> ValidateAndExtractIdPortToken(string originalToken)
+        {
+            ICollection<SecurityKey> signingKeys =
+               await _signingKeysRetriever.GetSigningKeys(_generalSettings.IdPortenWellKnownConfigEndpoint);
+
+            return ValidateToken(originalToken, signingKeys);
+        }
+
+        private async Task<JwtSecurityToken> ValidateAndExtractOidcToken(string originalToken, OidcProvider provider)
+        {
+            ICollection<SecurityKey> signingKeys =
+               await _signingKeysRetriever.GetSigningKeys(provider.WellKnownConfigEndpoint);
+
+            return ValidateToken(originalToken, signingKeys);
+        }
+
+        private JwtSecurityToken ValidateToken(string originalToken, ICollection<SecurityKey> signingKeys)
+        {
+            TokenValidationParameters validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKeys = signingKeys,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            _validator.ValidateToken(originalToken, validationParameters, out _);
+            _logger.LogInformation("Token is valid");
+
+            JwtSecurityToken token = _validator.ReadJwtToken(originalToken);
+            return token;
+        }
+
+        /// <summary>
+        /// Find the OIDC provider based on given ISS or default oidc provider.
+        /// </summary>
+        private OidcProvider GetOidcProvider(string iss)
+        {
+            if (!string.IsNullOrEmpty(iss) && _oidcProviderSettings.ContainsKey(iss))
+            {
+                return _oidcProviderSettings[iss];
+            }
+
+            if (!string.IsNullOrEmpty(iss))
+            {
+                foreach (KeyValuePair<string, OidcProvider> kvp in _oidcProviderSettings)
+                {
+                    if (kvp.Value.Issuer.Equals(iss))
+                    {
+                        return kvp.Value;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_generalSettings.DefaultOidcProvider) && _oidcProviderSettings.ContainsKey(_generalSettings.DefaultOidcProvider))
+            {
+                return _oidcProviderSettings[_generalSettings.DefaultOidcProvider];
+            }
+
+            return _oidcProviderSettings.First().Value;
+        }
+
+        /// <summary>
+        /// Builds URI to redirect for OIDC login
+        /// </summary>
+        /// <returns></returns>
+        private string GetAuthenticationUri(OidcProvider provider, string encodedGoToUrl)
+        {
+            string state = Guid.NewGuid().ToString();
+            string nonce = Guid.NewGuid().ToString();
+            string uri = $"{provider.AuthorizationEndpoint}?redirect_uri={encodedGoToUrl}&scope={provider.Scope}&client_id={provider.ClientId}&response_mode={provider.ResponseMode}&state={state}&nonce={nonce}";
+
+            return uri;
         }
     }
 }
