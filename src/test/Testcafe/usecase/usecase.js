@@ -28,10 +28,7 @@ test('Navigation', async () => {
     .click(designerPage.aboutNavigationTab)
     .expect(designerPage.appNameLocked.value)
     .contains('auto', 'input contains text ' + appName);
-  await t
-    .click(designerPage.createNavigationTab)
-    .expect(designerPage.inputComponent.exists)
-    .ok();
+  await t.click(designerPage.createNavigationTab).expect(designerPage.inputComponent.exists).ok();
   await t
     .click(designerPage.languageNavigationTab)
     .switchToIframe('iframe')
@@ -45,7 +42,8 @@ test('Gitea connection - Pull changes', async () => {
   if (pullRepo.requests[0].response.statusCode != 200) {
     await t.eval(() => location.reload());
     await t
-      .expect(designerPage.deleteLocalChanges.exists).ok()
+      .expect(designerPage.deleteLocalChanges.exists)
+      .ok()
       .click(designerPage.deleteLocalChanges)
       .expect(designerPage.deleteAppRepoName.exists)
       .ok()
@@ -62,12 +60,7 @@ test('Gitea connection - Pull changes', async () => {
       .expect(pullRepo.contains((r) => r.response.statusCode === 200))
       .ok();
   }
-  await t  
-    .expect(
-      Selector('h3').withText('Appen din er oppdatert til siste versjon')
-        .visible
-    )
-    .ok();
+  await t.expect(Selector('h3').withText('Appen din er oppdatert til siste versjon').visible).ok();
 });
 
 //App builds and deploy information from cosmos
@@ -78,9 +71,5 @@ test('App builds and deploys', async () => {
     .contains('deploy')
     .expect(designerPage.appBuilds.child().count)
     .gte(1);
-  await t
-    .expect(designerPage.deployTable.visible)
-    .ok()
-    .expect(designerPage.deploys.count)
-    .gte(1);
+  await t.expect(designerPage.deployTable.visible).ok().expect(designerPage.deploys.count).gte(1);
 });

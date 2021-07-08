@@ -1,6 +1,5 @@
 import { Selector, t } from 'testcafe';
 
-
 export default class HeaderPage {
   constructor() {
     this.userMenu = Selector('header').find('button');
@@ -13,5 +12,4 @@ export default class HeaderPage {
     this.previewTab = Selector('.nav-link.nav-item').withText('Preview');
     this.teksterTab = Selector('.nav-link.nav-item').withText('Tekster');
   }
-
 }

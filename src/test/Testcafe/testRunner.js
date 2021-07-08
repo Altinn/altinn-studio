@@ -3,7 +3,7 @@ const fs = require('fs');
 let testcafe = null;
 
 createTestCafe()
-  .then(tc => {
+  .then((tc) => {
     testcafe = tc;
     const runner = testcafe.createRunner();
     const stream = fs.createWriteStream('junit.xml');
@@ -23,9 +23,9 @@ createTestCafe()
         pageLoadTimeout: 15000,
         speed: 1,
         debugOnFail: false,
-        stopOnFirstFail: false
+        stopOnFirstFail: false,
       })
-      .then(failedCount => {
+      .then((failedCount) => {
         console.log('Total tests failed ' + failedCount);
         stream.end();
       });
