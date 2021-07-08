@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.App.Services.Interface;
@@ -15,15 +17,15 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     public class TextsController : ControllerBase
     {
-        private readonly IText _text;
+        private readonly IAppResources _appResources;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
-        /// <param name="text">A service with access to text resources.</param>
-        public TextsController(IText text)
+        /// <param name="appResources">A service with access to text resources.</param>
+        public TextsController(IAppResources appResources)
         {
-            _text = text;
+            _appResources = appResources;
         }
 
         /// <summary>
@@ -36,27 +38,34 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
         {
-            TextResource textResource;
-
             if (!string.IsNullOrEmpty(language) && language.Length != 2)
             {
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            textResource = await _text.GetText(org, app, language);
-            if (textResource != null)
+            byte[] textsAsByteArray = _appResources.GetText(org, app, $"resource.{language}.json");
+
+            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
             {
-                return textResource;
+                language = "nb";
+                textsAsByteArray = _appResources.GetText(org, app, $"resource.{language}.json");
             }
 
-            // using default language if requested language doesn't exist
-            textResource = await _text.GetText(org, app, "nb");
-            if (textResource != null)
+            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
             {
-                return textResource;
+                return NotFound();
             }
 
-            return NotFound();
+            string textsAsString = Encoding.UTF8.GetString(textsAsByteArray);
+
+            JsonSerializerOptions options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            TextResource textResource = JsonSerializer.Deserialize<TextResource>(textsAsString, options);
+
+            textResource.Id = $"{org}-{app}-{language}";
+            textResource.Org = org;
+            textResource.Language = language;
+
+            return await Task.FromResult(textResource);
         }
     }
 }
