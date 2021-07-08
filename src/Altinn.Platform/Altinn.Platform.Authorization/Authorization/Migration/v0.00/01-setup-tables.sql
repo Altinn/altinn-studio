@@ -9,14 +9,31 @@ CREATE TABLE IF NOT EXISTS delegation.delegatedPolicy
   performingUserId integer NOT NULL,
   blobStoragePolicyPath character varying COLLATE pg_catalog."default" NOT NULL,
   blobStorageVersionId character varying COLLATE pg_catalog."default",
-  isDeleted bool default true,
+  isDeleted bool default false,
   created timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
 TABLESPACE pg_default;
 
--- Index: idx_app_offeredby_coveredby
-CREATE INDEX IF NOT EXISTS idx_app_offeredby_coveredby
-  ON delegation.delegatedPolicy USING btree
-  (altinnAppId COLLATE pg_catalog."default" ASC NULLS LAST, offeredByPartyId ASC NULLS LAST, coveredByPartyId ASC NULLS LAST, coveredByUserId ASC NULLS LAST)
+-- Index: idx_altinnappid
+CREATE INDEX IF NOT EXISTS idx_altinnappid
+  ON delegation.delegatedpolicy USING btree
+  (altinnappid COLLATE pg_catalog."default" ASC NULLS LAST)
   TABLESPACE pg_default;
 
+-- Index: idx_offeredby
+CREATE INDEX IF NOT EXISTS idx_offeredby
+    ON delegation.delegatedpolicy USING btree
+    (offeredbypartyid ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+-- Index: idx_coveredbyuser
+CREATE INDEX IF NOT EXISTS idx_coveredbyuser
+    ON delegation.delegatedpolicy USING btree
+    (coveredbyuserid ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+-- Index: idx_coveredbyparty
+CREATE INDEX IF NOT EXISTS idx_coveredbyparty
+    ON delegation.delegatedpolicy USING btree
+    (coveredbypartyid ASC NULLS LAST)
+    TABLESPACE pg_default;
