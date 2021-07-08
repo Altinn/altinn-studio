@@ -30,7 +30,10 @@ const styles = {
 const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
   const { classes, openInNewTab } = props;
   return (
-    <a href={props.url} className={classes.link} target={openInNewTab ? '_blank' : ''}>
+    <a
+      href={props.url} className={classes.link}
+      target={openInNewTab ? '_blank' : ''} rel='noreferrer'
+    >
       {props.linkTxt}
       {props.shouldShowIcon &&
         <AltinnIcon
