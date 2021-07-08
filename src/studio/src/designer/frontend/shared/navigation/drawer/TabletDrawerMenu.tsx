@@ -9,8 +9,7 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
-import { mainMenuSettings } from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings, createMainMenuSettings, IMenuItem } from './drawerMenuSettings';
 import { styles } from './tabletDrawerMenustyle';
 import { post } from '../../utils/networking';
 
@@ -22,6 +21,8 @@ export interface ITabletDrawerMenuProps {
   theme: any;
   activeLeftMenuSelection?: string;
   activeSubHeaderSelection?: string;
+  mainMenuItems: IMenuItem[];
+  leftDrawerMenuItems?: { [key: string]: IMenuItem[] };
 }
 
 export interface ITabletDrawerMenuState {
@@ -33,7 +34,6 @@ export interface ITabletDrawerMenuState {
 
 class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof styles>,
   ITabletDrawerMenuState> {
-
   constructor(_props: ITabletDrawerMenuProps) {
     super(_props);
     this.state = {
@@ -58,7 +58,7 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   }
 
   public handleDrawerClose = () => {
-    this.setState({ open: !this.state.open });
+    this.setState((prev) => ({ open: !prev.open }));
   }
 
   public handleLogout = () => {
@@ -71,7 +71,7 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   }
 
   public handleMenuItemClicked = (menuItem: IMenuItem, id: number) => {
-    this.setState((state: any) => {
+    this.setState(() => {
       return {
         selectedMenuItem: menuItem.displayText,
       };
@@ -96,133 +96,129 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   }
 
   public render() {
-    const { classes, logoutButton } = this.props;
-
+    const {
+      classes, logoutButton,
+      tabletDrawerOpen, leftDrawerMenuItems,
+      activeLeftMenuSelection,
+      mainMenuItems,
+    } = this.props;
+    const [stateText, buttonClasses] = tabletDrawerOpen ?
+      ['lukk', classNames(classes.commonButton, classes.button)] :
+      ['meny', classNames(classes.commonButton, classes.closeButton)];
+    const leftDrawerMenu = mainMenuItems && createLeftDrawerMenuSettings(leftDrawerMenuItems);
     return (
       !logoutButton ? (
-        <div>
+        <>
+          <Drawer
+            variant='persistent'
+            anchor='right'
+            className={classNames(classes.drawer, {
+              [classes.drawerOpen]: tabletDrawerOpen,
+              [classes.drawerClose]: !tabletDrawerOpen,
+            })}
+            classes={{
+              paper: classNames(classes.paper, {
+                [classes.drawerOpen]: tabletDrawerOpen,
+                [classes.drawerClose]: !tabletDrawerOpen,
+              }),
+            }}
+            open={tabletDrawerOpen}
+            PaperProps={{ classes: { root: this.state.isTop ? classes.drawerMenuPaper : classes.drawerMenu } }}
+          >
+            <List
+              classes={{
+                root: classNames(classes.toggleMenu, classes.toggleButton),
+              }}
+            >
+              <ListItem
+                button={true}
+                onClick={this.handleLogout}
+                classes={{
+                  root: classNames(classes.menuItem),
+                }}
+              >
+                <ListItemText
+                  classes={{
+                    primary: classNames(classes.menuItemText),
+                  }}
+                  primary='Logg ut'
+                />
+              </ListItem>
+            </List>
+            <Divider classes={{ root: classNames(classes.divider) }} />
+            <List>
+              {createMainMenuSettings(mainMenuItems).menuItems.map((menuItem: IMenuItem, index: number) => (
+                <div key={menuItem.navLink}>
+                  <ListItem
+                    button={true}
+                    disableTouchRipple={true}
+                    onClick={() => this.handleMenuItemClicked(menuItem, index)}
+                    className={classNames(classes.mainMenuItem, {
+                      [classes.activeListItem]: this.props.activeSubHeaderSelection ===
+                        menuItem.activeSubHeaderSelection,
+                    })}
+                  >
+                    <ListItemText
+                      disableTypography={true}
+                      classes={{ root: classNames(classes.mainMenuItem) }}
+                      primary={menuItem.activeSubHeaderSelection}
+                    />
+                  </ListItem>
+                  {leftDrawerMenu && (leftDrawerMenu[menuItem.menuType].length) ? (
+                    <Collapse
+                      in={this.state.selectedMenuItem ===
+                        menuItem.displayText}
+                      timeout='auto'
+                      unmountOnExit={true}
+                    >
+                      <List
+                        component='span'
+                        disablePadding={true}
+                      >
+                        {leftDrawerMenu[menuItem.menuType].map((item: IMenuItem) => (
+                          <Link to={item.navLink} style={{ borderBottom: 0 }} key={item.navLink}>
+                            <ListItem
+                              button={true}
+                              disableTouchRipple={true}
+                              className={classes.nested}
+                            >
+                              <ListItemText
+                                disableTypography={true}
+                                inset={true}
+                                primary={item.displayText}
+                                classes={{ primary: classNames(classes.subMenuItem) }}
+                                className={classNames({
+                                  [classes.activeListItem]: activeLeftMenuSelection ===
+                                    item.activeLeftMenuSelection,
+                                })}
+                              />
+                            </ListItem>
+                          </Link>
+                        ))}
+                      </List>
+                    </Collapse>) : null}
+                  <Divider classes={{ root: classNames(classes.divider) }} />
+                </div>
+              ))}
+            </List>
+          </Drawer>
           <Button
             disableRipple={true}
             disableFocusRipple={true}
             disableTouchRipple={true}
             size='small'
             variant='outlined'
-            className={classNames(classes.button, {
-              [classes.closeButton]: this.props.tabletDrawerOpen,
-            })}
+            className={buttonClasses}
             onClick={this.handleDrawerOpen}
           >
-            {this.props.tabletDrawerOpen ? 'lukk' : 'meny'}
+            {stateText}
           </Button>
-          <Drawer
-            variant='persistent'
-            className={classNames(classes.drawer, {
-              [classes.drawerOpen]: this.props.tabletDrawerOpen,
-              [classes.drawerClose]: !this.props.tabletDrawerOpen,
-            })}
-            classes={{
-              paper: classNames(classes.paper, {
-                [classes.drawerOpen]: this.props.tabletDrawerOpen,
-                [classes.drawerClose]: !this.props.tabletDrawerOpen,
-              }),
-            }}
-            open={this.props.tabletDrawerOpen}
-            PaperProps={{ classes: { root: this.state.isTop ? classes.drawerMenuPaper : classes.drawerMenu } }}
-          >
-            <div style={{ width: '50%' }}>
-              <List
-                classes={{
-                  root: classNames(classes.toggleMenu, classes.toggleButton),
-                }}
-              >
-                <ListItem
-                  button={true}
-                  onClick={this.handleLogout}
-                  classes={{
-                    root: classNames(classes.menuItem),
-                  }}
-                >
-                  <ListItemText
-                    classes={{
-                      primary: classNames(classes.menuItemText),
-                    }}
-                    primary={'Logg ut'}
-                  />
-                </ListItem>
-              </List>
-              <Divider classes={{ root: classNames(classes.divider) }} />
-              <List>
-                {mainMenuSettings.menuItems.map((menuItem: IMenuItem, index: number) => {
-                  return (
-                    <div key={index}>
-                      <ListItem
-                        button={true}
-                        disableTouchRipple={true}
-                        key={index}
-                        onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
-                        className={classNames(classes.mainMenuItem, {
-                          [classes.activeListItem]: this.props.activeSubHeaderSelection ===
-                            menuItem.activeSubHeaderSelection,
-                        })}
-                      >
-                        <ListItemText
-                          disableTypography={true}
-                          classes={{ root: classNames(classes.mainMenuItem) }}
-                          primary={menuItem.activeSubHeaderSelection}
-                        />
-                      </ListItem>
-                      {leftDrawerMenuSettings[menuItem.menuType].length > 0 ?
-                        <Collapse
-                          in={this.state.selectedMenuItem ===
-                            menuItem.displayText}
-                          timeout='auto'
-                          unmountOnExit={true}
-                        >
-                          <List
-                            component='span'
-                            disablePadding={true}
-                          >
-                            {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
-                              return (
-                                <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
-                                  <ListItem
-                                    button={true}
-                                    disableTouchRipple={true}
-                                    className={classes.nested}
-                                    key={i}
-                                  >
-                                    <ListItemText
-                                      disableTypography={true}
-                                      inset={true}
-                                      primary={item.displayText}
-                                      classes={{ primary: classNames(classes.subMenuItem) }}
-                                      className={classNames({
-                                        [classes.activeListItem]: this.props.activeLeftMenuSelection ===
-                                          item.activeLeftMenuSelection,
-                                      })}
-                                    />
-                                  </ListItem>
-                                </Link>
-                              );
-                            })}
-                          </List>
-                        </Collapse>
-                        : null}
-                      <Divider classes={{ root: classNames(classes.divider) }} />
-                    </div>
-                  );
-                },
-                )}
-              </List>
-            </div>
-          </Drawer>
-        </div>
-
+        </>
       ) : logoutButton && (
         <Button
           size='small'
           variant='outlined'
-          className={classes.button}
+          className={classNames(classes.commonButton, classes.button)}
           onClick={this.handleLogout}
         >
           logout
