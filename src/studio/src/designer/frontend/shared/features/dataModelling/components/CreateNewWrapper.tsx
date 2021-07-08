@@ -13,35 +13,51 @@ interface ICreateNewWrapper {
 }
 export default function CreateNewWrapper(props: ICreateNewWrapper) {
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
-  const [newModelName, setNewModelName] = React.useState(null);
+  const [newModelName, setNewModelName] = React.useState('');
   const [nameError, setNameError] = React.useState('');
+  const [confirmedWithReturn, setConfirmedWithReturn] = React.useState(false);
 
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
-  const onNewModelNameChanged = (e: any) => {
-    const name = e.target.value;
-    if (!name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
-      setNameError('Invalid name');
-    } else {
-      setNameError('');
-      setNewModelName(name);
+  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
+  const validateName = () => { setNameError(!nameIsValid() ? 'Invalid name' : ''); };
+  const onInputBlur = () => {
+    if (confirmedWithReturn) {
+      setConfirmedWithReturn(false);
+      return;
     }
+    validateName();
+  };
+  const onNameChange = (e: any) => {
+    const name = e.target.value || '';
+    if (nameError) {
+      setNameError('');
+    }
+    setNewModelName(name);
   };
   const onCreateConfirmClick = () => {
-    if (!nameError && newModelName && newModelName.length > 0) {
-      if (props.dataModelNames.includes(newModelName)) {
-        setNameError(`A model with name ${newModelName} already exists.`);
-        return;
-      }
-      props.createAction(newModelName);
-      setCreateButtonAnchor(null);
-      setNewModelName(null);
+    if (nameError || !newModelName || !nameIsValid()) {
+      return;
     }
+    if (props.dataModelNames.includes(newModelName)) {
+      setNameError(`A model with name ${newModelName} already exists.`);
+      return;
+    }
+    props.createAction(newModelName);
+    setCreateButtonAnchor(null);
+    setNewModelName('');
+    setNameError('');
+  };
+  const onReturnButtonConfirm = () => {
+    validateName();
+    onCreateConfirmClick();
+    setConfirmedWithReturn(true);
   };
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
-    setNewModelName(null);
+    setNewModelName('');
+    setNameError('');
   };
   return (
     <>
@@ -56,6 +72,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
           {getLanguageFromKey('general.create_new', props.language)}
         </Button>
       </Grid>
+      {createButtonAnchor &&
       <AltinnPopoverSimple
         anchorEl={createButtonAnchor}
         handleClose={onCancelCreate}
@@ -69,13 +86,14 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
           placeholder='Name'
           btnText='Ok'
           error={nameError}
-          clearError={() => setNameError(null)}
+          clearError={() => setNameError('')}
           inputFieldStyling={{ width: '250px' }}
-          onChangeFunction={onNewModelNameChanged}
+          onChangeFunction={onNameChange}
+          onBlurFunction={onInputBlur}
           onBtnClickFunction={onCreateConfirmClick}
-          onReturn={onCreateConfirmClick}
+          onReturn={onReturnButtonConfirm}
         />
-      </AltinnPopoverSimple>
+      </AltinnPopoverSimple>}
     </>
   );
 }

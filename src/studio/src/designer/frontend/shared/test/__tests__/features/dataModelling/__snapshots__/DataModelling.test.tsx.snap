@@ -464,84 +464,6 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                   </div>
                 </ForwardRef(Grid)>
               </WithStyles(ForwardRef(Grid))>
-              <AltinnPopoverComponent
-                anchorEl={null}
-                anchorOrigin={
-                  Object {
-                    "horizontal": "left",
-                    "vertical": "bottom",
-                  }
-                }
-                handleClose={[Function]}
-              >
-                <WithStyles(ForwardRef(Popover))
-                  PaperProps={
-                    Object {
-                      "square": true,
-                    }
-                  }
-                  anchorEl={null}
-                  anchorOrigin={
-                    Object {
-                      "horizontal": "left",
-                      "vertical": "bottom",
-                    }
-                  }
-                  anchorReference="anchorEl"
-                  aria-label=""
-                  onClose={[Function]}
-                  open={false}
-                  transformOrigin={
-                    Object {
-                      "horizontal": "left",
-                      "vertical": "top",
-                    }
-                  }
-                >
-                  <ForwardRef(Popover)
-                    PaperProps={
-                      Object {
-                        "square": true,
-                      }
-                    }
-                    anchorEl={null}
-                    anchorOrigin={
-                      Object {
-                        "horizontal": "left",
-                        "vertical": "bottom",
-                      }
-                    }
-                    anchorReference="anchorEl"
-                    aria-label=""
-                    classes={
-                      Object {
-                        "paper": "MuiPopover-paper",
-                        "root": "MuiPopover-root",
-                      }
-                    }
-                    onClose={[Function]}
-                    open={false}
-                    transformOrigin={
-                      Object {
-                        "horizontal": "left",
-                        "vertical": "top",
-                      }
-                    }
-                  >
-                    <ForwardRef(Modal)
-                      BackdropProps={
-                        Object {
-                          "invisible": true,
-                        }
-                      }
-                      aria-label=""
-                      className="MuiPopover-root"
-                      onClose={[Function]}
-                      open={false}
-                    />
-                  </ForwardRef(Popover)>
-                </WithStyles(ForwardRef(Popover))>
-              </AltinnPopoverComponent>
             </CreateNewWrapper>
             <SchemaSelect
               onChange={[Function]}
@@ -691,7 +613,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                     className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                   >
                     <StateManager
-                      className="makeStyles-select-9"
+                      className="makeStyles-select-5"
                       defaultInputValue=""
                       defaultMenuIsOpen={false}
                       defaultValue={null}
@@ -730,7 +652,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                         backspaceRemovesValue={true}
                         blurInputOnSelect={true}
                         captureMenuScroll={false}
-                        className="makeStyles-select-9"
+                        className="makeStyles-select-5"
                         closeMenuOnScroll={false}
                         closeMenuOnSelect={true}
                         components={Object {}}
@@ -798,7 +720,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                         }
                       >
                         <SelectContainer
-                          className="makeStyles-select-9"
+                          className="makeStyles-select-5"
                           clearValue={[Function]}
                           cx={[Function]}
                           getStyles={[Function]}
@@ -835,7 +757,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                               "backspaceRemovesValue": true,
                               "blurInputOnSelect": true,
                               "captureMenuScroll": false,
-                              "className": "makeStyles-select-9",
+                              "className": "makeStyles-select-5",
                               "closeMenuOnScroll": false,
                               "closeMenuOnSelect": true,
                               "components": Object {},
@@ -933,7 +855,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                           <EmotionCssPropInternal
                             __EMOTION_LABEL_PLEASE_DO_NOT_USE__="SelectContainer"
                             __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
-                            className="makeStyles-select-9"
+                            className="makeStyles-select-5"
                             css={
                               Object {
                                 "boxSizing": "border-box",
@@ -947,7 +869,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                             onKeyDown={[Function]}
                           >
                             <div
-                              className="makeStyles-select-9 css-2b097c-container"
+                              className="makeStyles-select-5 css-2b097c-container"
                               id="schema-select-schema"
                               onKeyDown={[Function]}
                             >
@@ -984,7 +906,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                     "backspaceRemovesValue": true,
                                     "blurInputOnSelect": true,
                                     "captureMenuScroll": false,
-                                    "className": "makeStyles-select-9",
+                                    "className": "makeStyles-select-5",
                                     "closeMenuOnScroll": false,
                                     "closeMenuOnSelect": true,
                                     "components": Object {},
@@ -1161,7 +1083,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                     "backspaceRemovesValue": true,
                                     "blurInputOnSelect": true,
                                     "captureMenuScroll": false,
-                                    "className": "makeStyles-select-9",
+                                    "className": "makeStyles-select-5",
                                     "closeMenuOnScroll": false,
                                     "closeMenuOnSelect": true,
                                     "components": Object {},
@@ -1322,7 +1244,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                           "backspaceRemovesValue": true,
                                           "blurInputOnSelect": true,
                                           "captureMenuScroll": false,
-                                          "className": "makeStyles-select-9",
+                                          "className": "makeStyles-select-5",
                                           "closeMenuOnScroll": false,
                                           "closeMenuOnSelect": true,
                                           "components": Object {},
@@ -1480,7 +1402,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-9",
+                                                "className": "makeStyles-select-5",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -1643,7 +1565,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-9",
+                                                "className": "makeStyles-select-5",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -1878,7 +1800,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                           "backspaceRemovesValue": true,
                                           "blurInputOnSelect": true,
                                           "captureMenuScroll": false,
-                                          "className": "makeStyles-select-9",
+                                          "className": "makeStyles-select-5",
                                           "closeMenuOnScroll": false,
                                           "closeMenuOnSelect": true,
                                           "components": Object {},
@@ -2021,7 +1943,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-9",
+                                                "className": "makeStyles-select-5",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -2175,7 +2097,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-9",
+                                                "className": "makeStyles-select-5",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
