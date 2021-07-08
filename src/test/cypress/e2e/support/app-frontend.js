@@ -67,7 +67,7 @@ Cypress.Commands.add('compelteTask3Form', () => {
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
     cy.get(checkbox).should('be.visible').find('input').check();
   });
-  cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+  cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
   cy.get(appFrontend.group.currentValue).should('be.visible').type('1').blur();
   cy.get(appFrontend.group.newValue).should('be.visible').type('2').blur();
   cy.get(appFrontend.group.mainGroup)
@@ -75,7 +75,7 @@ Cypress.Commands.add('compelteTask3Form', () => {
     .find(appFrontend.group.next)
     .should('be.visible')
     .click();
-  cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
   cy.get(appFrontend.group.comments).should('be.visible').type('automation').blur();
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   cy.contains(mui.button, texts.next).click();

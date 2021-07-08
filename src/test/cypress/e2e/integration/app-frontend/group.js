@@ -23,7 +23,7 @@ describe('Group', () => {
   });
 
   it('Add Item to Group', () => {
-    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
     cy.get(appFrontend.group.currentValue).type('1').blur();
     cy.get(appFrontend.group.newValue).type('2').blur();
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
@@ -46,7 +46,7 @@ describe('Group', () => {
       .find(appFrontend.group.next)
       .should('be.visible')
       .click();
-    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
     cy.get(appFrontend.group.comments).type('automation');
     cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
     cy.get(appFrontend.group.subGroup)
@@ -97,8 +97,8 @@ describe('Group', () => {
   });
 
   it('Calculation on Item in Main Group should update value', () => {
-    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).should('be.visible').type('1337').blur();
+    cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
+    cy.get(appFrontend.group.currentValue).should('be.visible').type('1337').blur().tab();
     // CalculationHandler.cs for frontend-test changes 1337 to 1338.
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
     // Deletes value from group
@@ -106,6 +106,7 @@ describe('Group', () => {
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.delete)
       .should('be.visible')
+      .focus()
       .click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     cy.get(appFrontend.group.mainGroup)
