@@ -35,6 +35,9 @@ const useStyles = (readonly?: boolean) => makeStyles({
   },
   checkBox: {
     marginTop: 4,
+    '& .Mui-focusVisible': {
+      background: 'gray',
+    },
   },
 });
 

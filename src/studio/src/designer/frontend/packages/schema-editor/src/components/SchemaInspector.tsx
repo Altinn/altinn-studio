@@ -227,6 +227,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (path) {
       dispatch(addProperty({
         path,
+        keepSelection: true,
       }));
     }
   };
@@ -475,6 +476,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         id='multiple-answers-checkbox'
         className={classes.header}
         control={<Checkbox
+          color='primary'
           checked={selectedItem?.type === 'array'}
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
@@ -564,6 +566,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           >
             <Grid item xs={12}>
               <FormControlLabel
+                className={classes.header}
                 control={<Checkbox
                   checked={isRequired} onChange={handleRequiredChanged}
                   name='checkedRequired'
