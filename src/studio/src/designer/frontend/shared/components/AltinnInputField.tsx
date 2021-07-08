@@ -27,7 +27,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
   error?: string;
   clearError?: () => void;
-  onReturn?: () => void;
+  onReturn?: (e: any) => void;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -90,8 +90,8 @@ export class AltinnInputField extends
   }
 
   private onKeyDown(e: any) {
-    if (e.keyCode === 13 && !this.props.error) {
-      this.props.onReturn();
+    if (e.keyCode === 13 && this.props.onReturn && !this.props.error) {
+      this.props.onReturn(e);
     }
   }
 
@@ -143,7 +143,7 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn ? this.onKeyDown : undefined}
+            onKeyDown={(e) => this.onKeyDown(e)}
           />
           <div ref={this.errorRef} />
           <ErrorPopover

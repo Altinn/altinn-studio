@@ -66,20 +66,16 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
   };
   const onNewModelNameChanged = (e: any) => {
     const name = e.target.value;
-    if (!name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
-      setNameError('Invalid name');
-    } else {
-      setNameError('');
-      setNewModelName(name);
+    if (!validateName(name)) {
+      return;
     }
+
+    setNameError('');
+    setNewModelName(name);
   };
 
   const onCreateConfirmClick = () => {
-    if (!nameError && newModelName && newModelName.length > 0) {
-      if (dataModelNames.includes(newModelName)) {
-        setNameError(`A model with name ${newModelName} already exists.`);
-        return;
-      }
+    if (!nameError && newModelName && newModelName.length > 0 && !nameExists(newModelName)) {
       dispatch(createNewDataModel({ modelName: newModelName }));
       setCreateButtonAnchor(null);
       setNewModelName(null);
@@ -99,6 +95,38 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
     setCreateButtonAnchor(null);
     setNewModelName(null);
     setNameError(null);
+  };
+
+  const validateName = (name: string) => {
+    if (!name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      setNameError('Invalid name');
+      return false;
+    }
+    return true;
+  };
+
+  const nameExists = (name: string): boolean => {
+    if (dataModelNames.includes(name)) {
+      setNameError(`A model with name ${name} already exists.`);
+      return true;
+    }
+    return false;
+  };
+
+  const onReturnInNameField = (e: any) => {
+    e.preventDefault();
+    const name = e.target.value;
+    if (!validateName(name)) {
+      return;
+    }
+
+    setNameError('');
+    setNewModelName(name);
+    if (name && name.length > 0 && !nameExists(name)) {
+      dispatch(createNewDataModel({ modelName: name }));
+      setCreateButtonAnchor(null);
+      setNewModelName(null);
+    }
   };
 
   return (
@@ -160,7 +188,7 @@ export default function DataModelingContainer(props: IDataModelingContainerProps
             inputFieldStyling={{ width: '250px' }}
             onBlurFunction={onNewModelNameChanged}
             onBtnClickFunction={onCreateConfirmClick}
-            onReturn={onCreateConfirmClick}
+            onReturn={onReturnInNameField}
           />
 
         </AltinnPopoverSimple>
