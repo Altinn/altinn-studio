@@ -48,6 +48,6 @@ namespace Altinn.Platform.Authentication.Model
         /// <summary>
         /// The response type
         /// </summary>
-        public string ResponseMode { get; set; } = "code";
+        public string ResponseType { get; set; } = "code";
     }
 }

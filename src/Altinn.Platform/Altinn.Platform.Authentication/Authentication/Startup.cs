@@ -81,6 +81,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
             services.ConfigureOidcProviders<OidcProviderSettings>(Configuration.GetSection("OidcProviders"));
+            services.AddDataProtection();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

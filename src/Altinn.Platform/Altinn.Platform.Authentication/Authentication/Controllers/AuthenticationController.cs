@@ -15,12 +15,13 @@ using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
-
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -60,6 +61,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly IOidcProvider _oidcProvider;
 
         private readonly OidcProviderSettings _oidcProviderSettings;
+        private readonly IAntiforgery _antiforgery;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
@@ -74,6 +76,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         /// <param name="signingKeysResolver">Signing keys resolver for Altinn Common AccessToken</param>
         /// <param name="oidcProvider">The OIDC provider</param>
+        /// <param name="antiforgery">The anti forgery service.</param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
@@ -84,7 +87,8 @@ namespace Altinn.Platform.Authentication.Controllers
             IUserProfileService userProfileService,
             IOrganisationsService organisationRepository,
             ISigningKeysResolver signingKeysResolver,
-            IOidcProvider oidcProvider)
+            IOidcProvider oidcProvider,
+            IAntiforgery antiforgery)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
@@ -97,6 +101,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
             _oidcProvider = oidcProvider;
+            _antiforgery = antiforgery;
         }
 
         /// <summary>
@@ -114,7 +119,7 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
-
+            
             string oidcissuer = Request.Query["iss"];
             UserAuthenticationModel userAuthentication;
             if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.OidcDefault))
@@ -122,14 +127,19 @@ namespace Altinn.Platform.Authentication.Controllers
                 OidcProvider provider = GetOidcProvider(oidcissuer);
 
                 string code = Request.Query["code"];
+                string state = Request.Query["state"];
 
                 if (!string.IsNullOrEmpty(code))
                 {
+                    HttpContext.Request.Headers.Add("RequestVerificationToken", state);
+                    await _antiforgery.ValidateRequestAsync(HttpContext);
                     userAuthentication = await AuthenticateWithCode(code, provider); 
                 }
                 else
                 {
-                    return Redirect(GetAuthenticationUri(provider, encodedGoToUrl));
+                    // Generates state tokens. One is added to a cookie and another is sent as sate parameter to OIDC provider
+                    AntiforgeryTokenSet tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+                    return Redirect(CreateAuthenticationRequest(provider, goTo, tokens.RequestToken));
                 }
             }
             else
@@ -607,7 +617,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel();
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
@@ -700,16 +710,46 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Builds URI to redirect for OIDC login
+        /// Builds URI to redirect for OIDC login for authentication
+        /// Based on https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
         /// </summary>
         /// <returns></returns>
-        private string GetAuthenticationUri(OidcProvider provider, string encodedGoToUrl)
+        private string CreateAuthenticationRequest(OidcProvider provider, string goTo, string state)
         {
-            string state = Guid.NewGuid().ToString();
             string nonce = Guid.NewGuid().ToString();
-            string uri = $"{provider.AuthorizationEndpoint}?redirect_uri={encodedGoToUrl}&scope={provider.Scope}&client_id={provider.ClientId}&response_mode={provider.ResponseMode}&state={state}&nonce={nonce}";
 
-            return uri;
+            string redirect_uri = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+            string authorizationEndpoint = provider.AuthorizationEndpoint;
+            Dictionary<string, string> oidcParams = new Dictionary<string, string>();
+
+            // REQUIRED. Redirection URI to which the response will be sent. This URI MUST exactly match one of the Redirection URI
+            // values for the Client pre-registered at the OpenID Provider, with the matching performed as described in Section 6.2.1 of
+            // [RFC3986] (Simple String Comparison). When using this flow, the Redirection URI SHOULD use the https scheme; however,
+            // it MAY use the http scheme, provided that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and
+            // provided the OP allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate scheme,
+            // such as one that is intended to identify a callback into a native application.
+            oidcParams.Add("redirect_uri", redirect_uri);
+
+            // REQUIRED. OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present,
+            // the behavior is entirely unspecified. Other scope values MAY be present. Scope values used that are not understood by an implementation SHOULD be ignored.
+            // See Sections 5.4 and 11 for additional scope values defined by this specification.
+            oidcParams.Add("scope", provider.Scope);
+
+            // REQUIRED. OAuth 2.0 Client Identifier valid at the Authorization Server.
+            oidcParams.Add("client_id", provider.ClientId);
+
+            // REQUIRED. OAuth 2.0 Response Type value that determines the authorization processing flow to be used, including what parameters
+            // are returned from the endpoints used. When using the Authorization Code Flow, this value is code.
+            oidcParams.Add("response_type", provider.ResponseType);
+
+            // RECOMMENDED. Opaque value used to maintain state between the request and the callback. Typically, Cross-Site Request Forgery (CSRF, XSRF)
+            // mitigation is done by cryptographically binding the value of this parameter with a browser cookie.
+            oidcParams.Add("state", state);
+
+            // OPTIONAL. String value used to associate a Client session with an ID Token, and to mitigate replay attacks. The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient entropy MUST be present in the nonce values used to prevent attackers
+            // from guessing values. For implementation notes, see Section 15.5.2.
+            oidcParams.Add("nonce", nonce);
+            return QueryHelpers.AddQueryString(authorizationEndpoint, oidcParams);
         }
     }
 }
