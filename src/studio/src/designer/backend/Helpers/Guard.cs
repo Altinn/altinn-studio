@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Helpers
         public static void AssertFileExtensionIsOfType(string fileName, string fileExtension)
         {
             var fileInfo = new FileInfo(fileName);
-            if (fileInfo.Extension.ToLower() == fileExtension.ToLower())
+            if (fileInfo.Extension.ToLower() != fileExtension.ToLower())
             {
                 throw new ArgumentException($"The file {fileName} must be of type {fileExtension}.");
             }
