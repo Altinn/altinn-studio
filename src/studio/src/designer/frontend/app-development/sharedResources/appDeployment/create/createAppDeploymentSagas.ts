@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { post } from 'app-shared/utils/networking';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
+import { appDeploymentsUrl } from '../../../utils/urlHelper';
 import { ICreateAppDeployment } from '../types';
 import { AppDeploymentActions } from '../appDeploymentSlice';
 
@@ -14,7 +14,7 @@ function* createAppDeploymentSaga(action: PayloadAction<ICreateAppDeployment>): 
       env: envObj,
     };
 
-    const result = yield call(post, getAppDeploymentsUrl(), data);
+    const result = yield call(post, appDeploymentsUrl, data);
 
     yield put(AppDeploymentActions.createAppDeploymentFulfilled({ envName: envObj.name, result }));
   } catch (error) {

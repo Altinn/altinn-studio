@@ -14,13 +14,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { AppReleaseActions, IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { IRepoStatusState, RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import { getGitCommitLink, getRepoStatusUrl, languageUrl } from '../../../utils/urlHelper';
+import { getGitCommitLink, repoStatusUrl, languageUrl } from '../../../utils/urlHelper';
 import { fetchRepoStatus, IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
@@ -50,7 +48,7 @@ const StyledTabs = withStyles(createStyles({
   flexContainer: {
     borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
-// eslint-disable-next-line react/jsx-props-no-spreading
+  // eslint-disable-next-line react/jsx-props-no-spreading
 }))((props: IStyledTabsProps) => <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />);
 
 const StyledTab = withStyles(createStyles({
@@ -166,7 +164,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(fetchRepoStatus({
-      url: getRepoStatusUrl(),
+      url: repoStatusUrl,
       org,
       repo: app,
     }));
@@ -324,7 +322,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       !!appReleases.releases[0] &&
       appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
       (appReleases.releases[0].build.status === BuildStatus.completed &&
-      appReleases.releases[0].build.result === BuildResult.succeeded)
+        appReleases.releases[0].build.result === BuildResult.succeeded)
     ) {
       return null;
     }
@@ -408,7 +406,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       return (
         <Typography>
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
-          { /* eslint-disable-next-line no-extra-boolean-cast */ }
+          { /* eslint-disable-next-line no-extra-boolean-cast */}
           {!!repoStatus.branch.master ?
             <a
               href={getGitCommitLink(repoStatus.branch.master.commit.id)}

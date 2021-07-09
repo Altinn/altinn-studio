@@ -5,7 +5,7 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
   className="MuiGrid-root AltinnInformationCard-root-1 MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-content-xs-center MuiGrid-justify-xs-center"
 >
   <div
-    className="MuiGrid-root AltinnInformationCard-scrollable-9 MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-xs-center"
+    className="MuiGrid-root AltinnInformationCard-scrollable-7 MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-xs-center"
   >
     <div
       className="MuiGrid-root AltinnInformationCard-paper-2 AltinnInformationCard-shadowBox-3 MuiGrid-container MuiGrid-item"
@@ -25,20 +25,20 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
               header
             </h1>
             <p
-              className="AltinnInformationCard-subText1-5"
+              className="AltinnInformationCard-subText1-8"
             >
               subtext1
             </p>
             <p
-              className="AltinnInformationCard-subText2-6"
+              className="AltinnInformationCard-subText2-9"
             >
               subtext2
             </p>
             <div
-              className="AltinnInformationCard-smSpacing-8"
+              className="AltinnInformationCard-smSpacing-6"
             >
               <a
-                className="AltinnInformationCard-link-7"
+                className="AltinnInformationCard-link-5"
                 href="github.com"
               >
                 linktext

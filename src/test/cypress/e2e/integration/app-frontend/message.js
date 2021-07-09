@@ -10,7 +10,7 @@ describe('Message', () => {
   let instanceMetadata, instanceId;
   before(() => {
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
-    cy.startAppInstance();
+    cy.startAppInstance(Cypress.env('multiData2Stage'));
     cy.get(appFrontend.closeButton).should('be.visible');
   });
 

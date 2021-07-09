@@ -16,8 +16,6 @@ using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
-using LibGit2Sharp;
-
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Http;
@@ -83,7 +81,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
         #region Service metadata
         public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
-        {            
+        {
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.

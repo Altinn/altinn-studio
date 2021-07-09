@@ -27,7 +27,7 @@ using Microsoft.Net.Http.Headers;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all actions related to data modeling
+    /// Controller containing all actions related to data modelling
     /// </summary>
     [AutoValidateAntiforgeryToken]
     public class DatamodelsController : ControllerBase
@@ -155,7 +155,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("/designer/api/{org}/{repository}/datamodels")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery]string modelPath)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();

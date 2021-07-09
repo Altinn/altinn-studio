@@ -21,6 +21,9 @@
     "paths": {
       "app-shared/*": [
         "../shared/*"
+      ],
+      "@altinn/schema-editor/*": [
+        "../packages/schema-editor/src/*"
       ]
     }
   },

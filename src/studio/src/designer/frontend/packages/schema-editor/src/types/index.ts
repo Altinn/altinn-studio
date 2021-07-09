@@ -40,12 +40,12 @@ export interface UiSchemaItem {
   required?: string[];
   title?: string;
   description?: string;
-  items?: {type?: string, $ref?: string};
+  items?: { type?: string, $ref?: string };
   enum?: string[];
 }
 
 export interface ISchema {
-  properties: { [key: string]: {[key: string]: any} };
-  definitions: { [key: string]: {[key: string]: any} };
+  properties: { [key: string]: { [key: string]: any } };
+  definitions: { [key: string]: { [key: string]: any } };
   $schema?: string;
 }

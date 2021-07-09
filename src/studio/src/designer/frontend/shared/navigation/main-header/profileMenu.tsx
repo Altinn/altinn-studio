@@ -5,7 +5,7 @@ import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
 import { IAltinnWindow } from '../../types';
-import { altinnStudioDocsUrl, repositoryUrl } from '../../utils/urlHelper';
+import { sharedUrls, altinnStudioDocsUrl } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 
 export interface IProfileMenuComponentProps {
@@ -62,7 +62,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
 
   public shouldShowRepositoryLink = () => {
     if (window) {
-      const {org, app} = (window as Window as IAltinnWindow);
+      const { org, app } = (window as Window as IAltinnWindow);
       if (org && app) {
         return true;
       }
@@ -73,7 +73,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
   public handleGiteaRepository = () => {
     this.setState({ anchorEl: null });
     if (window) {
-      window.open(repositoryUrl, '_blank');
+      window.open(sharedUrls().repositoryUrl, '_blank');
       window.focus();
     }
   }
@@ -107,17 +107,17 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
         >
           <MenuItem
             key='placeholder'
-            style={{display: 'none'}}
+            style={{ display: 'none' }}
           />
           {// workaround for highlighted menu item not changing.
-          // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
+            // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
           {this.shouldShowRepositoryLink() &&
             <MenuItem
               className={classes.menuItem}
             >
               <a
-                href={repositoryUrl}
+                href={sharedUrls().repositoryUrl}
                 target='_blank'
                 rel='noopener noreferrer'
               >
@@ -128,20 +128,20 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           <MenuItem
             className={classes.menuItem}
           >
-              <a
-                href={altinnStudioDocsUrl}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                Dokumentasjon
-              </a>
+            <a
+              href={altinnStudioDocsUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              Dokumentasjon
+            </a>
           </MenuItem>
           {showlogout && (
             <MenuItem
               onClick={this.handleLogout}
               className={classes.menuItem}
             >
-                Logout
+              Logout
             </MenuItem>
           )}
         </Menu>

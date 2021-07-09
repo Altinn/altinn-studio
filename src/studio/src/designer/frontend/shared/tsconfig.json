@@ -17,7 +17,12 @@
     "noImplicitAny": true,
     "strictNullChecks": false,
     "noUnusedLocals": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@altinn/schema-editor/*": [
+        "../packages/schema-editor/src/*"
+      ]
+    },
   },
   "include": [
     "./**/*"

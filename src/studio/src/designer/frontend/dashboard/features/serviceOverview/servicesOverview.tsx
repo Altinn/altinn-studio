@@ -131,30 +131,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
 
   public componentDidMount() {
     this._isMounted = true;
-    /* get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
-    .then((res) => {
-      if (this._isMounted) {
-        marked.setOptions({
-          headerIds: false,
-        });
-
-        const unsafeHTML = marked(res);
-        const safeHTML = DOMPurify.sanitize(unsafeHTML,
-          {
-            ALLOWED_TAGS: ['ul', 'li', 'a'],
-            ALLOWED_ATTR: ['href', 'target'],
-          },
-        );
-
-        const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
-        if (doc.getElementsByTagName('ul').length > 0) {
-          const majorWeaknessesList = ReactHtmlParser(doc.getElementsByTagName('ul')[0].innerHTML);
-          this.setState({
-            majorIssues: majorWeaknessesList,
-          });
-        }
-      }
-    }); */
   }
 
   public componentWillUnmount() {
@@ -193,8 +169,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     const {
       classes, services, currentUserName,
     } = this.props;
-    // const altinnWindow: Window = window;
-    // const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -224,26 +198,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             </Grid>
           }
         </Grid>
-        {/* this.state.majorIssues &&
-          <div className={classes.mar_top_13}>
-            <AltinnInformationPaper>
-              <Typography className={classes.font_16}>
-                {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
-              </Typography>
-
-              <Typography className={classes.paperList} component={'ul'}>{this.state.majorIssues}</Typography>
-
-              <AltinnLink
-                url={knownIssuesUrl}
-                linkTxt={getLanguageFromKey('dashboard.known_issues_link', this.props.language)}
-                shouldShowIcon={true}
-              />
-            </AltinnInformationPaper>
-          </div> */
-        }
-        {/* <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
-          {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
-        </Typography> */}
         {services &&
           <>
             <Grid
