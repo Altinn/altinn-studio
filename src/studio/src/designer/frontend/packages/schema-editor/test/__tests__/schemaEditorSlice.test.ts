@@ -2,7 +2,8 @@ import reducer, { addRestriction, addProperty, deleteField, deleteProperty, init
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
   setItems,
-  promoteProperty } from '../../src/features/editor/schemaEditorSlice';
+  promoteProperty,
+  addRootItem } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -32,6 +33,11 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, setRestrictionKey(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
     expect(item && item.restrictions).toContainEqual({ key: 'color0', value: 2000 });
+
+    payload.oldKey = 'color';
+    nextState = reducer(nextState, setRestrictionKey(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
+    expect(item && item.restrictions && item.restrictions.length).toBe(4);
   });
 
   it('handles setFieldValue', () => {
@@ -148,6 +154,22 @@ describe('SchemaEditorSlice', () => {
     expect(item && item.properties).toContainEqual({
       id: '#/definitions/Kontaktperson/properties/name', displayName: 'name', type: 'object',
     });
+  });
+
+  it('handles addRootItem', () => {
+    const payload = {
+      name: 'superman',
+      location: 'definitions',
+    };
+    let nextState = reducer(state, addRootItem(payload));
+    expect(nextState.uiSchema).toContainEqual({
+      id: '#/definitions/superman', displayName: 'superman', type: 'object',
+    });
+    nextState = reducer(nextState, addRootItem(payload));
+    expect(nextState.uiSchema).toContainEqual({
+      id: '#/definitions/superman0', displayName: 'superman0', type: 'object',
+    });
+    expect(nextState.selectedId).toBe('#/definitions/superman0');
   });
 
   it('handles addEnum & deleteEnum', () => {
