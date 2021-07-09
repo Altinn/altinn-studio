@@ -43,7 +43,7 @@ namespace Altinn.App.Api.Controllers
 
             TextResource textResource = _appResources.GetTexts(org, app, language);
 
-            if (textResource == null)
+            if (textResource == null && language != "nb")
             {
                 textResource = _appResources.GetTexts(org, app, "nb");
             }
