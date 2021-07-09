@@ -238,7 +238,7 @@ const schemaEditorSlice = createSlice({
         schemaItem.type = undefined;
       }
     },
-    setKey(state, action) {
+    setRestrictionKey(state, action) {
       const {
         path, oldKey, newKey,
       } = action.payload;
@@ -377,7 +377,7 @@ export const {
   deleteProperty,
   promoteProperty,
   setRestriction,
-  setKey,
+  setRestrictionKey,
   setRef,
   setItems,
   setJsonSchema,

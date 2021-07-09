@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
+import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
   addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
@@ -193,7 +193,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (oldKey === newKey) {
       return;
     }
-    dispatch(setKey({
+    dispatch(setRestrictionKey({
       path, oldKey, newKey,
     }));
   };

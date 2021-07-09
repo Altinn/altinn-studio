@@ -1,5 +1,5 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
-  setRestriction, setJsonSchema, setKey, setPropertyName, setRef, setSelectedId, setUiSchema,
+  setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
   setItems,
   promoteProperty } from '../../src/features/editor/schemaEditorSlice';
@@ -21,7 +21,7 @@ describe('SchemaEditorSlice', () => {
       oldKey: 'minLength',
       path: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(state, setKey(payload));
+    const nextState = reducer(state, setRestrictionKey(payload));
     const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
     if (!item || !item.restrictions) {
       fail('item not found');

@@ -60,6 +60,7 @@ export function InputField(props: IInputFieldProps) {
   React.useEffect(() => {
     setValue(props.value);
   }, [props.value]);
+
   const onChangeKey = (e: any) => {
     setValue(e.target.value);
   };
