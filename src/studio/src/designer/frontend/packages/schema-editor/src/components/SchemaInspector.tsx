@@ -308,7 +308,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       key={`field-${p.id}`}
       required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
-      label={p.displayName}
+      value={p.displayName}
       fullPath={p.id}
       onChangeKey={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}

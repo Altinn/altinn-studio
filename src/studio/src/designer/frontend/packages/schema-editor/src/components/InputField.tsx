@@ -42,7 +42,7 @@ const useStyles = (readonly?: boolean) => makeStyles({
 });
 
 export interface IInputFieldProps {
-  label: string;
+  value: string;
   fullPath: string;
   language: ILanguage;
   required?: boolean;
@@ -55,25 +55,25 @@ export interface IInputFieldProps {
 export function InputField(props: IInputFieldProps) {
   const classes = useStyles(props.readOnly)();
 
-  const [label, setLabel] = React.useState<string>(props.label || '');
+  const [value, setValue] = React.useState<string>(props.value || '');
   const dispatch = useDispatch();
   React.useEffect(() => {
-    setLabel(props.label);
-  }, [props.label]);
+    setValue(props.value);
+  }, [props.value]);
   const onChangeKey = (e: any) => {
-    setLabel(e.target.value);
+    setValue(e.target.value);
   };
 
   const onBlurKey = (e: any) => {
-    props.onChangeKey(props.fullPath, props.label, e.target.value);
+    props.onChangeKey(props.fullPath, props.value, e.target.value);
   };
 
   const onClickDelete = () => {
-    props.onDeleteField?.(props.fullPath, props.label);
+    props.onDeleteField?.(props.fullPath, props.value);
   };
   const onChangeRequired = (e: any, checked: boolean) => {
     dispatch(setRequired({
-      path: props.fullPath, key: props.label, required: checked,
+      path: props.fullPath, key: props.value, required: checked,
     }));
   };
   const baseId = getDomFriendlyID(props.fullPath);
@@ -82,8 +82,8 @@ export function InputField(props: IInputFieldProps) {
       <Grid item xs={4}>
         <FormControl>
           <Input
-            id={`${baseId}-key-${label}`}
-            value={label}
+            id={`${baseId}-key-${value}`}
+            value={value}
             disableUnderline={true}
             fullWidth
             disabled={props.readOnly}
@@ -99,7 +99,7 @@ export function InputField(props: IInputFieldProps) {
           <FormControlLabel
             className={classes.checkBox}
             control={<Checkbox
-              checked={props.required} onChange={onChangeRequired}
+              checked={props.required ?? false} onChange={onChangeRequired}
               name='checkedArray'
             />}
             label={getTranslation('required', props.language)}
@@ -109,7 +109,7 @@ export function InputField(props: IInputFieldProps) {
       <Grid item xs={3}>
         { props.onDeleteField &&
         <IconButton
-          id={`${baseId}-delete-${label}`}
+          id={`${baseId}-delete-${value}`}
           aria-label='Delete field'
           onClick={onClickDelete}
           className={classes.delete}
