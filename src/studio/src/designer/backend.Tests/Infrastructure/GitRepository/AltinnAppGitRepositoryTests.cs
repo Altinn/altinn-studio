@@ -85,12 +85,30 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
-            var resourceCollection = await altinnAppGitRepository.GetTextResources("nb");
+            var textResource = await altinnAppGitRepository.GetTextResources("nb");
 
-            resourceCollection.Should().NotBeNull();
-            resourceCollection.Language.Should().Be("nb");
-            resourceCollection.Resources.Should().HaveCount(12);
-            resourceCollection.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+            textResource.Should().NotBeNull();
+            textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+        }
+
+        [Fact]
+        public async Task GetTextResourcesForAllLanguages_ResourceExists_ShouldReturn()
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+            var developer = "testUser";
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            var allResources = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
+
+            allResources.Should().NotBeNull();
+            allResources.Should().HaveCount(12);
+            allResources.First(r => r.Key == "ServiceName").Value.Should().HaveCount(2);
+            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "en").Value.Value.Should().Be("who-is-who");
+            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "nb").Value.Value.Should().Be("Hvem er hvem?");
         }
     }
 }

@@ -62,6 +62,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Gets all the files within the specified directory.
+        /// </summary>
+        /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
+        /// <returns></returns>
+        public string[] GetFilesByRelativeDirectory(string relativeDirectory)
+        {
+            var absoluteDirectory = GetAbsoluteFilePathSanitized(relativeDirectory);
+
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
+
+            return Directory.GetFiles(absoluteDirectory);
+        }
+
+        /// <summary>
         /// Returns the content of a file absolute path within the repository directory.
         /// </summary>        
         /// <param name="absoluteFilePath">The relative path to the file.</param>
@@ -70,7 +84,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-            return await ReadTextAsync(absoluteFilePath);
+            // Commented out ref comment below in the ReadTextByRelativePathAsync methdo
+            //return await ReadTextAsync(absoluteFilePath);
+
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
         }
 
         /// <summary>
@@ -84,8 +101,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-            // In a weird case this returns something else than the one below on one character in 0678.xsd. return await ReadTextAsync(absoluteFilePath);
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);            
+            // In some weird cases these two alternate ways of reading a file sometimes works while the other fails.
+            // Experienced in both 0678.xsd in ttd-datamodels and resource.en.json in hvem-er-hvem.
+            // Opening the file in an editor and saving it resolved the issue for 0678.xsd. Is most likely related to BOM
+            // and that the BOM bytes isn't removed on read in the ReadTextAsync method.
+            // Should try to fix this as this method is more performant than ReadAllTextAsync.
+            // return await ReadTextAsync(absoluteFilePath);
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
         }
 
         /// <summary>
@@ -174,6 +196,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return File.Exists(absoluteFilePath);
+        }
+
+        /// <summary>
+        /// Checks if a directory exists within the repository.
+        /// </summary>
+        /// <param name="relativeDirectoryPath">Relative path to directory to check for existense.</param>
+        /// <returns></returns>
+        public bool DirectoryExitsByRelativePath(string relativeDirectoryPath)
+        {
+            var absoluteDirectoryPath = GetAbsoluteFilePathSanitized(relativeDirectoryPath);
+
+            if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
+            {
+                return false;
+            }
+
+            return Directory.Exists(absoluteDirectoryPath);
         }
 
         /// <summary>

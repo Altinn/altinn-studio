@@ -111,16 +111,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
 
             string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
-            if (Directory.Exists(textResourcesDirectory))
+            if (DirectoryExitsByRelativePath(textResourcesDirectory))
             {
-                string[] files = Directory.GetFiles(textResourcesDirectory);
+                string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
 
                 foreach (string file in files)
                 {
                     if (IsValidResourceFile(file))                    
                     {
                         string content = await ReadTextByAbsolutePathAsync(file);
-                        Designer.Models.TextResource textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content);
+                        var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings() {  });
                         string language = textResource.Language;
 
                         foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
