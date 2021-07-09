@@ -86,6 +86,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
             // eslint-disable-next-line no-param-reassign
             (params.InputProps as any).disableUnderline = true;
             return <TextField
+              autoFocus
               // eslint-disable-next-line react/jsx-props-no-spreading
               {...params}
             />;

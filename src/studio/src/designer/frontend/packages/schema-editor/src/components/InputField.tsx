@@ -86,6 +86,7 @@ export function InputField(props: IInputFieldProps) {
             value={value}
             disableUnderline={true}
             fullWidth
+            autoFocus
             disabled={props.readOnly}
             onChange={onChangeKey}
             onBlur={onBlurKey}
