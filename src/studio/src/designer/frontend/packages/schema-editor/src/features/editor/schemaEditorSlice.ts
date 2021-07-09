@@ -348,6 +348,7 @@ const schemaEditorSlice = createSlice({
         const id = state.uiSchema[0].id;
         state.selectedId = id;
         state.selectedNodeId = getDomFriendlyID(id);
+        state.focusNameField = id;
       }
     },
     updateJsonSchema(state, action) {
