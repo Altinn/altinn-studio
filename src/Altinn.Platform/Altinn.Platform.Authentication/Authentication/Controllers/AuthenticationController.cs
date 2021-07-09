@@ -131,7 +131,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 if (!string.IsNullOrEmpty(code))
                 {
-                    HttpContext.Request.Headers.Add("RequestVerificationToken", state);
+                    HttpContext.Request.Headers.Add("AP-X-XSRF-TOKEN", state);
                     await _antiforgery.ValidateRequestAsync(HttpContext);
                     userAuthentication = await AuthenticateWithCode(code, provider); 
                 }
