@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
@@ -42,6 +43,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="relativeFilePath">Relative path to the file.</param>
         /// <param name="jsonContent">The JSON contents of the file.</param>
         Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent);
+
+        /// <summary>
+        /// Creates a JSON schema based on a XSD.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file (where in the repository it should be stored).</param>
+        /// <param name="xsdStream">Stream representing the XSD.</param>
+        Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
 
         /// <summary>
         /// Deletes a schema based on the relative path to the JSON Schema within the repository.
