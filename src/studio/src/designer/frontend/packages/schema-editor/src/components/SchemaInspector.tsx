@@ -306,7 +306,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
     return <InputField
       language={props.language}
-      key={`field-${p.id}`}
+      key={p.id}
       required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
       value={p.displayName}

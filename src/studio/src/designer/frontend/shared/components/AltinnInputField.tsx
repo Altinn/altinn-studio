@@ -27,7 +27,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
   error?: string;
   clearError?: () => void;
-  onReturn?: (e: any) => void;
+  onReturn?: (e: KeyboardEventInit) => void;
 }
 
 export interface IAltinnInputFieldComponentState {
