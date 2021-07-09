@@ -30,6 +30,15 @@ namespace Altinn.App.Services.Interface
         byte[] GetText(string org, string app, string textResource);
 
         /// <summary>
+        /// Get the text resources in a specific language.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="language">The two letter language code.</param>
+        /// <returns>The text resources in the specified language if they exist. Otherwise null.</returns>
+        TextResource GetTexts(string org, string app, string language);
+
+        /// <summary>
         /// Returns the model metadata for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

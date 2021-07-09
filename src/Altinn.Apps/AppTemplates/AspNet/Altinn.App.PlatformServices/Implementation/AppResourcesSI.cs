@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
@@ -23,28 +25,22 @@ namespace Altinn.App.Services.Implementation
     public class AppResourcesSI : IAppResources
     {
         private readonly AppSettings _settings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
         private Application _application;
-
-        private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
         public AppResourcesSI(
             IOptions<AppSettings> settings,
-            IHttpContextAccessor httpContextAccessor,
             IWebHostEnvironment hostingEnvironment,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
-            _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
             _logger = logger;
         }
@@ -83,6 +79,29 @@ namespace Altinn.App.Services.Implementation
         public byte[] GetText(string org, string app, string textResource)
         {
             return ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder, textResource);
+        }
+
+        /// <inheritdoc />
+        public TextResource GetTexts(string org, string app, string language)
+        {
+            string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
+            byte[] textsAsByteArray = ReadFileContentsFromLegalPath(pathTextsFolder, $"resource.{language}.json");
+
+            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
+            {
+                return null;
+            }
+
+            string textsAsString = Encoding.UTF8.GetString(textsAsByteArray);
+
+            JsonSerializerOptions options = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            TextResource textResource = System.Text.Json.JsonSerializer.Deserialize<TextResource>(textsAsString, options);
+
+            textResource.Id = $"{org}-{app}-{language}";
+            textResource.Org = org;
+            textResource.Language = language;
+
+            return textResource;
         }
 
         /// <inheritdoc />

@@ -1,5 +1,3 @@
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.App.Services.Interface;
@@ -43,27 +41,17 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            byte[] textsAsByteArray = _appResources.GetText(org, app, $"resource.{language}.json");
+            TextResource textResource = _appResources.GetTexts(org, app, language);
 
-            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
+            if (textResource == null)
             {
-                language = "nb";
-                textsAsByteArray = _appResources.GetText(org, app, $"resource.{language}.json");
+                textResource = _appResources.GetTexts(org, app, "nb");
             }
 
-            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
+            if (textResource == null)
             {
                 return NotFound();
             }
-
-            string textsAsString = Encoding.UTF8.GetString(textsAsByteArray);
-
-            JsonSerializerOptions options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            TextResource textResource = JsonSerializer.Deserialize<TextResource>(textsAsString, options);
-
-            textResource.Id = $"{org}-{app}-{language}";
-            textResource.Org = org;
-            textResource.Language = language;
 
             return await Task.FromResult(textResource);
         }
