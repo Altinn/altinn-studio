@@ -73,5 +73,24 @@ namespace Designer.Tests.Infrastructure.GitRepository
             applicationMetadata.LastChanged.Should().BeSameDateAs(DateTime.Parse("2021-04-08T17:42:09.08847Z"));
             applicationMetadata.LastChangedBy.Should().Be("Ronny");
         }
+
+        [Fact]
+        public async Task GetTextResources_ResourceExists_ShouldReturn()
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+            var developer = "testUser";
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            var resourceCollection = await altinnAppGitRepository.GetTextResources("nb");
+
+            resourceCollection.Should().NotBeNull();
+            resourceCollection.Language.Should().Be("nb");
+            resourceCollection.Resources.Should().HaveCount(12);
+            resourceCollection.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+        }
     }
 }

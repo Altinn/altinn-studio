@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Altinn.Studio.Designer.Helpers
@@ -85,6 +84,20 @@ namespace Altinn.Studio.Designer.Helpers
             if (!Directory.Exists(directoryPath))
             {
                 throw new DirectoryNotFoundException($"Could not find the specified directory at '{directoryPath}'");
+            }
+        }
+
+        /// <summary>
+        /// Assert that a file has a specific extension.
+        /// </summary>
+        /// <param name="fileName">The fileName, full path, relative path or just the name, to verify.</param>
+        /// <param name="fileExtension">The extension the filename should have including the leading . e.g. '.xsd'.</param>
+        public static void AssertFileExtensionIsOfType(string fileName, string fileExtension)
+        {
+            var fileInfo = new FileInfo(fileName);
+            if (fileInfo.Extension.ToLower() == fileExtension.ToLower())
+            {
+                throw new ArgumentException($"The file {fileName} must be of type {fileExtension}.");
             }
         }
     }

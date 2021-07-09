@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
@@ -10,10 +10,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// <summary>
     /// Class representing a application specific git repository.
     /// </summary>
+    /// <remarks>This class knows that the repository is an Altinn application and hence knows
+    /// about folders and file names and can map them to their respective models.
+    /// It shoud hovever, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
+    /// as it merges multiple on-disk models into another structure.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
         private const string MODEL_METADATA_FOLDER_PATH = "App/models/";
-        private const string CONFIG_FOLDER_PATH = "App/config/";        
+        private const string CONFIG_FOLDER_PATH = "App/config/";
+        private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
+
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
 
         /// <summary>
@@ -77,6 +83,133 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_METADATA_FOLDER_PATH, $"{modelName}.cs");
 
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+        }
+
+        /// <summary>
+        /// Returns a specific text resource based on language code from the application.
+        /// </summary>
+        /// <remarks>
+        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// </remarks>
+        public async Task<Designer.Models.TextResource> GetTextResources(string language)
+        {
+            string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
+
+            var fileContent = await ReadTextByRelativePathAsync(resourcePath);
+            var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
+
+            return textResource;
+        }
+
+        /// <summary>
+        /// Gets a merged set of all text resources in the application.
+        /// </summary>
+        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public async Task<Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>> GetTextResourcesForAllLanguages()
+        {
+            var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
+
+            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            if (Directory.Exists(textResourcesDirectory))
+            {
+                string[] files = Directory.GetFiles(textResourcesDirectory);
+
+                foreach (string file in files)
+                {
+                    if (IsValidResourceFile(file))                    
+                    {
+                        string content = await ReadTextByAbsolutePathAsync(file);
+                        Designer.Models.TextResource textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content);
+                        string language = textResource.Language;
+
+                        foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
+                        {
+                            string key = textResourceElement.Id;
+                            string value = textResourceElement.Value;
+
+                            if (key != null && value != null)
+                            {
+                                if (!allResourceTexts.ContainsKey(key))
+                                {
+                                    allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
+                                }
+
+                                if (!allResourceTexts[key].ContainsKey(language))
+                                {
+                                    allResourceTexts[key].Add(language, textResourceElement);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return allResourceTexts;
+        }
+
+        /// <summary>
+        /// Save app texts to resource files
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="allResourceTexts">The texts to be saved</param>
+        public async Task SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> allResourceTexts)
+        {
+            // Language, key, TextResourceElement
+            var resourceTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
+
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> text in allResourceTexts)
+            {
+                string textResourceElementId = text.Key;
+                foreach (KeyValuePair<string, TextResourceElement> localizedText in text.Value)
+                {
+                    string language = localizedText.Key;
+                    TextResourceElement textResourceElement = localizedText.Value;
+                    if (!resourceTexts.ContainsKey(language))
+                    {
+                        resourceTexts.Add(language, new Dictionary<string, TextResourceElement>());
+                    }
+
+                    if (!resourceTexts[language].ContainsKey(textResourceElementId))
+                    {
+                        resourceTexts[language].Add(textResourceElementId, new TextResourceElement { Id = textResourceElementId, Value = textResourceElement.Value, Variables = textResourceElement.Variables });
+                    }
+                }
+            }
+
+            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+
+            // loop through each language set of text resources
+            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTexts)
+            {
+                var textResource = new TextResource
+                {
+                    Language = processedResource.Key,
+                    Resources = new List<TextResourceElement>()
+                };
+
+                foreach (KeyValuePair<string, TextResourceElement> actualResource in processedResource.Value)
+                {
+                    textResource.Resources.Add(actualResource.Value);
+                }
+
+                string resourceString = JsonConvert.SerializeObject(textResource, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
+                string resourceFilePaht = $"{textResourcesDirectory}/resource.{processedResource.Key}.json";
+                await WriteTextByRelativePathAsync(resourceFilePaht, resourceString, true);
+            }
+        }
+
+        private static bool IsValidResourceFile(string filePath)
+        {
+            var fileName = Path.GetFileName(filePath);
+            string[] nameParts = fileName.Split('.');
+            if (nameParts.Length == 3 && nameParts[0] == "resource" && nameParts[2] == "json")
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
