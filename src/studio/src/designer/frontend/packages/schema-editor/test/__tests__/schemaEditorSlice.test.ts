@@ -5,7 +5,7 @@ import reducer, { addRestriction, addProperty, deleteField, deleteProperty, init
   promoteProperty } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
-import { getUiSchemaItem } from '../../src/utils';
+import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
@@ -13,20 +13,25 @@ describe('SchemaEditorSlice', () => {
     // setup state
     const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
     state = reducer(state1, setUiSchema({ rootElementPath: '#/definitions/RA-0678_M' }));
+    resetUniqueNumber();
   });
 
-  it('handles setKey action', () => {
+  it('handles setRestrictionKey', () => {
     const payload = {
       newKey: 'color',
       oldKey: 'minLength',
       path: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(state, setRestrictionKey(payload));
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
+    let nextState = reducer(state, setRestrictionKey(payload));
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
     if (!item || !item.restrictions) {
       fail('item not found');
     }
     expect(item.restrictions).toContainEqual({ key: 'color', value: 1 });
+    payload.oldKey = 'maxLength';
+    nextState = reducer(nextState, setRestrictionKey(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kommentar2000Restriksjon');
+    expect(item && item.restrictions).toContainEqual({ key: 'color0', value: 2000 });
   });
 
   it('handles setFieldValue', () => {
@@ -52,13 +57,22 @@ describe('SchemaEditorSlice', () => {
       name: 'navn_endret',
       path: '#/definitions/Kontaktperson/properties/navn',
     };
-    const nextState = reducer(state, setPropertyName(payload));
-    const item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
+    let nextState = reducer(state, setPropertyName(payload));
+    let item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     if (!item || !item.properties) {
       fail('item not found');
     }
     expect(item.properties).toContainEqual({
       id: '#/definitions/Kontaktperson/properties/navn_endret', displayName: 'navn_endret', $ref: '#/definitions/NavnSomToken',
+    });
+
+    // test that child ids are also updated
+    payload.path = '#/definitions/Kontaktperson';
+    payload.name = 'batman';
+    nextState = reducer(nextState, setPropertyName(payload));
+    item = nextState.uiSchema.find((f) => f.id === '#/definitions/batman');
+    expect(item && item.properties).toContainEqual({
+      id: '#/definitions/batman/properties/navn_endret', displayName: 'navn_endret', $ref: '#/definitions/NavnSomToken',
     });
   });
 
