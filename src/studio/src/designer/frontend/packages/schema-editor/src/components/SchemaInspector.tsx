@@ -244,6 +244,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: '',
     }));
   };
+
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
