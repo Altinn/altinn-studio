@@ -7,7 +7,7 @@ import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
-import { buildUISchema } from '../../src/utils';
+import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 
 let mockStore: any = null;
@@ -54,6 +54,7 @@ beforeEach(() => {
     uiSchema: mockUiSchema,
   });
   mockStore.dispatch = jest.fn(dispatchMock);
+  resetUniqueNumber();
 });
 
 afterEach(() => {
@@ -162,7 +163,7 @@ it('dispatches correctly when changing field key', () => {
     wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-InternInformasjon').hostNodes().at(0);
+  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-6').hostNodes().at(0);
   input.simulate('change', { target: { value: 'Test' } });
   wrapper.update();
   input.simulate('blur');
@@ -320,7 +321,7 @@ it('dispatches correctly when deleting fields', () => {
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   wrapper.update();
-  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-dataFormatProvider').hostNodes().at(0).simulate('click');
+  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-1').hostNodes().at(0).simulate('click');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/deleteProperty',
     payload: {

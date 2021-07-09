@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -25,8 +25,8 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const itemToAdd = { key, value };
       if (addToItem.restrictions) {
-        while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
-          itemToAdd.key += 1;
+        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+          itemToAdd.key += getUniqueNumber();
         }
         addToItem.restrictions.push(itemToAdd);
       } else {
@@ -58,9 +58,8 @@ const schemaEditorSlice = createSlice({
       let { name } = action.payload;
       const { location } = action.payload;
       // make sure name is unique.
-      // eslint-disable-next-line no-loop-func
-      while (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
-        name += 1;
+      if (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+        name += getUniqueNumber();
       }
       const path = `#/${location}/${name}`;
       state.uiSchema.push(
@@ -86,9 +85,10 @@ const schemaEditorSlice = createSlice({
         type: 'object',
       };
       if (addToItem.properties) {
-        while (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
-          item.id += 1;
-          item.displayName += 1;
+        if (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
+          const number = getUniqueNumber();
+          item.id += number;
+          item.displayName += number;
         }
         addToItem.properties.push(item);
       } else {
@@ -248,9 +248,8 @@ const schemaEditorSlice = createSlice({
       let key = newKey;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem.restrictions) {
-        // eslint-disable-next-line no-loop-func
-        while (schemaItem.restrictions.findIndex((f) => f.key === key) > -1) {
-          key += 1;
+        if (schemaItem.restrictions.findIndex((f) => f.key === key) > -1) {
+          key += getUniqueNumber();
         }
         const fieldItem = schemaItem.restrictions.find((field) => field.key === oldKey);
         if (fieldItem) {

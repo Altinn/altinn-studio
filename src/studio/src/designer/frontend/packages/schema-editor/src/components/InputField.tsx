@@ -9,7 +9,7 @@ import { makeStyles,
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import { ILanguage } from '../types';
-import { getDomFriendlyID, getTranslation } from '../utils';
+import { getDomFriendlyID, getTranslation, getUniqueNumber } from '../utils';
 import { setRequired } from '../features/editor/schemaEditorSlice';
 
 const useStyles = (readonly?: boolean) => makeStyles({
@@ -83,7 +83,7 @@ export function InputField(props: IInputFieldProps) {
       <Grid item xs={4}>
         <FormControl>
           <Input
-            id={`${baseId}-key-${value}`}
+            id={`${baseId}-key-${getUniqueNumber()}`}
             value={value}
             disableUnderline={true}
             fullWidth
@@ -111,7 +111,7 @@ export function InputField(props: IInputFieldProps) {
       <Grid item xs={3}>
         { props.onDeleteField &&
         <IconButton
-          id={`${baseId}-delete-${value}`}
+          id={`${baseId}-delete-${getUniqueNumber()}`}
           aria-label='Delete field'
           onClick={onClickDelete}
           className={classes.delete}

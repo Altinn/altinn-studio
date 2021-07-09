@@ -176,7 +176,7 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, addRestriction(payload));
     item = nextState.uiSchema.find((f) => f.id === '#/definitions/Kontaktperson');
     expect(item && item.restrictions).toContainEqual({
-      key: 'key1', value: '',
+      key: 'key0', value: '',
     });
   });
 

@@ -240,3 +240,12 @@ const restrictionMap = new Map([
   ['array', arrayRestrictions],
 ]);
 export const getRestrictions = (type: string) => restrictionMap.get(type);
+
+let unusedNumber = 0;
+export const getUniqueNumber = () => {
+  // eslint-disable-next-line no-plusplus
+  return unusedNumber++;
+};
+export const resetUniqueNumber = () => {
+  unusedNumber = 0;
+};
