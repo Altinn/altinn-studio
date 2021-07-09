@@ -13,6 +13,13 @@ export const initialState: ISchemaState = {
   focusNameField: '',
 };
 
+const updateChildIds = (item: UiSchemaItem, parentId: string) => {
+  item.id = `${parentId}/properties/${item.displayName}`;
+  if (item.properties) {
+    item.properties.forEach((p) => updateChildIds(p, item.id));
+  }
+};
+
 const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
@@ -308,6 +315,12 @@ const schemaEditorSlice = createSlice({
         const arr = item.id.split('/');
         arr[arr.length - 1] = name;
         item.id = arr.join('/');
+
+        // if item has properties, we must update child ids as well.
+        if (item.properties) {
+          item.properties.forEach((p) => updateChildIds(p, item.id));
+        }
+
         if (navigate) {
           state.selectedId = item.id;
           state.selectedNodeId = getDomFriendlyID(item.id);
