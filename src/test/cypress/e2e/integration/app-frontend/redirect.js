@@ -18,7 +18,7 @@ describe('Redirect', () => {
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
   });
 
-  it('Unknown error page', () => {
+  it('User is redirected to unknown error page when a network call fails', () => {
     cy.intercept('GET', `**/applicationmetadata`, {
       statusCode: 401,
     });
