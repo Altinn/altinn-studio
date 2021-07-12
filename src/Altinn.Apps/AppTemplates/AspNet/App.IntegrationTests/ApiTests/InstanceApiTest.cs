@@ -4,7 +4,6 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -99,7 +98,7 @@ namespace App.IntegrationTests
         }
 
         [Fact]
-        public async void Instance_Post_With_InstanceTemplate()
+        public async Task Instance_Post_With_InstanceTemplate()
         {
             string token = PrincipalUtil.GetToken(1337);
 
@@ -168,7 +167,7 @@ namespace App.IntegrationTests
         }
 
         [Fact]
-        public async void Post_RegistrationOfEventsTurnedOn_ControllerCallsEventWithCorrectType()
+        public async Task Post_RegistrationOfEventsTurnedOn_ControllerCallsEventWithCorrectType()
         {
             string org = "ttd";
             string app = "events";
@@ -208,7 +207,7 @@ namespace App.IntegrationTests
         }
 
         [Fact]
-        public async void Instance_Post_With_InstanceTemplate_Org()
+        public async Task Instance_Post_With_InstanceTemplate_Org()
         {
             string token = PrincipalUtil.GetOrgToken("tdd");
 
@@ -247,7 +246,7 @@ namespace App.IntegrationTests
         /// create a multipart request with instance and xml prefil.
         /// </summary>
         [Fact]
-        public async void Instance_Post_WithMultipartPrefill()
+        public async Task Instance_Post_WithMultipartPrefill()
         {
             /* SETUP */
             string instanceOwnerPartyId = "1337";
@@ -297,7 +296,7 @@ namespace App.IntegrationTests
         /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
         /// </summary>
         [Fact]
-        public async void Instance_Post_NabovarselWithMessageAndForm()
+        public async Task Instance_Post_NabovarselWithMessageAndForm()
         {
             // Arrange
             string instanceOwnerPartyId = "1337";
@@ -346,7 +345,7 @@ namespace App.IntegrationTests
         /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
         /// </summary>
         [Fact]
-        public async void Instance_Post_NabovarselWithFormAndBinaryAttachment()
+        public async Task Instance_Post_NabovarselWithFormAndBinaryAttachment()
         {
             // Arrange
             string instanceOwnerPartyId = "1337";
@@ -509,7 +508,7 @@ namespace App.IntegrationTests
         ///   The given instance is updated with a new entry in CompleteConfirmations.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
+        public async Task AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
         {
             // Arrange
             string org = "tdd";
@@ -549,7 +548,7 @@ namespace App.IntegrationTests
         ///   The response returns status code Forbidden.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_AttemptToCompleteInstanceAsDifferentOrg_ReturnsForbidden()
+        public async Task AddCompleteConfirmation_AttemptToCompleteInstanceAsDifferentOrg_ReturnsForbidden()
         {
             // Arrange
             string org = "tdd";
@@ -581,7 +580,7 @@ namespace App.IntegrationTests
         ///   The response returns status code Forbidden.
         /// </summary>
         [Fact]
-        public async void AddCompleteConfirmation_AttemptToCompleteInstanceAsUser_ReturnsForbidden()
+        public async Task AddCompleteConfirmation_AttemptToCompleteInstanceAsUser_ReturnsForbidden()
         {
             // Arrange
             string org = "tdd";
@@ -613,7 +612,7 @@ namespace App.IntegrationTests
         /// Response is 400 bas request.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_MissingLabel_ReturnsBadRequest()
+        public async Task UpdateSubstatus_MissingLabel_ReturnsBadRequest()
         {
             // Arrange
             string org = "tdd";
@@ -645,7 +644,7 @@ namespace App.IntegrationTests
         /// Response is 403 forbidden.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
+        public async Task UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
         {
             // Arrange
             string org = "tdd";
@@ -679,7 +678,7 @@ namespace App.IntegrationTests
         /// substatus is successfuly updated and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
+        public async Task UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
         {
             // Arrange
             string org = "tdd";
@@ -727,7 +726,7 @@ namespace App.IntegrationTests
         ///   The response returns status code Forbidden.
         /// </summary>
         [Fact]
-        public async void DeleteInstance_UnauthorizedUserAttemptsToDelete_ReturnsForbidden()
+        public async Task DeleteInstance_UnauthorizedUserAttemptsToDelete_ReturnsForbidden()
         {
             string org = "tdd";
             string app = "endring-av-navn";
@@ -759,7 +758,7 @@ namespace App.IntegrationTests
         ///   The response includes the deleted instance with the correct properties updated.
         /// </summary>
         [Fact]
-        public async void DeleteInstance_EndUserHardDeletesInstance_BothHardAndSoftDeleteSetOnInstance()
+        public async Task DeleteInstance_EndUserHardDeletesInstance_BothHardAndSoftDeleteSetOnInstance()
         {
             string org = "tdd";
             string app = "endring-av-navn";
@@ -795,7 +794,7 @@ namespace App.IntegrationTests
         ///   The response includes the deleted instance with the correct properties updated.
         /// </summary>
         [Fact]
-        public async void DeleteInstance_AppOwnerSoftDletesInstance_DeleteSetOnInstance()
+        public async Task DeleteInstance_AppOwnerSoftDletesInstance_DeleteSetOnInstance()
         {
             string org = "tdd";
             string app = "endring-av-navn";
