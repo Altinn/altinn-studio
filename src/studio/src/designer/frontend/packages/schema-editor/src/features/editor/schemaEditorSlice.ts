@@ -374,7 +374,7 @@ const schemaEditorSlice = createSlice({
       }
       state.schema = updatedSchema;
       if (onSaveSchema) {
-        onSaveSchema(updatedSchema);
+        onSaveSchema(updatedSchema, state.name);
       }
     },
   },
