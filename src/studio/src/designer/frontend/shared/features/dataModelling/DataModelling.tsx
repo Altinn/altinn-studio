@@ -65,8 +65,8 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 
   const onSchemaSelected = setSelectedModelMetadata;
 
-  const onSaveSchema = (schema: any, name: string) => {
-    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${name}.schema.json`);
+  const onSaveSchema = (schema: any) => {
+    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
     dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
   };
 
