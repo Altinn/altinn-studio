@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -11,6 +11,13 @@ export const initialState: ISchemaState = {
   selectedId: '',
   selectedNodeId: '',
   focusNameField: '',
+};
+
+const updateChildIds = (item: UiSchemaItem, parentId: string) => {
+  item.id = `${parentId}/properties/${item.displayName}`;
+  if (item.properties) {
+    item.properties.forEach((p) => updateChildIds(p, item.id));
+  }
 };
 
 const schemaEditorSlice = createSlice({
@@ -25,8 +32,8 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const itemToAdd = { key, value };
       if (addToItem.restrictions) {
-        while (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
-          itemToAdd.key += 1;
+        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+          itemToAdd.key += getUniqueNumber();
         }
         addToItem.restrictions.push(itemToAdd);
       } else {
@@ -58,9 +65,8 @@ const schemaEditorSlice = createSlice({
       let { name } = action.payload;
       const { location } = action.payload;
       // make sure name is unique.
-      // eslint-disable-next-line no-loop-func
-      while (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
-        name += 1;
+      if (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+        name += getUniqueNumber();
       }
       const path = `#/${location}/${name}`;
       state.uiSchema.push(
@@ -86,9 +92,10 @@ const schemaEditorSlice = createSlice({
         type: 'object',
       };
       if (addToItem.properties) {
-        while (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
-          item.id += 1;
-          item.displayName += 1;
+        if (addToItem.properties.findIndex((p) => p.id === item.id) > -1) {
+          const number = getUniqueNumber();
+          item.id += number;
+          item.displayName += number;
         }
         addToItem.properties.push(item);
       } else {
@@ -97,7 +104,7 @@ const schemaEditorSlice = createSlice({
       if (!keepSelection) {
         state.selectedId = item.id;
         state.selectedNodeId = getDomFriendlyID(item.id);
-        state.focusNameField = item.displayName;
+        state.focusNameField = item.id;
       }
     },
     addRefProperty(state, action) {
@@ -238,15 +245,22 @@ const schemaEditorSlice = createSlice({
         schemaItem.type = undefined;
       }
     },
-    setKey(state, action) {
+    setRestrictionKey(state, action) {
       const {
         path, oldKey, newKey,
       } = action.payload;
+      if (oldKey === newKey) {
+        return;
+      }
+      let key = newKey;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       if (schemaItem.restrictions) {
+        if (schemaItem.restrictions.findIndex((f) => f.key === key) > -1) {
+          key += getUniqueNumber();
+        }
         const fieldItem = schemaItem.restrictions.find((field) => field.key === oldKey);
         if (fieldItem) {
-          fieldItem.key = newKey;
+          fieldItem.key = key;
         }
       }
     },
@@ -301,6 +315,12 @@ const schemaEditorSlice = createSlice({
         const arr = item.id.split('/');
         arr[arr.length - 1] = name;
         item.id = arr.join('/');
+
+        // if item has properties, we must update child ids as well.
+        if (item.properties) {
+          item.properties.forEach((p) => updateChildIds(p, item.id));
+        }
+
         if (navigate) {
           state.selectedId = item.id;
           state.selectedNodeId = getDomFriendlyID(item.id);
@@ -340,6 +360,7 @@ const schemaEditorSlice = createSlice({
         const id = state.uiSchema[0].id;
         state.selectedId = id;
         state.selectedNodeId = getDomFriendlyID(id);
+        state.focusNameField = id;
       }
     },
     updateJsonSchema(state, action) {
@@ -368,7 +389,7 @@ export const {
   deleteProperty,
   promoteProperty,
   setRestriction,
-  setKey,
+  setRestrictionKey,
   setRef,
   setItems,
   setJsonSchema,

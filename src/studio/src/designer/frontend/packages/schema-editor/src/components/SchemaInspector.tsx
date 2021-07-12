@@ -6,7 +6,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
+import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
   addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
@@ -113,11 +113,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const nameFieldRef = React.useCallback((node: any) => {
     if (node && focusName && focusName === selectedId) {
-      node.focus();
-      node.select();
+      setTimeout(() => {
+        node.select();
+      }, 100);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusName]);
+  }, [focusName, selectedId]);
+
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -188,7 +190,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
-    dispatch(setKey({
+    if (oldKey === newKey) {
+      return;
+    }
+    dispatch(setRestrictionKey({
       path, oldKey, newKey,
     }));
   };
@@ -239,6 +244,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: '',
     }));
   };
+
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const path = itemToDisplay?.id;
@@ -300,10 +306,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
     return <InputField
       language={props.language}
-      key={`field-${p.id}`}
+      key={p.id}
       required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
-      label={p.displayName}
+      value={p.displayName}
       fullPath={p.id}
       onChangeKey={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
@@ -474,6 +480,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         id='multiple-answers-checkbox'
         className={classes.header}
         control={<Checkbox
+          color='primary'
           checked={selectedItem?.type === 'array'}
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
@@ -563,6 +570,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           >
             <Grid item xs={12}>
               <FormControlLabel
+                className={classes.header}
                 control={<Checkbox
                   checked={isRequired} onChange={handleRequiredChanged}
                   name='checkedRequired'

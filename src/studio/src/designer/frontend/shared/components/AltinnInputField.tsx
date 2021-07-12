@@ -27,7 +27,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
   error?: string;
   clearError?: () => void;
-  onReturn?: () => void;
+  onReturn?: (e: KeyboardEventInit) => void;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -90,7 +90,7 @@ class AltinnInputFieldComponent extends
 
   private onKeyDown(e: KeyboardEventInit) {
     if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
-      this.props.onReturn();
+      this.props.onReturn(e);
     }
   }
 

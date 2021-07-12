@@ -70,6 +70,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
     <>
       <Grid item xs={4}>
         <Autocomplete
+          selectOnFocus={true}
           freeSolo={true}
           id={`${baseId}-${props.keyName}-key`}
           disabled={props.readOnly}
@@ -85,6 +86,7 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
             // eslint-disable-next-line no-param-reassign
             (params.InputProps as any).disableUnderline = true;
             return <TextField
+              autoFocus
               // eslint-disable-next-line react/jsx-props-no-spreading
               {...params}
             />;
