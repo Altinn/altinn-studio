@@ -14,6 +14,7 @@ import * as platformApps from '../../api/platform/storage/applications.js';
 import * as setUpData from '../../setup.js';
 import * as appInstantiation from '../../api/app/instantiation.js';
 import * as appResources from '../../api/app/resources.js';
+import * as altinnCdn from '../../api/altinn-cdn/altinn-cdn.js';
 import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
@@ -46,6 +47,31 @@ export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
   var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
+
+  //get resources from Altinn CDN
+  res = altinnCdn.getToolkits();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Toolkits': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
+
+  res = altinnCdn.getFonts();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Fonts': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
+
+  res = altinnCdn.getImg();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Images': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
 
   //Batch api calls before creating an app instance
   res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId, appOwner, level2App);
@@ -153,6 +179,13 @@ export default function (data) {
   });
   addErrorCount(success);
   stopIterationOnFail('E2E App PUT Move process to Next element', success, res);
+
+  //Altinn orgs
+  res = altinnCdn.getOrgs();
+  success = check(res, {
+    'Altinn CDN Orgs': (r) => r.status === 200,
+  });
+  addErrorCount(success);
 
   //Test to call get instance details and verify the presence of archived date
   res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
