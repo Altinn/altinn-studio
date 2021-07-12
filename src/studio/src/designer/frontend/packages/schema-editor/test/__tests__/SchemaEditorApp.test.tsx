@@ -25,7 +25,7 @@ test('renders schema editor container', () => {
         schema={dataMock}
         language={{}}
         onSaveSchema={() => {}}
-        rootItemId='#/properties/melding'
+        name='test'
       />,
     );
   });

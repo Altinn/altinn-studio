@@ -6,11 +6,9 @@ import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootItem } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
-import AddPropertyModal from './AddPropertyModal';
-import { dataMock } from '../mockData';
-import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
+import { getDomFriendlyID, getTranslation } from '../utils';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 
@@ -61,34 +59,31 @@ const useStyles = makeStyles(
 export interface ISchemaEditor {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
-  rootItemId?: string;
+  name?: string;
   language: ILanguage;
 }
 
 export const SchemaEditor = ({
-  schema, onSaveSchema, rootItemId, language,
+  schema, onSaveSchema, name, language,
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
-  const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
-  const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
   const navigate = useSelector((state: ISchemaState) => state.navigate);
-  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
-  const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
+  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
+  const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
 
   React.useEffect(() => {
-    dispatch(setRootName({ rootName: rootItemId }));
-  }, [dispatch, rootItemId]);
+    dispatch(setSchemaName({ name }));
+  }, [dispatch, name]);
 
   React.useEffect(() => {
     if (jsonSchema) {
-      dispatch(setUiSchema({ rootElementPath: rootItemId }));
+      dispatch(setUiSchema({ name }));
     }
-  }, [dispatch, jsonSchema, rootItemId]);
+  }, [dispatch, jsonSchema, name]);
 
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));
@@ -106,28 +101,6 @@ export const SchemaEditor = ({
     dispatch(updateJsonSchema({ onSaveSchema }));
   };
 
-  const onAddPropertyClick = (path: string) => {
-    setAddPropertyPath(path);
-    setAddPropertyModalOpen(true);
-  };
-
-  const onCloseAddPropertyModal = (property: UiSchemaItem) => {
-    if (property && property.displayName) {
-      const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
-      const newProp = {
-        path: addPropertyPath,
-        newKey: property.displayName,
-        content: itemTree,
-      };
-      dispatch(addRefProperty(newProp));
-    }
-
-    setAddPropertyModalOpen(false);
-  };
-
-  const onCancelAddItemModal = () => {
-    setAddPropertyModalOpen(false);
-  };
   const handleAddProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(addRootItem({
@@ -151,14 +124,6 @@ export const SchemaEditor = ({
         onClick={onClickSaveJsonSchema}
       >{getTranslation('save_data_model', language)}
       </button>
-      <AddPropertyModal
-        isOpen={addPropertyModalOpen}
-        path={addPropertyPath}
-        onClose={onCancelAddItemModal}
-        onConfirm={onCloseAddPropertyModal}
-        sharedTypes={sharedItems}
-        title={getTranslation('add_property', language)}
-      />
 
       <Grid
         container={true} direction='row'
@@ -195,10 +160,10 @@ export const SchemaEditor = ({
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
                     keyPrefix='properties'
-                    key={item.id}
+                    key={item.path}
                     item={item}
-                    nodeId={getDomFriendlyID(item.id)}
-                    id={getDomFriendlyID(item.id)}
+                    nodeId={getDomFriendlyID(item.path)}
+                    id={getDomFriendlyID(item.path)}
                     language={language}
                   />)}
 
@@ -220,9 +185,9 @@ export const SchemaEditor = ({
                   {definitions.map((def) => <SchemaItem
                     keyPrefix='definitions'
                     item={def}
-                    key={def.id}
-                    nodeId={getDomFriendlyID(def.id)}
-                    id={getDomFriendlyID(def.id)}
+                    key={def.path}
+                    nodeId={getDomFriendlyID(def.path)}
+                    id={getDomFriendlyID(def.path)}
                     language={language}
                   />)}
 
@@ -240,7 +205,7 @@ export const SchemaEditor = ({
         </Grid>
         <Grid item xs={1} />
         <Grid item={true} xs={5}>
-          <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
+          <SchemaInspector language={language} />
         </Grid>
       </Grid>
     </div>

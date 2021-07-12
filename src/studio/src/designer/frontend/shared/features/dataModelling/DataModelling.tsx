@@ -4,6 +4,7 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
+import { sharedUrls } from '../../utils/urlHelper';
 
 const useStyles = makeStyles(
   createStyles({
@@ -65,7 +66,8 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const onSchemaSelected = setSelectedModelMetadata;
 
   const onSaveSchema = (schema: any) => {
-    dispatch(saveDataModel({ schema, metadata: selectedModelMetadata }));
+    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
+    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
   };
 
   const createAction = (modelName: string) => {
@@ -106,7 +108,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
           language={language}
           schema={jsonSchema}
           onSaveSchema={onSaveSchema}
-          rootItemId={`#/definitions/${selectedModelMetadata.label}`}
+          name={selectedModelMetadata.label}
         />}
     </div>
   );
