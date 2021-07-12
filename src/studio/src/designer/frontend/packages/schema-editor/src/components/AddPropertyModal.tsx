@@ -36,7 +36,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
   const { isOpen } = props;
   const classes = useStyles();
 
-  const [property, setProperty] = React.useState<UiSchemaItem>({ displayName: '', id: '' });
+  const [property, setProperty] = React.useState<UiSchemaItem>({ displayName: '', path: '' });
   const [typeList, setTypeList] = React.useState<any[]>([]);
   const [showCustom, setShowCustom] = React.useState<boolean>(false);
 
@@ -62,7 +62,7 @@ function AddPropertyModal(props: IAddPropertyModal) {
   const onChangeCustomProperty = (event: any) => {
     const propertyItem: UiSchemaItem = {
       displayName: event.target.value,
-      id: `#/definitions/${event.target.value}`,
+      path: `#/definitions/${event.target.value}`,
     };
     setProperty(propertyItem);
   };

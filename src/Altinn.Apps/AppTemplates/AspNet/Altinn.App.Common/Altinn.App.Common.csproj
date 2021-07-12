@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.9.3-alpha</Version>
-    <AssemblyVersion>4.9.3.0</AssemblyVersion>
+    <Version>4.10.1-alpha.1</Version>
+    <AssemblyVersion>4.10.1.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
