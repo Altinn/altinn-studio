@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -36,7 +37,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="language">The two letter language code.</param>
         /// <returns>The text resources in the specified language if they exist. Otherwise null.</returns>
-        TextResource GetTexts(string org, string app, string language);
+        Task<TextResource> GetTexts(string org, string app, string language);
 
         /// <summary>
         /// Returns the model metadata for an app.

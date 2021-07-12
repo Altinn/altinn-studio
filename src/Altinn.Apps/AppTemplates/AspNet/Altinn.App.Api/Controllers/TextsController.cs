@@ -41,11 +41,11 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            TextResource textResource = _appResources.GetTexts(org, app, language);
+            TextResource textResource = await _appResources.GetTexts(org, app, language);
 
             if (textResource == null && language != "nb")
             {
-                textResource = _appResources.GetTexts(org, app, "nb");
+                textResource = await _appResources.GetTexts(org, app, "nb");
             }
 
             if (textResource == null)
@@ -53,7 +53,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
-            return await Task.FromResult(textResource);
+            return textResource;
         }
     }
 }

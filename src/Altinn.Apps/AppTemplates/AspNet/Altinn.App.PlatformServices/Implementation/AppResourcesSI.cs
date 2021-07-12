@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Helpers;
@@ -82,26 +83,28 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public TextResource GetTexts(string org, string app, string language)
+        public async Task<TextResource> GetTexts(string org, string app, string language)
         {
             string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
-            byte[] textsAsByteArray = ReadFileContentsFromLegalPath(pathTextsFolder, $"resource.{language}.json");
+            string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
 
-            if (textsAsByteArray == null || textsAsByteArray.Length <= 0)
+            PathHelper.EnsureLegalPath(pathTextsFolder, fullFileName);
+
+            if (!File.Exists(fullFileName))
             {
                 return null;
             }
 
-            string textsAsString = Encoding.UTF8.GetString(textsAsByteArray);
+            using (FileStream fileStream = new (fullFileName, FileMode.Open, FileAccess.Read))
+            {
+                JsonSerializerOptions options = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                TextResource textResource = await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, options);
+                textResource.Id = $"{org}-{app}-{language}";
+                textResource.Org = org;
+                textResource.Language = language;
 
-            JsonSerializerOptions options = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            TextResource textResource = System.Text.Json.JsonSerializer.Deserialize<TextResource>(textsAsString, options);
-
-            textResource.Id = $"{org}-{app}-{language}";
-            textResource.Org = org;
-            textResource.Language = language;
-
-            return textResource;
+                return textResource;
+            }
         }
 
         /// <inheritdoc />
