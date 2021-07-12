@@ -88,8 +88,8 @@ const useStyles = (isRef: boolean) => makeStyles({
   },
 });
 
-const getRefItem = (schema: any[], id: string | undefined): UiSchemaItem => {
-  return schema.find((item) => item.id === id);
+const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
+  return schema.find((item) => item.path === path);
 };
 
 function SchemaItem(props: SchemaItemProps) {
@@ -115,16 +115,16 @@ function SchemaItem(props: SchemaItemProps) {
   }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: UiSchemaItem) => {
-    dispatch(setSelectedId({ id: e.id }));
+    dispatch(setSelectedId({ id: e.path }));
   };
 
   const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
     return (
       <SchemaItem
         keyPrefix={`${keyPrefix}-properties`}
-        key={`${keyPrefix}-${property.id}`}
+        key={`${keyPrefix}-${property.path}`}
         item={property}
-        nodeId={`${getDomFriendlyID(property.id)}`}
+        nodeId={`${getDomFriendlyID(property.path)}`}
         onClick={() => onItemClick(property)}
         language={props.language}
       />
@@ -132,15 +132,15 @@ function SchemaItem(props: SchemaItemProps) {
   });
 
   const handlePromoteClick = () => {
-    dispatch(promoteProperty({ path: item.id }));
+    dispatch(promoteProperty({ path: item.path }));
   };
   const handleDeleteClick = () => {
-    dispatch(deleteProperty({ path: item.id }));
+    dispatch(deleteProperty({ path: item.path }));
   };
 
   const handleAddProperty = () => {
     dispatch(addProperty({
-      path: itemToDisplay.id,
+      path: itemToDisplay.path,
     }));
   };
 
@@ -161,7 +161,7 @@ function SchemaItem(props: SchemaItemProps) {
       label={label}
       onAddProperty={handleAddProperty}
       onDelete={handleDeleteClick}
-      onPromote={item.$ref || item.id.startsWith('#/def') ? undefined : handlePromoteClick}
+      onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
     />;
   };
 
@@ -169,11 +169,11 @@ function SchemaItem(props: SchemaItemProps) {
     const items = [];
     if (itemToDisplay.$ref && refItem) {
       items.push(<SchemaItem
-        keyPrefix={`${keyPrefix}-${refItem.id}`}
-        key={`${keyPrefix}-${refItem.id}`}
+        keyPrefix={`${keyPrefix}-${refItem.path}`}
+        key={`${keyPrefix}-${refItem.path}`}
         onClick={() => onItemClick(refItem)}
         item={refItem}
-        nodeId={getDomFriendlyID(refItem.id)}
+        nodeId={getDomFriendlyID(refItem.path)}
         language={props.language}
       />);
     }

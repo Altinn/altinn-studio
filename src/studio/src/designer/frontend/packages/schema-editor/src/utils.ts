@@ -16,12 +16,12 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
 }
 
 export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
-  const matches = schema.filter((s) => path.includes(s.id));
-  if (matches.length === 1 && matches[0].id === path) {
+  const matches = schema.filter((s) => path.includes(s.path));
+  if (matches.length === 1 && matches[0].path === path) {
     return matches[0];
   }
   const items = flat(matches, 999);
-  const result = items.find((i) => i.id === path);
+  const result = items.find((i) => i.path === path);
   if (!result) {
     throw new Error(`no uiSchema found: ${path}`);
   }
@@ -47,7 +47,7 @@ export function getUiSchemaTreeFromItem(
   }
 
   if (item.$ref) {
-    const refItem = schema.find((schemaItem) => schemaItem.id === item.$ref);
+    const refItem = schema.find((schemaItem) => schemaItem.path === item.$ref);
     if (refItem) {
       itemList = itemList.concat(getUiSchemaTreeFromItem(schema, refItem));
     }
@@ -67,7 +67,7 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
     const item = createJsonSchemaItem(uiItem);
-    JsonPointer.set(result, uiItem.id.replace(/^#/, ''), item);
+    JsonPointer.set(result, uiItem.path.replace(/^#/, ''), item);
   });
   result.$schema = 'https://json-schema.org/draft/2020-12/schema';
   return result;
@@ -98,7 +98,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         item = uiSchemaItem.value;
         break;
       }
-      case 'id':
+      case 'path':
       case 'displayName':
         break;
       default:
@@ -113,7 +113,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   const result : UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
-      id: rootPath,
+      path: rootPath,
       value: schema,
       displayName: rootPath,
     });
@@ -125,13 +125,13 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       return;
     }
     const item = schema[key];
-    const id = `${rootPath}/${key}`;
-    const displayName = includeDisplayName ? key : id;
+    const path = `${rootPath}/${key}`;
+    const displayName = includeDisplayName ? key : path;
     if (item.properties) {
-      result.push(buildUiSchemaForItemWithProperties(item, id, displayName));
+      result.push(buildUiSchemaForItemWithProperties(item, path, displayName));
     } else if (item.$ref) {
       result.push({
-        id,
+        path,
         $ref: item.$ref,
         displayName,
         title: item.title,
@@ -142,7 +142,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         title, description, type, enum: enums, items, ...restrictions
       } = item;
       result.push({
-        id,
+        path,
         restrictions: Object.keys(restrictions).map((k: any) => ({ key: k, value: restrictions[k] })),
         displayName,
         title,
@@ -153,7 +153,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else {
       result.push({
-        id,
+        path,
         value: item,
         displayName,
         title: item.title,
@@ -175,7 +175,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       type, title, description, properties, ...restrictions
     } = currentProperty;
     const item: UiSchemaItem = {
-      id: `${name}/properties/${key}`,
+      path: `${name}/properties/${key}`,
       displayName: key,
       type,
       title,
@@ -186,7 +186,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
       if (properties) {
-        item.properties = buildUISchema(currentProperty.properties, `${item.id}/properties`, true);
+        item.properties = buildUISchema(currentProperty.properties, `${item.path}/properties`, true);
       }
 
       item.restrictions = Object.keys(restrictions).map((k: string) => ({ key: k, value: currentProperty[k] }));
@@ -205,7 +205,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
   });
 
   return {
-    id: name,
+    path: name,
     properties: rootProperties,
     required: schema.required,
     displayName,

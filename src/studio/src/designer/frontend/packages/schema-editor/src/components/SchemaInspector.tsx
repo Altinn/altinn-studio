@@ -130,7 +130,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector(
     (state: ISchemaState) => (selectedItem?.$ref ? state.uiSchema
-      .find((i: UiSchemaItem) => i.id === selectedItem.$ref) : selectedItem),
+      .find((i: UiSchemaItem) => i.path === selectedItem.$ref) : selectedItem),
   );
 
   const parentItem = useSelector((state: ISchemaState) => {
@@ -214,19 +214,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeNodeName = () => {
     if (!nameError) {
       dispatch(setPropertyName({
-        path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
+        path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
       }));
     }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     dispatch(addEnum({
-      path: itemToDisplay?.id, value, oldValue,
+      path: itemToDisplay?.path, value, oldValue,
     }));
   };
 
   const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
     event.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     if (path) {
       dispatch(addProperty({
         path,
@@ -237,7 +237,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     dispatch(addRestriction({
       path,
       key: '',
@@ -247,7 +247,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     dispatch(addEnum({
       path,
       value: 'value',
@@ -257,7 +257,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onGoToDefButtonClick = () => {
     dispatch(setSelectedId(
       {
-        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.id,
+        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.path,
       },
     ));
   };
@@ -269,14 +269,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <p className={classes.header}>Refererer til</p>
           { selectedItem.type === 'array' ?
             <RefSelect
-              id={selectedItem.id}
+              id={selectedItem.path}
               value={arrayType ?? ''}
               onChange={onChangeArrayType}
               fullWidth={true}
             />
             :
             <RefSelect
-              id={selectedItem.id}
+              id={selectedItem.path}
               value={selectedItem.$ref ?? ''}
               onChange={onChangeRef}
               fullWidth={true}
@@ -306,11 +306,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
     return <InputField
       language={props.language}
-      key={p.id}
+      key={p.path}
       required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
       value={p.displayName}
-      fullPath={p.id}
+      fullPath={p.path}
       onChangeKey={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
     />;
@@ -331,7 +331,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         value={field.value}
         keyName={field.key}
         readOnly={readOnly}
-        path={item.id}
+        path={item.path}
         onChangeValue={onChangeValue}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
@@ -345,7 +345,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <EnumField
         key={value}
         language={props.language}
-        path={item.id}
+        path={item.path}
         fullWidth={true}
         value={value}
         onChange={onChangeEnumValue}
@@ -392,15 +392,15 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
     if (checked) {
       const type = objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
-      onChangeArrayType(selectedItem.id, type);
-      onChangeType(selectedItem.id, 'array');
+      onChangeArrayType(selectedItem.path, type);
+      onChangeType(selectedItem.path, 'array');
     } else {
       if (objectKind === 'reference') {
-        onChangeRef(selectedItem.id, arrayType);
+        onChangeRef(selectedItem.path, arrayType);
       } else {
-        onChangeType(selectedItem.id, arrayType);
+        onChangeType(selectedItem.path, arrayType);
       }
-      onChangeArrayType(selectedItem.id, undefined);
+      onChangeArrayType(selectedItem.path, undefined);
     }
   };
 
@@ -463,7 +463,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             language={props.language}
             fullWidth={true}
             value={arrayType}
-            id={selectedItem.id}
+            id={selectedItem.path}
             onChange={onChangeArrayType}
           /> :
           <TypeSelect
@@ -471,7 +471,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             language={props.language}
             fullWidth={true}
             value={objectType}
-            id={selectedItem.id}
+            id={selectedItem.path}
             onChange={(onChangeType)}
           /> }
       </>}

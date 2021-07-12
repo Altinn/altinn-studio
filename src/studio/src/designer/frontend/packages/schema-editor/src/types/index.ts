@@ -30,7 +30,7 @@ export type Field = {
 }
 
 export interface UiSchemaItem {
-  id: string;
+  path: string;
   type?: string;
   $ref?: string;
   restrictions?: Field[];

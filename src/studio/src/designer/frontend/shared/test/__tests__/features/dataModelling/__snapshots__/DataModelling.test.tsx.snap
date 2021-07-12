@@ -2579,12 +2579,12 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
             "administration": Object {},
           }
         }
+        name="some-existing-model"
         onSaveSchema={[Function]}
-        rootItemId="#/definitions/some-existing-model"
         schema={Object {}}
       >
         <div>
-          {"language":{"administration":{}},"schema":{},"rootItemId":"#/definitions/some-existing-model"}
+          {"language":{"administration":{}},"schema":{},"name":"some-existing-model"}
         </div>
       </dummyComponent>
     </div>

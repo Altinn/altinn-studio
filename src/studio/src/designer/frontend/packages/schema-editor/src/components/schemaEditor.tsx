@@ -76,8 +76,8 @@ export const SchemaEditor = ({
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
   const navigate = useSelector((state: ISchemaState) => state.navigate);
-  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/definitions')));
-  const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.id.startsWith('#/properties/')));
+  const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
+  const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
 
   React.useEffect(() => {
@@ -195,10 +195,10 @@ export const SchemaEditor = ({
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
                     keyPrefix='properties'
-                    key={item.id}
+                    key={item.path}
                     item={item}
-                    nodeId={getDomFriendlyID(item.id)}
-                    id={getDomFriendlyID(item.id)}
+                    nodeId={getDomFriendlyID(item.path)}
+                    id={getDomFriendlyID(item.path)}
                     language={language}
                   />)}
 
@@ -220,9 +220,9 @@ export const SchemaEditor = ({
                   {definitions.map((def) => <SchemaItem
                     keyPrefix='definitions'
                     item={def}
-                    key={def.id}
-                    nodeId={getDomFriendlyID(def.id)}
-                    id={getDomFriendlyID(def.id)}
+                    key={def.path}
+                    nodeId={getDomFriendlyID(def.path)}
+                    id={getDomFriendlyID(def.path)}
                     language={language}
                   />)}
 
