@@ -341,9 +341,6 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
-        /// <summary>
-        /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
-        /// </summary>
         [Fact]
         public async Task Instance_Post_NabovarselWithFormAndBinaryAttachment()
         {
