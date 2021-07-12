@@ -5,12 +5,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "#EFEFEF",
-      }
-    }
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
@@ -25,7 +20,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             className="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-10"
+              className="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img
@@ -51,12 +46,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "#EFEFEF",
-      }
-    }
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
@@ -71,53 +61,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             className="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-10"
-              href="/"
-            >
-              <img
-                alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
-              />
-            </a>
-          </div>
-        </div>
-        <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
-        >
-          
-        </div>
-      </div>
-    </div>
-  </header>
-</div>
-`;
-
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with backgroundColor prop 1`] = `
-<div
-  className="AppBarComponent-root-1"
->
-  <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "pink",
-      }
-    }
-  >
-    <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
-    >
-      <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
-      >
-        <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
-        >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          >
-            <a
-              className="AppBarComponent-aImgStyling-10"
+              className="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img
@@ -143,12 +87,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "#EFEFEF",
-      }
-    }
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarDashboard-3 MuiPaper-elevation0"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
@@ -163,7 +102,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             className="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-10"
+              className="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img
@@ -189,12 +128,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "#EFEFEF",
-      }
-    }
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
@@ -209,7 +143,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             className="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-10"
+              className="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img
@@ -235,12 +169,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 MuiPaper-elevation0"
-    style={
-      Object {
-        "backgroundColor": "#EFEFEF",
-      }
-    }
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
@@ -255,7 +184,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             className="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-10"
+              className="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img

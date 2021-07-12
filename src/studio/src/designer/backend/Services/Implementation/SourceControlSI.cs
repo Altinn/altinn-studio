@@ -204,7 +204,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     LibGit2Sharp.Signature committer = author;
 
                     // Commit to the repository
-                    LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                    repo.Commit(commitInfo.Message, author, committer);
 
                     PushOptions options = new PushOptions();
                     options.CredentialsProvider = (_url, _user, _cred) =>
@@ -278,7 +278,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 LibGit2Sharp.Signature committer = author;
 
                 // Commit to the repository
-                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                repo.Commit(commitInfo.Message, author, committer);
             }
         }
 
@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     RepositoryContent content = new RepositoryContent();
                     content.FilePath = item.FilePath;
-                    content.FileStatus = (Altinn.Studio.Designer.Enums.FileStatus)(int)item.State;
+                    content.FileStatus = (Enums.FileStatus)(int)item.State;
                     if (content.FileStatus == Enums.FileStatus.Conflicted)
                     {
                         repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
@@ -334,7 +334,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repoStatus.ContentStatus.Add(content);
                 }
 
-                LibGit2Sharp.Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking == true);
+                LibGit2Sharp.Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking);
                 if (branch != null)
                 {
                     repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
@@ -398,8 +398,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc />
         public Designer.Models.Commit GetInitialCommit(string org, string repository)
-        {
-            List<Designer.Models.Commit> commits = new List<Designer.Models.Commit>();
+        {            
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             Designer.Models.Commit commit = null;
 

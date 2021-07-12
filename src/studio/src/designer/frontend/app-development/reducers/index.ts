@@ -1,4 +1,6 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
+import { dataModellingReducer, IDataModellingState } from 'app-shared/features/dataModelling/sagas';
+import { dataModelsMetadataReducer, IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/metadata';
 import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
@@ -8,7 +10,6 @@ import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelea
 import configurationReducer, { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
 import repoStatusReducer, { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
-import dataModelingReducer, { IDataModelingState } from '../features/dataModeling/dataModelingSlice';
 import userReducer, { IUserState } from '../sharedResources/user/userSlice';
 
 export interface IServiceDevelopmentReducers
@@ -22,12 +23,13 @@ export interface IServiceDevelopmentReducers
   Reducer<IAppReleaseState>,
   Reducer<IAppDeploymentState>,
   Reducer<IConfigurationState>,
-  Reducer<IDataModelingState>,
+  Reducer<IDataModellingState>,
+  Reducer<IDataModelsMetadataState>,
   Reducer<IUserState>
   >,
   ReducersMapObject { }
 
-const reducers: IServiceDevelopmentReducers = {
+const reducers = {
   languageState: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
@@ -37,7 +39,8 @@ const reducers: IServiceDevelopmentReducers = {
   appReleases: appReleaseReducer,
   appDeployments: appDeploymentReducer,
   configuration: configurationReducer,
-  dataModeling: dataModelingReducer,
+  dataModelling: dataModellingReducer,
+  dataModelsMetadataState: dataModelsMetadataReducer,
   userState: userReducer,
 };
 

@@ -1,4 +1,3 @@
-// import { useEffect, useState } from 'react';
 import { createMuiTheme, createStyles, Grid, Hidden, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -11,9 +10,7 @@ import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
 import Select from 'react-select';
-import { AltinnButton } from 'app-shared/components/AltinnButton';
-import AltinnIcon from 'app-shared/components/AltinnIcon';
-import { AltinnLink } from 'app-shared/components/AltinnLink';
+import { AltinnButton, AltinnIcon, AltinnLink } from 'app-shared/components';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -367,7 +364,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
             xs={1}
           >
             {deploymentStatus === deploymentStatusEnum.inProgress &&
-              <AltinnSpinner/>
+              <AltinnSpinner />
             }
             {deploymentStatus === deploymentStatusEnum.succeeded &&
               <AltinnIcon
@@ -507,16 +504,16 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
             xs={3}
           >
             {deploymentList && deploymentList.getStatus.success === true &&
-                appDeployedVersion !== undefined &&
-                  <>
-                    {getParsedLanguageFromKey('app_deploy.deployed_version', language, [appDeployedVersion])}
-                  </>
+              appDeployedVersion !== undefined &&
+              <>
+                {getParsedLanguageFromKey('app_deploy.deployed_version', language, [appDeployedVersion])}
+              </>
             }
             {deploymentList && deploymentList.getStatus.success === true &&
-                appDeployedVersion === undefined &&
-                  <>
-                    {getParsedLanguageFromKey('app_deploy.no_app_deployed', language)}
-                  </>
+              appDeployedVersion === undefined &&
+              <>
+                {getParsedLanguageFromKey('app_deploy.no_app_deployed', language)}
+              </>
             }
             {deploymentList && deploymentList.getStatus.success === false &&
               <>

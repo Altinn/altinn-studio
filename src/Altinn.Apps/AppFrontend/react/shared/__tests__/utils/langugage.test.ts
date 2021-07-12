@@ -39,6 +39,24 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is an ${adjectiveValue} text.`);
   });
 
+  it('+++ should replace multiple parameters', () => {
+    mockTextResources = [
+      {
+        id: 'mockId1',
+        value: 'This is an {0} text, {1}.',
+        unparsedValue: 'This is an {0} text, {1}.',
+        variables: [
+          { key: 'model.text.adjective', dataSource: 'dataModel.test' },
+          { key: 'model.text.color', dataSource: 'dataModel.test' },
+        ],
+      },
+    ];
+
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource) => resource.id === 'mockId1');
+    expect(textResource.value).toEqual(`This is an ${adjectiveValue} text, ${colorValue}.`);
+  });
+
   it('+++ should replace parameter for previously parsed value', () => {
     mockTextResources = [
       {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 
@@ -24,16 +26,19 @@ namespace Altinn.Studio.Designer.Controllers
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
+        private readonly IPipelineService _pipelineService;
         private readonly IGitea _giteaService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
+        /// <param name="pipelineService">IPipelineService</param>
         /// <param name="giteaService">IGiteaService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService)
+        public DeploymentsController(IDeploymentService deploymentService, IPipelineService pipelineService, IGitea giteaService)
         {
             _deploymentService = deploymentService;
+            _pipelineService = pipelineService;
             _giteaService = giteaService;
         }
 
@@ -45,7 +50,17 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
-            => await _deploymentService.GetAsync(query);
+        {
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(query);
+            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
+
+            foreach (DeploymentEntity deployment in laggingDeployments)
+            {
+                await _pipelineService.UpdateDeploymentStatus(deployment.Build.Id, deployment.Org);
+            }
+
+            return deployments;
+        }
 
         /// <summary>
         /// Gets list of environments the user can deploy to.

@@ -9,12 +9,12 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.14.1" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.15.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.16" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />

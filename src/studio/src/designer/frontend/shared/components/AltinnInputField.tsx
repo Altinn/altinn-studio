@@ -2,7 +2,8 @@ import { createMuiTheme, createStyles, FormControl, TextField, Typography, withS
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { AltinnButton } from './AltinnButton';
+import AltinnButton from './AltinnButton';
+import ErrorPopover from './ErrorPopover';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -24,6 +25,9 @@ export interface IAltinnInputFieldComponentProvidedProps {
   type?: any;
   textFieldId?: string;
   fullWidth?: boolean;
+  error?: string;
+  clearError?: () => void;
+  onReturn?: (e: KeyboardEventInit) => void;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -66,19 +70,27 @@ const styles = createStyles({
   },
 });
 
-// eslint-disable-next-line max-len
-export class AltinnInputField extends
+class AltinnInputFieldComponent extends
   React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;
+
+  public errorRef: any;
 
   constructor(props: any) {
     super(props);
     this.textInput = React.createRef();
+    this.errorRef = React.createRef();
   }
 
   public componentDidUpdate() {
     if (this.props.focusOnComponentDidUpdate) {
       this.textInput.current.focus();
+    }
+  }
+
+  private onKeyDown(e: KeyboardEventInit) {
+    if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
+      this.props.onReturn(e);
     }
   }
 
@@ -130,6 +142,13 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
+            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown(e))}
+          />
+          <div ref={this.errorRef} />
+          <ErrorPopover
+            anchorEl={this.props.error ? this.errorRef.current : null}
+            onClose={this.props.clearError}
+            errorMessage={this.props.error}
           />
 
         </FormControl>
@@ -139,6 +158,7 @@ export class AltinnInputField extends
             secondaryButton={true}
             onClickFunction={this.props.onBtnClickFunction}
             className={classNames(classes.btn)}
+            disabled={!!this.props.error}
           />
         }
       </React.Fragment>
@@ -146,4 +166,4 @@ export class AltinnInputField extends
   }
 }
 
-export default withStyles(styles)(AltinnInputField);
+export default withStyles(styles)(AltinnInputFieldComponent);

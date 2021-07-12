@@ -3,10 +3,11 @@ import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import Ajv from 'ajv';
 import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
+import { JSXElementConstructor, ReactElement } from 'react';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/formLayoutSlice';
-import { IValidationState } from '../features/form/validation/validationReducer';
+import { IValidationState } from '../features/form/validation/validationSlice';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
@@ -40,8 +41,9 @@ export interface IAltinnWindow extends Window {
 }
 
 export interface IComponentBindingValidation {
-  errors?: string[];
-  warnings?: string[];
+  errors?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  warnings?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
 }
 
 export interface IComponentValidations {
@@ -270,6 +272,12 @@ export interface ILayoutValidations {
   [id: string]: IComponentValidations;
 }
 
+export interface ICurrentSingleFieldValidation {
+  dataModelBinding?: string;
+  componentId?: string;
+  layoutId?: string;
+}
+
 export interface IVariable {
   dataSource: string;
   key: string;
@@ -292,6 +300,7 @@ export enum Severity {
   Error = 1,
   Warning = 2,
   Informational = 3,
+  Fixed = 4,
 }
 
 export enum Triggers {

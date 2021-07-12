@@ -12,7 +12,6 @@ let mockStore: any = null;
 let mockInitialState: ISchemaState;
 let createStore: any;
 let mockUiSchema: UiSchemaItem[];
-const rootPath = '#/definitions/RA-0678_M';
 
 const mountComponent = () => mount(
   <Provider store={mockStore}>
@@ -20,7 +19,7 @@ const mountComponent = () => mount(
       schema={dataMock}
       language={{}}
       onSaveSchema={() => {}}
-      rootItemId='#/properties/melding'
+      name='test'
     />
   </Provider>,
 );
@@ -30,7 +29,7 @@ beforeEach(() => {
     .concat(buildUISchema(dataMock.definitions, '#/definitions'));
 
   mockInitialState = {
-    rootName: rootPath,
+    name: 'test',
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
@@ -71,7 +70,6 @@ test('Renders properties', () => {
   act(() => {
     wrapper = mountComponent();
   });
-  wrapper.find('.MuiTypography-root').at(1).simulate('click');
-
+  wrapper.find('.MuiTypography-root').hostNodes().at(0).simulate('click');
   expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(4);
 });

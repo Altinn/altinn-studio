@@ -2,11 +2,11 @@ import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { ConfigurationActions } from '../configurationSlice';
-import { getOrgsListUrl } from '../../../utils/urlHelper';
+import { orgsListUrl } from '../../../utils/urlHelper';
 
-function* getOrgsSaga(): SagaIterator {
+function* getOrgsSagas(): SagaIterator {
   try {
-    const result: any = yield call(get, getOrgsListUrl);
+    const result: any = yield call(get, orgsListUrl);
     const orgObject = result.orgs;
     yield put(ConfigurationActions.getOrgsFulfilled({ orgs: orgObject }));
   } catch (error) {
@@ -15,5 +15,5 @@ function* getOrgsSaga(): SagaIterator {
 }
 
 export default function* watchGetOrgsSaga(): SagaIterator {
-  yield takeLatest(ConfigurationActions.getOrgs, getOrgsSaga);
+  yield takeLatest(ConfigurationActions.getOrgs, getOrgsSagas);
 }

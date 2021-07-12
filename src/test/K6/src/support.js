@@ -30,3 +30,13 @@ export function todayDateInISO() {
   todayDateTime.setUTCHours(0, 0, 0, 0);
   return todayDateTime.toISOString();
 }
+
+/**
+ * Check if a string is a guid
+ * @param {String} stringToTest
+ * @returns true or false
+ */
+export function isGuid(stringToTest) {
+  var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return regexGuid.test(stringToTest);
+}

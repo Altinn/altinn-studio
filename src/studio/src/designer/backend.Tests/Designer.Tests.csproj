@@ -9,9 +9,8 @@
     <PackageReference Include="Basic.Reference.Assemblies" Version="1.1.2" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.7" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -52,6 +51,14 @@
     <EmbeddedResource Include="_TestData\**\*.*" />
   </ItemGroup>  
   <ItemGroup>
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.en.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.nb.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\resource.nb.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\5e651c2b784571e481c90fbf26325ce336b634b8\resources.en.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\a69255710e6f1d1c59bef004dd36fff0c5dfd236\directoryList.json" />
+    <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\a69255710e6f1d1c59bef004dd36fff0c5dfd236\resource.nb.json" />
     <None Remove="_TestData\Model\CSharp\Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.csharp.txt" />
     <None Remove="_TestData\Model\CSharp\or-melding-2-12186.expected.csharp.txt" />
     <None Remove="_TestData\Model\JsonSchema\custom_inline.schema.json" />
@@ -62,11 +69,17 @@
     <None Remove="_TestData\Model\Xsd\statsbygg_custom_modified.xsd" />
     <None Remove="_TestData\Model\JsonSchema\restriction-max-min-integer.schema.json" />
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
+     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.xsd" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_ExternalTypes.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_FlatNoTypes.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_InternalTypes.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_InternalTypes_AllOf.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_SERES.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />

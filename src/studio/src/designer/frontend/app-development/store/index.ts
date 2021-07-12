@@ -1,34 +1,17 @@
-import { applyMiddleware,
-  compose,
-  createStore,
-  Middleware,
-  Store } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
+import { createStore, Store } from 'redux';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
+import setupMiddlewares from 'app-shared/utils/middleware/setupMiddlewares';
 import reducers from '../reducers';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 export const store: Store<IServiceDevelopmentState> = configureStore();
 
-function configureStore(initialState?: any): Store<IServiceDevelopmentState> {
-  const middlewares: Middleware[] = [sagaMiddleware];
+function configureStore(): Store<IServiceDevelopmentState> {
+  const enhancer = setupMiddlewares([sagaMiddleware]);
 
-  let enhancer: any;
-
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line global-require
-    const { logger } = require('redux-logger');
-    middlewares.push(logger);
-    enhancer = composeWithDevTools(applyMiddleware(...middlewares));
-  } else {
-    enhancer = compose(applyMiddleware(...middlewares));
-  }
-
-  const createdStore: Store<IServiceDevelopmentState> = createStore(
+  return createStore(
     reducers,
-    initialState,
+    undefined,
     enhancer,
   );
-
-  return createdStore;
 }

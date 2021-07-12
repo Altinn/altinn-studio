@@ -146,6 +146,175 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateEnterpriseUser_RequestToken_ReturnsTooManyRequests()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            client.DefaultRequestHeaders.Add("X-Altinn-EnterpriseUser-Authentication", "VGVzdDpUZXN0ZXNlbg==");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+            Assert.NotNull(response.Headers.RetryAfter);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateEnterpriseUser_RequestTokenWithInvalidBase64_ReturnsBadRequest()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            client.DefaultRequestHeaders.Add("X-Altinn-EnterpriseUser-Authentication", "InvalidBase64");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateEnterpriseUser_RequestTokenWithInvalidPassword_ReturnsUnauthorized()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            client.DefaultRequestHeaders.Add("X-Altinn-EnterpriseUser-Authentication", "VGVzdDpXcm9uZ1Bhc3N3b3Jk");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateEnterpriseUser_RequestToken_ReturnsOK()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            client.DefaultRequestHeaders.Add("X-Altinn-EnterpriseUser-Authentication", "VmFsaWRVc2VyOlZhbGlkUGFzc3dvcmQ=");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateOrganisationWithSOScope_RequestTokenWithValidExternalToken_ReturnsNewToken()
         {
             // Arrange
@@ -616,6 +785,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
+                    services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationServiceMock>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 

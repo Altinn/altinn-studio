@@ -82,6 +82,35 @@ namespace App.IntegrationTestsRef.ApiTests
         /// </summary>
         /// <returns></returns>
         [Fact]
+        public async Task ValidateForm_SingleField_FixedData()
+        {
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            client.DefaultRequestHeaders.Add("ValidationTriggerField", "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/validate");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(messages);
+            Assert.Equal(ValidationIssueSeverity.Fixed, messages[0].Severity);
+            Assert.Equal("Value cannot be 1234", messages[0].Code);
+        }
+
+        /// <summary>
+        /// Test that verifies that custom validation allows valid data.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
         public async Task ValidateForm_ModelValidation_InvalidData()
         {
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));

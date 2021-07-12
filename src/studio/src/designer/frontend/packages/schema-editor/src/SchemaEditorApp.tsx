@@ -9,7 +9,7 @@ import { ILanguage, ISchema } from './types';
 export interface IAppProps {
   schema: ISchema;
   language: ILanguage;
-  rootItemId?: string;
+  name?: string;
   onSaveSchema: (payload: any) => void;
 }
 
@@ -21,7 +21,7 @@ function SchemaEditorApp(props: IAppProps) {
           schema={props.schema}
           language={props.language}
           onSaveSchema={props.onSaveSchema}
-          rootItemId={props.rootItemId}
+          name={props.name}
         />
       </Provider>
     </div>

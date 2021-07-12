@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-param-reassign */
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
@@ -290,7 +289,7 @@ export function validateFormComponents(
 }
 
 /*
-  Fetches component spesific validations
+  Fetches component specific validations
 */
 export function validateFormComponentsForLayout(
   attachments: any,
@@ -381,6 +380,7 @@ export function validateComponentFormData(
   dataModelField: string,
   component: ILayoutComponent,
   language: any,
+  textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
   existingValidationErrors?: IComponentValidations,
   componentIdWithIndex?: string,
@@ -419,11 +419,18 @@ export function validateComponentFormData(
       if (Array.isArray(errorParams)) {
         errorParams = errorParams.join(', ');
       }
-      const errorMessage = getParsedLanguageFromKey(
-        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-        language,
-        [errorParams],
-      );
+      let errorMessage;
+
+      if (fieldSchema.errorMessage) {
+        errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
+      } else {
+        errorMessage = getParsedLanguageFromKey(
+          `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+          language,
+          [errorParams],
+        );
+      }
+
       mapToComponentValidations(
         layoutId,
         null,
@@ -490,14 +497,15 @@ export function validateFormData(
   layoutOrder: string[],
   schemaValidator: ISchemaValidator,
   language: any,
+  textResources: ITextResource[],
 ): IValidationResult {
-  let validations: any = {};
+  const validations: any = {};
   let invalidDataTypes: boolean = false;
 
   Object.keys(layouts).forEach((id) => {
     if (layoutOrder.includes(id)) {
-      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language);
-      validations = result.validations;
+      const result = validateFormDataForLayout(formData, layouts[id], id, schemaValidator, language, textResources);
+      validations[id] = result.validations[id];
       if (!invalidDataTypes) {
         invalidDataTypes = result.invalidDataTypes;
       }
@@ -516,43 +524,60 @@ export function validateFormDataForLayout(
   layoutKey: string,
   schemaValidator: ISchemaValidator,
   language: any,
+  textResources: ITextResource[],
 ): IValidationResult {
-  const { validator, rootElementPath } = schemaValidator;
+  const {
+    validator,
+    rootElementPath,
+    schema,
+    rootElement,
+  } = schemaValidator;
   const valid = validator.validate(`schema${rootElementPath}`, formData);
   const result: IValidationResult = {
     validations: {},
     invalidDataTypes: false,
   };
 
-  if (!valid) {
-    validator.errors.forEach((error) => {
-      if (error.keyword !== 'required') {
-        if (error.keyword === 'type' || error.keyword === 'format') {
-          result.invalidDataTypes = true;
-        }
-
-        let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
-        if (Array.isArray(errorParams)) {
-          errorParams = errorParams.join(', ');
-        }
-        const errorMessage = getParsedLanguageFromKey(
-          `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-          language,
-          [errorParams],
-        );
-
-        const dataBindingName = processInstancePath(error.instancePath);
-        mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
-      }
-    });
+  if (valid) {
+    return result;
   }
+
+  validator.errors.forEach((error) => {
+    // Required fields are handled separately
+    if (error.keyword === 'required') {
+      return;
+    }
+
+    result.invalidDataTypes = error.keyword === 'type' || error.keyword === 'format';
+
+    let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+    if (Array.isArray(errorParams)) {
+      errorParams = errorParams.join(', ');
+    }
+
+    const dataBindingName = processInstancePath(error.instancePath);
+    const fieldSchema = getSchemaPart(dataBindingName.split('.'), rootElement, schema);
+
+    let errorMessage;
+    if (fieldSchema?.errorMessage) {
+      errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
+    } else {
+      errorMessage = getParsedLanguageFromKey(
+        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+        language,
+        [errorParams],
+      );
+    }
+
+    mapToComponentValidations(layoutKey, layout, dataBindingName, errorMessage, result.validations);
+  });
 
   return result;
 }
 
 export function processInstancePath(path: string): string {
   let result = path.startsWith('.') ? path.slice(1) : path;
-  result = result.replace(/']\['/g, '.').replace(/\['/g, '').replace(/']/g, '');
+  result = result.replace(/"]\["|']\['/g, '.').replace(/\["|\['/g, '').replace(/"]|']/g, '');
   return result;
 }
 
@@ -589,6 +614,7 @@ export function mapToComponentValidations(
     const index = getIndex(dataBindingName);
     const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
     if (!validations[layoutId]) {
+      // eslint-disable-next-line no-param-reassign
       validations[layoutId] = {};
     }
     if (validations[layoutId][componentId]) {
@@ -668,6 +694,66 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
   return canBeSaved;
 }
 
+export function findLayoutIdFromValidationIssue(layouts: ILayouts, validationIssue: IValidationIssue) {
+  return Object.keys(layouts).find((id) => {
+    const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
+      // Special handling for FileUpload component
+      if (c.type === 'FileUpload') {
+        return c.id === validationIssue.field;
+      }
+      return c.dataModelBindings
+        && Object.values(c.dataModelBindings).includes(getKeyWithoutIndex(validationIssue.field));
+    });
+    return !!foundInLayout;
+  });
+}
+
+export function findComponentFromValidationIssue(
+  layout: ILayout,
+  validation: IValidationIssue,
+  textResources: ITextResource[],
+) {
+  let componentId;
+  const componentValidations: IComponentValidations = {};
+  const component = layout.find((layoutElement) => {
+    const componentCandidate = layoutElement as ILayoutComponent;
+    let found = false;
+    const match = matchLayoutComponent(validation.field, componentCandidate.id);
+    if (validation.field && match && match.length > 0) {
+      found = true;
+      componentValidations.simpleBinding = addValidation(componentValidations, validation, textResources);
+      componentId = validation.field;
+    } else {
+      let index: string;
+      if (validation.field) {
+        index = getIndex(validation.field);
+      }
+      if (!componentCandidate.dataModelBindings) {
+        return found;
+      }
+      Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+        const fieldToCheck = getKeyWithoutIndex(validation.field.toLowerCase());
+        if (validation.field
+          && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === fieldToCheck) {
+          found = true;
+          componentId = index ? `${layoutElement.id}-${index}` : layoutElement.id;
+          componentValidations[dataModelBindingKey] = addValidation(
+            componentValidations, validation, textResources,
+          );
+        }
+      });
+    }
+
+    return found;
+  });
+
+  return {
+    componentId,
+    component,
+    componentValidations,
+  };
+}
+
 /* Function to map the new data element validations to our internal redux structure */
 export function mapDataElementValidationToRedux(
   validations: IValidationIssue[],
@@ -680,51 +766,17 @@ export function mapDataElementValidationToRedux(
   }
   validations.forEach((validation) => {
     // for each validation, map to correct component and field key
-    const componentValidations: IComponentValidations = {};
-    let component;
-    let componentId;
-    let layoutId = Object.keys(layouts).find((id) => {
-      const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
-        // Special handling for FileUpload component
-        if (c.type === 'FileUpload') {
-          return c.id === validation.field;
-        }
-        return c.dataModelBindings && Object.values(c.dataModelBindings).includes(getKeyWithoutIndex(validation.field));
-      });
-      return !!foundInLayout;
-    });
-    if (layoutId && layouts[layoutId]) {
-      component = layouts[layoutId].find((layoutElement) => {
-        const componentCandidate = layoutElement as ILayoutComponent;
-        let found = false;
-        const match = matchLayoutComponent(validation.field, componentCandidate.id);
-        if (validation.field && match && match.length > 0) {
-          found = true;
-          addValidation(componentValidations, validation, 'simpleBinding', textResources);
-          componentId = validation.field;
-        } else {
-          let index: string;
-          if (validation.field) {
-            index = getIndex(validation.field);
-          }
-          if (!componentCandidate.dataModelBindings) {
-            return found;
-          }
-          Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
-            const fieldToCheck = getKeyWithoutIndex(validation.field.toLowerCase());
-            // tslint:disable-next-line: max-line-length
-            if (validation.field
-              && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === fieldToCheck) {
-              found = true;
-              componentId = index ? `${layoutElement.id}-${index}` : layoutElement.id;
-              addValidation(componentValidations, validation, dataModelBindingKey, textResources);
-            }
-          });
-        }
+    let layoutId = findLayoutIdFromValidationIssue(layouts, validation);
 
-        return found;
-      });
+    if (!layoutId) {
+      layoutId = 'unmapped';
     }
+
+    const {
+      componentId,
+      component,
+      componentValidations,
+    } = findComponentFromValidationIssue(layouts[layoutId] || [], validation, textResources);
 
     if (component) {
       // we have found a matching component
@@ -750,24 +802,18 @@ export function mapDataElementValidationToRedux(
       }
     } else {
       // unmapped error
-      if (!layoutId) {
-        layoutId = 'unmapped';
-      }
-
       if (!validationResult[layoutId]) {
         validationResult[layoutId] = {};
       }
       if (!validationResult[layoutId].unmapped) {
         validationResult[layoutId].unmapped = {};
       }
-      if (!validationResult[layoutId].unmapped[validation.field]) {
-        validationResult[layoutId].unmapped[validation.field] = { errors: [], warnings: [] };
-      }
-      if (validation.severity === Severity.Error) {
-        validationResult[layoutId].unmapped[validation.field].errors.push(validation.description);
-      } else {
-        validationResult[layoutId].unmapped[validation.field].warnings.push(validation.description);
-      }
+
+      validationResult[layoutId].unmapped[validation.field] = addValidation(
+        validationResult[layoutId].unmapped[validation.field],
+        validation,
+        textResources,
+      );
     }
   });
 
@@ -775,7 +821,7 @@ export function mapDataElementValidationToRedux(
 }
 
 /**
- * Returns index of a datamodelbinding. If it is part of a repeating group we return it on the form {group1-index}-{group2-index}-{groupN-index}
+ * Returns index of a data model binding. If it is part of a repeating group we return it on the form {group1-index}-{group2-index}-{groupN-index}
  * @param dataModelBinding the data model binding
  */
 export function getIndex(dataModelBinding: string) {
@@ -795,26 +841,39 @@ export function getIndex(dataModelBinding: string) {
 }
 
 function addValidation(
-  componentValidations: IComponentValidations,
+  componentValidations: IComponentBindingValidation,
   validation: IValidationIssue,
-  dataModelBindingKey: string,
   textResources: ITextResource[],
-) {
-  if (!componentValidations[dataModelBindingKey]) {
-    // eslint-disable-next-line no-param-reassign
-    componentValidations[dataModelBindingKey] = { errors: [], warnings: [] };
+): IComponentBindingValidation {
+  const updatedValidations: IComponentBindingValidation = {
+    errors: componentValidations?.errors || [],
+    warnings: componentValidations?.warnings || [],
+    fixed: componentValidations?.fixed || [],
+  };
+
+  switch (validation.severity) {
+    case (Severity.Error): {
+      updatedValidations.errors.push(getParsedTextResourceByKey(validation.description, textResources) as any);
+      break;
+    }
+    case (Severity.Warning): {
+      updatedValidations.warnings.push(getParsedTextResourceByKey(validation.description, textResources) as any);
+      break;
+    }
+    case (Severity.Fixed): {
+      updatedValidations.fixed.push(getParsedTextResourceByKey(validation.description, textResources));
+      break;
+    }
+    default:
+      break;
   }
-  if (validation.severity === Severity.Error) {
-    componentValidations[dataModelBindingKey].errors.push(getParsedTextResourceByKey(validation.description, textResources) as any);
-  } else {
-    componentValidations[dataModelBindingKey].warnings
-      .push(getParsedTextResourceByKey(validation.description, textResources) as any);
-  }
+
+  return updatedValidations;
 }
 
 /**
  * gets unmapped errors from validations as string array
- * @param validations the validaitons
+ * @param validations the validations
  */
 export function getUnmappedErrors(validations: IValidations): string[] {
   const messages: string[] = [];
@@ -931,25 +990,82 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
 
   sources.forEach((source: IValidations) => {
     Object.keys(source).forEach((layout: string) => {
-      if (!validations[layout]) {
-        validations[layout] = {};
-      }
-      Object.keys(source[layout] || {}).forEach((component: string) => {
-        if (!validations[layout][component]) {
-          validations[layout][component] = {};
-        }
-        Object.keys(source[layout][component] || {}).forEach((binding: string) => {
-          if (!validations[layout][component][binding]) {
-            validations[layout][component][binding] = { errors: [], warnings: [] };
-          }
-          validations[layout][component][binding].errors = validations[layout][component][binding].errors.concat(source[layout][component][binding]?.errors);
-          validations[layout][component][binding].warnings = validations[layout][component][binding].warnings.concat(source[layout][component][binding]?.warnings);
-        });
-      });
+      validations[layout] = mergeLayoutValidations(validations[layout] || {}, source[layout] || {});
     });
   });
 
   return validations;
+}
+
+export function mergeLayoutValidations(
+  currentLayoutValidations: ILayoutValidations,
+  newLayoutValidations: ILayoutValidations,
+): ILayoutValidations {
+  const mergedValidations: ILayoutValidations = { ...currentLayoutValidations };
+  Object.keys(newLayoutValidations).forEach((component) => {
+    mergedValidations[component] = mergeComponentValidations(
+      currentLayoutValidations[component] || {},
+      newLayoutValidations[component] || {},
+    );
+  });
+  return mergedValidations;
+}
+
+export function mergeComponentValidations(
+  currentComponentValidations: IComponentValidations,
+  newComponentValidations: IComponentValidations,
+): IComponentValidations {
+  const mergedValidations: IComponentValidations = { ...currentComponentValidations };
+  Object.keys(newComponentValidations).forEach((binding) => {
+    mergedValidations[binding] = mergeComponentBindingValidations(
+      currentComponentValidations[binding],
+      newComponentValidations[binding],
+    );
+  });
+  return mergedValidations;
+}
+
+export function mergeComponentBindingValidations(
+  existingValidations?: IComponentBindingValidation,
+  newValidations?: IComponentBindingValidation,
+): IComponentBindingValidation {
+  const existingErrors = existingValidations?.errors || [];
+  const existingWarnings = existingValidations?.warnings || [];
+
+  // Only merge items that are not already in the existing components errors/warnings array
+  const uniqueNewErrors = getUniqueNewElements(existingErrors, newValidations?.errors);
+  const uniqueNewWarnings = getUniqueNewElements(existingWarnings, newValidations?.warnings);
+
+  return {
+    errors: removeFixedValidations(existingErrors.concat(uniqueNewErrors), newValidations?.fixed),
+    warnings: removeFixedValidations(existingWarnings.concat(uniqueNewWarnings), newValidations?.fixed),
+  };
+}
+
+export function getUniqueNewElements(originalArray: any[], newArray?: any[]) {
+  if (!newArray || newArray.length === 0) {
+    return [];
+  }
+
+  if (originalArray.length === 0) {
+    return newArray;
+  }
+
+  return newArray.filter((element) => {
+    return originalArray.findIndex((existingElement) => {
+      return JSON.stringify(existingElement) === JSON.stringify(element);
+    }) < 0;
+  });
+}
+
+function removeFixedValidations(validations: any[], fixed?: any[]): any[] {
+  if (!fixed || fixed.length === 0) {
+    return validations;
+  }
+
+  return validations.filter((element) => {
+    return fixed.findIndex((fixedElement) => JSON.stringify(fixedElement) === JSON.stringify(element)) < 0;
+  });
 }
 
 /**
@@ -960,6 +1076,7 @@ export function mergeValidationObjects(...sources: IValidations[]): IValidations
  */
 export function validateGroup(groupId: string, state: IRuntimeState): IValidations {
   const language = state.language.language;
+  const textResources = state.textResources.resources;
   const hiddenFields = state.formLayout.uiConfig.hiddenFields;
   const attachments = state.attachments.attachments;
   const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
@@ -999,12 +1116,12 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const validator = createValidator(schema);
   const emptyFieldsValidations: ILayoutValidations = validateEmptyFieldsForLayout(formData, filteredLayout, language, hiddenFields, repeatingGroups);
   const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
-  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language).validations;
+  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language, textResources).validations;
   return mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
 }
 
 /*
- * Removes the validations for a given group index and shifts higher indexes if nesseccary.
+ * Removes the validations for a given group index and shifts higher indexes if necessary.
  * @param id the group id
  * @param index the index to remove
  * @param currentLayout the current layout
@@ -1046,7 +1163,7 @@ export function removeGroupValidationsByIndex(
       // delete component directly
       delete result[currentLayout][childKey];
     } else {
-      // recursivly call delete if we have a child group
+      // recursively call delete if we have a child group
       const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.count;
       for (let i = 0; i <= childGroupCount; i++) {
         result = removeGroupValidationsByIndex(`${element.id}-${index}`, i, currentLayout, layout, repeatingGroups, result, false);
@@ -1055,7 +1172,7 @@ export function removeGroupValidationsByIndex(
   });
 
   if (shift) {
-  // Shift validations if nessessarry
+  // Shift validations if necessary
     if (index < repeatingGroup.count + 1) {
       for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
         const key = `${id}-${i}`;

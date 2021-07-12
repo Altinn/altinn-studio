@@ -46,7 +46,7 @@ const setupClasses = makeStyles({
 });
 
 export interface IResetRepoModalProps {
-  anchorEl: any;
+  anchorEl: null | Element | ((element: Element) => Element);
   onClose: any;
   open: boolean;
   language: any;

@@ -17,8 +17,6 @@ export default class DashBoard {
   }
 
   async logout() {
-    await t
-      .hover(this.homeButton)
-      .click(this.logoutButton);
+    await t.hover(this.homeButton).click(this.logoutButton);
   }
 }

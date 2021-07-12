@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -10,6 +13,8 @@ namespace Designer.Tests.Mocks
 {
     public class IGiteaMock : IGitea
     {
+        private string _unitTestFolder = Path.GetDirectoryName(new Uri(typeof(IGiteaMock).Assembly.Location).LocalPath);
+
         public Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {
             throw new NotImplementedException();
@@ -27,17 +32,44 @@ namespace Designer.Tests.Mocks
 
         public Task<User> GetCurrentUser()
         {
-           return Task.FromResult(new User());
+            return Task.FromResult(new User());
         }
 
         public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
         {
-            throw new NotImplementedException();
+            List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
+
+            string path = Path.Combine(_unitTestFolder, $@"..\..\..\_TestData\FileSystemObjects\{org}\{app}\{directoryPath.Replace('/', '\\')}{shortCommitId}\directoryList.json");
+
+            if (File.Exists(path))
+            {
+                string content = File.ReadAllText(path);
+
+                fileSystemObjects = System.Text.Json.JsonSerializer.Deserialize<List<FileSystemObject>>(content);
+            }
+
+            return Task.FromResult(fileSystemObjects);
         }
 
         public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
-            throw new NotImplementedException();
+            FileSystemObject fileSystemObject = null;
+
+            if (filePath.Contains("config/texts"))
+            {
+                filePath = GetTextsResourcePath(filePath, shortCommitId);
+            }
+
+            string path = Path.Combine(_unitTestFolder, $@"..\..\..\_TestData\FileSystemObjects\{org}\{app}\{filePath.Replace('/', '\\')}");
+
+            if (File.Exists(path))
+            {
+                string content = File.ReadAllText(path);
+
+                fileSystemObject = System.Text.Json.JsonSerializer.Deserialize<FileSystemObject>(content);
+            }
+
+            return Task.FromResult(fileSystemObject);
         }
 
         public Task<Repository> GetRepository(string org, string repository)
@@ -74,6 +106,13 @@ namespace Designer.Tests.Mocks
         public Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             throw new NotImplementedException();
+        }
+
+        private static string GetTextsResourcePath(string filePath, string shortCommitId)
+        {
+            string[] pathArray = filePath.Split("/");
+
+            return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
         }
     }
 }

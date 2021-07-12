@@ -46,11 +46,7 @@ export function getProcessStateUrl() {
 }
 
 export function getStartProcessUrl(instanceId?: string) {
-  if (!instanceId) {
-    // eslint-disable-next-line no-param-reassign
-    instanceId = altinnWindow.instanceId;
-  }
-  return `${appPath}/instances/${instanceId}/process/start`;
+  return `${appPath}/instances/${instanceId || altinnWindow.instanceId}/process/start`;
 }
 
 export function getCreateInstancesUrl(partyId: string) {
@@ -140,7 +136,7 @@ export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }
 
-export function getFetchStatelessFormDataUrl(dataType: string) {
+export function getStatelessFormDataUrl(dataType: string) {
   return `${appPath}/v1/data?dataType=${dataType}`;
 }
 

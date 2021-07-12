@@ -13,6 +13,7 @@ export default class AppFrontend {
     this.helpText = '.ai-circle-plus';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
+    this.altinnError = 'div[class*="AltinnError-contentMargin"]';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -68,6 +69,14 @@ export default class AppFrontend {
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
+    };
+
+    //Stateless-app
+    this.stateless = {
+      name: '#name',
+      number: '#number',
+      idnumber: '#idnummer',
+      idnummer2: '#idnummer2',
     };
   }
 }
