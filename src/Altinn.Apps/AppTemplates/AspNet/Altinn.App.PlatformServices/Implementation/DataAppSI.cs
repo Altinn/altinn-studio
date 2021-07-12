@@ -292,8 +292,11 @@ namespace Altinn.App.Services.Implementation
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             if (!string.IsNullOrEmpty(fileName))
             {
-                string contentHeaderString = $"attachment; filename={fileName}";
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(contentHeaderString);
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = fileName,
+                    FileNameStar = fileName
+                };
             }
 
             HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
