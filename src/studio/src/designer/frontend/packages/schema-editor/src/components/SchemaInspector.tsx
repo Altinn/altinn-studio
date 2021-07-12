@@ -92,7 +92,6 @@ const useStyles = makeStyles(
 );
 
 export interface ISchemaInspectorProps {
-  onAddPropertyClick: (property: string) => void;
   language: ILanguage;
 }
 

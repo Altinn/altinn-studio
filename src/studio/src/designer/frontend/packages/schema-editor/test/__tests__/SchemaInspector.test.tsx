@@ -16,7 +16,6 @@ let createStore: any;
 let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
-let addPropertyMock = jest.fn();
 
 const mountWithId = (id: string) => {
   mockStore = createStore({
@@ -30,12 +29,11 @@ const mountWithId = (id: string) => {
 };
 const mountComponent = () => mount(
   <Provider store={mockStore}>
-    <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
+    <SchemaInspector language={{}} />
   </Provider>,
 );
 
 beforeEach(() => {
-  addPropertyMock = jest.fn();
   mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
 
   mockInitialState = {
@@ -83,7 +81,7 @@ it('Should match snapshot (restrictions)', () => {
   });
 });
 
-it('dispatches correctly when changing restriction key', (done) => {
+it('dispatches correctly when changing restriction key', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -100,10 +98,9 @@ it('dispatches correctly when changing restriction key', (done) => {
       newKey: 'maxLength',
     },
   });
-  done();
 });
 
-it('dispatches correctly when changing restriction value', (done) => {
+it('dispatches correctly when changing restriction value', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -119,8 +116,6 @@ it('dispatches correctly when changing restriction value', (done) => {
       value: 666,
     },
   });
-
-  done();
 });
 
 it('dispatches correctly when changing node name', () => {

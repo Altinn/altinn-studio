@@ -6,11 +6,9 @@ import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
-import AddPropertyModal from './AddPropertyModal';
-import { dataMock } from '../mockData';
-import { buildUISchema, getDomFriendlyID, getTranslation, getUiSchemaTreeFromItem } from '../utils';
+import { getDomFriendlyID, getTranslation } from '../utils';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 
@@ -70,9 +68,6 @@ export const SchemaEditor = ({
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const sharedItems: UiSchemaItem[] = buildUISchema(dataMock.definitions, '#/definitions', true);
-  const [addPropertyModalOpen, setAddPropertyModalOpen] = React.useState<boolean>(false);
-  const [addPropertyPath, setAddPropertyPath] = React.useState<string>('');
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
   const navigate = useSelector((state: ISchemaState) => state.navigate);
@@ -106,28 +101,6 @@ export const SchemaEditor = ({
     dispatch(updateJsonSchema({ onSaveSchema }));
   };
 
-  const onAddPropertyClick = (path: string) => {
-    setAddPropertyPath(path);
-    setAddPropertyModalOpen(true);
-  };
-
-  const onCloseAddPropertyModal = (property: UiSchemaItem) => {
-    if (property && property.displayName) {
-      const itemTree = getUiSchemaTreeFromItem(sharedItems, property);
-      const newProp = {
-        path: addPropertyPath,
-        newKey: property.displayName,
-        content: itemTree,
-      };
-      dispatch(addRefProperty(newProp));
-    }
-
-    setAddPropertyModalOpen(false);
-  };
-
-  const onCancelAddItemModal = () => {
-    setAddPropertyModalOpen(false);
-  };
   const handleAddProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(addRootItem({
@@ -151,14 +124,6 @@ export const SchemaEditor = ({
         onClick={onClickSaveJsonSchema}
       >{getTranslation('save_data_model', language)}
       </button>
-      <AddPropertyModal
-        isOpen={addPropertyModalOpen}
-        path={addPropertyPath}
-        onClose={onCancelAddItemModal}
-        onConfirm={onCloseAddPropertyModal}
-        sharedTypes={sharedItems}
-        title={getTranslation('add_property', language)}
-      />
 
       <Grid
         container={true} direction='row'
@@ -240,7 +205,7 @@ export const SchemaEditor = ({
         </Grid>
         <Grid item xs={1} />
         <Grid item={true} xs={5}>
-          <SchemaInspector onAddPropertyClick={onAddPropertyClick} language={language} />
+          <SchemaInspector language={language} />
         </Grid>
       </Grid>
     </div>

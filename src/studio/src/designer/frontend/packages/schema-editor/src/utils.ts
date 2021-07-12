@@ -127,7 +127,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
     const item = schema[key];
     const path = `${rootPath}/${key}`;
     const displayName = includeDisplayName ? key : path;
-    if (item.properties) {
+    if (item.properties && Object.keys(item.properties).length > 0) {
       result.push(buildUiSchemaForItemWithProperties(item, path, displayName));
     } else if (item.$ref) {
       result.push({
@@ -172,13 +172,15 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
     const {
-      type, title, description, properties, ...restrictions
+      type, title, description, properties, enum: enums, items, ...restrictions
     } = currentProperty;
     const item: UiSchemaItem = {
       path: `${name}/properties/${key}`,
       displayName: key,
       type,
       title,
+      enum: enums,
+      items,
       description,
     };
 

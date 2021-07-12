@@ -268,6 +268,9 @@ const schemaEditorSlice = createSlice({
       const { path, value }: ISetTypeAction = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.$ref = undefined;
+      if (value === 'array') {
+        schemaItem.properties = undefined;
+      }
       schemaItem.type = value;
     },
     setTitle(state, action) {
