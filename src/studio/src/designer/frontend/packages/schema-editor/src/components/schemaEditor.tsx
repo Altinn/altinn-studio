@@ -6,7 +6,7 @@ import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Grid } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, setRootName, addRootItem } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRefProperty, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import AddPropertyModal from './AddPropertyModal';
 import { dataMock } from '../mockData';
@@ -61,12 +61,12 @@ const useStyles = makeStyles(
 export interface ISchemaEditor {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
-  rootItemId?: string;
+  name?: string;
   language: ILanguage;
 }
 
 export const SchemaEditor = ({
-  schema, onSaveSchema, rootItemId, language,
+  schema, onSaveSchema, name, language,
 }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -81,14 +81,14 @@ export const SchemaEditor = ({
   const [tabIndex, setTabIndex] = React.useState('0');
 
   React.useEffect(() => {
-    dispatch(setRootName({ rootName: rootItemId }));
-  }, [dispatch, rootItemId]);
+    dispatch(setSchemaName({ name }));
+  }, [dispatch, name]);
 
   React.useEffect(() => {
     if (jsonSchema) {
-      dispatch(setUiSchema({ rootElementPath: rootItemId }));
+      dispatch(setUiSchema({ name }));
     }
-  }, [dispatch, jsonSchema, rootItemId]);
+  }, [dispatch, jsonSchema, name]);
 
   React.useEffect(() => {
     dispatch(setJsonSchema({ schema }));
