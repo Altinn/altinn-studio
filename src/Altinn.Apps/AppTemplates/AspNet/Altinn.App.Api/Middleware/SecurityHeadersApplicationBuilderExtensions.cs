@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 namespace Altinn.App.Api.Middleware
 {
     /// <summary>
-    /// Extensions for adding default security headerse middleware to the pipeline.
+    /// Extensions for adding default security headers middleware to the pipeline.
     /// </summary>
     public static class SecurityHeadersApplicationBuilderExtensions
     {
