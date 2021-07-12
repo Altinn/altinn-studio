@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
@@ -27,8 +26,6 @@ namespace App.IntegrationTests
         public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
-
-            EventsMockSI.Requests.Clear();
         }
 
         /// <summary>
@@ -207,10 +204,6 @@ namespace App.IntegrationTests
 
             Assert.Equal(partyId.ToString(), createdInstance.InstanceOwner.PartyId);
 
-            //// Commented out the Asserts as another test might clear the Requests list and then fail these.
-            ////Assert.Equal("app.instance.created", EventsMockSI.Requests.First().eventType);
-            ////Assert.NotNull(EventsMockSI.Requests.First().instance);
-
             TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
@@ -327,6 +320,57 @@ namespace App.IntegrationTests
                 { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
                 { new StringContent(xml, Encoding.UTF8, "application/xml"), "skjema" },
                 { new StringContent(xmlmelding, Encoding.UTF8, "application/xml"), "melding" }
+            };
+
+            Uri uri = new Uri("/dibk/nabovarsel/instances", UriKind.Relative);
+
+            // ACT
+            HttpClient client = SetupUtil.GetTestClient(_factory, "dibk", "nabovarsel");
+            string token = PrincipalUtil.GetOrgToken("dibk");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await client.PostAsync(uri, formData);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.True(response.StatusCode == HttpStatusCode.Created);
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+            Assert.NotNull(createdInstance);
+            Assert.Equal(2, createdInstance.Data.Count);
+            TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
+        /// <summary>
+        /// create a multipart request with instance and xml prefil for both form and message for nabovarsel
+        /// </summary>
+        [Fact]
+        public async void Instance_Post_NabovarselWithFormAndBinaryAttachment()
+        {
+            // Arrange
+            string instanceOwnerPartyId = "1337";
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId,
+                }
+            };
+
+            string instance = JsonConvert.SerializeObject(instanceTemplate);
+            string xmlmelding = File.ReadAllText("Data/Files/melding.xml");
+
+            ByteArrayContent fileContent = new ByteArrayContent(File.ReadAllBytes("Data/Files/cat.pdf"));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+
+            string boundary = "abcdefgh";
+            MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
+            {
+                { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
+                { new StringContent(xmlmelding, Encoding.UTF8, "application/xml"), "melding" },
+                { fileContent, "nabovarselvedlegg", "a real cat.pdf" }
             };
 
             Uri uri = new Uri("/dibk/nabovarsel/instances", UriKind.Relative);

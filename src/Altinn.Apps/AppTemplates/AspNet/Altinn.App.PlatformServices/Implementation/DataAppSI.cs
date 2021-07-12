@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -292,7 +293,7 @@ namespace Altinn.App.Services.Implementation
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             if (!string.IsNullOrEmpty(fileName))
             {
-                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
                 {
                     FileName = fileName,
                     FileNameStar = fileName
