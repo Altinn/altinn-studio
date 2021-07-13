@@ -46,7 +46,7 @@ export interface IInputFieldProps {
   fullPath: string;
   language: ILanguage;
   required?: boolean;
-  onChangeKey: (path: string, oldKey: string, newKey: string) => void;
+  onChangeValue: (path: string, value: string) => void;
   onChangeRequired?: (path: string, required: boolean) => void;
   onDeleteField?: (path: string, key: string) => void;
   readOnly?: boolean;
@@ -61,13 +61,13 @@ export function InputField(props: IInputFieldProps) {
     setValue(props.value);
   }, [props.value]);
 
-  const onChangeKey = (e: any) => {
+  const onChangeValue = (e: any) => {
     setValue(e.target.value);
   };
 
-  const onBlurKey = (e: any) => {
+  const onBlur = (e: any) => {
     if (value !== props.value) {
-      props.onChangeKey(props.fullPath, props.value, e.target.value);
+      props.onChangeValue(props.fullPath, e.target.value);
     }
   };
 
@@ -91,8 +91,8 @@ export function InputField(props: IInputFieldProps) {
             fullWidth
             autoFocus
             disabled={props.readOnly}
-            onChange={onChangeKey}
-            onBlur={onBlurKey}
+            onChange={onChangeValue}
+            onBlur={onBlur}
             className={classes.field}
           />
         </FormControl>

@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem, getUniqueNumber } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -164,7 +164,7 @@ const schemaEditorSlice = createSlice({
         path, $ref: copy.path, displayName: item.displayName,
       };
       // If this is a nested property,  we must add the ref to the properties array of the parent of the item
-      const [parentPath] = getParentPath(path);
+      const [parentPath] = splitParentPathAndName(path);
       if (parentPath != null) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent && parent.properties) {
@@ -185,7 +185,7 @@ const schemaEditorSlice = createSlice({
       if (state.selectedId === path) {
         state.selectedId = undefined;
       }
-      const [parentPath, propertyName] = getParentPath(path);
+      const [parentPath, propertyName] = splitParentPathAndName(path);
       if (parentPath !== null) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
@@ -282,7 +282,7 @@ const schemaEditorSlice = createSlice({
         path, key, required,
       } = action.payload;
       // need to find parent object
-      const [parent] = getParentPath(path);
+      const [parent] = splitParentPathAndName(path);
       if (parent != null) {
         const schemaItem = getUiSchemaItem(state.uiSchema, parent);
         if (schemaItem.required === undefined) {
@@ -309,7 +309,7 @@ const schemaEditorSlice = createSlice({
       }
 
       // make sure property name is unique
-      const [parentPath] = getParentPath(path);
+      const [parentPath] = splitParentPathAndName(path);
       if (parentPath != null) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent.properties) {

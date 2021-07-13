@@ -28,7 +28,7 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
   return result;
 }
 
-export const getParentPath = (path: string): [string | null, string | null] => {
+export const splitParentPathAndName = (path: string): [string | null, string | null] => {
   if (path.match(/[^#]\/properties/)) {
     const index = path.lastIndexOf('/properties/');
     const p = path.substring(0, index);

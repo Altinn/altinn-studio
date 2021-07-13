@@ -11,7 +11,7 @@ import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef
   addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -134,7 +134,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      const [parentPath] = getParentPath(selectedId);
+      const [parentPath] = splitParentPathAndName(selectedId);
       if (parentPath != null) {
         return getUiSchemaItem(state.uiSchema, parentPath);
       }
@@ -196,9 +196,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
-  const onChangPropertyName = (path: string, oldKey: string, newKey: string) => {
+  const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
-      path, name: newKey,
+      path, name: value,
     }));
   };
   const onDeleteFieldClick = (path: string, key: string) => {
@@ -310,7 +310,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       readOnly={readOnly}
       value={p.displayName}
       fullPath={p.path}
-      onChangeKey={onChangPropertyName}
+      onChangeValue={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
     />;
   });
