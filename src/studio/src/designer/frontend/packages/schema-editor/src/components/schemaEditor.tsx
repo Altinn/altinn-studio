@@ -69,8 +69,7 @@ export const SchemaEditor = ({
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
-  const navigate = useSelector((state: ISchemaState) => state.navigate);
+  const selectedTreeNode = useSelector((state: ISchemaState) => state.selectedTreeNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
@@ -90,12 +89,11 @@ export const SchemaEditor = ({
   }, [dispatch, schema]);
 
   React.useEffect(() => {
-    if (selectedNodeId) {
-      const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
+    if (selectedTreeNode) {
+      const tab = selectedTreeNode.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
+  }, [selectedTreeNode]);
 
   const onClickSaveJsonSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -154,7 +152,7 @@ export const SchemaEditor = ({
               <TabPanel value='0'>
                 <TreeView
                   multiSelect={false}
-                  selected={selectedNodeId ?? ''}
+                  selected={selectedTreeNode ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >
@@ -178,7 +176,7 @@ export const SchemaEditor = ({
               <TabPanel value='1'>
                 <TreeView
                   multiSelect={false}
-                  selected={selectedNodeId ?? ''}
+                  selected={selectedTreeNode ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
                   defaultExpandIcon={<ArrowRightIcon />}
                 >

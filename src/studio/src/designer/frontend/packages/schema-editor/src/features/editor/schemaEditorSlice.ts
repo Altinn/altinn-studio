@@ -9,7 +9,7 @@ export const initialState: ISchemaState = {
   name: '/',
   saveSchemaUrl: '',
   selectedId: '',
-  selectedNodeId: '',
+  selectedTreeNodeId: '',
   focusNameField: '',
 };
 
@@ -77,7 +77,7 @@ const schemaEditorSlice = createSlice({
         },
       );
       state.selectedId = path;
-      state.selectedNodeId = getDomFriendlyID(path);
+      state.selectedTreeNodeId = getDomFriendlyID(path);
       state.focusNameField = path;
     },
     clearNameFocus(state) {
@@ -103,7 +103,7 @@ const schemaEditorSlice = createSlice({
       }
       if (!keepSelection) {
         state.selectedId = item.path;
-        state.selectedNodeId = getDomFriendlyID(item.path);
+        state.selectedTreeNodeId = getDomFriendlyID(item.path);
         state.focusNameField = item.path;
       }
     },
@@ -332,7 +332,7 @@ const schemaEditorSlice = createSlice({
 
         if (navigate) {
           state.selectedId = item.path;
-          state.selectedNodeId = getDomFriendlyID(item.path);
+          state.selectedTreeNodeId = getDomFriendlyID(item.path);
         }
       }
     },
@@ -342,12 +342,11 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, navigate, focusName,
+        id, focusName,
       } = action.payload;
       state.selectedId = id;
-      state.selectedNodeId = getDomFriendlyID(id);
+      state.selectedTreeNodeId = getDomFriendlyID(id);
       state.focusNameField = focusName;
-      state.navigate = navigate;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
@@ -368,7 +367,7 @@ const schemaEditorSlice = createSlice({
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
         state.selectedId = id;
-        state.selectedNodeId = getDomFriendlyID(id);
+        state.selectedTreeNodeId = getDomFriendlyID(id);
         state.focusNameField = id;
       }
     },
