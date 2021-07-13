@@ -186,7 +186,7 @@ const schemaEditorSlice = createSlice({
         state.selectedId = undefined;
       }
       const [parentPath, propertyName] = splitParentPathAndName(path);
-      if (parentPath !== null) {
+      if (parentPath) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
