@@ -32,7 +32,7 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const itemToAdd = { key, value };
       if (addToItem.restrictions) {
-        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) !== -1) {
           itemToAdd.key += getUniqueNumber();
         }
         addToItem.restrictions.push(itemToAdd);
@@ -65,7 +65,7 @@ const schemaEditorSlice = createSlice({
       let { name } = action.payload;
       const { location } = action.payload;
       // make sure name is unique.
-      if (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+      if (state.uiSchema.findIndex((p) => p.displayName === name) !== -1) {
         name += getUniqueNumber();
       }
       const path = `#/${location}/${name}`;
@@ -92,7 +92,7 @@ const schemaEditorSlice = createSlice({
         type: 'object',
       };
       if (addToItem.properties) {
-        if (addToItem.properties.findIndex((p) => p.path === item.path) > -1) {
+        if (addToItem.properties.findIndex((p) => p.path === item.path) !== -1) {
           const number = getUniqueNumber();
           item.path += number;
           item.displayName += number;
@@ -313,7 +313,7 @@ const schemaEditorSlice = createSlice({
       if (parentPath != null) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent.properties) {
-          if (parent.properties?.findIndex((p) => p.displayName === name) > -1) {
+          if (parent.properties.findIndex((p) => p.displayName === name) !== -1) {
             name += getUniqueNumber();
           }
         }
