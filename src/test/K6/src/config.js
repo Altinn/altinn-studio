@@ -183,3 +183,24 @@ export var tokenGenerator = {
   getEnterpriseToken: 'https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken',
   getPersonalToken: 'https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken',
 };
+
+//AltinnCDN
+export var altinnCdn = {
+  toolkits: {
+    'altinn-no-bold.css': 'https://altinncdn.no/toolkits/fortawesome/altinn-no-bold/0.1/css/embedded-woff.css',
+    'altinn-no-regular.css': 'https://altinncdn.no/toolkits/fortawesome/altinn-no-regular/0.1/css/embedded-woff.css',
+    'altinn-studio.css': 'https://altinncdn.no/toolkits/fortawesome/altinn-studio/0.1/css/embedded-woff.css',
+    'altinn-app-frontend.css': 'https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css',
+    'altinn-app-frontend.js': 'https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js',
+  },
+  fonts: {
+    'altinn-din.css': 'https://altinncdn.no/fonts/altinn-din/altinn-din.css',
+    'altinn-DIN-Bold.woff2': 'https://altinncdn.no/fonts/altinn-din/woff2/Altinn-DIN-Bold.woff2',
+    'altinn-DIN.woff2': 'https://altinncdn.no/fonts/altinn-din/woff2/Altinn-DIN.woff2',
+  },
+  images: {
+    'favicon.ico': 'https://altinncdn.no/favicon.ico',
+    'altinn-logo-black': 'https://altinncdn.no/img/Altinn-logo-black.svg',
+  },
+  orgs: 'https://altinncdn.no/orgs/altinn-orgs.json',
+};
