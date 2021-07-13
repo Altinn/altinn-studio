@@ -211,7 +211,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    if (!nameError) {
+    if (!nameError && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
       }));
