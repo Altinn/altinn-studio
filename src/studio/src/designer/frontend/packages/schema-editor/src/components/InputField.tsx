@@ -66,7 +66,9 @@ export function InputField(props: IInputFieldProps) {
   };
 
   const onBlurKey = (e: any) => {
-    props.onChangeKey(props.fullPath, props.value, e.target.value);
+    if (value !== props.value) {
+      props.onChangeKey(props.fullPath, props.value, e.target.value);
+    }
   };
 
   const onClickDelete = () => {

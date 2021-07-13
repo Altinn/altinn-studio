@@ -13,10 +13,10 @@ export const initialState: ISchemaState = {
   focusNameField: '',
 };
 
-const updateChildIds = (item: UiSchemaItem, parentId: string) => {
+const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
   item.path = `${parentId}/properties/${item.displayName}`;
   if (item.properties) {
-    item.properties.forEach((p) => updateChildIds(p, item.path));
+    item.properties.forEach((p) => updateChildPaths(p, item.path));
   }
 };
 
@@ -164,10 +164,8 @@ const schemaEditorSlice = createSlice({
         path, $ref: copy.path, displayName: item.displayName,
       };
       // If this is a nested property,  we must add the ref to the properties array of the parent of the item
-      // eslint-disable-next-line no-useless-escape
-      if (path.match('[^#]\/properties')) {
-        const index = path.lastIndexOf('/properties/');
-        const parentPath = path.substring(0, index);
+      const [parentPath] = getParentPath(path);
+      if (parentPath != null) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent && parent.properties) {
           parent.properties.splice(parent.properties.findIndex((i) => i.path === path), 1); // removing original item
@@ -187,12 +185,8 @@ const schemaEditorSlice = createSlice({
       if (state.selectedId === path) {
         state.selectedId = undefined;
       }
-      // eslint-disable-next-line no-useless-escape
-      if (path.match('[^#]\/properties')) {
-        // find parent of item to delete property.
-        const index = path.lastIndexOf('/properties/');
-        const parentPath = path.substring(0, index);
-        const propertyName = path.substring(index + 12);
+      const [parentPath, propertyName] = getParentPath(path);
+      if (parentPath !== null) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
@@ -288,7 +282,7 @@ const schemaEditorSlice = createSlice({
         path, key, required,
       } = action.payload;
       // need to find parent object
-      const parent = getParentPath(path);
+      const [parent] = getParentPath(path);
       if (parent != null) {
         const schemaItem = getUiSchemaItem(state.uiSchema, parent);
         if (schemaItem.required === undefined) {
@@ -307,10 +301,22 @@ const schemaEditorSlice = createSlice({
     },
     setPropertyName(state, action) {
       const {
-        path, name, navigate,
+        path, navigate,
       } = action.payload;
+      let name = action.payload.name;
       if (!name || name.length === 0) {
         return;
+      }
+
+      // make sure property name is unique
+      const [parentPath] = getParentPath(path);
+      if (parentPath != null) {
+        const parent = getUiSchemaItem(state.uiSchema, parentPath);
+        if (parent.properties) {
+          if (parent.properties?.findIndex((p) => p.displayName === name) > -1) {
+            name += getUniqueNumber();
+          }
+        }
       }
       const item = getUiSchemaItem(state.uiSchema, path);
       if (item) {
@@ -319,9 +325,9 @@ const schemaEditorSlice = createSlice({
         arr[arr.length - 1] = name;
         item.path = arr.join('/');
 
-        // if item has properties, we must update child ids as well.
+        // if item has properties, we must update child paths as well.
         if (item.properties) {
-          item.properties.forEach((p) => updateChildIds(p, item.path));
+          item.properties.forEach((p) => updateChildPaths(p, item.path));
         }
 
         if (navigate) {
