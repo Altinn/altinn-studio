@@ -16,7 +16,7 @@ const styles = createStyles({
 });
 function DataModellingContainer(props: IStandaloneDataModellingProps): JSX.Element {
   const dispatch = useDispatch();
-  dispatch(DataModelsMetadataActions.getDataModelsMetadata());
+  dispatch(DataModelsMetadataActions.getDataModelsMetadata({}));
   return (
     // Importing the ShcemaEditor inside the dashboard-development project so the alias in webpack works.
     <Grid item className={props.classes.containerGrid}>

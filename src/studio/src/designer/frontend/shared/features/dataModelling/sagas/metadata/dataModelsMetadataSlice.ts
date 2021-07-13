@@ -5,11 +5,14 @@ export interface IDataModelsMetadataState {
   dataModelsMetadata: any;
   error: Error;
 }
-
 const initialState: IDataModelsMetadataState = {
   dataModelsMetadata: [],
   error: null,
 };
+
+export interface IDataModelsMetadataAction {
+  schemaName?: string;
+}
 
 export interface IGetDataModelsMetadataFulfilled {
   dataModelsMetadata: any;
@@ -36,7 +39,7 @@ const dataModelsMetadataSlice = createSlice({
 });
 
 const actions = {
-  getDataModelsMetadata: createAction(`${moduleName}/getDataModelsMetadata`),
+  getDataModelsMetadata: createAction<IDataModelsMetadataAction>(`${moduleName}/getDataModelsMetadata`),
 };
 
 export const DataModelsMetadataActions = {

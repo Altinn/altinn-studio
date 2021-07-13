@@ -8,6 +8,8 @@ import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } fr
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import { sharedUrls } from '../../utils/urlHelper';
+import findLastSelectedMetadataOption from './functions/findLastSelectedMetadataOption';
+import schemaPathIsSame from './functions/schemaPathIsSame';
 
 const useStyles = makeStyles(
   createStyles({
@@ -31,10 +33,11 @@ const useStyles = makeStyles(
   }),
 );
 
-interface IDataModellingContainerProps {
+type IDataModellingContainerProps = {
   language: any;
   SchemaEditor: (props: any) => JSX.Element;
-}
+  children?: React.ReactNode;
+};
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const { SchemaEditor, language } = props;
@@ -45,40 +48,50 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
 
   const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
+  const [lastFetchedSchema, setLastFetchedSchema] = React.useState(null);
   const schemaEditorRef = React.useRef<ISchemaEditor>(null);
 
   React.useEffect(() => {
-    if (selectedModelMetadata?.value) {
-      const fetchModel = () => {
-        dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
-      };
-      fetchModel();
+    if (!schemaPathIsSame(lastFetchedSchema, selectedModelMetadata)) {
+      dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
+      setLastFetchedSchema(selectedModelMetadata);
     }
   }, [selectedModelMetadata, dispatch]);
 
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!dataModelsMetadata?.length) { // no dataModels
+    if (!dataModelsMetadata?.length // no dataModels
+      || !selectedModelMetadata // nothing is selected yet
+      || (!selectedModelMetadata.value && selectedModelMetadata.label) // creating new
+    ) {
+      if (!selectedModelMetadata && dataModelsMetadata?.length) { // automatically select if no label (on initial load)
+        setSelectedModelMetadata(dataModelsMetadata[0] || null);
+      }
+      if (selectedModelMetadata?.label && !selectedModelMetadata?.value?.repositoryRelativeUrl) {
+        const newOption = dataModelsMetadata.find(
+          ({ label }: { label: string }) => label === selectedModelMetadata.label,
+        );
+        if (newOption) { setSelectedModelMetadata(newOption); }
+      }
       return;
     }
-    if (!selectedModelMetadata?.label) { // automatically select if no label (on initial load)
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    }
-    if (!selectedModelMetadata) {
-      return;
-    }
-    const option = dataModelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
-    if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the dataModel has been deleted
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    } else if (!selectedModelMetadata.value && option) { // if the model was recently created and saved
+    const option = findLastSelectedMetadataOption(dataModelsMetadata);
+    if (option && !schemaPathIsSame(selectedModelMetadata, option)) {
       setSelectedModelMetadata(option);
     }
   }, [dataModelsMetadata, selectedModelMetadata]);
 
-  const onSchemaSelected = setSelectedModelMetadata;
+  const onSchemaSelected = (s: any) => {
+    setSelectedModelMetadata(s);
+  };
 
   const onSaveSchema = (schema: any) => {
     const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
     dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
+  };
+
+  const onDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedModelMetadata }));
+    setSelectedModelMetadata(null);
   };
 
   const createAction = (modelName: string) => {
@@ -100,6 +113,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   return (
     <div className={classes.root}>
       <Grid container className={classes.toolbar}>
+        {props.children}
         <Create
           language={language}
           buttonClass={classes.button}
@@ -113,7 +127,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         />
         <Delete
           schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}
-          deleteAction={() => dispatch(deleteDataModel({ metadata: selectedModelMetadata }))}
+          deleteAction={onDeleteSchema}
           buttonClass={classes.button}
           language={language}
         />

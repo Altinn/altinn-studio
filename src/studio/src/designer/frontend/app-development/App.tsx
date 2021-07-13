@@ -89,7 +89,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-    this.props.dispatch(DataModelsMetadataActions.getDataModelsMetadata());
+    this.props.dispatch(DataModelsMetadataActions.getDataModelsMetadata({}));
     this.props.dispatch(fetchRemainingSession());
     this.checkForMergeConflict();
     this.setEventListeners(true);
