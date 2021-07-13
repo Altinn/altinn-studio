@@ -1,11 +1,11 @@
-using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -45,7 +45,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task InsertBinaryData_()
+        public async Task InsertBinaryData_MethodProduceValidPlatformRequest()
         {
             // Arrange
             HttpRequestMessage platformRequest = null;
@@ -58,6 +58,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                     Id = "DataElement.Id",
                     InstanceGuid = "InstanceGuid"
                 };
+                await Task.CompletedTask;
                 return new HttpResponseMessage() { Content = JsonContent.Create(dataElement) };
             });
 
@@ -81,6 +82,51 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.Equal(HttpMethod.Post, platformRequest.Method);
             Assert.EndsWith("dataType=catstories", platformRequest.RequestUri.ToString());
             Assert.Equal("\"a cats story.pdf\"", platformRequest.Content.Headers.ContentDisposition.FileName);
+        }
+
+        [Fact]
+        public async Task InsertBinaryData_PlatformRespondNotOk_ThrowsPlatformException()
+        {
+            // Arrange
+            HttpRequestMessage platformRequest = null;
+            DelegatingHandlerStub delegatingHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                platformRequest = request;
+
+                DataElement dataElement = new DataElement
+                {
+                    Id = "DataElement.Id",
+                    InstanceGuid = "InstanceGuid"
+                };
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.BadRequest };
+            });
+
+            Mock<IOptions<GeneralSettings>> generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
+            var target = new DataAppSI(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                appSettingsOptions.Object,
+                new HttpClient(delegatingHandler));
+
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is not a pdf, but no one here will care."));
+
+            PlatformHttpException actual = null;
+
+            // Act
+            try
+            {
+                _ = await target.InsertBinaryData("instanceId", "catstories", "application/pdf", "a cats story.pdf", stream);
+            }
+            catch (PlatformHttpException phe)
+            {
+                actual = phe;
+            }
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(HttpStatusCode.BadRequest, actual.Response.StatusCode);
         }
     }
 }
