@@ -18,7 +18,7 @@ const useStyles = makeStyles(
       marginTop: 24,
       height: '100%',
     },
-    treeView: {
+    editor: {
       backgroundColor: 'white',
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
       minHeight: 200,
@@ -52,6 +52,11 @@ const useStyles = makeStyles(
     },
     tab: {
       minWidth: 70,
+    },
+    treeView: {
+      height: 600,
+      flexGrow: 1,
+      overflow: 'auto',
     },
   }),
 );
@@ -127,7 +132,7 @@ export const SchemaEditor = ({
         container={true} direction='row'
       >
         <Grid item={true} xs={6}>
-          <div id='schema-editor' className={classes.treeView}>
+          <div id='schema-editor' className={classes.editor}>
             <TabContext value={tabIndex}>
               <AppBar
                 position='static' color='default'
@@ -151,6 +156,7 @@ export const SchemaEditor = ({
               </AppBar>
               <TabPanel value='0'>
                 <TreeView
+                  className={classes.treeView}
                   multiSelect={false}
                   selected={selectedTreeNode ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
@@ -166,7 +172,7 @@ export const SchemaEditor = ({
                   />)}
 
                   <TreeItem
-                    nodeId='info'
+                    nodeId='add_property'
                     icon={<i className='fa fa-plus'/>}
                     label={getTranslation('add_property', language)}
                     onClick={handleAddProperty}
@@ -175,6 +181,7 @@ export const SchemaEditor = ({
               </TabPanel>
               <TabPanel value='1'>
                 <TreeView
+                  className={classes.treeView}
                   multiSelect={false}
                   selected={selectedTreeNode ?? ''}
                   defaultCollapseIcon={<ArrowDropDownIcon />}
@@ -190,7 +197,7 @@ export const SchemaEditor = ({
                   />)}
 
                   <TreeItem
-                    nodeId='info'
+                    nodeId='add_def'
                     icon={<i className='fa fa-plus'/>}
                     label={getTranslation('add_property', language)}
                     onClick={handleAddDefinition}

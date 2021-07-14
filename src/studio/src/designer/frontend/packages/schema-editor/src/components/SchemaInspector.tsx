@@ -20,15 +20,17 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      minHeight: 600,
       minWidth: 500,
-      flexGrow: 1,
       padding: 14,
+      height: 700,
       background: 'white',
       zIndex: 2,
-      position: 'fixed',
+      overflow: 'auto',
       '& .MuiAutocomplete-input': {
         width: 150,
+      },
+      '& .MuiTabPanel-root': {
+
       },
     },
     header: {
