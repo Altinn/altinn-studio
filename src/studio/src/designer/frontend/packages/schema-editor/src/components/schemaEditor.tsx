@@ -4,7 +4,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppBar, Grid } from '@material-ui/core';
+import { AppBar } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
@@ -22,6 +22,8 @@ const useStyles = makeStyles(
       backgroundColor: 'white',
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
       minHeight: 200,
+      width: '50%',
+      margin: 18,
     },
     button: {
       marginLeft: 24,
@@ -57,6 +59,14 @@ const useStyles = makeStyles(
       height: 600,
       flexGrow: 1,
       overflow: 'auto',
+    },
+    inspector: {
+      position: 'fixed',
+      right: 0,
+      bottom: 0,
+      top: 100,
+      width: 500,
+      height: 'calc(100vh - 55px)',
     },
   }),
 );
@@ -121,98 +131,89 @@ export const SchemaEditor = ({
 
   return (
     <div className={classes.root}>
-
       <button
         type='button' className={classes.button}
         onClick={onClickSaveJsonSchema}
       >{getTranslation('save_data_model', language)}
       </button>
 
-      <Grid
-        container={true} direction='row'
-      >
-        <Grid item={true} xs={6}>
-          <div id='schema-editor' className={classes.editor}>
-            <TabContext value={tabIndex}>
-              <AppBar
-                position='static' color='default'
-                className={classes.appBar}
-              >
-                <TabList
-                  onChange={(e, v) => setTabIndex(v)}
-                  aria-label='model-tabs'
-                >
-                  <SchemaTab
-                    label='models'
-                    language={language}
-                    value='0'
-                  />
-                  <SchemaTab
-                    label='types'
-                    language={language}
-                    value='1'
-                  />
-                </TabList>
-              </AppBar>
-              <TabPanel value='0'>
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={selectedTreeNode ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
-                >
-                  {properties?.map((item: UiSchemaItem) => <SchemaItem
-                    keyPrefix='properties'
-                    key={item.path}
-                    item={item}
-                    nodeId={getDomFriendlyID(item.path)}
-                    id={getDomFriendlyID(item.path)}
-                    language={language}
-                  />)}
+      <div id='schema-editor' className={classes.editor}>
+        <TabContext value={tabIndex}>
+          <AppBar
+            position='static' color='default'
+            className={classes.appBar}
+          >
+            <TabList
+              onChange={(e, v) => setTabIndex(v)}
+              aria-label='model-tabs'
+            >
+              <SchemaTab
+                label='models'
+                language={language}
+                value='0'
+              />
+              <SchemaTab
+                label='types'
+                language={language}
+                value='1'
+              />
+            </TabList>
+          </AppBar>
+          <TabPanel value='0'>
+            <TreeView
+              className={classes.treeView}
+              multiSelect={false}
+              selected={selectedTreeNode ?? ''}
+              defaultCollapseIcon={<ArrowDropDownIcon />}
+              defaultExpandIcon={<ArrowRightIcon />}
+            >
+              {properties?.map((item: UiSchemaItem) => <SchemaItem
+                keyPrefix='properties'
+                key={item.path}
+                item={item}
+                nodeId={getDomFriendlyID(item.path)}
+                id={getDomFriendlyID(item.path)}
+                language={language}
+              />)}
 
-                  <TreeItem
-                    nodeId='add_property'
-                    icon={<i className='fa fa-plus'/>}
-                    label={getTranslation('add_property', language)}
-                    onClick={handleAddProperty}
-                  />
-                </TreeView>
-              </TabPanel>
-              <TabPanel value='1'>
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={selectedTreeNode ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
-                >
-                  {definitions.map((def) => <SchemaItem
-                    keyPrefix='definitions'
-                    item={def}
-                    key={def.path}
-                    nodeId={getDomFriendlyID(def.path)}
-                    id={getDomFriendlyID(def.path)}
-                    language={language}
-                  />)}
+              <TreeItem
+                nodeId='add_property'
+                icon={<i className='fa fa-plus'/>}
+                label={getTranslation('add_property', language)}
+                onClick={handleAddProperty}
+              />
+            </TreeView>
+          </TabPanel>
+          <TabPanel value='1'>
+            <TreeView
+              className={classes.treeView}
+              multiSelect={false}
+              selected={selectedTreeNode ?? ''}
+              defaultCollapseIcon={<ArrowDropDownIcon />}
+              defaultExpandIcon={<ArrowRightIcon />}
+            >
+              {definitions.map((def) => <SchemaItem
+                keyPrefix='definitions'
+                item={def}
+                key={def.path}
+                nodeId={getDomFriendlyID(def.path)}
+                id={getDomFriendlyID(def.path)}
+                language={language}
+              />)}
 
-                  <TreeItem
-                    nodeId='add_def'
-                    icon={<i className='fa fa-plus'/>}
-                    label={getTranslation('add_property', language)}
-                    onClick={handleAddDefinition}
-                  />
-                </TreeView>
-              </TabPanel>
-            </TabContext>
-
-          </div>
-        </Grid>
-        <Grid item xs={1} />
-        <Grid item={true} xs={5}>
-          <SchemaInspector language={language} />
-        </Grid>
-      </Grid>
+              <TreeItem
+                nodeId='add_def'
+                icon={<i className='fa fa-plus'/>}
+                label={getTranslation('add_property', language)}
+                onClick={handleAddDefinition}
+              />
+            </TreeView>
+          </TabPanel>
+        </TabContext>
+      </div>
+      <div className={classes.inspector}>
+        <SchemaInspector language={language} />
+      </div>
     </div>
   );
 };

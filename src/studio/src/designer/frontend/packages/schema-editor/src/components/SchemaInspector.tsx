@@ -22,8 +22,9 @@ const useStyles = makeStyles(
     root: {
       minWidth: 500,
       padding: 14,
-      height: 700,
+      height: '90vh',
       background: 'white',
+      borderLeft: '1px solid #C9C9C9',
       zIndex: 2,
       overflow: 'auto',
       '& .MuiAutocomplete-input': {
