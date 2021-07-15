@@ -6,19 +6,25 @@ import * as React from 'react';
 import { Button, StyledComponentProps, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-interface IFileInputState {
+interface IFileUploadState {
   selectedFileName: string | undefined;
 }
-interface IFileInputProps extends StyledComponentProps {
+interface IFileUploadProps extends StyledComponentProps {
   language: any,
-  submitHandler: (file: any) => void;
+  submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
+  labelTextRecource: string;
+  formFileName: string;
+  accept?: string;
 }
 const styles = {
   root: {
     display: 'flex',
     justifyContent: 'space-between',
     '&>*': { margin: 4, height: 36 },
+    '& input:focus-visible + label': {
+      outline: '2px solid black',
+    },
     '& label': {
       flex: 1,
       display: 'inline-flex',
@@ -59,10 +65,10 @@ const styles = {
     },
   },
 };
-class FileInput extends React.Component<IFileInputProps, IFileInputState> {
+class FileUpload extends React.Component<IFileUploadProps, IFileUploadState> {
   fileInput: React.RefObject<HTMLInputElement>;
 
-  constructor(props: IFileInputProps) {
+  constructor(props: IFileUploadProps) {
     super(props);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -75,7 +81,10 @@ class FileInput extends React.Component<IFileInputProps, IFileInputState> {
 
   handleSubmit(event: any) {
     event.preventDefault();
-    this.props.submitHandler(this.fileInput.current.files[0]);
+    const file = this.fileInput.current.files[0];
+    const formData = new FormData();
+    formData.append(this.props.formFileName, file);
+    this.props.submitHandler(formData, file.name);
   }
 
   handleInputChange(event: any) {
@@ -90,33 +99,33 @@ class FileInput extends React.Component<IFileInputProps, IFileInputState> {
   }
 
   render() {
-    const { language, busy, classes } = this.props;
+    const { language, busy, classes, labelTextRecource } = this.props;
     if (busy) {
       return (
-        <AltinnSpinner />
+        <><AltinnSpinner /><span>{getLanguageFromKey('general.uploading_file', language)}</span></>
       );
     }
     const selectedFileName = this.getFileName();
     return (
       <form onSubmit={this.handleSubmit} className={classes.root}>
-        <label htmlFor='xsd-upload-picker' title={getLanguageFromKey('general.select_xsd', language)}>
+        <input
+          type='file'
+          id='file-upload-picker'
+          className='sr-only'
+          accept={this.props.accept}
+          ref={this.fileInput}
+          name={this.props.formFileName}
+          onChange={this.handleInputChange}
+        />
+        <label htmlFor='file-upload-picker' title={getLanguageFromKey(labelTextRecource, language)}>
           <Description fontSize='large' />
           <span
             className={classNames({ empty: !selectedFileName })}
           >
-            {selectedFileName || getLanguageFromKey('general.select_xsd', language)}
+            {selectedFileName || getLanguageFromKey(labelTextRecource, language)}
           </span>
         </label>
-        <input
-          type="file"
-          id='xsd-upload-picker'
-          className='sr-only'
-          accept='.xsd'
-          ref={this.fileInput}
-          name="thefile"
-          onChange={this.handleInputChange}
-        />
-        <Button type="submit" disabled={!selectedFileName}>
+        <Button type='submit' disabled={!selectedFileName}>
           {getLanguageFromKey('general.submit_upload', language)}
         </Button>
       </form>
@@ -124,4 +133,4 @@ class FileInput extends React.Component<IFileInputProps, IFileInputState> {
   }
 }
 
-export default withStyles(styles)(FileInput);
+export default withStyles(styles)(FileUpload);

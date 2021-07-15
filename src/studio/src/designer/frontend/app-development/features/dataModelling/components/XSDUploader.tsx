@@ -5,7 +5,7 @@ import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSi
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { XSDUploadUrl } from 'utils/urlHelper';
 import axios from 'axios';
-import FileInput from './FileInput';
+import FileUploader from './FileUploader';
 
 interface IXSDUploaderWrapper {
   language: any,
@@ -19,18 +19,15 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
   const onUploadClick = (event: any) => {
     setUploadButtonAnchor(event.currentTarget);
   };
-  const onUploading = (file: File) => {
+  const onUploading = (formData: FormData, fileName: string) => {
     setUploading(true);
-    const formData = new FormData();
-    formData.append('thefile', file);
-    const url = XSDUploadUrl;
-    axios.post(url, formData, {
+    axios.post(XSDUploadUrl, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     }).then((response) => {
       if (response) {
-        props.onXSDUploaded(file.name);
+        props.onXSDUploaded(fileName);
         setUploadButtonAnchor(null);
       }
     }).catch((error) => {
@@ -65,7 +62,14 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
             horizontal: 'left',
           }}
         >
-          <FileInput busy={uploading} language={props.language} submitHandler={onUploading} />
+          <FileUploader
+            busy={uploading}
+            language={props.language}
+            submitHandler={onUploading}
+            accept='.xsd'
+            labelTextRecource='general.select_xsd'
+            formFileName='thefile'
+          />
           {errorText && <p>{errorText}</p>}
         </AltinnPopoverSimple>}
     </>
