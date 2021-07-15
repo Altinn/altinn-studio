@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
+using Altinn.App.Api.Middleware;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Interface;
@@ -177,6 +178,7 @@ namespace Altinn.App
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseDefaultSecurityHeaders();
 
             app.UseEndpoints(endpoints =>
             {
