@@ -36,13 +36,7 @@
           "mode": "showTable",
           "saveButton": true,
           "deleteButton": true,
-          "multiPage": true,
-          "filter": [
-            {
-              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
-              "value": "555"
-            }
-          ]
+          "multiPage": true
         }
       },
       {
@@ -101,7 +95,15 @@
         "textResourceBindings": {
           "title": "Nested group"
         },
-        "triggers": ["validation"]
+        "triggers": ["validation"],
+        "edit": {
+          "filter": [
+            {
+              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value",
+              "value": "automation"
+            }
+          ]
+        }
       },
       {
         "id": "comments",

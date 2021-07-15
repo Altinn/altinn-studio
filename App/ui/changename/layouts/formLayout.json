@@ -76,7 +76,10 @@
           "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value"
         },
         "required": true,
-        "readOnly": true
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "changeNameTo",
@@ -88,7 +91,10 @@
           "simpleBinding": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
         },
         "required": true,
-        "readOnly": true
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "confirmChangeName",
@@ -293,7 +299,27 @@
         },
         "required": false,
         "readOnly": false,
-        "formatting": { "number": { "format": "+47 ### ## ###" } }
+        "formatting": { "number": { "format": "+47 ### ## ###" } },
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "sources",
+        "type": "Dropdown",        
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"          
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "xs": 6
+        }      
       },
       {
         "id": "fileUpload-changename",
@@ -301,7 +327,6 @@
         "textResourceBindings": {
           "title": "vedlegg"
         },
-        "dataModelBindings": {},
         "maxFileSizeInMB": 5,
         "maxNumberOfAttachments": 3,
         "minNumberOfAttachments": 0,
