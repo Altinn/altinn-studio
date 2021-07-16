@@ -15,7 +15,6 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      marginTop: 24,
       height: '100%',
     },
     editor: {

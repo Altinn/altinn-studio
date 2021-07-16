@@ -12,7 +12,6 @@ import { sharedUrls } from '../../utils/urlHelper';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      marginTop: 24,
       marginLeft: 80,
     },
     schema: {
