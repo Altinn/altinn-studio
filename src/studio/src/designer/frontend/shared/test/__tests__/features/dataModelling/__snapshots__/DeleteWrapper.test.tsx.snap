@@ -5,7 +5,7 @@ exports[`>>> DeleteWrapper.tsx +++ Should match snapshot with the least amount o
   className="MuiGrid-root MuiGrid-item"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-contained button"
+    className="MuiButtonBase-root MuiButton-root MuiButton-contained"
     disabled={false}
     id="delete-button"
     onBlur={[Function]}

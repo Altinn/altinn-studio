@@ -40,10 +40,12 @@ describe('>>> DataModelling.tsx', () => {
     store.dispatch = jest.fn(dispatchMock);
   });
   // eslint-disable-next-line react/jsx-props-no-spreading
-  const dummyComponent = (props: { schema: any;
+  const dummyComponent = (props: {
+    schema: any;
     language: any;
-    rootItemId?: string;
-    onSaveSchema: () => {} }) => (<div>{JSON.stringify(props)}</div>);
+    name?: string;
+    onSaveSchema: () => {}
+  }) => (<div>{JSON.stringify(props)}</div>);
   const mountComponent = () => mount(
     <Provider store={store} >
       <DataModelling

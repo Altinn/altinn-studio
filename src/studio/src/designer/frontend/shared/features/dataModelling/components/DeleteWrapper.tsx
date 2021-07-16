@@ -8,7 +8,6 @@ interface IDeleteWrapper {
   language: any;
   deleteAction: () => void;
   schemaName: string;
-  buttonClass: string;
 }
 
 export default function DeleteWrapper(props: IDeleteWrapper) {
@@ -31,20 +30,19 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
           disabled={!props.schemaName}
           id='delete-button'
           variant='contained'
-          className={props.buttonClass}
           startIcon={<DeleteOutline />}
           onClick={onDeleteClick}
         >
           {getLanguageFromKey('general.delete', props.language)}
         </Button>
       </Grid>
-      { deleteButtonAnchor && <DeleteDialog
+      {deleteButtonAnchor && <DeleteDialog
         anchor={deleteButtonAnchor}
         language={props.language}
         schemaName={props.schemaName}
         onConfirm={onDeleteConfirmClick}
         onCancel={onCancelDelete}
-      /> }
+      />}
     </>
   );
 }

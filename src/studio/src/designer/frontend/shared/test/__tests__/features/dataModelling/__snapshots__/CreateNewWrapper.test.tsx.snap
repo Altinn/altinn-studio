@@ -5,7 +5,7 @@ exports[`>>> CreateNewWrapper.tsx +++ Should match snapshot with the least amoun
   className="MuiGrid-root MuiGrid-item"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-contained button"
+    className="MuiButtonBase-root MuiButton-root MuiButton-contained"
     disabled={false}
     id="new-button"
     onBlur={[Function]}

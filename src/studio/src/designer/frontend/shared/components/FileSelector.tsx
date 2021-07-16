@@ -1,10 +1,9 @@
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { Description } from '@material-ui/icons';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import theme from 'app-shared/theme/altinnStudioTheme';
 import * as React from 'react';
 import { Button, StyledComponentProps, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
+import { getLanguageFromKey } from '../utils/language';
+import theme from '../theme/altinnStudioTheme';
 
 interface IFileUploadState {
   selectedFileName: string | undefined;
@@ -99,12 +98,7 @@ class FileUpload extends React.Component<IFileUploadProps, IFileUploadState> {
   }
 
   render() {
-    const { language, busy, classes, labelTextRecource } = this.props;
-    if (busy) {
-      return (
-        <><AltinnSpinner /><span>{getLanguageFromKey('general.uploading_file', language)}</span></>
-      );
-    }
+    const { language, classes, labelTextRecource } = this.props;
     const selectedFileName = this.getFileName();
     return (
       <form onSubmit={this.handleSubmit} className={classes.root}>
@@ -116,6 +110,7 @@ class FileUpload extends React.Component<IFileUploadProps, IFileUploadState> {
           ref={this.fileInput}
           name={this.props.formFileName}
           onChange={this.handleInputChange}
+          disabled={this.props.busy}
         />
         <label htmlFor='file-upload-picker' title={getLanguageFromKey(labelTextRecource, language)}>
           <Description fontSize='large' />
@@ -125,8 +120,8 @@ class FileUpload extends React.Component<IFileUploadProps, IFileUploadState> {
             {selectedFileName || getLanguageFromKey(labelTextRecource, language)}
           </span>
         </label>
-        <Button type='submit' disabled={!selectedFileName}>
-          {getLanguageFromKey('general.submit_upload', language)}
+        <Button type='submit' disabled={!selectedFileName || this.props.busy}>
+          {getLanguageFromKey('shared.submit_upload', language)}
         </Button>
       </form>
     );

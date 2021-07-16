@@ -1,9 +1,6 @@
-interface PathOption {
-  value?: {
-    repositoryRelativeUrl: string
-  }
-}
-const schemaPathIsSame = (opt1: PathOption, opt2: PathOption) => {
+import { IMetadataOption } from "./types";
+
+const schemaPathIsSame = (opt1: IMetadataOption, opt2: IMetadataOption) => {
   if (!opt2?.value?.repositoryRelativeUrl) {
     return true;
   }

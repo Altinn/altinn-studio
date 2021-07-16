@@ -2,10 +2,10 @@ import { Grid, Button } from '@material-ui/core';
 import { CloudUploadOutlined } from '@material-ui/icons';
 import * as React from 'react';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { FileSelector, AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { XSDUploadUrl } from 'utils/urlHelper';
 import axios from 'axios';
-import FileUploader from './FileUploader';
 
 interface IXSDUploaderWrapper {
   language: any,
@@ -50,7 +50,7 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
           startIcon={<CloudUploadOutlined />}
           onClick={onUploadClick}
         >
-          {getLanguageFromKey('general.upload_xsd', props.language)}
+          {getLanguageFromKey('app_data_modelling.upload_xsd', props.language)}
         </Button>
       </Grid>
       {uploadButtonAnchor &&
@@ -62,14 +62,20 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
             horizontal: 'left',
           }}
         >
-          <FileUploader
-            busy={uploading}
-            language={props.language}
-            submitHandler={onUploading}
-            accept='.xsd'
-            labelTextRecource='general.select_xsd'
-            formFileName='thefile'
-          />
+          {uploading ? (
+            <AltinnSpinner spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', props.language)} />
+          )
+            : (
+              <FileSelector
+                busy={uploading}
+                language={props.language}
+                submitHandler={onUploading}
+                accept='.xsd'
+                labelTextRecource='app_data_modelling.select_xsd'
+                formFileName='thefile'
+              />
+            )
+          }
           {errorText && <p>{errorText}</p>}
         </AltinnPopoverSimple>}
     </>

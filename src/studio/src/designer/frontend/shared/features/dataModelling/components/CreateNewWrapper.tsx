@@ -8,7 +8,6 @@ import { getLanguageFromKey } from '../../../utils/language';
 interface ICreateNewWrapper {
   language: any,
   createAction: (modelName: string) => void,
-  buttonClass: string,
   dataModelNames: string[],
 }
 export default function CreateNewWrapper(props: ICreateNewWrapper) {
@@ -65,7 +64,6 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
         <Button
           id='new-button'
           variant='contained'
-          className={props.buttonClass}
           startIcon={<AddCircleOutline />}
           onClick={onCreateClick}
         >
@@ -73,27 +71,27 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
         </Button>
       </Grid>
       {createButtonAnchor &&
-      <AltinnPopoverSimple
-        anchorEl={createButtonAnchor}
-        handleClose={onCancelCreate}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-      >
-        <AltinnInputField
-          id='newModelInput'
-          placeholder='Name'
-          btnText='Ok'
-          error={nameError}
-          clearError={() => setNameError('')}
-          inputFieldStyling={{ width: '250px' }}
-          onChangeFunction={onNameChange}
-          onBlurFunction={onInputBlur}
-          onBtnClickFunction={onCreateConfirmClick}
-          onReturn={onReturnButtonConfirm}
-        />
-      </AltinnPopoverSimple>}
+        <AltinnPopoverSimple
+          anchorEl={createButtonAnchor}
+          handleClose={onCancelCreate}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+        >
+          <AltinnInputField
+            id='newModelInput'
+            placeholder='Name'
+            btnText='Ok'
+            error={nameError}
+            clearError={() => setNameError('')}
+            inputFieldStyling={{ width: '250px' }}
+            onChangeFunction={onNameChange}
+            onBlurFunction={onInputBlur}
+            onBtnClickFunction={onCreateConfirmClick}
+            onReturn={onReturnButtonConfirm}
+          />
+        </AltinnPopoverSimple>}
     </>
   );
 }

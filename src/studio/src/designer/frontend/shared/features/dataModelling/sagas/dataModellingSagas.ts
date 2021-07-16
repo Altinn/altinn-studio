@@ -40,7 +40,7 @@ function* saveDataModelSaga(action: IDataModelAction) {
     yield call(axiosPut, sharedUrls().createDataModellingUrl(modelPath), schema);
     yield put(saveDataModelFulfilled());
     if (isNewSchema) {
-      yield put(DataModelsMetadataActions.getDataModelsMetadata({})); // to remove select after list is updated
+      yield put(DataModelsMetadataActions.getDataModelsMetadata()); // Update metadata to include new schema
     }
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
@@ -57,7 +57,7 @@ function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     yield call(del, sharedUrls().createDataModellingUrl(modelPath));
     yield put(deleteDataModelFulfilled());
-    yield put(DataModelsMetadataActions.getDataModelsMetadata({}));
+    yield put(DataModelsMetadataActions.getDataModelsMetadata());
   } catch (err) {
     yield put(deleteDataModelRejected({ error: err }));
   }

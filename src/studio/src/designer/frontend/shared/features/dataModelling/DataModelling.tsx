@@ -8,8 +8,9 @@ import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } fr
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import { sharedUrls } from '../../utils/urlHelper';
-import findLastSelectedMetadataOption from './functions/findLastSelectedMetadataOption';
+import findPreferedMetadataOption from './functions/findPreferedMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
+import { AltinnSpinner } from '../../components';
 
 const useStyles = makeStyles(
   createStyles({
@@ -19,91 +20,97 @@ const useStyles = makeStyles(
     schema: {
       marginTop: 4,
     },
-    button: {
-      margin: 4,
-    },
     toolbar: {
       background: '#fff',
       padding: 8,
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      '& button': {
+      '& > div > button': {
+        margin: 4,
         background: '#fff',
       },
     },
   }),
 );
 
-type IDataModellingContainerProps = {
+interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: any;
   SchemaEditor: (props: any) => JSX.Element;
-  children?: React.ReactNode;
-};
+  preferedOptionLabel?: { label: string, clear: () => void };
+}
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
+  const clearPreferedOption = () => {
+    if (props.preferedOptionLabel) {
+      props.preferedOptionLabel.clear();
+    }
+  };
+
   const { SchemaEditor, language } = props;
   const dispatch = useDispatch();
   const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
 
-  const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
+  const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
 
-  const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
+  const [selectedOption, setSelectedOption] = React.useState(null);
   const [lastFetchedSchema, setLastFetchedSchema] = React.useState(null);
   const schemaEditorRef = React.useRef<ISchemaEditor>(null);
 
   React.useEffect(() => {
-    if (!schemaPathIsSame(lastFetchedSchema, selectedModelMetadata)) {
-      dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
-      setLastFetchedSchema(selectedModelMetadata);
+    if (!schemaPathIsSame(lastFetchedSchema, selectedOption)) {
+      dispatch(fetchDataModel({ metadata: selectedOption }));
+      setLastFetchedSchema(selectedOption);
     }
-  }, [selectedModelMetadata, dispatch]);
-
+  }, [selectedOption, dispatch]);
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!dataModelsMetadata?.length // no dataModels
-      || !selectedModelMetadata // nothing is selected yet
-      || (!selectedModelMetadata.value && selectedModelMetadata.label) // creating new
+    if (!metadataOptions.length // no dataModels
+      || !selectedOption // nothing is selected yet
+      || (!selectedOption.value && selectedOption.label) // creating new
     ) {
-      if (!selectedModelMetadata && dataModelsMetadata?.length) { // automatically select if no label (on initial load)
-        setSelectedModelMetadata(dataModelsMetadata[0] || null);
+      if (!selectedOption && metadataOptions.length) { // automatically select if no label (on initial load)
+        setSelectedOption(metadataOptions[0]);
+      } else if (selectedOption?.value) {
+        setSelectedOption(null);
       }
-      if (selectedModelMetadata?.label && !selectedModelMetadata?.value?.repositoryRelativeUrl) {
-        const newOption = dataModelsMetadata.find(
-          ({ label }: { label: string }) => label === selectedModelMetadata.label,
+      if (selectedOption?.label && !selectedOption.value?.repositoryRelativeUrl) {
+        const newOption = metadataOptions.find(
+          ({ label }: { label: string }) => label === selectedOption.label,
         );
-        if (newOption) { setSelectedModelMetadata(newOption); }
+        if (newOption) { setSelectedOption(newOption); }
       }
       return;
     }
-    const option = findLastSelectedMetadataOption(dataModelsMetadata);
-    if (option && !schemaPathIsSame(selectedModelMetadata, option)) {
-      setSelectedModelMetadata(option);
+    const option = findPreferedMetadataOption(metadataOptions, props.preferedOptionLabel?.label);
+    if (option && !schemaPathIsSame(selectedOption, option)) {
+      setSelectedOption(option);
+      props.preferedOptionLabel.clear();
     }
-  }, [dataModelsMetadata, selectedModelMetadata]);
+  }, [metadataOptions, selectedOption]);
 
   const onSchemaSelected = (s: any) => {
-    setSelectedModelMetadata(s);
+    clearPreferedOption();
+    setSelectedOption(s);
   };
 
   const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
-    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
+    const $id = sharedUrls().getDataModellingUrl(
+      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`
+    );
+    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
   };
 
   const onDeleteSchema = () => {
-    dispatch(deleteDataModel({ metadata: selectedModelMetadata }));
-    setSelectedModelMetadata(null);
+    dispatch(deleteDataModel({ metadata: selectedOption }));
+    setSelectedOption(null);
+    clearPreferedOption();
   };
 
   const createAction = (modelName: string) => {
-    dispatch(createNewDataModel({
-      modelName,
-      onNewNameCreated: (label: string) => {
-        setSelectedModelMetadata({ label });
-      },
-    }));
+    dispatch(createNewDataModel({ modelName }));
+    setSelectedOption({ label: modelName });
   };
   const getModelNames = () => {
-    return dataModelsMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+    return metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
   };
 
   const onSaveButtonClicked = () => {
@@ -116,38 +123,40 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         {props.children}
         <Create
           language={language}
-          buttonClass={classes.button}
           createAction={createAction}
           dataModelNames={getModelNames()}
         />
         <SchemaSelect
-          selectedOption={selectedModelMetadata}
+          selectedOption={selectedOption}
           onChange={onSchemaSelected}
-          options={dataModelsMetadata}
+          options={metadataOptions}
         />
         <Delete
-          schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}
+          schemaName={selectedOption?.value && selectedOption?.label}
           deleteAction={onDeleteSchema}
-          buttonClass={classes.button}
           language={language}
         />
-        <Button
-          onClick={onSaveButtonClicked}
-          type='button'
-          variant='contained'
-          startIcon={<ArchiveOutlined />}
-          className={classes.button}
-        >{getLanguageFromKey('schema_editor.save_data_model', language)}
-        </Button>
+        <Grid item>
+          <Button
+            onClick={onSaveButtonClicked}
+            type='button'
+            variant='contained'
+            startIcon={<ArchiveOutlined />}
+          >{getLanguageFromKey('schema_editor.save_data_model', language)}
+          </Button>
+        </Grid>
       </Grid>
-      {jsonSchema && selectedModelMetadata?.label &&
-        <SchemaEditor
-          editorRef={schemaEditorRef}
-          language={language}
-          schema={jsonSchema}
-          onSaveSchema={onSaveSchema}
-          name={selectedModelMetadata.label}
-        />}
+      {selectedOption?.label && (
+        jsonSchema ?
+          <SchemaEditor
+            editorRef={schemaEditorRef}
+            language={language}
+            schema={jsonSchema}
+            onSaveSchema={onSaveSchema}
+            name={selectedOption.label}
+          />
+          : <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
+      )}
     </div>
   );
 }
