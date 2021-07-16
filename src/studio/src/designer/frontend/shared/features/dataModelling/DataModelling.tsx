@@ -21,7 +21,7 @@ const useStyles = makeStyles(
     button: {
       margin: 4,
     },
-    navbar: {
+    toolbar: {
       background: '#fff',
       padding: 8,
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
@@ -100,7 +100,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 
   return (
     <div className={classes.root}>
-      <Grid container className={classes.navbar}>
+      <Grid container className={classes.toolbar}>
         <Create
           language={language}
           buttonClass={classes.button}

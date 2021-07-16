@@ -51,11 +51,11 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
       className="makeStyles-root-1"
     >
       <WithStyles(ForwardRef(Grid))
-        className="makeStyles-navbar-4"
+        className="makeStyles-toolbar-4"
         container={true}
       >
         <ForwardRef(Grid)
-          className="makeStyles-navbar-4"
+          className="makeStyles-toolbar-4"
           classes={
             Object {
               "align-content-xs-center": "MuiGrid-align-content-xs-center",
@@ -166,7 +166,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
           container={true}
         >
           <div
-            className="MuiGrid-root makeStyles-navbar-4 MuiGrid-container"
+            className="MuiGrid-root makeStyles-toolbar-4 MuiGrid-container"
           >
             <CreateNewWrapper
               buttonClass="makeStyles-button-3"
