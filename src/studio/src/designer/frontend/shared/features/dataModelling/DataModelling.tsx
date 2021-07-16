@@ -123,7 +123,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         <SchemaSelect
           selectedOption={selectedModelMetadata}
           onChange={onSchemaSelected}
-          options={dataModelsMetadata || []}
+          options={dataModelsMetadata}
         />
         <Delete
           schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}

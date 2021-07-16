@@ -1,5 +1,5 @@
 interface PathOption {
-  value: {
+  value?: {
     repositoryRelativeUrl: string
   }
 }

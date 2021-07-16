@@ -1,12 +1,9 @@
-function removeSelectFlag(metadataOptions: {
-  value: {
-    repositoryRelativeUrl: string,
-    select?: boolean
-  }, label: string
-}[]) {
+import { IDataModelMetadataItem } from "../sagas/metadata/dataModelsMetadataSlice";
+
+function removeSelectFlag(metadataOptions: IDataModelMetadataItem[]) {
   return metadataOptions.map((v) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { select, ...value } = v.value;
+    const { select, ...value } = v;
     return ({
       ...v,
       value,

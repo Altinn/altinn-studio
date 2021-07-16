@@ -1,9 +1,6 @@
-function findLastSelectedMetadataOption(metadataOptions: {
-  value: {
-    repositoryRelativeUrl: string,
-    select?: boolean
-  }, label: string
-}[]) {
+import { IMetadataOption } from "./types";
+
+function findLastSelectedMetadataOption(metadataOptions: IMetadataOption[]) {
   if (!metadataOptions?.length) {
     return undefined;
   }
