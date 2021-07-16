@@ -11,6 +11,7 @@ import { sharedUrls } from '../../utils/urlHelper';
 import findPreferedMetadataOption from './functions/findPreferedMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { AltinnSpinner } from '../../components';
+import shouldSelectPreferedOption from './functions/shouldSelectPreferedOption';
 
 const useStyles = makeStyles(
   createStyles({
@@ -63,21 +64,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
     }
   }, [selectedOption, dispatch]);
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!metadataOptions.length // no dataModels
-      || !selectedOption // nothing is selected yet
-      || (!selectedOption.value && selectedOption.label) // creating new
-    ) {
-      if (!selectedOption && metadataOptions.length) { // automatically select if no label (on initial load)
-        setSelectedOption(metadataOptions[0]);
-      } else if (selectedOption?.value) {
-        setSelectedOption(null);
-      }
-      if (selectedOption?.label && !selectedOption.value?.repositoryRelativeUrl) {
-        const newOption = metadataOptions.find(
-          ({ label }: { label: string }) => label === selectedOption.label,
-        );
-        if (newOption) { setSelectedOption(newOption); }
-      }
+    if (!shouldSelectPreferedOption(metadataOptions, selectedOption, setSelectedOption)) {
       return;
     }
     const option = findPreferedMetadataOption(metadataOptions, props.preferedOptionLabel?.label);
