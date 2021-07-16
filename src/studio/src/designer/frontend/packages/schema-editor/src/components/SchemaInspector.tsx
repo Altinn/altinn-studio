@@ -258,7 +258,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onGoToDefButtonClick = () => {
     if (!selectedItem?.$ref) {
-      console.log('$ref undefined..');
       return;
     }
     dispatch(setSelectedId(
