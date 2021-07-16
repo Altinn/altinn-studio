@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { createStyles, Grid, makeStyles } from '@material-ui/core';
+import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
+import { ISchemaEditor } from '@altinn/schema-editor/components/schemaEditor';
+import { ArchiveOutlined } from '@material-ui/icons';
+import { getLanguageFromKey } from '../../utils/language';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
@@ -17,6 +20,14 @@ const useStyles = makeStyles(
     },
     button: {
       margin: 4,
+    },
+    navbar: {
+      background: '#fff',
+      padding: 8,
+      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
+      '& button': {
+        background: '#fff',
+      },
     },
   }),
 );
@@ -35,6 +46,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
 
   const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
+  const schemaEditorRef = React.useRef<ISchemaEditor>(null);
 
   React.useEffect(() => {
     if (selectedModelMetadata?.value) {
@@ -82,9 +94,13 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
     return dataModelsMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
   };
 
+  const onSaveButtonClicked = () => {
+    schemaEditorRef.current?.onClickSaveJsonSchema();
+  };
+
   return (
     <div className={classes.root}>
-      <Grid container>
+      <Grid container className={classes.navbar}>
         <Create
           language={language}
           buttonClass={classes.button}
@@ -102,9 +118,18 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
           buttonClass={classes.button}
           language={language}
         />
+        <Button
+          onClick={onSaveButtonClicked}
+          type='button'
+          variant='contained'
+          startIcon={<ArchiveOutlined />}
+          className={classes.button}
+        >{getLanguageFromKey('schema_editor.save_data_model', language)}
+        </Button>
       </Grid>
       {jsonSchema && selectedModelMetadata?.label &&
         <SchemaEditor
+          editorRef={schemaEditorRef}
           language={language}
           schema={jsonSchema}
           onSaveSchema={onSaveSchema}

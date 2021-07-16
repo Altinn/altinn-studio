@@ -71,16 +71,21 @@ const useStyles = makeStyles(
   }),
 );
 
-export interface ISchemaEditor {
+export interface ISchemaEditorProps {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
   name?: string;
   language: ILanguage;
 }
+export interface ISchemaEditor {
+  onClickSaveJsonSchema: () => void;
+}
 
-export const SchemaEditor = ({
-  schema, onSaveSchema, name, language,
-}: ISchemaEditor) => {
+export const SchemaEditor = React.forwardRef((props: ISchemaEditorProps, ref: React.Ref<ISchemaEditor>) => {
+  const {
+    schema, onSaveSchema, name, language,
+  } = props;
+
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
@@ -88,6 +93,12 @@ export const SchemaEditor = ({
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
+
+  React.useImperativeHandle(ref, () => ({ onClickSaveJsonSchema }));
+
+  function onClickSaveJsonSchema() {
+    dispatch(updateJsonSchema({ onSaveSchema }));
+  }
 
   React.useEffect(() => {
     dispatch(setSchemaName({ name }));
@@ -110,10 +121,6 @@ export const SchemaEditor = ({
     }
   }, [selectedTreeNode]);
 
-  const onClickSaveJsonSchema = () => {
-    dispatch(updateJsonSchema({ onSaveSchema }));
-  };
-
   const handleAddProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(addRootItem({
@@ -131,12 +138,6 @@ export const SchemaEditor = ({
 
   return (
     <div className={classes.root}>
-      <button
-        type='button' className={classes.button}
-        onClick={onClickSaveJsonSchema}
-      >{getTranslation('save_data_model', language)}
-      </button>
-
       <div id='schema-editor' className={classes.editor}>
         <TabContext value={tabIndex}>
           <AppBar
@@ -216,6 +217,5 @@ export const SchemaEditor = ({
       </div>
     </div>
   );
-};
-
+});
 export default SchemaEditor;
