@@ -25,7 +25,7 @@ const useStyles = makeStyles(
       background: '#fff',
       padding: 8,
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      '& > div > button': {
+      '& > button': {
         margin: 4,
         background: '#fff',
       },
@@ -123,15 +123,13 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
           deleteAction={onDeleteSchema}
           language={language}
         />
-        <Grid item>
-          <Button
-            onClick={onSaveButtonClicked}
-            type='button'
-            variant='contained'
-            startIcon={<ArchiveOutlined />}
-          >{getLanguageFromKey('schema_editor.save_data_model', language)}
-          </Button>
-        </Grid>
+        <Button
+          onClick={onSaveButtonClicked}
+          type='button'
+          variant='contained'
+          startIcon={<ArchiveOutlined />}
+        >{getLanguageFromKey('schema_editor.save_data_model', language)}
+        </Button>
       </Grid>
       {selectedOption?.label && (
         jsonSchema ?

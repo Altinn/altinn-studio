@@ -1,4 +1,4 @@
-import { Grid, Button } from '@material-ui/core';
+import { Button } from '@material-ui/core';
 import { CloudUploadOutlined } from '@material-ui/icons';
 import * as React from 'react';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -42,17 +42,15 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
 
   return (
     <>
-      <Grid item>
-        <Button
-          id='upload-button'
-          variant='contained'
-          className='button'
-          startIcon={<CloudUploadOutlined />}
-          onClick={onUploadClick}
-        >
-          {getLanguageFromKey('app_data_modelling.upload_xsd', props.language)}
-        </Button>
-      </Grid>
+      <Button
+        id='upload-button'
+        variant='contained'
+        className='button'
+        startIcon={<CloudUploadOutlined />}
+        onClick={onUploadClick}
+      >
+        {getLanguageFromKey('app_data_modelling.upload_xsd', props.language)}
+      </Button>
       {uploadButtonAnchor &&
         <AltinnPopoverSimple
           anchorEl={uploadButtonAnchor}
