@@ -107,31 +107,6 @@ const schemaEditorSlice = createSlice({
         state.focusNameField = item.path;
       }
     },
-    addRefProperty(state, action) {
-      const {
-        path, newKey, content,
-      } = action.payload;
-
-      const addToItem = getUiSchemaItem(state.uiSchema, path);
-      const item = content[0];
-      const propertyItem: UiSchemaItem = {
-        path: `${path}/properties/${newKey}`,
-        displayName: newKey,
-        $ref: item.id,
-      };
-
-      if (addToItem && addToItem.properties) {
-        addToItem.properties.push(propertyItem);
-      } else if (addToItem) {
-        addToItem.properties = [propertyItem];
-      }
-
-      content.forEach((uiSchemaItem: UiSchemaItem) => {
-        if (!state.uiSchema.find((i) => i.path === uiSchemaItem.path)) {
-          state.uiSchema.push(uiSchemaItem);
-        }
-      });
-    },
     deleteField(state, action) {
       const { path, key } = action.payload;
       const removeFromItem = getUiSchemaItem(state.uiSchema, path);
@@ -391,7 +366,6 @@ export const {
   addRootItem,
   addProperty,
   clearNameFocus,
-  addRefProperty,
   deleteField,
   deleteEnum,
   deleteProperty,
