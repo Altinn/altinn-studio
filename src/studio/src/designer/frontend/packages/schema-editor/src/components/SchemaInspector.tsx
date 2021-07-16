@@ -20,15 +20,18 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      minHeight: 600,
       minWidth: 500,
-      flexGrow: 1,
       padding: 14,
+      height: '90vh',
       background: 'white',
+      borderLeft: '1px solid #C9C9C9',
       zIndex: 2,
-      position: 'fixed',
+      overflow: 'auto',
       '& .MuiAutocomplete-input': {
         width: 150,
+      },
+      '& .MuiTabPanel-root': {
+
       },
     },
     header: {
@@ -254,6 +257,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onGoToDefButtonClick = () => {
+    if (!selectedItem?.$ref) {
+      return;
+    }
     dispatch(setSelectedId(
       {
         id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.path,

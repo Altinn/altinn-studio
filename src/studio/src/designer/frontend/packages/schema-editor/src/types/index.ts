@@ -4,7 +4,7 @@ export interface ISchemaState {
   name: string;
   saveSchemaUrl: string;
   selectedId?: string;
-  selectedNodeId?: string;
+  selectedTreeNodeId?: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.
   navigate?: string; // used to trigger navigation in tree, the value is not used.
 }

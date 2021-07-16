@@ -70,6 +70,6 @@ test('Renders properties', () => {
   act(() => {
     wrapper = mountComponent();
   });
-  wrapper.find('.MuiTypography-root').hostNodes().at(0).simulate('click');
+  wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
   expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(4);
 });

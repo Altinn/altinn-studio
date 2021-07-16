@@ -51,9 +51,11 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
       className="makeStyles-root-1"
     >
       <WithStyles(ForwardRef(Grid))
+        className="makeStyles-toolbar-4"
         container={true}
       >
         <ForwardRef(Grid)
+          className="makeStyles-toolbar-4"
           classes={
             Object {
               "align-content-xs-center": "MuiGrid-align-content-xs-center",
@@ -164,7 +166,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
           container={true}
         >
           <div
-            className="MuiGrid-root MuiGrid-container"
+            className="MuiGrid-root makeStyles-toolbar-4 MuiGrid-container"
           >
             <CreateNewWrapper
               buttonClass="makeStyles-button-3"
@@ -613,7 +615,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                     className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                   >
                     <StateManager
-                      className="makeStyles-select-5"
+                      className="makeStyles-select-6"
                       defaultInputValue=""
                       defaultMenuIsOpen={false}
                       defaultValue={null}
@@ -652,7 +654,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                         backspaceRemovesValue={true}
                         blurInputOnSelect={true}
                         captureMenuScroll={false}
-                        className="makeStyles-select-5"
+                        className="makeStyles-select-6"
                         closeMenuOnScroll={false}
                         closeMenuOnSelect={true}
                         components={Object {}}
@@ -720,7 +722,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                         }
                       >
                         <SelectContainer
-                          className="makeStyles-select-5"
+                          className="makeStyles-select-6"
                           clearValue={[Function]}
                           cx={[Function]}
                           getStyles={[Function]}
@@ -757,7 +759,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                               "backspaceRemovesValue": true,
                               "blurInputOnSelect": true,
                               "captureMenuScroll": false,
-                              "className": "makeStyles-select-5",
+                              "className": "makeStyles-select-6",
                               "closeMenuOnScroll": false,
                               "closeMenuOnSelect": true,
                               "components": Object {},
@@ -855,7 +857,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                           <EmotionCssPropInternal
                             __EMOTION_LABEL_PLEASE_DO_NOT_USE__="SelectContainer"
                             __EMOTION_TYPE_PLEASE_DO_NOT_USE__="div"
-                            className="makeStyles-select-5"
+                            className="makeStyles-select-6"
                             css={
                               Object {
                                 "boxSizing": "border-box",
@@ -869,7 +871,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                             onKeyDown={[Function]}
                           >
                             <div
-                              className="makeStyles-select-5 css-2b097c-container"
+                              className="makeStyles-select-6 css-2b097c-container"
                               id="schema-select-schema"
                               onKeyDown={[Function]}
                             >
@@ -906,7 +908,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                     "backspaceRemovesValue": true,
                                     "blurInputOnSelect": true,
                                     "captureMenuScroll": false,
-                                    "className": "makeStyles-select-5",
+                                    "className": "makeStyles-select-6",
                                     "closeMenuOnScroll": false,
                                     "closeMenuOnSelect": true,
                                     "components": Object {},
@@ -1083,7 +1085,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                     "backspaceRemovesValue": true,
                                     "blurInputOnSelect": true,
                                     "captureMenuScroll": false,
-                                    "className": "makeStyles-select-5",
+                                    "className": "makeStyles-select-6",
                                     "closeMenuOnScroll": false,
                                     "closeMenuOnSelect": true,
                                     "components": Object {},
@@ -1244,7 +1246,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                           "backspaceRemovesValue": true,
                                           "blurInputOnSelect": true,
                                           "captureMenuScroll": false,
-                                          "className": "makeStyles-select-5",
+                                          "className": "makeStyles-select-6",
                                           "closeMenuOnScroll": false,
                                           "closeMenuOnSelect": true,
                                           "components": Object {},
@@ -1402,7 +1404,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-5",
+                                                "className": "makeStyles-select-6",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -1565,7 +1567,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-5",
+                                                "className": "makeStyles-select-6",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -1800,7 +1802,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                           "backspaceRemovesValue": true,
                                           "blurInputOnSelect": true,
                                           "captureMenuScroll": false,
-                                          "className": "makeStyles-select-5",
+                                          "className": "makeStyles-select-6",
                                           "closeMenuOnScroll": false,
                                           "closeMenuOnSelect": true,
                                           "components": Object {},
@@ -1943,7 +1945,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-5",
+                                                "className": "makeStyles-select-6",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -2097,7 +2099,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                                                 "backspaceRemovesValue": true,
                                                 "blurInputOnSelect": true,
                                                 "captureMenuScroll": false,
-                                                "className": "makeStyles-select-5",
+                                                "className": "makeStyles-select-6",
                                                 "closeMenuOnScroll": false,
                                                 "closeMenuOnSelect": true,
                                                 "components": Object {},
@@ -2570,10 +2572,177 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                 </ForwardRef(Grid)>
               </WithStyles(ForwardRef(Grid))>
             </DeleteWrapper>
+            <WithStyles(ForwardRef(Button))
+              className="makeStyles-button-3"
+              onClick={[Function]}
+              startIcon={<Memo />}
+              type="button"
+              variant="contained"
+            >
+              <ForwardRef(Button)
+                className="makeStyles-button-3"
+                classes={
+                  Object {
+                    "colorInherit": "MuiButton-colorInherit",
+                    "contained": "MuiButton-contained",
+                    "containedPrimary": "MuiButton-containedPrimary",
+                    "containedSecondary": "MuiButton-containedSecondary",
+                    "containedSizeLarge": "MuiButton-containedSizeLarge",
+                    "containedSizeSmall": "MuiButton-containedSizeSmall",
+                    "disableElevation": "MuiButton-disableElevation",
+                    "disabled": "Mui-disabled",
+                    "endIcon": "MuiButton-endIcon",
+                    "focusVisible": "Mui-focusVisible",
+                    "fullWidth": "MuiButton-fullWidth",
+                    "iconSizeLarge": "MuiButton-iconSizeLarge",
+                    "iconSizeMedium": "MuiButton-iconSizeMedium",
+                    "iconSizeSmall": "MuiButton-iconSizeSmall",
+                    "label": "MuiButton-label",
+                    "outlined": "MuiButton-outlined",
+                    "outlinedPrimary": "MuiButton-outlinedPrimary",
+                    "outlinedSecondary": "MuiButton-outlinedSecondary",
+                    "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                    "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                    "root": "MuiButton-root",
+                    "sizeLarge": "MuiButton-sizeLarge",
+                    "sizeSmall": "MuiButton-sizeSmall",
+                    "startIcon": "MuiButton-startIcon",
+                    "text": "MuiButton-text",
+                    "textPrimary": "MuiButton-textPrimary",
+                    "textSecondary": "MuiButton-textSecondary",
+                    "textSizeLarge": "MuiButton-textSizeLarge",
+                    "textSizeSmall": "MuiButton-textSizeSmall",
+                  }
+                }
+                onClick={[Function]}
+                startIcon={<Memo />}
+                type="button"
+                variant="contained"
+              >
+                <WithStyles(ForwardRef(ButtonBase))
+                  className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                  component="button"
+                  disabled={false}
+                  focusRipple={true}
+                  focusVisibleClassName="Mui-focusVisible"
+                  onClick={[Function]}
+                  type="button"
+                >
+                  <ForwardRef(ButtonBase)
+                    className="MuiButton-root MuiButton-contained makeStyles-button-3"
+                    classes={
+                      Object {
+                        "disabled": "Mui-disabled",
+                        "focusVisible": "Mui-focusVisible",
+                        "root": "MuiButtonBase-root",
+                      }
+                    }
+                    component="button"
+                    disabled={false}
+                    focusRipple={true}
+                    focusVisibleClassName="Mui-focusVisible"
+                    onClick={[Function]}
+                    type="button"
+                  >
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-3"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        <span
+                          className="MuiButton-startIcon MuiButton-iconSizeMedium"
+                        >
+                          <ForwardRef(ArchiveOutlinedIcon)>
+                            <WithStyles(ForwardRef(SvgIcon))>
+                              <ForwardRef(SvgIcon)
+                                classes={
+                                  Object {
+                                    "colorAction": "MuiSvgIcon-colorAction",
+                                    "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                    "colorError": "MuiSvgIcon-colorError",
+                                    "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                    "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                    "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                    "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                    "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                    "root": "MuiSvgIcon-root",
+                                  }
+                                }
+                              >
+                                <svg
+                                  aria-hidden={true}
+                                  className="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM6.24 5h11.52l.81.97H5.44l.8-.97zM5 19V8h14v11H5zm8.45-9h-2.9v3H8l4 4 4-4h-2.55z"
+                                  />
+                                </svg>
+                              </ForwardRef(SvgIcon)>
+                            </WithStyles(ForwardRef(SvgIcon))>
+                          </ForwardRef(ArchiveOutlinedIcon)>
+                        </span>
+                        schema_editor.save_data_model
+                      </span>
+                      <WithStyles(memo)
+                        center={false}
+                      >
+                        <ForwardRef(TouchRipple)
+                          center={false}
+                          classes={
+                            Object {
+                              "child": "MuiTouchRipple-child",
+                              "childLeaving": "MuiTouchRipple-childLeaving",
+                              "childPulsate": "MuiTouchRipple-childPulsate",
+                              "ripple": "MuiTouchRipple-ripple",
+                              "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                              "rippleVisible": "MuiTouchRipple-rippleVisible",
+                              "root": "MuiTouchRipple-root",
+                            }
+                          }
+                        >
+                          <span
+                            className="MuiTouchRipple-root"
+                          >
+                            <TransitionGroup
+                              childFactory={[Function]}
+                              component={null}
+                              exit={true}
+                            />
+                          </span>
+                        </ForwardRef(TouchRipple)>
+                      </WithStyles(memo)>
+                    </button>
+                  </ForwardRef(ButtonBase)>
+                </WithStyles(ForwardRef(ButtonBase))>
+              </ForwardRef(Button)>
+            </WithStyles(ForwardRef(Button))>
           </div>
         </ForwardRef(Grid)>
       </WithStyles(ForwardRef(Grid))>
       <dummyComponent
+        editorRef={
+          Object {
+            "current": null,
+          }
+        }
         language={
           Object {
             "administration": Object {},
@@ -2584,7 +2753,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
         schema={Object {}}
       >
         <div>
-          {"language":{"administration":{}},"schema":{},"name":"some-existing-model"}
+          {"editorRef":{"current":null},"language":{"administration":{}},"schema":{},"name":"some-existing-model"}
         </div>
       </dummyComponent>
     </div>
