@@ -81,7 +81,6 @@ describe('DataModelling', () => {
         type: 'dataModelling/createNewDataModel',
         payload: {
           modelName: 'test',
-          onNewNameCreated: expect.any(Function),
         },
       },
     );

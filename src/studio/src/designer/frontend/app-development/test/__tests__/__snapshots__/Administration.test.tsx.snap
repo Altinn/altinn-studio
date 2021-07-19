@@ -79,10 +79,9 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
-              <div />
             </div>
             <button
-              className="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputFieldComponent-btn-20 makeStyles-secondaryButton-32 MuiButton-textPrimary"
+              className="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputFieldComponent-btn-20 makeStyles-secondaryButton-25 MuiButton-textPrimary"
               disabled={false}
               onBlur={[Function]}
               onClick={[Function]}
@@ -108,12 +107,13 @@ exports[`Administration Should match snapshot 1`] = `
                 className="MuiButton-label"
               >
                 <span
-                  className="makeStyles-borderBottom-29"
+                  className="makeStyles-borderBottom-22"
                 >
                   general.edit
                 </span>
               </span>
             </button>
+            <div />
           </div>
           <div
             className="makeStyles-marginBottom_24-13"
@@ -162,8 +162,8 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
-              <div />
             </div>
+            <div />
           </div>
           <div
             className="makeStyles-marginBottom_24-13"
@@ -211,8 +211,8 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
-              <div />
             </div>
+            <div />
           </div>
           <div
             className="makeStyles-marginBottom_24-13"
@@ -260,8 +260,8 @@ exports[`Administration Should match snapshot 1`] = `
                   />
                 </div>
               </div>
-              <div />
             </div>
+            <div />
           </div>
         </div>
       </div>
@@ -318,7 +318,7 @@ exports[`Administration Should match snapshot 1`] = `
           </ul>
         </div>
         <button
-          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-31 MuiButton-containedPrimary"
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-24 MuiButton-containedPrimary"
           disabled={false}
           id="reset-repo-button"
           onBlur={[Function]}

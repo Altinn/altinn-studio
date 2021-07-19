@@ -101,6 +101,7 @@
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
+      "^utils/(.*)": "<rootDir>/utils/$1",
       "^app-shared/(.*)": "<rootDir>/../shared/$1",
       "^ux-editor/(.*)": "<rootDir>/../ux-editor/$1",
       "^@altinn/schema-editor/(.*)": "<rootDir>/../packages/schema-editor/src/$1"

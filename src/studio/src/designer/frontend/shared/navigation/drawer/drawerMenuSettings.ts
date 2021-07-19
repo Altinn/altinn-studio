@@ -13,27 +13,13 @@ export interface IMainMenu {
 }
 
 export interface IDrawerMenu {
-  about: IMenuItem[];
-  create: IMenuItem[];
   language: IMenuItem[];
   [key: string]: IMenuItem[];
 }
 
-export const mainMenuSettings: IMainMenu = {
+const mainMenuSettings: IMainMenu = {
   menuType: 'Header',
   menuItems: [
-    {
-      displayText: 'Om',
-      activeSubHeaderSelection: 'Om',
-      navLink: '/about',
-      menuType: 'about',
-    },
-    {
-      displayText: 'Lage',
-      activeSubHeaderSelection: 'Lage',
-      navLink: '/ui-editor',
-      menuType: 'create',
-    },
     {
       displayText: 'Språk',
       activeSubHeaderSelection: 'Språk',
@@ -43,42 +29,20 @@ export const mainMenuSettings: IMainMenu = {
   ],
 };
 
-export const leftDrawerMenuSettings: IDrawerMenu = {
-  about: [
-    {
-      displayText: 'Om appen',
-      navLink: '/about',
-      activeLeftMenuSelection: 'Om appen',
-      iconClass: 'fa fa-info-circle',
-    },
+export const createMainMenuSettings = (additionalOptions: IMenuItem[] = []): IMainMenu => ({
+  ...mainMenuSettings,
+  menuItems: [
+    ...additionalOptions,
+    ...mainMenuSettings.menuItems,
   ],
-  create: [
-    {
-      displayText: 'Datamodell',
-      navLink: '/datamodel',
-      activeLeftMenuSelection: 'Datamodell',
-      iconClass: 'fa fa-archive',
-    },
-    // The following link is hidden until datamodelling page is ready for production.
-    // {
-    //   displayText: 'Data-Editor',
-    //   navLink: '/datamodelling',
-    //   activeLeftMenuSelection: 'Data-Editor',
-    //   iconClass: 'fa fa-datamodel-object',
-    // },
-    {
-      displayText: 'UI-Editor',
-      navLink: '/ui-editor',
-      activeLeftMenuSelection: 'UI-Editor',
-      iconClass: 'fa fa-settings',
-    },
-    {
-      displayText: 'Tilgangsstyring',
-      navLink: '/accesscontrol',
-      activeLeftMenuSelection: 'Tilgangsstyring',
-      iconClass: 'fa fa-keyhole',
-    },
-  ],
+});
+
+export const createLeftDrawerMenuSettings = (additionalOptions: { [key: string]: IMenuItem[] } = {}): IDrawerMenu => ({
+  ...additionalOptions,
+  ...leftDrawerMenuSettings,
+});
+
+const leftDrawerMenuSettings: IDrawerMenu = {
   language: [
     {
       displayText: 'Tekster',

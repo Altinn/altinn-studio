@@ -22,7 +22,7 @@ const language = {
 
 <div style={{minHeight: 1350, flex: '1 1 auto'}}>
   <Provider store={store}>
-    <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} rootItemId={'#/properties/melding'} language={language} />
+    <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language} />
   </Provider>
 </div>
 ```

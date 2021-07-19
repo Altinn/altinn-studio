@@ -18,12 +18,12 @@ describe('>>> shar../../navigation/drawer/TabletDrawerMenu.tsx', () => {
     });
 
     it('should render tablet menu and the mock function should have been called, ', () => {
-
       const tabletDrawerMenu = mount(
         <MuiThemeProvider theme={theme}>
           <TabletDrawerMenu
             tabletDrawerOpen={mockTabletDrawerOpen}
             handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
+            mainMenuItems={[]}
           />
         </MuiThemeProvider>, { attachTo: document.getElementById('root') },
       );

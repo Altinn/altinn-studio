@@ -79,7 +79,6 @@ const dataModellingSlice = createSlice({
     createNewDataModel(state, { payload }) {
       state.error = null;
       state.schema = newSchema;
-      payload.onNewNameCreated(payload.modelName);
     },
     deleteDataModel(state, _) {
       state.saving = true;

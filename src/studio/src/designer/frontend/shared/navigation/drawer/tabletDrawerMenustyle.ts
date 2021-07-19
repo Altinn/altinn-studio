@@ -1,43 +1,27 @@
 import { createStyles, Theme } from '@material-ui/core/styles';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-const drawerWidth = '240';
-
-export const styles = (theme: Theme) => createStyles({
-  root: {
-    display: 'absolute',
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 20,
-  },
-  hide: {
-    display: 'none',
-  },
+const drawerWidth = 240;
+const innerHover = {
+  color: altinnTheme.altinnPalette.primary.blueDark,
+  fontWeight: 500,
+  backgroundColor: 'transparent',
+};
+export const styles = (_: Theme) => createStyles({
   drawer: {
-    width: drawerWidth,
     flexShrink: 0,
-  },
-  drawerPaper: {
-    width: drawerWidth,
+    paddingRight: 16,
   },
   divider: {
     background: 'black',
     marginLeft: 25,
   },
   nested: {
-    'paddingLeft': 25,
-    '&:hover': {
-      color: altinnTheme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
-      backgroundColor: 'transparent',
-    },
+    paddingLeft: 25,
+    '&:hover': innerHover,
   },
   subMenuItem: {
     fontSize: 16,
-  },
-  menuItem: {
-    paddingRight: 0,
   },
   menuItemText: {
     textAlign: 'right',
@@ -45,50 +29,37 @@ export const styles = (theme: Theme) => createStyles({
     paddingRight: 0,
   },
   mainMenuItem: {
-    'fontSize': 20,
-    '&:hover': {
-      color: altinnTheme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
-      backgroundColor: 'transparent',
-    },
+    fontSize: 20,
+    '&:hover': innerHover,
   },
   drawerMenuPaper: {
     borderRadius: 1,
-    minWidth: 150,
-    padding: 0,
+    paddingRight: 25,
     top: 92,
-    right: 0,
+    width: drawerWidth,
   },
-  drawerMenu: {
-    borderRadius: 1,
-    minWidth: 150,
-    padding: 0,
-    top: 70,
-    right: 0,
+  commonButton: {
+    width: 46,
+    border: '2px solid #0062BA',
+    borderRadius: 0,
+    fontSize: 18,
+    padding: '2px 8px 4px 8px',
+    marginLeft: 8,
+    textTransform: 'lowercase',
   },
   button: {
+    color: altinnTheme.altinnPalette.primary.blueDark,
     '&:hover': {
       backgroundColor: 'transparent',
     },
-    'border': '2px solid #0062BA',
-    'borderRadius': 0,
-    'color': altinnTheme.altinnPalette.primary.blueDark,
-    'fontSize': 18,
-    'padding': '2px 8px 4px',
-    'textTransform': 'lowercase',
   },
   closeButton: {
+    color: altinnTheme.altinnPalette.primary.white,
+    backgroundColor: altinnTheme.altinnPalette.primary.blueDark,
+    fontWeight: 400,
     '&:hover': {
       backgroundColor: altinnTheme.altinnPalette.primary.blueDark,
     },
-    'border': '2px solid #0062BA',
-    'borderRadius': 0,
-    'backgroundColor': altinnTheme.altinnPalette.primary.blueDark,
-    'color': altinnTheme.altinnPalette.primary.white,
-    'fontSize': 18,
-    'fontWeight': 400,
-    'padding': '2px 8px 4px',
-    'textTransform': 'lowercase',
   },
   activeListItem: {
     fontWeight: 500,

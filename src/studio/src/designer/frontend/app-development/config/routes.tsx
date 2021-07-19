@@ -40,13 +40,6 @@ const routes: IRoute[] = [
     subapp: uieditorApp,
   },
   {
-    path: '/preview',
-    exact: true,
-    activeSubHeaderSelection: 'Lage',
-    menu: 'create',
-    subapp: uieditorApp,
-  },
-  {
     path: '/texts',
     exact: true,
     activeSubHeaderSelection: 'Språk',
@@ -94,7 +87,7 @@ const routes: IRoute[] = [
     path: '/datamodelling',
     exact: true,
     activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Data-Editor',
+    activeLeftMenuSelection: 'Data-Modelling',
     menu: 'create',
     subapp: DataModellingContainer,
   },
@@ -102,7 +95,7 @@ const routes: IRoute[] = [
     path: '/accesscontrol',
     exact: true,
     activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Tilgangsstyring',
+    activeLeftMenuSelection: 'Access-Controll',
     menu: 'create',
     subapp: AccessControlContainer,
     props: {
