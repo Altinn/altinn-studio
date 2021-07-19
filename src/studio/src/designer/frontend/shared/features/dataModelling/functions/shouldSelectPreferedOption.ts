@@ -1,4 +1,4 @@
-import { IMetadataOption } from "./types";
+import { IMetadataOption } from './types';
 
 function shouldSelectPreferedOption(
   metadataOptions: IMetadataOption[],

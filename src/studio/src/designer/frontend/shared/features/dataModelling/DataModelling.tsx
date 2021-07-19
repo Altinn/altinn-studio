@@ -54,15 +54,15 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
 
   const [selectedOption, setSelectedOption] = React.useState(null);
-  const [lastFetchedSchema, setLastFetchedSchema] = React.useState(null);
+  const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
   const schemaEditorRef = React.useRef<ISchemaEditor>(null);
 
   React.useEffect(() => {
-    if (!schemaPathIsSame(lastFetchedSchema, selectedOption)) {
+    if (!schemaPathIsSame(lastFetchedOption, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption }));
-      setLastFetchedSchema(selectedOption);
+      setLastFetchedOption(selectedOption);
     }
-  }, [selectedOption, dispatch]);
+  }, [selectedOption, lastFetchedOption, dispatch]);
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
     if (!shouldSelectPreferedOption(metadataOptions, selectedOption, setSelectedOption)) {
       return;
@@ -72,7 +72,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
       setSelectedOption(option);
       props.preferedOptionLabel.clear();
     }
-  }, [metadataOptions, selectedOption]);
+  }, [metadataOptions, selectedOption, props.preferedOptionLabel]);
 
   const onSchemaSelected = (s: any) => {
     clearPreferedOption();
@@ -81,7 +81,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 
   const onSaveSchema = (schema: any) => {
     const $id = sharedUrls().getDataModellingUrl(
-      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`
+      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`,
     );
     dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
   };
@@ -146,3 +146,6 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   );
 }
 export default DataModelling;
+DataModelling.defaultProps = {
+  preferedOptionLabel: undefined,
+};

@@ -1,5 +1,5 @@
-import { IDataModelsMetadataState, IDataModelMetadataItem } from "../sagas/metadata";
-import { IMetadataOption } from "./types";
+import { IDataModelsMetadataState, IDataModelMetadataItem } from '../sagas/metadata';
+import { IMetadataOption } from './types';
 
 function createDataModelMetadataOptions(
   { dataModelsMetadataState }: { dataModelsMetadataState: IDataModelsMetadataState },

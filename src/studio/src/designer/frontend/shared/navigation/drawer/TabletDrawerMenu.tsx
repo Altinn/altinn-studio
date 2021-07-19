@@ -176,7 +176,11 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
                         disablePadding={true}
                       >
                         {leftDrawerMenu[menuItem.menuType].map((item: IMenuItem) => (
-                          <Link to={item.navLink} style={{ borderBottom: 0 }} key={item.navLink}>
+                          <Link
+                            to={item.navLink}
+                            style={{ borderBottom: 0 }}
+                            key={item.navLink}
+                          >
                             <ListItem
                               button={true}
                               disableTouchRipple={true}

@@ -1,10 +1,10 @@
-import { Grid } from "@material-ui/core";
+import { Grid } from '@material-ui/core';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
-import React = require("react");
+import React = require('react');
 import { Redirect, Route } from 'react-router-dom';
-import routes from "../config/routes";
+import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
-import { redirects } from "../config/redirects";
+import { redirects } from '../config/redirects';
 
 interface IPageHeaderProps {
   repoStatus: any;

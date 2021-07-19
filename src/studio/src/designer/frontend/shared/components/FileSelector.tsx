@@ -98,7 +98,9 @@ class FileUpload extends React.Component<IFileUploadProps, IFileUploadState> {
   }
 
   render() {
-    const { language, classes, labelTextRecource } = this.props;
+    const {
+      language, classes, labelTextRecource,
+    } = this.props;
     const selectedFileName = this.getFileName();
     return (
       <form onSubmit={this.handleSubmit} className={classes.root}>

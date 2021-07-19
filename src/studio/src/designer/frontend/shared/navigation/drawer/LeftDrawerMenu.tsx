@@ -22,7 +22,9 @@ export interface ILeftDrawerMenuProps {
   leftMenuItems: { [key: string]: IMenuItem[] };
 }
 
-export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection, leftMenuItems }: ILeftDrawerMenuProps) {
+export default function LeftDrawerMenu({
+  menuType, activeLeftMenuSelection, leftMenuItems,
+}: ILeftDrawerMenuProps) {
   const classes = useStyles();
 
   const [iconColor, setIconColor] = React.useState<any>({});

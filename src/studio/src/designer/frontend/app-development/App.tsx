@@ -191,7 +191,11 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
             </AltinnPopoverSimple>
             <Grid container={true} direction='row'>
               <PageHeader repoStatus={repoStatus} />
-              <LeftMenu repoStatus={repoStatus} classes={classes} language={this.props.language} />
+              <LeftMenu
+                repoStatus={repoStatus}
+                classes={classes}
+                language={this.props.language}
+              />
             </Grid>
           </div>
         </Router>

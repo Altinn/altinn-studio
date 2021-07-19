@@ -12,14 +12,14 @@ interface IDataModellingContainerProps extends IRouteProps {
 
 export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
   const [preferedOption, setPreferedOption] = React.useState<string>(null);
-  const onXSDUploaded = (filename: string, dispatch: React.Dispatch<any>) => {
+  const dispatch = useDispatch();
+  const onXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
     const schemaName = filename.substr(0, filenameWithoutXsd.length);
     setPreferedOption(schemaName);
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
-  const dispatch = useDispatch();
   const preferedOptionLabel = preferedOption && { label: preferedOption, clear: () => setPreferedOption(null) };
   return (
     // Importing the ShcemaEditor inside the app-development project so the alias in webpack works.
@@ -30,7 +30,7 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
     >
       <XSDUploader
         language={props.language}
-        onXSDUploaded={(filename: string) => onXSDUploaded(filename, dispatch)}
+        onXSDUploaded={(filename: string) => onXSDUploaded(filename)}
       />
     </DataModelling>
   );

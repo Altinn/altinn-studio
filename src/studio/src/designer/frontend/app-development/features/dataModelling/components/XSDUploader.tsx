@@ -23,7 +23,7 @@ export default function XSDUploaderWrapper(props: IXSDUploaderWrapper) {
     setUploading(true);
     axios.post(XSDUploadUrl, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     }).then((response) => {
       if (response) {

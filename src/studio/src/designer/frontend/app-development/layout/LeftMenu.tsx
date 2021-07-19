@@ -1,9 +1,9 @@
-import { Grid, Hidden } from "@material-ui/core";
-import LeftDrawerMenu from "app-shared/navigation/drawer/LeftDrawerMenu";
-import classNames from "classnames";
-import React = require("react");
-import { Redirect, Route, Switch } from "react-router-dom";
-import routes from "../config/routes";
+import { Grid, Hidden } from '@material-ui/core';
+import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
+import classNames from 'classnames';
+import React = require('react');
+import { Redirect, Route, Switch } from 'react-router-dom';
+import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
@@ -14,7 +14,9 @@ interface ILeftMenu {
 }
 
 const LeftMenu = (componentProps: ILeftMenu) => {
-  const { repoStatus, classes, language } = componentProps;
+  const {
+    repoStatus, classes, language,
+  } = componentProps;
   return (
     <Grid item xs={12}>
       {

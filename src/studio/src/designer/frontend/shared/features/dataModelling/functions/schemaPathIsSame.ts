@@ -1,4 +1,4 @@
-import { IMetadataOption } from "./types";
+import { IMetadataOption } from './types';
 
 const schemaPathIsSame = (opt1: IMetadataOption, opt2: IMetadataOption) => {
   if (!opt2?.value?.repositoryRelativeUrl) {
