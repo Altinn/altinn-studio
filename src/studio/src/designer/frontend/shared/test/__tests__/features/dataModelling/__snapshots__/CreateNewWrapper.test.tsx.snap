@@ -1,47 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> CreateNewWrapper.tsx +++ Should match snapshot with the least amount of params 1`] = `
-<div
-  className="MuiGrid-root MuiGrid-item"
+<button
+  className="MuiButtonBase-root MuiButton-root MuiButton-contained"
+  disabled={false}
+  id="new-button"
+  onBlur={[Function]}
+  onClick={[Function]}
+  onDragLeave={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex={0}
+  type="button"
 >
-  <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-contained"
-    disabled={false}
-    id="new-button"
-    onBlur={[Function]}
-    onClick={[Function]}
-    onDragLeave={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    onKeyUp={[Function]}
-    onMouseDown={[Function]}
-    onMouseLeave={[Function]}
-    onMouseUp={[Function]}
-    onTouchEnd={[Function]}
-    onTouchMove={[Function]}
-    onTouchStart={[Function]}
-    tabIndex={0}
-    type="button"
+  <span
+    className="MuiButton-label"
   >
     <span
-      className="MuiButton-label"
+      className="MuiButton-startIcon MuiButton-iconSizeMedium"
     >
-      <span
-        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      <svg
+        aria-hidden={true}
+        className="MuiSvgIcon-root"
+        focusable="false"
+        viewBox="0 0 24 24"
       >
-        <svg
-          aria-hidden={true}
-          className="MuiSvgIcon-root"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-          />
-        </svg>
-      </span>
-      general.create_new
+        <path
+          d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+        />
+      </svg>
     </span>
-  </button>
-</div>
+    general.create_new
+  </span>
+</button>
 `;

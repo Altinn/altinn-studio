@@ -181,288 +181,169 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                 }
               }
             >
-              <WithStyles(ForwardRef(Grid))
-                item={true}
+              <WithStyles(ForwardRef(Button))
+                id="new-button"
+                onClick={[Function]}
+                startIcon={<Memo />}
+                variant="contained"
               >
-                <ForwardRef(Grid)
+                <ForwardRef(Button)
                   classes={
                     Object {
-                      "align-content-xs-center": "MuiGrid-align-content-xs-center",
-                      "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
-                      "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
-                      "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
-                      "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
-                      "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
-                      "align-items-xs-center": "MuiGrid-align-items-xs-center",
-                      "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
-                      "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
-                      "container": "MuiGrid-container",
-                      "direction-xs-column": "MuiGrid-direction-xs-column",
-                      "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
-                      "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
-                      "grid-lg-1": "MuiGrid-grid-lg-1",
-                      "grid-lg-10": "MuiGrid-grid-lg-10",
-                      "grid-lg-11": "MuiGrid-grid-lg-11",
-                      "grid-lg-12": "MuiGrid-grid-lg-12",
-                      "grid-lg-2": "MuiGrid-grid-lg-2",
-                      "grid-lg-3": "MuiGrid-grid-lg-3",
-                      "grid-lg-4": "MuiGrid-grid-lg-4",
-                      "grid-lg-5": "MuiGrid-grid-lg-5",
-                      "grid-lg-6": "MuiGrid-grid-lg-6",
-                      "grid-lg-7": "MuiGrid-grid-lg-7",
-                      "grid-lg-8": "MuiGrid-grid-lg-8",
-                      "grid-lg-9": "MuiGrid-grid-lg-9",
-                      "grid-lg-auto": "MuiGrid-grid-lg-auto",
-                      "grid-lg-true": "MuiGrid-grid-lg-true",
-                      "grid-md-1": "MuiGrid-grid-md-1",
-                      "grid-md-10": "MuiGrid-grid-md-10",
-                      "grid-md-11": "MuiGrid-grid-md-11",
-                      "grid-md-12": "MuiGrid-grid-md-12",
-                      "grid-md-2": "MuiGrid-grid-md-2",
-                      "grid-md-3": "MuiGrid-grid-md-3",
-                      "grid-md-4": "MuiGrid-grid-md-4",
-                      "grid-md-5": "MuiGrid-grid-md-5",
-                      "grid-md-6": "MuiGrid-grid-md-6",
-                      "grid-md-7": "MuiGrid-grid-md-7",
-                      "grid-md-8": "MuiGrid-grid-md-8",
-                      "grid-md-9": "MuiGrid-grid-md-9",
-                      "grid-md-auto": "MuiGrid-grid-md-auto",
-                      "grid-md-true": "MuiGrid-grid-md-true",
-                      "grid-sm-1": "MuiGrid-grid-sm-1",
-                      "grid-sm-10": "MuiGrid-grid-sm-10",
-                      "grid-sm-11": "MuiGrid-grid-sm-11",
-                      "grid-sm-12": "MuiGrid-grid-sm-12",
-                      "grid-sm-2": "MuiGrid-grid-sm-2",
-                      "grid-sm-3": "MuiGrid-grid-sm-3",
-                      "grid-sm-4": "MuiGrid-grid-sm-4",
-                      "grid-sm-5": "MuiGrid-grid-sm-5",
-                      "grid-sm-6": "MuiGrid-grid-sm-6",
-                      "grid-sm-7": "MuiGrid-grid-sm-7",
-                      "grid-sm-8": "MuiGrid-grid-sm-8",
-                      "grid-sm-9": "MuiGrid-grid-sm-9",
-                      "grid-sm-auto": "MuiGrid-grid-sm-auto",
-                      "grid-sm-true": "MuiGrid-grid-sm-true",
-                      "grid-xl-1": "MuiGrid-grid-xl-1",
-                      "grid-xl-10": "MuiGrid-grid-xl-10",
-                      "grid-xl-11": "MuiGrid-grid-xl-11",
-                      "grid-xl-12": "MuiGrid-grid-xl-12",
-                      "grid-xl-2": "MuiGrid-grid-xl-2",
-                      "grid-xl-3": "MuiGrid-grid-xl-3",
-                      "grid-xl-4": "MuiGrid-grid-xl-4",
-                      "grid-xl-5": "MuiGrid-grid-xl-5",
-                      "grid-xl-6": "MuiGrid-grid-xl-6",
-                      "grid-xl-7": "MuiGrid-grid-xl-7",
-                      "grid-xl-8": "MuiGrid-grid-xl-8",
-                      "grid-xl-9": "MuiGrid-grid-xl-9",
-                      "grid-xl-auto": "MuiGrid-grid-xl-auto",
-                      "grid-xl-true": "MuiGrid-grid-xl-true",
-                      "grid-xs-1": "MuiGrid-grid-xs-1",
-                      "grid-xs-10": "MuiGrid-grid-xs-10",
-                      "grid-xs-11": "MuiGrid-grid-xs-11",
-                      "grid-xs-12": "MuiGrid-grid-xs-12",
-                      "grid-xs-2": "MuiGrid-grid-xs-2",
-                      "grid-xs-3": "MuiGrid-grid-xs-3",
-                      "grid-xs-4": "MuiGrid-grid-xs-4",
-                      "grid-xs-5": "MuiGrid-grid-xs-5",
-                      "grid-xs-6": "MuiGrid-grid-xs-6",
-                      "grid-xs-7": "MuiGrid-grid-xs-7",
-                      "grid-xs-8": "MuiGrid-grid-xs-8",
-                      "grid-xs-9": "MuiGrid-grid-xs-9",
-                      "grid-xs-auto": "MuiGrid-grid-xs-auto",
-                      "grid-xs-true": "MuiGrid-grid-xs-true",
-                      "item": "MuiGrid-item",
-                      "justify-xs-center": "MuiGrid-justify-xs-center",
-                      "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
-                      "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
-                      "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
-                      "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
-                      "root": "MuiGrid-root",
-                      "spacing-xs-1": "MuiGrid-spacing-xs-1",
-                      "spacing-xs-10": "MuiGrid-spacing-xs-10",
-                      "spacing-xs-2": "MuiGrid-spacing-xs-2",
-                      "spacing-xs-3": "MuiGrid-spacing-xs-3",
-                      "spacing-xs-4": "MuiGrid-spacing-xs-4",
-                      "spacing-xs-5": "MuiGrid-spacing-xs-5",
-                      "spacing-xs-6": "MuiGrid-spacing-xs-6",
-                      "spacing-xs-7": "MuiGrid-spacing-xs-7",
-                      "spacing-xs-8": "MuiGrid-spacing-xs-8",
-                      "spacing-xs-9": "MuiGrid-spacing-xs-9",
-                      "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
-                      "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
-                      "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                      "colorInherit": "MuiButton-colorInherit",
+                      "contained": "MuiButton-contained",
+                      "containedPrimary": "MuiButton-containedPrimary",
+                      "containedSecondary": "MuiButton-containedSecondary",
+                      "containedSizeLarge": "MuiButton-containedSizeLarge",
+                      "containedSizeSmall": "MuiButton-containedSizeSmall",
+                      "disableElevation": "MuiButton-disableElevation",
+                      "disabled": "Mui-disabled",
+                      "endIcon": "MuiButton-endIcon",
+                      "focusVisible": "Mui-focusVisible",
+                      "fullWidth": "MuiButton-fullWidth",
+                      "iconSizeLarge": "MuiButton-iconSizeLarge",
+                      "iconSizeMedium": "MuiButton-iconSizeMedium",
+                      "iconSizeSmall": "MuiButton-iconSizeSmall",
+                      "label": "MuiButton-label",
+                      "outlined": "MuiButton-outlined",
+                      "outlinedPrimary": "MuiButton-outlinedPrimary",
+                      "outlinedSecondary": "MuiButton-outlinedSecondary",
+                      "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                      "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                      "root": "MuiButton-root",
+                      "sizeLarge": "MuiButton-sizeLarge",
+                      "sizeSmall": "MuiButton-sizeSmall",
+                      "startIcon": "MuiButton-startIcon",
+                      "text": "MuiButton-text",
+                      "textPrimary": "MuiButton-textPrimary",
+                      "textSecondary": "MuiButton-textSecondary",
+                      "textSizeLarge": "MuiButton-textSizeLarge",
+                      "textSizeSmall": "MuiButton-textSizeSmall",
                     }
                   }
-                  item={true}
+                  id="new-button"
+                  onClick={[Function]}
+                  startIcon={<Memo />}
+                  variant="contained"
                 >
-                  <div
-                    className="MuiGrid-root MuiGrid-item"
+                  <WithStyles(ForwardRef(ButtonBase))
+                    className="MuiButton-root MuiButton-contained"
+                    component="button"
+                    disabled={false}
+                    focusRipple={true}
+                    focusVisibleClassName="Mui-focusVisible"
+                    id="new-button"
+                    onClick={[Function]}
+                    type="button"
                   >
-                    <WithStyles(ForwardRef(Button))
+                    <ForwardRef(ButtonBase)
+                      className="MuiButton-root MuiButton-contained"
+                      classes={
+                        Object {
+                          "disabled": "Mui-disabled",
+                          "focusVisible": "Mui-focusVisible",
+                          "root": "MuiButtonBase-root",
+                        }
+                      }
+                      component="button"
+                      disabled={false}
+                      focusRipple={true}
+                      focusVisibleClassName="Mui-focusVisible"
                       id="new-button"
                       onClick={[Function]}
-                      startIcon={<Memo />}
-                      variant="contained"
+                      type="button"
                     >
-                      <ForwardRef(Button)
-                        classes={
-                          Object {
-                            "colorInherit": "MuiButton-colorInherit",
-                            "contained": "MuiButton-contained",
-                            "containedPrimary": "MuiButton-containedPrimary",
-                            "containedSecondary": "MuiButton-containedSecondary",
-                            "containedSizeLarge": "MuiButton-containedSizeLarge",
-                            "containedSizeSmall": "MuiButton-containedSizeSmall",
-                            "disableElevation": "MuiButton-disableElevation",
-                            "disabled": "Mui-disabled",
-                            "endIcon": "MuiButton-endIcon",
-                            "focusVisible": "Mui-focusVisible",
-                            "fullWidth": "MuiButton-fullWidth",
-                            "iconSizeLarge": "MuiButton-iconSizeLarge",
-                            "iconSizeMedium": "MuiButton-iconSizeMedium",
-                            "iconSizeSmall": "MuiButton-iconSizeSmall",
-                            "label": "MuiButton-label",
-                            "outlined": "MuiButton-outlined",
-                            "outlinedPrimary": "MuiButton-outlinedPrimary",
-                            "outlinedSecondary": "MuiButton-outlinedSecondary",
-                            "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
-                            "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
-                            "root": "MuiButton-root",
-                            "sizeLarge": "MuiButton-sizeLarge",
-                            "sizeSmall": "MuiButton-sizeSmall",
-                            "startIcon": "MuiButton-startIcon",
-                            "text": "MuiButton-text",
-                            "textPrimary": "MuiButton-textPrimary",
-                            "textSecondary": "MuiButton-textSecondary",
-                            "textSizeLarge": "MuiButton-textSizeLarge",
-                            "textSizeSmall": "MuiButton-textSizeSmall",
-                          }
-                        }
+                      <button
+                        className="MuiButtonBase-root MuiButton-root MuiButton-contained"
+                        disabled={false}
                         id="new-button"
+                        onBlur={[Function]}
                         onClick={[Function]}
-                        startIcon={<Memo />}
-                        variant="contained"
+                        onDragLeave={[Function]}
+                        onFocus={[Function]}
+                        onKeyDown={[Function]}
+                        onKeyUp={[Function]}
+                        onMouseDown={[Function]}
+                        onMouseLeave={[Function]}
+                        onMouseUp={[Function]}
+                        onTouchEnd={[Function]}
+                        onTouchMove={[Function]}
+                        onTouchStart={[Function]}
+                        tabIndex={0}
+                        type="button"
                       >
-                        <WithStyles(ForwardRef(ButtonBase))
-                          className="MuiButton-root MuiButton-contained"
-                          component="button"
-                          disabled={false}
-                          focusRipple={true}
-                          focusVisibleClassName="Mui-focusVisible"
-                          id="new-button"
-                          onClick={[Function]}
-                          type="button"
+                        <span
+                          className="MuiButton-label"
                         >
-                          <ForwardRef(ButtonBase)
-                            className="MuiButton-root MuiButton-contained"
-                            classes={
-                              Object {
-                                "disabled": "Mui-disabled",
-                                "focusVisible": "Mui-focusVisible",
-                                "root": "MuiButtonBase-root",
-                              }
-                            }
-                            component="button"
-                            disabled={false}
-                            focusRipple={true}
-                            focusVisibleClassName="Mui-focusVisible"
-                            id="new-button"
-                            onClick={[Function]}
-                            type="button"
+                          <span
+                            className="MuiButton-startIcon MuiButton-iconSizeMedium"
                           >
-                            <button
-                              className="MuiButtonBase-root MuiButton-root MuiButton-contained"
-                              disabled={false}
-                              id="new-button"
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onDragLeave={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              onKeyUp={[Function]}
-                              onMouseDown={[Function]}
-                              onMouseLeave={[Function]}
-                              onMouseUp={[Function]}
-                              onTouchEnd={[Function]}
-                              onTouchMove={[Function]}
-                              onTouchStart={[Function]}
-                              tabIndex={0}
-                              type="button"
-                            >
-                              <span
-                                className="MuiButton-label"
-                              >
-                                <span
-                                  className="MuiButton-startIcon MuiButton-iconSizeMedium"
-                                >
-                                  <ForwardRef(AddCircleOutlineIcon)>
-                                    <WithStyles(ForwardRef(SvgIcon))>
-                                      <ForwardRef(SvgIcon)
-                                        classes={
-                                          Object {
-                                            "colorAction": "MuiSvgIcon-colorAction",
-                                            "colorDisabled": "MuiSvgIcon-colorDisabled",
-                                            "colorError": "MuiSvgIcon-colorError",
-                                            "colorPrimary": "MuiSvgIcon-colorPrimary",
-                                            "colorSecondary": "MuiSvgIcon-colorSecondary",
-                                            "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
-                                            "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
-                                            "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
-                                            "root": "MuiSvgIcon-root",
-                                          }
-                                        }
-                                      >
-                                        <svg
-                                          aria-hidden={true}
-                                          className="MuiSvgIcon-root"
-                                          focusable="false"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-                                          />
-                                        </svg>
-                                      </ForwardRef(SvgIcon)>
-                                    </WithStyles(ForwardRef(SvgIcon))>
-                                  </ForwardRef(AddCircleOutlineIcon)>
-                                </span>
-                                general.create_new
-                              </span>
-                              <WithStyles(memo)
-                                center={false}
-                              >
-                                <ForwardRef(TouchRipple)
-                                  center={false}
+                            <ForwardRef(AddCircleOutlineIcon)>
+                              <WithStyles(ForwardRef(SvgIcon))>
+                                <ForwardRef(SvgIcon)
                                   classes={
                                     Object {
-                                      "child": "MuiTouchRipple-child",
-                                      "childLeaving": "MuiTouchRipple-childLeaving",
-                                      "childPulsate": "MuiTouchRipple-childPulsate",
-                                      "ripple": "MuiTouchRipple-ripple",
-                                      "ripplePulsate": "MuiTouchRipple-ripplePulsate",
-                                      "rippleVisible": "MuiTouchRipple-rippleVisible",
-                                      "root": "MuiTouchRipple-root",
+                                      "colorAction": "MuiSvgIcon-colorAction",
+                                      "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                      "colorError": "MuiSvgIcon-colorError",
+                                      "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                      "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                      "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                      "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                      "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                      "root": "MuiSvgIcon-root",
                                     }
                                   }
                                 >
-                                  <span
-                                    className="MuiTouchRipple-root"
+                                  <svg
+                                    aria-hidden={true}
+                                    className="MuiSvgIcon-root"
+                                    focusable="false"
+                                    viewBox="0 0 24 24"
                                   >
-                                    <TransitionGroup
-                                      childFactory={[Function]}
-                                      component={null}
-                                      exit={true}
+                                    <path
+                                      d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
                                     />
-                                  </span>
-                                </ForwardRef(TouchRipple)>
-                              </WithStyles(memo)>
-                            </button>
-                          </ForwardRef(ButtonBase)>
-                        </WithStyles(ForwardRef(ButtonBase))>
-                      </ForwardRef(Button)>
-                    </WithStyles(ForwardRef(Button))>
-                  </div>
-                </ForwardRef(Grid)>
-              </WithStyles(ForwardRef(Grid))>
+                                  </svg>
+                                </ForwardRef(SvgIcon)>
+                              </WithStyles(ForwardRef(SvgIcon))>
+                            </ForwardRef(AddCircleOutlineIcon)>
+                          </span>
+                          general.create_new
+                        </span>
+                        <WithStyles(memo)
+                          center={false}
+                        >
+                          <ForwardRef(TouchRipple)
+                            center={false}
+                            classes={
+                              Object {
+                                "child": "MuiTouchRipple-child",
+                                "childLeaving": "MuiTouchRipple-childLeaving",
+                                "childPulsate": "MuiTouchRipple-childPulsate",
+                                "ripple": "MuiTouchRipple-ripple",
+                                "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                "root": "MuiTouchRipple-root",
+                              }
+                            }
+                          >
+                            <span
+                              className="MuiTouchRipple-root"
+                            >
+                              <TransitionGroup
+                                childFactory={[Function]}
+                                component={null}
+                                exit={true}
+                              />
+                            </span>
+                          </ForwardRef(TouchRipple)>
+                        </WithStyles(memo)>
+                      </button>
+                    </ForwardRef(ButtonBase)>
+                  </WithStyles(ForwardRef(ButtonBase))>
+                </ForwardRef(Button)>
+              </WithStyles(ForwardRef(Button))>
             </CreateNewWrapper>
             <SchemaSelect
               onChange={[Function]}
@@ -2281,570 +2162,332 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
               }
               schemaName="some-existing-model"
             >
-              <WithStyles(ForwardRef(Grid))
-                item={true}
+              <WithStyles(ForwardRef(Button))
+                disabled={false}
+                id="delete-button"
+                onClick={[Function]}
+                startIcon={<Memo />}
+                variant="contained"
               >
-                <ForwardRef(Grid)
+                <ForwardRef(Button)
                   classes={
                     Object {
-                      "align-content-xs-center": "MuiGrid-align-content-xs-center",
-                      "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
-                      "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
-                      "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
-                      "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
-                      "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
-                      "align-items-xs-center": "MuiGrid-align-items-xs-center",
-                      "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
-                      "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
-                      "container": "MuiGrid-container",
-                      "direction-xs-column": "MuiGrid-direction-xs-column",
-                      "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
-                      "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
-                      "grid-lg-1": "MuiGrid-grid-lg-1",
-                      "grid-lg-10": "MuiGrid-grid-lg-10",
-                      "grid-lg-11": "MuiGrid-grid-lg-11",
-                      "grid-lg-12": "MuiGrid-grid-lg-12",
-                      "grid-lg-2": "MuiGrid-grid-lg-2",
-                      "grid-lg-3": "MuiGrid-grid-lg-3",
-                      "grid-lg-4": "MuiGrid-grid-lg-4",
-                      "grid-lg-5": "MuiGrid-grid-lg-5",
-                      "grid-lg-6": "MuiGrid-grid-lg-6",
-                      "grid-lg-7": "MuiGrid-grid-lg-7",
-                      "grid-lg-8": "MuiGrid-grid-lg-8",
-                      "grid-lg-9": "MuiGrid-grid-lg-9",
-                      "grid-lg-auto": "MuiGrid-grid-lg-auto",
-                      "grid-lg-true": "MuiGrid-grid-lg-true",
-                      "grid-md-1": "MuiGrid-grid-md-1",
-                      "grid-md-10": "MuiGrid-grid-md-10",
-                      "grid-md-11": "MuiGrid-grid-md-11",
-                      "grid-md-12": "MuiGrid-grid-md-12",
-                      "grid-md-2": "MuiGrid-grid-md-2",
-                      "grid-md-3": "MuiGrid-grid-md-3",
-                      "grid-md-4": "MuiGrid-grid-md-4",
-                      "grid-md-5": "MuiGrid-grid-md-5",
-                      "grid-md-6": "MuiGrid-grid-md-6",
-                      "grid-md-7": "MuiGrid-grid-md-7",
-                      "grid-md-8": "MuiGrid-grid-md-8",
-                      "grid-md-9": "MuiGrid-grid-md-9",
-                      "grid-md-auto": "MuiGrid-grid-md-auto",
-                      "grid-md-true": "MuiGrid-grid-md-true",
-                      "grid-sm-1": "MuiGrid-grid-sm-1",
-                      "grid-sm-10": "MuiGrid-grid-sm-10",
-                      "grid-sm-11": "MuiGrid-grid-sm-11",
-                      "grid-sm-12": "MuiGrid-grid-sm-12",
-                      "grid-sm-2": "MuiGrid-grid-sm-2",
-                      "grid-sm-3": "MuiGrid-grid-sm-3",
-                      "grid-sm-4": "MuiGrid-grid-sm-4",
-                      "grid-sm-5": "MuiGrid-grid-sm-5",
-                      "grid-sm-6": "MuiGrid-grid-sm-6",
-                      "grid-sm-7": "MuiGrid-grid-sm-7",
-                      "grid-sm-8": "MuiGrid-grid-sm-8",
-                      "grid-sm-9": "MuiGrid-grid-sm-9",
-                      "grid-sm-auto": "MuiGrid-grid-sm-auto",
-                      "grid-sm-true": "MuiGrid-grid-sm-true",
-                      "grid-xl-1": "MuiGrid-grid-xl-1",
-                      "grid-xl-10": "MuiGrid-grid-xl-10",
-                      "grid-xl-11": "MuiGrid-grid-xl-11",
-                      "grid-xl-12": "MuiGrid-grid-xl-12",
-                      "grid-xl-2": "MuiGrid-grid-xl-2",
-                      "grid-xl-3": "MuiGrid-grid-xl-3",
-                      "grid-xl-4": "MuiGrid-grid-xl-4",
-                      "grid-xl-5": "MuiGrid-grid-xl-5",
-                      "grid-xl-6": "MuiGrid-grid-xl-6",
-                      "grid-xl-7": "MuiGrid-grid-xl-7",
-                      "grid-xl-8": "MuiGrid-grid-xl-8",
-                      "grid-xl-9": "MuiGrid-grid-xl-9",
-                      "grid-xl-auto": "MuiGrid-grid-xl-auto",
-                      "grid-xl-true": "MuiGrid-grid-xl-true",
-                      "grid-xs-1": "MuiGrid-grid-xs-1",
-                      "grid-xs-10": "MuiGrid-grid-xs-10",
-                      "grid-xs-11": "MuiGrid-grid-xs-11",
-                      "grid-xs-12": "MuiGrid-grid-xs-12",
-                      "grid-xs-2": "MuiGrid-grid-xs-2",
-                      "grid-xs-3": "MuiGrid-grid-xs-3",
-                      "grid-xs-4": "MuiGrid-grid-xs-4",
-                      "grid-xs-5": "MuiGrid-grid-xs-5",
-                      "grid-xs-6": "MuiGrid-grid-xs-6",
-                      "grid-xs-7": "MuiGrid-grid-xs-7",
-                      "grid-xs-8": "MuiGrid-grid-xs-8",
-                      "grid-xs-9": "MuiGrid-grid-xs-9",
-                      "grid-xs-auto": "MuiGrid-grid-xs-auto",
-                      "grid-xs-true": "MuiGrid-grid-xs-true",
-                      "item": "MuiGrid-item",
-                      "justify-xs-center": "MuiGrid-justify-xs-center",
-                      "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
-                      "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
-                      "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
-                      "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
-                      "root": "MuiGrid-root",
-                      "spacing-xs-1": "MuiGrid-spacing-xs-1",
-                      "spacing-xs-10": "MuiGrid-spacing-xs-10",
-                      "spacing-xs-2": "MuiGrid-spacing-xs-2",
-                      "spacing-xs-3": "MuiGrid-spacing-xs-3",
-                      "spacing-xs-4": "MuiGrid-spacing-xs-4",
-                      "spacing-xs-5": "MuiGrid-spacing-xs-5",
-                      "spacing-xs-6": "MuiGrid-spacing-xs-6",
-                      "spacing-xs-7": "MuiGrid-spacing-xs-7",
-                      "spacing-xs-8": "MuiGrid-spacing-xs-8",
-                      "spacing-xs-9": "MuiGrid-spacing-xs-9",
-                      "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
-                      "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
-                      "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                      "colorInherit": "MuiButton-colorInherit",
+                      "contained": "MuiButton-contained",
+                      "containedPrimary": "MuiButton-containedPrimary",
+                      "containedSecondary": "MuiButton-containedSecondary",
+                      "containedSizeLarge": "MuiButton-containedSizeLarge",
+                      "containedSizeSmall": "MuiButton-containedSizeSmall",
+                      "disableElevation": "MuiButton-disableElevation",
+                      "disabled": "Mui-disabled",
+                      "endIcon": "MuiButton-endIcon",
+                      "focusVisible": "Mui-focusVisible",
+                      "fullWidth": "MuiButton-fullWidth",
+                      "iconSizeLarge": "MuiButton-iconSizeLarge",
+                      "iconSizeMedium": "MuiButton-iconSizeMedium",
+                      "iconSizeSmall": "MuiButton-iconSizeSmall",
+                      "label": "MuiButton-label",
+                      "outlined": "MuiButton-outlined",
+                      "outlinedPrimary": "MuiButton-outlinedPrimary",
+                      "outlinedSecondary": "MuiButton-outlinedSecondary",
+                      "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                      "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                      "root": "MuiButton-root",
+                      "sizeLarge": "MuiButton-sizeLarge",
+                      "sizeSmall": "MuiButton-sizeSmall",
+                      "startIcon": "MuiButton-startIcon",
+                      "text": "MuiButton-text",
+                      "textPrimary": "MuiButton-textPrimary",
+                      "textSecondary": "MuiButton-textSecondary",
+                      "textSizeLarge": "MuiButton-textSizeLarge",
+                      "textSizeSmall": "MuiButton-textSizeSmall",
                     }
                   }
-                  item={true}
+                  disabled={false}
+                  id="delete-button"
+                  onClick={[Function]}
+                  startIcon={<Memo />}
+                  variant="contained"
                 >
-                  <div
-                    className="MuiGrid-root MuiGrid-item"
+                  <WithStyles(ForwardRef(ButtonBase))
+                    className="MuiButton-root MuiButton-contained"
+                    component="button"
+                    disabled={false}
+                    focusRipple={true}
+                    focusVisibleClassName="Mui-focusVisible"
+                    id="delete-button"
+                    onClick={[Function]}
+                    type="button"
                   >
-                    <WithStyles(ForwardRef(Button))
+                    <ForwardRef(ButtonBase)
+                      className="MuiButton-root MuiButton-contained"
+                      classes={
+                        Object {
+                          "disabled": "Mui-disabled",
+                          "focusVisible": "Mui-focusVisible",
+                          "root": "MuiButtonBase-root",
+                        }
+                      }
+                      component="button"
                       disabled={false}
+                      focusRipple={true}
+                      focusVisibleClassName="Mui-focusVisible"
                       id="delete-button"
                       onClick={[Function]}
-                      startIcon={<Memo />}
-                      variant="contained"
+                      type="button"
                     >
-                      <ForwardRef(Button)
-                        classes={
-                          Object {
-                            "colorInherit": "MuiButton-colorInherit",
-                            "contained": "MuiButton-contained",
-                            "containedPrimary": "MuiButton-containedPrimary",
-                            "containedSecondary": "MuiButton-containedSecondary",
-                            "containedSizeLarge": "MuiButton-containedSizeLarge",
-                            "containedSizeSmall": "MuiButton-containedSizeSmall",
-                            "disableElevation": "MuiButton-disableElevation",
-                            "disabled": "Mui-disabled",
-                            "endIcon": "MuiButton-endIcon",
-                            "focusVisible": "Mui-focusVisible",
-                            "fullWidth": "MuiButton-fullWidth",
-                            "iconSizeLarge": "MuiButton-iconSizeLarge",
-                            "iconSizeMedium": "MuiButton-iconSizeMedium",
-                            "iconSizeSmall": "MuiButton-iconSizeSmall",
-                            "label": "MuiButton-label",
-                            "outlined": "MuiButton-outlined",
-                            "outlinedPrimary": "MuiButton-outlinedPrimary",
-                            "outlinedSecondary": "MuiButton-outlinedSecondary",
-                            "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
-                            "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
-                            "root": "MuiButton-root",
-                            "sizeLarge": "MuiButton-sizeLarge",
-                            "sizeSmall": "MuiButton-sizeSmall",
-                            "startIcon": "MuiButton-startIcon",
-                            "text": "MuiButton-text",
-                            "textPrimary": "MuiButton-textPrimary",
-                            "textSecondary": "MuiButton-textSecondary",
-                            "textSizeLarge": "MuiButton-textSizeLarge",
-                            "textSizeSmall": "MuiButton-textSizeSmall",
-                          }
-                        }
+                      <button
+                        className="MuiButtonBase-root MuiButton-root MuiButton-contained"
                         disabled={false}
                         id="delete-button"
+                        onBlur={[Function]}
                         onClick={[Function]}
-                        startIcon={<Memo />}
-                        variant="contained"
+                        onDragLeave={[Function]}
+                        onFocus={[Function]}
+                        onKeyDown={[Function]}
+                        onKeyUp={[Function]}
+                        onMouseDown={[Function]}
+                        onMouseLeave={[Function]}
+                        onMouseUp={[Function]}
+                        onTouchEnd={[Function]}
+                        onTouchMove={[Function]}
+                        onTouchStart={[Function]}
+                        tabIndex={0}
+                        type="button"
                       >
-                        <WithStyles(ForwardRef(ButtonBase))
-                          className="MuiButton-root MuiButton-contained"
-                          component="button"
-                          disabled={false}
-                          focusRipple={true}
-                          focusVisibleClassName="Mui-focusVisible"
-                          id="delete-button"
-                          onClick={[Function]}
-                          type="button"
+                        <span
+                          className="MuiButton-label"
                         >
-                          <ForwardRef(ButtonBase)
-                            className="MuiButton-root MuiButton-contained"
-                            classes={
-                              Object {
-                                "disabled": "Mui-disabled",
-                                "focusVisible": "Mui-focusVisible",
-                                "root": "MuiButtonBase-root",
-                              }
-                            }
-                            component="button"
-                            disabled={false}
-                            focusRipple={true}
-                            focusVisibleClassName="Mui-focusVisible"
-                            id="delete-button"
-                            onClick={[Function]}
-                            type="button"
+                          <span
+                            className="MuiButton-startIcon MuiButton-iconSizeMedium"
                           >
-                            <button
-                              className="MuiButtonBase-root MuiButton-root MuiButton-contained"
-                              disabled={false}
-                              id="delete-button"
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onDragLeave={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              onKeyUp={[Function]}
-                              onMouseDown={[Function]}
-                              onMouseLeave={[Function]}
-                              onMouseUp={[Function]}
-                              onTouchEnd={[Function]}
-                              onTouchMove={[Function]}
-                              onTouchStart={[Function]}
-                              tabIndex={0}
-                              type="button"
-                            >
-                              <span
-                                className="MuiButton-label"
-                              >
-                                <span
-                                  className="MuiButton-startIcon MuiButton-iconSizeMedium"
-                                >
-                                  <ForwardRef(DeleteOutlineIcon)>
-                                    <WithStyles(ForwardRef(SvgIcon))>
-                                      <ForwardRef(SvgIcon)
-                                        classes={
-                                          Object {
-                                            "colorAction": "MuiSvgIcon-colorAction",
-                                            "colorDisabled": "MuiSvgIcon-colorDisabled",
-                                            "colorError": "MuiSvgIcon-colorError",
-                                            "colorPrimary": "MuiSvgIcon-colorPrimary",
-                                            "colorSecondary": "MuiSvgIcon-colorSecondary",
-                                            "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
-                                            "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
-                                            "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
-                                            "root": "MuiSvgIcon-root",
-                                          }
-                                        }
-                                      >
-                                        <svg
-                                          aria-hidden={true}
-                                          className="MuiSvgIcon-root"
-                                          focusable="false"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-                                          />
-                                        </svg>
-                                      </ForwardRef(SvgIcon)>
-                                    </WithStyles(ForwardRef(SvgIcon))>
-                                  </ForwardRef(DeleteOutlineIcon)>
-                                </span>
-                                general.delete
-                              </span>
-                              <WithStyles(memo)
-                                center={false}
-                              >
-                                <ForwardRef(TouchRipple)
-                                  center={false}
+                            <ForwardRef(DeleteOutlineIcon)>
+                              <WithStyles(ForwardRef(SvgIcon))>
+                                <ForwardRef(SvgIcon)
                                   classes={
                                     Object {
-                                      "child": "MuiTouchRipple-child",
-                                      "childLeaving": "MuiTouchRipple-childLeaving",
-                                      "childPulsate": "MuiTouchRipple-childPulsate",
-                                      "ripple": "MuiTouchRipple-ripple",
-                                      "ripplePulsate": "MuiTouchRipple-ripplePulsate",
-                                      "rippleVisible": "MuiTouchRipple-rippleVisible",
-                                      "root": "MuiTouchRipple-root",
+                                      "colorAction": "MuiSvgIcon-colorAction",
+                                      "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                      "colorError": "MuiSvgIcon-colorError",
+                                      "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                      "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                      "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                      "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                      "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                      "root": "MuiSvgIcon-root",
                                     }
                                   }
                                 >
-                                  <span
-                                    className="MuiTouchRipple-root"
+                                  <svg
+                                    aria-hidden={true}
+                                    className="MuiSvgIcon-root"
+                                    focusable="false"
+                                    viewBox="0 0 24 24"
                                   >
-                                    <TransitionGroup
-                                      childFactory={[Function]}
-                                      component={null}
-                                      exit={true}
+                                    <path
+                                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
                                     />
-                                  </span>
-                                </ForwardRef(TouchRipple)>
-                              </WithStyles(memo)>
-                            </button>
-                          </ForwardRef(ButtonBase)>
-                        </WithStyles(ForwardRef(ButtonBase))>
-                      </ForwardRef(Button)>
-                    </WithStyles(ForwardRef(Button))>
-                  </div>
-                </ForwardRef(Grid)>
-              </WithStyles(ForwardRef(Grid))>
-            </DeleteWrapper>
-            <WithStyles(ForwardRef(Grid))
-              item={true}
-            >
-              <ForwardRef(Grid)
-                classes={
-                  Object {
-                    "align-content-xs-center": "MuiGrid-align-content-xs-center",
-                    "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
-                    "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
-                    "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
-                    "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
-                    "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
-                    "align-items-xs-center": "MuiGrid-align-items-xs-center",
-                    "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
-                    "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
-                    "container": "MuiGrid-container",
-                    "direction-xs-column": "MuiGrid-direction-xs-column",
-                    "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
-                    "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
-                    "grid-lg-1": "MuiGrid-grid-lg-1",
-                    "grid-lg-10": "MuiGrid-grid-lg-10",
-                    "grid-lg-11": "MuiGrid-grid-lg-11",
-                    "grid-lg-12": "MuiGrid-grid-lg-12",
-                    "grid-lg-2": "MuiGrid-grid-lg-2",
-                    "grid-lg-3": "MuiGrid-grid-lg-3",
-                    "grid-lg-4": "MuiGrid-grid-lg-4",
-                    "grid-lg-5": "MuiGrid-grid-lg-5",
-                    "grid-lg-6": "MuiGrid-grid-lg-6",
-                    "grid-lg-7": "MuiGrid-grid-lg-7",
-                    "grid-lg-8": "MuiGrid-grid-lg-8",
-                    "grid-lg-9": "MuiGrid-grid-lg-9",
-                    "grid-lg-auto": "MuiGrid-grid-lg-auto",
-                    "grid-lg-true": "MuiGrid-grid-lg-true",
-                    "grid-md-1": "MuiGrid-grid-md-1",
-                    "grid-md-10": "MuiGrid-grid-md-10",
-                    "grid-md-11": "MuiGrid-grid-md-11",
-                    "grid-md-12": "MuiGrid-grid-md-12",
-                    "grid-md-2": "MuiGrid-grid-md-2",
-                    "grid-md-3": "MuiGrid-grid-md-3",
-                    "grid-md-4": "MuiGrid-grid-md-4",
-                    "grid-md-5": "MuiGrid-grid-md-5",
-                    "grid-md-6": "MuiGrid-grid-md-6",
-                    "grid-md-7": "MuiGrid-grid-md-7",
-                    "grid-md-8": "MuiGrid-grid-md-8",
-                    "grid-md-9": "MuiGrid-grid-md-9",
-                    "grid-md-auto": "MuiGrid-grid-md-auto",
-                    "grid-md-true": "MuiGrid-grid-md-true",
-                    "grid-sm-1": "MuiGrid-grid-sm-1",
-                    "grid-sm-10": "MuiGrid-grid-sm-10",
-                    "grid-sm-11": "MuiGrid-grid-sm-11",
-                    "grid-sm-12": "MuiGrid-grid-sm-12",
-                    "grid-sm-2": "MuiGrid-grid-sm-2",
-                    "grid-sm-3": "MuiGrid-grid-sm-3",
-                    "grid-sm-4": "MuiGrid-grid-sm-4",
-                    "grid-sm-5": "MuiGrid-grid-sm-5",
-                    "grid-sm-6": "MuiGrid-grid-sm-6",
-                    "grid-sm-7": "MuiGrid-grid-sm-7",
-                    "grid-sm-8": "MuiGrid-grid-sm-8",
-                    "grid-sm-9": "MuiGrid-grid-sm-9",
-                    "grid-sm-auto": "MuiGrid-grid-sm-auto",
-                    "grid-sm-true": "MuiGrid-grid-sm-true",
-                    "grid-xl-1": "MuiGrid-grid-xl-1",
-                    "grid-xl-10": "MuiGrid-grid-xl-10",
-                    "grid-xl-11": "MuiGrid-grid-xl-11",
-                    "grid-xl-12": "MuiGrid-grid-xl-12",
-                    "grid-xl-2": "MuiGrid-grid-xl-2",
-                    "grid-xl-3": "MuiGrid-grid-xl-3",
-                    "grid-xl-4": "MuiGrid-grid-xl-4",
-                    "grid-xl-5": "MuiGrid-grid-xl-5",
-                    "grid-xl-6": "MuiGrid-grid-xl-6",
-                    "grid-xl-7": "MuiGrid-grid-xl-7",
-                    "grid-xl-8": "MuiGrid-grid-xl-8",
-                    "grid-xl-9": "MuiGrid-grid-xl-9",
-                    "grid-xl-auto": "MuiGrid-grid-xl-auto",
-                    "grid-xl-true": "MuiGrid-grid-xl-true",
-                    "grid-xs-1": "MuiGrid-grid-xs-1",
-                    "grid-xs-10": "MuiGrid-grid-xs-10",
-                    "grid-xs-11": "MuiGrid-grid-xs-11",
-                    "grid-xs-12": "MuiGrid-grid-xs-12",
-                    "grid-xs-2": "MuiGrid-grid-xs-2",
-                    "grid-xs-3": "MuiGrid-grid-xs-3",
-                    "grid-xs-4": "MuiGrid-grid-xs-4",
-                    "grid-xs-5": "MuiGrid-grid-xs-5",
-                    "grid-xs-6": "MuiGrid-grid-xs-6",
-                    "grid-xs-7": "MuiGrid-grid-xs-7",
-                    "grid-xs-8": "MuiGrid-grid-xs-8",
-                    "grid-xs-9": "MuiGrid-grid-xs-9",
-                    "grid-xs-auto": "MuiGrid-grid-xs-auto",
-                    "grid-xs-true": "MuiGrid-grid-xs-true",
-                    "item": "MuiGrid-item",
-                    "justify-xs-center": "MuiGrid-justify-xs-center",
-                    "justify-xs-flex-end": "MuiGrid-justify-xs-flex-end",
-                    "justify-xs-space-around": "MuiGrid-justify-xs-space-around",
-                    "justify-xs-space-between": "MuiGrid-justify-xs-space-between",
-                    "justify-xs-space-evenly": "MuiGrid-justify-xs-space-evenly",
-                    "root": "MuiGrid-root",
-                    "spacing-xs-1": "MuiGrid-spacing-xs-1",
-                    "spacing-xs-10": "MuiGrid-spacing-xs-10",
-                    "spacing-xs-2": "MuiGrid-spacing-xs-2",
-                    "spacing-xs-3": "MuiGrid-spacing-xs-3",
-                    "spacing-xs-4": "MuiGrid-spacing-xs-4",
-                    "spacing-xs-5": "MuiGrid-spacing-xs-5",
-                    "spacing-xs-6": "MuiGrid-spacing-xs-6",
-                    "spacing-xs-7": "MuiGrid-spacing-xs-7",
-                    "spacing-xs-8": "MuiGrid-spacing-xs-8",
-                    "spacing-xs-9": "MuiGrid-spacing-xs-9",
-                    "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
-                    "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
-                    "zeroMinWidth": "MuiGrid-zeroMinWidth",
-                  }
-                }
-                item={true}
-              >
-                <div
-                  className="MuiGrid-root MuiGrid-item"
-                >
-                  <WithStyles(ForwardRef(Button))
-                    onClick={[Function]}
-                    startIcon={<Memo />}
-                    type="button"
-                    variant="contained"
-                  >
-                    <ForwardRef(Button)
-                      classes={
-                        Object {
-                          "colorInherit": "MuiButton-colorInherit",
-                          "contained": "MuiButton-contained",
-                          "containedPrimary": "MuiButton-containedPrimary",
-                          "containedSecondary": "MuiButton-containedSecondary",
-                          "containedSizeLarge": "MuiButton-containedSizeLarge",
-                          "containedSizeSmall": "MuiButton-containedSizeSmall",
-                          "disableElevation": "MuiButton-disableElevation",
-                          "disabled": "Mui-disabled",
-                          "endIcon": "MuiButton-endIcon",
-                          "focusVisible": "Mui-focusVisible",
-                          "fullWidth": "MuiButton-fullWidth",
-                          "iconSizeLarge": "MuiButton-iconSizeLarge",
-                          "iconSizeMedium": "MuiButton-iconSizeMedium",
-                          "iconSizeSmall": "MuiButton-iconSizeSmall",
-                          "label": "MuiButton-label",
-                          "outlined": "MuiButton-outlined",
-                          "outlinedPrimary": "MuiButton-outlinedPrimary",
-                          "outlinedSecondary": "MuiButton-outlinedSecondary",
-                          "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
-                          "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
-                          "root": "MuiButton-root",
-                          "sizeLarge": "MuiButton-sizeLarge",
-                          "sizeSmall": "MuiButton-sizeSmall",
-                          "startIcon": "MuiButton-startIcon",
-                          "text": "MuiButton-text",
-                          "textPrimary": "MuiButton-textPrimary",
-                          "textSecondary": "MuiButton-textSecondary",
-                          "textSizeLarge": "MuiButton-textSizeLarge",
-                          "textSizeSmall": "MuiButton-textSizeSmall",
-                        }
-                      }
-                      onClick={[Function]}
-                      startIcon={<Memo />}
-                      type="button"
-                      variant="contained"
-                    >
-                      <WithStyles(ForwardRef(ButtonBase))
-                        className="MuiButton-root MuiButton-contained"
-                        component="button"
-                        disabled={false}
-                        focusRipple={true}
-                        focusVisibleClassName="Mui-focusVisible"
-                        onClick={[Function]}
-                        type="button"
-                      >
-                        <ForwardRef(ButtonBase)
-                          className="MuiButton-root MuiButton-contained"
-                          classes={
-                            Object {
-                              "disabled": "Mui-disabled",
-                              "focusVisible": "Mui-focusVisible",
-                              "root": "MuiButtonBase-root",
-                            }
-                          }
-                          component="button"
-                          disabled={false}
-                          focusRipple={true}
-                          focusVisibleClassName="Mui-focusVisible"
-                          onClick={[Function]}
-                          type="button"
+                                  </svg>
+                                </ForwardRef(SvgIcon)>
+                              </WithStyles(ForwardRef(SvgIcon))>
+                            </ForwardRef(DeleteOutlineIcon)>
+                          </span>
+                          general.delete
+                        </span>
+                        <WithStyles(memo)
+                          center={false}
                         >
-                          <button
-                            className="MuiButtonBase-root MuiButton-root MuiButton-contained"
-                            disabled={false}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onDragLeave={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            onKeyUp={[Function]}
-                            onMouseDown={[Function]}
-                            onMouseLeave={[Function]}
-                            onMouseUp={[Function]}
-                            onTouchEnd={[Function]}
-                            onTouchMove={[Function]}
-                            onTouchStart={[Function]}
-                            tabIndex={0}
-                            type="button"
+                          <ForwardRef(TouchRipple)
+                            center={false}
+                            classes={
+                              Object {
+                                "child": "MuiTouchRipple-child",
+                                "childLeaving": "MuiTouchRipple-childLeaving",
+                                "childPulsate": "MuiTouchRipple-childPulsate",
+                                "ripple": "MuiTouchRipple-ripple",
+                                "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                "root": "MuiTouchRipple-root",
+                              }
+                            }
                           >
                             <span
-                              className="MuiButton-label"
+                              className="MuiTouchRipple-root"
                             >
-                              <span
-                                className="MuiButton-startIcon MuiButton-iconSizeMedium"
-                              >
-                                <ForwardRef(ArchiveOutlinedIcon)>
-                                  <WithStyles(ForwardRef(SvgIcon))>
-                                    <ForwardRef(SvgIcon)
-                                      classes={
-                                        Object {
-                                          "colorAction": "MuiSvgIcon-colorAction",
-                                          "colorDisabled": "MuiSvgIcon-colorDisabled",
-                                          "colorError": "MuiSvgIcon-colorError",
-                                          "colorPrimary": "MuiSvgIcon-colorPrimary",
-                                          "colorSecondary": "MuiSvgIcon-colorSecondary",
-                                          "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
-                                          "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
-                                          "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
-                                          "root": "MuiSvgIcon-root",
-                                        }
-                                      }
-                                    >
-                                      <svg
-                                        aria-hidden={true}
-                                        className="MuiSvgIcon-root"
-                                        focusable="false"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM6.24 5h11.52l.81.97H5.44l.8-.97zM5 19V8h14v11H5zm8.45-9h-2.9v3H8l4 4 4-4h-2.55z"
-                                        />
-                                      </svg>
-                                    </ForwardRef(SvgIcon)>
-                                  </WithStyles(ForwardRef(SvgIcon))>
-                                </ForwardRef(ArchiveOutlinedIcon)>
-                              </span>
-                              schema_editor.save_data_model
+                              <TransitionGroup
+                                childFactory={[Function]}
+                                component={null}
+                                exit={true}
+                              />
                             </span>
-                            <WithStyles(memo)
-                              center={false}
-                            >
-                              <ForwardRef(TouchRipple)
-                                center={false}
+                          </ForwardRef(TouchRipple)>
+                        </WithStyles(memo)>
+                      </button>
+                    </ForwardRef(ButtonBase)>
+                  </WithStyles(ForwardRef(ButtonBase))>
+                </ForwardRef(Button)>
+              </WithStyles(ForwardRef(Button))>
+            </DeleteWrapper>
+            <WithStyles(ForwardRef(Button))
+              onClick={[Function]}
+              startIcon={<Memo />}
+              type="button"
+              variant="contained"
+            >
+              <ForwardRef(Button)
+                classes={
+                  Object {
+                    "colorInherit": "MuiButton-colorInherit",
+                    "contained": "MuiButton-contained",
+                    "containedPrimary": "MuiButton-containedPrimary",
+                    "containedSecondary": "MuiButton-containedSecondary",
+                    "containedSizeLarge": "MuiButton-containedSizeLarge",
+                    "containedSizeSmall": "MuiButton-containedSizeSmall",
+                    "disableElevation": "MuiButton-disableElevation",
+                    "disabled": "Mui-disabled",
+                    "endIcon": "MuiButton-endIcon",
+                    "focusVisible": "Mui-focusVisible",
+                    "fullWidth": "MuiButton-fullWidth",
+                    "iconSizeLarge": "MuiButton-iconSizeLarge",
+                    "iconSizeMedium": "MuiButton-iconSizeMedium",
+                    "iconSizeSmall": "MuiButton-iconSizeSmall",
+                    "label": "MuiButton-label",
+                    "outlined": "MuiButton-outlined",
+                    "outlinedPrimary": "MuiButton-outlinedPrimary",
+                    "outlinedSecondary": "MuiButton-outlinedSecondary",
+                    "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                    "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                    "root": "MuiButton-root",
+                    "sizeLarge": "MuiButton-sizeLarge",
+                    "sizeSmall": "MuiButton-sizeSmall",
+                    "startIcon": "MuiButton-startIcon",
+                    "text": "MuiButton-text",
+                    "textPrimary": "MuiButton-textPrimary",
+                    "textSecondary": "MuiButton-textSecondary",
+                    "textSizeLarge": "MuiButton-textSizeLarge",
+                    "textSizeSmall": "MuiButton-textSizeSmall",
+                  }
+                }
+                onClick={[Function]}
+                startIcon={<Memo />}
+                type="button"
+                variant="contained"
+              >
+                <WithStyles(ForwardRef(ButtonBase))
+                  className="MuiButton-root MuiButton-contained"
+                  component="button"
+                  disabled={false}
+                  focusRipple={true}
+                  focusVisibleClassName="Mui-focusVisible"
+                  onClick={[Function]}
+                  type="button"
+                >
+                  <ForwardRef(ButtonBase)
+                    className="MuiButton-root MuiButton-contained"
+                    classes={
+                      Object {
+                        "disabled": "Mui-disabled",
+                        "focusVisible": "Mui-focusVisible",
+                        "root": "MuiButtonBase-root",
+                      }
+                    }
+                    component="button"
+                    disabled={false}
+                    focusRipple={true}
+                    focusVisibleClassName="Mui-focusVisible"
+                    onClick={[Function]}
+                    type="button"
+                  >
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        <span
+                          className="MuiButton-startIcon MuiButton-iconSizeMedium"
+                        >
+                          <ForwardRef(ArchiveOutlinedIcon)>
+                            <WithStyles(ForwardRef(SvgIcon))>
+                              <ForwardRef(SvgIcon)
                                 classes={
                                   Object {
-                                    "child": "MuiTouchRipple-child",
-                                    "childLeaving": "MuiTouchRipple-childLeaving",
-                                    "childPulsate": "MuiTouchRipple-childPulsate",
-                                    "ripple": "MuiTouchRipple-ripple",
-                                    "ripplePulsate": "MuiTouchRipple-ripplePulsate",
-                                    "rippleVisible": "MuiTouchRipple-rippleVisible",
-                                    "root": "MuiTouchRipple-root",
+                                    "colorAction": "MuiSvgIcon-colorAction",
+                                    "colorDisabled": "MuiSvgIcon-colorDisabled",
+                                    "colorError": "MuiSvgIcon-colorError",
+                                    "colorPrimary": "MuiSvgIcon-colorPrimary",
+                                    "colorSecondary": "MuiSvgIcon-colorSecondary",
+                                    "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                                    "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                                    "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                                    "root": "MuiSvgIcon-root",
                                   }
                                 }
                               >
-                                <span
-                                  className="MuiTouchRipple-root"
+                                <svg
+                                  aria-hidden={true}
+                                  className="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
                                 >
-                                  <TransitionGroup
-                                    childFactory={[Function]}
-                                    component={null}
-                                    exit={true}
+                                  <path
+                                    d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM6.24 5h11.52l.81.97H5.44l.8-.97zM5 19V8h14v11H5zm8.45-9h-2.9v3H8l4 4 4-4h-2.55z"
                                   />
-                                </span>
-                              </ForwardRef(TouchRipple)>
-                            </WithStyles(memo)>
-                          </button>
-                        </ForwardRef(ButtonBase)>
-                      </WithStyles(ForwardRef(ButtonBase))>
-                    </ForwardRef(Button)>
-                  </WithStyles(ForwardRef(Button))>
-                </div>
-              </ForwardRef(Grid)>
-            </WithStyles(ForwardRef(Grid))>
+                                </svg>
+                              </ForwardRef(SvgIcon)>
+                            </WithStyles(ForwardRef(SvgIcon))>
+                          </ForwardRef(ArchiveOutlinedIcon)>
+                        </span>
+                        schema_editor.save_data_model
+                      </span>
+                      <WithStyles(memo)
+                        center={false}
+                      >
+                        <ForwardRef(TouchRipple)
+                          center={false}
+                          classes={
+                            Object {
+                              "child": "MuiTouchRipple-child",
+                              "childLeaving": "MuiTouchRipple-childLeaving",
+                              "childPulsate": "MuiTouchRipple-childPulsate",
+                              "ripple": "MuiTouchRipple-ripple",
+                              "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                              "rippleVisible": "MuiTouchRipple-rippleVisible",
+                              "root": "MuiTouchRipple-root",
+                            }
+                          }
+                        >
+                          <span
+                            className="MuiTouchRipple-root"
+                          >
+                            <TransitionGroup
+                              childFactory={[Function]}
+                              component={null}
+                              exit={true}
+                            />
+                          </span>
+                        </ForwardRef(TouchRipple)>
+                      </WithStyles(memo)>
+                    </button>
+                  </ForwardRef(ButtonBase)>
+                </WithStyles(ForwardRef(ButtonBase))>
+              </ForwardRef(Button)>
+            </WithStyles(ForwardRef(Button))>
           </div>
         </ForwardRef(Grid)>
       </WithStyles(ForwardRef(Grid))>
