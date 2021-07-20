@@ -3,17 +3,18 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
-import configureStore from 'redux-mock-store';
+import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { getInitialStateMock } from '../../../../__mocks__/mocks';
 import { ILayoutGroup } from '../../../../src/features/form/layout';
+import { Triggers } from '../../../../src/types';
 
 describe('>>> features/form/components/Group.tsx', () => {
-  let mockStore: any;
+  let mockStore: MockStoreEnhanced<unknown, {}>;
   let mockLayout: any;
   let mockData: any;
   let mockComponents: any;
@@ -106,6 +107,19 @@ describe('>>> features/form/components/Group.tsx', () => {
               'field4',
             ],
           },
+          {
+            id: 'mock-container-id-2',
+            type: 'group',
+            dataModelBindings: {
+              group: 'Group',
+            },
+            children: [
+              'field1',
+              'field2',
+              'field3',
+              'field4',
+            ],
+          },
         ].concat(mockComponents),
       },
       uiConfig: {
@@ -115,6 +129,10 @@ describe('>>> features/form/components/Group.tsx', () => {
             count: 3,
             editIndex: -1,
           },
+          'mock-container-id-2': {
+            count: 4,
+            editIndex: 0,
+          }
         },
         autosave: false,
         currentView: 'FormLayout',
@@ -152,6 +170,7 @@ describe('>>> features/form/components/Group.tsx', () => {
       textResources: mockTextResources,
     });
     mockStore = createStore(initialState);
+    mockStore.dispatch = jest.fn();
   });
 
   it('+++ should match snapshot', () => {
@@ -236,5 +255,70 @@ describe('>>> features/form/components/Group.tsx', () => {
     );
     const item = await utils.findByText('Value to be shown');
     expect(item).not.toBeNull();
+  });
+
+  it('+++ should trigger validate when closing edit mode if validation trigger is present', async () => {
+    const mockContainerInEditModeWithTrigger = {
+      ...mockContainer,
+      id: 'mock-container-id-2',
+      triggers: [Triggers.Validation]
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerInEditModeWithTrigger}
+          id='mock-container-id-2'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const editButton = await utils.getAllByText('Rediger')[0].closest('button');
+    fireEvent.click(editButton);
+
+    const mockDispatchedAction =
+      {
+        payload: {
+          group: 'mock-container-id-2',
+          index: -1,
+          validate: true
+        },
+        type: 'formLayout/updateRepeatingGroupsEditIndex'
+      };
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
+    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+  });
+
+  it('+++ should NOT trigger validate when closing edit mode if validation trigger is NOT present', async () => {
+    const mockContainerInEditMode = {
+      ...mockContainer,
+      id: 'mock-container-id-2',
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerInEditMode}
+          id='mock-container-id-2'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const editButton = await utils.getAllByText('Rediger')[0].closest('button');
+    fireEvent.click(editButton);
+
+    const mockDispatchedAction =
+      {
+        payload: {
+          group: 'mock-container-id-2',
+          index: -1,
+          validate: undefined
+        },
+        type: 'formLayout/updateRepeatingGroupsEditIndex'
+      };
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
+    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 });

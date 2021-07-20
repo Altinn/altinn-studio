@@ -120,7 +120,11 @@ export function GroupContainer({
   };
 
   const setEditIndex = (index: number) => {
-    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index }));
+    // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
+    const validate: boolean = (index === -1) && container.triggers?.includes(Triggers.Validation);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+      group: id, index, validate,
+    }));
   };
 
   if (hidden) {
