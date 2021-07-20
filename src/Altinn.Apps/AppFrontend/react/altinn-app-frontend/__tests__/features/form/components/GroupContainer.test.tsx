@@ -257,7 +257,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(item).not.toBeNull();
   });
 
-  it('+++ should trigger validate when closing edit mode if validation trigger is present', async () => {
+  it('+++ should trigger validate when closing edit mode if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -273,7 +273,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
-    const editButton = await utils.getAllByText('Rediger')[0].closest('button');
+    const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
@@ -290,7 +290,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('+++ should NOT trigger validate when closing edit mode if validation trigger is NOT present', async () => {
+  it('+++ should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -305,7 +305,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
-    const editButton = await utils.getAllByText('Rediger')[0].closest('button');
+    const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
