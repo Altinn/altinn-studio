@@ -313,7 +313,72 @@ describe('>>> features/form/components/Group.tsx', () => {
         payload: {
           group: 'mock-container-id-2',
           index: -1,
-          validate: undefined
+          validate: false
+        },
+        type: 'formLayout/updateRepeatingGroupsEditIndex'
+      };
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
+    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+  });
+
+  it('+++ should trigger validate when saving if validation trigger is present', () => {
+    const mockContainerInEditModeWithTrigger = {
+      ...mockContainer,
+      id: 'mock-container-id-2',
+      triggers: [Triggers.Validation]
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerInEditModeWithTrigger}
+          id='mock-container-id-2'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const editButton = utils.getAllByText('Lagre')[0].closest('button');
+    fireEvent.click(editButton);
+
+    const mockDispatchedAction =
+      {
+        payload: {
+          group: 'mock-container-id-2',
+          index: -1,
+          validate: true
+        },
+        type: 'formLayout/updateRepeatingGroupsEditIndex'
+      };
+
+    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
+    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+  });
+
+  it('+++ should NOT trigger validate when saving if validation trigger is NOT present', () => {
+    const mockContainerInEditMode = {
+      ...mockContainer,
+      id: 'mock-container-id-2',
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerInEditMode}
+          id='mock-container-id-2'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const editButton = utils.getAllByText('Lagre')[0].closest('button');
+    fireEvent.click(editButton);
+
+    const mockDispatchedAction =
+      {
+        payload: {
+          group: 'mock-container-id-2',
+          index: -1,
+          validate: false
         },
         type: 'formLayout/updateRepeatingGroupsEditIndex'
       };

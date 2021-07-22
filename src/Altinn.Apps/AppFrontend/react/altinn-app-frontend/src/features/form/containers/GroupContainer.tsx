@@ -113,7 +113,7 @@ export function GroupContainer({
   };
 
   const onClickSave = () => {
-    const validate: boolean = container.triggers?.includes(Triggers.Validation);
+    const validate: boolean = !!container.triggers?.includes(Triggers.Validation);
     dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
       group: id, index: -1, validate,
     }));
@@ -121,7 +121,7 @@ export function GroupContainer({
 
   const setEditIndex = (index: number) => {
     // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
-    const validate: boolean = (index === -1) && container.triggers?.includes(Triggers.Validation);
+    const validate: boolean = (index === -1) && !!container.triggers?.includes(Triggers.Validation);
     dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
       group: id, index, validate,
     }));
