@@ -2,7 +2,7 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
 import React from 'react';
-import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
+import { Grid, makeStyles, createTheme } from '@material-ui/core';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayoutGroup } from '../layout';
@@ -16,7 +16,7 @@ export interface IRepeatingGroupAddButton {
   onKeypressAdd: (event: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
-const theme = createMuiTheme(altinnAppTheme);
+const theme = createTheme(altinnAppTheme);
 
 const useStyles = makeStyles({
   addButton: {

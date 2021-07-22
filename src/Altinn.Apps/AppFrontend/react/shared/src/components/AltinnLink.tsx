@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -14,7 +14,7 @@ export interface IAltinnLinkCompontentProvidedProps {
 
 export interface IAltinnLinkComponentState {
 }
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   link: {

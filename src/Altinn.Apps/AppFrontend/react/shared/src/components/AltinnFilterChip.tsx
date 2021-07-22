@@ -1,4 +1,4 @@
-import { Chip, createMuiTheme } from '@material-ui/core';
+import { Chip, createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -19,7 +19,7 @@ export interface IAltinnFilterChipComponentProvidedProps {
 export interface IAltinnFilterChipComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   chip: {

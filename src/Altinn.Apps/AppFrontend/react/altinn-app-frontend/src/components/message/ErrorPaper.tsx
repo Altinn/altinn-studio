@@ -1,4 +1,4 @@
-import { Paper, Grid, createMuiTheme, makeStyles } from '@material-ui/core';
+import { Paper, Grid, createTheme, makeStyles } from '@material-ui/core';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 
@@ -6,7 +6,7 @@ export interface IErrorPaperProps {
   message: string,
 }
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   paper: {
