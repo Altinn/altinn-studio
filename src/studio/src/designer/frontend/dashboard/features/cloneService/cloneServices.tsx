@@ -1,7 +1,7 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -28,7 +28,7 @@ export interface ICloneServiceComponentState {
   lastChangedBy: string;
   isLoading: boolean;
 }
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   mainStyle: {

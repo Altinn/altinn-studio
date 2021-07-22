@@ -1,5 +1,5 @@
 import {
-  createMuiTheme,
+  createTheme,
   createStyles,
   Grid,
   Input,
@@ -10,7 +10,7 @@ import { withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 const styles = createStyles({
   altinnInputWrapper: {
     height: 'auto',

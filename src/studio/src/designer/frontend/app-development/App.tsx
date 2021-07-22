@@ -7,7 +7,7 @@
 // Extensive used in Material-UI's Grid
 
 import { Grid, Hidden, Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -33,7 +33,7 @@ import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   container: {
