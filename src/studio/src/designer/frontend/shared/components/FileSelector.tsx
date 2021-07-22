@@ -1,23 +1,20 @@
 import { Description } from '@material-ui/icons';
 import * as React from 'react';
-import { Button, StyledComponentProps, withStyles } from '@material-ui/core';
+import { Button, StyledComponentProps, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
-import { ChangeEvent, FormEvent } from 'react';
 import { getLanguageFromKey } from '../utils/language';
 import theme from '../theme/altinnStudioTheme';
 
-interface IFileSelectorState {
-  selectedFileName: string | undefined;
-}
 interface IFileSelectorProps extends StyledComponentProps {
   language: any,
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
-  labelTextRecource: string;
+  labelTextResource: string;
   formFileName: string;
   accept?: string;
 }
-const styles = {
+
+const useStyles = makeStyles({
   root: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -64,71 +61,56 @@ const styles = {
       },
     },
   },
-};
-class FileSelector extends React.Component<IFileSelectorProps, IFileSelectorState> {
-  fileInput: React.RefObject<HTMLInputElement>;
+});
 
-  constructor(props: IFileSelectorProps) {
-    super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.getFileName = this.getFileName.bind(this);
-    this.fileInput = React.createRef();
-    this.state = {
-      selectedFileName: '',
-    };
-  }
+function FileSelector(props: IFileSelectorProps) {
+  const {
+    language, labelTextResource, accept, formFileName, busy, submitHandler,
+  } = props;
+  const classes = useStyles();
+  const fileInput = React.useRef<HTMLInputElement>();
+  const [selectedFileName, setSelectedFileName] = React.useState('');
 
-  handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const file = this.fileInput.current.files[0];
+    const file = fileInput.current.files[0];
     const formData = new FormData();
-    formData.append(this.props.formFileName, file);
-    this.props.submitHandler(formData, file.name);
-  }
+    formData.append(formFileName, file);
+    submitHandler(formData, file.name);
+  };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleInputChange(_: ChangeEvent<HTMLInputElement>) {
-    this.setState({
-      selectedFileName: this.fileInput.current?.files[0]?.name,
-    });
-  }
+  const handleInputChange = () => {
+    setSelectedFileName(fileInput.current?.files[0]?.name);
+  };
 
-  getFileName() {
-    return this.state.selectedFileName;
-  }
-
-  render() {
-    const {
-      language, classes, labelTextRecource,
-    } = this.props;
-    const selectedFileName = this.getFileName();
-    return (
-      <form onSubmit={this.handleSubmit} className={classes.root}>
-        <input
-          type='file'
-          id='file-upload-picker'
-          className='sr-only'
-          accept={this.props.accept}
-          ref={this.fileInput}
-          name={this.props.formFileName}
-          onChange={this.handleInputChange}
-          disabled={this.props.busy}
-        />
-        <label htmlFor='file-upload-picker' title={getLanguageFromKey(labelTextRecource, language)}>
-          <Description fontSize='large' />
-          <span
-            className={classNames({ empty: !selectedFileName })}
-          >
-            {selectedFileName || getLanguageFromKey(labelTextRecource, language)}
-          </span>
-        </label>
-        <Button type='submit' disabled={!selectedFileName || this.props.busy}>
-          {getLanguageFromKey('shared.submit_upload', language)}
-        </Button>
-      </form>
-    );
-  }
+  return (
+    <form onSubmit={handleSubmit} className={classes.root}>
+      <input
+        type='file'
+        id='file-upload-picker'
+        className='sr-only'
+        accept={accept}
+        ref={fileInput}
+        name={formFileName}
+        onChange={handleInputChange}
+        disabled={busy}
+      />
+      <label htmlFor='file-upload-picker' title={getLanguageFromKey(labelTextResource, language)}>
+        <Description fontSize='large' />
+        <span
+          className={classNames({ empty: !selectedFileName })}
+        >
+          {selectedFileName || getLanguageFromKey(labelTextResource, language)}
+        </span>
+      </label>
+      <Button type='submit' disabled={!selectedFileName || busy}>
+        {getLanguageFromKey('shared.submit_upload', language)}
+      </Button>
+    </form>
+  );
 }
 
-export default withStyles(styles)(FileSelector);
+export default FileSelector;
+FileSelector.defaultProps = {
+  accept: undefined,
+};

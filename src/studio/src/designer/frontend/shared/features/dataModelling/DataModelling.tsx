@@ -12,6 +12,7 @@ import findPreferredMetadataOption from './functions/findPreferredMetadataOption
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { AltinnSpinner } from '../../components';
 import shouldSelectPreferredOption from './functions/shouldSelectPreferredOption';
+import { IMetadataOption } from './functions/types';
 
 const useStyles = makeStyles(
   createStyles({
@@ -40,22 +41,28 @@ interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
 }
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const clearPreferredOption = () => {
-    if (props.preferredOptionLabel) {
-      props.preferredOptionLabel.clear();
-    }
-  };
-
   const { SchemaEditor, language } = props;
   const dispatch = useDispatch();
   const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
-
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
-
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
   const schemaEditorRef = React.useRef<ISchemaEditor>(null);
+
+  const onSchemaSelected = React.useCallback((option: IMetadataOption) => {
+    if (props.preferredOptionLabel) {
+      props.preferredOptionLabel.clear();
+    }
+    setSelectedOption(option);
+  }, [props.preferredOptionLabel]);
+
+  const selectPreferredOption = React.useCallback(() => {
+    const option = findPreferredMetadataOption(metadataOptions, props.preferredOptionLabel?.label);
+    if (option && !schemaPathIsSame(selectedOption, option)) {
+      onSchemaSelected(option);
+    }
+  }, [metadataOptions, props.preferredOptionLabel?.label, selectedOption, onSchemaSelected]);
 
   React.useEffect(() => {
     if (!schemaPathIsSame(lastFetchedOption, selectedOption)) {
@@ -63,21 +70,13 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
       setLastFetchedOption(selectedOption);
     }
   }, [selectedOption, lastFetchedOption, dispatch]);
+
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
     if (!shouldSelectPreferredOption(metadataOptions, selectedOption, setSelectedOption)) {
       return;
     }
-    const option = findPreferredMetadataOption(metadataOptions, props.preferredOptionLabel?.label);
-    if (option && !schemaPathIsSame(selectedOption, option)) {
-      setSelectedOption(option);
-      props.preferredOptionLabel.clear();
-    }
-  }, [metadataOptions, selectedOption, props.preferredOptionLabel]);
-
-  const onSchemaSelected = (s: any) => {
-    clearPreferredOption();
-    setSelectedOption(s);
-  };
+    selectPreferredOption();
+  }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
 
   const onSaveSchema = (schema: any) => {
     const $id = sharedUrls().getDataModellingUrl(
@@ -88,8 +87,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 
   const onDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption }));
-    setSelectedOption(null);
-    clearPreferredOption();
+    onSchemaSelected(null);
   };
 
   const createAction = (modelName: string) => {
@@ -128,6 +126,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
           onClick={onSaveButtonClicked}
           type='button'
           variant='contained'
+          disabled={!selectedOption}
           startIcon={<ArchiveOutlined />}
         >{getLanguageFromKey('schema_editor.save_data_model', language)}
         </Button>

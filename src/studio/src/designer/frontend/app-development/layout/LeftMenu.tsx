@@ -1,19 +1,19 @@
-import { Grid, Hidden } from '@material-ui/core';
+import { Grid, Hidden, StyledComponentProps } from '@material-ui/core';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import classNames from 'classnames';
 import React = require('react');
 import { Redirect, Route, Switch } from 'react-router-dom';
+import { IShareChangesComponentProps } from 'app-shared/version-control/shareChanges';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
-interface ILeftMenu {
-  repoStatus: any,
-  classes: any;
+interface ILeftMenuProps extends StyledComponentProps {
+  repoStatus: IShareChangesComponentProps,
   language: any;
 }
 
-const LeftMenu = (componentProps: ILeftMenu) => {
+const LeftMenu = (componentProps: ILeftMenuProps) => {
   const {
     repoStatus, classes, language,
   } = componentProps;

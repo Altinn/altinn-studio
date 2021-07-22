@@ -7,12 +7,12 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { XSDUploadUrl } from 'utils/urlHelper';
 import axios from 'axios';
 
-interface IXSDUploader {
+interface IXSDUploaderProps {
   language: any,
   onXSDUploaded: (filename: string) => void,
 }
 
-export default function XSDUploader(props: IXSDUploader) {
+export default function XSDUploader(props: IXSDUploaderProps) {
   const [uploadButtonAnchor, setUploadButtonAnchor] = React.useState(null);
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
@@ -32,7 +32,7 @@ export default function XSDUploader(props: IXSDUploader) {
       }
     }).catch((error) => {
       if (error) {
-        setErrorText('Something went wrong. Please try again.');
+        setErrorText(getLanguageFromKey('form_filler.file_uploader_validation_error_upload', props.language));
       }
     }).finally(() => setUploading(false));
   };
@@ -69,7 +69,7 @@ export default function XSDUploader(props: IXSDUploader) {
                 language={props.language}
                 submitHandler={onUploading}
                 accept='.xsd'
-                labelTextRecource='app_data_modelling.select_xsd'
+                labelTextResource='app_data_modelling.select_xsd'
                 formFileName='thefile'
               />
             )

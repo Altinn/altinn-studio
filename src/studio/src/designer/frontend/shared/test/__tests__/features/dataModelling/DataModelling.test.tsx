@@ -78,7 +78,7 @@ describe('>>> DataModelling.tsx', () => {
   });
   it('has the toolbar', () => {
     act(() => {
-      wrapper = mountComponent(undefined);
+      wrapper = mountComponent();
     });
     const createNewWrapper = wrapper.find(CreateNewWrapper);
     expect(createNewWrapper).toHaveLength(1);
@@ -89,7 +89,11 @@ describe('>>> DataModelling.tsx', () => {
   });
 
   it('selects the preferred model', () => {
-    preferredLabel = { label: modelName2, clear };
+    preferredLabel = { label: modelName2,
+      clear: () => {
+        preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
+        clear();
+      } };
     expect(clear).toHaveBeenCalledTimes(0);
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });

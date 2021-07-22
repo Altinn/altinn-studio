@@ -4,15 +4,14 @@ import * as React from 'react';
 import FileSelector from '../../../components/FileSelector';
 
 describe('>>> FileSelector.tsx', () => {
-  const language = { general: { label: 'download' }, shared:{ submit_upload: 'upload' } };
-  const submitFunc = (a: FormData, b: string) => {};
-  let submitHandler = jest.fn(submitFunc);
+  const language = { general: { label: 'download' }, shared: { submit_upload: 'upload' } };
+  const submitHandler = jest.fn();
   beforeEach(() => {
-    submitHandler = jest.fn(submitFunc);
+    submitHandler.mockReset();
   });
   const mountComponent = (busy: boolean) => mount(<FileSelector
     language={language}
-    labelTextRecource='general.label'
+    labelTextResource='general.label'
     busy={busy}
     accept='.xsd'
     formFileName='thefile'

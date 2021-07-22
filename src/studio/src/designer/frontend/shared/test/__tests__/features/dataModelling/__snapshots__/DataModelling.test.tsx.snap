@@ -2426,6 +2426,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
               </WithStyles(ForwardRef(Button))>
             </DeleteWrapper>
             <WithStyles(ForwardRef(Button))
+              disabled={false}
               onClick={[Function]}
               startIcon={<Memo />}
               type="button"
@@ -2465,6 +2466,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
                     "textSizeSmall": "MuiButton-textSizeSmall",
                   }
                 }
+                disabled={false}
                 onClick={[Function]}
                 startIcon={<Memo />}
                 type="button"
