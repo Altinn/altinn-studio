@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -33,7 +33,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
 export interface IAltinnInputFieldComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   inputHeader: {

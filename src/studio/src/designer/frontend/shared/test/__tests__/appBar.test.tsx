@@ -1,5 +1,5 @@
 // tslint:disable: max-line-length
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -107,7 +107,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   //   const tabletWidth: number = 1024;
   //   const tabletHeight: number = 768;
 
-  //   const theme = createMuiTheme(altinnTheme);
+  //   const theme = createTheme(altinnTheme);
 
   //   beforeEach(() => {
   //     window.resizeTo(desktopWidth, desktopHeight);
@@ -231,7 +231,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     const mockApp: string = 'mock-app';
     const mockShowSubheader: boolean = true;
 
-    const theme = createMuiTheme(altinnTheme);
+    const theme = createTheme(altinnTheme);
 
     const tabletWidth: number = 1024;
     const tabletHeight: number = 768;

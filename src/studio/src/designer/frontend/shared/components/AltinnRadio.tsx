@@ -1,5 +1,5 @@
 import { FormControlLabel, Radio } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
@@ -12,7 +12,7 @@ export interface IAltinnRadioComponentProvidedProps extends WithStyles<typeof st
   disabled?: boolean;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 export interface IAltinnRadioComponentState {
 }

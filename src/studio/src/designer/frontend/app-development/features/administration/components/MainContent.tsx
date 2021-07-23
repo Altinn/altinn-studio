@@ -1,4 +1,4 @@
-import { createMuiTheme, makeStyles } from '@material-ui/core';
+import { createTheme, makeStyles } from '@material-ui/core';
 import * as React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -22,7 +22,7 @@ export interface IMainContentProps {
   onBlurServiceDescription: () => void;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const setupClasses = makeStyles({
   marginBottom_24: {

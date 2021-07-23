@@ -1,4 +1,4 @@
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -10,7 +10,7 @@ describe('>>> shar../../navigation/drawer/TabletDrawerMenu.tsx', () => {
     let mockTabletDrawerOpen: boolean;
     let mockHandleTabletDrawerMenu: () => void;
 
-    const theme = createMuiTheme(altinnTheme);
+    const theme = createTheme(altinnTheme);
 
     beforeEach(() => {
       mockTabletDrawerOpen = true;

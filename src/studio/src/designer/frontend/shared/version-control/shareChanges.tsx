@@ -1,4 +1,4 @@
-import { Button, createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { Button, createTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
@@ -16,7 +16,7 @@ export interface IShareChangesComponentProps {
   shareChanges: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   bold: {
