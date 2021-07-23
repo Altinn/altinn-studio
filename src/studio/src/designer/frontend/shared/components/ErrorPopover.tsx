@@ -1,4 +1,4 @@
-import { Grid, Typography, createMuiTheme, makeStyles, createStyles } from '@material-ui/core';
+import { Grid, Typography, createTheme, makeStyles, createStyles } from '@material-ui/core';
 import * as React from 'react';
 import AltinnPopover from './molecules/AltinnPopoverSimple';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -9,7 +9,7 @@ export interface IErrorPopoverProps {
   errorMessage: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   popoverRoot: {

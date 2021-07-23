@@ -2,7 +2,7 @@
 /* eslint-disable import/no-named-as-default */
 import { Hidden, Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -15,7 +15,7 @@ import HandleMergeConflictAbort from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChanges from './components/HandleMergeConflictDiscardChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   root: {

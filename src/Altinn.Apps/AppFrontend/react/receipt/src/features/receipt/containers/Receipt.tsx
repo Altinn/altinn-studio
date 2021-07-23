@@ -1,4 +1,4 @@
-import { createStyles, WithStyles, Grid, withStyles, createMuiTheme } from '@material-ui/core';
+import { createStyles, WithStyles, Grid, withStyles, createTheme } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
@@ -12,7 +12,7 @@ import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
 import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl, getTextResourceUrl } from '../../../utils/urlHelper';
 
-const theme = createMuiTheme(AltinnReceiptTheme);
+const theme = createTheme(AltinnReceiptTheme);
 
 const styles = () => createStyles({
   body: {

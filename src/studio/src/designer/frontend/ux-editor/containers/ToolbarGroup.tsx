@@ -51,7 +51,7 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
         onEnter={handleEnterCollapse}
         style={props.componentListCloseAnimationDone ? { display: 'none' } : {}}
         classes={{
-          container: classes.collapsableContainer,
+          root: classes.collapsableContainer,
         }}
       >
         <List
