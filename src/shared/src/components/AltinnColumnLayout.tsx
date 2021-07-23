@@ -1,9 +1,9 @@
-import { createMuiTheme, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   mainStyle: {
