@@ -36,7 +36,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-6"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-6"
       >
         <div
           className="MuiGrid-root MuiGrid-item"
