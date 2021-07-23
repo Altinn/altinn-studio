@@ -93,7 +93,7 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest"
+      "\\.(ts|tsx)": "ts-jest"
     },
     "reporters": [
       "default",

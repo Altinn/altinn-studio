@@ -142,7 +142,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
           <Toolbar>
             <Grid
               container direction='row'
-              alignItems='center' justify='space-between'
+              alignItems='center' justifyContent='space-between'
             >
               <Grid
                 item xs
@@ -173,7 +173,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               <Grid
                 item xs
                 container direction='row'
-                alignItems='center' justify='flex-end'
+                alignItems='center' justifyContent='flex-end'
               >
                 {user || ''}
                 <Hidden smDown>
@@ -204,7 +204,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               <Toolbar>
                 <Grid
                   container direction='row'
-                  justify='center' alignItems='center'
+                  justifyContent='center' alignItems='center'
                 >
                   {menu.map((item) => (
                     <Grid
