@@ -6,6 +6,7 @@ import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
 import DataModellingContainer from '../../features/dataModelling/containers/DataModellingContainer';
+// @ts-ignore -- seems works, but editors complain
 import * as testData from '../__testdata__/schemaTestData.json';
 
 describe('DataModelling', () => {
@@ -81,7 +82,6 @@ describe('DataModelling', () => {
         type: 'dataModelling/createNewDataModel',
         payload: {
           modelName: 'test',
-          onNewNameCreated: expect.any(Function),
         },
       },
     );

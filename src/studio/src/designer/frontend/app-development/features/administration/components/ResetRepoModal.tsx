@@ -112,7 +112,11 @@ function ResetRepoModal(props: IResetRepoModalProps) {
           </Grid>
           <Grid item={true} className={classes.sectionSeparator}>
             <Typography variant='body1'>
-              {getParsedLanguageFromKey('administration.reset_repo_confirm_info', props.language, [props.repositoryName], true)}
+              {getParsedLanguageFromKey(
+                'administration.reset_repo_confirm_info',
+                props.language, [props.repositoryName],
+                true,
+              )}
             </Typography>
           </Grid>
           <Grid item={true}>

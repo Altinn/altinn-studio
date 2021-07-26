@@ -43,14 +43,14 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
       direction='column'
       className={classes.root}
       spacing={0}
-      justify='center'
+      justifyContent='center'
       alignContent='center'
     >
       <Grid
         container={true}
         item={true}
         spacing={0}
-        justify='center'
+        justifyContent='center'
         alignContent='center'
         className={classNames(classes.scrollable)}
       >
@@ -93,7 +93,7 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
             <Grid
               container={true} sm={12}
               md={5} item={true}
-              spacing={0} justify='center'
+              spacing={0} justifyContent='center'
               alignContent='center'
             >
               <img alt='information' src={props.imageSource} />

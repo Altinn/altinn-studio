@@ -1,0 +1,178 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> XSDUploader.tsx +++ Should match snapshot with the least amount of params 1`] = `
+<XSDUploader
+  language={
+    Object {
+      "administration": Object {},
+    }
+  }
+  onXSDUploaded={[MockFunction]}
+>
+  <WithStyles(ForwardRef(Button))
+    className="button"
+    id="upload-button"
+    onClick={[Function]}
+    startIcon={<Memo />}
+    variant="contained"
+  >
+    <ForwardRef(Button)
+      className="button"
+      classes={
+        Object {
+          "colorInherit": "MuiButton-colorInherit",
+          "contained": "MuiButton-contained",
+          "containedPrimary": "MuiButton-containedPrimary",
+          "containedSecondary": "MuiButton-containedSecondary",
+          "containedSizeLarge": "MuiButton-containedSizeLarge",
+          "containedSizeSmall": "MuiButton-containedSizeSmall",
+          "disableElevation": "MuiButton-disableElevation",
+          "disabled": "Mui-disabled",
+          "endIcon": "MuiButton-endIcon",
+          "focusVisible": "Mui-focusVisible",
+          "fullWidth": "MuiButton-fullWidth",
+          "iconSizeLarge": "MuiButton-iconSizeLarge",
+          "iconSizeMedium": "MuiButton-iconSizeMedium",
+          "iconSizeSmall": "MuiButton-iconSizeSmall",
+          "label": "MuiButton-label",
+          "outlined": "MuiButton-outlined",
+          "outlinedPrimary": "MuiButton-outlinedPrimary",
+          "outlinedSecondary": "MuiButton-outlinedSecondary",
+          "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+          "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+          "root": "MuiButton-root",
+          "sizeLarge": "MuiButton-sizeLarge",
+          "sizeSmall": "MuiButton-sizeSmall",
+          "startIcon": "MuiButton-startIcon",
+          "text": "MuiButton-text",
+          "textPrimary": "MuiButton-textPrimary",
+          "textSecondary": "MuiButton-textSecondary",
+          "textSizeLarge": "MuiButton-textSizeLarge",
+          "textSizeSmall": "MuiButton-textSizeSmall",
+        }
+      }
+      id="upload-button"
+      onClick={[Function]}
+      startIcon={<Memo />}
+      variant="contained"
+    >
+      <WithStyles(ForwardRef(ButtonBase))
+        className="MuiButton-root MuiButton-contained button"
+        component="button"
+        disabled={false}
+        focusRipple={true}
+        focusVisibleClassName="Mui-focusVisible"
+        id="upload-button"
+        onClick={[Function]}
+        type="button"
+      >
+        <ForwardRef(ButtonBase)
+          className="MuiButton-root MuiButton-contained button"
+          classes={
+            Object {
+              "disabled": "Mui-disabled",
+              "focusVisible": "Mui-focusVisible",
+              "root": "MuiButtonBase-root",
+            }
+          }
+          component="button"
+          disabled={false}
+          focusRipple={true}
+          focusVisibleClassName="Mui-focusVisible"
+          id="upload-button"
+          onClick={[Function]}
+          type="button"
+        >
+          <button
+            className="MuiButtonBase-root MuiButton-root MuiButton-contained button"
+            disabled={false}
+            id="upload-button"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragLeave={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiButton-label"
+            >
+              <span
+                className="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <ForwardRef(CloudUploadOutlinedIcon)>
+                  <WithStyles(ForwardRef(SvgIcon))>
+                    <ForwardRef(SvgIcon)
+                      classes={
+                        Object {
+                          "colorAction": "MuiSvgIcon-colorAction",
+                          "colorDisabled": "MuiSvgIcon-colorDisabled",
+                          "colorError": "MuiSvgIcon-colorError",
+                          "colorPrimary": "MuiSvgIcon-colorPrimary",
+                          "colorSecondary": "MuiSvgIcon-colorSecondary",
+                          "fontSizeInherit": "MuiSvgIcon-fontSizeInherit",
+                          "fontSizeLarge": "MuiSvgIcon-fontSizeLarge",
+                          "fontSizeSmall": "MuiSvgIcon-fontSizeSmall",
+                          "root": "MuiSvgIcon-root",
+                        }
+                      }
+                    >
+                      <svg
+                        aria-hidden={true}
+                        className="MuiSvgIcon-root"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3zM8 13h2.55v3h2.9v-3H16l-4-4z"
+                        />
+                      </svg>
+                    </ForwardRef(SvgIcon)>
+                  </WithStyles(ForwardRef(SvgIcon))>
+                </ForwardRef(CloudUploadOutlinedIcon)>
+              </span>
+              app_data_modelling.upload_xsd
+            </span>
+            <WithStyles(memo)
+              center={false}
+            >
+              <ForwardRef(TouchRipple)
+                center={false}
+                classes={
+                  Object {
+                    "child": "MuiTouchRipple-child",
+                    "childLeaving": "MuiTouchRipple-childLeaving",
+                    "childPulsate": "MuiTouchRipple-childPulsate",
+                    "ripple": "MuiTouchRipple-ripple",
+                    "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                    "rippleVisible": "MuiTouchRipple-rippleVisible",
+                    "root": "MuiTouchRipple-root",
+                  }
+                }
+              >
+                <span
+                  className="MuiTouchRipple-root"
+                >
+                  <TransitionGroup
+                    childFactory={[Function]}
+                    component={null}
+                    exit={true}
+                  />
+                </span>
+              </ForwardRef(TouchRipple)>
+            </WithStyles(memo)>
+          </button>
+        </ForwardRef(ButtonBase)>
+      </WithStyles(ForwardRef(ButtonBase))>
+    </ForwardRef(Button)>
+  </WithStyles(ForwardRef(Button))>
+</XSDUploader>
+`;

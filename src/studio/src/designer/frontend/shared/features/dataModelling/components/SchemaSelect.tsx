@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
+import { IMetadataOption } from '../functions/types';
 
 interface ISchemaSelectProps {
-  selectedOption: { value: any, label: string } | null;
+  selectedOption: IMetadataOption | null;
   onChange: (optionWithMetadata: { value: any, label: string }) => void;
-  options: { value: any, label: string }[];
+  options: IMetadataOption[];
 }
 
 const useStyles = makeStyles({

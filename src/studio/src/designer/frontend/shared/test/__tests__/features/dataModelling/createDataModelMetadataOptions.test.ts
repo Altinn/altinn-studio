@@ -9,8 +9,8 @@ describe('>>> createDataModelMetadataOptions.ts', () => {
       dataModelsMetadata,
     },
   };
-  it('should return null if no metadata is set', () => {
-    expect(createDataModelMetadataOptions(state)).toBeNull();
+  it('should return empty if no metadata is set', () => {
+    expect(createDataModelMetadataOptions(state)).toHaveLength(0);
   });
   describe('with data', () => {
     beforeEach(() => {

@@ -8,6 +8,11 @@ import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } fr
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import { sharedUrls } from '../../utils/urlHelper';
+import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
+import schemaPathIsSame from './functions/schemaPathIsSame';
+import { AltinnSpinner } from '../../components';
+import shouldSelectPreferredOption from './functions/shouldSelectPreferredOption';
+import { IMetadataOption } from './functions/types';
 
 const useStyles = makeStyles(
   createStyles({
@@ -17,23 +22,22 @@ const useStyles = makeStyles(
     schema: {
       marginTop: 4,
     },
-    button: {
-      margin: 4,
-    },
     toolbar: {
       background: '#fff',
       padding: 8,
       boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      '& button': {
+      '& > button': {
+        margin: 4,
         background: '#fff',
       },
     },
   }),
 );
 
-interface IDataModellingContainerProps {
+interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: any;
   SchemaEditor: (props: any) => JSX.Element;
+  preferredOptionLabel?: { label: string, clear: () => void };
 }
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
@@ -41,56 +45,58 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const dispatch = useDispatch();
   const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
-
-  const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
-
-  const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
+  const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
+  const [selectedOption, setSelectedOption] = React.useState(null);
+  const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
   const schemaEditorRef = React.useRef<ISchemaEditor>(null);
 
-  React.useEffect(() => {
-    if (selectedModelMetadata?.value) {
-      const fetchModel = () => {
-        dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
-      };
-      fetchModel();
+  const onSchemaSelected = React.useCallback((option: IMetadataOption) => {
+    if (props.preferredOptionLabel) {
+      props.preferredOptionLabel.clear();
     }
-  }, [selectedModelMetadata, dispatch]);
+    setSelectedOption(option);
+  }, [props.preferredOptionLabel]);
+
+  const selectPreferredOption = React.useCallback(() => {
+    const option = findPreferredMetadataOption(metadataOptions, props.preferredOptionLabel?.label);
+    if (option && !schemaPathIsSame(selectedOption, option)) {
+      onSchemaSelected(option);
+    }
+  }, [metadataOptions, props.preferredOptionLabel?.label, selectedOption, onSchemaSelected]);
+
+  React.useEffect(() => {
+    if (!schemaPathIsSame(lastFetchedOption, selectedOption)) {
+      dispatch(fetchDataModel({ metadata: selectedOption }));
+      setLastFetchedOption(selectedOption);
+    }
+  }, [selectedOption, lastFetchedOption, dispatch]);
 
   React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!dataModelsMetadata?.length) { // no dataModels
+    if (!shouldSelectPreferredOption(metadataOptions, selectedOption, setSelectedOption)) {
       return;
     }
-    if (!selectedModelMetadata?.label) { // automatically select if no label (on initial load)
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    }
-    if (!selectedModelMetadata) {
-      return;
-    }
-    const option = dataModelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
-    if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the dataModel has been deleted
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    } else if (!selectedModelMetadata.value && option) { // if the model was recently created and saved
-      setSelectedModelMetadata(option);
-    }
-  }, [dataModelsMetadata, selectedModelMetadata]);
-
-  const onSchemaSelected = setSelectedModelMetadata;
+    selectPreferredOption();
+  }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
 
   const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
-    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
+    const $id = sharedUrls().getDataModellingUrl(
+      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`,
+    );
+    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
+  };
+
+  const onDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption }));
+    onSchemaSelected(null);
   };
 
   const createAction = (modelName: string) => {
-    dispatch(createNewDataModel({
-      modelName,
-      onNewNameCreated: (label: string) => {
-        setSelectedModelMetadata({ label });
-      },
-    }));
+    dispatch(createNewDataModel({ modelName }));
+    setSelectedOption({ label: modelName });
   };
+
   const getModelNames = () => {
-    return dataModelsMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+    return metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
   };
 
   const onSaveButtonClicked = () => {
@@ -100,41 +106,46 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   return (
     <div className={classes.root}>
       <Grid container className={classes.toolbar}>
+        {props.children}
         <Create
           language={language}
-          buttonClass={classes.button}
           createAction={createAction}
           dataModelNames={getModelNames()}
         />
         <SchemaSelect
-          selectedOption={selectedModelMetadata}
+          selectedOption={selectedOption}
           onChange={onSchemaSelected}
-          options={dataModelsMetadata || []}
+          options={metadataOptions}
         />
         <Delete
-          schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}
-          deleteAction={() => dispatch(deleteDataModel({ metadata: selectedModelMetadata }))}
-          buttonClass={classes.button}
+          schemaName={selectedOption?.value && selectedOption?.label}
+          deleteAction={onDeleteSchema}
           language={language}
         />
         <Button
           onClick={onSaveButtonClicked}
           type='button'
           variant='contained'
+          disabled={!selectedOption}
           startIcon={<ArchiveOutlined />}
-          className={classes.button}
         >{getLanguageFromKey('schema_editor.save_data_model', language)}
         </Button>
       </Grid>
-      {jsonSchema && selectedModelMetadata?.label &&
-        <SchemaEditor
-          editorRef={schemaEditorRef}
-          language={language}
-          schema={jsonSchema}
-          onSaveSchema={onSaveSchema}
-          name={selectedModelMetadata.label}
-        />}
+      {selectedOption?.label && (
+        jsonSchema ?
+          <SchemaEditor
+            editorRef={schemaEditorRef}
+            language={language}
+            schema={jsonSchema}
+            onSaveSchema={onSaveSchema}
+            name={selectedOption.label}
+          />
+          : <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
+      )}
     </div>
   );
 }
 export default DataModelling;
+DataModelling.defaultProps = {
+  preferredOptionLabel: undefined,
+};
