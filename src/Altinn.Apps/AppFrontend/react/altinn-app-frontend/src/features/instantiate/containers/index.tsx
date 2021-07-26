@@ -35,10 +35,6 @@ export interface IPartyValidation {
   validParties: IParty[];
 }
 
-export interface IServiceInfoProps extends WithStyles<typeof styles> {
-  // intentionally left empty
-}
-
 function InstantiateContainer() {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, app } = window as Window as IAltinnWindow;
