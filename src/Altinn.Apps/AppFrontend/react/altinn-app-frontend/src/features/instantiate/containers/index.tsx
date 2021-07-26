@@ -1,4 +1,4 @@
-import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import { AxiosError } from 'axios';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
