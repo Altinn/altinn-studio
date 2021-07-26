@@ -49,7 +49,7 @@ export default function Entrypoint() {
 
   return (
     <Presentation
-      header={applicationMetadata?.title?.nb}
+      header=''
       type={ProcessTaskType.Unknown}
     >
       <AltinnContentLoader width='100%' height='400'>
