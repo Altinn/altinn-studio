@@ -111,6 +111,7 @@ export default (props) => {
 
   return (
     <Presentation
+      header={appHeader}
       type={process.taskType}
     >
       <div>
