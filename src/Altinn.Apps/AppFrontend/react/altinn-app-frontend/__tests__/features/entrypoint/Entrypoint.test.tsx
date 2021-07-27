@@ -1,4 +1,3 @@
-import configureStore from 'redux-mock-store';
 import 'jest';
 import * as React from 'react';
 import { IRuntimeState } from "../../../src/types";
@@ -50,7 +49,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     );
 
     const contentLoader = await rendered.findByText('Loading...');
-    expect(contentLoader).not.toBeNull();;
+    expect(contentLoader).not.toBeNull();
 
     const instantiationText = await rendered.findByText('Hold deg fast, nå starter vi!');
     expect(instantiationText).not.toBeNull();

@@ -56,7 +56,7 @@ describe('>>> features/instantiate/index.ts', () => {
     });
 
     const contentLoader = await rendered.findByText('Loading...');
-    expect(contentLoader).not.toBeNull();;
+    expect(contentLoader).not.toBeNull();
 
     const instantiationText = await rendered.findByText('Hold deg fast, nå starter vi!');
     expect(instantiationText).not.toBeNull();
