@@ -256,7 +256,7 @@ export function RepeatingGroupTable({
           return (
             <Grid
               item={true} container={true}
-              justify='flex-end' direction='row'
+              justifyContent='flex-end' direction='row'
               className={`${classes.mobileGrid} ${rowHasErrors ? classes.tableRowError : ''}`}
             >
               <Grid item={true}>

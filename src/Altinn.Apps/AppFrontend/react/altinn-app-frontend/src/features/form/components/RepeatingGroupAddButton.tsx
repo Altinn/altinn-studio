@@ -60,7 +60,7 @@ export function RepeatingGroupAddButton({
     <Grid
       container={true}
       direction='row'
-      justify='center'
+      justifyContent='center'
     >
       <Grid
         item={true}
@@ -72,7 +72,7 @@ export function RepeatingGroupAddButton({
         tabIndex={0}
         onClick={onClickAdd}
         onKeyPress={(event) => onKeypressAdd(event)}
-        justify='center'
+        justifyContent='center'
         alignItems='center'
       >
         <Grid item={true}>
