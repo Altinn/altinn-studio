@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
-import { IMenuItem } from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings, IMenuItem } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -55,7 +55,7 @@ export default function LeftDrawerMenu({
     setIconColor(newIconColor);
   };
 
-  const menuToRender = leftMenuItems[menuType];
+  const menuToRender = createLeftDrawerMenuSettings(leftMenuItems)[menuType];
 
   if (!menuType || !menuToRender) {
     return (
