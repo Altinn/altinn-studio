@@ -38,7 +38,7 @@ exports[`>>> DataModelling.tsx should match snapshot 1`] = `
   }
 >
   <DataModelling
-    SchemaEditor={[Function]}
+    Editor={[Function]}
     language={
       Object {
         "administration": Object {},

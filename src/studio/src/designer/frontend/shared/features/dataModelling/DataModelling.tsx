@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
-import { ISchemaEditor } from '@altinn/schema-editor/components/schemaEditor';
+import { Button } from '@material-ui/core';
+import { SchemaEditor, ISchemaEditorRef } from '@altinn/schema-editor/index';
 import { ArchiveOutlined } from '@material-ui/icons';
 import { getLanguageFromKey } from '../../utils/language';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
@@ -14,41 +14,19 @@ import { AltinnSpinner } from '../../components';
 import shouldSelectPreferredOption from './functions/shouldSelectPreferredOption';
 import { IMetadataOption } from './functions/types';
 
-const useStyles = makeStyles(
-  createStyles({
-    root: {
-      marginLeft: 80,
-    },
-    schema: {
-      marginTop: 4,
-    },
-    toolbar: {
-      background: '#fff',
-      padding: 8,
-      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      '& > button': {
-        margin: 4,
-        background: '#fff',
-      },
-    },
-  }),
-);
-
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: any;
-  SchemaEditor: (props: any) => JSX.Element;
   preferredOptionLabel?: { label: string, clear: () => void };
 }
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const { SchemaEditor, language } = props;
+  const { language } = props;
   const dispatch = useDispatch();
-  const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
-  const schemaEditorRef = React.useRef<ISchemaEditor>(null);
+  const dataModellingRef = React.useRef<ISchemaEditorRef>(null);
 
   const onSchemaSelected = React.useCallback((option: IMetadataOption) => {
     if (props.preferredOptionLabel) {
@@ -100,49 +78,43 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   };
 
   const onSaveButtonClicked = () => {
-    schemaEditorRef.current?.onClickSaveJsonSchema();
+    dataModellingRef.current?.onClickSaveJsonSchema();
   };
 
   return (
-    <div className={classes.root}>
-      <Grid container className={classes.toolbar}>
-        {props.children}
-        <Create
-          language={language}
-          createAction={createAction}
-          dataModelNames={getModelNames()}
-        />
-        <SchemaSelect
-          selectedOption={selectedOption}
-          onChange={onSchemaSelected}
-          options={metadataOptions}
-        />
-        <Delete
-          schemaName={selectedOption?.value && selectedOption?.label}
-          deleteAction={onDeleteSchema}
-          language={language}
-        />
-        <Button
-          onClick={onSaveButtonClicked}
-          type='button'
-          variant='contained'
-          disabled={!selectedOption}
-          startIcon={<ArchiveOutlined />}
-        >{getLanguageFromKey('schema_editor.save_data_model', language)}
-        </Button>
-      </Grid>
-      {selectedOption?.label && (
-        jsonSchema ?
-          <SchemaEditor
-            editorRef={schemaEditorRef}
-            language={language}
-            schema={jsonSchema}
-            onSaveSchema={onSaveSchema}
-            name={selectedOption.label}
-          />
-          : <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
-      )}
-    </div>
+    <SchemaEditor
+      containerRef={dataModellingRef}
+      language={language}
+      schema={jsonSchema}
+      onSaveSchema={onSaveSchema}
+      name={selectedOption?.label}
+      LoadingComponent={<AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />}
+    >
+      {props.children}
+      <Create
+        language={language}
+        createAction={createAction}
+        dataModelNames={getModelNames()}
+      />
+      <SchemaSelect
+        selectedOption={selectedOption}
+        onChange={onSchemaSelected}
+        options={metadataOptions}
+      />
+      <Delete
+        schemaName={selectedOption?.value && selectedOption?.label}
+        deleteAction={onDeleteSchema}
+        language={language}
+      />
+      <Button
+        onClick={onSaveButtonClicked}
+        type='button'
+        variant='contained'
+        disabled={!selectedOption}
+        startIcon={<ArchiveOutlined />}
+      >{getLanguageFromKey('schema_editor.save_data_model', language)}
+      </Button>
+    </SchemaEditor>
   );
 }
 export default DataModelling;

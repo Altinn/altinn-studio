@@ -1,16 +1,27 @@
 import * as React from 'react';
-import SchemaEditor from '@altinn/schema-editor/SchemaEditorApp';
 import { IRouteProps } from 'config/routes';
 import { DataModelling } from 'app-shared/features';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { useDispatch } from 'react-redux';
+import { makeStyles, createStyles } from '@material-ui/core';
 import XSDUploader from '../components/XSDUploader';
 
 interface IDataModellingContainerProps extends IRouteProps {
   language: any;
 }
 
+const useStyles = makeStyles(
+  createStyles({
+    root: {
+      marginLeft: 80,
+      width: 'calc(100% - 80px)',
+      display: 'inline-flex',
+    },
+  }),
+);
+
 export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
+  const classes = useStyles();
   const [preferredOption, setPreferredOption] = React.useState<string>(null);
   const dispatch = useDispatch();
   const onXSDUploaded = (filename: string) => {
@@ -22,16 +33,16 @@ export default function DataModellingContainer(props: IDataModellingContainerPro
   };
   const preferredOptionLabel = preferredOption && { label: preferredOption, clear: () => setPreferredOption(null) };
   return (
-    // Importing the ShcemaEditor inside the app-development project so the alias in webpack works.
-    <DataModelling
-      language={props.language}
-      SchemaEditor={SchemaEditor}
-      preferredOptionLabel={preferredOptionLabel}
-    >
-      <XSDUploader
+    <div className={classes.root}>
+      <DataModelling
         language={props.language}
-        onXSDUploaded={(filename: string) => onXSDUploaded(filename)}
-      />
-    </DataModelling>
+        preferredOptionLabel={preferredOptionLabel}
+      >
+        <XSDUploader
+          language={props.language}
+          onXSDUploaded={(filename: string) => onXSDUploaded(filename)}
+        />
+      </DataModelling>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import SchemaEditor from '@altinn/schema-editor/SchemaEditorApp';
 import { DataModelling } from 'app-shared/features';
 import { connect, useDispatch } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
@@ -18,9 +17,8 @@ function DataModellingContainer(props: IStandaloneDataModellingProps): JSX.Eleme
   const dispatch = useDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   return (
-    // Importing the ShcemaEditor inside the dashboard-development project so the alias in webpack works.
     <Grid item className={props.classes.containerGrid}>
-      <DataModelling language={props.language} SchemaEditor={SchemaEditor} />
+      <DataModelling language={props.language} />
     </Grid>
   );
 }
