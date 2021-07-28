@@ -159,7 +159,7 @@ export function GroupContainer({
       }
       <Grid
         container={true}
-        justify='flex-end'
+        justifyContent='flex-end'
       />
       {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatingGroupIndex + 1) < container.maxCount))) &&
         <RepeatingGroupAddButton

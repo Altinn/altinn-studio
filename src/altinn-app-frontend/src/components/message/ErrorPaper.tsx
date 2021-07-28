@@ -29,7 +29,7 @@ export default function ErrorPaper(props: IErrorPaperProps) {
         container={true}
         alignItems='center'
         direction='row'
-        justify='flex-start'
+        justifyContent='flex-start'
         className={classes.grid}
         spacing={2}
       >
