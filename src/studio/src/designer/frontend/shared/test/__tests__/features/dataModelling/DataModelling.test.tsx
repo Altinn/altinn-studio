@@ -10,7 +10,7 @@ import { SchemaSelect } from '../../../../features/dataModelling/components';
 import DeleteWrapper from '../../../../features/dataModelling/components/DeleteWrapper';
 
 describe('>>> DataModelling.tsx', () => {
-  const language = { administration: {} };
+  const language = { administration: Object({ first: 'some text', second: 'other text' }) };
   let wrapper: any = null;
   let store: any;
   const modelName = 'some-existing-model';

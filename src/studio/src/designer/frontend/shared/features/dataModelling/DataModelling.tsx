@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button } from '@material-ui/core';
-import { SchemaEditor, ISchemaEditorRef } from '@altinn/schema-editor/index';
-import { ArchiveOutlined } from '@material-ui/icons';
+import { SchemaEditor } from '@altinn/schema-editor/index';
+import { ILanguage } from '@altinn/schema-editor/types';
 import { getLanguageFromKey } from '../../utils/language';
 import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
@@ -15,7 +14,7 @@ import shouldSelectPreferredOption from './functions/shouldSelectPreferredOption
 import { IMetadataOption } from './functions/types';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
-  language: any;
+  language: ILanguage;
   preferredOptionLabel?: { label: string, clear: () => void };
 }
 
@@ -26,7 +25,6 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const [selectedOption, setSelectedOption] = React.useState(null);
   const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
-  const dataModellingRef = React.useRef<ISchemaEditorRef>(null);
 
   const onSchemaSelected = React.useCallback((option: IMetadataOption) => {
     if (props.preferredOptionLabel) {
@@ -77,13 +75,8 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
     return metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
   };
 
-  const onSaveButtonClicked = () => {
-    dataModellingRef.current?.onClickSaveJsonSchema();
-  };
-
   return (
     <SchemaEditor
-      containerRef={dataModellingRef}
       language={language}
       schema={jsonSchema}
       onSaveSchema={onSaveSchema}
@@ -106,14 +99,6 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         deleteAction={onDeleteSchema}
         language={language}
       />
-      <Button
-        onClick={onSaveButtonClicked}
-        type='button'
-        variant='contained'
-        disabled={!selectedOption}
-        startIcon={<ArchiveOutlined />}
-      >{getLanguageFromKey('schema_editor.save_data_model', language)}
-      </Button>
     </SchemaEditor>
   );
 }

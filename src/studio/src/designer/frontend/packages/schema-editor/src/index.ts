@@ -1,5 +1,3 @@
-import SchemaEditorApp, { IAppProps as ISchemaEditorProps, ISchemaEditorRef } from './SchemaEditorApp';
+import SchemaEditorApp, { IAppProps as ISchemaEditorProps } from './SchemaEditorApp';
 
-export {
-  SchemaEditorApp as SchemaEditor, ISchemaEditorProps, ISchemaEditorRef,
-};
+export { SchemaEditorApp as SchemaEditor, ISchemaEditorProps };

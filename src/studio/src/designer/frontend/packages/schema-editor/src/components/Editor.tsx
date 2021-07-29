@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import { ArrowDropDown, ArrowRight, ArchiveOutlined } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppBar } from '@material-ui/core';
+import { AppBar, Button } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
@@ -97,11 +96,8 @@ export interface IEditorProps {
   name?: string;
   language: ILanguage;
 }
-export interface IEditorRef {
-  onClickSaveJsonSchema: () => void;
-}
 
-export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEditorRef>) => {
+export const Editor = (props: IEditorProps) => {
   const {
     Toolbar, LoadingIndicator, schema, onSaveSchema, name, language,
   } = props;
@@ -114,9 +110,7 @@ export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEdi
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
 
-  React.useImperativeHandle(ref, () => ({ onClickSaveJsonSchema }));
-
-  function onClickSaveJsonSchema() {
+  function saveSchema() {
     dispatch(updateJsonSchema({ onSaveSchema }));
   }
 
@@ -169,6 +163,14 @@ export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEdi
       <main>
         <section className={classes.toolbar}>
           {Toolbar}
+          <Button
+            onClick={saveSchema}
+            type='button'
+            variant='contained'
+            disabled={!name}
+            startIcon={<ArchiveOutlined />}
+          >{getTranslation('save_data_model', language)}
+          </Button>
         </section>
         {schema ? (
           <div id='schema-editor' className={classes.editor}>
@@ -198,8 +200,8 @@ export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEdi
                   className={classes.treeView}
                   multiSelect={false}
                   selected={selectedTreeNode ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
+                  defaultCollapseIcon={<ArrowDropDown />}
+                  defaultExpandIcon={<ArrowRight />}
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
                     keyPrefix='properties'
@@ -222,8 +224,8 @@ export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEdi
                   className={classes.treeView}
                   multiSelect={false}
                   selected={selectedTreeNode ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
+                  defaultCollapseIcon={<ArrowDropDown />}
+                  defaultExpandIcon={<ArrowRight />}
                 >
                   {definitions.map((def) => <SchemaItem
                     keyPrefix='definitions'
@@ -250,5 +252,5 @@ export const Editor = React.forwardRef((props: IEditorProps, ref: React.Ref<IEdi
       </aside>}
     </div>
   );
-});
+};
 export default Editor;
