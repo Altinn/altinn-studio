@@ -4,7 +4,6 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import toJson from 'enzyme-to-json';
 import DataModelling from '../../../../features/dataModelling';
 import CreateNewWrapper from '../../../../features/dataModelling/components/CreateNewWrapper';
 import { SchemaSelect } from '../../../../features/dataModelling/components';
@@ -37,6 +36,15 @@ describe('>>> DataModelling.tsx', () => {
     },
   };
   const dispatchMock = () => Promise.resolve({});
+  const initialStoreCall = {
+    type: 'dataModelling/fetchDataModel',
+    payload: {
+      metadata: {
+        label: modelName,
+        value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
+      },
+    },
+  };
   let preferredLabel: {label: string, clear: () => void} = null;
   const clear = jest.fn();
 
@@ -47,35 +55,16 @@ describe('>>> DataModelling.tsx', () => {
     store.dispatch = jest.fn(dispatchMock);
     clear.mockReset();
   });
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  const dummyComponent = (props: {
-    schema: any;
-    language: any;
-    name?: string;
-    onSaveSchema: () => {}
-  }) => (<div>{JSON.stringify(props)}</div>);
   const mountComponent = (props?: any) => mount(
     React.createElement(({ preferredOptionLabel }: any = {}) => (
       <Provider store={store} >
         <DataModelling
           language={language}
-          SchemaEditor={dummyComponent}
           preferredOptionLabel={preferredOptionLabel || undefined}
         />
       </Provider>
     ), props),
   );
-  it('should match snapshot', () => {
-    wrapper = mount(
-      <Provider store={store} >
-        <DataModelling
-          language={language}
-          SchemaEditor={dummyComponent}
-        />
-      </Provider>,
-    );
-    expect(toJson(wrapper)).toMatchSnapshot();
-  });
   it('has the toolbar', () => {
     act(() => {
       wrapper = mountComponent();
@@ -105,7 +94,7 @@ describe('>>> DataModelling.tsx', () => {
     const dataModelling = wrapper.find(DataModelling);
     expect(dataModelling).toHaveLength(1);
     expect(schemaSelect.find('Select').props().value.label).toBe(modelName2);
-    expect(dataModelling.find('dummyComponent').props().name).toBe(modelName2);
+    expect(dataModelling.find('SchemaEditorApp').props().name).toBe(modelName2);
   });
 
   it('does not run clear after preferred model has been selected', () => {
@@ -129,7 +118,7 @@ describe('>>> DataModelling.tsx', () => {
     let dataModelling = wrapper.find(DataModelling);
     const schemaSelect = wrapper.find(SchemaSelect);
     const select = schemaSelect.find('Select');
-    let schemaEditor = dataModelling.find('dummyComponent');
+    let schemaEditor = dataModelling.find('SchemaEditorApp');
     expect(schemaEditor.props().name).toBe(modelName2);
     const options = select.props().options;
     act(() => {
@@ -137,8 +126,45 @@ describe('>>> DataModelling.tsx', () => {
     });
     wrapper.update(); // update selectors
     dataModelling = wrapper.find(DataModelling);
-    schemaEditor = dataModelling.find('dummyComponent');
+    schemaEditor = dataModelling.find('SchemaEditorApp');
     expect(clear).toHaveBeenCalledTimes(1);
     expect(schemaEditor.props().name).toBe(modelName);
+  });
+
+  it('dispatches correctly when running createAction', () => {
+    act(() => {
+      wrapper = mountComponent();
+    });
+    expect(wrapper.find('input').length).toBe(1); // dropdown selector
+    wrapper.update();
+    const createNew = wrapper.find('CreateNewWrapper');
+    act(() => {
+      createNew.props().createAction('test');
+    });
+    wrapper.update();
+    expect(store.dispatch).toHaveBeenCalledTimes(2);
+    expect(store.dispatch).toHaveBeenCalledWith(
+      {
+        type: 'dataModelling/createNewDataModel',
+        payload: {
+          modelName: 'test',
+        },
+      },
+    );
+  });
+
+  it('dispatches correctly when delete is called', () => {
+    act(() => {
+      wrapper = mountComponent();
+    });
+    wrapper.update();
+    const deleteWrapper = wrapper.find('DeleteWrapper');
+    act(() => {
+      deleteWrapper.props().deleteAction();
+    });
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: 'dataModelling/deleteDataModel',
+      payload: initialStoreCall.payload,
+    });
   });
 });
