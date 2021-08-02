@@ -172,5 +172,40 @@ namespace Designer.Tests.Services
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
+
+        [Fact]
+        public async Task CreateSchemaFromXsd_DatamodelsRepo_ShouldStoreModel()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-datamodels";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+                xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                await schemaModelService.CreateSchemaFromXsd(org, targetRepository, developer, relativeFilePath, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+            }
+            finally
+            {
+                // TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
     }
 }

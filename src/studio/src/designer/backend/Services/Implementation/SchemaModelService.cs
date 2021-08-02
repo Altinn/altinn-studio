@@ -104,7 +104,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
 
                 var jsonContent = SerializeJson(jsonSchema);
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
+                await altinnGitRepository.WriteTextByRelativePathAsync(Path.ChangeExtension(relativeFilePath, "schema.json"), jsonContent, true);
 
                 return jsonContent;
             }
