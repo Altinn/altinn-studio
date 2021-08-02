@@ -6,12 +6,12 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
-import { setRestriction, setKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
+import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
   addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -20,15 +20,18 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      minHeight: 600,
       minWidth: 500,
-      flexGrow: 1,
       padding: 14,
+      height: '90vh',
       background: 'white',
+      borderLeft: '1px solid #C9C9C9',
       zIndex: 2,
-      position: 'fixed',
+      overflow: 'auto',
       '& .MuiAutocomplete-input': {
         width: 150,
+      },
+      '& .MuiTabPanel-root': {
+
       },
     },
     header: {
@@ -92,7 +95,6 @@ const useStyles = makeStyles(
 );
 
 export interface ISchemaInspectorProps {
-  onAddPropertyClick: (property: string) => void;
   language: ILanguage;
 }
 
@@ -113,11 +115,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const nameFieldRef = React.useCallback((node: any) => {
     if (node && focusName && focusName === selectedId) {
-      node.focus();
-      node.select();
+      setTimeout(() => {
+        node.select();
+      }, 100);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusName]);
+  }, [focusName, selectedId]);
+
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       return getUiSchemaItem(state.uiSchema, selectedId);
@@ -128,12 +132,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector(
     (state: ISchemaState) => (selectedItem?.$ref ? state.uiSchema
-      .find((i: UiSchemaItem) => i.id === selectedItem.$ref) : selectedItem),
+      .find((i: UiSchemaItem) => i.path === selectedItem.$ref) : selectedItem),
   );
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      const parentPath = getParentPath(selectedId);
+      const [parentPath] = splitParentPathAndName(selectedId);
       if (parentPath != null) {
         return getUiSchemaItem(state.uiSchema, parentPath);
       }
@@ -188,13 +192,16 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
-    dispatch(setKey({
+    if (oldKey === newKey) {
+      return;
+    }
+    dispatch(setRestrictionKey({
       path, oldKey, newKey,
     }));
   };
-  const onChangPropertyName = (path: string, oldKey: string, newKey: string) => {
+  const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
-      path, name: newKey,
+      path, name: value,
     }));
   };
   const onDeleteFieldClick = (path: string, key: string) => {
@@ -207,21 +214,21 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    if (!nameError) {
+    if (!nameError && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
-        path: selectedItem?.id, name: nodeName, navigate: selectedItem?.id,
+        path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
       }));
     }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     dispatch(addEnum({
-      path: itemToDisplay?.id, value, oldValue,
+      path: itemToDisplay?.path, value, oldValue,
     }));
   };
 
   const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
     event.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     if (path) {
       dispatch(addProperty({
         path,
@@ -232,16 +239,17 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     dispatch(addRestriction({
       path,
       key: '',
       value: '',
     }));
   };
+
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = itemToDisplay?.id;
+    const path = itemToDisplay?.path;
     dispatch(addEnum({
       path,
       value: 'value',
@@ -249,9 +257,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onGoToDefButtonClick = () => {
+    if (!selectedItem?.$ref) {
+      return;
+    }
     dispatch(setSelectedId(
       {
-        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.id,
+        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.path,
       },
     ));
   };
@@ -263,14 +274,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <p className={classes.header}>Refererer til</p>
           { selectedItem.type === 'array' ?
             <RefSelect
-              id={selectedItem.id}
+              id={selectedItem.path}
               value={arrayType ?? ''}
               onChange={onChangeArrayType}
               fullWidth={true}
             />
             :
             <RefSelect
-              id={selectedItem.id}
+              id={selectedItem.path}
               value={selectedItem.$ref ?? ''}
               onChange={onChangeRef}
               fullWidth={true}
@@ -300,12 +311,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
     return <InputField
       language={props.language}
-      key={`field-${p.id}`}
+      key={p.path}
       required={item.required?.includes(p.displayName)}
       readOnly={readOnly}
-      label={p.displayName}
-      fullPath={p.id}
-      onChangeKey={onChangPropertyName}
+      value={p.displayName}
+      fullPath={p.path}
+      onChangeValue={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
     />;
   });
@@ -325,7 +336,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         value={field.value}
         keyName={field.key}
         readOnly={readOnly}
-        path={item.id}
+        path={item.path}
         onChangeValue={onChangeValue}
         onChangeKey={onChangeKey}
         onDeleteField={onDeleteFieldClick}
@@ -339,7 +350,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       <EnumField
         key={value}
         language={props.language}
-        path={item.id}
+        path={item.path}
         fullWidth={true}
         value={value}
         onChange={onChangeEnumValue}
@@ -386,15 +397,15 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
     if (checked) {
       const type = objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
-      onChangeArrayType(selectedItem.id, type);
-      onChangeType(selectedItem.id, 'array');
+      onChangeArrayType(selectedItem.path, type);
+      onChangeType(selectedItem.path, 'array');
     } else {
       if (objectKind === 'reference') {
-        onChangeRef(selectedItem.id, arrayType);
+        onChangeRef(selectedItem.path, arrayType);
       } else {
-        onChangeType(selectedItem.id, arrayType);
+        onChangeType(selectedItem.path, arrayType);
       }
-      onChangeArrayType(selectedItem.id, undefined);
+      onChangeArrayType(selectedItem.path, undefined);
     }
   };
 
@@ -457,7 +468,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             language={props.language}
             fullWidth={true}
             value={arrayType}
-            id={selectedItem.id}
+            id={selectedItem.path}
             onChange={onChangeArrayType}
           /> :
           <TypeSelect
@@ -465,7 +476,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             language={props.language}
             fullWidth={true}
             value={objectType}
-            id={selectedItem.id}
+            id={selectedItem.path}
             onChange={(onChangeType)}
           /> }
       </>}
@@ -474,6 +485,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         id='multiple-answers-checkbox'
         className={classes.header}
         control={<Checkbox
+          color='primary'
           checked={selectedItem?.type === 'array'}
           onChange={handleIsArrayChanged}
           name='checkedMultipleAnswers'
@@ -563,6 +575,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           >
             <Grid item xs={12}>
               <FormControlLabel
+                className={classes.header}
                 control={<Checkbox
                   checked={isRequired} onChange={handleRequiredChanged}
                   name='checkedRequired'

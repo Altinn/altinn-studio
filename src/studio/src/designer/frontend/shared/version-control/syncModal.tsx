@@ -1,4 +1,4 @@
-import { Button, CircularProgress, createMuiTheme, createStyles, Grid, Popover, TextField, Typography, withStyles } from '@material-ui/core';
+import { Button, CircularProgress, createTheme, createStyles, Grid, Popover, TextField, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -20,7 +20,7 @@ export interface ISyncModalComponentState {
   commitMessage: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   button: {

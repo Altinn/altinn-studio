@@ -1,11 +1,11 @@
 /* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export interface IDataModelMetadataItem { repositoryRelativeUrl: string, fileName: string, select?: boolean }
 export interface IDataModelsMetadataState {
-  dataModelsMetadata: any;
-  error: Error;
+  dataModelsMetadata: IDataModelMetadataItem[];
+  error?: Error;
 }
-
 const initialState: IDataModelsMetadataState = {
   dataModelsMetadata: [],
   error: null,

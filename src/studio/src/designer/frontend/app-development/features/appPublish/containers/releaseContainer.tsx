@@ -1,5 +1,5 @@
 import { CircularProgress,
-  createMuiTheme,
+  createTheme,
   createStyles,
   Grid,
   Hidden,
@@ -28,7 +28,7 @@ interface IStyledTabsProps {
   onChange: (event: React.ChangeEvent<{}>, newValue: number) => void;
 }
 
-const theme = createMuiTheme(AltinnStudioTheme);
+const theme = createTheme(AltinnStudioTheme);
 
 const StyledTabs = withStyles(createStyles({
   scroller: {

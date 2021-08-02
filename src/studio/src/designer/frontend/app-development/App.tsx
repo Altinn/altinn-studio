@@ -1,20 +1,13 @@
-/* eslint-disable react/jsx-props-no-spreading */
-/* tslint:disable:jsx-no-lambda */
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
-
-/* tslint:disable:jsx-boolean-value */
 // Extensive used in Material-UI's Grid
 
-import { Grid, Hidden, Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
+import { Grid, Typography } from '@material-ui/core';
+import { createTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { RouteChildrenProps, HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { RouteChildrenProps, HashRouter as Router, withRouter } from 'react-router-dom';
 import { compose, Dispatch } from 'redux';
-import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
-import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -22,18 +15,17 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
-import { redirects } from './config/redirects';
-import routes from './config/routes';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
+import LeftMenu from './layout/LeftMenu';
+import PageHeader from './layout/PageHeader';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   container: {
@@ -176,8 +168,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { org, app } = window as Window as IAltinnWindow;
-
     return (
       <MuiThemeProvider theme={theme}>
         <Router>
@@ -200,92 +190,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
               </Typography>
             </AltinnPopoverSimple>
             <Grid container={true} direction='row'>
-              <Grid item xs={12}>
-                {!repoStatus.hasMergeConflict &&
-                  redirects.map((route) => (
-                    <Route
-                      key={route.to}
-                      exact={true}
-                      path={route.from}
-                      render={() => (
-                        <Redirect to={route.to} />
-                      )}
-                    />
-                  ))
-                }
-                {routes.map((route) => (
-                  <Route
-                    key={route.path}
-                    path={route.path}
-                    exact={route.exact}
-                    render={(props) => <AppBarComponent
-                      // eslint-disable-next-line react/jsx-props-no-spreading
-                      {...props}
-                      activeLeftMenuSelection={route.activeLeftMenuSelection}
-                      activeSubHeaderSelection={route.activeSubHeaderSelection}
-                      logoutButton={repoStatus.hasMergeConflict}
-                      org={org}
-                      app={app}
-                      showBreadcrumbOnTablet={true}
-                      showSubMenu={!repoStatus.hasMergeConflict}
-                    />}
-                  />
-                ))}
-              </Grid>
-              <Grid item xs={12}>
-                {
-                  !repoStatus.hasMergeConflict ?
-                    <>
-                      <Hidden smDown>
-                        <div style={{ top: 50 }}>
-                          {routes.map((route) => (
-                            <Route
-                              key={route.path}
-                              path={route.path}
-                              exact={route.exact}
-                              render={(props) => <LeftDrawerMenu
-                                {...props}
-                                menuType={route.menu}
-                                activeLeftMenuSelection={route.activeLeftMenuSelection}
-                              />
-                              }
-                            />
-                          ))}
-                        </div>
-                      </Hidden>
-                      <div className={classes.subApp}>
-                        {routes.map((route) => (
-                          <Route
-                            key={route.path}
-                            path={route.path}
-                            exact={route.exact}
-                            render={(props) => <route.subapp
-                              {...props}
-                              {...route.props}
-                              language={this.props.language}
-                            />}
-                          />
-                        ))}
-                      </div>
-                    </>
-                    :
-                    <div
-                      className={classNames({
-                        [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
-                        [classes.subApp]: !repoStatus.hasMergeConflict,
-                      })}
-                    >
-                      <Switch>
-                        <Route
-                          path='/mergeconflict'
-                          exact={true}
-                          component={HandleMergeConflict}
-                        />
-                        <Redirect to='/mergeconflict' />
-                      </Switch>
-                    </div>
-                }
-              </Grid>
+              <PageHeader repoStatus={repoStatus} />
+              <LeftMenu
+                repoStatus={repoStatus}
+                classes={classes}
+                language={this.props.language}
+              />
             </Grid>
           </div>
         </Router>

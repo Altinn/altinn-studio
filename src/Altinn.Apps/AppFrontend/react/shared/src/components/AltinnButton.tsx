@@ -1,4 +1,4 @@
-import { Button, createMuiTheme } from '@material-ui/core';
+import { Button, createTheme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -21,7 +21,7 @@ export interface IAltinnButtonComponentProvidedProps {
   btnRef?: React.RefObject<any>;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   borderBottom: {

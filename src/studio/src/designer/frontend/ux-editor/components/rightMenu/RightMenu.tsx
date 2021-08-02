@@ -1,4 +1,4 @@
-import { Grid, IconButton, makeStyles, createMuiTheme, Typography } from '@material-ui/core';
+import { Grid, IconButton, makeStyles, createTheme, Typography } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
@@ -8,7 +8,7 @@ import { getLanguageFromKey } from '../../../shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles({
   main: {

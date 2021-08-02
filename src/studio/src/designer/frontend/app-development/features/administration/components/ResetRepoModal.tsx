@@ -1,4 +1,4 @@
-import { createMuiTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
+import { createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import * as React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -7,7 +7,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/l
 import { useSelector } from 'react-redux';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 
-const theme = createMuiTheme(studioTheme);
+const theme = createTheme(studioTheme);
 
 const setupClasses = makeStyles({
   sidebarHeader: {
@@ -112,7 +112,11 @@ function ResetRepoModal(props: IResetRepoModalProps) {
           </Grid>
           <Grid item={true} className={classes.sectionSeparator}>
             <Typography variant='body1'>
-              {getParsedLanguageFromKey('administration.reset_repo_confirm_info', props.language, [props.repositoryName], true)}
+              {getParsedLanguageFromKey(
+                'administration.reset_repo_confirm_info',
+                props.language, [props.repositoryName],
+                true,
+              )}
             </Typography>
           </Grid>
           <Grid item={true}>

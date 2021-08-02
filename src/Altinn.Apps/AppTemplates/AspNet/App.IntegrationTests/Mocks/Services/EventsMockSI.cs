@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Interface;
@@ -8,13 +7,9 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class EventsMockSI : IEvents
     {
-        public static List<(string eventType, Instance instance)> Requests { get; set; } = new List<(string, Instance)>();
-
-        public Task<string> AddEvent(string eventType, Instance instance)
+        public async Task<string> AddEvent(string eventType, Instance instance)
         {
-            Requests.Add((eventType, instance));
-
-            return Task.FromResult(eventType);
+            return await Task.FromResult(eventType);
         }
     }
 }

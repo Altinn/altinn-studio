@@ -1,4 +1,4 @@
-import { createMuiTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
+import { createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import * as React from 'react';
 import studioTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnButton from 'app-shared/components/AltinnButton';
@@ -15,7 +15,7 @@ export interface IConfirmModalProps {
   onCancel: () => void;
 }
 
-const theme = createMuiTheme(studioTheme);
+const theme = createTheme(studioTheme);
 
 const useStyles = makeStyles({
   main: {

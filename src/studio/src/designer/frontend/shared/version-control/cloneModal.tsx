@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, Grid, Popover, Typography, WithStyles, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, Popover, Typography, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
@@ -8,7 +8,7 @@ import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
 import { sharedUrls, altinnDocsUrl } from '../utils/urlHelper';
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const styles = createStyles({
   modalContainer: {

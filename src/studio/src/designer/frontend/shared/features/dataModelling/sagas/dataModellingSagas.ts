@@ -16,7 +16,6 @@ import { DataModelsMetadataActions } from './metadata';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
-  yield put(fetchDataModelFulfilled({ schema: undefined })); // remove current schema from state before fetching
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     const result = yield call(get, sharedUrls().getDataModellingUrl(modelPath));
@@ -33,10 +32,14 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 function* saveDataModelSaga(action: IDataModelAction) {
   const { schema, metadata } = action.payload;
   try {
-    const modelPath = metadata?.value?.repositoryRelativeUrl || `/App/models/${metadata.label}.schema.json`;
+    const isNewSchema = !metadata?.value?.repositoryRelativeUrl;
+    const schemaName = metadata.label;
+    const modelPath = metadata?.value?.repositoryRelativeUrl || `/App/models/${schemaName}.schema.json`;
     yield call(axiosPut, sharedUrls().createDataModellingUrl(modelPath), schema);
     yield put(saveDataModelFulfilled());
-    yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    if (isNewSchema) {
+      yield put(DataModelsMetadataActions.getDataModelsMetadata()); // Update metadata to include new schema
+    }
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
   }

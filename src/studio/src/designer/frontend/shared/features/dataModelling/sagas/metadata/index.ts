@@ -1,6 +1,7 @@
 export {
   default as dataModelsMetadataReducer,
   IDataModelsMetadataState,
+  IDataModelMetadataItem,
   DataModelsMetadataActions,
 } from './dataModelsMetadataSlice';
 export {

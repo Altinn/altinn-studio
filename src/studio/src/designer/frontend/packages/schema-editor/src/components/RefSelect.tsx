@@ -35,8 +35,8 @@ export const RefSelect = (props: IRefSelectProps) => {
     id, onChange, value,
   } = props;
   const definitions: string[] = useSelector(
-    (state: ISchemaState) => state.uiSchema.filter((s) => s.id.includes('#/definitions'))
-      .map((d) => d.id.replace('#/definitions/', '')),
+    (state: ISchemaState) => state.uiSchema.filter((s) => s.path.includes('#/definitions'))
+      .map((d) => d.path.replace('#/definitions/', '')),
   );
 
   const onChangeValue = (

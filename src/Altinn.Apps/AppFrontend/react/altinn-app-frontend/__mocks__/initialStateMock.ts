@@ -60,7 +60,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     isLoading: {
       dataTask: false,
-      stateless: false,
+      stateless: null,
     },
     language: {
       language: getLanguageFromCode('nb'),

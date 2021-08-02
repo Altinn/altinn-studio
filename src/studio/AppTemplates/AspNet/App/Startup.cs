@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
+using Altinn.App.Api.Middleware;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
@@ -162,6 +163,7 @@ namespace Altinn.App
                 });
             }
 
+            app.UseDefaultSecurityHeaders();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

@@ -17,13 +17,13 @@ describe('>>> CreateNewWrapper.tsx', () => {
     wrapper = null;
   });
   const mountComponent = (modelNames: string[], onCreate?: (v: string) => void) => mount(<CreateNewWrapper
-    language={language} buttonClass='button'
+    language={language}
     dataModelNames={modelNames} createAction={onCreate}
   />);
   it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
       <CreateNewWrapper
-        language={language} buttonClass='button'
+        language={language}
         dataModelNames={[]} createAction={() => { /* intentional */ }}
       />,
     );
