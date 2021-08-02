@@ -204,7 +204,7 @@ namespace Designer.Tests.Services
             }
             finally
             {
-                // TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
     }
