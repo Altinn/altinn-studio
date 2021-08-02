@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -89,7 +88,7 @@ namespace App.IntegrationTests.ControllerTests
             string redirectUrl = response.RequestMessage.RequestUri.ToString();
 
             // Verify that
-            Assert.Contains("randomParameter", redirectUrl);
+            Assert.DoesNotContain("randomParameter", redirectUrl);
         }
     }
 }
