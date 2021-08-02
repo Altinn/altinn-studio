@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -74,8 +75,8 @@ namespace App.IntegrationTests.ControllerTests
             string redirectUrl = response.RequestMessage.RequestUri.ToString();
 
             // Verify that 
-            Assert.True(redirectUrl.Contains("O=personal"));
-            Assert.True(redirectUrl.Contains("DontChooseReportee=true"));
+            Assert.Contains("O=personal", redirectUrl);
+            Assert.Contains("DontChooseReportee=true", redirectUrl);
         }
 
         [Fact]
@@ -87,8 +88,8 @@ namespace App.IntegrationTests.ControllerTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string redirectUrl = response.RequestMessage.RequestUri.ToString();
 
-            // Verify that 
-            Assert.False(redirectUrl.Contains("randomParameter"));
+            // Verify that
+            Assert.Contains("randomParameter", redirectUrl);
         }
     }
 }
