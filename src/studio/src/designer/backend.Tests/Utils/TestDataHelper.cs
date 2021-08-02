@@ -1,10 +1,12 @@
 using System;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
 {
@@ -150,6 +152,19 @@ namespace Designer.Tests.Utils
                 }
             }
         }
+
+        public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
+
+        public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
+        {
+            builder.ClearProviders();
+            builder
+                .AddSimpleConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.TimestampFormat = "hh:mm:ss ";
+                });
+        });
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

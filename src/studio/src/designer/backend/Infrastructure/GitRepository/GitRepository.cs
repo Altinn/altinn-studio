@@ -85,8 +85,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
             // Commented out ref comment below in the ReadTextByRelativePathAsync methdo
-            //return await ReadTextAsync(absoluteFilePath);
-
+            // return await ReadTextAsync(absoluteFilePath);
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
         }
 
@@ -107,6 +106,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // and that the BOM bytes isn't removed on read in the ReadTextAsync method.
             // Should try to fix this as this method is more performant than ReadAllTextAsync.
             // return await ReadTextAsync(absoluteFilePath);
+
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
         }
 

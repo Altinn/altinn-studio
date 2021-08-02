@@ -91,7 +91,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
 
                 var jsonContent = SerializeJson(jsonSchema);
-                await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, jsonContent);
+                await UpdateAllAppModelFiles(org, repository, developer, Path.ChangeExtension(relativeFilePath, "schema.json"), jsonContent);
 
                 await UpdateAppTexts(org, repository, developer, jsonSchema);
 
@@ -159,7 +159,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private JsonSchema GenerateJsonSchema(Stream xsdStream)
         {
             var xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-            xsdStream.Position = 0;
             var xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
             var jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
@@ -170,17 +169,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             XmlReader reader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
             XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
+            xsdStream.Seek(0, SeekOrigin.Begin);
+
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
             var fileNameWithOriginal = GetFileNameWithOrignal(relativeFilePath);
             await altinnGitRepository.WriteStreamByRelativePathAsync(fileNameWithOriginal, xsdStream, true);
+
+            xsdStream.Seek(0, SeekOrigin.Begin);
         }
 
         private static string GetFileNameWithOrignal(string relativeFilePath)
         {
             var fileExtension = Path.GetExtension(relativeFilePath);
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(relativeFilePath);
+            var fileNameWithOriginal = $"{fileNameWithoutExtension}.original{fileExtension}";
 
-            return $"{fileNameWithoutExtension}.original{fileExtension}";
+            return Path.Combine(Path.GetDirectoryName(relativeFilePath), fileNameWithOriginal);
         }
 
         private static void MergeTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> newTexts, Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> existingTexts)
@@ -270,7 +274,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async static Task UpdateXsd(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
         {
             using Stream xsdMemoryStream = ConvertJsonSchemaToXsd(jsonSchema);
-            await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream);
+            await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream, true);
         }
 
         private async static Task<ModelMetadata> UpdateModelMetadata(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
