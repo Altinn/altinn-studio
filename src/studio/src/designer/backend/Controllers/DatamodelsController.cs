@@ -129,7 +129,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, IFormFile thefile)
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 

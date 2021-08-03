@@ -34,14 +34,16 @@ namespace Designer.Tests.Utils
         public static Stream LoadDataFromEmbeddedResource(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            Stream resource = assembly.GetManifestResourceStream(resourceName);
+            Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
 
-            if (resource == null)
+            if (resourceStream == null)
             {
                 throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
             }
 
-            return resource;
+            resourceStream.Seek(0, SeekOrigin.Begin);
+
+            return resourceStream;
         }
 
         public static Stream LoadTestDataFromFile(string resourceName)
@@ -77,7 +79,7 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
 
-        public async static Task<string> CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);

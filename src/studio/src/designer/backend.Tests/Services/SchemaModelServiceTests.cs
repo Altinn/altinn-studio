@@ -24,7 +24,7 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
@@ -62,7 +62,7 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
@@ -94,7 +94,7 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
@@ -145,7 +145,7 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
@@ -182,7 +182,7 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
