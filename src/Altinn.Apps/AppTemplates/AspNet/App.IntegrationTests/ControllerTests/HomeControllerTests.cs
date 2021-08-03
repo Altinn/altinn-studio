@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
+
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
@@ -43,21 +44,6 @@ namespace App.IntegrationTests.ControllerTests
         }
 
         [Fact]
-        public async Task GetHomeWithInstanceId_OK()
-        {
-            string token = PrincipalUtil.GetToken(1337);
-
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/36133fb5-a9f2-45d4-90b1-f6d93ad40713");
-
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
         public async Task GetHome_OK_WithAuthCookie()
         {
             string token = PrincipalUtil.GetToken(1337);
@@ -76,6 +62,33 @@ namespace App.IntegrationTests.ControllerTests
             Assert.Equal(2, cookieHeaders.Count());
             Assert.StartsWith("AS-", cookieHeaders.ElementAt(0));
             Assert.StartsWith("XSR", cookieHeaders.ElementAt(1));
+        }
+
+        [Fact]
+        public async Task GetHome_Redirect_WithQueryParameters()
+        {
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn?O=personal&DontChooseReportee=true&");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string redirectUrl = response.RequestMessage.RequestUri.ToString();
+
+            // Verify that 
+            Assert.Contains("O=personal", redirectUrl);
+            Assert.Contains("DontChooseReportee=true", redirectUrl);
+        }
+
+        [Fact]
+        public async Task GetHome_Redirect_InvalidQueryParametersIgnored()
+        {
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn?randomParameter=test&DontChooseReportee=true&");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string redirectUrl = response.RequestMessage.RequestUri.ToString();
+
+            // Verify that
+            Assert.DoesNotContain("randomParameter", redirectUrl);
         }
     }
 }
