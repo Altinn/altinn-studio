@@ -499,7 +499,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             // Assert
             string expectedLocation = "http://localhost/ui/authentication?goTo=http%3a%2f%2flocalhost%3a5040%2fauthentication%2fapi%2fv1%2fauthentication%3fgoto%3dhttp%3a%2f%2flocalhost&DontChooseReportee=true&O=personal";
-            Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal(expectedLocation, response.Headers.Location.ToString());
         }
 
