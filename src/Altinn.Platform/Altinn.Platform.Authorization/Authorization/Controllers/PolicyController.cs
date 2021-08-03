@@ -21,17 +21,21 @@ namespace Altinn.Platform.Authorization.Controllers
     {
         private readonly ILogger<PolicyController> logger;
         private readonly IPolicyRetrievalPoint _prp;
+        private readonly IPolicyAdministrationPoint _pap;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyController"/> class.
         /// </summary>
-        /// <param name="prp">The policy retrieval point.</param>
+        /// <param name="prp">The policy retrieval point</param>
+        /// <param name="pap">The policy administration point</param>
         /// <param name="logger">logger</param>
         public PolicyController(
             IPolicyRetrievalPoint prp,
+            IPolicyAdministrationPoint pap,
             ILogger<PolicyController> logger)
         {
             _prp = prp;
+            _pap = pap;
             this.logger = logger;
         }
 
@@ -71,7 +75,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                bool successfullyStored = await _prp.WritePolicyAsync(org, app, dataStream);
+                bool successfullyStored = await _pap.WritePolicyAsync(org, app, dataStream);
 
                 if (successfullyStored)
                 {

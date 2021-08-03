@@ -23,14 +23,5 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <param name="app">The app</param>
         /// <returns></returns>
         Task<XacmlPolicy> GetPolicyAsync(string org, string app);
-
-        /// <summary>
-        /// Returns a bool based on writing file to storage was successful
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileStream">A stream containing the content of the policy file</param>
-        /// <returns></returns>
-        Task<bool> WritePolicyAsync(string org, string app, Stream fileStream);
     }
 }

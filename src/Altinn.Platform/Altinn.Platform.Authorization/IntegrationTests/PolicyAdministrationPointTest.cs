@@ -22,15 +22,15 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    [Collection("Our Test Collection #1")]
-    public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrievalPointFixture>
+    [Collection("PolicyAdministrationPointTest")]
+    public class PolicyAdministrationPointTest : IClassFixture<PolicyRetrievalPointFixture>
     {
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
 
-        private readonly IPolicyRetrievalPoint _prp;
+        private readonly IPolicyAdministrationPoint _pap;
 
-        public PolicyRetrievalPointTest()
+        public PolicyAdministrationPointTest()
         {
             ServiceCollection services = new ServiceCollection();
             services.AddMemoryCache();
@@ -38,109 +38,61 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             IMemoryCache memoryCache = serviceProvider.GetService<IMemoryCache>();
 
-            _prp = new PolicyRetrievalPoint(
+            _pap = new PolicyAdministrationPoint(
                 new PolicyRepositoryMock(),
                 memoryCache,
                 Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }));
         }
 
         /// <summary>
-        /// Test case: Get file from storage.
-        /// Expected: GetPolicyAsync returns a file that is not null.
+        /// Test case: Write to storage a file.
+        /// Expected: WritePolicyAsync returns true.
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC01()
+        public async Task WritePolicy_TC01()
         {
             // Arrange
-            XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
+            Stream dataStream = File.OpenRead("Data/Policies/policy.xml");
 
             // Act
-            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(request);
+            bool successfullyStored = await _pap.WritePolicyAsync("org", "app", dataStream);
+            TestSetupUtil.DeleteAppBlobData("org", "app");
 
             // Assert
-            Assert.NotNull(xacmlPolicy);
+            Assert.True(successfullyStored);
         }
 
         /// <summary>
-        /// Test case: Get a file from storage that does not exists.
-        /// Expected: GetPolicyAsync returns null.
+        /// Test case: Write a file to storage where the org parameter arguments is empty.
+        /// Expected: WritePolicyAsync throws ArgumentException.
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC02()
+        public async Task WritePolicy_TC02()
         {
-            // Arrange
-            XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp(false));
-
-            // Act
-            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(request);
-
-            // Assert
-            Assert.Null(xacmlPolicy);
-        }
-
-        /// <summary>
-        /// Test case: Get a file from storage with a request that does not contain information about org and app. 
-        /// Expected: GetPolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task GetPolicy_TC03()
-        {
-            // Arrange
-            XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
-
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => _pap.WritePolicyAsync(string.Empty, "app", new MemoryStream()));
         }
 
         /// <summary>
-        /// Test case: Get file from storage.
-        /// Expected: GetPolicyAsync returns a file that is not null.
+        /// Test case: Write a file to storage where the app parameter arguments is empty.
+        /// Expected: WritePolicyAsync throws ArgumentException.
         /// </summary>
         [Fact]
-        public async Task GetPolicy_ByOrgApp_ReturnsPolicy()
+        public async Task WritePolicy_TC03()
         {
-            // Arrange
-            string org = "ttd";
-            string app = "repository-test-app";
-
-            // Act
-            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(org, app);
-
-            // Assert
-            Assert.NotNull(xacmlPolicy);
-        }
-
-        /// <summary>
-        /// Test case: Get a file from storage that does not exists.
-        /// Expected: GetPolicyAsync returns null.
-        /// </summary>
-        [Fact]
-        public async Task GetPolicy_ByOrgApp_NullWhenPolicyNotExists()
-        {
-            // Arrange
-            string org = "1";
-            string app = "2";
-
-            // Act
-            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(org, app);
-
-            // Assert
-            Assert.Null(xacmlPolicy);
-        }
-
-        /// <summary>
-        /// Test case: Get a file from storage with a request that does not contain information about app. 
-        /// Expected: GetPolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task GetPolicy_ByOrgApp_ThrowsException()
-        {
-            // Arrange
-            string org = "ttd";
-            string app = string.Empty;
-
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(org, app));
+            await Assert.ThrowsAsync<ArgumentException>(() => _pap.WritePolicyAsync("org", string.Empty, new MemoryStream()));
+        }
+
+        /// <summary>
+        /// Test case: Write to storage a file that is null.
+        /// Expected: WritePolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC04()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _pap.WritePolicyAsync("org", "app", null));
         }
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp(bool existingApp = true)

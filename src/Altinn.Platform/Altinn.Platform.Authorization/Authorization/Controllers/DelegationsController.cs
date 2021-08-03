@@ -28,6 +28,7 @@ namespace Altinn.Platform.Authorization.Controllers
     {
         private readonly IContextHandler _contextHandler;
         private readonly IPolicyRetrievalPoint _prp;
+        private readonly IPolicyAdministrationPoint _pap;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -35,11 +36,13 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="contextHandler">The Context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
+        /// <param name="policyAdministrationPoint">The policy administration point</param>
         /// <param name="logger">the logger.</param>
-        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, ILogger<DelegationsController> logger)
+        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, ILogger<DelegationsController> logger)
         {
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;
+            _pap = policyAdministrationPoint;
             _logger = logger;
         }
 

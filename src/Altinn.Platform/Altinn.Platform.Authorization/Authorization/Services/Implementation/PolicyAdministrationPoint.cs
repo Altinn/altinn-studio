@@ -16,10 +16,9 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
     /// <summary>
-    /// The Policy Retrieval point responsible to find the correct policy
-    /// based on the context Request
+    /// The Policy Administration Point responsible for storing and modifying delegation policies
     /// </summary>
-    public class PolicyRetrievalPoint : IPolicyRetrievalPoint
+    public class PolicyAdministrationPoint : IPolicyAdministrationPoint
     {
         private readonly string orgAttributeId = "urn:altinn:org";
         private readonly string appAttributeId = "urn:altinn:app";
@@ -28,12 +27,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
+        /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
-        public PolicyRetrievalPoint(IPolicyRepository policyRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        public PolicyAdministrationPoint(IPolicyRepository policyRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _repository = policyRepository;
             _memoryCache = memoryCache;
@@ -41,32 +40,42 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
+        public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            string policyPath = GetPolicyPath(request);
-            if (!_memoryCache.TryGetValue(policyPath, out XacmlPolicy policy))
+            if (string.IsNullOrWhiteSpace(org))
             {
-                // Key not in cache, so get data.
-                using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
-                {
-                    policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
-                }
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.PolicyCacheTimeout, 0));
-
-                _memoryCache.Set(policyPath, policy, cacheEntryOptions);
+                throw new ArgumentException("Org can not be null or empty");
             }
 
-            return policy;
+            if (string.IsNullOrWhiteSpace(app))
+            {
+                throw new ArgumentException("App can not be null or empty");
+            }
+
+            if (fileStream == null)
+            {
+                throw new ArgumentException("The policy file can not be null");
+            }
+
+            return WritePolicyInternalAsync(org, app, fileStream);
         }
 
         /// <inheritdoc/>
-        public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
+        Task<XacmlPolicy> IPolicyAdministrationPoint.GetDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
         {
-            string policyPath = GetAltinnAppsPolicyPath(org, app);
-            return await GetPolicyInternalAsync(policyPath);
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        Task<bool> IPolicyAdministrationPoint.WriteDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId, int delegatedByUserId, Stream fileStream)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task<bool> WritePolicyInternalAsync(string org, string app, Stream fileStream)
+        {
+            string filePath = GetAltinnAppsPolicyPath(org, app);
+            return await _repository.WritePolicyAsync(filePath, fileStream);
         }
 
         private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)
