@@ -174,6 +174,49 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public async Task CreateSchemaFromXsdWithTexts_AppRepo_ShouldCreateTextResourceFiles()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
+                xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var schemaName = "Skjema-1603-12392";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                await schemaModelService.CreateSchemaFromXsd(org, targetRepository, developer, relativeFilePath, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.metadata.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
+
+                var textResource = await altinnAppGitRepository.GetTextResources("nb");
+                textResource.Language.Should().Be("nb");
+                textResource.Resources.Should().HaveCount(9);
+                textResource.Resources.First(r => r.Id == "27688.KontaktpersonEPostdatadef27688.Label").Value.Should().Be("E-post");
+
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
         public async Task CreateSchemaFromXsd_DatamodelsRepo_ShouldStoreModel()
         {
             // Arrange

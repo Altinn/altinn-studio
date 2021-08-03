@@ -151,29 +151,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Save app texts to resource files
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="allResourceTexts">The texts to be saved</param>
-        public async Task SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> allResourceTexts)
+        public async Task SaveServiceTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts)
         {
             // Language, key, TextResourceElement
-            var resourceTexts = new Dictionary<string, Dictionary<string, TextResourceElement>>();
+            var resourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
 
-            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> text in allResourceTexts)
+            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> text in allResourceTexts)
             {
                 string textResourceElementId = text.Key;
-                foreach (KeyValuePair<string, TextResourceElement> localizedText in text.Value)
+                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> localizedText in text.Value)
                 {
                     string language = localizedText.Key;
-                    TextResourceElement textResourceElement = localizedText.Value;
+                    Designer.Models.TextResourceElement textResourceElement = localizedText.Value;
                     if (!resourceTexts.ContainsKey(language))
                     {
-                        resourceTexts.Add(language, new Dictionary<string, TextResourceElement>());
+                        resourceTexts.Add(language, new Dictionary<string, Designer.Models.TextResourceElement>());
                     }
 
                     if (!resourceTexts[language].ContainsKey(textResourceElementId))
                     {
-                        resourceTexts[language].Add(textResourceElementId, new TextResourceElement { Id = textResourceElementId, Value = textResourceElement.Value, Variables = textResourceElement.Variables });
+                        resourceTexts[language].Add(textResourceElementId, new Designer.Models.TextResourceElement { Id = textResourceElementId, Value = textResourceElement.Value, Variables = textResourceElement.Variables });
                     }
                 }
             }
@@ -181,22 +179,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
 
             // loop through each language set of text resources
-            foreach (KeyValuePair<string, Dictionary<string, TextResourceElement>> processedResource in resourceTexts)
+            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> processedResource in resourceTexts)
             {
-                var textResource = new TextResource
+                var textResource = new Designer.Models.TextResource
                 {
                     Language = processedResource.Key,
-                    Resources = new List<TextResourceElement>()
+                    Resources = new List<Designer.Models.TextResourceElement>()
                 };
 
-                foreach (KeyValuePair<string, TextResourceElement> actualResource in processedResource.Value)
+                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> actualResource in processedResource.Value)
                 {
                     textResource.Resources.Add(actualResource.Value);
                 }
 
                 string resourceString = JsonConvert.SerializeObject(textResource, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
-                string resourceFilePaht = $"{textResourcesDirectory}/resource.{processedResource.Key}.json";
-                await WriteTextByRelativePathAsync(resourceFilePaht, resourceString, true);
+                string resourceFilePath = $"{textResourcesDirectory}/resource.{processedResource.Key}.json";
+                await WriteTextByRelativePathAsync(resourceFilePath, resourceString, true);
             }
         }
 

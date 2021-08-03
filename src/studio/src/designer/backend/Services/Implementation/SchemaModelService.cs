@@ -154,6 +154,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var existingTexts = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
 
             MergeTexts(newTexts, existingTexts);
+
+            await altinnAppGitRepository.SaveServiceTexts(existingTexts);
         }
 
         private JsonSchema GenerateJsonSchema(Stream xsdStream)
