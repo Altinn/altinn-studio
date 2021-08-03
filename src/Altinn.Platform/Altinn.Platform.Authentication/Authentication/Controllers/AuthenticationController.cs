@@ -102,6 +102,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Request that handles the form authentication cookie from SBL
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
+        /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+        /// <param name="o">Parameter indicating who the user should represent</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
         [HttpGet("authentication")]
