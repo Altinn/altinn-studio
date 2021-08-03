@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "3.9.6",
+  "version": "3.9.7",
   "description": "",
   "main": "index.js",
   "scripts": {
