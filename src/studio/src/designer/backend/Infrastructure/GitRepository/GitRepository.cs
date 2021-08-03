@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {

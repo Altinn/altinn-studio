@@ -111,39 +111,47 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
 
             string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
-            if (DirectoryExitsByRelativePath(textResourcesDirectory))
+
+            if (!DirectoryExitsByRelativePath(textResourcesDirectory))
             {
-                string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
-
-                foreach (string file in files)
-                {
-                    if (IsValidResourceFile(file))                    
-                    {
-                        string content = await ReadTextByAbsolutePathAsync(file);
-                        var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings() {  });
-                        string language = textResource.Language;
-
-                        foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
-                        {
-                            string key = textResourceElement.Id;
-                            string value = textResourceElement.Value;
-
-                            if (key != null && value != null)
-                            {
-                                if (!allResourceTexts.ContainsKey(key))
-                                {
-                                    allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
-                                }
-
-                                if (!allResourceTexts[key].ContainsKey(language))
-                                {
-                                    allResourceTexts[key].Add(language, textResourceElement);
-                                }
-                            }
-                        }
-                    }
-                }
+                return allResourceTexts;
             }
+            
+            string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
+
+            foreach (string file in files)
+            {
+                if (!IsValidResourceFile(file))
+                {
+                    continue;
+                }
+
+                string content = await ReadTextByAbsolutePathAsync(file);
+                var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings() {  });
+                string language = textResource.Language;
+
+                foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
+                {
+                    string key = textResourceElement.Id;
+                    string value = textResourceElement.Value;
+
+                    if (key == null && value == null)
+                    {
+                        continue;
+                    }
+
+                    if (!allResourceTexts.ContainsKey(key))
+                    {
+                        allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
+                    }
+
+                    if (!allResourceTexts[key].ContainsKey(language))
+                    {
+                        allResourceTexts[key].Add(language, textResourceElement);
+                    }                    
+                }
+                
+            }            
 
             return allResourceTexts;
         }

@@ -208,7 +208,6 @@ namespace Designer.Tests.Services
                 textResource.Language.Should().Be("nb");
                 textResource.Resources.Should().HaveCount(9);
                 textResource.Resources.First(r => r.Id == "27688.KontaktpersonEPostdatadef27688.Label").Value.Should().Be("E-post");
-
             }
             finally
             {

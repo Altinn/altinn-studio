@@ -170,13 +170,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task SaveOriginalXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
         {
             XmlReader reader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-            XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
-            xsdStream.Seek(0, SeekOrigin.Begin);
+
+            AssertValidXsd(xsdStream, reader);
 
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
             var fileNameWithOriginal = GetFileNameWithOrignal(relativeFilePath);
             await altinnGitRepository.WriteStreamByRelativePathAsync(fileNameWithOriginal, xsdStream, true);
 
+            xsdStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        private static void AssertValidXsd(Stream xsdStream, XmlReader reader)
+        {
+            XDocument.Load(reader, LoadOptions.None);
             xsdStream.Seek(0, SeekOrigin.Begin);
         }
 
