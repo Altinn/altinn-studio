@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 }
 
                 string content = await ReadTextByAbsolutePathAsync(file);
-                var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings() {  });
+                var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings());
                 string language = textResource.Language;
 
                 foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
@@ -149,8 +149,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                     {
                         allResourceTexts[key].Add(language, textResourceElement);
                     }                    
-                }
-                
+                }                
             }            
 
             return allResourceTexts;
