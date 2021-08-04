@@ -49,8 +49,7 @@ namespace Altinn.App.Api.Controllers
         public IActionResult Index(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] bool dontChooseReportee,
-            [FromQuery] string o)
+            [FromQuery] bool dontChooseReportee)
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -74,11 +73,6 @@ namespace Altinn.App.Api.Controllers
             if (dontChooseReportee)
             {
                 redirectUrl += "&DontChooseReportee=true";
-            }
-
-            if (!string.IsNullOrEmpty(o))
-            {
-                redirectUrl += $"&O={o}";
             }
 
             return Redirect(redirectUrl);
