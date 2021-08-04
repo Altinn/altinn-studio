@@ -68,13 +68,12 @@ namespace App.IntegrationTests.ControllerTests
         public async Task GetHome_Redirect_WithQueryParameters()
         {
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn?O=personal&DontChooseReportee=true&");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn?DontChooseReportee=true&");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string redirectUrl = response.RequestMessage.RequestUri.ToString();
 
             // Verify that 
-            Assert.Contains("O=personal", redirectUrl);
             Assert.Contains("DontChooseReportee=true", redirectUrl);
         }
 
