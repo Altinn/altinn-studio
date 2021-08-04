@@ -42,8 +42,6 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">The application owner short name.</param>
         /// <param name="app">The name of the app</param>
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-        /// <param name="o">Parameter indicating who the user should represent</param>
-        /// <returns></returns>
         [HttpGet]
         [Route("{org}/{app}/")]
         public IActionResult Index(
