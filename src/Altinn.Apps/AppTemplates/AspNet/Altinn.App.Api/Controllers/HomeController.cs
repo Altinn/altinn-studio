@@ -42,15 +42,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">The application owner short name.</param>
         /// <param name="app">The name of the app</param>
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-        /// <param name="o">Parameter indicating who the user should represent</param>
-        /// <returns></returns>
         [HttpGet]
         [Route("{org}/{app}/")]
         public IActionResult Index(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] bool dontChooseReportee,
-            [FromQuery] string o)
+            [FromQuery] bool dontChooseReportee)
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -74,11 +71,6 @@ namespace Altinn.App.Api.Controllers
             if (dontChooseReportee)
             {
                 redirectUrl += "&DontChooseReportee=true";
-            }
-
-            if (!string.IsNullOrEmpty(o))
-            {
-                redirectUrl += $"&O={o}";
             }
 
             return Redirect(redirectUrl);
