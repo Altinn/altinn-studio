@@ -130,29 +130,34 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings());
                 string language = textResource.Language;
 
-                foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
-                {
-                    string key = textResourceElement.Id;
-                    string value = textResourceElement.Value;
-
-                    if (key == null && value == null)
-                    {
-                        continue;
-                    }
-
-                    if (!allResourceTexts.ContainsKey(key))
-                    {
-                        allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
-                    }
-
-                    if (!allResourceTexts[key].ContainsKey(language))
-                    {
-                        allResourceTexts[key].Add(language, textResourceElement);
-                    }                    
-                }                
-            }            
+                GetTextResourceForLanguage(allResourceTexts, textResource, language);
+            }
 
             return allResourceTexts;
+        }
+
+        private static void GetTextResourceForLanguage(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts, Designer.Models.TextResource textResource, string language)
+        {
+            foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
+            {
+                string key = textResourceElement.Id;
+                string value = textResourceElement.Value;
+
+                if (key == null && value == null)
+                {
+                    continue;
+                }
+
+                if (!allResourceTexts.ContainsKey(key))
+                {
+                    allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
+                }
+
+                if (!allResourceTexts[key].ContainsKey(language))
+                {
+                    allResourceTexts[key].Add(language, textResourceElement);
+                }
+            }
         }
 
         /// <summary>
