@@ -491,14 +491,14 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
-            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true&O=personal";
+            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true";
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act
             HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             // Assert
-            string expectedLocation = "http://localhost/ui/authentication?goTo=http%3a%2f%2flocalhost%3a5040%2fauthentication%2fapi%2fv1%2fauthentication%3fgoto%3dhttp%3a%2f%2flocalhost&DontChooseReportee=true&O=personal";
+            string expectedLocation = "http://localhost/ui/authentication?goTo=http%3a%2f%2flocalhost%3a5040%2fauthentication%2fapi%2fv1%2fauthentication%3fgoto%3dhttp%3a%2f%2flocalhost%26DontChooseReportee%3dtrue";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal(expectedLocation, response.Headers.Location.ToString());
         }
