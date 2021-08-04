@@ -106,8 +106,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
         [HttpGet("authentication")]
-        public async Task<ActionResult> AuthenticateUser(
-            [FromQuery] string goTo, bool dontChooseReportee)
+        public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
