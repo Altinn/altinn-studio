@@ -103,35 +103,29 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-        /// <param name="o">Parameter indicating who the user should represent</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser(
-            [FromQuery] string goTo,
-            [FromQuery] bool dontChooseReportee,
-            [FromQuery] string o)
+            [FromQuery] string goTo, bool dontChooseReportee)
         {
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
                 return Redirect($"{_generalSettings.GetBaseUrl}");
             }
 
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
-            string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
+            string platformReturnUrl = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
 
             if (dontChooseReportee)
             {
-                sblRedirectUrl += "&DontChooseReportee=true";
+                platformReturnUrl += "&DontChooseReportee=true";
             }
 
-            if (!string.IsNullOrEmpty(o))
-            {
-                sblRedirectUrl += $"&O={o}";
-            }
+            string encodedGoToUrl = HttpUtility.UrlEncode(platformReturnUrl);
+            string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
 
             if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
-            {              
+            {
                 return Redirect(sblRedirectUrl);
             }
 
