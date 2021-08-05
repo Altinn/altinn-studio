@@ -34,14 +34,16 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SimpleSequence.json")]
         [InlineData(@"Model\JsonSchema\SimpleTypeList.json")]
         [InlineData(@"Model\JsonSchema\SimpleTypeRestrictions.json")]
-        public async Task Normalize_NoNormalizing_ShouldEqualSourceSchema(string jsonSchemaTestdata)
+        public async Task Normalize_NoNormalization_ShouldEqualSourceSchema(string jsonSchemaTestdata)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
             var jsonSchemaText = JsonSerializer.Serialize(jsonSchema);
 
-            var normalizedJsonSchema = new JsonSchemaNormalizer().Normalize(jsonSchema);
+            var jsonSchemaNormalizer = new JsonSchemaNormalizer() { NoNormalization = true };
+
+            var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
             var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(jsonSchemaText);            
