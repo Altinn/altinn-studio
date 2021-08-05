@@ -10,19 +10,8 @@ namespace Altinn.Studio.DataModeling.Json
         /// <summary>
         /// Normalizes a JSON schema for easier analysis
         /// </summary>
-        /// <param name="schema">The schema to normalize</param>
+        /// <param name="jsonSchema">The schema to normalize</param>
         /// <returns>A normalized <see cref="JsonSchema"/></returns>
-        JsonSchema Normalize(JsonSchema schema);
-    }
-
-    /// <inheritdoc />
-    public class JsonSchemaNormalizer : IJsonSchemaNormalizer
-    {
-        /// <inheritdoc />
-        public JsonSchema Normalize(JsonSchema schema)
-        {
-            // TODO: Normalize schema
-            return schema;
-        }
+        JsonSchema Normalize(JsonSchema jsonSchema);
     }
 }
