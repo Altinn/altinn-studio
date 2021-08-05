@@ -1,5 +1,5 @@
 # base image
-FROM node:14.17.3-alpine3.13 AS generate-runtime-app
+FROM node:14.17.4-alpine3.13 AS generate-runtime-app
 
 # Copy and install Lerna
 COPY ./src/react-apps/lerna.json .
