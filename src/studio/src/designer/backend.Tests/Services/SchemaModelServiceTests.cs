@@ -29,7 +29,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(7);
 
@@ -67,7 +67,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(6);
 
@@ -100,7 +100,7 @@ namespace Designer.Tests.Services
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
                 // Act
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
                 var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 

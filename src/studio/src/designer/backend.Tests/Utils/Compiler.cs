@@ -42,7 +42,7 @@ namespace Designer.Tests.Utils
                         errors.AppendLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
                     }
 
-                    throw new Exception($"Uh dude, you seem to have provocted some compilation errors with your code change. Please fix before merging! {errors}");
+                    throw new Exception($"Uh dude, you seem to have provoked some compilation errors with your code change. Please fix before merging! {errors}");
                 }
                 else
                 {

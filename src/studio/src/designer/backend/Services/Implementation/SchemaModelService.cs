@@ -40,14 +40,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _loggerFactory = loggerFactory;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
-        /// </summary>
-        /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
-        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : this(altinnGitRepositoryFactory, null)
-        {
-        }
-
         /// <inheritdoc/>
         public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer)
         {

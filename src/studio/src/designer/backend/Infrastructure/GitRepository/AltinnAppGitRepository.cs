@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn application and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It shoud hovever, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
+    /// It shoud however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
     /// as it merges multiple on-disk models into another structure.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
