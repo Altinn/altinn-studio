@@ -42,12 +42,30 @@ namespace DataModeling.Tests.Json
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
             var jsonSchemaText = JsonSerializer.Serialize(jsonSchema);
 
-            var jsonSchemaNormalizer = new JsonSchemaNormalizer() { NoNormalization = true };
+            var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
 
             var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
             var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(jsonSchemaText);            
+        }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\AltinnAnnotation.json", @"Model\JsonSchema\AltinnAnnotation_Normalized.json")]
+        public async Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(string jsonSchemaTestdata, string expectedNormalizedSchemaTestdata)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
+
+            var jsonSchemaNormalizer = new JsonSchemaNormalizer();
+            var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
+            var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
+
+            var expectedNormalizedJsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(expectedNormalizedSchemaTestdata);
+            var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
+
+            normalizedJsonSchemaText.Should().BeEquivalentTo(expectedNormalizedJsonSchemaText);
         }
     }
 }
