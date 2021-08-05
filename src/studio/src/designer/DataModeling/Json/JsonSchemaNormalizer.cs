@@ -11,6 +11,13 @@ namespace Altinn.Studio.DataModeling.Json
     public class JsonSchemaNormalizer : IJsonSchemaNormalizer
     {
         /// <summary>
+        /// Turns on and off normalization. With NoNormalization = true you should
+        /// get the same schema back. This is primarily used for testing to make
+        /// sure all keywords and properties are handled.
+        /// </summary>
+        public bool NoNormalization { get; set; } = false;
+
+        /// <summary>
         /// Normalizes a JSON Schema by simplyfying nested hierarchies.
         /// JSON documents will still validate as the simplified hierarchies
         /// does not affect schema validation.
