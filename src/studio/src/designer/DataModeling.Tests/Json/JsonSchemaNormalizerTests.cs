@@ -22,6 +22,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\InterleavedNestedSequences.json")]
         [InlineData(@"Model\JsonSchema\NestedArrays.json")]
         [InlineData(@"Model\JsonSchema\NestedChoice.json")]
+        [InlineData(@"Model\JsonSchema\NestedSequence.json")]
         [InlineData(@"Model\JsonSchema\NestedSequences.json")]
         [InlineData(@"Model\JsonSchema\NestedWithArrayChoice.json")]
         [InlineData(@"Model\JsonSchema\NestedWithArraySequence.json")]
