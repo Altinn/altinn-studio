@@ -24,7 +24,7 @@
   "dependencies": {
     "altinn-designsystem": "2.7.12",
     "bootstrap": "4.6.0",
-    "bootstrap-list-filter": "0.3.3",
+    "bootstrap-list-filter": "0.3.4",
     "jquery": "3.6.0",
     "jquery-ui-dist": "1.12.1",
     "jquery-validation": "1.19.3",
