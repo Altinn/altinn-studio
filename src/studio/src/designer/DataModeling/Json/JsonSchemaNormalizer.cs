@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Json.Schema;
 
@@ -54,7 +55,10 @@ namespace Altinn.Studio.DataModeling.Json
             {
                 var subSchemaBuilder = new JsonSchemaBuilder();
                 TraverseSubschema(subSchema, subSchemaBuilder);
-                subSchemaDictionary.Add(keyword.Keyword(), subSchemaBuilder.Build());
+
+                // Could consider building up a path to the node and use that
+                // as key instead on the Guid.NewGuid(), but not needed for now.
+                subSchemaDictionary.Add(Guid.NewGuid().ToString(), subSchemaBuilder.Build());
             }
 
             schemaBuilder.Add(new AllOfKeyword(subSchemaDictionary.Values));
