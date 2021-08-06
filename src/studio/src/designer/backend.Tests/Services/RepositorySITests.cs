@@ -3,23 +3,45 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using AltinnCore.Authentication.Constants;
+
+using Designer.Tests.Mocks;
+using Designer.Tests.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
 
 using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class RepositorySITests
+    public class RepositorySITests : IDisposable
     {
+        public void Dispose()
+        {
+            string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test-clone", "testUser");
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
+
+            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
+            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
+            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
+        }
+
         [Fact]
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
         {
@@ -43,11 +65,7 @@ namespace Designer.Tests.Services
 
             int expectedCount = 2;
 
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
-
-            RepositorySI sut = GetServiceForTest(httpContextAccessorMock);
+            RepositorySI sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test");
@@ -74,11 +92,7 @@ namespace Designer.Tests.Services
 
             int expectedCount = 1;
 
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
-
-            RepositorySI sut = GetServiceForTest(httpContextAccessorMock);
+            RepositorySI sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
@@ -92,17 +106,68 @@ namespace Designer.Tests.Services
         public void GetContents_LocalCloneOfRepositoryNotAvailable_ReturnsNull()
         {
             // Arrange
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
-
-            RepositorySI sut = GetServiceForTest(httpContextAccessorMock);
+            RepositorySI sut = GetServiceForTest("testUser");
 
             // Act
             List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps");
 
             // Assert
             Assert.Null(actual);
+        }
+
+        [Fact]
+        public async Task CopyRepository_TargetExistsLocally_InitialCloneMoved()
+        {
+            // Arrange
+            string developer = "testUser";
+            string org = "ttd";
+            string sourceRepository = "apps-test";
+            string targetRepository = "apps-test-2021";
+
+            RepositorySI sut = GetServiceForTest(developer);
+
+            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
+            TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+
+            // Act
+            await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+            // Assert
+            string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
+            int actualCloneCount = Directory.GetDirectories(developerClonePath).Where(d => d.Contains("apps-test-2021")).Count();
+            Assert.Equal(2, actualCloneCount);
+        }
+
+        [Fact]
+        public async Task CopyRepository_TargetDoesNotExistsLocally()
+        {
+            // Arrange
+            string developer = "testUser";
+            string org = "ttd";
+            string sourceRepository = "apps-test";
+            string targetRepository = "apps-test-clone";
+            string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+
+            RepositorySI sut = GetServiceForTest(developer);
+
+            TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
+            if (Directory.Exists(expectedRepoPath))
+            {
+                Directory.Delete(expectedRepoPath, true);
+            }
+
+            // Act
+            await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+            // Assert
+            string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+            string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
+            string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
+
+            Assert.True(Directory.Exists(expectedRepoPath));
+            Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);
+            Assert.Contains("https://dev.altinn.studio/repos/ttd/apps-test-clone.git", gitConfigString);
+            Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)
@@ -119,23 +184,32 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private static RepositorySI GetServiceForTest(Mock<IHttpContextAccessor> httpContextAccsessorMock)
+        private static RepositorySI GetServiceForTest(string developer)
         {
+            HttpContext ctx = GetHttpContextForTestUser(developer);
+
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
+
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+
+            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
             RepositorySI service = new RepositorySI(
                 repoSettings,
                 new Mock<IOptions<GeneralSettings>>().Object,
                 new Mock<IDefaultFileFactory>().Object,
-                httpContextAccsessorMock.Object,
-                new Mock<IGitea>().Object,
-                new Mock<ISourceControl>().Object,
+                httpContextAccessorMock.Object,
+                new IGiteaMock(),
+                new ISourceControlMock(),
                 new Mock<ILoggerFactory>().Object,
-                new Mock<ILogger<RepositorySI>>().Object);
+                new Mock<ILogger<RepositorySI>>().Object,
+                altinnGitRepositoryFactory);
 
             return service;
         }
+
     }
 }

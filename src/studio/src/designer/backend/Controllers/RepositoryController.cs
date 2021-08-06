@@ -361,8 +361,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>
         /// The newly created repository.
         /// </returns>
-        [Authorize]
-        [HttpPost]
+        [HttpGet]
         public async Task<RepositoryModel> CopyApp(string org, string sourceRepository, string targetRepository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

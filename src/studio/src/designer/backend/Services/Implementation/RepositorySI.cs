@@ -76,7 +76,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl = sourceControl;
             _loggerFactory = loggerFactory;
             _logger = logger;
-
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
