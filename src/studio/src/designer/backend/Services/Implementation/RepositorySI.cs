@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());            
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
@@ -1037,7 +1037,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
             PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
-            
+
             if (logicElement == null)
             {
                 logicElement = new PlatformStorageModels.DataType
@@ -1161,6 +1161,101 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository)
+        {
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var options = new RepositoryClient.Model.CreateRepoOption(targetRepository);
+
+            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
+
+            if (repository == null || repository.RepositoryCreatedStatus != System.Net.HttpStatusCode.Created)
+            {
+                return repository;
+            }
+
+            string repoPath = _settings.GetServicePath(org, targetRepository, userName);
+
+            if (Directory.Exists(repoPath))
+            {
+                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                Directory.Move(repoPath, backupPath);
+            }
+
+            // create local clone of new repo
+            _sourceControl.CloneRemoteRepository(org, targetRepository);
+
+            // get master of source
+            string sourceRepositoryPath = _settings.GetServicePath(org, $"{sourceRepository}_COPY_OF_ORIGIN_{DateTime.Now.Ticks}", userName);
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, sourceRepositoryPath);
+
+            try
+            {
+                CopyAll(sourceRepositoryPath.TrimEnd('/'), repoPath.TrimEnd('/'));
+            }
+            finally
+            {
+                Directory.Delete(sourceRepositoryPath.TrimEnd('/'), true);
+            }
+
+            UpdateRemoteOrigin(org, userName, targetRepository, sourceRepository);
+            UpdateAppId(org, targetRepository);
+
+            CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            _sourceControl.PushChangesForRepository(commitInfo);
+
+            return repository;
+        }
+
+        private void UpdateRemoteOrigin(string org, string userName, string repository, string oldRepository)
+        {
+            string repoPath = _settings.GetServicePath(org, repository, userName);
+            string configPath = $"{repoPath}.git/config";
+            string text = File.ReadAllText(configPath);
+            text = text.Replace($"repos/{org}/{oldRepository}.git", $"repos/{org}/{repository}.git");
+            File.WriteAllText(configPath, text);
+        }
+
+        private void SearchAndReplaceInFile(string filePath, string searchString, string replaceString)
+        {
+            string text = File.ReadAllText(filePath);
+            text = text.Replace(searchString, replaceString);
+            File.WriteAllText(filePath, text);
+        }
+
+        private void UpdateAppId(string org, string app)
+        {
+            PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+            existingApplicationMetadata.Id = $"{org}/{app}";
+
+            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+        }
+
+        private static void CopyAll(string sourceDirectory, string targetDirectory)
+        {
+            DirectoryInfo source = new DirectoryInfo(sourceDirectory);
+            DirectoryInfo target = new DirectoryInfo(targetDirectory);
+
+            // Copy each file into the new directory.
+            foreach (FileInfo file in source.GetFiles())
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (DirectoryInfo subDirectiory in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir =
+                    target.CreateSubdirectory(subDirectiory.Name);
+                CopyAll(subDirectiory.FullName, nextTargetSubDir.FullName);
+            }
         }
 
         /// <summary>

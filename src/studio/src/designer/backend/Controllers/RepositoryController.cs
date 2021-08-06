@@ -355,6 +355,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action used to create a new app under the current org.
+        /// </summary>
+        /// <returns>
+        /// An indication if app was copied successful or not.
+        /// </returns>
+        [HttpGet]
+        public async Task<RepositoryModel> CopyApp(string org, string sourceRepository, string targetRepository)
+        {
+            return await _repository.CopyRepository(org, sourceRepository, targetRepository);
+        }
+
+        /// <summary>
         /// Clones the remote repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

@@ -158,6 +158,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
 
         /// <summary>
+        /// Copies a repository within an organisation
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="sourceRepository">The name of the repository to be copied.</param>        
+        /// <param name="targetRepository">The name of the new repository.</param>
+        /// <returns>The repository created in gitea</returns>
+        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository);
+
+        /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
