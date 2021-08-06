@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -355,15 +356,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to create a new app under the current org.
+        /// Action used to copye an existing app under the current org.
         /// </summary>
         /// <returns>
-        /// An indication if app was copied successful or not.
+        /// The newly created repository.
         /// </returns>
-        [HttpGet]
+        [Authorize]
+        [HttpPost]
         public async Task<RepositoryModel> CopyApp(string org, string sourceRepository, string targetRepository)
         {
-            return await _repository.CopyRepository(org, sourceRepository, targetRepository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
         }
 
         /// <summary>

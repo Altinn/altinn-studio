@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -19,7 +20,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public GitRepository(string repositoriesRootDirectory, string repositoryDirectory)
-        {            
+        {
             Guard.AssertDirectoryExists(repositoriesRootDirectory);
             Guard.AssertDirectoryExists(repositoryDirectory);
 
@@ -54,7 +55,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             foreach (var searchPattern in searchPatterns)
             {
-                var foundFiles = Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive });                
+                var foundFiles = Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive });
                 files.AddRange(foundFiles);
             }
 
@@ -85,7 +86,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
             // In a weird case this returns something else than the one below on one character in 0678.xsd. return await ReadTextAsync(absoluteFilePath);
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);            
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
         }
 
         /// <summary>
@@ -174,6 +175,34 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return File.Exists(absoluteFilePath);
+        }
+
+        /// <summary>
+        /// Copies the contents of the repository to the target directory.
+        /// </summary>
+        /// <param name="targetDirectory">Full path of the target directory</param>
+        public void CopyRepository(string targetDirectory)
+        {
+            CopyAll(RepositoryDirectory, targetDirectory);
+        }
+
+        private static void CopyAll(string sourceDirectory, string targetDirectory)
+        {
+            DirectoryInfo source = new DirectoryInfo(sourceDirectory);
+            DirectoryInfo target = new DirectoryInfo(targetDirectory);
+
+            foreach (FileInfo file in source.GetFiles())
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+            }
+
+            foreach (DirectoryInfo subDirectiory in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir =
+                    target.CreateSubdirectory(subDirectiory.Name);
+                CopyAll(subDirectiory.FullName, nextTargetSubDir.FullName);
+            }
         }
 
         /// <summary>
