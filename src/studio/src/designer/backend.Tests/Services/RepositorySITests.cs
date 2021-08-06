@@ -192,11 +192,14 @@ namespace Designer.Tests.Services
             string configPath = Path.Combine(remoteRepoPath, "gitconfig");
             string newPath = Path.Combine(remoteRepoPath, ".git\\config");
 
-            Directory.CreateDirectory(Path.Combine(remoteRepoPath, ".git"));
-            if (File.Exists(configPath))
+            if (!File.Exists(newPath))
             {
-                File.Copy(configPath, newPath, true);
-            }
+                Directory.CreateDirectory(Path.Combine(remoteRepoPath, ".git"));
+                if (File.Exists(configPath))
+                {
+                    File.Copy(configPath, newPath);
+                }
+            }          
         }
 
         private static RepositorySI GetServiceForTest(string developer)
