@@ -1,4 +1,6 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -40,12 +42,12 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
-            var jsonSchemaText = JsonSerializer.Serialize(jsonSchema);
+            var jsonSchemaText = JsonSerializer.Serialize(jsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin) });
 
             var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
 
             var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
-            var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
+            var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(jsonSchemaText);            
         }
