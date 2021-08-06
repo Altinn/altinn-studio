@@ -27,6 +27,8 @@ export function createValidator(schema: any): ISchemaValidator {
     strict: false,
     strictTypes: false,
     strictTuples: false,
+    unicodeRegExp: false,
+    code: { es5: true },
   });
   addFormats(ajv);
   ajv.addFormat('year', /^[0-9]{4}$/);
