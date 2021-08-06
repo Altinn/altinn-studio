@@ -40,6 +40,7 @@ namespace Designer.Tests.Services
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
             TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
+            GC.SuppressFinalize(true);
         }
 
         [Fact]
@@ -186,7 +187,7 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private void PrepareRemoteTestData(string org, string app)
+        private static void PrepareRemoteTestData(string org, string app)
         {
             string remoteRepoPath = TestDataHelper.GetTestDataRemoteRepository(org, app);
             string configPath = Path.Combine(remoteRepoPath, "gitconfig");
@@ -228,6 +229,5 @@ namespace Designer.Tests.Services
 
             return service;
         }
-
     }
 }

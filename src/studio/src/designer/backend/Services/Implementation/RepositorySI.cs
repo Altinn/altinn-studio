@@ -1216,7 +1216,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        private async Task UpdateRemoteOrigin(AltinnGitRepository repository, string oldRepository)
+        private static async Task UpdateRemoteOrigin(AltinnGitRepository repository, string oldRepository)
         {
             string text = await repository.ReadTextByRelativePathAsync(".git/config");
             text = text.Replace($"repos/{repository.Org}/{oldRepository}.git", $"repos/{repository.Org}/{repository.Repository}.git");
@@ -1224,7 +1224,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await repository.WriteTextByRelativePathAsync(".git/config", text);
         }
 
-        private async Task UpdateAppId(AltinnAppGitRepository repository)
+        private static async Task UpdateAppId(AltinnAppGitRepository repository)
         {
             PlatformStorageModels.Application applicationMetadata = await repository.GetApplicationMetadata();
             applicationMetadata.Id = $"{repository.Org}/{repository.Repository}";

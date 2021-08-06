@@ -26,9 +26,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Name of the repository</param>
-        /// <param name="destination">Path of destination folder</param>
+        /// <param name="destinationPath">Path of destination folder</param>
         /// <returns>Path of the cloned repository</returns>
-        string CloneRemoteRepository(string org, string repository, string destination);
+        string CloneRemoteRepository(string org, string repository, string destinationPath);
 
         /// <summary>
         /// Stores a App token for user
