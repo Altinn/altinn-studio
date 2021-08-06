@@ -42,7 +42,7 @@ namespace Designer.Tests.Services
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
             TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
-            GC.SuppressFinalize(true);
+            GC.SuppressFinalize(this);
         }
 
         [Fact]

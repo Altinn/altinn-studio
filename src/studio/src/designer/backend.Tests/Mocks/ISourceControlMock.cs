@@ -40,7 +40,7 @@ namespace Designer.Tests.Mocks
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, _developer);
 
             Directory.CreateDirectory(localPath);
-            TestDataHelper.CopyDirectory(remotePath, localPath, true);
+            TestDataHelper.CopyDirectory(remotePath, localPath, true).ConfigureAwait(false);
 
             return localPath;
         }
@@ -50,7 +50,7 @@ namespace Designer.Tests.Mocks
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
 
             Directory.CreateDirectory(destination);
-            TestDataHelper.CopyDirectory(remotePath, destination, true);
+            TestDataHelper.CopyDirectory(remotePath, destination, true).ConfigureAwait(false);
 
             return destination;
         }
