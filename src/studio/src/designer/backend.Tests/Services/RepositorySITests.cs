@@ -124,10 +124,11 @@ namespace Designer.Tests.Services
             string sourceRepository = "apps-test";
             string targetRepository = "apps-test-2021";
 
-            RepositorySI sut = GetServiceForTest(developer);
-
+            PrepareRemoteTestData(org, sourceRepository);
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
             TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+
+            RepositorySI sut = GetServiceForTest(developer);
 
             // Act
             await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
@@ -148,13 +149,14 @@ namespace Designer.Tests.Services
             string targetRepository = "apps-test-clone";
             string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
 
-            RepositorySI sut = GetServiceForTest(developer);
-
+            PrepareRemoteTestData(org, sourceRepository);
             TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
             if (Directory.Exists(expectedRepoPath))
             {
                 Directory.Delete(expectedRepoPath, true);
             }
+
+            RepositorySI sut = GetServiceForTest(developer);
 
             // Act
             await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
@@ -182,6 +184,12 @@ namespace Designer.Tests.Services
             c.Request.HttpContext.User = principal;
 
             return c;
+        }
+
+        private void PrepareRemoteTestData(string org, string app)
+        {
+            string remoteRepoPath = TestDataHelper.GetTestDataRemoteRepository(org, app);
+            File.Copy(Path.Combine(remoteRepoPath, "config"), Path.Combine(remoteRepoPath, ".git\\config"));
         }
 
         private static RepositorySI GetServiceForTest(string developer)

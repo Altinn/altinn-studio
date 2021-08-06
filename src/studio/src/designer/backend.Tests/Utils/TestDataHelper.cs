@@ -76,12 +76,6 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
 
-        public static string GetTestDataRemoteRepositoryDirectory()
-        {
-            var unitTestFolder = GetTestDataDirectory();
-            return Path.Combine(unitTestFolder, "Remote");
-        }
-
         public static string GetTestDataRemoteRepository(string org, string repository)
         {
             var unitTestFolder = GetTestDataDirectory();
