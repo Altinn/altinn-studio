@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -117,6 +119,24 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public async Task CopyRepository_TargetExistsRemotely_Conflict()
+        {
+            // Arrange
+            string developer = "testUser";
+            string org = "ttd";
+            string sourceRepository = "apps-test";
+            string targetRepository = "existing-repo";
+
+            RepositorySI sut = GetServiceForTest(developer);
+
+            // Act
+            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Conflict, actual.RepositoryCreatedStatus);
+        }
+
+        [Fact]
         public async Task CopyRepository_TargetExistsLocally_InitialCloneMoved()
         {
             // Arrange
@@ -200,7 +220,7 @@ namespace Designer.Tests.Services
                 {
                     File.Copy(configPath, newPath);
                 }
-            }          
+            }
         }
 
         private static RepositorySI GetServiceForTest(string developer)
