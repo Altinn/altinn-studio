@@ -189,13 +189,13 @@ namespace Designer.Tests.Services
         private void PrepareRemoteTestData(string org, string app)
         {
             string remoteRepoPath = TestDataHelper.GetTestDataRemoteRepository(org, app);
-            string configPath = Path.Combine(remoteRepoPath, "config");
+            string configPath = Path.Combine(remoteRepoPath, "gitconfig");
             string newPath = Path.Combine(remoteRepoPath, ".git\\config");
 
             Directory.CreateDirectory(Path.Combine(remoteRepoPath, ".git"));
             if (File.Exists(configPath))
             {
-                File.Copy(configPath, newPath);
+                File.Copy(configPath, newPath, true);
             }
         }
 
