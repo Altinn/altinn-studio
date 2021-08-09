@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
@@ -17,9 +21,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             _schema = schema;
-            JsonSchemaXsdMetadata metadata = new JsonSchemaXsdMetadata();
+            var metadata = new JsonSchemaXsdMetadata();
 
-            AnalyzeSchema(JsonPointer.Parse("/"), schema, metadata);
+            if (schema.TryGetKeyword(out InfoKeyword info))
+            {
+                var messageNameElement = info.Value.GetProperty("meldingsnavn");
+                var messageTypeNameElement = info.Value.GetProperty("modellnavn");
+
+                metadata.MessageName = messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
+                metadata.MessageTypeName = messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
+            }
+            else
+            {
+                metadata.MessageName = "melding";
+            }
+
+            AnalyzeSchema(JsonPointer.Parse("#"), schema, metadata);
 
             return metadata;
         }
@@ -28,6 +45,89 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         public XmlSchema Convert(JsonSchema schema, JsonSchemaXsdMetadata metadata)
         {
             _schema = schema;
+
+            var xsd = new XmlSchema();
+            HandleSchemaAttributes(xsd, schema, metadata);
+            HandleNamespaces(xsd, schema, metadata);
+            HandleRootMessage(xsd, schema, metadata);
+
+            IReadOnlyDictionary<string, JsonSchema> definitions = null;
+            JsonPointer defsPath = JsonPointer.Empty;
+            if (schema.TryGetKeyword(out DefsKeyword defs))
+            {
+                defsPath = JsonPointer.Parse($"#/{defs.Keyword()}");
+                definitions = defs.Definitions;
+            }
+            else if (schema.TryGetKeyword(out DefinitionsKeyword defsLegacy))
+            {
+                defsPath = JsonPointer.Parse($"#/{defsLegacy.Keyword()}");
+                definitions = defsLegacy.Definitions;
+            }
+
+            if (definitions != null)
+            {
+                HandleDefinitions(xsd, schema, definitions, defsPath, metadata);
+            }
+
+            return xsd;
+        }
+
+        private void HandleSchemaAttributes(XmlSchema xsd, JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        {
+            if (schema.TryGetKeyword(out XsdSchemaAttributesKeyword attributes))
+            {
+                foreach (var (name, value) in attributes.Properties)
+                {
+                    // TODO: Use try parse and case insensitive comparison
+                    switch (name)
+                    {
+                        case "AttributeFormDefault":
+                            xsd.AttributeFormDefault = Enum.Parse<XmlSchemaForm>(value, true);
+                            break;
+                        case "ElementFormDefault":
+                            xsd.ElementFormDefault = Enum.Parse<XmlSchemaForm>(value, true);
+                            break;
+                        case "BlockDefault":
+                            xsd.BlockDefault = Enum.Parse<XmlSchemaDerivationMethod>(value, true);
+                            break;
+                        case "FinalDefault":
+                            xsd.FinalDefault = Enum.Parse<XmlSchemaDerivationMethod>(value, true);
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void HandleNamespaces(XmlSchema xsd, JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        {
+            Dictionary<string, string> namespaces = new Dictionary<string, string>();
+
+            if (schema.TryGetKeyword(out XsdNamespacesKeyword keyword))
+            {
+                foreach (var (prefix, ns) in keyword.Namespaces)
+                {
+                    namespaces.Add(prefix, ns);
+                }
+            }
+
+            if (!namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaNamespace))
+            {
+                namespaces.Add("xsd", KnownXmlNamespaces.XmlSchemaNamespace);
+            }
+
+            if (!namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaInstanceNamespace))
+            {
+                namespaces.Add("xsi", KnownXmlNamespaces.XmlSchemaInstanceNamespace);
+            }
+        }
+
+        private void HandleRootMessage(XmlSchema xsd, JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        {
+            // TODO!!!!
+        }
+
+        private void HandleDefinitions(XmlSchema xsd, JsonSchema schema, IReadOnlyDictionary<string, JsonSchema> definitions, JsonPointer defsPath, JsonSchemaXsdMetadata metadata)
+        {
             throw new System.NotImplementedException();
         }
 
@@ -65,9 +165,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (schema.Keywords != null)
             {
-                foreach (IJsonSchemaKeyword keyword in schema.Keywords)
+                foreach (var keyword in schema.Keywords)
                 {
-                    JsonPointer keywordPath = path.Combine(JsonPointer.Parse(keyword.Keyword()));
+                    var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
                     AnalyzeKeyword(keywordPath, keyword, metadata);
                 }
             }
@@ -134,13 +234,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            AllOfKeyword allOf = schema.GetKeyword<AllOfKeyword>();
+            var allOf = schema.GetKeyword<AllOfKeyword>();
 
             JsonSchema baseTypeSchema = null;
 
-            foreach (JsonSchema item in allOf.Schemas)
+            foreach (var item in allOf.Schemas)
             {
-                JsonSchema subschema = item;
+                var subschema = item;
 
                 // follow any $ref keywords to validate against the actual subschema
                 while (subschema.TryGetKeyword(out RefKeyword reference))
@@ -168,9 +268,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private JsonSchema FollowReference(RefKeyword refKeyword)
         {
-            JsonPointer pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
+            var pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
             IRefResolvable schemaSegment = _schema;
-            foreach (PointerSegment segment in pointer.Segments)
+            foreach (var segment in pointer.Segments)
             {
                 schemaSegment = schemaSegment.ResolvePointerSegment(segment.Value);
                 if (schemaSegment == null)
@@ -184,9 +284,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsPlainRestrictionSchema(JsonSchema schema)
         {
-            WorkList<IJsonSchemaKeyword> keywords = schema.AsWorkList();
+            var keywords = schema.AsWorkList();
 
-            foreach (IJsonSchemaKeyword keyword in keywords)
+            foreach (var keyword in keywords)
             {
                 switch (keyword)
                 {
@@ -235,42 +335,42 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 case AllOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
                     }
 
                     break;
                 case AnyOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
                     }
 
                     break;
                 case OneOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
                     }
 
                     break;
                 case DefinitionsKeyword item:
                     foreach (var (name, definition) in item.Definitions)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse(name)), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
                     }
 
                     break;
                 case DefsKeyword item:
                     foreach (var (name, definition) in item.Definitions)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse(name)), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
                     }
 
                     break;
                 case PropertiesKeyword item:
                     foreach (var (name, definition) in item.Properties)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse(name)), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
                     }
 
                     break;
