@@ -716,7 +716,7 @@ namespace Altinn.Platform.Authentication.Controllers
             return userAuthenticationModel;
         }
 
-        private UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
+        private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
         {
             UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true };
             foreach (Claim claim in jwtSecurityToken.Claims)

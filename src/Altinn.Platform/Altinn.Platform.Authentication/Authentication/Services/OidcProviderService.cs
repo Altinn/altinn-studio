@@ -35,7 +35,6 @@ namespace Altinn.Platform.Authentication.Services
         public async Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
             OidcCodeResponse codeResponse = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(OidcCodeResponse));
             List<KeyValuePair<string, string>> kvps = new List<KeyValuePair<string, string>>();
 
             // REQUIRED.  The authorization code received from the authorization server.
