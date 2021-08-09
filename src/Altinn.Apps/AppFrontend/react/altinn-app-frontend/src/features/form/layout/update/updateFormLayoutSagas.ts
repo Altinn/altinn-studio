@@ -8,7 +8,7 @@ import { AxiosRequestConfig } from 'axios';
 import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
+import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
 import { updateValidations } from 'src/features/form/validation/validationSlice';
@@ -139,8 +139,7 @@ export function* updateCurrentViewSaga({ payload: {
         state.applicationMetadata.applicationMetadata.dataTypes,
       );
       const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
-      const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-      const validator = createValidator(schema);
+      const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
       const model = convertDataBindingToModel(state.formData.formData);
       const validationResult = validateFormData(
         model, state.formLayout.layouts, layoutOrder,
@@ -322,6 +321,7 @@ export function* updateRepeatingGroupEditIndexSaga({ payload: {
       yield put(FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({ group, index }));
     }
   } catch (error) {
+    console.error(error);
     yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }));
   }
 }

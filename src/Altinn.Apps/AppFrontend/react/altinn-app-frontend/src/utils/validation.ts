@@ -11,13 +11,26 @@ import { IValidationIssue, Severity } from '../types';
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
 import { getParsedTextResourceByKey } from './textResource';
-import { getKeyWithoutIndex } from './databindings';
+import { convertDataBindingToModel, getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent, setupGroupComponents } from './layout';
 import { createRepeatingGroupComponents } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
 
 const JsonPointer = require('jsonpointer');
+
+export interface ISchemaValidators {
+  [id: string]: ISchemaValidator;
+}
+
+const validators: ISchemaValidators = {};
+
+export function getValidator(currentDataTaskTypeId, schemas) {
+  if (!validators[currentDataTaskTypeId]) {
+    validators[currentDataTaskTypeId] = createValidator(schemas[currentDataTaskTypeId]);
+  }
+  return validators[currentDataTaskTypeId];
+}
 
 export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({
@@ -1083,6 +1096,7 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
   const attachments = state.attachments.attachments;
   const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
   const formData = state.formData.formData;
+  const jsonFormData = convertDataBindingToModel(formData);
   const currentView = state.formLayout.uiConfig.currentView;
   const currentLayout = state.formLayout.layouts[currentView];
   const groups = currentLayout.filter((layoutElement) => layoutElement.type.toLowerCase() === 'group');
@@ -1114,11 +1128,10 @@ export function validateGroup(groupId: string, state: IRuntimeState): IValidatio
     state.instanceData.instance.process.currentTask.elementId,
     state.applicationMetadata.applicationMetadata.dataTypes,
   );
-  const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-  const validator = createValidator(schema);
+  const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
   const emptyFieldsValidations: ILayoutValidations = validateEmptyFieldsForLayout(formData, filteredLayout, language, hiddenFields, repeatingGroups);
   const componentValidations: ILayoutValidations = validateFormComponentsForLayout(attachments, filteredLayout, formData, language, hiddenFields);
-  const formDataValidations: IValidations = validateFormDataForLayout(formData, filteredLayout, currentView, validator, language, textResources).validations;
+  const formDataValidations: IValidations = validateFormDataForLayout(jsonFormData, filteredLayout, currentView, validator, language, textResources).validations;
   return mergeValidationObjects({ [currentView]: emptyFieldsValidations }, { [currentView]: componentValidations }, formDataValidations);
 }
 
