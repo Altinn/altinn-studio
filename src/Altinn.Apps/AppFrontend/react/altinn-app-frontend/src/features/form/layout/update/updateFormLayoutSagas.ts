@@ -321,7 +321,6 @@ export function* updateRepeatingGroupEditIndexSaga({ payload: {
       yield put(FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({ group, index }));
     }
   } catch (error) {
-    console.error(error);
     yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }));
   }
 }
