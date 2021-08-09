@@ -43,72 +43,72 @@ var ruleHandlerHelper = {
 }
 
 var conditionalRuleHandlerObject = {
-    biggerThan10: (obj) => {
+    biggerThan10: function(obj) {
         obj.number = +obj.number;
         return obj.number > 10;
     },
 
-    smallerThan10: (obj) => {
+    smallerThan10: function(obj) {
         obj.number = +obj.number;
         return obj.number > 10;
     },
 
-    lengthBiggerThan4: (obj) => {
+    lengthBiggerThan4: function(obj) {
         if (obj.value == null) return false;
         return obj.value.length >= 4;
     },
 
-    sjekkNyttNavnSatt: (obj) => {
+    sjekkNyttNavnSatt: function(obj) {
         return (obj.value && obj.value.length > 0);
     },
 
-    sjekkNavnendringBekreftelse: (obj) => {
+    sjekkNavnendringBekreftelse: function(obj) {
         return (obj.value && obj.value === "Ja");
     },
 
-    sjekkNavnendringAvkreftelse: (obj) => {
+    sjekkNavnendringAvkreftelse: function(obj) {
         return (!obj.value || obj.value != "Ja");
     },
 
-    sjekkBegrunnelseSlektskap: (obj) => {
+    sjekkBegrunnelseSlektskap: function(obj) {
         return (obj.value && obj.value === "1");
     },
 
-    sjekkBegrunnelseSteforeldre: (obj) => {
+    sjekkBegrunnelseSteforeldre: function(obj) {
         return (obj.value && obj.value === "3");
     },
 
-    sjekkBegrunnelseSamboer: (obj) => {
+    sjekkBegrunnelseSamboer: function(obj) {
         return (obj.value && obj.value === "5");
     },
 
-    sjekkBegrunnelseTidligereNavn: (obj) => {
+    sjekkBegrunnelseTidligereNavn: function(obj) {
         return (obj.value && obj.value === "6");
     },
 
-    sjekkBegrunnelseGardsbruk: (obj) => {
+    sjekkBegrunnelseGardsbruk: function(obj) {
         return (obj.value && obj.value === "7");
     },
 
-    sjekkBegrunnelseNyttNavn: (obj) => {
+    sjekkBegrunnelseNyttNavn: function(obj) {
         return (obj.value && obj.value === "8");
     },
 
-    sjekkBegrunnelseAnnet: (obj) => {
+    sjekkBegrunnelseAnnet: function(obj) {
         return (obj.value && obj.value === "9");
     },
 
-    sjekkRadioBtnHuket: (obj) => {
+    sjekkRadioBtnHuket: function(obj) {
         return (obj.value && (obj.value === "1" || obj.value === "2" || obj.value === "3"
             || obj.value === "4" || obj.value === "5" || obj.value === "6" || obj.value === "7"
             || obj.value === "8" || obj.value === "9"));
     }
 
-    /*sjekkRadioBtnHuket: (obj) => {
+    /*sjekkRadioBtnHuket: function(obj) {
       return (obj.value && (obj.value === "2" || obj.value === "4" ||  obj.value === "6"));
     },
   
-    sjekkeInputGyldig: (obj) => {
+    sjekkeInputGyldig: function(obj) {
       console.log(obj);
       return (obj.value && obj.value.length > 0);
     }*/
