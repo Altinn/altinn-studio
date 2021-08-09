@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -20,6 +21,8 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -116,6 +119,31 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Post action that is used when uploading a XSD and secondary XSD
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">Application identifier which is unique within an organisation.</param>
+        /// <param name="thefile">The main XSD</param>
+        /// <returns>Return JSON of the generated model</returns>
+        [HttpPost]
+        [Route("/designer/api/{org}/{repository}/datamodels")]
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
+        {
+            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+
+            string mainFileName = GetFileNameFromUploadedFile(thefile);
+            Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
+
+            MemoryStream fileMemoryStream = CopyFileStream(thefile);
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            var jsonSchema = await _schemaModelService.CreateSchemaFromXsd(org, repository, developer, mainFileName, fileMemoryStream);
+
+            return Created(mainFileName, jsonSchema);
         }
 
         /// <summary>
@@ -289,6 +317,20 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return content;
+        }
+
+        private static MemoryStream CopyFileStream(IFormFile thefile)
+        {
+            var memoryStream = new MemoryStream();
+            thefile.OpenReadStream().CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            return memoryStream;
+        }
+
+        private static string GetFileNameFromUploadedFile(IFormFile thefile)
+        {
+            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
         }
     }
 }

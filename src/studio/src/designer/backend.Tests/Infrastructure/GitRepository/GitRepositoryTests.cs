@@ -92,12 +92,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             TestDataHelper.DeleteDirectory(Path.Join(gitRepository.RepositoryDirectory, "test_directory"));            
         }
 
-        [Fact]
-        public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse()
+        [Theory]
+        [InlineData(@"this.dont.exists.schema.json")]
+        [InlineData(@"c:/this/should/not/exist/HvemErHvem.json")]
+        public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse(string relativePath)
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            Assert.False(gitRepository.FileExistsByRelativePath("this.dont.exists.schema.json"));
+            Assert.False(gitRepository.FileExistsByRelativePath(relativePath));
         }
 
         [Theory]
@@ -110,6 +112,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             Assert.True(gitRepository.FileExistsByRelativePath(relativePath));
+        }
+
+        [Fact]
+        public void DirectoryExistsByRelativePath_Directory_ShouldReturnFalse()
+        {
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            Assert.False(gitRepository.DirectoryExitsByRelativePath("c:/this/does/not/exists"));
         }
 
         private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)
