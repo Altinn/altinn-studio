@@ -93,7 +93,8 @@ namespace Altinn.Studio.Designer
             {
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.ConfigureTelemetryModule<EventCounterCollectionModule>(
-                    (module, o) => {
+                    (module, o) =>
+                    {
                         module.Counters.Clear();
                         module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
                         module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
@@ -101,8 +102,7 @@ namespace Altinn.Studio.Designer
                         module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
                         module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
                         module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
-                    }
-                );
+                    });
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
                 Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");
