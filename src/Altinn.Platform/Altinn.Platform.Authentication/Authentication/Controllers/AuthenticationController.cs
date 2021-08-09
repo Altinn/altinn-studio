@@ -131,13 +131,13 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 if (!string.IsNullOrEmpty(code))
                 {
-                    HttpContext.Request.Headers.Add("AP-X-XSRF-TOKEN", state);
+                    HttpContext.Request.Headers.Add("X-XSRF-TOKEN", state);
                     await _antiforgery.ValidateRequestAsync(HttpContext);
-                    userAuthentication = await AuthenticateWithCode(code, provider); 
+                    userAuthentication = await AuthenticateWithCode(code, provider, GetRedirectUri(goTo)); 
                 }
                 else
                 {
-                    // Generates state tokens. One is added to a cookie and another is sent as sate parameter to OIDC provider
+                    // Generates state tokens. One is added to a cookie and another is sent as state parameter to OIDC provider
                     AntiforgeryTokenSet tokens = _antiforgery.GetAndStoreTokens(HttpContext);
                     return Redirect(CreateAuthenticationRequest(provider, goTo, tokens.RequestToken));
                 }
@@ -606,9 +606,9 @@ namespace Altinn.Platform.Authentication.Controllers
                 .FirstOrDefault();
         }
 
-        private async Task<UserAuthenticationModel> AuthenticateWithCode(string authorizationCode, OidcProvider oidcProvider)
+        private async Task<UserAuthenticationModel> AuthenticateWithCode(string authorizationCode, OidcProvider oidcProvider, string redirect_uri)
         {
-            OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(authorizationCode, oidcProvider);
+            OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(authorizationCode, oidcProvider, redirect_uri);
             JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.Id_token, oidcProvider);
 
             UserAuthenticationModel userAuthenticationModel = GetUserFromToken(jwtSecurityToken);
@@ -718,7 +718,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             string nonce = Guid.NewGuid().ToString();
 
-            string redirect_uri = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+            string redirect_uri = GetRedirectUri(goTo);
             string authorizationEndpoint = provider.AuthorizationEndpoint;
             Dictionary<string, string> oidcParams = new Dictionary<string, string>();
 
@@ -750,6 +750,11 @@ namespace Altinn.Platform.Authentication.Controllers
             // from guessing values. For implementation notes, see Section 15.5.2.
             oidcParams.Add("nonce", nonce);
             return QueryHelpers.AddQueryString(authorizationEndpoint, oidcParams);
+        }
+
+        private string GetRedirectUri(string goTo)
+        {
+           return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
         }
     }
 }

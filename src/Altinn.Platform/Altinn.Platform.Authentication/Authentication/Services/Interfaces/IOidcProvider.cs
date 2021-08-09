@@ -11,6 +11,6 @@ namespace Altinn.Platform.Authentication.Services.Interfaces
         /// <summary>
         /// Get code response from OIDC Proviver. Respons will be different based on the type of original login request
         /// </summary>
-        Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider);
+        Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri);
     }
 }

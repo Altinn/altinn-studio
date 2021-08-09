@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
@@ -28,14 +29,28 @@ namespace Altinn.Platform.Authentication.Services
             _logger = logger;
         }
 
-        /// <inheritdoc/>
-        public async Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider)
+        /// <summary>
+        /// Performs a AccessToken Request as described in https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
+        /// </summary>
+        public async Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
             OidcCodeResponse codeResponse = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(OidcCodeResponse));
             List<KeyValuePair<string, string>> kvps = new List<KeyValuePair<string, string>>();
-            KeyValuePair<string, string> kvp = new KeyValuePair<string, string>("code", authorizationCode);
-            kvps.Add(kvp);
+
+            // REQUIRED.  The authorization code received from the authorization server.
+            kvps.Add(new KeyValuePair<string, string>("code", authorizationCode));
+
+            // REQUIRED, if the "redirect_uri" parameter was included in the
+            // authorization request as described in Section 4.1.1, and their values MUST be identical.
+            kvps.Add(new KeyValuePair<string, string>("redirect_uri", HttpUtility.UrlEncode(redirect_uri)));
+
+            // REQUIRED.  Value MUST be set to "authorization_code".
+            kvps.Add(new KeyValuePair<string, string>("grant_type", "authorization_code"));
+
+            // REQUIRED.  Value MUST be set to "authorization_code".
+            kvps.Add(new KeyValuePair<string, string>("client_id", "authorization_code"));
+
             FormUrlEncodedContent formUrlEncodedContent = new FormUrlEncodedContent(kvps);
             HttpResponseMessage response = await _httpClient.PostAsync(provider.TokenEndpoint, formUrlEncodedContent);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
