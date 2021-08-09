@@ -525,6 +525,19 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=2314534634r2&response_type=code&state=";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
+            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
+            Assert.NotEmpty(setCookieHeaders);
+
+            bool hasXSRFCookie = false;
+            foreach (string header in setCookieHeaders)
+            {
+                if (header.Contains("AS-XSRF-TOKEN"))
+                {
+                    hasXSRFCookie = true;
+                }
+            }
+
+            Assert.True(hasXSRFCookie);
         }
 
         /// <summary>
@@ -546,6 +559,19 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string expectedLocation = "https://idporten.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=345345s&response_type=code&state=";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
+            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
+            Assert.NotEmpty(setCookieHeaders);
+
+            bool hasXSRFCookie = false;
+            foreach (string header in setCookieHeaders)
+            {
+                if (header.Contains("AS-XSRF-TOKEN"))
+                {
+                    hasXSRFCookie = true;
+                }
+            }
+
+            Assert.True(hasXSRFCookie);
         }
 
         /// <summary>
