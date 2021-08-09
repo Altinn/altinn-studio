@@ -51,6 +51,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
+    const selectedPartyId = yield select((state: IRuntimeState) => state.party.selectedParty.partyId);
 
     let fetchedData: any;
 
@@ -58,7 +59,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
       try {
-        fetchedData = yield call(get, getStatelessFormDataUrl(dataType));
+        fetchedData = yield call(get, getStatelessFormDataUrl(dataType), { headers: { partyid: selectedPartyId } });
       } catch (error) {
         if (error?.response?.status === 403 && error.response.data) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
