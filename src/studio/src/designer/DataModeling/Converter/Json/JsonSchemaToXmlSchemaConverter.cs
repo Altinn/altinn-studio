@@ -89,6 +89,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// </summary>
         private void ConvertUsingStrategy()
         {
+            JsonSchemaXsdMetadata result = _strategy.AnalyzeSchema(_jsonSchema);
+
+            _xmlSchema = _strategy.Convert(_jsonSchema, result);
         }
     }
 }
