@@ -59,7 +59,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
       // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
       try {
-        fetchedData = yield call(get, getStatelessFormDataUrl(dataType), { headers: { partyid: selectedPartyId } });
+        fetchedData = yield call(get, getStatelessFormDataUrl(dataType),  { headers: { party: `partyid:${selectedPartyId}` } });
       } catch (error) {
         if (error?.response?.status === 403 && error.response.data) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;

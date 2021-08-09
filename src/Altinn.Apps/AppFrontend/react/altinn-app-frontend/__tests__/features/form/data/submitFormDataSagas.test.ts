@@ -112,10 +112,14 @@ describe('submitFormDataSagas', () => {
       state.instanceData.instance,
       state.formLayout.layoutsets,
     );
+
+    //   const response = yield call(post, getStatelessFormDataUrl(currentDataType), { headers: { party: `partyid:${selectedPartyId}` } }, model);
+
+
     return expectSaga(saveFormDataSaga)
       .provide([
         [select(), state],
-        [call(post, getStatelessFormDataUrl(currentDataType), null, model), {
+        [call(post, getStatelessFormDataUrl(currentDataType), { headers: { party: `partyid:${stateMock.party.selectedParty.partyId}` } }, model), {
           data: {
             ...formData,
             group: {
