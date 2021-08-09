@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
@@ -18,6 +20,7 @@ using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -507,6 +510,48 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateUserWithOIDC_NoTokenPortalParametersIncludedOIDCDefaultEnabled_RedirectsToOIDCProvider()
+        {
+            // Arrange         
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+
+            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true";
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=2314534634r2&response_type=code&state=";
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDC_IdportenProviderRequested_RedirectsToOIDCProvider()
+        {
+            // Arrange         
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+
+            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true&iss=idporten";
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string expectedLocation = "https://idporten.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=345345s&response_type=code&state=";
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateUser_RequestTokenWithValidAltinnCookie_SblBridgeUnavailable_ReturnsServiceUnavailable()
         {
             // Arrange
@@ -792,13 +837,30 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
-        private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
+        private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool oidcDefault = false, string defaultOidc = "altinn")
         {
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
+                string configPath = GetConfigPath();
+                builder.ConfigureAppConfiguration((context, conf) =>
+                {
+                    conf.AddJsonFile(configPath);
+                });
+
+                var configuration = new ConfigurationBuilder()
+                  .AddJsonFile(configPath)
+                  .Build();
+
+                configuration.GetSection("GeneralSettings:EnableOidc").Value = enableOidc.ToString();
+                configuration.GetSection("GeneralSettings:OidcDefault").Value = oidcDefault.ToString();
+                configuration.GetSection("GeneralSettings:DefaultOidcProvider").Value = defaultOidc;
+
+                IConfigurationSection generalSettingSection = configuration.GetSection("GeneralSettings");
+
                 builder.ConfigureTestServices(services =>
                 {
+                    services.Configure<GeneralSettings>(generalSettingSection);
                     services.AddSingleton(cookieDecryptionService);
                     services.AddSingleton(userProfileService);
                     services.AddSingleton<IOrganisationsService, OrganisationsServiceMock>();
@@ -811,6 +873,12 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
             return client;
+        }
+
+        private static string GetConfigPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthenticationControllerTests).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, $"../../../appsettings.json");
         }
     }
 }

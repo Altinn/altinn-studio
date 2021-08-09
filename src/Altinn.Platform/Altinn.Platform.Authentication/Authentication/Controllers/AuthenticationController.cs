@@ -137,11 +137,6 @@ namespace Altinn.Platform.Authentication.Controllers
             string encodedGoToUrl = HttpUtility.UrlEncode(platformReturnUrl);
             string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
 
-            if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
-            {
-                return Redirect(sblRedirectUrl);
-            }
-
             string oidcissuer = Request.Query["iss"];
             UserAuthenticationModel userAuthentication;
             if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.OidcDefault))
@@ -168,7 +163,7 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
                 {
-                    return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                    return Redirect(sblRedirectUrl);
                 }
 
                 try
@@ -829,7 +824,14 @@ namespace Altinn.Platform.Authentication.Controllers
             // it MAY use the http scheme, provided that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and
             // provided the OP allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate scheme,
             // such as one that is intended to identify a callback into a native application.
-            oidcParams.Add("redirect_uri", redirect_uri);
+            if (!authorizationEndpoint.Contains("?"))
+            {
+                authorizationEndpoint += "?redirect_uri=" + redirect_uri;
+            }
+            else
+            {
+                authorizationEndpoint += "&redirect_uri=" + redirect_uri;
+            }
 
             // REQUIRED. OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present,
             // the behavior is entirely unspecified. Other scope values MAY be present. Scope values used that are not understood by an implementation SHOULD be ignored.
@@ -850,11 +852,14 @@ namespace Altinn.Platform.Authentication.Controllers
             // OPTIONAL. String value used to associate a Client session with an ID Token, and to mitigate replay attacks. The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient entropy MUST be present in the nonce values used to prevent attackers
             // from guessing values. For implementation notes, see Section 15.5.2.
             oidcParams.Add("nonce", nonce);
-            return QueryHelpers.AddQueryString(authorizationEndpoint, oidcParams);
+            string uri = QueryHelpers.AddQueryString(authorizationEndpoint, oidcParams);
+
+            return uri;
         }
 
         private string GetRedirectUri(string goTo)
         {
+           goTo = HttpUtility.UrlEncode(goTo);
            return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
         }
     }
