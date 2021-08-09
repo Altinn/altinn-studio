@@ -12,7 +12,7 @@ import * as header from '../../buildrequestheaders.js';
  */
 export function getStatelessData(altinnStudioRuntimeCookie, dataType, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.statelessdata + '?dataType=' + dataType;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');  
+  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.get(endpoint, params);
 }
 
@@ -27,7 +27,7 @@ export function getStatelessData(altinnStudioRuntimeCookie, dataType, appOwner, 
  */
 export function postStatelessData(altinnStudioRuntimeCookie, dataType, data, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.statelessdata + '?dataType=' + dataType;
-  var params = header.buildHeadersForData(false, altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeadersForData(false, null, altinnStudioRuntimeCookie, 'app');
   var requestBody = data;
   return http.post(endpoint, requestBody, params);
 }

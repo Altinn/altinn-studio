@@ -1,18 +1,14 @@
 /* eslint-disable import/no-named-as-default */
-import { AltinnAppHeader, AltinnContentIconFormData, AltinnContentLoader, AltinnModal } from 'altinn-shared/components';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty } from 'altinn-shared/types';
+import { AltinnContentIconFormData, AltinnContentLoader } from 'altinn-shared/components';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Presentation from 'src/shared/containers/Presentation';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
-import { IRuntimeState, PresentationType } from 'src/types';
+import { IRuntimeState, PresentationType, ProcessTaskType } from 'src/types';
 import Form from '../form/containers/Form';
 import Instantiate from '../instantiate/containers';
 
 export default function Entrypoint() {
-  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const applicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const [action, setAction] = React.useState<string>(null);
   const statelessLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.stateless);
@@ -44,7 +40,7 @@ export default function Entrypoint() {
           type={PresentationType.Stateless}
         >
           <div>
-            <Form/>
+            <Form />
           </div>
         </Presentation>
       );
@@ -52,23 +48,13 @@ export default function Entrypoint() {
   }
 
   return (
-    <>
-      <AltinnAppHeader
-        logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-        headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
-        party={selectedParty}
-        userParty={profile ? profile.party : {} as IParty}
-      />
-      <AltinnModal
-        isOpen={true}
-        onClose={null}
-        hideBackdrop={true}
-        hideCloseIcon={true}
-      >
-        <AltinnContentLoader width='100%' height='400'>
-          <AltinnContentIconFormData/>
-        </AltinnContentLoader>
-      </AltinnModal>
-    </>
+    <Presentation
+      header=''
+      type={ProcessTaskType.Unknown}
+    >
+      <AltinnContentLoader width='100%' height='400'>
+        <AltinnContentIconFormData/>
+      </AltinnContentLoader>
+    </Presentation>
   );
 }

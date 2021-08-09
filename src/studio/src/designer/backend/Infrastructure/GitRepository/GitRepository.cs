@@ -92,15 +92,49 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Creates a new file or overwrites an existing and writes the text to the specified file path.
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
-        /// <param name="text">Text content to be written to the file.</param>        
-        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text)
+        /// <param name="text">Text content to be written to the file.</param>
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false)
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
+            if (createDirectory)
+            {
+                var fileInfo = new FileInfo(absoluteFilePath);
+                if (!Directory.Exists(fileInfo.Directory.FullName))
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
+            }
+
             await WriteTextAsync(absoluteFilePath, text);
-        }        
+        }
+
+        /// <summary>
+        /// Creates a new file or overwrites an existing and writes the text to rethe specified file path.
+        /// </summary>
+        /// <param name="relativeFilePath">File to be created/updated.</param>
+        /// <param name="stream">Content to be written to the file.</param>
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        public async Task WriteStreamByRelativePathAsync(string relativeFilePath, Stream stream, bool createDirectory = false)
+        {
+            var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+
+            if (createDirectory)
+            {
+                var fileInfo = new FileInfo(absoluteFilePath);
+                if (!Directory.Exists(fileInfo.Directory.FullName))
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
+            }
+
+            await WriteAsync(absoluteFilePath, stream);
+        }
 
         /// <summary>
         /// Deletes the specified file
@@ -110,6 +144,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+
+            File.Delete(absoluteFilePath);
+        }
+
+        /// <summary>
+        /// Deletes the specified file
+        /// </summary>
+        /// <param name="absoluteFilePath">Absolute path to file to be deleted.</param>
+        public void DeleteFileByAbsolutePath(string absoluteFilePath)
+        {
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
             File.Delete(absoluteFilePath);
@@ -131,7 +176,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return File.Exists(absoluteFilePath);
         }
 
-        private string GetAbsoluteFilePathSanitized(string relativeFilePath)
+        /// <summary>
+        /// Gets the absolute path for a file given a repository relative path.
+        /// </summary>
+        /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>        
+        protected string GetAbsoluteFilePathSanitized(string relativeFilePath)
         {
             if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
             {
@@ -169,6 +218,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
             using var sourceStream = new FileStream(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
             await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+        }
+
+        private static async Task WriteAsync(string absoluteFilePath, Stream stream)
+        {
+            using var targetStream = new FileStream(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await stream.CopyToAsync(targetStream, bufferSize: 4096);
         }
     }
 }

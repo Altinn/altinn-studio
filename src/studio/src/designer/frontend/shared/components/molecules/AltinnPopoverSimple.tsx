@@ -1,4 +1,4 @@
-import { Button, createMuiTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
+import { Button, createTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
 import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -19,11 +19,11 @@ export interface IAltinnPopoverProps {
   ariaLabel?: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   borderBottom: {
-    borderBottom: `1px solid${altinnTheme.altinnPalette.primary.blueDark}`,
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
   },
   buttonCancel: {
     fontSize: '14px',
@@ -116,27 +116,27 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
           <Grid item={true}>
             <div>
               {props.btnConfirmText &&
-              <Button
-                id={props.btnPrimaryId}
-                variant='contained'
-                color='primary'
-                className={classes.buttonConfirm}
-                onClick={btnClickedHandler}
-              >
-                {props.btnConfirmText}
-              </Button>
+                <Button
+                  id={props.btnPrimaryId}
+                  variant='contained'
+                  color='primary'
+                  className={classes.buttonConfirm}
+                  onClick={btnClickedHandler}
+                >
+                  {props.btnConfirmText}
+                </Button>
               }
               {props.btnCancelText &&
-              <Button
-                id={props.btnSecondaryId}
-                color='primary'
-                className={classes.buttonCancel}
-                onClick={handleButtonClose}
-              >
-                <span className={classes.borderBottom}>
-                  {props.btnCancelText}
-                </span>
-              </Button>
+                <Button
+                  id={props.btnSecondaryId}
+                  color='primary'
+                  className={classes.buttonCancel}
+                  onClick={handleButtonClose}
+                >
+                  <span className={classes.borderBottom}>
+                    {props.btnCancelText}
+                  </span>
+                </Button>
               }
             </div>
           </Grid>

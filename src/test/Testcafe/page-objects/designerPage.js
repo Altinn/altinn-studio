@@ -1,9 +1,8 @@
 import { Selector } from 'testcafe';
-const environment = (process.env.ENV).toLowerCase();
+const environment = process.env.ENV.toLowerCase();
 
 export default class DesignerPage {
   constructor() {
-
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
     this.leftMenuList = Selector('nav'); //all unordered list elements to be filtered
@@ -17,15 +16,20 @@ export default class DesignerPage {
     this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
     this.aboutComments = Selector('#administrationInputDescription > div > div > textarea');
     this.aboutLeftMenuItems = [
-      this.leftMenuList.child('a').withAttribute('href', '#/about').child('div').withExactText('Om appen')
+      this.leftMenuList.child('a').withAttribute('href', '#/about').child('div').withExactText('Om appen'),
     ];
 
     //"Lage" navigation tab selectors
     this.createNavigationTab = Selector('div > a').withExactText('Lage');
     this.createLeftMenuItems = [
-      this.leftMenuList.child('a').withAttribute('href', '#/datamodel').child('div').withExactText('Datamodell'),
+      this.leftMenuList.child('a').withAttribute('href', '#/datamodelling')
+        .child('div').withExactText('Datamodellering'),
       this.leftMenuList.child('a').withAttribute('href', '#/ui-editor').child('div').withExactText('UI-Editor'),
-      this.leftMenuList.child('a').withAttribute('href', '#/accesscontrol').child('div').withExactText('Tilgangsstyring')
+      this.leftMenuList
+        .child('a')
+        .withAttribute('href', '#/accesscontrol')
+        .child('div')
+        .withExactText('Tilgangsstyring'),
     ];
     this.dataModelIFrame = Selector('#root > div > div > div:nth-child(2) > div > div > iframe');
     this.dataModelUpload = Selector('#filelabel');
@@ -58,7 +62,7 @@ export default class DesignerPage {
     //"språk" navigation tab selectors
     this.languageNavigationTab = Selector('div').withExactText('Språk');
     this.languageLeftMenuItems = [
-      this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster')
+      this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster'),
     ];
     this.languageTabs = Selector('#tabs');
 
@@ -68,20 +72,30 @@ export default class DesignerPage {
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.appBuilds = Selector('p').withText('Tidligere bygg av applikasjonen').parent(0).nextSibling();
-    this.latestBuildStatusSuccess = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-check-circle)/);
-    this.latestBuildStatusFailure = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-circle-exclamation)/);
+    this.latestBuildStatusSuccess = this.appBuilds
+      .child(0)
+      .find('i')
+      .withAttribute('class', /(ai-check-circle)/);
+    this.latestBuildStatusFailure = this.appBuilds
+      .child(0)
+      .find('i')
+      .withAttribute('class', /(ai-circle-exclamation)/);
     this.latestBuildStatusInprogress = this.appBuilds.child(0).find('div').withAttribute('role', 'progressbar');
-    this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production') : Selector('#deploy-button-at22');
-    this.deployVersionDropDown = (environment == 'prod') ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
+    this.deployButton = environment == 'prod' ? Selector('#deploy-button-production') : Selector('#deploy-button-at22');
+    this.deployVersionDropDown =
+      environment == 'prod' ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
-    this.deployTable = (environment == 'prod') ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
+    this.deployTable =
+      environment == 'prod' ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
     this.deploys = this.deployTable.find('tr');
     this.deployConfirm = Selector('#deployPopover');
     this.deployStatus = Selector('p').withText('deployer versjon');
     this.noDeployAccessText = 'Du har ikke rettigheter til å starte en deploy til ';
-    this.noDeployAccess = (environment == 'prod') ? Selector('p').withText(this.noDeployAccessText + 'PRODUCTION-miljøet') :
-      Selector('p').withText(this.noDeployAccessText + 'AT22-miljøet');
+    this.noDeployAccess =
+      environment == 'prod'
+        ? Selector('p').withText(this.noDeployAccessText + 'PRODUCTION-miljøet')
+        : Selector('p').withText(this.noDeployAccessText + 'AT22-miljøet');
 
     //preview tab
     this.previewSaveButton = Selector('.a-btn-success').withText('Save');
@@ -106,7 +120,7 @@ export default class DesignerPage {
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
-    //App Logic menu        
+    //App Logic menu
     this.connectRulesButton = Selector('.fa-plus').parent("button[aria-label*='regel for beregninger']");
     this.connectConditionalRendering = Selector('.fa-plus').parent("button[aria-label*='vis/skjul felt']");
     this.addedRules = Selector('.MuiGrid-container > .MuiGrid-item').find('button');
@@ -125,18 +139,22 @@ export default class DesignerPage {
     this.conditionalRulesDropDown = Selector('select').withAttribute('name', 'selectConditionalRule');
     this.conditionalRulesList = this.conditionalRulesDropDown.find('option');
 
-    //Delete local app changes 
+    //Delete local app changes
     this.deleteLocalChanges = Selector('#reset-repo-button');
     this.deleteAppRepoName = Selector('#delete-repo-name');
     this.confirmDeleteLocalChanges = Selector('#confirm-reset-repo-button');
-
-  };
+  }
 
   //Function to delete all the selected components in the designer page of an app
   async deleteUIComponentsMethod(t) {
-    var addedUIComponents = await this.dragToArea.parent('div').nextSibling('div').child('div').child('div').withAttribute('draggable', 'true');
+    var addedUIComponents = await this.dragToArea
+      .parent('div')
+      .nextSibling('div')
+      .child('div')
+      .child('div')
+      .withAttribute('draggable', 'true');
     var numberOfComponents = await addedUIComponents.count;
-    if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
+    if (numberOfComponents > 0 && !(await addedUIComponents.withText('Tomt').exists)) {
       for (var i = 0; i < numberOfComponents; i++) {
         await t.hover(addedUIComponents.nth(0));
         await t.click(addedUIComponents.nth(0));
@@ -144,22 +162,27 @@ export default class DesignerPage {
         await t.click(this.removeComponentsButton.parent('button'));
       }
     }
-  };
+  }
 
   //Function to push and commit an app changes from the designer page
   async pushAndCommitChanges(t) {
     await t
-      .expect(this.pushChanges.exists).ok({ timeout: 60000 })
+      .expect(this.pushChanges.exists)
+      .ok({ timeout: 60000 })
       .click(this.pushChanges)
-      .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
+      .expect(this.commitMessageBox.exists)
+      .ok({ timeout: 60000 })
       .click(this.commitMessageBox)
       .typeText(this.commitMessageBox, 'Sync app automated test', { replace: true })
-      .expect(this.validateChanges.exists).ok({ timeout: 60000 })
+      .expect(this.validateChanges.exists)
+      .ok({ timeout: 60000 })
       .click(this.validateChanges)
-      .expect(this.pushChangesBlueButton.exists).ok({ timeout: 60000 })
+      .expect(this.pushChangesBlueButton.exists)
+      .ok({ timeout: 60000 })
       .click(this.pushChangesBlueButton)
-      .expect(this.noChanges.exists).ok({ timeout: 60000 });
-  };
+      .expect(this.noChanges.exists)
+      .ok({ timeout: 60000 });
+  }
 
   //Function to find the last deployed version and return the version number
   async getlatestBuildVersion(t) {
@@ -168,8 +191,8 @@ export default class DesignerPage {
     lastBuildVersion = lastBuildVersion[1].trim();
     lastBuildVersion = parseInt(lastBuildVersion);
     if (isNaN(lastBuildVersion)) {
-      lastBuildVersion = Math.floor((Math.random() * 8000) + 1000);
-    };
+      lastBuildVersion = Math.floor(Math.random() * 8000 + 1000);
+    }
     return lastBuildVersion;
-  };
-};
+  }
+}

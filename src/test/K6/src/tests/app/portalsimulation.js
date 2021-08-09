@@ -14,6 +14,7 @@ import * as platformApps from '../../api/platform/storage/applications.js';
 import * as setUpData from '../../setup.js';
 import * as appInstantiation from '../../api/app/instantiation.js';
 import * as appResources from '../../api/app/resources.js';
+import * as altinnCdn from '../../api/altinn-cdn/altinn-cdn.js';
 import { generateJUnitXML, reportPath } from '../../report.js';
 
 const userName = __ENV.username;
@@ -46,6 +47,31 @@ export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
   var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
+
+  //get resources from Altinn CDN
+  res = altinnCdn.getToolkits();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Toolkits': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
+
+  res = altinnCdn.getFonts();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Fonts': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
+
+  res = altinnCdn.getImg();
+  for (var i = 0; i < res.length; i++) {
+    success = check(res[i], {
+      'Altinn CDN Images': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+  }
 
   //Batch api calls before creating an app instance
   res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId, appOwner, level2App);
@@ -108,7 +134,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to edit a form data in an instance with App APi and validate the response
-  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
+  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
   success = check(res, {
     'E2E PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });
@@ -116,7 +142,7 @@ export default function (data) {
   stopIterationOnFail('E2E PUT Edit Data by Id', success, res);
 
   //upload a big attachment to an instance with App API
-  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment, appOwner, level2App);
+  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment, 'txt', appOwner, level2App);
 
   dataId = JSON.parse(res.body).id;
 
@@ -131,7 +157,7 @@ export default function (data) {
   appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
 
   //upload a valid attachment to an instance with App API
-  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
   success = check(res, {
     'E2E POST Upload Data status is 201': (r) => r.status === 201,
   });
@@ -153,6 +179,13 @@ export default function (data) {
   });
   addErrorCount(success);
   stopIterationOnFail('E2E App PUT Move process to Next element', success, res);
+
+  //Altinn orgs
+  res = altinnCdn.getOrgs();
+  success = check(res, {
+    'Altinn CDN Orgs': (r) => r.status === 200,
+  });
+  addErrorCount(success);
 
   //Test to call get instance details and verify the presence of archived date
   res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);

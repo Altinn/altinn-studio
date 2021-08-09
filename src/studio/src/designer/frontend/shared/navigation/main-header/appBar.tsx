@@ -1,4 +1,3 @@
-/* tslint:disable:jsx-boolean-value */
 // Extensive used in Material-UI's Grid
 
 import AppBar from '@material-ui/core/AppBar';
@@ -10,26 +9,27 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from '../../utils/urlHelper';
+import { IMenuItem } from '../drawer/drawerMenuSettings';
 import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
-
 import altinnStudioTheme from '../../theme/altinnStudioTheme';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
-  backgroundColor?: any;
   classes: any;
   logoutButton?: boolean;
   org?: string;
   app?: string;
   user?: string;
   showBreadcrumbOnTablet?: boolean;
-  showSubHeader?: boolean;
+  showSubMenu?: boolean;
+  mainMenuItems?: IMenuItem[];
+  subMenuItems?: { [key: string]: IMenuItem[] };
 }
 export interface IAppBarComponentState {
-  anchorEl: any;
+  anchorEl?: any;
   tabletDrawerOpen: boolean;
 }
 
@@ -46,6 +46,12 @@ const styles = createStyles({
     borderBottomColor: '#C9C9C9',
     color: altinnTheme.altinnPalette.primary.black,
     position: 'fixed',
+  },
+  appBarDashboard: {
+    backgroundColor: altinnTheme.altinnPalette.primary.white,
+  },
+  appBarEditor: {
+    backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
   },
   breadCrumb: {
     paddingLeft: 30,
@@ -64,8 +70,8 @@ const styles = createStyles({
     fontSize: 20,
   },
   subHeaderLink: {
-    'borderBottom': '1px solid',
-    'borderBottomColor': 'transparent',  // To mitigate the 1 pixel adjustment
+    borderBottom: '1px solid',
+    borderBottomColor: 'transparent', // To mitigate the 1 pixel adjustment
     '&:hover': {
       borderBottom: '1px solid',
       borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
@@ -73,10 +79,10 @@ const styles = createStyles({
     },
   },
   subHeaderLinkActive: {
-    'borderBottom': '1px solid',
-    'borderBottomColor': altinnTheme.altinnPalette.primary.blueDark,
-    'color': altinnTheme.altinnPalette.primary.blueDark,
-    'fontWeight': 500,
+    borderBottom: '1px solid',
+    borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
+    color: altinnTheme.altinnPalette.primary.blueDark,
+    fontWeight: 500,
     '&:hover': {
       borderBottom: '1px solid',
       borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
@@ -87,7 +93,7 @@ const styles = createStyles({
     paddingRight: 22,
   },
   aImgStyling: {
-    'borderBottom': 'none',
+    borderBottom: 'none',
     '&:hover': {
       borderBottom: 'none',
     },
@@ -98,12 +104,14 @@ const styles = createStyles({
 });
 
 class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
-  public state: IAppBarComponentState = {
-    anchorEl: null,
-    tabletDrawerOpen: false,
-  };
+  constructor(props: IAppBarComponentProps) {
+    super(props);
+    this.state = {
+      tabletDrawerOpen: false,
+    };
+  }
 
-  public handleTabletDrawerMenu = () => {
+  handleTabletDrawerMenu() {
     this.setState((state: IAppBarComponentState) => {
       return {
         tabletDrawerOpen: !state.tabletDrawerOpen,
@@ -111,66 +119,80 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
     });
   }
 
-  public render() {
+  render() {
     const {
       activeLeftMenuSelection,
       activeSubHeaderSelection,
-      backgroundColor,
       classes,
       logoutButton,
       org,
       app,
       user,
       showBreadcrumbOnTablet,
+      mainMenuItems,
+      subMenuItems,
     } = this.props;
-
     return (
       <div className={classes.root}>
         <AppBar
           position='static'
-          className={classes.appBar}
+          className={classNames([classes.appBar, !app ? classes.appBarDashboard : classes.appBarEditor])}
           elevation={0}
-          style={{ backgroundColor: backgroundColor ? backgroundColor : altinnTheme.altinnPalette.primary.greyLight }}
         >
           <Toolbar>
-            <Grid container={true} direction='row' alignItems='center' justify='space-between'>
-              <Grid xs={true} item={true} container={true}>
-                <Grid item={true}>
+            <Grid
+              container direction='row'
+              alignItems='center' justifyContent='space-between'
+            >
+              <Grid
+                item xs
+                container
+              >
+                <Grid item>
                   <a href='/' className={classes.aImgStyling}>
                     <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
                   </a>
                 </Grid>
                 <Hidden mdUp>
                   {!showBreadcrumbOnTablet ? null : (
-                    <Grid item={true} className={classes.breadCrumb}>
-                      {activeSubHeaderSelection ? `/ ${activeSubHeaderSelection}` : null} /
+                    <Grid item className={classes.breadCrumb}>
+                      {activeSubHeaderSelection && `/ ${activeSubHeaderSelection}`} /
                       <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
                     </Grid>
                   )}
                 </Hidden>
               </Grid>
               <Hidden smDown>
-                <Grid xs={true} item={true} className={classes.paper}>
+                <Grid
+                  xs item
+                  className={classes.paper}
+                >
                   {(org && app) ? `${org} / ${app}` : ''}
                 </Grid>
               </Hidden>
-              <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
-                {user ? user : ''}
+              <Grid
+                item xs
+                container direction='row'
+                alignItems='center' justifyContent='flex-end'
+              >
+                {user || ''}
                 <Hidden smDown>
-                  <Grid item={true}>
+                  <Grid item>
                     <ProfileMenu
-                      showlogout={true}
+                      showlogout
                     />
                   </Grid>
                 </Hidden>
                 <Hidden mdUp>
-                  <Grid item={true}>
+                  <Grid item>
                     <TabletDrawerMenu
-                      handleTabletDrawerMenu={this.handleTabletDrawerMenu}
+                      handleTabletDrawerMenu={() => this.handleTabletDrawerMenu()}
                       tabletDrawerOpen={this.state.tabletDrawerOpen}
                       logoutButton={!logoutButton ? false : logoutButton}
                       activeSubHeaderSelection={activeSubHeaderSelection}
                       activeLeftMenuSelection={activeLeftMenuSelection}
+                      mainMenuItems={mainMenuItems}
+                      leftDrawerMenuItems={subMenuItems}
                     />
                   </Grid>
                 </Hidden>
@@ -178,13 +200,16 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
             </Grid>
           </Toolbar>
           <Hidden smDown>
-            {this.props.showSubHeader && (
+            {this.props.showSubMenu && (
               <Toolbar>
-                <Grid container={true} direction='row' justify='center' alignItems='center'>
-                  {menu.map((item, index) => (
+                <Grid
+                  container direction='row'
+                  justifyContent='center' alignItems='center'
+                >
+                  {menu.map((item) => (
                     <Grid
-                      item={true}
-                      key={index}
+                      item
+                      key={item.key}
                       className={classNames(classes.subHeader)}
                     >
                       <Link

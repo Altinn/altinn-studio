@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     existingTexts.Add(textResourceElementId, new Dictionary<string, TextResourceElement>());
                 }
-                
+
                 foreach (KeyValuePair<string, TextResourceElement> localizedString in textResourceElementDict.Value)
                 {
                     string language = localizedString.Key;

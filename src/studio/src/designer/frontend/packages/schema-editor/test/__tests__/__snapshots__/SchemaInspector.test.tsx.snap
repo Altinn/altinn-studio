@@ -85,7 +85,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input"
-            id="definitionsStatistiskeEnhetstyper-name"
+            id="selectedItemName"
             placeholder="Name"
             type="text"
             value=""
@@ -171,7 +171,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
@@ -356,7 +356,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input"
-            id="definitionsTekst_09Restriksjon-name"
+            id="selectedItemName"
             placeholder="Name"
             type="text"
             value=""
@@ -442,7 +442,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
@@ -627,7 +627,7 @@ exports[`Should match snapshot 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input MuiInput-input"
-            id="definitionsKommentar2000Restriksjon-name"
+            id="selectedItemName"
             placeholder="Name"
             type="text"
             value=""
@@ -713,7 +713,7 @@ exports[`Should match snapshot 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"

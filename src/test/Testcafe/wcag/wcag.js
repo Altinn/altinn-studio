@@ -9,16 +9,12 @@ let dashboard = new DashBoard();
 
 fixture('WCAG 2.0 tests for Altinn Studio')
   .page(app.baseUrl)
-  .beforeEach(async t => {
-    await t
-      .useRole(AutoTestUser)
-      .maximizeWindow();
+  .beforeEach(async (t) => {
+    await t.useRole(AutoTestUser).maximizeWindow();
   });
 
-
-test('Accessibility testing for deployment page', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/wcag#/deploy');
+test('Accessibility testing for deployment page', async (t) => {
+  await t.navigateTo(app.baseUrl + 'designer/ttd/wcag#/deploy');
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
@@ -26,9 +22,8 @@ test('Accessibility testing for deployment page', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Accessibility testing for designer page', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/wcag#/test');
+test('Accessibility testing for designer page', async (t) => {
+  await t.navigateTo(app.baseUrl + 'designer/ttd/wcag#/test');
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
@@ -36,9 +31,8 @@ test('Accessibility testing for designer page', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Om tab accessibility test', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/wcag#/about');
+test('Om tab accessibility test', async (t) => {
+  await t.navigateTo(app.baseUrl + 'designer/ttd/wcag#/about');
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
@@ -46,9 +40,8 @@ test('Om tab accessibility test', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Lage tab accessibility test', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/wcag#/ui-editor');
+test('Lage tab accessibility test', async (t) => {
+  await t.navigateTo(app.baseUrl + 'designer/ttd/wcag#/ui-editor');
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
@@ -56,9 +49,8 @@ test('Lage tab accessibility test', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Språk tab accessibility test', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/wcag#/texts');
+test('Språk tab accessibility test', async (t) => {
+  await t.navigateTo(app.baseUrl + 'designer/ttd/wcag#/texts');
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
@@ -66,7 +58,7 @@ test('Språk tab accessibility test', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Accessibility testing for dashboard page', async t => {
+test('Accessibility testing for dashboard page', async (t) => {
   await t.navigateTo(app.baseUrl);
 
   const axeContext = { exclude: [['img']] };
@@ -75,11 +67,12 @@ test('Accessibility testing for dashboard page', async t => {
   await t.expect(violations.length === 0).ok(createReport(violations));
 });
 
-test('Accessibility testing for new app modal', async t => {
+test('Accessibility testing for new app modal', async (t) => {
   await t
     .navigateTo(app.baseUrl)
     .click(dashboard.newAppButton)
-    .expect(dashboard.createAppButton.visible).ok({ timeout: 60000 });
+    .expect(dashboard.createAppButton.visible)
+    .ok({ timeout: 60000 });
 
   const axeContext = { exclude: [['img']] };
   const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };

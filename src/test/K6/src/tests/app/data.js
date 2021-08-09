@@ -61,7 +61,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to edit a form data in an instance with App APi and validate the response
-  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, 'default', instanceFormDataXml, appOwner, level2App);
+  res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
   success = check(res, {
     'PUT Edit Data by Id status is 201': (r) => r.status === 201,
   });
@@ -75,7 +75,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to upload an attachment to an instance with App API and validate the response
-  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+  res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
   success = check(res, {
     'POST Attachment is uploaded status is 201': (r) => r.status === 201,
   });

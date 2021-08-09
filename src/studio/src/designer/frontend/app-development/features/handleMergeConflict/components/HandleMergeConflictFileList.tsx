@@ -1,11 +1,11 @@
 import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   root: {

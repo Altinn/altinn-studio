@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Typography, createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import { Typography, createTheme, MuiThemeProvider } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
 import ProcessDispatcher from '../../shared/resources/process/processDispatcher';
 import { getTextFromAppOrDefault } from '../../utils/textResource';
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 export default function Feedback() {
   const processState = useSelector((state: IRuntimeState) => state.process.taskType);

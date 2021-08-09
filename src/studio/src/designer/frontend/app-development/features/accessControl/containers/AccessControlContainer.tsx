@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -12,7 +12,7 @@ import VersionControlHeader from 'app-shared/version-control/versionControlHeade
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   sectionHeader: {
@@ -117,10 +117,10 @@ export class AccessControlContainerClass extends React.Component<
     super(props, state);
     const { partyTypesAllowedProps } = props.applicationMetadata;
     const partyTypesAllowed = {
-      bankruptcyEstate: partyTypesAllowedProps?.bankruptcyEstate || false,
-      organisation: partyTypesAllowedProps?.organisation || false,
-      person: partyTypesAllowedProps?.person || false,
-      subUnit: partyTypesAllowedProps?.subUnit || false,
+      bankruptcyEstate: !!partyTypesAllowedProps?.bankruptcyEstate,
+      organisation: !!partyTypesAllowedProps?.organisation,
+      person: !!partyTypesAllowedProps?.person,
+      subUnit: !!partyTypesAllowedProps?.subUnit,
     };
 
     this.state = {
@@ -134,19 +134,19 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public handlePartyTypesAllowedChange(partyType: PartyTypes) {
-    // eslint-disable-next-line react/no-access-state-in-setstate
-    const partyTypesAllowed = { ...this.state.partyTypesAllowed };
-    partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
-    this.setState({
-      partyTypesAllowed,
-      setStateCalled: true,
+    this.setState((prev) => {
+      const partyTypesAllowed = { ...prev.partyTypesAllowed };
+      partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+      return ({
+        partyTypesAllowed,
+        setStateCalled: true,
+      });
     }, () => {
       this.saveApplicationMetadata();
     });
   }
 
   public saveApplicationMetadata() {
-    // tslint:disable-next-line: max-line-length
     const newApplicationMetadata =
       JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
@@ -237,18 +237,15 @@ export class AccessControlContainerClass extends React.Component<
 
 const makeMapStateToProps = () => {
   const getApplicationMetadata = makeGetApplicationMetadata();
-  const mapStateToProps = (
+  return (
     state: IServiceDevelopmentState,
     props: IAccessControlContainerProvidedProps,
-  ): IAccessControlContainerProps => {
-    return {
-      language: state.languageState.language,
-      applicationMetadata: getApplicationMetadata(state),
-      dispatch: props.dispatch,
-      ...props,
-    };
-  };
-  return mapStateToProps;
+  ): IAccessControlContainerProps => ({
+    language: state.languageState.language,
+    applicationMetadata: getApplicationMetadata(state),
+    dispatch: props.dispatch,
+    ...props,
+  });
 };
 
 export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));

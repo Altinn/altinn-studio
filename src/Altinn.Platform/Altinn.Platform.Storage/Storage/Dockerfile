@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0.301-alpine3.13 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.302-alpine3.13 AS build
 WORKDIR Storage/
 
 COPY Storage ./Storage
@@ -8,7 +8,7 @@ RUN dotnet build Altinn.Platform.Storage.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Storage.csproj -c Release -o /app_output
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.7-alpine3.13 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.8-alpine3.13 AS final
 EXPOSE 5010
 WORKDIR /app
 COPY --from=build /app_output .

@@ -1,4 +1,4 @@
-import { Button, createMuiTheme } from '@material-ui/core';
+import { Button, createTheme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -21,53 +21,51 @@ export interface IAltinnButtonComponentProvidedProps {
   btnRef?: React.RefObject<any>;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    borderBottom: {
-      borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+const useStyles = makeStyles(() => createStyles({
+  borderBottom: {
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
+  },
+  borderBottomDisabled: {
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+  },
+  button: {
+    color: theme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.blueDark,
+    textTransform: 'none' as 'none',
+    fontWeight: 400,
+    height: 36,
+    borderRadius: '0',
+    '&:hover': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
     },
-    borderBottomDisabled: {
-      borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.greyMedium,
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
     },
-    button: {
-      'color': theme.altinnPalette.primary.white,
-      'background': theme.altinnPalette.primary.blueDark,
-      'textTransform': 'none' as 'none',
-      'fontWeight': 400,
-      'height': 36,
-      'borderRadius': '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
+  },
+  secondaryButton: {
+    fontSize: '14px',
+    color: theme.altinnPalette.primary.blueDarker,
+    background: 'transparent',
+    height: 36,
+    textTransform: 'none',
+    fontWeight: 400,
+    borderRadius: '0',
+    '&:hover': {
+      background: theme.altinnPalette.primary.greyLight,
+      color: theme.altinnPalette.primary.blueDarker,
     },
-    secondaryButton: {
-      'fontSize': '14px',
-      'color': theme.altinnPalette.primary.blueDarker,
-      'background': 'transparent',
-      'height': 36,
-      'textTransform': 'none',
-      'fontWeight': 400,
-      'borderRadius': '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.greyLight,
-        color: theme.altinnPalette.primary.blueDarker,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.greyLight,
-        color: theme.altinnPalette.primary.black,
-      },
+    '&:focus': {
+      background: theme.altinnPalette.primary.greyLight,
+      color: theme.altinnPalette.primary.black,
     },
-  }),
-);
+  },
+}));
 
-export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
+const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
   const classes = useStyles(props);
   return (
     <Button

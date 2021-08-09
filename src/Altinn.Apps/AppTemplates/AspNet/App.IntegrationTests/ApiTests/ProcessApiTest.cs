@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
@@ -24,8 +23,6 @@ namespace App.IntegrationTests.ApiTests
         public ProcessApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
-
-            EventsMockSI.Requests.Clear();
         }
 
         [Fact]
@@ -175,10 +172,6 @@ namespace App.IntegrationTests.ApiTests
             }
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            // Commented out the Asserts as another test might clear the Requests list and then fail these
-            ////Assert.Equal("app.instance.process.completed", EventsMockSI.Requests.First().eventType);
-            ////Assert.NotNull(EventsMockSI.Requests.First().instance);
 
             TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(instanceGuid));
         }

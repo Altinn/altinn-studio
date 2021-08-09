@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -16,7 +15,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
 
@@ -90,15 +88,26 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// Finds all schema files regardless of location in repository.
         /// </summary>        
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
-            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
+            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
             return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
+        /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
+        /// </summary>
+        /// <param name="realtiveFilepath">The relative path to the file seen from the repository root.</param>
+        public AltinnCoreFile GetAltinnCoreFileByRealtivePath(string realtiveFilepath)
+        {
+            var absoluteFilepath = GetAbsoluteFilePathSanitized(realtiveFilepath);
+            return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
         private AltinnStudioSettings GetAltinnStudioSettings()

@@ -3,7 +3,7 @@ const fs = require('fs');
 let testcafe = null;
 
 createTestCafe()
-  .then(tc => {
+  .then((tc) => {
     testcafe = tc;
     const runner = testcafe.createRunner();
 
@@ -22,9 +22,9 @@ createTestCafe()
         pageLoadTimeout: 5000,
         speed: 1,
         debugOnFail: false,
-        stopOnFirstFail: false
+        stopOnFirstFail: false,
       })
-      .then(failedCount => {
+      .then((failedCount) => {
         console.log('Total tests failed ' + failedCount);
       });
   })

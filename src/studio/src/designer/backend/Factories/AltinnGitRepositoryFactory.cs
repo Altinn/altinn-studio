@@ -32,13 +32,23 @@ namespace Altinn.Studio.Designer.Factories
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="IAltinnGitRepository"/>
+        /// Creates an instance of <see cref="AltinnGitRepository"/>
         /// </summary>        
-        /// <returns><see cref="IAltinnGitRepository"/></returns>
-        public AltinnGitRepository GetRepository(string org, string repository, string developer)
+        /// <returns><see cref="AltinnGitRepository"/></returns>
+        public AltinnGitRepository GetAltinnGitRepository(string org, string repository, string developer)
         {
             var repositoryDirectory = GetRepositoryPath(org, repository, developer);
             return new AltinnGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
+        }
+
+        /// <summary>
+        /// Creates an instance of <see cref="AltinnAppGitRepository"/>
+        /// </summary>        
+        /// <returns><see cref="AltinnAppGitRepository"/></returns>
+        public AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer)
+        {
+            var repositoryDirectory = GetRepositoryPath(org, repository, developer);
+            return new AltinnAppGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React from 'react';
-import { Grid, makeStyles, createMuiTheme, IconButton } from '@material-ui/core';
+import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -27,7 +27,7 @@ export interface IRepeatingGroupsEditContainer {
   setMultiPageIndex?: (index: number) => void;
 }
 
-const theme = createMuiTheme(altinnAppTheme);
+const theme = createTheme(altinnAppTheme);
 
 const useStyles = makeStyles({
   editContainer: {

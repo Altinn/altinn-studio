@@ -35,6 +35,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
   const {
     id, value, onChange,
   } = props;
+
   const onValueChange = (event: any) => {
     onChange(id, event.target.value);
   };

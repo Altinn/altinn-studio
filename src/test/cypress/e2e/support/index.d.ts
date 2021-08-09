@@ -84,9 +84,9 @@ declare namespace Cypress {
 
     /**
      * Start an app instance based on the environment selected
-     * @example cy.startAppInstance()
+     * @example cy.startAppInstance('appName')
      */
-     startAppInstance(): Chainable<Element>;
+     startAppInstance(appName: string): Chainable<Element>;
 
     /**
      * Navigate to the task3 of app ttd/frontend-test
@@ -99,5 +99,11 @@ declare namespace Cypress {
      * @example cy.compelteTask3Form()
      */
       compelteTask3Form(): Chainable<Element>;
+
+    /**
+     * Add an item to group component with an item in nested group
+     * @example cy.addItemToGroup(1, 2, 'automation')
+     */
+     addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
   }
 }

@@ -13,7 +13,7 @@ describe('Tabbing', () => {
   it('Tab through the fiels in change name form', () => {
     cy.get(appFrontend.changeOfName.newFirstName).focus().tab();
     cy.focused().should('have.attr', 'id').and('eq', appFrontend.changeOfName.newLastName.substr(1));
-    cy.get(appFrontend.changeOfName.newLastName).type('a').tab().tab().tab();
+    cy.get(appFrontend.changeOfName.newLastName).type('a').blur().tab().tab().tab();
     cy.focused()
       .should('have.value', 'a')
       .should('have.attr', 'id')

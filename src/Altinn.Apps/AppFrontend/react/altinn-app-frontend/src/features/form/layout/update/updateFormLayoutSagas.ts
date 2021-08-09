@@ -359,7 +359,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   }
   // preserve current edit index if still valid
   currentGroupKeys.filter((key) => !groupsToRemoveValidations.includes(key)).forEach((key) => {
-    if (newGroups[key].count >= currentGroups[key].editIndex) {
+    if (newGroups[key]?.count >= currentGroups[key].editIndex) {
       newGroups[key].editIndex = currentGroups[key].editIndex;
     }
   });

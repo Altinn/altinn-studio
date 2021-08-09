@@ -6,7 +6,11 @@
   "scripts": {
     "test": "node .\\testRunner",
     "wcag": "node .\\WCAGRunner",
-    "usecase": "testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml"
+    "usecase": "testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml",
+    "prettier:check": "prettier -c **/*.js",
+    "prettier:format": "prettier -w **/*.js",
+    "eslint:check": "eslint \"**\/*.js\"",
+    "eslint:fix": "eslint \"**\/*.js\" --fix"
   },
   "keywords": [],
   "author": "",
@@ -14,14 +18,15 @@
   "devDependencies": {
     "axe-testcafe": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.28.0",
+    "eslint": "^7.29.0",
     "eslint-plugin-testcafe": "^0.2.1",
+    "prettier": "^2.3.2",
     "process": "^0.11.10",
     "testcafe": "^1.14.0",
     "testcafe-browser-provider-puppeteer": "^1.5.2"
   },
   "dependencies": {
-    "axe-core": "^4.2.2",
+    "axe-core": "^4.2.3",
     "testcafe-react-selectors": "^4.1.5",
     "testcafe-reporter-junit": "^3.0.2"
   }

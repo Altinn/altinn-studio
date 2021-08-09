@@ -1,20 +1,16 @@
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import * as React from 'react';
 
 import altinnTheme from '../theme/altinnStudioTheme';
-const theme = createMuiTheme(altinnTheme);
 
-// import injectTapEventPlugin from 'react-tap-event-plugin';
-// injectTapEventPlugin();
+const theme = createTheme(altinnTheme);
 
-export default class Wrapper extends React.Component {
-  public render() {
-    return (
-      <MuiThemeProvider theme={theme}>
-        <div>
-          {this.props.children}
-        </div>
-      </MuiThemeProvider>
-    );
-  }
-}
+export default (props: any) => {
+  return (
+    <MuiThemeProvider theme={theme}>
+      <div>
+        {props.children}
+      </div>
+    </MuiThemeProvider>
+  );
+};

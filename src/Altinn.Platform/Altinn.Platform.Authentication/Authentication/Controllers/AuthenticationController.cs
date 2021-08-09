@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -14,6 +17,7 @@ using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
+
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -56,6 +60,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly ISblCookieDecryptionService _cookieDecryptionService;
         private readonly ISigningKeysRetriever _signingKeysRetriever;
         private readonly IUserProfileService _userProfileService;
+        private readonly IEnterpriseUserAuthenticationService _enterpriseUserAuthenticationService;
         private readonly JwtSecurityTokenHandler _validator;
         private readonly ISigningKeysResolver _designerSigningKeysResolver;
         private readonly IOidcProvider _oidcProvider;
@@ -73,6 +78,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="organisationRepository">the repository object that holds valid organisations</param>
         /// <param name="certificateProvider">Service that can obtain a list of certificates that can be used to generate JSON Web Tokens.</param>
         /// <param name="userProfileService">Service that can retrieve user profiles.</param>
+        /// <param name="enterpriseUserAuthenticationService">Service that can retrieve enterprise user profile.</param>
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         /// <param name="signingKeysResolver">Signing keys resolver for Altinn Common AccessToken</param>
         /// <param name="oidcProvider">The OIDC provider</param>
@@ -85,6 +91,7 @@ namespace Altinn.Platform.Authentication.Controllers
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
+            IEnterpriseUserAuthenticationService enterpriseUserAuthenticationService,
             IOrganisationsService organisationRepository,
             ISigningKeysResolver signingKeysResolver,
             IOidcProvider oidcProvider,
@@ -98,6 +105,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _cookieDecryptionService = cookieDecryptionService;
             _organisationService = organisationRepository;
             _userProfileService = userProfileService;
+            _enterpriseUserAuthenticationService = enterpriseUserAuthenticationService;
             _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
             _oidcProvider = oidcProvider;
@@ -108,16 +116,31 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Request that handles the form authentication cookie from SBL
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
+        /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
         [HttpGet("authentication")]
-        public async Task<ActionResult> AuthenticateUser(string goTo)
+        public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
                 return Redirect($"{_generalSettings.GetBaseUrl}");
             }
 
+            string platformReturnUrl = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+
+            if (dontChooseReportee)
+            {
+                platformReturnUrl += "&DontChooseReportee=true";
+            }
+
+            string encodedGoToUrl = HttpUtility.UrlEncode(platformReturnUrl);
+            string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
+
+            if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
+            {
+                return Redirect(sblRedirectUrl);
+            }
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
             
             string oidcissuer = Request.Query["iss"];
@@ -192,7 +215,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Redirect(goTo);
             }
 
-            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+            return Redirect(sblRedirectUrl);
         }
 
         /// <summary>
@@ -379,8 +402,35 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
 
+                string authenticatemethod = "maskinporten";
+
+                if (!string.IsNullOrEmpty(Request.Headers["X-Altinn-EnterpriseUser-Authentication"]))
+                {
+                    string enterpriseUserHeader = Request.Headers["X-Altinn-EnterpriseUser-Authentication"];
+
+                    (UserAuthenticationResult authenticatedEnterpriseUser, ActionResult error) = await HandleEnterpriseUserLogin(enterpriseUserHeader, orgNumber);
+
+                    if (error != null)
+                    {
+                        return error;
+                    }
+
+                    if (authenticatedEnterpriseUser != null)
+                    {
+                        authenticatemethod = "virksomhetsbruker";
+
+                        string userID = authenticatedEnterpriseUser.UserID.ToString();
+                        string username = authenticatedEnterpriseUser.Username;
+                        string partyId = authenticatedEnterpriseUser.PartyID.ToString();
+
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userID, ClaimValueTypes.Integer32, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, issuer));
+                        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId, ClaimValueTypes.Integer32, issuer));
+                    }
+                }
+
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.Integer32, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, authenticatemethod, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
 
                 string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
@@ -398,7 +448,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
                 string serializedToken = await GenerateToken(principal);
-
                 return Ok(serializedToken);
             }
             catch (Exception ex)
@@ -406,6 +455,59 @@ namespace Altinn.Platform.Authentication.Controllers
                 _logger.LogWarning($"Organisation authentication failed. {ex.Message}");
                 return Unauthorized();
             }
+        }
+
+        private async Task<(UserAuthenticationResult, ActionResult)> HandleEnterpriseUserLogin(string enterpriseUserHeader, string orgNumber)
+        {
+            EnterpriseUserCredentials credentials;
+
+            try
+            {
+                credentials = DecodeEnterpriseUserHeader(enterpriseUserHeader, orgNumber);
+            }
+            catch (Exception)
+            {
+                return (null, StatusCode(400));
+            }
+
+            HttpResponseMessage response = await _enterpriseUserAuthenticationService.AuthenticateEnterpriseUser(credentials);
+            string content = await response.Content.ReadAsStringAsync();
+
+            switch (response.StatusCode)
+            {
+                case System.Net.HttpStatusCode.BadRequest:
+                    return (null, StatusCode(400));
+                case System.Net.HttpStatusCode.NotFound:
+                    ObjectResult result = StatusCode(401, "The user either does not exist or the password is incorrect.");
+                    return (null, result);
+                case System.Net.HttpStatusCode.TooManyRequests:
+                    if (response.Headers.RetryAfter != null)
+                    {
+                        Response.Headers.Add("Retry-After", response.Headers.RetryAfter.ToString());
+                    }
+
+                    return (null, StatusCode(429));
+                case System.Net.HttpStatusCode.OK:
+                    UserAuthenticationResult userAuthenticationResult = JsonSerializer.Deserialize<UserAuthenticationResult>(content);
+
+                    return (userAuthenticationResult, null);
+                default:
+                    _logger.LogWarning("Unexpected response from SBLBridge during enterprise user authentication. HttpStatusCode={statusCode} Content={content}", response.StatusCode, content);
+                    return (null, StatusCode(502));
+            }
+        }
+
+        private EnterpriseUserCredentials DecodeEnterpriseUserHeader(string encodedCredentials, string orgNumber)
+        {
+            byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
+            string decodedString = Encoding.UTF8.GetString(decodedCredentials);
+
+            string[] decodedStringArray = decodedString.Split(":");
+            string usernameFromRequest = decodedStringArray[0];
+            string password = decodedStringArray[1];
+
+            EnterpriseUserCredentials credentials = new EnterpriseUserCredentials { UserName = usernameFromRequest, Password = password, OrganizationNumber = orgNumber };
+            return credentials;
         }
 
         /// <summary>
@@ -531,7 +633,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (scope.Contains("altinn:serviceowner"))
             {
-                return true; 
+                return true;
             }
 
             return false;
@@ -585,7 +687,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             return serializedToken;
         }
-        
+
         private X509Certificate2 GetLatestCertificateWithRolloverDelay(
             List<X509Certificate2> certificates, int rolloverDelayHours)
         {

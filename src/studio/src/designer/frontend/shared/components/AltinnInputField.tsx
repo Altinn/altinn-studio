@@ -1,8 +1,9 @@
-import { createMuiTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { AltinnButton } from './AltinnButton';
+import AltinnButton from './AltinnButton';
+import ErrorPopover from './ErrorPopover';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -25,13 +26,14 @@ export interface IAltinnInputFieldComponentProvidedProps {
   textFieldId?: string;
   fullWidth?: boolean;
   error?: string;
-  onReturn?: () => void;
+  clearError?: () => void;
+  onReturn?: (e: KeyboardEvent) => void;
 }
 
 export interface IAltinnInputFieldComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   inputHeader: {
@@ -68,14 +70,16 @@ const styles = createStyles({
   },
 });
 
-// eslint-disable-next-line max-len
-export class AltinnInputField extends
+class AltinnInputFieldComponent extends
   React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;
+
+  public errorRef: any;
 
   constructor(props: any) {
     super(props);
     this.textInput = React.createRef();
+    this.errorRef = React.createRef();
   }
 
   public componentDidUpdate() {
@@ -84,16 +88,17 @@ export class AltinnInputField extends
     }
   }
 
-  private onKeyDown(e: any) {
-    if (e.keyCode === 13 && !this.props.error) {
-      this.props.onReturn();
+  private onKeyDown(e: KeyboardEvent) {
+    if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
+      e.preventDefault();
+      this.props.onReturn(e);
     }
   }
 
   public render() {
     const { classes } = this.props;
     return (
-      <React.Fragment>
+      <>
         {this.props.inputHeader &&
           <Typography
             style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)}
@@ -131,8 +136,6 @@ export class AltinnInputField extends
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
             multiline={!!this.props.textAreaRows}
-            error={!!this.props.error}
-            helperText={this.props.error}
             rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
@@ -140,9 +143,8 @@ export class AltinnInputField extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn ? this.onKeyDown : undefined}
+            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown((e as KeyboardEvent)))}
           />
-
         </FormControl>
         {this.props.btnText &&
           <AltinnButton
@@ -153,9 +155,15 @@ export class AltinnInputField extends
             disabled={!!this.props.error}
           />
         }
-      </React.Fragment>
+        <div ref={this.errorRef} />
+        <ErrorPopover
+          anchorEl={this.props.error ? this.errorRef.current : null}
+          onClose={this.props.clearError}
+          errorMessage={this.props.error}
+        />
+      </>
     );
   }
 }
 
-export default withStyles(styles)(AltinnInputField);
+export default withStyles(styles)(AltinnInputFieldComponent);

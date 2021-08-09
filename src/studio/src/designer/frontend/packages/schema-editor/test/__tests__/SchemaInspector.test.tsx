@@ -7,7 +7,7 @@ import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
-import { buildUISchema } from '../../src/utils';
+import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 
 let mockStore: any = null;
@@ -16,7 +16,6 @@ let createStore: any;
 let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
-let addPropertyMock = jest.fn();
 
 const mountWithId = (id: string) => {
   mockStore = createStore({
@@ -30,17 +29,15 @@ const mountWithId = (id: string) => {
 };
 const mountComponent = () => mount(
   <Provider store={mockStore}>
-    <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
+    <SchemaInspector language={{}} />
   </Provider>,
 );
 
 beforeEach(() => {
-  const rootPath = '#/definitions/RA-0678_M';
-  addPropertyMock = jest.fn();
   mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
 
   mockInitialState = {
-    rootName: rootPath,
+    name: 'test',
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
@@ -54,6 +51,7 @@ beforeEach(() => {
     uiSchema: mockUiSchema,
   });
   mockStore.dispatch = jest.fn(dispatchMock);
+  resetUniqueNumber();
 });
 
 afterEach(() => {
@@ -83,7 +81,7 @@ it('Should match snapshot (restrictions)', () => {
   });
 });
 
-it('dispatches correctly when changing restriction key', (done) => {
+it('dispatches correctly when changing restriction key', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -93,17 +91,16 @@ it('dispatches correctly when changing restriction key', (done) => {
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-key').last().simulate('change', { target: { value: 'maxLength' } });
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-key').last().simulate('blur');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setKey',
+    type: 'schemaEditor/setRestrictionKey',
     payload: {
       oldKey: 'minLength',
       path: '#/definitions/Kommentar2000Restriksjon',
       newKey: 'maxLength',
     },
   });
-  done();
 });
 
-it('dispatches correctly when changing restriction value', (done) => {
+it('dispatches correctly when changing restriction value', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -119,8 +116,6 @@ it('dispatches correctly when changing restriction value', (done) => {
       value: 666,
     },
   });
-
-  done();
 });
 
 it('dispatches correctly when changing node name', () => {
@@ -129,7 +124,7 @@ it('dispatches correctly when changing node name', () => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  const input = wrapper.find('#definitionsKommentar2000Restriksjon-name').hostNodes().at(0);
+  const input = wrapper.find('#selectedItemName').hostNodes().at(0);
 
   input.simulate('change', { target: { value: '22test' } });
   input.simulate('blur');
@@ -143,7 +138,7 @@ it('dispatches correctly when changing node name', () => {
     type: 'schemaEditor/setPropertyName',
     payload: {
       name: 'test',
-      navigate: true,
+      navigate: '#/definitions/Kommentar2000Restriksjon',
       path: '#/definitions/Kommentar2000Restriksjon',
     },
   });
@@ -156,13 +151,13 @@ it('dispatches correctly when changing node name', () => {
   });
 });
 
-it('dispatches correctly when changing field key', (done) => {
+it('dispatches correctly when changing field key', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-InternInformasjon').hostNodes().at(0);
+  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-6').hostNodes().at(0);
   input.simulate('change', { target: { value: 'Test' } });
   wrapper.update();
   input.simulate('blur');
@@ -174,10 +169,9 @@ it('dispatches correctly when changing field key', (done) => {
       path: '#/definitions/RA-0678_M/properties/InternInformasjon',
     },
   });
-  done();
 });
 
-it('dispatches correctly when changing ref', (done) => {
+it('dispatches correctly when changing ref', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
@@ -192,8 +186,6 @@ it('dispatches correctly when changing ref', (done) => {
       path: '#/definitions/RA-0678_M/properties/InternInformasjon',
     },
   });
-
-  done();
 });
 
 it('supports switching a type into an array and back', () => {
@@ -290,7 +282,7 @@ it('supports switching a reference into an array and back', () => {
   });
 });
 
-it('refSelect does not set invalid refs', (done) => {
+it('refSelect does not set invalid refs', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
@@ -299,7 +291,6 @@ it('refSelect does not set invalid refs', (done) => {
   wrapper.update();
   wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
   expect(mockStore.dispatch).not.toHaveBeenCalledWith({ type: 'schemaEditor/setRef' });
-  done();
 });
 
 it('renders no item if nothing is selected', () => {
@@ -317,24 +308,23 @@ it('renders no item if nothing is selected', () => {
   });
 });
 
-it('dispatches correctly when deleting fields', (done) => {
+it('dispatches correctly when deleting fields', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   wrapper.update();
-  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-dataFormatProvider').hostNodes().at(0).simulate('click');
+  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-1').hostNodes().at(0).simulate('click');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/deleteProperty',
     payload: {
       path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
     },
   });
-  done();
 });
 
-it('dispatches correctly when deleting restrictions', (done) => {
+it('dispatches correctly when deleting restrictions', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -349,9 +339,8 @@ it('dispatches correctly when deleting restrictions', (done) => {
       path: '#/definitions/Kommentar2000Restriksjon',
     },
   });
-  done();
 });
-it('dispatches correctly when adding enum', (done) => {
+it('dispatches correctly when adding enum', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/Kommentar2000Restriksjon');
@@ -366,10 +355,9 @@ it('dispatches correctly when adding enum', (done) => {
       path: '#/definitions/Kommentar2000Restriksjon',
     },
   });
-  done();
 });
 
-it('dispatches correctly when deleting enum', (done) => {
+it('dispatches correctly when deleting enum', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/DriftsstatusPeriode');
@@ -384,10 +372,9 @@ it('dispatches correctly when deleting enum', (done) => {
       path: '#/definitions/DriftsstatusPeriode',
     },
   });
-  done();
 });
 
-it('dispatches correctly when adding restrictions', (done) => {
+it('dispatches correctly when adding restrictions', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -403,10 +390,9 @@ it('dispatches correctly when adding restrictions', (done) => {
       value: '',
     },
   });
-  done();
 });
 
-it('dispatches correctly when adding fields', (done) => {
+it('dispatches correctly when adding fields', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M');
@@ -418,8 +404,8 @@ it('dispatches correctly when adding fields', (done) => {
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/addProperty',
     payload: {
+      keepSelection: true,
       path: '#/definitions/RA-0678_M',
     },
   });
-  done();
 });
