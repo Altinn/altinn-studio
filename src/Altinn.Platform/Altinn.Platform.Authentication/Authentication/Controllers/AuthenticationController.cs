@@ -141,8 +141,7 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 return Redirect(sblRedirectUrl);
             }
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
-            
+
             string oidcissuer = Request.Query["iss"];
             UserAuthenticationModel userAuthentication;
             if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.OidcDefault))
