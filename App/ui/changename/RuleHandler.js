@@ -1,16 +1,16 @@
 var ruleHandlerObject = {
-    sum: (obj) => {
+    sum: function(obj) {
         obj.a = +obj.a;
         obj.b = +obj.b;
         obj.c = +obj.c;
         return obj.a + obj.b + obj.c;
     },
 
-    fullName: (obj) => {
+    fullName: function(obj) {
         return obj.first + ' ' + obj.last;
     },
 
-    nyttNavn: (obj) => {
+    nyttNavn: function(obj) {
         obj.fornavn = obj.fornavn ? obj.fornavn + ' ' : '';
         obj.mellomnavn = obj.mellomnavn ? obj.mellomnavn + ' ' : '';
         obj.etternavn = obj.etternavn ? obj.etternavn : '';        
@@ -18,14 +18,14 @@ var ruleHandlerObject = {
     }
 }
 var ruleHandlerHelper = {
-    fullName: () => {
+    fullName: function() {
         return {
             first: "first name",
             last: "last name"
         };
     },
 
-    sum: () => {
+    sum: function() {
         return {
             a: "a",
             b: "b",
@@ -33,7 +33,7 @@ var ruleHandlerHelper = {
         }
     },
 
-    nyttNavn: () => {
+    nyttNavn: function() {
         return {
             fornavn: "fornavn",
             mellomnavn: "mellomnavn",
@@ -115,91 +115,91 @@ var conditionalRuleHandlerObject = {
 
 }
 var conditionalRuleHandlerHelper = {
-    biggerThan10: () => {
+    biggerThan10: function() {
         return {
             number: "number"
         };
     },
 
-    smallerThan10: () => {
+    smallerThan10: function() {
         return {
             number: "number"
         }
     },
 
-    lengthBiggerThan4: () => {
+    lengthBiggerThan4: function() {
         return {
             value: "value"
         }
     },
 
-    sjekkNyttNavnSatt: () => {
+    sjekkNyttNavnSatt: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkNavnendringBekreftelse: () => {
+    sjekkNavnendringBekreftelse: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkNavnendringAvkreftelse: () => {
+    sjekkNavnendringAvkreftelse: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseSlektskap: () => {
+    sjekkBegrunnelseSlektskap: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseSteforeldre: () => {
+    sjekkBegrunnelseSteforeldre: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseSamboer: () => {
+    sjekkBegrunnelseSamboer: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseTidligereNavn: () => {
+    sjekkBegrunnelseTidligereNavn: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseGardsbruk: () => {
+    sjekkBegrunnelseGardsbruk: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseNyttNavn: () => {
+    sjekkBegrunnelseNyttNavn: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkBegrunnelseAnnet: () => {
+    sjekkBegrunnelseAnnet: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkRadioBtnHuket: () => {
+    sjekkRadioBtnHuket: function() {
         return {
             value: "Verdi"
         }
     },
 
-    sjekkeInputGyldig: () => {
+    sjekkeInputGyldig: function() {
         return {
             value: "Verdi"
         }
