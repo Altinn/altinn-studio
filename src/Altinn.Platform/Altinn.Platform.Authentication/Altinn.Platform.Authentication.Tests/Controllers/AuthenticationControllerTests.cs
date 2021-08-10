@@ -515,41 +515,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         public async Task AuthenticateUserWithOIDC_NoTokenPortalParametersIncludedOIDCDefaultEnabled_RedirectsToOIDCProvider()
         {
             // Arrange         
-            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-
-            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true";
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // Act
-            HttpResponseMessage response = await client.SendAsync(requestMessage);
-
-            // Assert
-            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=http://localhost/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=2314534634r2&response_type=code&state=";
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
-            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
-            Assert.NotEmpty(setCookieHeaders);
-
-            bool hasXSRFCookie = false;
-            foreach (string header in setCookieHeaders)
-            {
-                if (header.Contains("AS-XSRF-TOKEN"))
-                {
-                    hasXSRFCookie = true;
-                }
-            }
-
-            Assert.True(hasXSRFCookie);
-        }
-
-        /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
-        /// </summary>
-        [Fact]
-        public async Task AuthenticateUserWithOIDC_FullProcess_RedirectsToOIDCAndBackWithValidToken()
-        {
-            // Arrange         
-            string gotoUrl = "http://ttd.apps.localhost";
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
             string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
 
@@ -557,37 +523,87 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act 2
-            HttpResponseMessage response = await client.SendAsync(requestMessage);
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(requestMessage);
 
-            // Assert
-            Uri authenticationUri = new Uri(response.Headers.Location.ToString());
-            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=" + redirectUri + "&scope=openid&client_id=2314534634r2&response_type=code&state=";
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
-            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("idprovider.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
             Assert.NotEmpty(setCookieHeaders);
+            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
 
-            bool hasXSRFCookie = false;
-            foreach (string header in setCookieHeaders)
-            {
-                if (header.Contains("AS-XSRF-TOKEN"))
-                {
-                    hasXSRFCookie = true;
-                }
-            }
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "2314534634r2", out string stateParam, out string nonceParam, out string redirectUriParam);
+        }
 
-            Assert.True(hasXSRFCookie);
-        
-            System.Collections.Specialized.NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(authenticationUri.Query);
+        /// <summary>
+        /// This test veryf the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component
+        /// 3. OIDC is enabled and is the default authentication component
+        /// 4. First expections: Authentication components redirects to correct OIDC provider
+        ///  In real life the ODIC provider will then authenticate user and redirect user back to authentication component
+        ///  In this test the authorization code is created in test
+        ///  5. User is redirectet back to authentication component with state and XSRF cookie
+        ///  6. Authenticaiton component verifies XSRF header and cookie
+        ///  7. Autentication component calls OIDC provider with code to exchange it to a token
+        ///  8. Authentication compoment verifies token and create authentication info
+        ///  9. Authentication component creates altinn 3 token and puts it in to a cookie
+        ///  10. Redirects back to original app
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDC_FullProcess_RedirectsToOIDCAndBackWithValidToken()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
 
-            string redirectUriParam = queryDictionary.Get("redirect_uri");
-            string stateParam = queryDictionary.Get("state");
-            HttpRequestMessage requestMessage2 = new HttpRequestMessage(HttpMethod.Get, GetAuthenticationUrlWithToken(redirectUriParam, stateParam));
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // Act 2
-            HttpResponseMessage response2 = await client.SendAsync(requestMessage2);
-            Assert.Equal(HttpStatusCode.Redirect, response2.StatusCode);
-            Assert.StartsWith(gotoUrl, response2.Headers.Location.ToString());
+            // Call Authentication component equalt to browsr beeing redirect from Altinn app
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("idprovider.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
+            Assert.NotEmpty(setCookieHeaders);
+            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
+
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "2314534634r2", out string stateParam, out string nonceParam, out string redirectUriParam);
+
+            // This part is the where we prepare the response as a OIDC Provider would do.
+            // When returned from the OIDC Provider user will have an Authorization code. This code can have
+            // different formats and this component does not need to understand it. It just exchanged code with
+            // OIDC Provider to get a JWT ID token in response. In this test we create a JWTToken as code to make
+            // the exchange in OidcProviderMock simple
+            string authorizationCode = CreateOidcCode("1337", "1337", nonceParam);
+            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, "https://idprovider.azurewebsites.net/");
+            HttpRequestMessage redirectFromOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, redirectFromOidcProviderUri);
+
+            // Act 2. This simulates the request the browser will do when user is authenticated at OIDC provider and returns to Altinn authentication.
+            HttpResponseMessage redirectFromOidcProviderResponse = await client.SendAsync(redirectFromOidcProviderRequest);
+
+            // Assert: Now the user should be redirected back to original requested app.
+            Assert.Equal(HttpStatusCode.Redirect, redirectFromOidcProviderResponse.StatusCode);
+            Assert.StartsWith(gotoUrl, redirectFromOidcProviderResponse.Headers.Location.ToString());
+
+            // Check to see if platform cookie is set with token and verify token and claims
+            redirectFromOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookieHeaders);
+            Assert.NotEmpty(setCookieHeaders);
+            string platformToken = GetTokenFromSetCookieHeader(cookieHeaders);
+            Assert.NotNull(platformToken);
+            ClaimsPrincipal claimPrincipal = JwtTokenMock.ValidateToken(platformToken);
+            Assert.NotNull(claimPrincipal);
         }
 
         /// <summary>
@@ -597,31 +613,28 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         public async Task AuthenticateUserWithOIDC_IdportenProviderRequested_RedirectsToOIDCProvider()
         {
             // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
 
-            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost&DontChooseReportee=true&iss=idporten";
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(requestMessage);
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
 
-            // Assert
-            string expectedLocation = "https://idporten.azurewebsites.net/authorize?redirect_uri=http://localhost/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=345345s&response_type=code&state=";
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
-            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("idporten.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
             Assert.NotEmpty(setCookieHeaders);
+            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
 
-            bool hasXSRFCookie = false;
-            foreach (string header in setCookieHeaders)
-            {
-                if (header.Contains("AS-XSRF-TOKEN"))
-                {
-                    hasXSRFCookie = true;
-                }
-            }
-
-            Assert.True(hasXSRFCookie);
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "345345s", out string stateParam, out string nonceParam, out string redirectUriParam);
         }
 
         /// <summary>
@@ -959,22 +972,19 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             return Path.Combine(unitTestFolder, $"../../../appsettings.json");
         }
 
-        private static string GetAuthenticationUrlWithToken(string redirectUri, string state)
+        private static string GetAuthenticationUrlWithToken(string redirectUri, string state, string code, string iss)
         {
-            return redirectUri + "&state=" + state + "&code=" + CreateOidcCodeToken();
+            return redirectUri + "&state=" + state + "&code=" + code + "&iss=" + iss;
         }
 
-        private static string CreateOidcCodeToken()
+        private static string CreateOidcCode(string userId, string partyId, string nonce)
         {
             List<Claim> claims = new List<Claim>();
-
-            string userId = "1337";
-            string partyId = "1337";
 
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, Enum.AuthenticationMethod.BankIDMobil.ToString()));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, Enum.SecurityLevel.Sensitive.ToString()));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, Enum.SecurityLevel.VerySensitive.ToString()));
 
             ClaimsIdentity identity = new ClaimsIdentity();
             identity.AddClaims(claims);
@@ -983,6 +993,66 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
 
             return externalToken;
+        }
+
+        private static string GetTokenFromSetCookieHeader(IEnumerable<string> setCookieHeaders)
+        {
+            string platformToken = null;
+
+            foreach (string cookiePart in setCookieHeaders)
+            {
+                string[] cookieKeyValue = cookiePart.Split('=');
+
+                switch (cookieKeyValue[0])
+                {
+                    case "AltinnStudioRuntime":
+                        platformToken = cookieKeyValue[1].Split("; ")[0];
+                        break;
+                }
+            }
+
+            return platformToken;
+        }
+
+        private static bool IsCookieSet(IEnumerable<string> setCookieHeaders, string cookieName)
+        {
+            bool cookieIsSet = false;
+            foreach (string header in setCookieHeaders)
+            {
+                if (header.Contains(cookieName))
+                {
+                    cookieIsSet = true;
+                }
+            }
+
+            return cookieIsSet;
+        }
+
+        private static void ValidateOidcParams(
+            Uri redirectToOidcProviderUri,
+            string expectedRedirectUri,
+            string expectedClientId,
+            out string stateParam,
+            out string nonceParam,
+            out string redirectUriParam)
+        {
+            System.Collections.Specialized.NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(redirectToOidcProviderUri.Query);
+            redirectUriParam = queryDictionary.Get("redirect_uri");
+            stateParam = queryDictionary.Get("state");
+            string scopeParam = queryDictionary.Get("scope");
+            nonceParam = queryDictionary.Get("nonce");
+            string responseTypeParam = queryDictionary.Get("response_type");
+            string clientIdParam = queryDictionary.Get("client_id");
+            Assert.NotNull(redirectUriParam);
+            Assert.NotNull(stateParam); // This is autogenerated and not possible to know. Is valiated on next request
+            Assert.NotNull(scopeParam);
+            Assert.NotNull(nonceParam); // This is autogenerated and not possible to know.
+            Assert.NotNull(responseTypeParam);
+            Assert.NotNull(clientIdParam);
+            Assert.Equal(HttpUtility.UrlDecode(expectedRedirectUri), redirectUriParam);
+            Assert.Equal("openid", scopeParam);
+            Assert.Equal("code", responseTypeParam);
+            Assert.Equal(expectedClientId, clientIdParam); // Correct ID from the OIDC configuration for the given provider
         }
     }
 }
