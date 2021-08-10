@@ -185,6 +185,11 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Get or sets the 
         /// </summary>
-        public bool OidcDefault { get; set; } 
+        public bool OidcDefault { get; set; }
+
+        /// <summary>
+        /// Name of Oidc Nonce cookie
+        /// </summary>
+        public string OidcNonceCookieName { get; set; } = "oidcnonce";
     }
 }

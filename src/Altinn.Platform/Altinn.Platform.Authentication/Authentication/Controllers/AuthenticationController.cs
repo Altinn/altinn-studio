@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
@@ -148,15 +149,42 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 if (!string.IsNullOrEmpty(code))
                 {
+                    if (string.IsNullOrEmpty(state))
+                    {
+                        return BadRequest("Missing state param");
+                    }
+
                     HttpContext.Request.Headers.Add("X-XSRF-TOKEN", state);
-                    await _antiforgery.ValidateRequestAsync(HttpContext);
-                    userAuthentication = await AuthenticateWithCode(code, provider, GetRedirectUri(goTo)); 
+
+                    try
+                    {
+                        await _antiforgery.ValidateRequestAsync(HttpContext);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInformation("Validateion of state failed", ex.ToString());
+                        return BadRequest("Invalid state param");
+                    }
+
+                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri(goTo));
+                    JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.Id_token, provider);
+                    userAuthentication = GetUserFromToken(jwtSecurityToken);
+
+                    if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
+                    {
+                        return BadRequest("Invalid nonce");
+                    }
                 }
                 else
                 {
                     // Generates state tokens. One is added to a cookie and another is sent as state parameter to OIDC provider
                     AntiforgeryTokenSet tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-                    return Redirect(CreateAuthenticationRequest(provider, goTo, tokens.RequestToken));
+
+                    // Create Nonce. One is added to a cookie and another is sent as nonce parameter to OIDC provider
+                    string nonce = CreateNonce(HttpContext);
+
+                    // Redirect to OIDC Provider
+                    return Redirect(CreateAuthenticationRequest(provider, goTo, tokens.RequestToken, nonce));
                 }
             }
             else
@@ -180,37 +208,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (userAuthentication != null && userAuthentication.IsAuthenticated)
             {
-                List<Claim> claims = new List<Claim>();
-                string issuer = _generalSettings.PlatformEndpoint;
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-
-                if (!string.IsNullOrEmpty(userAuthentication.Username))
-                {
-                    claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-                }
-
-                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
-
-                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-                identity.AddClaims(claims);
-                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-                _logger.LogInformation("Platform Authentication before creating JwtCookie");
-
-                string serializedToken = await GenerateToken(principal);
-                CreateJwtCookieAndAppendToResponse(serializedToken);
-
-                _logger.LogInformation("Platform Authentication after creating JwtCookie");
-
-                _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
-                if (userAuthentication.TicketUpdated)
-                {
-                    Response.Cookies.Append(_generalSettings.SblAuthCookieName, userAuthentication.EncryptedTicket);
-                }
-
+                await CreateTokenCookie(userAuthentication);
                 return Redirect(goTo);
             }
 
@@ -707,15 +705,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 .FirstOrDefault();
         }
 
-        private async Task<UserAuthenticationModel> AuthenticateWithCode(string authorizationCode, OidcProvider oidcProvider, string redirect_uri)
-        {
-            OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(authorizationCode, oidcProvider, redirect_uri);
-            JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.Id_token, oidcProvider);
-
-            UserAuthenticationModel userAuthenticationModel = GetUserFromToken(jwtSecurityToken);
-            return userAuthenticationModel;
-        }
-
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
         {
             UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true };
@@ -744,6 +733,11 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (claim.Type.Equals("pid"))
                 {
                     userAuthenticationModel.SSN = claim.Value;
+                }
+
+                if (claim.Type.Equals("nonce"))
+                {
+                    userAuthenticationModel.Nonce = claim.Value;
                 }
             }
 
@@ -820,10 +814,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Based on https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
         /// </summary>
         /// <returns></returns>
-        private string CreateAuthenticationRequest(OidcProvider provider, string goTo, string state)
+        private string CreateAuthenticationRequest(OidcProvider provider, string goTo, string state, string nonce)
         {
-            string nonce = Guid.NewGuid().ToString();
-
             string redirect_uri = GetRedirectUri(goTo);
             string authorizationEndpoint = provider.AuthorizationEndpoint;
             Dictionary<string, string> oidcParams = new Dictionary<string, string>();
@@ -871,6 +863,61 @@ namespace Altinn.Platform.Authentication.Controllers
         {
            goTo = HttpUtility.UrlEncode(goTo);
            return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+        }
+
+        private string CreateNonce(HttpContext httpContext)
+        {
+            string nonce = Guid.NewGuid().ToString();
+            httpContext.Response.Cookies.Append(_generalSettings.OidcNonceCookieName, nonce);
+            return HashNonce(nonce);
+        }
+
+        private async Task CreateTokenCookie(UserAuthenticationModel userAuthentication)
+        {
+            List<Claim> claims = new List<Claim>();
+            string issuer = _generalSettings.PlatformEndpoint;
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+
+            if (!string.IsNullOrEmpty(userAuthentication.Username))
+            {
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+            }
+
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
+
+            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            string serializedToken = await GenerateToken(principal);
+            CreateJwtCookieAndAppendToResponse(serializedToken);
+            if (userAuthentication.TicketUpdated)
+            {
+                Response.Cookies.Append(_generalSettings.SblAuthCookieName, userAuthentication.EncryptedTicket);
+            }
+        }
+
+        private static string HashNonce(string nonce)
+        {
+            using (SHA256 nonceHash = SHA256Managed.Create())
+            {
+                byte[] byteArrayResultOfRawData = Encoding.UTF8.GetBytes(nonce);
+                byte[] byteArrayResult = nonceHash.ComputeHash(byteArrayResultOfRawData);
+                return Convert.ToBase64String(byteArrayResult);
+            }
+        }
+
+        private bool ValidateNonce(HttpContext context, string hashedNonce)
+        {
+            string nonceCookie = context.Request.Cookies[_generalSettings.OidcNonceCookieName];
+            if (!string.IsNullOrEmpty(nonceCookie) && HashNonce(nonceCookie).Equals(hashedNonce))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
