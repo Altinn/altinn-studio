@@ -509,7 +509,11 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// This test verify the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component with no ISS given
+        /// 3. OIDC is enabled and the default authentication mechanismen
+        /// Expections: Authentication components redirects to default OIDC provider with all neded params
         /// </summary>
         [Fact]
         public async Task AuthenticateUserWithOIDC_NoTokenPortalParametersIncludedOIDCDefaultEnabled_RedirectsToOIDCProvider()
@@ -531,9 +535,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal("idprovider.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
 
             // Verify that XSRF token cookie set is set. 
-            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
-            Assert.NotEmpty(setCookieHeaders);
-            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
 
             // Verify that all required OIDC Params are set and have the correct values
             ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "2314534634r2", out string stateParam, out string nonceParam, out string redirectUriParam);
@@ -574,9 +576,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal("idprovider.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
 
             // Verify that XSRF token cookie set is set. 
-            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
-            Assert.NotEmpty(setCookieHeaders);
-            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
 
             // Verify that all required OIDC Params are set and have the correct values
             ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "2314534634r2", out string stateParam, out string nonceParam, out string redirectUriParam);
@@ -599,7 +599,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             // Check to see if platform cookie is set with token and verify token and claims
             redirectFromOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookieHeaders);
-            Assert.NotEmpty(setCookieHeaders);
+            Assert.NotEmpty(cookieHeaders);
             string platformToken = GetTokenFromSetCookieHeader(cookieHeaders);
             Assert.NotNull(platformToken);
             ClaimsPrincipal claimPrincipal = JwtTokenMock.ValidateToken(platformToken);
@@ -607,10 +607,14 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// This test verify the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component with ISS given
+        /// 3. OIDC is enabled and the default authentication mechanismen
+        /// 4. First expections: Authentication components redirects to correct OIDC provider
         /// </summary>
         [Fact]
-        public async Task AuthenticateUserWithOIDC_IdportenProviderRequested_RedirectsToOIDCProvider()
+        public async Task AuthenticateUserWithOIDCEnabledAndDefault_IdportenProviderRequested_RedirectsToOIDCProvider()
         {
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
@@ -629,12 +633,97 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal("idporten.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
 
             // Verify that XSRF token cookie set is set. 
-            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
-            Assert.NotEmpty(setCookieHeaders);
-            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
 
             // Verify that all required OIDC Params are set and have the correct values
             ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "345345s", out string stateParam, out string nonceParam, out string redirectUriParam);
+        }
+
+        /// <summary>
+        /// This test verify the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component with ISS given
+        /// 3. OIDC is enabled and but not the default authentication mechanismen
+        /// 4. First expections: Authentication components redirects to correct OIDC provider
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDCEnabled_IdportenProviderRequested_RedirectsToOIDCProvider()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("idporten.azurewebsites.net/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
+
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "345345s", out string stateParam, out string nonceParam, out string redirectUriParam);
+        }
+
+        /// <summary>
+        /// This test verify the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component with ISS given
+        /// 3. OIDC is disabled
+        /// Expections: Authentication components redirects to SBL
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDCDisabled_IdportenProviderRequested_RedirectsToSBL()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, false, false);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to SBL since OIDC is disabled
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToSBLUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("localhost/ui/authentication", redirectToSBLUri.Host + redirectToSBLUri.AbsolutePath);
+        }
+
+        /// <summary>
+        /// This test verify the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component 
+        /// 3. OIDC is enabled
+        /// Expections: Authentication components redirects to SBL since no ISS is given
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDCEnabled_IdportenProviderNotRequested_RedirectsToSBL()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, false);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to SBL since OIDC is disabled
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToSBLUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("localhost/ui/authentication", redirectToSBLUri.Host + redirectToSBLUri.AbsolutePath);
         }
 
         /// <summary>
@@ -959,7 +1048,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
                     services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationServiceMock>();
                     services.AddSingleton<IOidcProvider, OidcProviderServiceMock>();
-
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
@@ -1053,6 +1141,13 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal("openid", scopeParam);
             Assert.Equal("code", responseTypeParam);
             Assert.Equal(expectedClientId, clientIdParam); // Correct ID from the OIDC configuration for the given provider
+        }
+
+        private static void ValidateXSRFTokenPresent(HttpResponseMessage redirectToOidcProviderResponse)
+        {
+            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
+            Assert.NotEmpty(setCookieHeaders);
+            Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
         }
     }
 }

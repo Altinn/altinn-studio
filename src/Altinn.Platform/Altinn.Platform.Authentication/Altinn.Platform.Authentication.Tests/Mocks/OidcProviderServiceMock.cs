@@ -23,12 +23,12 @@ namespace Altinn.Platform.Authentication.Services
         /// <summary>
         /// Performs a AccessToken Request as described in https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
         /// </summary>
-        public async Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
+        public Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
             OidcCodeResponse codeResponse = new OidcCodeResponse();
             codeResponse.Access_token = authorizationCode;
             codeResponse.Id_token = authorizationCode;
-            return codeResponse;
+            return Task.FromResult(codeResponse);
         }
     }
 }
