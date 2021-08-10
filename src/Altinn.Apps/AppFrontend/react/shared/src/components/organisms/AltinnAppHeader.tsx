@@ -72,7 +72,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
         </Grid>
         <Grid
           container={true}
-          justify={'flex-end'}
+          justifyContent={'flex-end'}
           alignItems={'center'}
           item={true}
           xs={6}

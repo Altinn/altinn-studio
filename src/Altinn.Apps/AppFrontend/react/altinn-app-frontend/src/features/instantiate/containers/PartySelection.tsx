@@ -310,7 +310,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       >
         <Grid
           container={true}
-          justify='space-between'
+          justifyContent='space-between'
           direction='row'
         >
           <Grid item={true}>

@@ -69,6 +69,8 @@
     <None Remove="_TestData\Model\Xsd\statsbygg_custom_modified.xsd" />
     <None Remove="_TestData\Model\JsonSchema\restriction-max-min-integer.schema.json" />
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
+    <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
      <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />

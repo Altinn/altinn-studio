@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
@@ -16,7 +17,9 @@ using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +29,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+
 using Newtonsoft.Json.Linq;
+
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Altinn.Platform.Authentication.Controllers
@@ -97,20 +102,30 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Request that handles the form authentication cookie from SBL
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
+        /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
         [HttpGet("authentication")]
-        public async Task<ActionResult> AuthenticateUser(string goTo)
+        public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
                 return Redirect($"{_generalSettings.GetBaseUrl}");
             }
 
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
+            string platformReturnUrl = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+
+            if (dontChooseReportee)
+            {
+                platformReturnUrl += "&DontChooseReportee=true";
+            }
+
+            string encodedGoToUrl = HttpUtility.UrlEncode(platformReturnUrl);
+            string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
+
             if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
             {
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                return Redirect(sblRedirectUrl);
             }
 
             UserAuthenticationModel userAuthentication;
@@ -156,7 +171,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Redirect(goTo);
             }
 
-            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+            return Redirect(sblRedirectUrl);
         }
 
         /// <summary>
@@ -591,7 +606,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (scope.Contains("altinn:serviceowner"))
             {
-                return true; 
+                return true;
             }
 
             return false;
@@ -645,7 +660,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             return serializedToken;
         }
-        
+
         private X509Certificate2 GetLatestCertificateWithRolloverDelay(
             List<X509Certificate2> certificates, int rolloverDelayHours)
         {
