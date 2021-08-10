@@ -20,13 +20,9 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      minWidth: 500,
+      width: 500,
       padding: 14,
-      height: '90vh',
-      background: 'white',
-      borderLeft: '1px solid #C9C9C9',
-      zIndex: 2,
-      overflow: 'auto',
+      paddingTop: 8,
       '& .MuiAutocomplete-input': {
         width: 150,
       },
@@ -371,7 +367,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onChangeArrayType = (id: string, type: string | undefined) => {
     setArrayType(type ?? '');
-    let items = null;
+    let items;
     if (type === undefined) {
       items = undefined;
     } else {

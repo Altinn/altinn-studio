@@ -3,7 +3,7 @@ Schema editor example
 ```tsx
 import { Provider } from 'react-redux';
 import '../App.css';
-import SchemaEditor from './schemaEditor';
+import Editor from './Editor';
 import { store } from '../redux/store';
 import { dataMock } from '../mockData';
 
@@ -20,9 +20,12 @@ const language = {
   }
 }
 
-<div style={{minHeight: 1350, flex: '1 1 auto'}}>
+<div style={{
+  minHeight: 1350,
+  flex: '1 1 auto'
+}}>
   <Provider store={store}>
-    <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language} />
+    <Editor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language}/>
   </Provider>
 </div>
 ```
