@@ -217,6 +217,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="targetDirectory">Full path of the target directory</param>
         public void CopyRepository(string targetDirectory)
         {
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, targetDirectory);
+
             Directory.CreateDirectory(targetDirectory);
             CopyAll(RepositoryDirectory, targetDirectory);
         }
