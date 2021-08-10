@@ -111,7 +111,7 @@ function SchemaItem(props: SchemaItemProps) {
   });
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
-    setItemToDisplay(refItem ?? item);
+    setItemToDisplay(item);
   }, [item.restrictions, item, refItem]);
 
   const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
