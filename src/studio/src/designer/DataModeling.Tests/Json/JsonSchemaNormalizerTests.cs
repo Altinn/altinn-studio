@@ -42,7 +42,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
-            var jsonSchemaText = JsonSerializer.Serialize(jsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin) });
+            var jsonSchemaText = JsonSerializer.Serialize(jsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
             var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
 
