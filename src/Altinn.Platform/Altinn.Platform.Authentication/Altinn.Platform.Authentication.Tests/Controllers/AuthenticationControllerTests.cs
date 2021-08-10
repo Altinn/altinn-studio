@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Controllers;
@@ -16,6 +17,7 @@ using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Authentication.Tests.Fakes;
 using Altinn.Platform.Authentication.Tests.Mocks;
 using Altinn.Platform.Profile.Models;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -501,7 +503,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             // Assert
-            string expectedLocation = "http://localhost/ui/authentication?goTo=http%3a%2f%2flocalhost%3a5040%2fauthentication%2fapi%2fv1%2fauthentication%3fgoto%3dhttp%3a%2f%2flocalhost%26DontChooseReportee%3dtrue";
+            string expectedLocation = "http://localhost/ui/authentication?goTo=http%3a%2f%2flocalhost%2fauthentication%2fapi%2fv1%2fauthentication%3fgoto%3dhttp%3a%2f%2flocalhost%26DontChooseReportee%3dtrue";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal(expectedLocation, response.Headers.Location.ToString());
         }
@@ -522,7 +524,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             // Assert
-            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=2314534634r2&response_type=code&state=";
+            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=http://localhost/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=2314534634r2&response_type=code&state=";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
             IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
@@ -544,6 +546,54 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateUserWithOIDC_FullProcess_RedirectsToOIDCAndBackWithValidToken()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act 2
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Uri authenticationUri = new Uri(response.Headers.Location.ToString());
+            string expectedLocation = "https://idprovider.azurewebsites.net/authorize?redirect_uri=" + redirectUri + "&scope=openid&client_id=2314534634r2&response_type=code&state=";
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
+            IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
+            Assert.NotEmpty(setCookieHeaders);
+
+            bool hasXSRFCookie = false;
+            foreach (string header in setCookieHeaders)
+            {
+                if (header.Contains("AS-XSRF-TOKEN"))
+                {
+                    hasXSRFCookie = true;
+                }
+            }
+
+            Assert.True(hasXSRFCookie);
+        
+            System.Collections.Specialized.NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(authenticationUri.Query);
+
+            string redirectUriParam = queryDictionary.Get("redirect_uri");
+            string stateParam = queryDictionary.Get("state");
+            HttpRequestMessage requestMessage2 = new HttpRequestMessage(HttpMethod.Get, GetAuthenticationUrlWithToken(redirectUriParam, stateParam));
+
+            // Act 2
+            HttpResponseMessage response2 = await client.SendAsync(requestMessage2);
+            Assert.Equal(HttpStatusCode.Redirect, response2.StatusCode);
+            Assert.StartsWith(gotoUrl, response2.Headers.Location.ToString());
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateUserWithOIDC_IdportenProviderRequested_RedirectsToOIDCProvider()
         {
             // Arrange         
@@ -556,7 +606,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             // Assert
-            string expectedLocation = "https://idporten.azurewebsites.net/authorize?redirect_uri=http://localhost:5040/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=345345s&response_type=code&state=";
+            string expectedLocation = "https://idporten.azurewebsites.net/authorize?redirect_uri=http://localhost/authentication/api/v1/authentication?goto=http%3a%2f%2flocalhost&scope=openid&client_id=345345s&response_type=code&state=";
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.StartsWith(expectedLocation, response.Headers.Location.ToString());
             IEnumerable<string> setCookieHeaders = response.Headers.GetValues("set-cookie");
@@ -895,6 +945,8 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
                     services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationServiceMock>();
+                    services.AddSingleton<IOidcProvider, OidcProviderServiceMock>();
+
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
@@ -905,6 +957,32 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthenticationControllerTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../appsettings.json");
+        }
+
+        private static string GetAuthenticationUrlWithToken(string redirectUri, string state)
+        {
+            return redirectUri + "&state=" + state + "&code=" + CreateOidcCodeToken();
+        }
+
+        private static string CreateOidcCodeToken()
+        {
+            List<Claim> claims = new List<Claim>();
+
+            string userId = "1337";
+            string partyId = "1337";
+
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, Enum.AuthenticationMethod.BankIDMobil.ToString()));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, Enum.SecurityLevel.Sensitive.ToString()));
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            return externalToken;
         }
     }
 }

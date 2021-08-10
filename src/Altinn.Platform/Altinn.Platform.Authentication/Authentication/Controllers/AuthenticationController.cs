@@ -184,7 +184,12 @@ namespace Altinn.Platform.Authentication.Controllers
                 string issuer = _generalSettings.PlatformEndpoint;
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+
+                if (!string.IsNullOrEmpty(userAuthentication.Username))
+                {
+                    claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+                }
+
                 claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
@@ -734,6 +739,11 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
                 {
                     userAuthenticationModel.AuthenticationLevel = (Enum.SecurityLevel)System.Enum.Parse(typeof(Enum.SecurityLevel), claim.Value);
+                }
+
+                if (claim.Type.Equals("pid"))
+                {
+                    userAuthenticationModel.SSN = claim.Value;
                 }
             }
 
