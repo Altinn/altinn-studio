@@ -17,7 +17,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
     public class JsonSchemaToXmlSchemaConverter
     {
         private readonly IJsonSchemaNormalizer _normalizer;
-        private readonly XmlDocument _xmlFactoryDocument;
 
         private JsonSchema _jsonSchema;
         private IJsonSchemaToXmlSchemaConverterStrategy _strategy;
@@ -29,7 +28,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         public JsonSchemaToXmlSchemaConverter(IJsonSchemaNormalizer normalizer)
         {
             _normalizer = normalizer;
-            _xmlFactoryDocument = new XmlDocument();
         }
 
         /// <summary>
@@ -89,9 +87,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// </summary>
         private void ConvertUsingStrategy()
         {
-            JsonSchemaXsdMetadata result = _strategy.AnalyzeSchema(_jsonSchema);
+            var analyzer = _strategy.GetAnalyzer();
+            var converter = _strategy.GetConverter();
 
-            _xmlSchema = _strategy.Convert(_jsonSchema, result);
+            JsonSchemaXsdMetadata result = analyzer.AnalyzeSchema(_jsonSchema);
+            _xmlSchema = converter.Convert(_jsonSchema, result);
         }
     }
 }
