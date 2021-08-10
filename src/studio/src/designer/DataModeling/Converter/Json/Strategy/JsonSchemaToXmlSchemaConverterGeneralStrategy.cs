@@ -9,13 +9,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     public class JsonSchemaToXmlSchemaConverterGeneralStrategy : IJsonSchemaToXmlSchemaConverterStrategy
     {
         /// <inheritdoc />
-        public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
+        public IJsonSchemaAnalyzer GetAnalyzer()
         {
             throw new System.NotImplementedException();
         }
 
         /// <inheritdoc />
-        public XmlSchema Convert(JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        public IJsonSchemaConverter GetConverter()
         {
             throw new System.NotImplementedException();
         }

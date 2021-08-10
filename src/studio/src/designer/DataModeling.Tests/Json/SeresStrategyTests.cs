@@ -17,9 +17,9 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var strategy = new JsonSchemaToXmlSchemaConverterSeresStrategy();
+            var analyzer = new JsonSchemaSeresAnalyzer();
 
-            var metadata = strategy.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema);
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Equal(CompatibleXsdType.Unknown);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.Unknown);
