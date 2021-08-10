@@ -40,6 +40,9 @@
     <EmbeddedResource Include="_TestData\**\*.*" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Remove="_TestData\Model\CSharp\melding.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
@@ -48,9 +51,13 @@
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
+    <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_TestData\Model\Json\" />
   </ItemGroup>
 
 </Project>
