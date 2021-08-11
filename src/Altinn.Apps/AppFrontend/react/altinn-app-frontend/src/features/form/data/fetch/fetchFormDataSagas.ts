@@ -96,7 +96,10 @@ function* fetchFormDataInitialSaga(): SagaIterator {
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield take(FormDataActions.fetchFormDataInitial);
+    yield all([
+      take(SELECT_PARTY_FULFILLED),
+      take(FormDataActions.fetchFormDataInitial)
+    ]);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
@@ -108,7 +111,6 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     } else {
       // stateless app
       yield all([
-        take(SELECT_PARTY_FULFILLED),
         take(fetchJsonSchemaFulfilled),
       ]);
     }
