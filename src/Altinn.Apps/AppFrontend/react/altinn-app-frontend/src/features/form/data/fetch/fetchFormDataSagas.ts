@@ -21,12 +21,12 @@ import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanc
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
-import { SELECT_PARTY_FULFILLED } from 'src/shared/resources/party/selectParty/selectPartyActionTypes';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
 const instanceDataSelector = (state: IRuntimeState): IInstance => state.instanceData.instance;
 const processStateSelector = (state: IRuntimeState): IProcessState => state.process;
+const currentSelectedPartyIdSelector = (state: IRuntimeState): string => state.party.selectedParty?.partyId;
 
 function* fetchFormDataSaga(): SagaIterator {
   try {
@@ -94,12 +94,21 @@ function* fetchFormDataInitialSaga(): SagaIterator {
   }
 }
 
+function* waitFor(selector) {
+  if (yield select(selector)) {
+    return;
+  }
+  while (true) {
+    yield take('*');
+    if (yield select(selector)) {
+      return;
+    }
+  }
+}
+
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield all([
-      take(SELECT_PARTY_FULFILLED),
-      take(FormDataActions.fetchFormDataInitial)
-    ]);
+    yield take(FormDataActions.fetchFormDataInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
@@ -110,6 +119,7 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       ]);
     } else {
       // stateless app
+      yield call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== null);
       yield all([
         take(fetchJsonSchemaFulfilled),
       ]);
