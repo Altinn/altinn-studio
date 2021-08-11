@@ -1204,7 +1204,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             finally
             {
-                DirectoryHelper.DeleteFilesAndDirectory(sourceAppRepository.RepositoryDirectory);
+                Directory.Delete(sourceAppRepository.RepositoryDirectory, true);
             }
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
