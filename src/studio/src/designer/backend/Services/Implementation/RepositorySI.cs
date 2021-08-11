@@ -1216,14 +1216,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        private static async Task UpdateAppId(AltinnAppGitRepository repository)
-        {
-            PlatformStorageModels.Application applicationMetadata = await repository.GetApplicationMetadata();
-            applicationMetadata.Id = $"{repository.Org}/{repository.Repository}";
-
-            await repository.UpdateApplicationMetadata(applicationMetadata);
-        }
-
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
