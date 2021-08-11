@@ -217,10 +217,24 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="targetDirectory">Full path of the target directory</param>
         public void CopyRepository(string targetDirectory)
         {
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, targetDirectory);
+            Guard.AssertFilePathWithinParentDirectory(RepositoriesRootDirectory, targetDirectory);
 
             Directory.CreateDirectory(targetDirectory);
             CopyAll(RepositoryDirectory, targetDirectory);
+        }
+
+        /// <summary>
+        /// Replaces all instances of search string with replace string in file in the provided path.
+        /// </summary>
+        /// <param name="relativePath">The relative path to the file.</param>
+        /// <param name="searchString">The search string.</param>
+        /// <param name="replaceString">The replace string.</param>
+        public async Task SearchAndReplaceInFile(string relativePath, string searchString, string replaceString)
+        {
+            string text = await ReadTextByRelativePathAsync(relativePath);
+            text = text.Replace(searchString, replaceString);
+
+            await WriteTextByRelativePathAsync(relativePath, text);
         }
 
         private static void CopyAll(string sourceDirectory, string targetDirectory)

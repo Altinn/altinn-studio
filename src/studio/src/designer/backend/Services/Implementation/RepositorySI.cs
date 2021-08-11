@@ -1121,7 +1121,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
             var options = new RepositoryClient.Model.CreateRepoOption(serviceConfig.RepositoryName);
 
-            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
@@ -1173,20 +1173,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var options = new RepositoryClient.Model.CreateRepoOption(targetRepository);
 
-            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
             if (repository == null || repository.RepositoryCreatedStatus != System.Net.HttpStatusCode.Created)
             {
                 return repository;
             }
 
-            string targetRepositortyPath = _settings.GetServicePath(org, targetRepository, developer);
+            string targetRepositoryPath = _settings.GetServicePath(org, targetRepository, developer);
 
-            if (Directory.Exists(targetRepositortyPath))
+            if (Directory.Exists(targetRepositoryPath))
             {
                 // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
                 string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                Directory.Move(targetRepositortyPath, backupPath);
+                Directory.Move(targetRepositoryPath, backupPath);
             }
 
             _sourceControl.CloneRemoteRepository(org, targetRepository);
@@ -1207,21 +1207,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Directory.Delete(sourceAppRepository.RepositoryDirectory, true);
             }
 
-            await UpdateRemoteOrigin(targetAppRepository, sourceRepository);
-            await UpdateAppId(targetAppRepository);
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+            await targetAppRepository.UpdateAppId();
 
             CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);
 
             return repository;
-        }
-
-        private static async Task UpdateRemoteOrigin(AltinnGitRepository repository, string oldRepository)
-        {
-            string text = await repository.ReadTextByRelativePathAsync(".git/config");
-            text = text.Replace($"repos/{repository.Org}/{oldRepository}.git", $"repos/{repository.Org}/{repository.Repository}.git");
-
-            await repository.WriteTextByRelativePathAsync(".git/config", text);
         }
 
         private static async Task UpdateAppId(AltinnAppGitRepository repository)
@@ -1312,7 +1304,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return await _gitea.CreateRepository(org, options);
         }
