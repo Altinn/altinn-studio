@@ -75,6 +75,5 @@ test('Does not renders properties on item click while in models view', () => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
-  console.log('wrapper', wrapper);
   expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
 });
