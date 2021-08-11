@@ -4,7 +4,7 @@
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
@@ -112,6 +112,7 @@ export default function (data) {
     'Soft DELETE instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
+  sleep(3);
 
   //Test to restore a soft deleted instance from storage: SBL and validate the response
   res = sbl.restoreSblInstance(runtimeToken, partyId, instanceId);
@@ -120,6 +121,7 @@ export default function (data) {
     'Restore Soft deleted instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
+  sleep(3);
 
   //Test to get an instance events from storage: SBL and validate the response
   res = sbl.getSblInstanceEvents(runtimeToken, partyId, instanceId);
