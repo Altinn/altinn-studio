@@ -46,6 +46,7 @@
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
+    <None Remove="_TestData\Model\Json\SeresBasic.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
@@ -55,9 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="_TestData\Model\Json\" />
   </ItemGroup>
 
 </Project>
