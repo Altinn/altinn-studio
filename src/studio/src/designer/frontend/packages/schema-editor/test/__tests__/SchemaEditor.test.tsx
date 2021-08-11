@@ -63,7 +63,7 @@ const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find(
   '.MuiTypography-root',
 ).findWhere((r: ReactWrapper) => r.text() === text);
 
-test('Renders properties', () => {
+test('Does not renders properties on item click while in models view', () => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
@@ -75,5 +75,5 @@ test('Renders properties', () => {
     wrapper = mountComponent();
   });
   wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
-  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(4);
+  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
 });
