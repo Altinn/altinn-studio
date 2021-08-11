@@ -1204,7 +1204,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             finally
             {
-
                 DirectoryHelper.DeleteFilesAndDirectory(sourceAppRepository.RepositoryDirectory);
             }
 

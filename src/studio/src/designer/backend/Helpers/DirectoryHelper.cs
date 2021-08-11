@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Helpers
 
             foreach (DirectoryInfo directory in subDirectories)
             {
-                DeleteDirectory(directory.FullName);
+                DeleteFilesAndDirectory(directory.FullName);
             }
 
             Directory.Delete(directoryToDeleteInfo.FullName);
