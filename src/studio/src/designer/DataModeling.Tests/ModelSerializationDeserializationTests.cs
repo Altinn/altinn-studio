@@ -80,7 +80,7 @@ namespace DataModeling.Tests
         {
             var melding = new _TestData.Model.CSharp.melding() { e1 = "Yo" };
 
-            var json = JsonSerializer.Serialize<_TestData.Model.CSharp.melding>(melding);
+            var json = JsonSerializer.Serialize(melding);
             var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
