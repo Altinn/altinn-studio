@@ -1,7 +1,10 @@
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using DataModeling.Tests.TestHelpers;
 using FluentAssertions;
+using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,6 +16,8 @@ namespace DataModeling.Tests
 
         private const string SERESBASIC_XML_RESOURCE = "DataModeling.Tests._TestData.Model.Xml.SeresBasic.xml";
         private const string SERESBASIC_XSD_RESOURCE = "DataModeling.Tests._TestData.Model.XmlSchema.SeresBasicSchema.xsd";
+        private const string SERESBASIC_JSON_RESOURCE = "DataModeling.Tests._TestData.Model.Json.SeresBasic.json";
+        private const string SERESBASIC_JSON_SCHEMA_RESOURCE = "DataModeling.Tests._TestData.Model.JsonSchema.SeresBasicSchema.json";
 
         public ModelSerializationDeserializationTests(ITestOutputHelper testOutputHelper)
         {
@@ -47,6 +52,41 @@ namespace DataModeling.Tests
             bool validXml = ValidateXml(xml);
 
             validXml.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task JsonModel_SeresBasic_ShouldValidate()
+        {
+            var json = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_JSON_RESOURCE);
+            var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
+            var jsonDocument = JsonDocument.Parse(json);
+
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { });
+
+            validationResults.IsValid.Should().BeTrue();
+        }
+
+        [Fact]
+        public void JsonModel_SeresBasic_ShouldDeserializeAndValidate()
+        {
+            var json = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_JSON_RESOURCE);
+            _TestData.Model.CSharp.melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.melding>(json);
+
+            melding.e1.Should().Be("Yo");
+        }
+
+        [Fact]
+        public async Task CSharpModel_SeresBasic_ShouldSerializeToValidJson()
+        {
+            var melding = new _TestData.Model.CSharp.melding() { e1 = "Yo" };
+
+            var json = JsonSerializer.Serialize<_TestData.Model.CSharp.melding>(melding);
+            var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
+            var jsonDocument = JsonDocument.Parse(json);
+
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { });
+
+            validationResults.IsValid.Should().BeTrue();
         }
 
         private static _TestData.Model.CSharp.melding DeserializeFromXmlResource(string xmlResource)

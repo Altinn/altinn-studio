@@ -59,8 +59,5 @@
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="_TestData\Model\Json\" />
-  </ItemGroup>
 
 </Project>

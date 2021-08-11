@@ -1,11 +1,22 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
+using Json.Schema;
 
 namespace DataModeling.Tests.TestHelpers
 {
     public static class EmbeddedResource
     {
+        public async static Task<JsonSchema> LoadDataFromEmbeddedResourceAsJsonSchema(string resourceName)
+        {
+            var resourceStream = LoadDataFromEmbeddedResource(resourceName);
+
+            var jsonSchema = await JsonSchema.FromStream(resourceStream);
+
+            return jsonSchema;
+        }
+
         public static string LoadDataFromEmbeddedResourceAsString(string resourceName)
         {
             var resourceStream = LoadDataFromEmbeddedResource(resourceName);
