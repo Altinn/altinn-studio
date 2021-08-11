@@ -39,13 +39,13 @@ namespace DataModeling.Tests
         {
             _TestData.Model.CSharp.melding melding = DeserializeFromXmlResource(SERESBASIC_XML_RESOURCE);
 
-            melding.e1.Should().Be("Yo");
+            melding.E1.Should().Be("Yo");
         }
 
         [Fact]
         public void CSharpModel_SeresBasic_ShouldSerializeToValidXml()
         {
-            var melding = new _TestData.Model.CSharp.melding() { e1 = "Yo" };
+            var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
 
             var xml = SerializeToXml(melding);
 
@@ -72,13 +72,13 @@ namespace DataModeling.Tests
             var json = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_JSON_RESOURCE);
             _TestData.Model.CSharp.melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.melding>(json);
 
-            melding.e1.Should().Be("Yo");
+            melding.E1.Should().Be("Yo");
         }
 
         [Fact]
         public async Task CSharpModel_SeresBasic_ShouldSerializeToValidJson()
         {
-            var melding = new _TestData.Model.CSharp.melding() { e1 = "Yo" };
+            var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
 
             var json = JsonSerializer.Serialize(melding);
             var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
