@@ -21,6 +21,7 @@ import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanc
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/urlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { SELECT_PARTY_FULFILLED } from 'src/shared/resources/party/selectParty/selectPartyActionTypes';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
@@ -105,7 +106,9 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
         take(fetchJsonSchemaFulfilled),
       ]);
     } else {
+      // stateless app
       yield all([
+        take(SELECT_PARTY_FULFILLED),
         take(fetchJsonSchemaFulfilled),
       ]);
     }
