@@ -119,9 +119,9 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       ]);
     } else {
       // stateless app
-      yield call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== null);
       yield all([
         take(fetchJsonSchemaFulfilled),
+        call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== undefined),
       ]);
     }
     yield call(fetchFormDataInitialSaga);
