@@ -136,13 +136,6 @@ export default function (data) {
     'Hard DELETE instance Response is true': (r) => r.body === 'true',
   });
   addErrorCount(success);
-
-  //Test to restore a hard deleted instance from storage: SBL and validate the response to have 404
-  res = sbl.restoreSblInstance(runtimeToken, partyId, instanceId);
-  success = check(res, {
-    'Restore Hard Deleted instance status is 404': (r) => r.status === 404,
-  });
-  addErrorCount(success);
 }
 
 export function handleSummary(data) {
