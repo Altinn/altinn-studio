@@ -13,7 +13,7 @@ import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
-
+import { NavComponent } from './base/NavComponent';
 export interface IComponent {
   name: string;
   Tag: any;
@@ -39,6 +39,7 @@ export enum ComponentTypes {
   AddressComponent,
   NavigationButtons,
   AttachmentList,
+  NavComponent,
 }
 
 export const textComponents: IComponent[] = [
@@ -130,6 +131,11 @@ export const schemaComponents: IComponent[] = [
     name: 'AttachmentList',
     Tag: AttachmentListComponent,
     Type: ComponentTypes.AttachmentList,
+  },
+  {
+    name: 'NavComponent',
+    Tag: NavComponent,
+    Type: ComponentTypes.NavComponent,
   },
 ];
 
