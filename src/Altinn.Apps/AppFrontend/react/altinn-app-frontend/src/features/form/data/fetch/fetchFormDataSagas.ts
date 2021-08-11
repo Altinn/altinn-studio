@@ -52,13 +52,13 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
-    const selectedPartyId = yield select((state: IRuntimeState) => state.party.selectedParty.partyId);
 
     let fetchedData: any;
 
     if (isStatelessApp(applicationMetadata)) {
       // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
+      const selectedPartyId = yield select((state: IRuntimeState) => state.party.selectedParty.partyId);
       try {
         fetchedData = yield call(get, getStatelessFormDataUrl(dataType), { headers: { party: `partyid:${selectedPartyId}` } });
       } catch (error) {
