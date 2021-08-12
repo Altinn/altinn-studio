@@ -29,6 +29,7 @@ namespace Altinn.Studio.Designer.Helpers
             FileInfo[] files = directoryToDeleteInfo.GetFiles();
             foreach (FileInfo file in files)
             {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
                 File.Delete(file.FullName);
             }
 
@@ -37,6 +38,7 @@ namespace Altinn.Studio.Designer.Helpers
                 DeleteFilesAndDirectory(directory.FullName);
             }
 
+            File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
     }
