@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -38,11 +40,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets the application metadata.
         /// </summary>    
         public async Task<Application> GetApplicationMetadata()
-        {            
+        {
             var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             var fileContent = await ReadTextByRelativePathAsync(appMetadataRealtiveFilePath);
 
-            return JsonConvert.DeserializeObject<Application>(fileContent);            
+            return JsonConvert.DeserializeObject<Application>(fileContent);
         }
 
         /// <summary>
@@ -116,7 +118,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 return allResourceTexts;
             }
-            
+
             string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
 
             foreach (string file in files)
@@ -134,6 +136,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return allResourceTexts;
+        }
+
+        /// <summary>
+        /// Ensures that the application id in appliation metadata matches the repository
+        /// </summary>
+        public async Task UpdateAppId()
+        {
+            Application applicationMetadata = await GetApplicationMetadata();
+            applicationMetadata.Id = $"{Org}/{Repository}";
+
+            await UpdateApplicationMetadata(applicationMetadata);
         }
 
         private static void GetTextResourceForLanguage(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts, Designer.Models.TextResource textResource, string language)

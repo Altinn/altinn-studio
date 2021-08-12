@@ -71,6 +71,7 @@
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
+    <None Remove="_TestData\Remote\ttd\existing-repo\content.json" />
      <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
@@ -85,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
+    <Folder Include="_TestData\Repositories\testUser\ttd\apps-test-2021\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json">

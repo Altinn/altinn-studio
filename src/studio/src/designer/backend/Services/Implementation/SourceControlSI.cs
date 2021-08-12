@@ -68,6 +68,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public string CloneRemoteRepository(string org, string repository, string destinationPath)
+        {
+            string remoteRepo = FindRemoteRepoLocation(org, repository);
+            CloneOptions cloneOptions = new CloneOptions();
+            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+            return LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+        }
+
+        /// <inheritdoc />
         public bool IsLocalRepo(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
