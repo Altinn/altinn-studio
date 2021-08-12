@@ -74,10 +74,10 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('logoutUrlAltinn() should return correct url for each env.', () => {
-    const originTT = 'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
-    const originAT = 'http://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originYT = 'http://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'http://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
+    const originTT = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+    const originAT = 'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
+    const originYT = 'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
+    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
     expect(logoutUrlAltinn(originTT)).toContain('tt02.altinn.no/ui/authentication/LogOut');
     expect(logoutUrlAltinn(originAT)).toContain('at21.altinn.cloud/ui/authentication/LogOut');
     expect(logoutUrlAltinn(originYT)).toContain('yt01.altinn.cloud/ui/authentication/LogOut');
