@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public GitRepository(string repositoriesRootDirectory, string repositoryDirectory)
-        {            
+        {
             Guard.AssertDirectoryExists(repositoriesRootDirectory);
             Guard.AssertDirectoryExists(repositoryDirectory);
 
@@ -52,7 +53,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             foreach (var searchPattern in searchPatterns)
             {
-                var foundFiles = Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive });                
+                var foundFiles = Directory.EnumerateFiles(RepositoryDirectory, searchPattern, new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive });
                 files.AddRange(foundFiles);
             }
 
@@ -208,6 +209,51 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return Directory.Exists(absoluteDirectoryPath);
+        }
+
+        /// <summary>
+        /// Copies the contents of the repository to the target directory.
+        /// </summary>
+        /// <param name="targetDirectory">Full path of the target directory</param>
+        public void CopyRepository(string targetDirectory)
+        {
+            Guard.AssertFilePathWithinParentDirectory(RepositoriesRootDirectory, targetDirectory);
+
+            Directory.CreateDirectory(targetDirectory);
+            CopyAll(RepositoryDirectory, targetDirectory);
+        }
+
+        /// <summary>
+        /// Replaces all instances of search string with replace string in file in the provided path.
+        /// </summary>
+        /// <param name="relativePath">The relative path to the file.</param>
+        /// <param name="searchString">The search string.</param>
+        /// <param name="replaceString">The replace string.</param>
+        public async Task SearchAndReplaceInFile(string relativePath, string searchString, string replaceString)
+        {
+            string text = await ReadTextByRelativePathAsync(relativePath);
+            text = text.Replace(searchString, replaceString);
+
+            await WriteTextByRelativePathAsync(relativePath, text);
+        }
+
+        private static void CopyAll(string sourceDirectory, string targetDirectory)
+        {
+            DirectoryInfo source = new DirectoryInfo(sourceDirectory);
+            DirectoryInfo target = new DirectoryInfo(targetDirectory);
+
+            foreach (FileInfo file in source.GetFiles())
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+            }
+
+            foreach (DirectoryInfo subDirectiory in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir =
+                    target.CreateSubdirectory(subDirectiory.Name);
+                CopyAll(subDirectiory.FullName, nextTargetSubDir.FullName);
+            }
         }
 
         /// <summary>
