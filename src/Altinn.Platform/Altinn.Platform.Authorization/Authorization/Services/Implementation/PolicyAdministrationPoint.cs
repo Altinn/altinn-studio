@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +8,9 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Helpers.Extensions;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.Extensions.Caching.Memory;
@@ -20,21 +23,25 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyAdministrationPoint : IPolicyAdministrationPoint
     {
-        private readonly string orgAttributeId = "urn:altinn:org";
-        private readonly string appAttributeId = "urn:altinn:app";
-        private readonly IPolicyRepository _repository;
+        private readonly IPolicyRetrievalPoint _prp;
+        private readonly IPolicyRepository _policyRepository;
+        private readonly IPolicyDelegationRepository _delegationRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
         /// </summary>
-        /// <param name="policyRepository">The policy Repository..</param>
+        /// <param name="policyRetrievalPoint">The policy retrieval point</param>
+        /// <param name="policyRepository">The policy repository</param>
+        /// <param name="delegationRepository">The delegation change repository</param>
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
-        public PolicyAdministrationPoint(IPolicyRepository policyRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
-            _repository = policyRepository;
+            _prp = policyRetrievalPoint;
+            _policyRepository = policyRepository;
+            _delegationRepository = delegationRepository;
             _memoryCache = memoryCache;
             _generalSettings = settings.Value;
         }
@@ -61,86 +68,51 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        Task<XacmlPolicy> IPolicyAdministrationPoint.GetDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        public async Task<DelegatedPolicy> GetDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
         {
-            throw new NotImplementedException();
+            return await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
         }
 
         /// <inheritdoc/>
-        Task<bool> IPolicyAdministrationPoint.WriteDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId, int delegatedByUserId, Stream fileStream)
+        public async Task<bool> WriteDelegationPolicy(string org, string app, int offeredByPartyId, string coveredBy, int delegatedByUserId, IList<Rule> rules)
         {
-            throw new NotImplementedException();
+            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out int coveredByPartyId, out int coveredByUserId))
+            {
+                return false;
+            }
+
+            XacmlPolicy existingPolicy = await _prp.GetDelegationPolicyAsync(org, app, offeredByPartyId.ToString(), coveredBy);
+
+            if (existingPolicy != null)
+            {
+                // ToDo: evaluate existing policy and add new rules
+            }
+            else
+            {
+                // ToDo: create new policy file
+            }
+
+            bool savePolicyResult = await WriteDelegationPolicyInternalAsync(org, app, offeredByPartyId.ToString(), coveredBy, null);
+
+            if (!savePolicyResult)
+            {
+                return false;
+            }
+
+            // ToDo: How to handle transaction accross blobstorage and postgresql?
+            return await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, "/", "0"); // Todo: Get blobstorage information as input
         }
 
         private async Task<bool> WritePolicyInternalAsync(string org, string app, Stream fileStream)
         {
-            string filePath = GetAltinnAppsPolicyPath(org, app);
-            return await _repository.WritePolicyAsync(filePath, fileStream);
+            string filePath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
+            return await _policyRepository.WritePolicyAsync(filePath, fileStream);
         }
 
-        private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)
+        private async Task<bool> WriteDelegationPolicyInternalAsync(string org, string app, string offeredBy, string coveredBy, Stream fileStream)
         {
-            XacmlPolicy policy;
-            using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
-            {
-                policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
-            }
-
-            return policy;
-        }
-
-        private string GetPolicyPath(XacmlContextRequest request)
-        {
-            string org = string.Empty;
-            string app = string.Empty;
-
-            foreach (XacmlContextAttributes attr in request.Attributes)
-            {
-                if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                {
-                    foreach (XacmlAttribute asd in attr.Attributes)
-                    {
-                        if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
-                        {
-                            org = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-
-                        if (asd.AttributeId.OriginalString.Equals(appAttributeId))
-                        {
-                            app = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-                    }
-                }
-            }
-
-            return GetAltinnAppsPolicyPath(org, app);
-        }
-
-        private string GetAltinnAppsPolicyPath(string org, string app)
-        {
-            if (string.IsNullOrEmpty(org))
-            {
-                throw new ArgumentException("Org was not defined");
-            }
-
-            if (string.IsNullOrEmpty(app))
-            {
-                throw new ArgumentException("App was not defined");
-            }
-
-            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xml";
-        }
-
-        private static XacmlPolicy ParsePolicy(Stream stream)
-        {
-            stream.Position = 0;
-            XacmlPolicy policy;
-            using (XmlReader reader = XmlReader.Create(stream))
-            {
-                policy = XacmlParser.ParseXacmlPolicy(reader);
-            }
-
-            return policy;
+            string filePath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy, coveredBy);
+            return await _policyRepository.WritePolicyAsync(filePath, fileStream);
         }
     }
 }

@@ -40,6 +40,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             _pap = new PolicyAdministrationPoint(
                 new PolicyRepositoryMock(),
+                new PolicyDelegationRepositoryMock(),
                 memoryCache,
                 Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }));
         }

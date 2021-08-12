@@ -23,5 +23,15 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <param name="app">The app</param>
         /// <returns></returns>
         Task<XacmlPolicy> GetPolicyAsync(string org, string app);
+
+        /// <summary>
+        /// Returns a policy based the org, app and ids for the delegating and receiving entities
+        /// </summary>
+        /// <param name="org">The organisation</param>
+        /// <param name="app">The app</param>
+        /// <param name="offeredBy">The party id of the entity which the policy is delegated from</param>
+        /// <param name="coveredBy">The party or user id of the entity which the policy is delegated to</param>
+        /// <returns></returns>
+        Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy);
     }
 }

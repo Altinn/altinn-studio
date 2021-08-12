@@ -86,11 +86,14 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<IPolicyAdministrationPoint, PolicyAdministrationPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
+            services.AddSingleton<IPolicyDelegationRepository, PolicyDelegationRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
+            services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
@@ -128,7 +131,7 @@ namespace Altinn.Platform.Authorization
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
-            });
+            });           
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

@@ -10,6 +10,7 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
@@ -49,19 +50,86 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Endpoint for making a delegation of an Altinn App between two parties
         /// </summary>
-        /// <param name="model">A Generic model</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
+        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
+        /// <param name="rules">Array of rules to be delegated</param>
         [HttpPost]
         [Route("authorization/api/v1/[controller]/{org}/{app}/{offeredBy}/{coveredBy}/")]
-        public async Task<ActionResult> Post([FromBody] List<Rule> model)
+        public async Task<ActionResult> Post([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy, [FromBody] List<Rule> rules)
         {
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) ||
+            offeredBy == 0 || string.IsNullOrEmpty(coveredBy) || rules == null || rules.Count < 1)
+            {
+                return BadRequest("Missing parameter. Values: org, app, offeredBy, coveredBy or rules cannot be null or empty");
+            }
+
+            ////var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
+
+            int createdByUserId = rules.First().DelegatedByUserId;
+
+            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out _, out _))
+            {
+                return BadRequest($"CoveredBy parameter invalid: {coveredBy}. Value must be either a valid PartyId prefixed with 'p' or a valid UserId prefixed with 'u'.");
+            }
+
             try
             {
-                return NotFound();
+                bool success = await _pap.WriteDelegationPolicy(org, app, offeredBy, coveredBy, createdByUserId, rules);
+
+                if (success)
+                {
+                    _logger.LogInformation("Delegation completed");
+                    return Created("Delegation completed", success);
+                }
+
+                _logger.LogInformation("Delegation could not be completed");
+                return StatusCode(500, $"Unable to complete delegation");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                _logger.LogError(ex.ToString());
-                return StatusCode(500);
+                _logger.LogError($"Unable to delegation change in database. {e}");
+                return StatusCode(500, $"Unable to delegation change in database. {e}");
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for making a delegation of an Altinn App between two parties
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
+        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
+        [HttpGet]
+        [Route("authorization/api/v1/[controller]/{org}/{app}/{offeredBy}/{coveredBy}/")]
+        public async Task<ActionResult> Get([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy)
+        {
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) ||
+            offeredBy == 0 || string.IsNullOrEmpty(coveredBy))
+            {
+                return BadRequest("Missing parameter. Values: org, app, offeredBy, coveredBy cannot be null or empty");
+            }
+
+            ////var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
+
+            int coveredByUserId, coveredByPartyId;
+            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out coveredByPartyId, out coveredByUserId))
+            {
+                return BadRequest($"CoveredBy parameter invalid: {coveredBy}. Value must be either a valid PartyId prefixed with 'p' or a valid UserId prefixed with 'u'.");
+            }
+
+            try
+            {
+                var result = await _pap.GetDelegationPolicy(org, app, offeredBy, coveredByPartyId, coveredByUserId);
+
+                _logger.LogInformation("Delegation could not be completed");
+                return StatusCode(500, $"Unable to complete delegation");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to delegation change in database. {e}");
+                return StatusCode(500, $"Unable to delegation change in database. {e}");
             }
         }
 

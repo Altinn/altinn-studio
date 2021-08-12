@@ -7,6 +7,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
@@ -21,8 +22,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
-        private readonly string orgAttributeId = "urn:altinn:org";
-        private readonly string appAttributeId = "urn:altinn:app";
         private readonly IPolicyRepository _repository;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
@@ -43,13 +42,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            string policyPath = GetPolicyPath(request);
+            string policyPath = PolicyHelper.GetPolicyPath(request);
             if (!_memoryCache.TryGetValue(policyPath, out XacmlPolicy policy))
             {
                 // Key not in cache, so get data.
                 using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
                 {
-                    policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+                    policy = (policyStream.Length > 0) ? PolicyHelper.ParsePolicy(policyStream) : null;
                 }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -65,7 +64,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
         {
-            string policyPath = GetAltinnAppsPolicyPath(org, app);
+            // ToDo: Wrap in IMemoryCache use?
+            string policyPath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
+            return await GetPolicyInternalAsync(policyPath);
+        }
+
+        /// <inheritdoc/>
+        public async Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy)
+        {
+            // ToDo: Wrap in IMemoryCache use?
+            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy, coveredBy);
             return await GetPolicyInternalAsync(policyPath);
         }
 
@@ -74,64 +82,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             XacmlPolicy policy;
             using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
             {
-                policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+                policy = (policyStream.Length > 0) ? PolicyHelper.ParsePolicy(policyStream) : null;
             }
 
             return policy;
-        }
-
-        private string GetPolicyPath(XacmlContextRequest request)
-        {
-            string org = string.Empty;
-            string app = string.Empty;
-
-            foreach (XacmlContextAttributes attr in request.Attributes)
-            {
-                if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                {
-                    foreach (XacmlAttribute asd in attr.Attributes)
-                    {
-                        if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
-                        {
-                            org = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-
-                        if (asd.AttributeId.OriginalString.Equals(appAttributeId))
-                        {
-                            app = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-                    }
-                }
-            }
-
-            return GetAltinnAppsPolicyPath(org, app);
-        }
-
-        private string GetAltinnAppsPolicyPath(string org, string app)
-        {
-            if (string.IsNullOrEmpty(org))
-            {
-                throw new ArgumentException("Org was not defined");
-            }
-
-            if (string.IsNullOrEmpty(app))
-            {
-                throw new ArgumentException("App was not defined");
-            }
-
-            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xml";
-        }
-
-        private static XacmlPolicy ParsePolicy(Stream stream)
-        {
-            stream.Position = 0;
-            XacmlPolicy policy;
-            using (XmlReader reader = XmlReader.Create(stream))
-            {
-                policy = XacmlParser.ParseXacmlPolicy(reader);
-            }
-
-            return policy;
-        }
+        }        
     }
 }
