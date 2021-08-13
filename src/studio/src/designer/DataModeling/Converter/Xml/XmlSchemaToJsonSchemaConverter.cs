@@ -26,13 +26,24 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <param name="schema">The object to visit</param>
         public JsonSchema Convert(XmlSchema schema)
         {
+            var uri = new Uri("schema.json");
+            return Convert(schema, uri);
+        }
+
+        /// <summary>
+        /// Convert a schema into the give type
+        /// </summary>
+        /// <param name="schema">The object to visit</param>
+        /// <param name="schemaUri">Uri that represents the unique id of the Json Schema.</param>
+        public JsonSchema Convert(XmlSchema schema, Uri schemaUri)
+        {
             _schemaSet = new XmlSchemaSet();
             _schemaSet.Add(schema);
             _schemaSet.Compile();
 
             JsonSchemaBuilder builder = new JsonSchemaBuilder()
                .Schema(MetaSchemas.Draft202012Id)
-               .Id("schema.json")
+               .Id(schemaUri.OriginalString)
                .Type(SchemaValueType.Object)
                .XsdNamespaces(
                     schema.Namespaces
