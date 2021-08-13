@@ -1,4 +1,4 @@
-import { Button, IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
+import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
 import * as React from 'react';
 import { AltinnIcon } from '..';
 import { IParty } from '../../types';
