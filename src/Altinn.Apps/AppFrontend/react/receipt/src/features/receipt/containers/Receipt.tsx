@@ -160,6 +160,8 @@ function Receipt(props: WithStyles<typeof styles>) {
         headerBackgroundColor={theme.altinnPalette.primary.blue}
         party={party || {} as IParty}
         userParty={user ? user.party : {} as IParty}
+        logoutText={getLanguageFromKey('receipt_platform.log_out', language)}
+        ariaLabelIcon={getLanguageFromKey('receipt_platform.profile_icon_aria_label', language)}
       />
       {instance?.status?.substatus &&
         <Grid item={true} className={props.classes.substatus}>
