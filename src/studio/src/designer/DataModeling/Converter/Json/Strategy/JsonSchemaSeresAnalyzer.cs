@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -33,9 +35,40 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 metadata.MessageName = "melding";
             }
 
+            DetermineRootModel(schema, metadata);
             AnalyzeSchema(JsonPointer.Parse("#"), schema, metadata);
 
             return metadata;
+        }
+
+        private void DetermineRootModel(JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        {
+            metadata.HasInlineRoot = true;
+
+            var allOf = schema.GetKeyword<AllOfKeyword>();
+            var anyOf = schema.GetKeyword<AnyOfKeyword>();
+            var oneOf = schema.GetKeyword<OneOfKeyword>();
+
+            if (allOf != null && anyOf == null && oneOf == null)
+            {
+                // Only "allOf"
+                metadata.HasInlineRoot = !(allOf.Schemas.Count == 1 && IsRefSchema(allOf.Schemas[0]));
+            }
+            else if (allOf == null && anyOf != null && oneOf == null)
+            {
+                // Only "anyOf"
+                metadata.HasInlineRoot = !(anyOf.Schemas.Count == 1 && IsRefSchema(anyOf.Schemas[0]));
+            }
+            else if (allOf == null && anyOf == null && oneOf != null)
+            {
+                // Only "oneOf"
+                metadata.HasInlineRoot = !(oneOf.Schemas.Count == 1 && IsRefSchema(oneOf.Schemas[0]));
+            }
+        }
+
+        private static bool IsRefSchema(JsonSchema schema)
+        {
+            return schema.HasKeyword<RefKeyword>();
         }
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema, JsonSchemaXsdMetadata metadata)
