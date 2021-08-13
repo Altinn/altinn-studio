@@ -23,6 +23,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         public string MessageTypeName { get; set; }
 
         /// <summary>
+        /// Is the content of the schema directly in root or does it refer to an element in $defs/definitions
+        /// </summary>
+        public bool HasInlineRoot { get; set; }
+
+        /// <summary>
         /// Construct a new instance of this type
         /// </summary>
         public JsonSchemaXsdMetadata()

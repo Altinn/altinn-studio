@@ -44,6 +44,22 @@ namespace Altinn.Studio.DataModeling.Utils
         }
 
         /// <summary>
+        /// Find the first work item of type <typeparamref name="TT"/> and mark it as handled.
+        /// </summary>
+        /// <typeparam name="TT">The type of work item to pull</typeparam>
+        public void MarkAsHandled<TT>()
+            where TT : T
+        {
+            WorkItem item = _list.SingleOrDefault(x => x.Value is TT);
+            if (item == null || item.Handled)
+            {
+                return;
+            }
+
+            item.MarkAsHandled();
+        }
+
+        /// <summary>
         /// Get the first work item of type <typeparamref name="TT"/> and mark it as handled.
         /// </summary>
         /// <typeparam name="TT">The type of work item to pull</typeparam>
@@ -85,12 +101,17 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <summary>
         /// Get an enumerable of all the items left in the work list that have not been marked as handled.
         /// </summary>
+        /// <param name="markAsHandled">Mark the work items as handled when enumerating over them</param>
         /// <returns>Enumerable of all unhandled work items</returns>
-        public IEnumerable<T> EnumerateUnhandledItems()
+        public IEnumerable<T> EnumerateUnhandledItems(bool markAsHandled = true)
         {
             foreach (WorkItem item in _list.Where(item => !item.Handled))
             {
-                item.MarkAsHandled();
+                if (markAsHandled)
+                {
+                    item.MarkAsHandled();
+                }
+
                 yield return item.Value;
             }
         }

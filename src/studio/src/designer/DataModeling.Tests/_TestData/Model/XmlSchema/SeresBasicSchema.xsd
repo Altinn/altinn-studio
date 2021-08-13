@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified"
     xmlns:seres="http://seres.no/xsd/forvaltningsdata"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <xsd:annotation>
     <xsd:documentation>
       <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />

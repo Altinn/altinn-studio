@@ -43,6 +43,9 @@
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
