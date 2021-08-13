@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -91,6 +92,17 @@ namespace Altinn.Studio.Designer
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.ConfigureTelemetryModule<EventCounterCollectionModule>(
+                    (module, o) =>
+                    {
+                        module.Counters.Clear();
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
+                    });
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
                 Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");

@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -352,6 +356,27 @@ namespace Altinn.Studio.Designer.Controllers
             };
 
             return await _repository.CreateService(org, config);
+        }
+
+        /// <summary>
+        /// Action used to copye an existing app under the current org.
+        /// </summary>
+        /// <returns>
+        /// The newly created repository.
+        /// </returns>
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+            if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                return Created(repo.CloneUrl, repo);
+            }
+
+            return StatusCode((int)repo.RepositoryCreatedStatus);
         }
 
         /// <summary>

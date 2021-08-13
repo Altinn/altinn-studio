@@ -1,4 +1,3 @@
-using System;
 using System.Web;
 
 using Altinn.App.Services.Configuration;
@@ -42,12 +41,13 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">The application owner short name.</param>
         /// <param name="app">The name of the app</param>
-        /// <param name="instanceId">The id of the instance being handled.</param>
-        /// <returns></returns>
+        /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         [HttpGet]
         [Route("{org}/{app}/")]
-        [Route("{org}/{app}/{instanceId}")]
-        public IActionResult Index([FromRoute] string org, [FromRoute] string app, [FromRoute] Guid? instanceId)
+        public IActionResult Index(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] bool dontChooseReportee)
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -62,13 +62,18 @@ namespace Altinn.App.Api.Controllers
                 ViewBag.app = app;
                 return PartialView("Index");
             }
-            else
+
+            string scheme = _env.IsDevelopment() ? "http" : "https";
+            string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
+
+            string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
+
+            if (dontChooseReportee)
             {
-                string scheme = _env.IsDevelopment() ? "http" : "https";
-                string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host.ToString()}/{org}/{app}");
-                string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
-                return Redirect(redirectUrl);
+                redirectUrl += "&DontChooseReportee=true";
             }
+
+            return Redirect(redirectUrl);
         }
     }
 }

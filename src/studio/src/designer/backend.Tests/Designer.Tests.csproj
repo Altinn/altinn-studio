@@ -8,9 +8,9 @@
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies" Version="1.1.2" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.8" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.10.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.9" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -69,6 +69,9 @@
     <None Remove="_TestData\Model\Xsd\statsbygg_custom_modified.xsd" />
     <None Remove="_TestData\Model\JsonSchema\restriction-max-min-integer.schema.json" />
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
+    <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
+    <None Remove="_TestData\Remote\ttd\existing-repo\content.json" />
      <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
@@ -83,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
+    <Folder Include="_TestData\Repositories\testUser\ttd\apps-test-2021\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json">
