@@ -26,6 +26,7 @@ const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
 const instanceDataSelector = (state: IRuntimeState): IInstance => state.instanceData.instance;
 const processStateSelector = (state: IRuntimeState): IProcessState => state.process;
+const currentSelectedPartyIdSelector = (state: IRuntimeState): string => state.party.selectedParty?.partyId;
 
 function* fetchFormDataSaga(): SagaIterator {
   try {
@@ -57,8 +58,9 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     if (isStatelessApp(applicationMetadata)) {
       // stateless app
       const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
+      const selectedPartyId = yield select((state: IRuntimeState) => state.party.selectedParty.partyId);
       try {
-        fetchedData = yield call(get, getStatelessFormDataUrl(dataType));
+        fetchedData = yield call(get, getStatelessFormDataUrl(dataType), { headers: { party: `partyid:${selectedPartyId}` } });
       } catch (error) {
         if (error?.response?.status === 403 && error.response.data) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
@@ -92,6 +94,18 @@ function* fetchFormDataInitialSaga(): SagaIterator {
   }
 }
 
+function* waitFor(selector) {
+  if (yield select(selector)) {
+    return;
+  }
+  while (true) {
+    yield take('*');
+    if (yield select(selector)) {
+      return;
+    }
+  }
+}
+
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
     yield take(FormDataActions.fetchFormDataInitial);
@@ -104,8 +118,10 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
         take(fetchJsonSchemaFulfilled),
       ]);
     } else {
+      // stateless app
       yield all([
         take(fetchJsonSchemaFulfilled),
+        call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== undefined),
       ]);
     }
     yield call(fetchFormDataInitialSaga);
