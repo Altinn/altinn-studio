@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Clone app repository to local repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
         /// <returns>The result of the cloning</returns>
         string CloneRemoteRepository(string org, string repository);
@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Clone repository to specified destination
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
@@ -61,7 +61,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Commits all changes in repo and pushe them to the provided branch
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
@@ -71,7 +71,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
         /// <returns>The repo status</returns>
         RepoStatus PullRemoteChanges(string org, string repository);
@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The number of commits behind</returns>
         int? CheckRemoteUpdates(string org, string repository);
@@ -87,14 +87,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
         void FetchRemoteChanges(string org, string repository);
 
         /// <summary>
         /// List Git status for an app repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of repositories with status</returns>
         List<RepositoryContent> Status(string org, string repository);
@@ -102,7 +102,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// List commits
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of commits</returns>
         List<Commit> Log(string org, string repository);
@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets initial commit
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The first commits</returns>
         Commit GetInitialCommit(string org, string repository);
@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets the latest commit for current user
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
         Commit GetLatestCommitForCurrentUser(string org, string repository);
@@ -126,7 +126,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gives the complete repository status
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>The repostatus</returns>
         RepoStatus RepositoryStatus(string org, string repository);
@@ -134,7 +134,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Verifies if developer has a local repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the local repo.</param>
         /// <returns>true if it exists</returns>
         bool IsLocalRepo(string org, string repository);
@@ -142,7 +142,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Push commits to repository
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <returns>boolean indicatng success</returns>
         Task<bool> Push(string org, string repository);
@@ -156,7 +156,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         void ResetCommit(string org, string repository);
 
@@ -164,7 +164,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
         /// by checking out the specific file
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
         void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName);
@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <param name="fileName">the entire file path with filen name</param>
         void StageChange(string org, string repository, string fileName);
@@ -180,21 +180,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Halts the merge operation and keeps local changes
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         void AbortMerge(string org, string repository);
 
         /// <summary>
         /// Ensures repository is cloned if not, it clones it.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         void VerifyCloneExists(string org, string repository);
 
         /// <summary>
         /// Creates a new branch in the given repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="branchName">Name of branch</param>
         Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName);
@@ -202,7 +202,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Creates a pull request for merging source into target for the provided repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repo.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="target">The name of the base ref</param>
         /// <param name="source">The name of the head ref</param>
@@ -212,7 +212,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the provided repository. Both local clone and remote repo.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns></returns>
         public Task DeleteRepository(string org, string repository);

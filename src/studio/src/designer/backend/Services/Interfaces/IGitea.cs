@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Creates a new branch in the given repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="branchName">Name of branch</param>
         /// <returns>Information about the created branch</returns>
@@ -125,16 +125,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Creates a pull request for the repository based on the provided create pull request option.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="createPullRequestOption">The createPullRequestOption containing information about the pull request</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="createPullRequestOption">The createPullRequestOption.</param>
         /// <returns></returns>
         Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
 
         /// <summary>
         /// Deletes the repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository.</param>
         Task<bool> DeleteRepository(string org, string repository);
     }

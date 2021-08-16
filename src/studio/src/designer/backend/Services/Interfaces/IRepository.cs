@@ -570,7 +570,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
 
         /// <summary>
-        /// Deletes the provided repository both local clone and remote. 
+        /// Deletes the repository both locally and remotely.
         /// </summary>
         /// <param name="org">The repository owner id.</param>
         /// <param name="repository">The repository name.</param>
