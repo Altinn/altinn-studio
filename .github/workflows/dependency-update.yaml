@@ -46,8 +46,7 @@ jobs:
         working-directory: ./src/studio/src/designer
 
       - name: update packages
-        uses: bchir/update-nuget@V1.0.0
-        working-directory: ./src/studio/src/designer
+        uses: bchir/update-nuget@V1.0.1-RC3
         with:
           searchFor: 'outdated'
           versionToSelect: 'highest-minor'
