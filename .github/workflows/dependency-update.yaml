@@ -46,11 +46,11 @@ jobs:
         working-directory: ./src/studio/src/designer
 
       - name: update packages
-        uses: bchir/update-nuget@V1.0.1-RC3
+        uses: bchir/update-nuget@V1.0.0
         with:
           searchFor: 'outdated'
           versionToSelect: 'highest-minor'
-          directory: './src/studio/src/designer/'
+          directory: 'src/studio/src/designer/'
 
       - name: Get week number
         id: week
