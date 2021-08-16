@@ -1,0 +1,29 @@
+on: 
+  push:
+
+jobs:
+  npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/studio/src/designer"
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v3
+      #   with:
+      #     title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
+      #     branch: "deps/npm-updates-w${{ steps.week.outputs.NUMBER }}"
+      #     body: ${{ steps.update.outputs.body }}
+      #     labels: dependencies
