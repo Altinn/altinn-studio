@@ -1,7 +1,7 @@
 name: Update dependencies
-
-on: 
-  push:
+on:
+  schedule:
+    - cron: '0 8 * * 4' # every thursday @ 08:00
 
 jobs:
   npm_update_sync:
@@ -22,44 +22,10 @@ jobs:
         run: |
           echo "::set-output name=NUMBER::$(date +%U)"
 
-      # - name: Create Pull Request
-      #   uses: peter-evans/create-pull-request@v3
-      #   with:
-      #     title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
-      #     branch: "deps/npm-updates-w${{ steps.week.outputs.NUMBER }}"
-      #     body: ${{ steps.update.outputs.body }}
-      #     labels: dependencies
-  dotnet_dep_update:
-    name: "Update all nugets to latest version"
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v2
-        
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
         with:
-          dotnet-version: 5.0.x
-
-      - name: Install dependencies
-        run: dotnet restore
-        working-directory: ./src/studio/src/designer
-
-      - name: update packages
-        uses: bchir/update-nuget@V1.0.0
-        with:
-          searchFor: 'outdated'
-          versionToSelect: 'highest-minor'
-          directory: 'src/studio/src/designer/'
-
-      - name: Get week number
-        id: week
-        run: |
-          echo "::set-output name=NUMBER::$(date +%U)"
-      # - name: Create Pull Request
-      #   uses: peter-evans/create-pull-request@v3
-      #   with:
-      #       title: "Updated dotnet dependencies w${{ steps.week.outputs.NUMBER }}"
-      #       branch: "deps/dotnet-updates-w${{ steps.week.outputs.NUMBER }}"
-      #       body: ${{ steps.update.outputs.body }}
-      #       labels: dependencies
+          title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
