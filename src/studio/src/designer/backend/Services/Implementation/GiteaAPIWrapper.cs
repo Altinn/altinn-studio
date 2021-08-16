@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -82,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);         
+                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);
             }
 
             return teams;
@@ -315,6 +317,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
+            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/branches", new StringContent(content, Encoding.UTF8, "application/json"));
+
+            if (response.StatusCode == HttpStatusCode.Created)
+            {
+                return await response.Content.ReadAsAsync<Branch>();
+            }
+            else
+            {
+                _logger.LogError($"//GiteaAPIWrapper // CreateBranch // Error ({response.StatusCode}) occured when creating branch {branchName} for repo {org}/{repository}");
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("/user/settings/");
@@ -385,6 +405,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
             return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
+        {
+            string content = JsonSerializer.Serialize(createPullRequestOption);
+            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteRepository(string org, string repository)
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
+            return response.IsSuccessStatusCode;
         }
 
         private async Task<Organization> GetOrganization(string name)

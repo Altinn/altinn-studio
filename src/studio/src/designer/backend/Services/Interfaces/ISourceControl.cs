@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
@@ -27,8 +24,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Name of the repository</param>
         /// <param name="destinationPath">Path of destination folder</param>
+        /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        string CloneRemoteRepository(string org, string repository, string destinationPath);
+        string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "");
 
         /// <summary>
         /// Stores a App token for user
@@ -59,6 +57,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
         void PushChangesForRepository(CommitInfo commitInfo);
+
+        /// <summary>
+        /// Commits all changes in repo and pushe them to the provided branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">Name of the repository</param>
+        /// <param name="branchName">The name of the branch to push changes to</param>
+        /// <param name="localPath">Path to local clone of repository</param>
+        /// <param name="message">Commit message</param>
+        void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message);
 
         /// <summary>
         /// Pull remote changes
@@ -182,5 +190,31 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         void VerifyCloneExists(string org, string repository);
+
+        /// <summary>
+        /// Creates a new branch in the given repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">Name of branch</param>
+        Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName);
+
+        /// <summary>
+        /// Creates a pull request for merging source into target for the provided repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repo.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="target">The name of the base ref</param>
+        /// <param name="source">The name of the head ref</param>
+        /// <param name="title">The pull request title</param>
+        Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title);
+
+        /// <summary>
+        /// Deletes the provided repository. Both local clone and remote repo.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns></returns>
+        public Task DeleteRepository(string org, string repository);
     }
 }

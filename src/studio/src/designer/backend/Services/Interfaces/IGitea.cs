@@ -71,6 +71,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Branch> GetBranch(string org, string repository, string branch);
 
         /// <summary>
+        /// Creates a new branch in the given repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">Name of branch</param>
+        /// <returns>Information about the created branch</returns>
+        Task<Branch> CreateBranch(string org, string repository, string branchName);
+
+        /// <summary>
         /// This method screen scrapes the user from the profile ui in GITEA.
         /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
         /// only API calls with token. This is currently the only known way to get
@@ -112,5 +121,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<List<Team>> GetTeams();
+
+        /// <summary>
+        /// Creates a pull request for the repository based on the provided create pull request option.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="createPullRequestOption">The createPullRequestOption containing information about the pull request</param>
+        /// <returns></returns>
+        Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
+
+        /// <summary>
+        /// Deletes the repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository.</param>
+        Task<bool> DeleteRepository(string org, string repository);
     }
 }

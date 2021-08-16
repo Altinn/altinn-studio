@@ -568,5 +568,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
         /// <param name="classRef">The class ref</param>
         void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
+
+        /// <summary>
+        /// Deletes the provided repository both local clone and remote. 
+        /// </summary>
+        /// <param name="org">The repository owner id.</param>
+        /// <param name="repository">The repository name.</param>
+        Task DeleteRepository(string org, string repository);
     }
 }

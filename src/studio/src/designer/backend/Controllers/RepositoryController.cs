@@ -359,8 +359,12 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to copye an existing app under the current org.
+        /// Action used to copy an existing app under the current org.
         /// </summary>
+        /// <remarks>
+        /// A pull request is automatically created in the new repository,
+        /// containing changes to ensure that the app is operational.
+        /// </remarks>
         /// <returns>
         /// The newly created repository.
         /// </returns>
@@ -369,14 +373,24 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
 
-            if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+            try
             {
-                return Created(repo.CloneUrl, repo);
-            }
+                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
 
-            return StatusCode((int)repo.RepositoryCreatedStatus);
+                if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repo.CloneUrl, repo);
+                }
+
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode((int)repo.RepositoryCreatedStatus);
+            }
+            catch (Exception e)
+            {                
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode(500, e);
+            }
         }
 
         /// <summary>

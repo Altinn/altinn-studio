@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Utils;
@@ -45,7 +46,7 @@ namespace Designer.Tests.Mocks
             return localPath;
         }
 
-        public string CloneRemoteRepository(string org, string repository, string destination)
+        public string CloneRemoteRepository(string org, string repository, string destination, string branchName = "")
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
 
@@ -56,6 +57,26 @@ namespace Designer.Tests.Mocks
         }
 
         public void Commit(CommitInfo commitInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateBranch(string org, string repository, string branchName)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteRepository(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -140,6 +161,11 @@ namespace Designer.Tests.Mocks
         }
 
         public void VerifyCloneExists(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Branch> ISourceControl.CreateBranch(string org, string repository, string branchName)
         {
             throw new NotImplementedException();
         }
