@@ -50,7 +50,8 @@ jobs:
         with:
           searchFor: 'outdated'
           versionToSelect: 'highest-minor'
-          directory: ./src/studio/src/designer
+          directory: './src/studio/src/designer/'
+
       - name: Get week number
         id: week
         run: |
