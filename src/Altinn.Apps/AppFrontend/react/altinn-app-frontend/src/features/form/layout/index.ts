@@ -18,6 +18,7 @@ export interface ILayoutGroup extends ILayoutEntry {
   textResourceBindings?: ITextResourceBindings;
   tableHeaders?: string[];
   edit?: IGroupEditProperties;
+  openDefault?: boolean;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
