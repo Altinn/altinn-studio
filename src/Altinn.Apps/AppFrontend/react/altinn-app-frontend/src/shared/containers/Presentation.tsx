@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
-import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
+import { returnUrlToMessagebox, getTextResourceByKey, getLanguageFromKey } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessTaskType, ITextResource, PresentationType } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -70,6 +70,8 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
         userParty={userParty}
         logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={backgroundColor}
+        logoutText={getLanguageFromKey('general.log_out', language)}
+        ariaLabelIcon={getLanguageFromKey('general.header_profile_icon_label', language)}
       />
       <div className='container'>
         <div className='row'>

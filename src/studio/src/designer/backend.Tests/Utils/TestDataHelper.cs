@@ -3,6 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -79,6 +80,12 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
 
+        public static string GetTestDataRemoteRepository(string org, string repository)
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote\\{org}\\{repository}");
+        }
+
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
@@ -123,6 +130,13 @@ namespace Designer.Tests.Utils
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
 
+        public static string CreateEmptyDirectory(string path)
+        {
+            string fullPath = $"{GetTestDataRepositoriesRootDirectory()}/{path}";
+            Directory.CreateDirectory(fullPath);
+            return fullPath;
+        }
+
         public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
@@ -140,7 +154,7 @@ namespace Designer.Tests.Utils
             foreach (FileInfo file in files)
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-                
+
                 var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
                 await File.WriteAllBytesAsync(tempPath, sourceBytes);
             }
@@ -149,10 +163,43 @@ namespace Designer.Tests.Utils
             {
                 foreach (DirectoryInfo subdir in sourceSubDirectories)
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);                    
+                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
                     await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
                 }
             }
+        }
+
+        public static void CleanUpRemoteRepository(string org, string repository)
+        {
+            string dir = GetTestDataRemoteRepository(org, repository);
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir);
+            }
+        }
+
+        public static void CleanUpReplacedRepositories(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
+                {
+                    Directory.Delete(subDir, true);
+                }
+            } 
+        }
+
+        public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
+        {            
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllText(filePath);
+            }
+
+            return string.Empty;
         }
 
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();

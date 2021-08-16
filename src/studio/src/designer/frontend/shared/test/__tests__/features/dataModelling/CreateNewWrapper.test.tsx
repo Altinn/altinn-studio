@@ -69,7 +69,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     wrapper.update();
     expect(someValue).toBe('unchangedValue');
   });
-  it('fails to run create when field is empty', () => {
+  it('fails to run create when name-field is empty', () => {
     act(() => {
       wrapper = mountComponent(['some', 'existing-model', 'names'], changeValue);
     });
