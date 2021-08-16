@@ -1,0 +1,63 @@
+name: Update dependencies
+
+on: 
+  push:
+
+jobs:
+  npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/studio/src/designer"
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v3
+      #   with:
+      #     title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
+      #     branch: "deps/npm-updates-w${{ steps.week.outputs.NUMBER }}"
+      #     body: ${{ steps.update.outputs.body }}
+      #     labels: dependencies
+  dotnet_dep_update:
+    name: "Update all nugets to latest version"
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+        
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: update packages
+        uses: bchir/update-nuget@V1.0.0
+        with:
+          searchFor: 'outdated'
+          versionToSelect: 'highest-minor'
+          directory: ./src/studio/src/designer
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v3
+      #   with:
+      #       title: "Updated dotnet dependencies w${{ steps.week.outputs.NUMBER }}"
+      #       branch: "deps/dotnet-updates-w${{ steps.week.outputs.NUMBER }}"
+      #       body: ${{ steps.update.outputs.body }}
+      #       labels: dependencies
