@@ -1226,6 +1226,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return repository;
             }
 
+            return repository;
+        }
+
             _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
 
             var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
@@ -1235,6 +1238,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
             DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
+
+            return repository;
+        }
+
+            string targetRepositoryPath = _settings.GetServicePath(org, targetRepository, developer);
+
+            if (Directory.Exists(targetRepositoryPath))
+            {
+                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
+                Directory.Move(targetRepositoryPath, backupPath);
+            }
+
+            _sourceControl.CloneRemoteRepository(org, targetRepository);
+            var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+
+            // clone source repository
+            string sourceCloneName = $"{sourceRepository}_COPY_OF_ORIGIN_{DateTime.Now.Ticks}";     
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, sourceCloneName, developer));
+
+            var sourceAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, sourceCloneName, developer);
+
+            try
+            {
+                sourceAppRepository.CopyRepository(targetAppRepository.RepositoryDirectory);
+            }
+            finally
+            {
+                Directory.Delete(sourceAppRepository.RepositoryDirectory, true);
+            }
+
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+            await targetAppRepository.UpdateAppId();
+
+            CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            _sourceControl.PushChangesForRepository(commitInfo);
 
             return repository;
         }
