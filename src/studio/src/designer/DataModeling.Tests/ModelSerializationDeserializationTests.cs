@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.TestHelpers;
 using FluentAssertions;
 using Json.Schema;
@@ -61,7 +62,7 @@ namespace DataModeling.Tests
             var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { });
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
 
             validationResults.IsValid.Should().BeTrue();
         }
@@ -78,13 +79,14 @@ namespace DataModeling.Tests
         [Fact]
         public async Task CSharpModel_SeresBasic_ShouldSerializeToValidJson()
         {
+            JsonSchemaKeywords.RegisterXsdKeywords();
             var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
 
             var json = JsonSerializer.Serialize(melding);
             var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { });
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
 
             validationResults.IsValid.Should().BeTrue();
         }

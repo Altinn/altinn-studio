@@ -26,7 +26,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <param name="schema">The object to visit</param>
         public JsonSchema Convert(XmlSchema schema)
         {
-            var uri = new Uri("schema.json");
+            var uri = new Uri("schema.json", UriKind.Relative);
             return Convert(schema, uri);
         }
 

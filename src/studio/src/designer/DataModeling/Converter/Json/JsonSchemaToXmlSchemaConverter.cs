@@ -23,7 +23,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private XmlSchema _xmlSchema;
 
         /// <summary>
-        /// Placeholder
+        /// Creates an instance of this class providing a normalizer that normalizes and simplifies
+        /// the json structure before converting it to a xml schema.
         /// </summary>
         public JsonSchemaToXmlSchemaConverter(IJsonSchemaNormalizer normalizer)
         {
@@ -31,11 +32,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         }
 
         /// <summary>
-        /// Placeholder
+        /// Converts a <see cref="JsonSchema"/> to a matching <see cref="XmlSchema"/>
         /// </summary>
         /// <param name="schema">The schema to convert</param>
-        /// <returns></returns>
         public XmlSchema Convert(JsonSchema schema)
+        {
+            var uri = new Uri("schema.json", UriKind.Relative);
+            return Convert(schema, uri);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="JsonSchema"/> to a matching <see cref="XmlSchema"/>
+        /// </summary>
+        /// <param name="schema">The schema to convert</param>
+        /// <param name = "schemaUri" > Uri that represents the unique id of the Json Schema.</param>
+        /// <returns>XmlSchema genrated based on the Json Schema.</returns>
+        public XmlSchema Convert(JsonSchema schema, Uri schemaUri)
         {
             _jsonSchema = _normalizer.Normalize(schema);
             _strategy = SelectStrategy();

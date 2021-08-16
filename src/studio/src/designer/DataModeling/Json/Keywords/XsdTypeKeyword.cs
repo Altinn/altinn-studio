@@ -39,6 +39,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         public void Validate(ValidationContext context)
         {
             context.Ignore = true;
+            context.IsValid = true;
         }
 
         /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
