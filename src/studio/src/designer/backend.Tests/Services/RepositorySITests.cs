@@ -40,6 +40,8 @@ namespace Designer.Tests.Services
             }
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
+            TestDataHelper.CleanUpLocalBranches("ttd", "apps-test-clone", "testUser");
+
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
             TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
             GC.SuppressFinalize(this);
@@ -174,7 +176,7 @@ namespace Designer.Tests.Services
             TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
             if (Directory.Exists(expectedRepoPath))
             {
-                Directory.Delete(expectedRepoPath, true);
+                TestDataHelper.DeleteDirectory(expectedRepoPath, true);
             }
 
             RepositorySI sut = GetServiceForTest(developer);
@@ -186,6 +188,8 @@ namespace Designer.Tests.Services
             string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
+
+            TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
 
             Assert.True(Directory.Exists(expectedRepoPath));
             Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);

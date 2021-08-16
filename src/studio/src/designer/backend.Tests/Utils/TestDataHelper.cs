@@ -174,7 +174,7 @@ namespace Designer.Tests.Utils
             string dir = GetTestDataRemoteRepository(org, repository);
             if (Directory.Exists(dir))
             {
-                Directory.Delete(dir);
+                DeleteDirectory(dir, true);
             }
         }
 
@@ -189,6 +189,19 @@ namespace Designer.Tests.Utils
                     Directory.Delete(subDir, true);
                 }
             } 
+        }
+
+        public static void CleanUpLocalBranches(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_complete_copy_of_app"))
+                {
+                    Directory.Delete(subDir, true);
+                }
+            }
         }
 
         public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)

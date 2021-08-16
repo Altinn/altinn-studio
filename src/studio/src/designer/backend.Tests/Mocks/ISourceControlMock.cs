@@ -63,7 +63,8 @@ namespace Designer.Tests.Mocks
 
         public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
-            throw new NotImplementedException();
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
+            TestDataHelper.CopyDirectory(localPath, $"remotePath_branch_{branchName}", true).ConfigureAwait(false);
         }
 
         public Task CreateBranch(string org, string repository, string branchName)
@@ -73,7 +74,7 @@ namespace Designer.Tests.Mocks
 
         public Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task DeleteRepository(string org, string repository)
@@ -132,7 +133,10 @@ namespace Designer.Tests.Mocks
         }
 
         public void PushChangesForRepository(CommitInfo commitInfo)
-        {            
+        {
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
+            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
+            TestDataHelper.CopyDirectory(localPath, remotePath, true).ConfigureAwait(false);
         }
 
         public RepoStatus RepositoryStatus(string org, string repository)
@@ -167,7 +171,7 @@ namespace Designer.Tests.Mocks
 
         Task<Branch> ISourceControl.CreateBranch(string org, string repository, string branchName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Branch { Name = branchName });
         }
     }
 }
