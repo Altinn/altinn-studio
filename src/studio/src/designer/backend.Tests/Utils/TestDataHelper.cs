@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
 using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
@@ -84,6 +85,12 @@ namespace Designer.Tests.Utils
         {
             var unitTestFolder = GetTestDataDirectory();
             return Path.Combine(unitTestFolder, $"Remote\\{org}\\{repository}");
+        }
+
+        public static string GetTestDataRemoteRepositoryRootDirectory()
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote");
         }
 
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
@@ -171,10 +178,14 @@ namespace Designer.Tests.Utils
 
         public static void CleanUpRemoteRepository(string org, string repository)
         {
-            string dir = GetTestDataRemoteRepository(org, repository);
-            if (Directory.Exists(dir))
+            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), $"{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
             {
-                DeleteDirectory(dir, true);
+                if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
+                {
+                    DeleteDirectory(subDir, true);
+                }
             }
         }
 
@@ -188,7 +199,7 @@ namespace Designer.Tests.Utils
                 {
                     Directory.Delete(subDir, true);
                 }
-            } 
+            }
         }
 
         public static void CleanUpLocalBranches(string org, string repository, string developer)
@@ -205,7 +216,7 @@ namespace Designer.Tests.Utils
         }
 
         public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
-        {            
+        {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
             if (File.Exists(filePath))
             {

@@ -1218,14 +1218,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string branchName = "complete_copy_of_app";
             string branchCloneName = $"{targetRepository}_{branchName}_{DateTime.Now.Ticks}";
 
-            Branch b = await _sourceControl.CreateBranch(org, targetRepository, branchName);
-
-            if (b == null)
-            {
-                repository.RepositoryCreatedStatus = System.Net.HttpStatusCode.InternalServerError;
-                return repository;
-            }        
-
+            await _sourceControl.CreateBranch(org, targetRepository, branchName);     
             _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
 
             var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);

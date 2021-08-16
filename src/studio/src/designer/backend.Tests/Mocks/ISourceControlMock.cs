@@ -64,7 +64,13 @@ namespace Designer.Tests.Mocks
         public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
-            TestDataHelper.CopyDirectory(localPath, $"remotePath_branch_{branchName}", true).ConfigureAwait(false);
+
+            if (!string.IsNullOrEmpty(branchName))
+            {
+                remotePath += $"_branch_{branchName}";
+            }
+
+            TestDataHelper.CopyDirectory(localPath, remotePath, true).ConfigureAwait(false);
         }
 
         public Task CreateBranch(string org, string repository, string branchName)
