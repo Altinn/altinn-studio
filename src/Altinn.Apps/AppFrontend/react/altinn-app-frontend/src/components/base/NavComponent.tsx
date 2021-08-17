@@ -3,6 +3,7 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getTextResource } from '../../utils/formComponentUtils';
 
 const useStyles = makeStyles({
   ul: {
@@ -41,6 +42,7 @@ export function NavComponent(props: INavComponent) {
   const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
   const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const triggers = props.triggers || pageTriggers;
+  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const OnClickNav = (index: string) => {
     const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
@@ -49,8 +51,8 @@ export function NavComponent(props: INavComponent) {
     dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
   };
  
-  const pageList = orderedLayoutKeys.map((x) => 
-    <li className={classes.li}><a className={classes.a} href="#" onClick={() => OnClickNav(x)}>{x}</a></li>
+  const pageList = orderedLayoutKeys.map((x, y) => 
+    <li className={classes.li}><a className={classes.a} href="#" onClick={() => OnClickNav(x)}>{getTextResource(x, textResources)}</a></li>
   );
   
   return (
