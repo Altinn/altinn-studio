@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, getParentPath, getUiSchemaItem, getUniqueNumber } from '../../utils';
+import { buildJsonSchema, buildUISchema, getDomFriendlyID, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -9,14 +9,14 @@ export const initialState: ISchemaState = {
   name: '/',
   saveSchemaUrl: '',
   selectedId: '',
-  selectedNodeId: '',
+  selectedTreeNodeId: '',
   focusNameField: '',
 };
 
-const updateChildIds = (item: UiSchemaItem, parentId: string) => {
+const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
   item.path = `${parentId}/properties/${item.displayName}`;
   if (item.properties) {
-    item.properties.forEach((p) => updateChildIds(p, item.path));
+    item.properties.forEach((p) => updateChildPaths(p, item.path));
   }
 };
 
@@ -32,7 +32,7 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const itemToAdd = { key, value };
       if (addToItem.restrictions) {
-        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) > -1) {
+        if (addToItem.restrictions.findIndex((f) => f.key === itemToAdd.key) !== -1) {
           itemToAdd.key += getUniqueNumber();
         }
         addToItem.restrictions.push(itemToAdd);
@@ -65,7 +65,7 @@ const schemaEditorSlice = createSlice({
       let { name } = action.payload;
       const { location } = action.payload;
       // make sure name is unique.
-      if (state.uiSchema.findIndex((p) => p.displayName === name) > -1) {
+      if (state.uiSchema.findIndex((p) => p.displayName === name) !== -1) {
         name += getUniqueNumber();
       }
       const path = `#/${location}/${name}`;
@@ -77,7 +77,7 @@ const schemaEditorSlice = createSlice({
         },
       );
       state.selectedId = path;
-      state.selectedNodeId = getDomFriendlyID(path);
+      state.selectedTreeNodeId = getDomFriendlyID(path);
       state.focusNameField = path;
     },
     clearNameFocus(state) {
@@ -92,7 +92,7 @@ const schemaEditorSlice = createSlice({
         type: 'object',
       };
       if (addToItem.properties) {
-        if (addToItem.properties.findIndex((p) => p.path === item.path) > -1) {
+        if (addToItem.properties.findIndex((p) => p.path === item.path) !== -1) {
           const number = getUniqueNumber();
           item.path += number;
           item.displayName += number;
@@ -103,34 +103,9 @@ const schemaEditorSlice = createSlice({
       }
       if (!keepSelection) {
         state.selectedId = item.path;
-        state.selectedNodeId = getDomFriendlyID(item.path);
+        state.selectedTreeNodeId = getDomFriendlyID(item.path);
         state.focusNameField = item.path;
       }
-    },
-    addRefProperty(state, action) {
-      const {
-        path, newKey, content,
-      } = action.payload;
-
-      const addToItem = getUiSchemaItem(state.uiSchema, path);
-      const item = content[0];
-      const propertyItem: UiSchemaItem = {
-        path: `${path}/properties/${newKey}`,
-        displayName: newKey,
-        $ref: item.id,
-      };
-
-      if (addToItem && addToItem.properties) {
-        addToItem.properties.push(propertyItem);
-      } else if (addToItem) {
-        addToItem.properties = [propertyItem];
-      }
-
-      content.forEach((uiSchemaItem: UiSchemaItem) => {
-        if (!state.uiSchema.find((i) => i.path === uiSchemaItem.path)) {
-          state.uiSchema.push(uiSchemaItem);
-        }
-      });
     },
     deleteField(state, action) {
       const { path, key } = action.payload;
@@ -164,10 +139,8 @@ const schemaEditorSlice = createSlice({
         path, $ref: copy.path, displayName: item.displayName,
       };
       // If this is a nested property,  we must add the ref to the properties array of the parent of the item
-      // eslint-disable-next-line no-useless-escape
-      if (path.match('[^#]\/properties')) {
-        const index = path.lastIndexOf('/properties/');
-        const parentPath = path.substring(0, index);
+      const [parentPath] = splitParentPathAndName(path);
+      if (parentPath != null) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent && parent.properties) {
           parent.properties.splice(parent.properties.findIndex((i) => i.path === path), 1); // removing original item
@@ -187,12 +160,8 @@ const schemaEditorSlice = createSlice({
       if (state.selectedId === path) {
         state.selectedId = undefined;
       }
-      // eslint-disable-next-line no-useless-escape
-      if (path.match('[^#]\/properties')) {
-        // find parent of item to delete property.
-        const index = path.lastIndexOf('/properties/');
-        const parentPath = path.substring(0, index);
-        const propertyName = path.substring(index + 12);
+      const [parentPath, propertyName] = splitParentPathAndName(path);
+      if (parentPath) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem) {
           const removeIndex = removeFromItem
@@ -288,7 +257,7 @@ const schemaEditorSlice = createSlice({
         path, key, required,
       } = action.payload;
       // need to find parent object
-      const parent = getParentPath(path);
+      const [parent] = splitParentPathAndName(path);
       if (parent != null) {
         const schemaItem = getUiSchemaItem(state.uiSchema, parent);
         if (schemaItem.required === undefined) {
@@ -307,10 +276,22 @@ const schemaEditorSlice = createSlice({
     },
     setPropertyName(state, action) {
       const {
-        path, name, navigate,
+        path, navigate,
       } = action.payload;
+      let name = action.payload.name;
       if (!name || name.length === 0) {
         return;
+      }
+
+      // make sure property name is unique
+      const [parentPath] = splitParentPathAndName(path);
+      if (parentPath != null) {
+        const parent = getUiSchemaItem(state.uiSchema, parentPath);
+        if (parent.properties) {
+          if (parent.properties.findIndex((p) => p.displayName === name) !== -1) {
+            name += getUniqueNumber();
+          }
+        }
       }
       const item = getUiSchemaItem(state.uiSchema, path);
       if (item) {
@@ -319,14 +300,14 @@ const schemaEditorSlice = createSlice({
         arr[arr.length - 1] = name;
         item.path = arr.join('/');
 
-        // if item has properties, we must update child ids as well.
+        // if item has properties, we must update child paths as well.
         if (item.properties) {
-          item.properties.forEach((p) => updateChildIds(p, item.path));
+          item.properties.forEach((p) => updateChildPaths(p, item.path));
         }
 
         if (navigate) {
           state.selectedId = item.path;
-          state.selectedNodeId = getDomFriendlyID(item.path);
+          state.selectedTreeNodeId = getDomFriendlyID(item.path);
         }
       }
     },
@@ -336,12 +317,11 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, navigate, focusName,
+        id, focusName,
       } = action.payload;
       state.selectedId = id;
-      state.selectedNodeId = getDomFriendlyID(id);
+      state.selectedTreeNodeId = getDomFriendlyID(id);
       state.focusNameField = focusName;
-      state.navigate = navigate;
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
@@ -362,7 +342,7 @@ const schemaEditorSlice = createSlice({
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
         state.selectedId = id;
-        state.selectedNodeId = getDomFriendlyID(id);
+        state.selectedTreeNodeId = getDomFriendlyID(id);
         state.focusNameField = id;
       }
     },
@@ -386,7 +366,6 @@ export const {
   addRootItem,
   addProperty,
   clearNameFocus,
-  addRefProperty,
   deleteField,
   deleteEnum,
   deleteProperty,

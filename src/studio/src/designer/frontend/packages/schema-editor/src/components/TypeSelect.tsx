@@ -56,7 +56,6 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       <MenuItem value='number'>{getTranslation('number', props.language)}</MenuItem>
       <MenuItem value='boolean'>{getTranslation('boolean', props.language)}</MenuItem>
       <MenuItem value='object'>{getTranslation('object', props.language)}</MenuItem>
-      <MenuItem value='array'>{getTranslation('array', props.language)}</MenuItem>
     </Select>
   );
 };

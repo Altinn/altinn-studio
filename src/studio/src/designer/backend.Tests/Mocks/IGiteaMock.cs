@@ -9,6 +9,8 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
+using Designer.Tests.Utils;
+
 namespace Designer.Tests.Mocks
 {
     public class IGiteaMock : IGitea
@@ -17,7 +19,22 @@ namespace Designer.Tests.Mocks
 
         public Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            throw new NotImplementedException();
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, options.Name);
+            Repository repo = new Repository
+            {
+                Name = options.Name
+            };
+
+            if (Directory.Exists(remotePath))
+            {
+                repo.RepositoryCreatedStatus = System.Net.HttpStatusCode.Conflict;
+                return Task.FromResult(repo);
+            }
+
+            Directory.CreateDirectory(remotePath);
+            repo.RepositoryCreatedStatus = System.Net.HttpStatusCode.Created;
+
+            return Task.FromResult(repo);
         }
 
         public Task<Branch> GetBranch(string org, string repository, string branch)

@@ -2,7 +2,7 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
 import React from 'react';
-import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
+import { Grid, makeStyles, createTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
@@ -31,7 +31,7 @@ export interface IRepeatingGroupTableProps {
   filteredIndexes?: number[];
 }
 
-const theme = createMuiTheme(altinnAppTheme);
+const theme = createTheme(altinnAppTheme);
 
 const useStyles = makeStyles({
   table: {
@@ -256,7 +256,7 @@ export function RepeatingGroupTable({
           return (
             <Grid
               item={true} container={true}
-              justify='flex-end' direction='row'
+              justifyContent='flex-end' direction='row'
               className={`${classes.mobileGrid} ${rowHasErrors ? classes.tableRowError : ''}`}
             >
               <Grid item={true}>

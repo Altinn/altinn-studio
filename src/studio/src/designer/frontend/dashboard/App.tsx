@@ -2,7 +2,7 @@
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -30,7 +30,7 @@ export interface IDashboardProps extends IDashboardProvidedProps {
   user: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 class App extends React.Component<IDashboardProps, IMainDashboardState> {
   public state: IMainDashboardState = {

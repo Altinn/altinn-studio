@@ -18,13 +18,13 @@ describe('>>> DeleteWrapper.tsx', () => {
     wrapper = null;
   });
   const mountComponent = (schemaName: string) => mount(<DeleteWrapper
-    language={language} buttonClass='button'
+    language={language}
     schemaName={schemaName} deleteAction={onDelete}
   />);
   it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
       <DeleteWrapper
-        language={language} buttonClass='button'
+        language={language}
         schemaName='deletable-model' deleteAction={() => { /* intentional */ }}
       />,
     );

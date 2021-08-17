@@ -1,4 +1,4 @@
-import { Button, createMuiTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
+import { Button, createTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
 import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -19,7 +19,7 @@ export interface IAltinnPopoverProps {
   ariaLabel?: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => createStyles({
   borderBottom: {

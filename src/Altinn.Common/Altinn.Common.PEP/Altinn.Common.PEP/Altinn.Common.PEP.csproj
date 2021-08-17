@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
     <!-- More about this dependency in issue #5706 -->
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.17" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

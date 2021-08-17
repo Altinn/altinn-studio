@@ -11,7 +11,7 @@ import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef
   addEnum, deleteEnum }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, getParentPath, getTranslation, getUiSchemaItem } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
 import { TypeSelect } from './TypeSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -20,15 +20,14 @@ import { SchemaTab } from './SchemaTab';
 const useStyles = makeStyles(
   createStyles({
     root: {
-      minHeight: 600,
-      minWidth: 500,
-      flexGrow: 1,
+      width: 500,
       padding: 14,
-      background: 'white',
-      zIndex: 2,
-      position: 'fixed',
+      paddingTop: 8,
       '& .MuiAutocomplete-input': {
         width: 150,
+      },
+      '& .MuiTabPanel-root': {
+
       },
     },
     header: {
@@ -134,7 +133,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
-      const parentPath = getParentPath(selectedId);
+      const [parentPath] = splitParentPathAndName(selectedId);
       if (parentPath != null) {
         return getUiSchemaItem(state.uiSchema, parentPath);
       }
@@ -196,9 +195,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
-  const onChangPropertyName = (path: string, oldKey: string, newKey: string) => {
+  const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
-      path, name: newKey,
+      path, name: value,
     }));
   };
   const onDeleteFieldClick = (path: string, key: string) => {
@@ -211,7 +210,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    if (!nameError) {
+    if (!nameError && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
       }));
@@ -254,6 +253,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onGoToDefButtonClick = () => {
+    if (!selectedItem?.$ref) {
+      return;
+    }
     dispatch(setSelectedId(
       {
         id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.path,
@@ -310,7 +312,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       readOnly={readOnly}
       value={p.displayName}
       fullPath={p.path}
-      onChangeKey={onChangPropertyName}
+      onChangeValue={onChangPropertyName}
       onDeleteField={onDeleteObjectClick}
     />;
   });
@@ -365,7 +367,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onChangeArrayType = (id: string, type: string | undefined) => {
     setArrayType(type ?? '');
-    let items = null;
+    let items;
     if (type === undefined) {
       items = undefined;
     } else {

@@ -1,4 +1,4 @@
-import { createMuiTheme, Grid, Typography } from '@material-ui/core';
+import { createTheme, Grid, Typography } from '@material-ui/core';
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -18,7 +18,7 @@ export interface IAltinnBreadcrumbComponentProvidedProps extends WithStyles<type
 export interface IAltinnBreadcrumbComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   link: {

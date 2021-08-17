@@ -33,6 +33,7 @@
     {
       "id": "nabovarselvedlegg",
       "taskId": "Task_1",
+      "allowedContentTypes": [ "application/pdf" ],
       "maxSize": 1,
       "maxCount": 100,
       "minCount": 0

@@ -282,7 +282,7 @@ describe('SchemaEditorSlice', () => {
     expect(item && item.required).not.toContainEqual('navn');
   });
 
-  it('handles promotion of types', () => {
+  it('handles promotion of root-level types', () => {
     const schema = {
       properties: {
         melding: {
@@ -310,5 +310,13 @@ describe('SchemaEditorSlice', () => {
     expect(ref && ref.$ref).toBe('#/definitions/name');
     const item = nextState.uiSchema.find((f) => f.path === '#/definitions/name');
     expect(item && item.type).toBe('string');
+
+    // test promotion of root item.
+    const payload2 = {
+      path: '#/properties/melding',
+    };
+    nextState = reducer(nextState, promoteProperty(payload2));
+    const item2 = getUiSchemaItem(nextState.uiSchema, '#/properties/melding');
+    expect(item2 && item2.$ref).toBe('#/definitions/melding');
   });
 });

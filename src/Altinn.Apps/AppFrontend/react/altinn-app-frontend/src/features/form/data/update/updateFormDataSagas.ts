@@ -3,7 +3,7 @@ import { actionChannel, call, put, select, take } from 'redux-saga/effects';
 import { IRuntimeState, IValidationResult } from 'src/types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
-import { createValidator, validateComponentFormData } from '../../../../utils/validation';
+import { getValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import { updateComponentValidations } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
@@ -63,8 +63,7 @@ function* runValidations(
     state.instanceData.instance,
     state.formLayout.layoutsets,
   );
-  const schema = state.formDataModel.schemas[currentDataTypeId];
-  const validator = createValidator(schema);
+  const validator = getValidator(currentDataTypeId, state.formDataModel.schemas);
   const component = getLayoutComponentById(componentId, state.formLayout.layouts);
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
   const fieldWithoutIndex = getKeyWithoutIndex(field);

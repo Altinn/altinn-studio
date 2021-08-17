@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
+using Altinn.App.Api.Middleware;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
@@ -68,12 +69,12 @@ namespace Altinn.App
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();              
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
             services.AddAppServices(Configuration, _env);
-            services.AddPlatformServices(Configuration, _env);            
+            services.AddPlatformServices(Configuration, _env);
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();
@@ -81,7 +82,7 @@ namespace Altinn.App
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
-            });           
+            });
 
             services.ConfigureDataProtection();
 
@@ -162,6 +163,7 @@ namespace Altinn.App
                 });
             }
 
+            app.UseDefaultSecurityHeaders();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -182,10 +184,10 @@ namespace Altinn.App
                 string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
                 options.IncludeXmlComments(fullFilePathApi);
             }
-            catch 
+            catch
             {
                 // Swagger will not have the xml-documentation to describe the api's.
-            }            
+            }
         }
 
         private string GetApplicationId()

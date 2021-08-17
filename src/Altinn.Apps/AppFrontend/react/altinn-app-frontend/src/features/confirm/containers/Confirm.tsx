@@ -3,7 +3,7 @@ import * as React from 'react';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
@@ -28,7 +28,7 @@ import moment = require('moment');
 
 export interface IConfirmProps extends RouteChildrenProps {}
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   button: {

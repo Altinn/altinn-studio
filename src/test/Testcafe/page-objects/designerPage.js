@@ -22,7 +22,8 @@ export default class DesignerPage {
     //"Lage" navigation tab selectors
     this.createNavigationTab = Selector('div > a').withExactText('Lage');
     this.createLeftMenuItems = [
-      this.leftMenuList.child('a').withAttribute('href', '#/datamodel').child('div').withExactText('Datamodell'),
+      this.leftMenuList.child('a').withAttribute('href', '#/datamodelling')
+        .child('div').withExactText('Datamodellering'),
       this.leftMenuList.child('a').withAttribute('href', '#/ui-editor').child('div').withExactText('UI-Editor'),
       this.leftMenuList
         .child('a')

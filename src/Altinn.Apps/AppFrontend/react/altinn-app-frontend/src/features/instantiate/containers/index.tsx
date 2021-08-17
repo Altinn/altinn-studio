@@ -1,14 +1,15 @@
-import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import { AxiosError } from 'axios';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { AltinnAppHeader, AltinnModal, AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
+import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import Presentation from 'src/shared/containers/Presentation';
+import { IAltinnWindow, IRuntimeState, ProcessTaskType } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { post } from '../../../utils/networking';
@@ -34,11 +35,7 @@ export interface IPartyValidation {
   validParties: IParty[];
 }
 
-export interface IServiceInfoProps extends WithStyles<typeof styles> {
-  // intentionally left empty
-}
-
-function InstantiateContainer(props: IServiceInfoProps) {
+function InstantiateContainer() {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, app } = window as Window as IAltinnWindow;
 
@@ -46,7 +43,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const [instantiating, setInstantiating] = React.useState(false);
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
-  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const titleText: any = useSelector((state: IRuntimeState) => {
     const text = getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
@@ -75,27 +71,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
       console.error(err);
       throw new Error('Server did not respond with party validation');
     }
-  };
-
-  // eslint-disable-next-line no-undef
-  const renderModalAndLoader = (): JSX.Element => {
-    const { classes } = props;
-    return (
-      <>
-        <AltinnModal
-          classes={classes}
-          isOpen={true}
-          onClose={null}
-          hideBackdrop={true}
-          hideCloseIcon={true}
-          headerText={titleText}
-        >
-          <AltinnContentLoader width='100%' height='400'>
-            <AltinnContentIconFormData/>
-          </AltinnContentLoader>
-        </AltinnModal>
-      </>
-    );
   };
 
   React.useEffect(() => {
@@ -144,7 +119,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     }
     return (
-      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />
     );
   }
 
@@ -155,15 +130,14 @@ function InstantiateContainer(props: IServiceInfoProps) {
   }
 
   return (
-    <>
-      <AltinnAppHeader
-        logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-        headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
-        party={selectedParty}
-        userParty={profile ? profile.party : {} as IParty}
-      />
-      {renderModalAndLoader()}
-    </>
+    <Presentation
+      header={titleText}
+      type={ProcessTaskType.Unknown}
+    >
+      <AltinnContentLoader width='100%' height='400'>
+        <AltinnContentIconFormData />
+      </AltinnContentLoader>
+    </Presentation>
   );
 }
 

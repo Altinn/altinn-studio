@@ -1,5 +1,5 @@
 # base image
-FROM node:14.17.1-alpine3.13 AS generate-dashboard
+FROM node:14.17.4-alpine3.14 AS generate-dashboard
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .

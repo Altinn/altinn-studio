@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import { makeStyles } from '@material-ui/core/styles';
+import { ArrowDropDown, ArrowRight, ArchiveOutlined } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppBar, Grid } from '@material-ui/core';
+import { AppBar, Button } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
@@ -12,68 +11,108 @@ import { getDomFriendlyID, getTranslation } from '../utils';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 
-const useStyles = makeStyles(
-  createStyles({
-    root: {
-      marginTop: 24,
-      height: '100%',
+const useStyles = makeStyles({
+  root: {
+    height: '100%',
+    width: '100%',
+    display: 'inline-flex',
+    flexWrap: 'wrap',
+    '& > main': {
+      flex: 1,
+      maxWidth: 'calc(100% - 501px)',
     },
-    treeView: {
-      backgroundColor: 'white',
-      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      minHeight: 200,
+    '& > aside': {
+      position: 'sticky',
+      top: 110,
+      width: 500,
+      height: 'calc(100vh - 110px)',
+      overflowX: 'clip',
+      overflowY: 'auto',
     },
-    button: {
-      marginLeft: 24,
-    },
-    treeItem: {
-      marginLeft: 8,
-      '&.Mui-selected': {
-        background: '#E3F7FF',
-        border: '1px solid #006BD8',
-        boxSizing: 'border-box',
-        borderRadius: '5px',
+  },
+  editor: {
+    backgroundColor: 'white',
+    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
+    minHeight: 200,
+    margin: 18,
+  },
+  toolbar: {
+    display: 'flex',
+    background: '#fff',
+    padding: 8,
+    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
+    '& > button': {
+      margin: 4,
+      background: '#fff',
+      '&:last-child': {
+        marginLeft: 'auto',
       },
-      '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
-        backgroundColor: 'transparent',
-      },
     },
-    appBar: {
-      border: 'none',
-      boxShadow: 'none',
-      backgroundColor: '#fff',
-      color: '#000',
-      '& .Mui-Selected': {
-        color: '#6A6A6A',
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: '#006BD8',
-      },
+  },
+  appBar: {
+    border: 'none',
+    boxShadow: 'none',
+    backgroundColor: '#fff',
+    color: '#000',
+    '& .Mui-Selected': {
+      color: '#6A6A6A',
     },
-    tab: {
-      minWidth: 70,
+    '& .MuiTabs-indicator': {
+      backgroundColor: '#006BD8',
     },
-  }),
-);
+  },
+  tab: {
+    minWidth: 70,
+  },
+  treeItem: {
+    marginLeft: 8,
+    '&.Mui-selected': {
+      background: '#E3F7FF',
+      border: '1px solid #006BD8',
+      boxSizing: 'border-box',
+      borderRadius: '5px',
+    },
+    '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label': {
+      backgroundColor: 'transparent',
+    },
+  },
+  treeView: {
+    height: 600,
+    flexGrow: 1,
+    overflow: 'auto',
+  },
+  inspector: {
+    background: 'white',
+    borderLeft: '1px solid #C9C9C9',
+    overflow: 'auto',
+  },
+});
 
-export interface ISchemaEditor {
+export interface IEditorProps {
   schema: ISchema;
   onSaveSchema: (payload: any) => void;
+  Toolbar: JSX.Element;
+  LoadingIndicator: JSX.Element;
   name?: string;
   language: ILanguage;
 }
 
-export const SchemaEditor = ({
-  schema, onSaveSchema, name, language,
-}: ISchemaEditor) => {
+export const Editor = (props: IEditorProps) => {
+  const {
+    Toolbar, LoadingIndicator, schema, onSaveSchema, name, language,
+  } = props;
+
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const selectedNodeId = useSelector((state: ISchemaState) => state.selectedNodeId);
-  const navigate = useSelector((state: ISchemaState) => state.navigate);
+  const selectedTreeNode = useSelector((state: ISchemaState) => state.selectedTreeNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
   const [tabIndex, setTabIndex] = React.useState('0');
+
+  function saveSchema() {
+    dispatch(updateJsonSchema({ onSaveSchema }));
+  }
 
   React.useEffect(() => {
     dispatch(setSchemaName({ name }));
@@ -90,16 +129,11 @@ export const SchemaEditor = ({
   }, [dispatch, schema]);
 
   React.useEffect(() => {
-    if (selectedNodeId) {
-      const tab = selectedNodeId.startsWith('definitions') ? '1' : '0';
+    if (selectedTreeNode) {
+      const tab = selectedTreeNode.startsWith('definitions') ? '1' : '0';
       setTabIndex(tab);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
-
-  const onClickSaveJsonSchema = () => {
-    dispatch(updateJsonSchema({ onSaveSchema }));
-  };
+  }, [selectedTreeNode]);
 
   const handleAddProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -115,21 +149,31 @@ export const SchemaEditor = ({
       location: 'definitions',
     }));
   };
-
+  if (!name) {
+    return (
+      <div className={classes.root}>
+        <div className={classes.toolbar}>
+          {Toolbar}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={classes.root}>
-
-      <button
-        type='button' className={classes.button}
-        onClick={onClickSaveJsonSchema}
-      >{getTranslation('save_data_model', language)}
-      </button>
-
-      <Grid
-        container={true} direction='row'
-      >
-        <Grid item={true} xs={6}>
-          <div id='schema-editor' className={classes.treeView}>
+      <main>
+        <section className={classes.toolbar}>
+          {Toolbar}
+          <Button
+            onClick={saveSchema}
+            type='button'
+            variant='contained'
+            disabled={!name}
+            startIcon={<ArchiveOutlined />}
+          >{getTranslation('save_data_model', language)}
+          </Button>
+        </section>
+        {schema ? (
+          <div id='schema-editor' className={classes.editor}>
             <TabContext value={tabIndex}>
               <AppBar
                 position='static' color='default'
@@ -153,10 +197,11 @@ export const SchemaEditor = ({
               </AppBar>
               <TabPanel value='0'>
                 <TreeView
+                  className={classes.treeView}
                   multiSelect={false}
-                  selected={selectedNodeId ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
+                  selected={selectedTreeNode ?? ''}
+                  defaultCollapseIcon={<ArrowDropDown />}
+                  defaultExpandIcon={<ArrowRight />}
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
                     keyPrefix='properties'
@@ -166,10 +211,9 @@ export const SchemaEditor = ({
                     id={getDomFriendlyID(item.path)}
                     language={language}
                   />)}
-
                   <TreeItem
-                    nodeId='info'
-                    icon={<i className='fa fa-plus'/>}
+                    nodeId='add_property'
+                    icon={<i className='fa fa-plus' />}
                     label={getTranslation('add_property', language)}
                     onClick={handleAddProperty}
                   />
@@ -177,10 +221,11 @@ export const SchemaEditor = ({
               </TabPanel>
               <TabPanel value='1'>
                 <TreeView
+                  className={classes.treeView}
                   multiSelect={false}
-                  selected={selectedNodeId ?? ''}
-                  defaultCollapseIcon={<ArrowDropDownIcon />}
-                  defaultExpandIcon={<ArrowRightIcon />}
+                  selected={selectedTreeNode ?? ''}
+                  defaultCollapseIcon={<ArrowDropDown />}
+                  defaultExpandIcon={<ArrowRight />}
                 >
                   {definitions.map((def) => <SchemaItem
                     keyPrefix='definitions'
@@ -190,26 +235,22 @@ export const SchemaEditor = ({
                     id={getDomFriendlyID(def.path)}
                     language={language}
                   />)}
-
                   <TreeItem
-                    nodeId='info'
-                    icon={<i className='fa fa-plus'/>}
+                    nodeId='add_def'
+                    icon={<i className='fa fa-plus' />}
                     label={getTranslation('add_property', language)}
                     onClick={handleAddDefinition}
                   />
                 </TreeView>
               </TabPanel>
             </TabContext>
-
-          </div>
-        </Grid>
-        <Grid item xs={1} />
-        <Grid item={true} xs={5}>
-          <SchemaInspector language={language} />
-        </Grid>
-      </Grid>
+          </div>) : LoadingIndicator}
+      </main>
+      {schema &&
+      <aside className={classes.inspector}>
+        <SchemaInspector language={language}/>
+      </aside>}
     </div>
   );
 };
-
-export default SchemaEditor;
+export default Editor;
