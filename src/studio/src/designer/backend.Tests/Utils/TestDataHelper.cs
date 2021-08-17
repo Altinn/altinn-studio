@@ -164,6 +164,7 @@ namespace Designer.Tests.Utils
 
                 var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
                 await File.WriteAllBytesAsync(tempPath, sourceBytes);
+                File.SetAttributes(tempPath, FileAttributes.Normal);
             }
 
             if (copySubDirs)
