@@ -106,7 +106,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             RepoStatus status = new RepoStatus();
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
-            {                
+            {
                 PullOptions pullOptions = new PullOptions()
                 {
                     MergeOptions = new MergeOptions()
@@ -262,12 +262,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 Commands.Stage(repo, "*");
 
-                // Create the committer's signature and commit
-                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                LibGit2Sharp.Signature committer = author;
-
-                // Commit to the repository
-                repo.Commit(commitInfo.Message, author, committer);
+                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                repo.Commit(commitInfo.Message, signature, signature);
             }
         }
 
@@ -554,12 +550,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     Commands.Stage(repo, "*");
 
-                    // Create the committer's signature and commit
-                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                    LibGit2Sharp.Signature committer = author;
-
-                    // Commit to the repository
-                    repo.Commit(message, author, committer);
+                    LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                    repo.Commit(message, signature, signature);
 
                     PushOptions options = new PushOptions();
                     options.CredentialsProvider = (_url, _user, _cred) =>
@@ -692,6 +684,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await _gitea.DeleteRepository(org, repository);
+        }
+
+        private LibGit2Sharp.Signature GetDeveloperSignature()
+        {
+            return new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
         }
     }
 }
