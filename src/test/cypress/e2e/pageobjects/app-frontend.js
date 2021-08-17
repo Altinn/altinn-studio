@@ -14,6 +14,8 @@ export default class AppFrontend {
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
+    this.profileIconButton = '#profile-icon-button';
+    this.logOut = '#logout-menu-item';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -50,6 +52,7 @@ export default class AppFrontend {
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
+      sources: '#sources',
     };
 
     //group - task 3

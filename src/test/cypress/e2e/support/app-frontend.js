@@ -94,3 +94,15 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
   cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 });
+
+Cypress.Commands.add('testWcag', () => {
+  cy.injectAxe();
+  cy.checkA11y(
+    null,
+    {
+      includedImpacts: ['critical', 'serious', 'moderate'],
+    },
+    null,
+    { skipFailures: true },
+  );
+});
