@@ -13,18 +13,18 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
     public class OpenApiSpecificationTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
 
         public OpenApiSpecificationTests(WebApplicationFactory<Startup> factory)
         {
-            _factory = factory;
+            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
         }
 
         [Fact]
         public async Task GetOpenApiSpecification_ReturnsOk()
         {
             // Arrange
-            HttpClient client = _factory.CreateHttpClient(new DelegatingHandlerStub());
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/swagger/v1/swagger.json");
 

@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
-using Altinn.Platform.Profile.Tests.Mocks;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -13,18 +12,18 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
     public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
 
         public HealthCheckTests(WebApplicationFactory<Startup> factory)
         {
-            _factory = factory;
+            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
         }
 
         [Fact]
         public async Task GetHealth_ReturnsOk()
         {
             // Arrange
-            HttpClient client = _factory.CreateHttpClient(new DelegatingHandlerStub());
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health");
 

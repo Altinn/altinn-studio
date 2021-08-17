@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
 using Altinn.Platform.Profile.Tests.Mocks;
@@ -20,7 +21,8 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
     public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> _webApplicationFactory;
+        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
+
         private readonly JsonSerializerOptions serializerOptionsCamelCase = new ()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -28,7 +30,10 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
         public UserProfileTests(WebApplicationFactory<Startup> factory)
         {
-            _webApplicationFactory = factory;
+            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
+
+            GeneralSettings generalSettings = new () { BridgeApiEndpoint = "http://localhost/" };
+            _webApplicationFactorySetup.GeneralSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
         }
 
         [Fact]
@@ -45,10 +50,11 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
                 return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, "/profile/api/v1/users/current");
-
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -82,7 +88,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             string token = PrincipalUtil.GetOrgToken("ttd");
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(new DelegatingHandlerStub());
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -108,12 +114,13 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
                 return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -149,12 +156,13 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
                 return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -180,12 +188,13 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
                 return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.ServiceUnavailable });
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             HttpRequestMessage httpRequestMessage = CreateGetRequest(UserId, $"/profile/api/v1/users/{UserId}");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -210,13 +219,14 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
                 UserProfile userProfile = await TestDataLoader.Load<UserProfile>("2516356");
                 return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -254,13 +264,14 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
                 return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -288,13 +299,14 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
                 return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.ServiceUnavailable });
             });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
             StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
-            HttpClient client = _webApplicationFactory.CreateHttpClient(messageHandler);
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
