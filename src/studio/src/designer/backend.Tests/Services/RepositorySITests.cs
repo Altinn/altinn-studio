@@ -173,6 +173,8 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CopyRepository_TargetDoesNotExistsLocally()
         {
+            _i.WriteLine("////////////////////////// testing write line");
+
             // Arrange
             string developer = "testUser";
             string org = "ttd";
