@@ -1241,11 +1241,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     File.Delete(file.FullName);
                 }
-                catch (IOException)
+                catch (IOException e)
                 {
                     List<string> s = GetProcessesAssociatedToFile(file.FullName);
-                    _logger.LogError($"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}");
-                    throw;
+                    string m =$"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}";
+                    throw new Exception(m, e);
                 }
             }
 
