@@ -1190,23 +1190,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Directory.Move(targetRepositoryPath, backupPath);
             }
 
-            _sourceControl.CloneRemoteRepository(org, targetRepository);
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-
-            // clone source repository
-            string sourceCloneName = $"{sourceRepository}_COPY_OF_ORIGIN_{DateTime.Now.Ticks}";
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, sourceCloneName, developer));
-
-            var sourceAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, sourceCloneName, developer);
-
-            try
-            {
-                sourceAppRepository.CopyRepository(targetAppRepository.RepositoryDirectory);
-            }
-            finally
-            {
-                Directory.Delete(sourceAppRepository.RepositoryDirectory, true);
-            }
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
             await targetAppRepository.UpdateAppId();
@@ -1227,7 +1212,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
-            Directory.Delete(branchAppRepository.RepositoryDirectory, true);
+            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
         }
