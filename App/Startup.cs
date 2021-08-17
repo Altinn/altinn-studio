@@ -5,20 +5,11 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.Api.Middleware;
 using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Implementation;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.Common.AccessTokenClient.Configuration;
-using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
-using Altinn.Common.PEP.Implementation;
-using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -80,13 +71,10 @@ namespace Altinn.App
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            // Internal Application services
-            services.AddSingleton<IAppResources, AppResourcesSI>();            
-
             // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
             services.AddAppServices(Configuration, _env);
-            services.AddPlatformServices(Configuration, _env);                       
+            services.AddPlatformServices(Configuration, _env);
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();
@@ -141,7 +129,7 @@ namespace Altinn.App
                 options.HeaderName = "X-XSRF-TOKEN";
             });
 
-            services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();            
+            services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
@@ -175,16 +163,16 @@ namespace Altinn.App
                 });
             }
 
+            app.UseDefaultSecurityHeaders();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseDefaultSecurityHeaders();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-        }       
+        }
 
         private void IncludeXmlComments(SwaggerGenOptions options)
         {
@@ -196,16 +184,16 @@ namespace Altinn.App
                 string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
                 options.IncludeXmlComments(fullFilePathApi);
             }
-            catch 
+            catch
             {
                 // Swagger will not have the xml-documentation to describe the api's.
-            }            
+            }
         }
 
         private string GetApplicationId()
         {
-            string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
-            JObject appMetadataJObject = JObject.Parse(appMetaDataString);
+            string appMetadataString = File.ReadAllText("config/applicationmetadata.json");
+            JObject appMetadataJObject = JObject.Parse(appMetadataString);
             return appMetadataJObject.SelectToken("id").Value<string>();
         }
     }
