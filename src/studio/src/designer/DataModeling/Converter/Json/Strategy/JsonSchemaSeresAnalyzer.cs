@@ -119,10 +119,25 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private bool IsValidComplexType(JsonSchema schema)
+        /// <summary>
+        /// Returns true if the schema should be serialized as a XSD ComplexType.
+        /// </summary>
+        /// <param name="schema">Schema to analyze</param>
+        /// <returns></returns>
+        public bool IsValidComplexType(JsonSchema schema)
         {
-            // TODO: Implement properly
-            return schema.HasKeyword<PropertiesKeyword>();
+            if (schema.HasKeyword<PropertiesKeyword>())
+            {
+                return true;
+            }
+
+            if (schema.HasKeyword<RefKeyword>())
+            {
+                var keyword = schema.GetKeyword<RefKeyword>();
+                var subschema = FollowReference(keyword);
+            }
+
+            return false;
         }
 
         private bool IsValidSimpleContentExtension(JsonSchema schema)

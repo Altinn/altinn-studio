@@ -19,6 +19,12 @@ namespace DataModeling.Tests
             return await JsonSerializer.DeserializeAsync<JsonSchema>(jsonStream, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         }
 
+        public static string LoadTestDataAsString(string resourceName)
+        {
+            string path = Path.Combine(GetUnitTestFolder(), resourceName);
+            return File.ReadAllText(path);
+        }
+
         public static XmlSchema LoadXmlSchemaTestData(string resourceName)
         {
             using XmlReader xmlReader = XmlReader.Create(LoadTestData(resourceName));
@@ -27,8 +33,7 @@ namespace DataModeling.Tests
 
         public static Stream LoadTestData(string resourceName)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ResourceHelpers).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            string unitTestFolder = GetUnitTestFolder();
             Stream resource = File.OpenRead(Path.Combine(unitTestFolder, resourceName));
 
             if (resource == null)
@@ -39,10 +44,16 @@ namespace DataModeling.Tests
             return resource;
         }
 
-        public static Stream OpenTestDataStream(string resourceName)
+        private static string GetUnitTestFolder()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ResourceHelpers).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            return unitTestFolder;
+        }
+
+        public static Stream OpenTestDataStream(string resourceName)
+        {
+            string unitTestFolder = GetUnitTestFolder();
             string path = Path.Combine(unitTestFolder, resourceName);
             return File.Open(path, File.Exists(path) ? FileMode.Truncate : FileMode.CreateNew, FileAccess.Write);
         }
