@@ -22,7 +22,7 @@ namespace DataModeling.Tests.Json
             var metadata = analyzer.AnalyzeSchema(schema);
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Equal(CompatibleXsdType.Unknown);
-            metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.Unknown);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell/properties/e1")).Should().Equal(CompatibleXsdType.SimpleType);
         }

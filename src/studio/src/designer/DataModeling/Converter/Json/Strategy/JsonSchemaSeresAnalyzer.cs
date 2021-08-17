@@ -20,9 +20,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             _schema = schema;
+
             var metadata = new JsonSchemaXsdMetadata();
 
-            if (schema.TryGetKeyword(out InfoKeyword info))
+            if (_schema.TryGetKeyword(out InfoKeyword info))
             {
                 var messageNameElement = info.Value.GetProperty("meldingsnavn");
                 var messageTypeNameElement = info.Value.GetProperty("modellnavn");
@@ -35,8 +36,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 metadata.MessageName = "melding";
             }
 
-            DetermineRootModel(schema, metadata);
-            AnalyzeSchema(JsonPointer.Parse("#"), schema, metadata);
+            DetermineRootModel(_schema, metadata);
+            AnalyzeSchema(JsonPointer.Parse("#"), _schema, metadata);
 
             return metadata;
         }
@@ -124,7 +125,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// </summary>
         /// <param name="schema">Schema to analyze</param>
         /// <returns></returns>
-        public bool IsValidComplexType(JsonSchema schema)
+        private bool IsValidComplexType(JsonSchema schema)
         {
             if (schema.HasKeyword<PropertiesKeyword>())
             {
@@ -135,6 +136,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 var keyword = schema.GetKeyword<RefKeyword>();
                 var subschema = FollowReference(keyword);
+                if (subschema.HasKeyword<PropertiesKeyword>())
+                {
+                    return true;
+                }
             }
 
             return false;
