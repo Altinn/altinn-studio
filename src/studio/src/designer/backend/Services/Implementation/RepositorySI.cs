@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -1212,9 +1213,57 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
-            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
+            DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
+        }
+
+        /// <summary>
+        /// Deleted all files and subdirectories before deleting the directory.
+        /// </summary>
+        /// <param name="directoryToDelete">Full path to the directory.</param>
+        public void DeleteFilesAndDirectory(string directoryToDelete)
+        {
+            DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
+
+            if (!directoryToDeleteInfo.Exists)
+            {
+                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
+            }
+
+            DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
+
+            FileInfo[] files = directoryToDeleteInfo.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+                try
+                {
+                    File.Delete(file.FullName);
+                }
+                catch (IOException)
+                {
+                    List<string> s = GetProcessesAssociatedToFile(file.FullName);
+                    _logger.LogError($"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}");
+                    throw;
+                }
+            }
+
+            foreach (DirectoryInfo directory in subDirectories)
+            {
+                DeleteFilesAndDirectory(directory.FullName);
+            }
+
+            File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
+            Directory.Delete(directoryToDeleteInfo.FullName);
+        }
+
+        private static List<string> GetProcessesAssociatedToFile(string file)
+        {
+            return Process.GetProcesses()
+                .Where(x => !x.HasExited
+                    && x.Modules.Cast<ProcessModule>().ToList()
+                        .Exists(y => y.FileName.ToLowerInvariant() == file.ToLowerInvariant())).ToList().Select(p => p.ProcessName).ToList();
         }
 
         /// <summary>
