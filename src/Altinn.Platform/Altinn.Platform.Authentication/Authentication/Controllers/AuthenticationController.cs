@@ -110,7 +110,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
-                return Redirect($"{_generalSettings.GetBaseUrl}");
+                return Redirect($"{_generalSettings.BaseUrl}");
             }
 
             string platformReturnUrl = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
@@ -121,7 +121,7 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             string encodedGoToUrl = HttpUtility.UrlEncode(platformReturnUrl);
-            string sblRedirectUrl = $"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}";
+            string sblRedirectUrl = $"{_generalSettings.SBLRedirectEndpoint}?goTo={encodedGoToUrl}";
 
             if (Request.Cookies[_generalSettings.SblAuthCookieName] == null)
             {
@@ -143,7 +143,7 @@ namespace Altinn.Platform.Authentication.Controllers
             if (userAuthentication != null && userAuthentication.IsAuthenticated)
             {
                 List<Claim> claims = new List<Claim>();
-                string issuer = _generalSettings.PlatformEndpoint;
+                string issuer = _generalSettings.AltinnOidcIssuerUrl;
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
@@ -151,7 +151,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
 
-                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.ClaimsIdentity);
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
@@ -303,7 +303,7 @@ namespace Altinn.Platform.Authentication.Controllers
             try
             {
                 ICollection<SecurityKey> signingKeys =
-                    await _signingKeysRetriever.GetSigningKeys(_generalSettings.GetMaskinportenWellKnownConfigEndpoint);
+                    await _signingKeysRetriever.GetSigningKeys(_generalSettings.MaskinportenWellKnownConfigEndpoint);
 
                 TokenValidationParameters validationParameters = new TokenValidationParameters
                 {
@@ -320,7 +320,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 _logger.LogInformation("Token is valid");
 
                 string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
-                if (issOriginal == null || !_generalSettings.GetMaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
+                if (issOriginal == null || !_generalSettings.MaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
                 {
                     _logger.LogInformation("Invalid issuer " + issOriginal);
                     return Unauthorized();
@@ -340,7 +340,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string issuer = _generalSettings.PlatformEndpoint;
+                string issuer = _generalSettings.AltinnOidcIssuerUrl;
 
                 string org = null;
 
@@ -389,14 +389,14 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, authenticatemethod, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
 
-                string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
+                string[] claimTypesToRemove = { "aud", IssClaimName, "client_amr" };
                 foreach (string claimType in claimTypesToRemove)
                 {
                     Claim audClaim = claims.Find(c => c.Type == claimType);
                     claims.Remove(audClaim);
                 }
 
-                claims.Add(new Claim("iss", issuer, ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(IssClaimName, issuer, ClaimValueTypes.String, issuer));
 
                 ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
 
@@ -510,8 +510,9 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 UserProfile userProfile = await _userProfileService.GetUser(pid);
 
+                string issuer = _generalSettings.AltinnOidcIssuerUrl;
+
                 List<Claim> claims = new List<Claim>();
-                string issuer = _generalSettings.PlatformEndpoint;
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, userProfile.UserId.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userProfile.UserId.ToString(), ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userProfile.UserName, ClaimValueTypes.String, issuer));
@@ -520,14 +521,14 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authLevel.Substring(authLevel.Length - 1, 1), ClaimValueTypes.Integer32, issuer));
                 claims.AddRange(token.Claims);
 
-                string[] claimTypesToRemove = { "aud", "iss", "at_hash", "jti", "sub" };
+                string[] claimTypesToRemove = { "aud", IssClaimName, "at_hash", "jti", "sub" };
                 foreach (string claimType in claimTypesToRemove)
                 {
                     Claim claim = claims.Find(c => c.Type == claimType);
                     claims.Remove(claim);
                 }
 
-                claims.Add(new Claim("iss", issuer, ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(IssClaimName, issuer, ClaimValueTypes.String, issuer));
 
                 ClaimsIdentity identity = new ClaimsIdentity(EndUserSystemIdentity);
                 identity.AddClaims(claims);
@@ -619,8 +620,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>Boolean verifying that goToHost is on current host. </returns>
         private bool IsValidRedirectUri(string goToHost)
         {
-            string validHost = _generalSettings.GetHostName;
-            int segments = _generalSettings.GetHostName.Split('.').Length;
+            string validHost = _generalSettings.HostName;
+            int segments = _generalSettings.HostName.Split('.').Length;
 
             List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();
             string redirectHost = string.Join(".", goToList);
