@@ -28,6 +28,7 @@ describe('Stateless', () => {
 
   it('Logout from appfrontend', () => {
     cy.get(appFrontend.profileIconButton).should('be.visible').click();
-    cy.get(appFrontend.logOut).should('be.visible').click();
+    cy.get(appFrontend.logOut).should('be.visible');
+    cy.get(appFrontend.logOutLink).should('exist').and('be.visible');
   });
 });

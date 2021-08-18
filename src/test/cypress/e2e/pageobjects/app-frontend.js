@@ -16,6 +16,7 @@ export default class AppFrontend {
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';
+    this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
