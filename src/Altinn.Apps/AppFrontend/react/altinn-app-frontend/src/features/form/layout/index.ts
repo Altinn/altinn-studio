@@ -18,6 +18,8 @@ export interface ILayoutGroup extends ILayoutEntry {
   textResourceBindings?: ITextResourceBindings;
   tableHeaders?: string[];
   edit?: IGroupEditProperties;
+  accordion?: boolean;
+  iconLabel?: string;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {

@@ -8,6 +8,7 @@ import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { GroupContainer } from './GroupContainer';
 import { renderGenericComponent } from '../../../utils/layout';
 import { DisplayGroupContainer } from './DisplayGroupContainer';
+import { DisplayAccordionContainer } from './DisplayAccordionContainer';
 
 export function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup, layout: ILayout) {
   switch (layoutComponent.type) {
@@ -43,6 +44,16 @@ function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout): JSX.Elem
   const repeating = layoutGroup.maxCount > 1;
   if (!repeating) {
     // If not repeating, treat as regular components
+    if (layoutGroup.accordion) {
+      return (
+        <DisplayAccordionContainer
+          container={layoutGroup}
+          components={groupComponents}
+          renderLayoutComponent={renderLayoutComponent}
+          iconLabel={layoutGroup.iconLabel}
+        />
+      );
+    }
     return (
       <DisplayGroupContainer
         container={layoutGroup}
