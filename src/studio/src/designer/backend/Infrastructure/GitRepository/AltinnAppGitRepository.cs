@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<Application> GetApplicationMetadata()
         {
             var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-            var fileContent = await ReadTextByRelativePathAsync(appMetadataRealtiveFilePath);
+            var fileContent = await ReadAllTextByRelativePathAsync(appMetadataRealtiveFilePath);
 
             return JsonConvert.DeserializeObject<Application>(fileContent);
         }
@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
 
-            var fileContent = await ReadTextByRelativePathAsync(resourcePath);
+            var fileContent = await ReadAllTextByRelativePathAsync(resourcePath);
             var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
 
             return textResource;

@@ -24,7 +24,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 await gitRepository.WriteTextByRelativePathAsync(filename, expectedContent);
-                var actualContent = await gitRepository.ReadTextByRelativePathAsync(filename);
+                var actualContent = await gitRepository.ReadAllTextByRelativePathAsync(filename);
 
                 Assert.Equal(expectedContent, actualContent);
             }
@@ -44,13 +44,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            var expectedContent = await gitRepository.ReadTextByRelativePathAsync(expectedFilePath);
+            var expectedContent = await gitRepository.ReadAllTextByRelativePathAsync(expectedFilePath);
 
             var filename = $"{Guid.NewGuid()}.json";
             try
             {
                 await gitRepository.WriteTextByRelativePathAsync(filename, expectedContent);
-                var actualContent = await gitRepository.ReadTextByRelativePathAsync(filename);
+                var actualContent = await gitRepository.ReadAllTextByRelativePathAsync(filename);
 
                 Assert.Equal(expectedContent, actualContent);
             }

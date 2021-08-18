@@ -107,10 +107,10 @@ namespace Designer.Tests.Services
                 // Assert
                 var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
 
-                var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
+                var updatedSchema = await altinnGitRepository.ReadAllTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
                 updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
                 
-                var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
+                var xsd = await altinnGitRepository.ReadAllTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
 
                 // Generated XSD included for reference
                 // <?xml version="1.0"?>
@@ -126,7 +126,7 @@ namespace Designer.Tests.Services
                 xsdSchema.Root.Should().NotBeNull();
                 xsdSchema.Root.Elements().First().Attributes().First(a => a.Name.LocalName == "name").Should().HaveValue("root");
 
-                var metadataModelJson = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.metadata.json");
+                var metadataModelJson = await altinnGitRepository.ReadAllTextByRelativePathAsync("App/models/HvemErHvem_SERES.metadata.json");
                 var jsonSchema = JsonSerializer.Deserialize<ModelMetadata>(metadataModelJson);
                 jsonSchema.Org.Should().Be(org);
             }
