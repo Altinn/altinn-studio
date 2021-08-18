@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
@@ -18,6 +19,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Npgsql.Logging;
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 namespace Altinn.Studio.Designer
 {
@@ -82,9 +86,15 @@ namespace Altinn.Studio.Designer
             services.ConfigureDataProtection(Configuration, _logger);
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
+            
+            // services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
+
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication(Configuration, CurrentEnvironment);
 
+            /* services.AddSingleton<IDeploymentRepositoryPostgres, DeploymentRepositoryPostgres>();
+            services.AddSingleton<IReleaseRepositoryPostgres, ReleaseRepositoryPostgres>(); */
+            
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
             // Add application insight telemetry
@@ -131,6 +141,29 @@ namespace Altinn.Studio.Designer
                 appBuilder.UseExceptionHandler("/error");
             }
 
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+            {
+                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+
+                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+                string connectionString = string.Format(
+                    Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                    Configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
+
+                appBuilder.UseYuniql(
+                    new PostgreSqlDataService(traceService),
+                    new PostgreSqlBulkImportService(traceService),
+                    traceService,
+                    new Yuniql.AspNetCore.Configuration
+                    {
+                        Workspace = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                        ConnectionString = connectionString,
+                        IsAutoCreateDatabase = false,
+                        IsDebug = true
+                    });
+            }
+            
             Console.WriteLine($"// Program.cs // Configure // Trying to use static files.");
 
             appBuilder.UseStaticFiles(new StaticFileOptions

@@ -24,7 +24,7 @@
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
     <!-- Do not upgrade this package unless extensively tested-->
-    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
+    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0116" />
     <PackageReference Include="Manatee.Json" Version="13.0.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="2.0.1" />
@@ -45,8 +45,11 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Include="Markdig" Version="0.25.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.7" />
     <PackageReference Include="RestSharp" Version="106.11.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
+    <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

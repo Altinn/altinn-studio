@@ -1,4 +1,5 @@
 using System;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
 using Microsoft.Azure.Documents;

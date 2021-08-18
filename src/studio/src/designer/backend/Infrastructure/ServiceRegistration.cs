@@ -1,5 +1,6 @@
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
 
+            services.AddSingleton<IReleaseRepositoryPostgres, ReleaseRepositoryPostgres>();
+            services.AddSingleton<IDeploymentRepositoryPostgres, DeploymentRepositoryPostgres>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();

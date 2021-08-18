@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -23,8 +22,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class DeploymentService : IDeploymentService
     {
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
-        private readonly ReleaseRepository _releaseRepository;
-        private readonly DeploymentRepository _deploymentRepository;
+        private readonly IDeploymentRepositoryPostgres _deploymentRepositoryPostgres;
+        private readonly IReleaseRepositoryPostgres _releaseRepositoryPostgres;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
@@ -38,13 +37,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IHttpContextAccessor httpContextAccessor,
-            ReleaseRepository releaseRepository,
-            DeploymentRepository deploymentRepository,
+            IDeploymentRepositoryPostgres deploymentRepositoryPostgres,
+            IReleaseRepositoryPostgres releaseRepositoryPostgres,
             IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
-            _releaseRepository = releaseRepository;
-            _deploymentRepository = deploymentRepository;
+            _deploymentRepositoryPostgres = deploymentRepositoryPostgres;
+            _releaseRepositoryPostgres = releaseRepositoryPostgres;
             _applicationInformationService = applicationInformationService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
@@ -60,10 +59,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
-                deploymentEntity.Org,
-                deploymentEntity.App,
-                deploymentEntity.TagName);
+            ReleaseEntity release = await _releaseRepositoryPostgres.GetSucceededReleaseFromDb(deploymentEntity.Org, deploymentEntity.App, deploymentEntity.TagName);
 
             await _applicationInformationService
                 .UpdateApplicationInformationAsync(_org, _app, release.TargetCommitish, deployment.Environment);
@@ -76,7 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            return await _deploymentRepository.CreateAsync(deploymentEntity);
+            return await _deploymentRepositoryPostgres.Create(deploymentEntity);
         }
 
         /// <inheritdoc/>
@@ -84,7 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             query.App = _app;
             query.Org = _org;
-            IEnumerable<DeploymentEntity> results = await _deploymentRepository.GetAsync<DeploymentEntity>(query);
+            IEnumerable<DeploymentEntity> results = await _deploymentRepositoryPostgres.Get(query);
             return new SearchResults<DeploymentEntity>
             {
                 Results = results
@@ -94,23 +90,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task UpdateAsync(DeploymentEntity deployment, string appOwner)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-            {
-                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@buildId", deployment.Build.Id),
-                }
-            };
-            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec, appOwner);
-            DeploymentEntity deploymentEntity = deploymentDocuments.Single();
-
+            DeploymentEntity deploymentEntity = await _deploymentRepositoryPostgres.Get(appOwner, deployment.Build.Id);
             deploymentEntity.Build.Status = deployment.Build.Status;
             deploymentEntity.Build.Result = deployment.Build.Result;
             deploymentEntity.Build.Started = deployment.Build.Started;
             deploymentEntity.Build.Finished = deployment.Build.Finished;
 
-            await _deploymentRepository.UpdateAsync(deploymentEntity);
+            await _deploymentRepositoryPostgres.Update(deploymentEntity);
         }
 
         private async Task<Build> QueueDeploymentBuild(
