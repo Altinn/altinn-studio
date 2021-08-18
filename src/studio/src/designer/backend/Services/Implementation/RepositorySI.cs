@@ -1208,7 +1208,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
 
             var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
-            await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
+
+            // await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
 
             _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
@@ -1244,7 +1245,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 catch (IOException e)
                 {
                     List<string> s = GetProcessesAssociatedToFile(file.FullName);
-                    string m =$"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}";
+                    string m = $"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}";
+                    _logger.LogError($"{m}");
                     throw new Exception(m, e);
                 }
             }
