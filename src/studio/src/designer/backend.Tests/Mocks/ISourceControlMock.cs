@@ -73,7 +73,7 @@ namespace Designer.Tests.Mocks
             TestDataHelper.CopyDirectory(localPath, remotePath, true).ConfigureAwait(false);
         }
 
-        public Task CreateBranch(string org, string repository, string branchName)
+        public static Task CreateBranch(string org, string repository, string branchName)
         {
             return Task.CompletedTask;
         }

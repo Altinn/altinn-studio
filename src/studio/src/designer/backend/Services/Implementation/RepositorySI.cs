@@ -1240,6 +1240,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 File.SetAttributes(file.FullName, FileAttributes.Normal);
                 try
                 {
+                    while (!IsFileReady(file.FullName))
+                    {
+                    }
+
                     File.Delete(file.FullName);
                 }
                 catch (IOException e)
@@ -1258,6 +1262,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
             Directory.Delete(directoryToDeleteInfo.FullName);
+        }
+
+        private bool IsFileReady(string filename)
+        {
+            try
+            {
+                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return inputStream.Length > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static List<string> GetProcessesAssociatedToFile(string file)
