@@ -1202,7 +1202,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Final changes are made in a seperate branch to be reviewed by developer
             string branchName = "complete_copy_of_app";
-            string branchCloneName = $"{targetRepository}_{branchName}_{DateTime.Now.Ticks}";
+            string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
 
             await _sourceControl.CreateBranch(org, targetRepository, branchName);
             _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
