@@ -13,7 +13,7 @@ let appName = config[environment].deployApp;
 
 const getLocation = ClientFunction(() => document.location.href);
 
-fixture('Navigating the App designer')
+fixture.only('Navigating the App designer')
   .page(app.baseUrl)
   .beforeEach(async (t) => {
     t.ctx.at22 = 'AT22-miljøet';
