@@ -54,6 +54,7 @@ namespace Altinn.Studio.Designer.Helpers
                     }
                     catch (IOException)
                     {
+                        // if second attempt fails, it is handles when the directory is deleted
                     }
                 }
             }
