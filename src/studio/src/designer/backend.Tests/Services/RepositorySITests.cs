@@ -206,9 +206,11 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string repository = "apps-test";
 
-            RepositorySI sut = GetServiceForTest(developer);
             Mock<ISourceControl> mock = new Mock<ISourceControl>();
-            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            RepositorySI sut = GetServiceForTest(developer, mock.Object);
 
             // Act
             await sut.DeleteRepository(org, repository);
