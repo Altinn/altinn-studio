@@ -89,5 +89,6 @@ COPY /AppTemplates/AspNet ./Templates/AspNet
 
 COPY src/designer/backend/Languages/ini ./Languages
 
+COPY src/designer/backend/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]
