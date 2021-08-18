@@ -98,7 +98,7 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
           open={this.props.isOpen}
           className={this.props.classes.scroll}
           hideBackdrop={this.props.hideBackdrop}
-          onBackdropClick={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
+          onClose={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
         >
           <div className={classes.modal}>
             <div className={classes.header}>

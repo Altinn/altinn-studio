@@ -17,11 +17,10 @@ const useStyles = makeStyles(() => createStyles({
   },
   errorIcon: {
     color: theme.altinnPalette.primary.red,
-    paddingTop: '0.8rem',
+    fontSize: '36px',
   },
   errorText: {
-    fontSize: '1.4rem',
-    paddingTop: '0.5rem',
+    fontSize: '16px',
   },
 }));
 
@@ -50,6 +49,7 @@ export default function ErrorPopover({
         container={true}
         direction='row'
         spacing={3}
+        alignItems='center'
       >
         <Grid
           item={true}

@@ -1,15 +1,11 @@
 /* tslint:disable:jsx-wrap-multiline */
-// import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
+import { mount } from 'enzyme';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import {
-  getListOfServicesExcludingCodelist,
-  ServicesOverview,
-  // ServicesOverviewComponent,
-} from '../../../features/serviceOverview/servicesOverview';
+import { getListOfServicesExcludingCodelist, ServicesOverview } from '../../../features/serviceOverview/servicesOverview';
 
 describe('>>> features/serviceOverview', () => {
   let mockStore: any;
@@ -18,7 +14,9 @@ describe('>>> features/serviceOverview', () => {
     const createStore = configureStore();
     const initialState = {
       dashboard: {
-        user: 'Ulf Utvikler',
+        user: {
+          full_name: 'Ulf Utvikler',
+        },
         services: [
           {
             name: 'testService',
@@ -51,37 +49,19 @@ describe('>>> features/serviceOverview', () => {
     };
 
     mockStore = createStore(initialState);
-
   });
 
   it('>>> Capture snapshot of serviceOverview', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
-         <ServicesOverview />
+        <ServicesOverview />
       </Provider>,
     );
     expect(rendered).toMatchSnapshot();
   });
 
-  // TODO: Removed failing test related to Material UI v4 upgrade. Should be rewritten in Jest or Test Café
-  // Test does not actually verify that the rendered result is displayed, only that the function is executed.
-  // it('+++ should run searchAndFilterServicesIntoCategoriesCategory on search', () => {
-  //   const mountedServiceOverview = mount(
-  //     <Provider store={mockStore}>
-  //        <ServicesOverview />
-  //     </Provider>,
-  //   );
-  //   const instance = mountedServiceOverview.find('ServicesOverviewComponent').instance() as ServicesOverviewComponent;
-  //   const spy = jest.spyOn(instance, 'searchAndFilterServicesIntoCategoriesCategory');
-
-  //   const searchField = mountedServiceOverview.find('input');
-  //   searchField.simulate('change', { target: {value: 'test'}});
-  //   expect(spy).toHaveBeenCalled();
-  // });
-
   it('+++ if there are no services getListOfServicesExcludingCodelist should return null', () => {
     const services = getListOfServicesExcludingCodelist(null);
-
     expect(services).toEqual(null);
   });
 
