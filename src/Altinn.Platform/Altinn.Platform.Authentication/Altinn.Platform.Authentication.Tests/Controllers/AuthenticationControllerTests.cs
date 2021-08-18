@@ -763,7 +763,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
             string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
-            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=idporten";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act
@@ -796,7 +796,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
             string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
-            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=idporten";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act
@@ -819,7 +819,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
         /// 2. User is redirected from app to authentication component with ISS given
         /// 3. OIDC is disabled
-        /// Expections: Authentication components redirects to SBL
+        /// Expections: Authentication components redirects to SBL, iss ignored
         /// </summary>
         [Fact]
         public async Task AuthenticateUserWithOIDCDisabled_IdportenProviderRequested_RedirectsToSBL()
@@ -829,7 +829,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, false, false);
             string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
 
-            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=idporten";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act
@@ -856,7 +856,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, false);
             string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
 
-            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true";
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Act

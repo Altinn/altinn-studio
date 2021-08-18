@@ -15,8 +15,7 @@ namespace Altinn.Platform.Authentication.Extensions
         /// </summary>
         public static IServiceCollection ConfigureOidcProviders<TOptions>(
         this IServiceCollection services, IConfigurationSection section)
-        where
-        TOptions : class, IDictionary<string, OidcProvider>
+        where TOptions : class, IDictionary<string, OidcProvider>
         {
             IEnumerable<IConfigurationSection> providerSections = section.GetChildren();
 
