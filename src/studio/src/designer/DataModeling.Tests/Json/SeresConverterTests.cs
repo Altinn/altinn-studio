@@ -22,22 +22,22 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var expected = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
-            var actual = converter.Convert(schema);
+            var actualXsd = converter.Convert(jsonSchema);
 
             string actualXml;
             await using (var sw = new StringWriter())
             await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
             {
-                actual.Write(xw);
+                actualXsd.Write(xw);
                 actualXml = sw.ToString();
             }
 
-            XmlSchemaAssertions.IsEquivalentTo(expected, actual);
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
     }
 }
