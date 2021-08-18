@@ -66,7 +66,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       return false;
     }
 
-    if (repoName && !appNameRegex.test(repoName)) {
+    if (!appNameRegex.test(repoName)) {
       setErrorMessage(getLanguageFromKey('dashboard.service_name_has_illegal_characters', language));
       return false;
     }
