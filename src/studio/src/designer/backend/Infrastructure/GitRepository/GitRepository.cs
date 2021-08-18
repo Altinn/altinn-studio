@@ -92,7 +92,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>        
         /// <param name="relativeFilePath">The relative path to the file.</param>
         /// <returns>A string containing the file content</returns>
-        public async Task<string> ReadAllTextByRelativePathAsync(string relativeFilePath)
+        public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath)
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
@@ -105,19 +105,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // Should try to fix this as this method is more performant than ReadAllTextAsync.
             // return await ReadTextAsync(absoluteFilePath)
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Returns the content of a file path relative to the repository directory
-        /// </summary>        
-        /// <param name="relativeFilePath">The relative path to the file.</param>
-        /// <returns>A string containing the file content</returns>
-        public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath)
-        {
-            var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
-
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
-            return await ReadTextAsync(absoluteFilePath);
         }
 
         /// <summary>
