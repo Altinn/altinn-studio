@@ -78,7 +78,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetUsersCurrent_AsOrg_ResponseBadReqquest()
+        public async Task GetUsersCurrent_AsOrg_ResponseBadRequest()
         {
             // Arrange
             const int UserId = 2516356;
