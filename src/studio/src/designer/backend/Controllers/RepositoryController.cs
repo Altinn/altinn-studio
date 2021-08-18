@@ -347,8 +347,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public async Task<RepositoryModel> CreateApp(string org, string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, string repository)
         {
+            try
+            {
+                Guard.AssertValidAppRepoName(repository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{repository} is an invalid repository name.");
+            }
+
             var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
@@ -372,6 +381,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
         {
+            try
+            {
+                Guard.AssertValidAppRepoName(targetRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{targetRepository} is an invalid repository name.");
+            }
+
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
@@ -387,7 +405,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)
-            {                
+            {
                 await _repository.DeleteRepository(org, targetRepository);
                 return StatusCode(500, e);
             }
