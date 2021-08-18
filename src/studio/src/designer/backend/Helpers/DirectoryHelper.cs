@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -15,8 +17,6 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="directoryToDelete">Full path to the directory.</param>
         public static void DeleteFilesAndDirectory(string directoryToDelete)
         {
-            List<string> failedFiles = new List<string>();
-
             DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
 
             if (!directoryToDeleteInfo.Exists)
@@ -27,36 +27,10 @@ namespace Altinn.Studio.Designer.Helpers
             DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
 
             FileInfo[] files = directoryToDeleteInfo.GetFiles();
-
             foreach (FileInfo file in files)
             {
                 File.SetAttributes(file.FullName, FileAttributes.Normal);
-
-                try
-                {
-                    File.Delete(file.FullName);
-                }
-                catch (IOException)
-                {
-                    failedFiles.Add(file.FullName);
-                }
-            }
-
-            if (failedFiles.Count > 0)
-            {
-                Thread.Sleep(1000);
-
-                foreach (string file in failedFiles)
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (IOException)
-                    {
-                        // if second attempt fails, it is handles when the directory is deleted
-                    }
-                }
+                File.Delete(file.FullName);
             }
 
             foreach (DirectoryInfo directory in subDirectories)
@@ -65,7 +39,7 @@ namespace Altinn.Studio.Designer.Helpers
             }
 
             File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
-            Directory.Delete(directoryToDeleteInfo.FullName, true);
+            Directory.Delete(directoryToDeleteInfo.FullName);
         }
     }
 }
