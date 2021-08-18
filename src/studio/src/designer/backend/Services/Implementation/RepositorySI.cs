@@ -1214,77 +1214,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
-            DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
+            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
-        }
-
-        /// <summary>
-        /// Deleted all files and subdirectories before deleting the directory.
-        /// </summary>
-        /// <param name="directoryToDelete">Full path to the directory.</param>
-        public void DeleteFilesAndDirectory(string directoryToDelete)
-        {
-            DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
-
-            if (!directoryToDeleteInfo.Exists)
-            {
-                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
-            }
-
-            DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
-
-            FileInfo[] files = directoryToDeleteInfo.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                File.SetAttributes(file.FullName, FileAttributes.Normal);
-                try
-                {
-                    while (!IsFileReady(file.FullName))
-                    {
-                    }
-
-                    File.Delete(file.FullName);
-                }
-                catch (IOException e)
-                {
-                    List<string> s = GetProcessesAssociatedToFile(file.FullName);
-                    string m = $"// RepositorySI  // DeleteDirectory // {string.Join(" ,", s)}";
-                    _logger.LogError($"{m}");
-                    throw new Exception(m, e);
-                }
-            }
-
-            foreach (DirectoryInfo directory in subDirectories)
-            {
-                DeleteFilesAndDirectory(directory.FullName);
-            }
-
-            File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
-            Directory.Delete(directoryToDeleteInfo.FullName);
-        }
-
-        private bool IsFileReady(string filename)
-        {
-            try
-            {
-                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    return inputStream.Length > 0;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        private static List<string> GetProcessesAssociatedToFile(string file)
-        {
-            return Process.GetProcesses()
-                .Where(x => !x.HasExited
-                    && x.Modules.Cast<ProcessModule>().ToList()
-                        .Exists(y => y.FileName.ToLowerInvariant() == file.ToLowerInvariant())).ToList().Select(p => p.ProcessName).ToList();
         }
 
         /// <summary>
