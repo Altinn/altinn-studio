@@ -53,6 +53,7 @@
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
   </ItemGroup>

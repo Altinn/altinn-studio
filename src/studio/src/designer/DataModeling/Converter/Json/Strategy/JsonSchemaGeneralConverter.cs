@@ -79,8 +79,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         HandleRootMessage(keywords);
                         break;
                     case PropertiesKeyword:
-                        keywords.MarkAsHandled<PropertiesKeyword>();
                         HandleRootMessage(keywords);
+                        keywords.MarkAsHandled<PropertiesKeyword>();
                         break;
                 }
             }
@@ -296,6 +296,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var item = new XmlSchemaComplexType
             {
                 Parent = element
+                
             };
             element.SchemaType = item;
             HandleComplexType(item, keywords, path);

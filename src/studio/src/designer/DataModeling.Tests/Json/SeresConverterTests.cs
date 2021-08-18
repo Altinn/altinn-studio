@@ -5,7 +5,6 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json
@@ -16,8 +15,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_allOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_anyOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
-
-        // [InlineData(@"Model\JsonSchema\SeresBasicSchema_inline.json", @"Model\XmlSchema\SeresBasicSchema.xsd", Skip = "Does not support this yet")]
+        [InlineData(@"Model\JsonSchema\SeresBasicSchema_inline.json", @"Model\XmlSchema\SeresBasicSchema_inline.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
