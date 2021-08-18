@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Helpers;
@@ -104,7 +105,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // and that the BOM bytes isn't removed on read in the ReadTextAsync method.
             // Should try to fix this as this method is more performant than ReadAllTextAsync.
             // return await ReadTextAsync(absoluteFilePath)
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+            File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
+
+            try
+            {
+                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(1000);
+                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+            }
         }
 
         /// <summary>
