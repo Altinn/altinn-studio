@@ -132,13 +132,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return true;
             }
 
-            if (schema.HasKeyword<RefKeyword>())
+            if (schema.TryGetKeyword(out RefKeyword refKeyword))
             {
-                var keyword = schema.GetKeyword<RefKeyword>();
-                var subschema = FollowReference(keyword);
-                if (subschema.HasKeyword<PropertiesKeyword>())
+                var subschema = FollowReference(refKeyword);
+
+                return IsValidComplexType(subschema);
+            }
+
+            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+            {
+                foreach (var subSchema in allOfKeyword.GetSubschemas())
                 {
-                    return true;
+                    var isComplexType = IsValidComplexType(subSchema);
+                    if (isComplexType)
+                    {
+                        return true;
+                    }
                 }
             }
 
