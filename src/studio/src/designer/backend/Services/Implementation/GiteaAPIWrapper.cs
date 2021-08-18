@@ -320,7 +320,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<Branch> CreateBranch(string org, string repository, string branchName)
         {
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/branches", new StringContent(content, Encoding.UTF8, "application/json"));
+
+            HttpRequestMessage m = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            m.Content = new StringContent(content, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.SendAsync(m);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {

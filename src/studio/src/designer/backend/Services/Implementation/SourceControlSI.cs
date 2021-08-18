@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -208,6 +209,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
+        [ExcludeFromCodeCoverage]
         public async Task<bool> Push(string org, string repository)
         {
             bool pushSuccess = true;
@@ -245,6 +247,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
+        [ExcludeFromCodeCoverage]
         public void Commit(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -529,6 +532,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        [ExcludeFromCodeCoverage]
         private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
         {
             using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localPath))
@@ -587,6 +591,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
+        [ExcludeFromCodeCoverage]
         public void ResetCommit(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -607,6 +612,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
+        [ExcludeFromCodeCoverage]
         public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -627,6 +633,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <param name="fileName">the entire file path with filen name</param>
+        [ExcludeFromCodeCoverage]
         public void StageChange(string org, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -648,6 +655,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
+        [ExcludeFromCodeCoverage]
         public void AbortMerge(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
