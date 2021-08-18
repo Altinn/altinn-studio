@@ -198,6 +198,25 @@ namespace Designer.Tests.Services
             Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
         }
 
+        [Fact]
+        public async Task DeleteRepository_SourceControlServiceIsCalled()
+        {
+            // Arrange
+            string developer = "testUser";
+            string org = "ttd";
+            string repository = "apps-test";
+
+            RepositorySI sut = GetServiceForTest(developer);
+            Mock<ISourceControl> mock = new Mock<ISourceControl>();
+            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+
+            // Act
+            await sut.DeleteRepository(org, repository);
+
+            // Assert
+            mock.VerifyAll();
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new List<Claim>();
@@ -228,13 +247,14 @@ namespace Designer.Tests.Services
             }
         }
 
-        private static RepositorySI GetServiceForTest(string developer)
+        private static RepositorySI GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
+            sourceControlMock ??= new ISourceControlMock();
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
@@ -247,7 +267,7 @@ namespace Designer.Tests.Services
                 new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
-                new ISourceControlMock(),
+                sourceControlMock,
                 new Mock<ILoggerFactory>().Object,
                 new Mock<ILogger<RepositorySI>>().Object,
                 altinnGitRepositoryFactory);

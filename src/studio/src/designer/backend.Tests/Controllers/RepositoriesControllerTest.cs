@@ -170,6 +170,42 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
         }
 
+        [Fact]
+        public async Task CopyApp_InvalidTargetRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApp_InvalidRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CreateApp?org=ttd&repository=2021-application";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
         private HttpClient GetTestClient(IRepository repositoryService)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoriesControllerTest).Assembly.Location).LocalPath);

@@ -85,7 +85,7 @@ namespace Designer.Tests.Mocks
 
         public Task DeleteRepository(string org, string repository)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public void FetchRemoteChanges(string org, string repository)
