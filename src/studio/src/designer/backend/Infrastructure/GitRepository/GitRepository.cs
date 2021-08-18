@@ -234,7 +234,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string text = await ReadTextByRelativePathAsync(relativePath);
             text = text.Replace(searchString, replaceString);
 
-            await WriteTextByRelativePathAsync(relativePath, text);
+            //  await WriteTextByRelativePathAsync(relativePath, text);
         }
 
         private static void CopyAll(string sourceDirectory, string targetDirectory)
