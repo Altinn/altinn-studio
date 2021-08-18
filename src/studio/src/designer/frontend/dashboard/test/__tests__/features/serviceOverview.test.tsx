@@ -2,7 +2,6 @@
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import { mount } from 'enzyme';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { getListOfServicesExcludingCodelist, ServicesOverview } from '../../../features/serviceOverview/servicesOverview';
