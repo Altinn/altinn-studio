@@ -546,8 +546,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                     }
 
-                    Branch b = repo.Branches[branchName];
-
                     Commands.Stage(repo, "*");
 
                     LibGit2Sharp.Signature signature = GetDeveloperSignature();
@@ -556,6 +554,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     PushOptions options = new PushOptions();
                     options.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                    if (branchName == "master")
+                    {
+                        repo.Network.Push(remote, @"refs/heads/master", options);
+                        return;
+                    }
+
+                    Branch b = repo.Branches[branchName];
                     repo.Network.Push(b, options);
                 }
             }
