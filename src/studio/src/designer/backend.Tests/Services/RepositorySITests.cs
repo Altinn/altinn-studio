@@ -32,6 +32,13 @@ namespace Designer.Tests.Services
 {
     public class RepositorySITests : IDisposable
     {
+        private readonly ITestOutputHelper _i;
+
+        public RepositorySITests(ITestOutputHelper i)
+        {
+            _i = i;
+        }
+
         public void Dispose()
         {
             string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test-clone", "testUser");
@@ -166,6 +173,8 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CopyRepository_TargetDoesNotExistsLocally()
         {
+            _i.WriteLine("////////////////////////// testing write line");
+
             // Arrange
             string developer = "testUser";
             string org = "ttd";
@@ -183,7 +192,15 @@ namespace Designer.Tests.Services
             RepositorySI sut = GetServiceForTest(developer);
 
             // Act
-            await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+            try
+            {
+                await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+            }
+            catch (Exception e)
+            {
+                _i.WriteLine(e.Message);
+                throw;
+            }
 
             // Assert
             string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
