@@ -521,7 +521,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -562,7 +562,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -577,6 +577,9 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             // Verify that XSRF token cookie set is set. 
             ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
+
+            // Verify GoToCookie
+            ValidateGoToCookie(redirectToOidcProviderResponse, HttpUtility.UrlEncode(gotoUrl));
 
             // Verify that all required OIDC Params are set and have the correct values
             ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "2314534634r2", out string stateParam, out string nonceParam, out string redirectUriParam);
@@ -624,7 +627,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -677,7 +680,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -725,7 +728,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -758,7 +761,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee =true&iss=idporten";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1121,7 +1124,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
-        private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool oidcDefault = false, string defaultOidc = "altinn")
+        private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool forceOidc = false, string defaultOidc = "altinn")
         {
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
@@ -1137,7 +1140,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                   .Build();
 
                 configuration.GetSection("GeneralSettings:EnableOidc").Value = enableOidc.ToString();
-                configuration.GetSection("GeneralSettings:OidcDefault").Value = oidcDefault.ToString();
+                configuration.GetSection("GeneralSettings:ForceOidc").Value = forceOidc.ToString();
                 configuration.GetSection("GeneralSettings:DefaultOidcProvider").Value = defaultOidc;
 
                 IConfigurationSection generalSettingSection = configuration.GetSection("GeneralSettings");
@@ -1168,7 +1171,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private static string GetAuthenticationUrlWithToken(string redirectUri, string state, string code, string iss)
         {
-            return redirectUri + "&state=" + state + "&code=" + code + "&iss=" + iss;
+            return redirectUri + "?state=" + state + "&code=" + code + "&iss=" + iss;
         }
 
         private static string CreateOidcCode(string userId, string partyId, string nonce)
@@ -1223,6 +1226,23 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             return cookieIsSet;
         }
 
+        private static bool HasCookieValue(IEnumerable<string> setCookieHeaders, string cookieName, string cookieValue)
+        {
+            bool cookieIsSet = false;
+            foreach (string header in setCookieHeaders)
+            {
+                if (header.Contains(cookieName))
+                {
+                    cookieIsSet = true;
+                    string cookieValueSet = header.Split(";")[0];
+                    string cookieValueClean = cookieValueSet.Replace(cookieName + "=", string.Empty).Trim();
+                    return cookieValueClean.ToLower().Equals(cookieValue.Trim().ToLower());
+                }
+            }
+
+            return cookieIsSet;
+        }
+
         private static void ValidateOidcParams(
             Uri redirectToOidcProviderUri,
             string expectedRedirectUri,
@@ -1256,6 +1276,13 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.NotEmpty(setCookieHeaders);
             Assert.True(IsCookieSet(setCookieHeaders, "AS-XSRF-TOKEN"));
             Assert.True(IsCookieSet(setCookieHeaders, "oidcnonce"));
+        }
+
+        private static void ValidateGoToCookie(HttpResponseMessage redirectToOidcProviderResponse, string gotoUrl)
+        {
+            redirectToOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> setCookieHeaders);
+            Assert.NotEmpty(setCookieHeaders);
+            Assert.True(HasCookieValue(setCookieHeaders, "authngoto", gotoUrl));
         }
     }
 }

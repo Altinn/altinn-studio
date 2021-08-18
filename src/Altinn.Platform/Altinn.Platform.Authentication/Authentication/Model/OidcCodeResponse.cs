@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authentication.Model
 {
@@ -16,32 +10,37 @@ namespace Altinn.Platform.Authentication.Model
         /// <summary>
         /// Number of seconds until this access_token is no longer valid
         /// </summary>
-        public int Expires_in { get; set;  }
+        [JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; set;  }
 
         /// <summary>
         /// An Oauth2 access token, either by reference or as a JWT depending on which scopes was requested and/or client registration properties.
         /// </summary>
-        public string Access_token { get; set; }
+        [JsonPropertyName("access_token")]
+        public string AccessToken { get; set; }
 
         /// <summary>
         /// Type of token
         /// </summary>
-        public string Token_type { get; set; }
+        [JsonPropertyName("token_type")]
+        public string TokenType { get; set; }
 
         /// <summary>
         /// An OpenID Connect id_token. Only returned if ‘openid’ scope was requested.
         /// </summary>
         [JsonPropertyName("id_token")]
-        public string Id_token { get; set; }
+        public string IdToken { get; set; }
 
         /// <summary>
         /// The list of scopes issued in the access token. Included for convenience only, and should not be trusted for access control decisions.
         /// </summary>
+        [JsonPropertyName("scope")]
         public string Scope { get; set; }
 
         /// <summary>
         /// Issued to confidential clients
         /// </summary>
-        public string Refresh_token { get; set; }
+        [JsonPropertyName("refresh_token")]
+        public string RefreshToken { get; set; }
     }
 }

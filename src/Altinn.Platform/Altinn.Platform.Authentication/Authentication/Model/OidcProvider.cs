@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Altinn.Platform.Authentication.Model
 {
     /// <summary>
@@ -46,8 +41,18 @@ namespace Altinn.Platform.Authentication.Model
         public string ClientId { get; set; }
 
         /// <summary>
+        /// The client secret
+        /// </summary>
+        public string ClientSecret { get; set; }
+
+        /// <summary>
         /// The response type
         /// </summary>
         public string ResponseType { get; set; } = "code";
+
+        /// <summary>
+        /// A list of non standard claims that should be copied to 
+        /// </summary>
+        public string ClaimsToCopyTo { get; set; }
     }
 }

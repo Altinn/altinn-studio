@@ -6,18 +6,15 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Platform.Authentication.Services
 {
     /// <summary>
-    /// Oidc provider for exchanging authorization code in token
+    /// Oidc provider for mocking OIDC Providers
     /// </summary>
     public class OidcProviderServiceMock : IOidcProvider
     {
-        private readonly ILogger _logger;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="OidcProviderServiceMock"/> class.
         /// </summary>
-        public OidcProviderServiceMock(ILogger<OidcProviderServiceMock> logger)
+        public OidcProviderServiceMock()
         {
-             _logger = logger;
         }
 
         /// <summary>
@@ -26,8 +23,8 @@ namespace Altinn.Platform.Authentication.Services
         public Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
             OidcCodeResponse codeResponse = new OidcCodeResponse();
-            codeResponse.Access_token = authorizationCode;
-            codeResponse.Id_token = authorizationCode;
+            codeResponse.AccessToken = authorizationCode;
+            codeResponse.IdToken = authorizationCode;
             return Task.FromResult(codeResponse);
         }
     }

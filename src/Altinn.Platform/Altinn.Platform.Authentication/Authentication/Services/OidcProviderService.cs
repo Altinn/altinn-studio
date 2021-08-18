@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web;
-using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authentication.Services
 {
@@ -35,22 +31,29 @@ namespace Altinn.Platform.Authentication.Services
         public async Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
             OidcCodeResponse codeResponse = null;
-            List<KeyValuePair<string, string>> kvps = new List<KeyValuePair<string, string>>();
-
+            Dictionary<string, string> kvps = new Dictionary<string, string>();
+ 
             // REQUIRED.  The authorization code received from the authorization server.
-            kvps.Add(new KeyValuePair<string, string>("code", authorizationCode));
+            kvps.Add("code", authorizationCode);
 
             // REQUIRED, if the "redirect_uri" parameter was included in the
             // authorization request as described in Section 4.1.1, and their values MUST be identical.
-            kvps.Add(new KeyValuePair<string, string>("redirect_uri", HttpUtility.UrlEncode(redirect_uri)));
+            kvps.Add("redirect_uri", redirect_uri);
 
             // REQUIRED.  Value MUST be set to "authorization_code".
-            kvps.Add(new KeyValuePair<string, string>("grant_type", "authorization_code"));
+            kvps.Add("grant_type", "authorization_code");
 
             // REQUIRED.  Value MUST be set to "authorization_code".
-            kvps.Add(new KeyValuePair<string, string>("client_id", "authorization_code"));
+            kvps.Add("client_id", provider.ClientId);
+
+            // Client secret. Set if configured
+            if (!string.IsNullOrEmpty(provider.ClientSecret))
+            {
+                kvps.Add("client_secret", provider.ClientSecret);
+            }
 
             FormUrlEncodedContent formUrlEncodedContent = new FormUrlEncodedContent(kvps);
+            
             HttpResponseMessage response = await _httpClient.PostAsync(provider.TokenEndpoint, formUrlEncodedContent);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {

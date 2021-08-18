@@ -123,6 +123,11 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
+            if (string.IsNullOrEmpty(goTo) && HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName] != null)
+            {
+                goTo = HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName];
+            }
+
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
                 return Redirect($"{_generalSettings.GetBaseUrl}");
@@ -140,7 +145,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             string oidcissuer = Request.Query["iss"];
             UserAuthenticationModel userAuthentication;
-            if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.OidcDefault))
+            if (_generalSettings.EnableOidc && (!string.IsNullOrEmpty(oidcissuer) || _generalSettings.ForceOidc))
             {
                 OidcProvider provider = GetOidcProvider(oidcissuer);
 
@@ -166,8 +171,8 @@ namespace Altinn.Platform.Authentication.Controllers
                         return BadRequest("Invalid state param");
                     }
 
-                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri(goTo));
-                    JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.Id_token, provider);
+                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
+                    JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider);
                     userAuthentication = GetUserFromToken(jwtSecurityToken);
 
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
@@ -182,9 +187,10 @@ namespace Altinn.Platform.Authentication.Controllers
 
                     // Create Nonce. One is added to a cookie and another is sent as nonce parameter to OIDC provider
                     string nonce = CreateNonce(HttpContext);
+                    CreateGoToCookie(HttpContext, goTo);
 
                     // Redirect to OIDC Provider
-                    return Redirect(CreateAuthenticationRequest(provider, goTo, tokens.RequestToken, nonce));
+                    return Redirect(CreateAuthenticationRequest(provider, tokens.RequestToken, nonce));
                 }
             }
             else
@@ -813,10 +819,9 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Builds URI to redirect for OIDC login for authentication
         /// Based on https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
         /// </summary>
-        /// <returns></returns>
-        private string CreateAuthenticationRequest(OidcProvider provider, string goTo, string state, string nonce)
+        private string CreateAuthenticationRequest(OidcProvider provider, string state, string nonce)
         {
-            string redirect_uri = GetRedirectUri(goTo);
+            string redirect_uri = GetRedirectUri();
             string authorizationEndpoint = provider.AuthorizationEndpoint;
             Dictionary<string, string> oidcParams = new Dictionary<string, string>();
 
@@ -836,7 +841,8 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             // REQUIRED. OpenID Connect requests MUST contain the openid scope value. If the openid scope value is not present,
-            // the behavior is entirely unspecified. Other scope values MAY be present. Scope values used that are not understood by an implementation SHOULD be ignored.
+            // the behavior is entirely unspecified. Other scope values MAY be present.
+            // Scope values used that are not understood by an implementation SHOULD be ignored.
             // See Sections 5.4 and 11 for additional scope values defined by this specification.
             oidcParams.Add("scope", provider.Scope);
 
@@ -847,11 +853,14 @@ namespace Altinn.Platform.Authentication.Controllers
             // are returned from the endpoints used. When using the Authorization Code Flow, this value is code.
             oidcParams.Add("response_type", provider.ResponseType);
 
-            // RECOMMENDED. Opaque value used to maintain state between the request and the callback. Typically, Cross-Site Request Forgery (CSRF, XSRF)
+            // RECOMMENDED. Opaque value used to maintain state between the request and the callback.
+            // Typically, Cross-Site Request Forgery (CSRF, XSRF)
             // mitigation is done by cryptographically binding the value of this parameter with a browser cookie.
             oidcParams.Add("state", state);
 
-            // OPTIONAL. String value used to associate a Client session with an ID Token, and to mitigate replay attacks. The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient entropy MUST be present in the nonce values used to prevent attackers
+            // OPTIONAL. String value used to associate a Client session with an ID Token, and to mitigate replay attacks.
+            // The value is passed through unmodified from the Authentication Request to the ID Token.
+            // Sufficient entropy MUST be present in the nonce values used to prevent attackers
             // from guessing values. For implementation notes, see Section 15.5.2.
             oidcParams.Add("nonce", nonce);
             string uri = QueryHelpers.AddQueryString(authorizationEndpoint, oidcParams);
@@ -859,10 +868,9 @@ namespace Altinn.Platform.Authentication.Controllers
             return uri;
         }
 
-        private string GetRedirectUri(string goTo)
+        private string GetRedirectUri()
         {
-           goTo = HttpUtility.UrlEncode(goTo);
-           return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication?goto={goTo}";
+           return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication";
         }
 
         private string CreateNonce(HttpContext httpContext)
@@ -870,6 +878,11 @@ namespace Altinn.Platform.Authentication.Controllers
             string nonce = Guid.NewGuid().ToString();
             httpContext.Response.Cookies.Append(_generalSettings.OidcNonceCookieName, nonce);
             return HashNonce(nonce);
+        }
+
+        private void CreateGoToCookie(HttpContext httpContext, string goToUrl)
+        {
+            httpContext.Response.Cookies.Append(_generalSettings.AuthnGotToCookieName, goToUrl);
         }
 
         private async Task CreateTokenCookie(UserAuthenticationModel userAuthentication)

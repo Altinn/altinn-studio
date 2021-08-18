@@ -183,13 +183,18 @@ namespace Altinn.Platform.Authentication.Configuration
         public string DefaultOidcProvider { get; set; }
 
         /// <summary>
-        /// Get or sets the 
+        /// Defines if OIDC is the default authentication
         /// </summary>
-        public bool OidcDefault { get; set; }
+        public bool ForceOidc { get; set; }
 
         /// <summary>
         /// Name of Oidc Nonce cookie
         /// </summary>
         public string OidcNonceCookieName { get; set; } = "oidcnonce";
+
+        /// <summary>
+        /// Cookie to store original 
+        /// </summary>
+        public string AuthnGotToCookieName { get; set; } = "authngoto";
     }
 }
