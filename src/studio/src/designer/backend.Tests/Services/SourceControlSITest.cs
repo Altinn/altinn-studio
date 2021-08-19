@@ -73,7 +73,7 @@ namespace Designer.Tests.Services
             mock.VerifyAll();
         }
 
-        private async Task PrepareTestData(string org, string app, string developer)
+        private static async Task PrepareTestData(string org, string app, string developer)
         {
             string source = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
             await TestDataHelper.CopyDirectory($"{source}.pretest", source, true);
