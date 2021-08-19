@@ -38,7 +38,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
         }));
         handleClose();
       } catch (error) {
-        if (error?.response?.status !== 409) {
+        if (error?.response?.status === 409) {
           setErrorMessage(getLanguageFromKey('dashboard.app_already_exist', language));
         } else {
           setErrorMessage(getParsedLanguageFromKey('dashboard.unknown_error_copy', language));
