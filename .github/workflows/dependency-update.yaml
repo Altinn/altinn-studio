@@ -1,7 +1,7 @@
 name: Update dependencies
 on:
-  schedule:
-    - cron: '0 8 * * 4' # every thursday @ 08:00
+  push:
+    branches: [ feature/6644-automate-dependency-updates ]
 
 jobs:
   npm_update_sync:
