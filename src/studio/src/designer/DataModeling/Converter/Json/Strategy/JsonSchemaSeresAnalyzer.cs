@@ -151,6 +151,30 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
+            if (schema.TryGetKeyword(out AnyOfKeyword anyOfKeyword))
+            {
+                foreach (var subSchema in anyOfKeyword.GetSubschemas())
+                {
+                    var isComplexType = IsValidComplexType(subSchema);
+                    if (isComplexType)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (schema.TryGetKeyword(out OneOfKeyword oneOfKeyword))
+            {
+                foreach (var subSchema in oneOfKeyword.GetSubschemas())
+                {
+                    var isComplexType = IsValidComplexType(subSchema);
+                    if (isComplexType)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 

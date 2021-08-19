@@ -46,41 +46,68 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     case SchemaKeyword:
                         break;
+
                     case IdKeyword:
                         break;
+
                     case TypeKeyword:
                         break;
+
                     case XsdNamespacesKeyword:
                         break;
+
                     case XsdSchemaAttributesKeyword:
                         break;
+
                     case InfoKeyword x:
                         keywords.MarkAsHandled<InfoKeyword>();
                         HandleInfoKeyword(x);
                         break;
+
                     case DefsKeyword x:
                         keywords.MarkAsHandled<DefsKeyword>();
                         HandleDefinitions(JsonPointer.Parse($"#/{x.Keyword()}"), x.Definitions);
                         break;
+
                     case DefinitionsKeyword x:
                         keywords.MarkAsHandled<DefinitionsKeyword>();
                         HandleDefinitions(JsonPointer.Parse($"#/{x.Keyword()}"), x.Definitions);
                         break;
+
                     case OneOfKeyword:
-                        keywords.MarkAsHandled<OneOfKeyword>();
+                        if (!_metadata.HasInlineRoot)
+                        {
+                            keywords.MarkAsHandled<OneOfKeyword>();
+                        }
+
                         HandleRootMessage(keywords);
                         break;
+
                     case AnyOfKeyword:
-                        keywords.MarkAsHandled<AnyOfKeyword>();
+                        if (!_metadata.HasInlineRoot)
+                        {
+                            keywords.MarkAsHandled<AnyOfKeyword>();
+                        }
+
                         HandleRootMessage(keywords);
                         break;
+
                     case AllOfKeyword:
-                        keywords.MarkAsHandled<AllOfKeyword>();
+                        if (!_metadata.HasInlineRoot)
+                        {
+                            keywords.MarkAsHandled<AllOfKeyword>();
+                        }
+
                         HandleRootMessage(keywords);
                         break;
+
                     case PropertiesKeyword:
-                        HandleRootMessage(keywords);
-                        keywords.MarkAsHandled<PropertiesKeyword>();
+                        if (!_metadata.HasInlineRoot)
+                        {
+                            keywords.MarkAsHandled<PropertiesKeyword>();
+                        }
+
+                        HandleRootMessage(keywords);                        
                         break;
                 }
             }
