@@ -130,7 +130,6 @@ export function ServiceCard(props: IServiceCardProps) {
               <IconButton
                 className={classes.ellipsisButton}
                 id='ellipsis-button'
-                style={{ visibility: 'visible' }}
                 onClick={handleIconClick}
               >
                 <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />

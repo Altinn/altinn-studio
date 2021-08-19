@@ -54,9 +54,11 @@ function ServiceMenu(props: IServiceMenuProps) {
         <MenuItem id='new-tab-menu-button' onClick={openDesigner}>
           <ListItemText>{getLanguageFromKey('dashboard.open_new_tab', language)}</ListItemText>
         </MenuItem>
-        <MenuItem id='make-copy-menu-button' onClick={makeCopy}>
-          <ListItemText>{getLanguageFromKey('dashboard.make_copy', language)}</ListItemText>
-        </MenuItem>
+        {!service.full_name.endsWith('-datamodels') &&
+          <MenuItem id='make-copy-menu-button' onClick={makeCopy}>
+            <ListItemText>{getLanguageFromKey('dashboard.make_copy', language)}</ListItemText>
+          </MenuItem>
+        }
       </StyledMenu>
       <MakeCopyModal
         anchorEl={copyModalAnchor}
