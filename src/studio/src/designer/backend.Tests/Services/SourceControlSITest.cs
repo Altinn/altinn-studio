@@ -11,6 +11,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 using AltinnCore.Authentication.Constants;
 
+using Designer.Tests.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -27,17 +29,25 @@ namespace Designer.Tests.Services
         public async Task DeleteRepository_GiteaServiceIsCalled()
         {
             // Arrange
+            string org = "ttd";
+            string app = "app-for-deletion";
+            string developer = "testUser";
+
+            await PrepareTestData(org, app, developer);
+
             Mock<IGitea> mock = new Mock<IGitea>();
             mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(true);
 
-            SourceControlSI sut = GetServiceForTest("testUser", mock);
+            SourceControlSI sut = GetServiceForTest(developer, mock);
 
             // Act
-            await sut.DeleteRepository("ttd", "apps-test");
+            await sut.DeleteRepository(org, app);
+            string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
             // Assert
             mock.VerifyAll();
+            Assert.False(Directory.Exists(expectedPath));
         }
 
         [Fact]
@@ -61,6 +71,12 @@ namespace Designer.Tests.Services
 
             // Assert
             mock.VerifyAll();
+        }
+
+        private async Task PrepareTestData(string org, string app, string developer)
+        {
+            string source = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
+            await TestDataHelper.CopyDirectory($"{source}.pretest", source, true);
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)

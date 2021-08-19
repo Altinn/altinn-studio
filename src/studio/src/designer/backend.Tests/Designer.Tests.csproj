@@ -86,9 +86,6 @@
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="_TestData\Repositories\testUser\ttd\apps-test-2021\" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
