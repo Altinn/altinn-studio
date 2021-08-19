@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             _logger.LogInformation("hostname: " + _generalSettings.HostName); 
             _logger.LogInformation("requestbody: " + requestBody);
             _logger.LogInformation("responsecode: " + response.StatusCode);
-            _logger.LogInformation("content: " + response.Content.ReadAsAsync<string>());
+            _logger.LogInformation("content: " + response.Content.ReadAsStringAsync());
             return await response.Content.ReadAsAsync<Build>();
         }
     }
