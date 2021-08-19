@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json.Schema;
@@ -1171,7 +1173,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer)
         {
-            var options = new RepositoryClient.Model.CreateRepoOption(targetRepository);
+            var options = new CreateRepoOption(targetRepository);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
@@ -1189,29 +1191,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Directory.Move(targetRepositoryPath, backupPath);
             }
 
-            _sourceControl.CloneRemoteRepository(org, targetRepository);
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-
-            // clone source repository
-            string sourceCloneName = $"{sourceRepository}_COPY_OF_ORIGIN_{DateTime.Now.Ticks}";     
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, sourceCloneName, developer));
-
-            var sourceAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, sourceCloneName, developer);
-
-            try
-            {
-                sourceAppRepository.CopyRepository(targetAppRepository.RepositoryDirectory);
-            }
-            finally
-            {
-                Directory.Delete(sourceAppRepository.RepositoryDirectory, true);
-            }
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
             await targetAppRepository.UpdateAppId();
 
             CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);
+
+            // Final changes are made in a seperate branch to be reviewed by developer
+            string branchName = "complete_copy_of_app";
+            string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
+
+            await _sourceControl.CreateBranch(org, targetRepository, branchName);
+            _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
+
+            var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
+
+            await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
+
+            _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
+
+            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
         }
@@ -1885,6 +1888,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 File.Delete(path);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteRepository(string org, string repository)
+        {
+            await _sourceControl.DeleteRepository(org, repository);
         }
 
         private class ResourceWrapper

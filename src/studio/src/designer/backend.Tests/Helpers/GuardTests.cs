@@ -1,5 +1,7 @@
 using System;
+
 using Altinn.Studio.Designer.Helpers;
+
 using Xunit;
 
 namespace Designer.Tests.Helpers
@@ -23,6 +25,23 @@ namespace Designer.Tests.Helpers
         {
             Guard.AssertFileExtensionIsOfType(file, correctExtension);
             Assert.True(true);
+        }
+
+        [Theory]
+        [InlineData("apps-test")]
+        [InlineData("endring-av-navn-v2")]
+        public void AssertValidAppRepoName_ValidName_ShouldNotThrowException(string name)
+        {
+            Guard.AssertValidAppRepoName(name);
+            Assert.True(true);
+        }
+
+        [Theory]
+        [InlineData("2021-apps-test")]
+        [InlineData("datamodels")]
+        public void AssertValidAppRepoName_InvalidName_ShouldThrowException(string name)
+        {
+            Assert.Throws<ArgumentException>(() => Guard.AssertValidAppRepoName(name));
         }
     }
 }

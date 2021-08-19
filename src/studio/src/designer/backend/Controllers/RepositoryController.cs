@@ -347,8 +347,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public async Task<RepositoryModel> CreateApp(string org, string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, string repository)
         {
+            try
+            {
+                Guard.AssertValidAppRepoName(repository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{repository} is an invalid repository name.");
+            }
+
             var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
@@ -359,8 +368,12 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action used to copye an existing app under the current org.
+        /// Action used to copy an existing app under the current org.
         /// </summary>
+        /// <remarks>
+        /// A pull request is automatically created in the new repository,
+        /// containing changes to ensure that the app is operational.
+        /// </remarks>
         /// <returns>
         /// The newly created repository.
         /// </returns>
@@ -368,15 +381,34 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
-
-            if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+            try
             {
-                return Created(repo.CloneUrl, repo);
+                Guard.AssertValidAppRepoName(targetRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{targetRepository} is an invalid repository name.");
             }
 
-            return StatusCode((int)repo.RepositoryCreatedStatus);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+                if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repo.CloneUrl, repo);
+                }
+
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode((int)repo.RepositoryCreatedStatus);
+            }
+            catch (Exception e)
+            {
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode(500, e);
+            }
         }
 
         /// <summary>

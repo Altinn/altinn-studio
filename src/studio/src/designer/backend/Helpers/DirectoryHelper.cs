@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Helpers
 
             if (!directoryToDeleteInfo.Exists)
             {
-                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
+                return;
             }
 
             DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
