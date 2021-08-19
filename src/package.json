@@ -14,8 +14,8 @@
 		"list-outdated": "lerna run list-outdated"
 	},
 	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "~4.29.1",
-		"@typescript-eslint/parser": "~4.29.1",
+		"@typescript-eslint/eslint-plugin": "~4.29.2",
+		"@typescript-eslint/parser": "~4.29.2",
 		"eslint": "~7.32.0",
 		"eslint-config-airbnb": "~18.2.1",
 		"eslint-plugin-import": "~2.24.0",
