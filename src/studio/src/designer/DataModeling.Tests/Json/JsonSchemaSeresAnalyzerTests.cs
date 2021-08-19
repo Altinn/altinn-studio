@@ -24,6 +24,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", "#/$defs/melding-modell", "Schema has properties")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", "#/oneOf/[0]", "Schema has $ref keyword which in turn has properties")]
         [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/properties/Root", "Schema has allOf keyword which in turn has a decendant with properties.")]
+        [InlineData(@"Model\JsonSchema\ComplexSchema.json", "#/properties/Root", "Nested $ref. Schema has a $ref keyword which points to a type which also has a $ref keyword which in turn points to a type which has properties.")]
         public async Task IsValidComplexType_ComplexType_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
