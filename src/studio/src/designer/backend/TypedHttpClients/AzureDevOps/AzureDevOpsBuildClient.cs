@@ -81,10 +81,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
             using StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _httpClient.PostAsync("?api-version=5.1", httpContent);
-            _logger.LogInformation("hostname: " + _generalSettings.HostName); 
-            _logger.LogInformation("requestbody: " + requestBody);
-            _logger.LogInformation("responsecode: " + response.StatusCode);
-            _logger.LogInformation("content: " + response.Content.ReadAsStringAsync());
             return await response.Content.ReadAsAsync<Build>();
         }
     }

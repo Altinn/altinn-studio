@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -86,6 +87,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
+            release.Id = Guid.NewGuid().ToString();
+            
             return await _releaseRepositoryPostgres.Create(release);
         }
 
