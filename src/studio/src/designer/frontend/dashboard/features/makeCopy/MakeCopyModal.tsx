@@ -36,7 +36,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
         dispatch(DashboardActions.fetchServices({
           url: `${window.location.origin}/designerapi/Repository/UserRepos`,
         }));
-        handleClose();
+        window.location.href = `${window.location.origin}/designer/${org}/${repoName}#/about?copiedApp=true`;
       } catch (error) {
         if (error?.response?.status === 409) {
           setErrorMessage(getLanguageFromKey('dashboard.app_already_exist', language));
