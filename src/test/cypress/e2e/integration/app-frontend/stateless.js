@@ -25,4 +25,10 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.name).clear().type('abc').blur();
     cy.get(appFrontend.stateless.idnummer2).should('not.exist');
   });
+
+  it('Logout from appfrontend', () => {
+    cy.get(appFrontend.profileIconButton).should('be.visible').click();
+    cy.get(appFrontend.logOut).should('be.visible');
+    cy.get(appFrontend.logOutLink).should('exist').and('be.visible');
+  });
 });
