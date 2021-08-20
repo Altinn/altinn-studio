@@ -6,6 +6,7 @@ import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
 // eslint-disable-next-line import/no-named-as-default
 import ServiceCard from '../../../features/serviceOverview/serviceCard';
 import ErrorPopover from '../../../../shared/components/ErrorPopover';
+import AltinnSpinner from '../../../../shared/components/AltinnSpinner';
 import { IRepository } from '../../../../shared/types';
 
 describe('>>> features/serviceCard', () => {
@@ -24,6 +25,7 @@ describe('>>> features/serviceCard', () => {
             field_cannot_be_empty: 'Navnet kan ikke være tomt',
             service_name_has_illegal_characters: 'Ugyldige karakterer',
             service_name_is_too_long: 'For langt navn',
+            unknown_error_copy: 'Ukjent feil',
           },
           general: {
             cancel: 'Avbryt',
@@ -111,5 +113,20 @@ describe('>>> features/serviceCard', () => {
     wrapper.find('#clone-button').hostNodes().simulate('click');
     const errorPopover = wrapper.find(ErrorPopover);
     expect(errorPopover.text()).toContain('For langt navn');
+  });
+
+  it('+++ should display spinner when waiting for response', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <ServiceCard service={mockService} />
+      </Provider>,
+    );
+    wrapper.find('#ellipsis-button').hostNodes().simulate('click');
+    expect(wrapper.find('#service-menu').hostNodes()).toHaveLength(1);
+    wrapper.find('#make-copy-menu-button').hostNodes().simulate('click');
+    wrapper.find('#new-clone-name-input').hostNodes().simulate('change', { target: { value: 'gyldig-navn' } });
+    wrapper.find('#clone-button').hostNodes().simulate('click');
+    const spinner = wrapper.find(AltinnSpinner);
+    expect(spinner).toHaveLength(1);
   });
 });
