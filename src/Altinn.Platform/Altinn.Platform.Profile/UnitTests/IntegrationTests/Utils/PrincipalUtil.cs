@@ -5,7 +5,7 @@ using System.Security.Claims;
 using Altinn.Common.AccessToken.Constants;
 using AltinnCore.Authentication.Constants;
 
-namespace Altinn.Platform.Profile.Tests.Utils
+namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
     public static class PrincipalUtil
     {
@@ -22,7 +22,7 @@ namespace Altinn.Platform.Profile.Tests.Utils
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
+            string token = JwtGenerator.GenerateToken(principal, new TimeSpan(1, 1, 1));
 
             return token;
         }
@@ -33,7 +33,7 @@ namespace Altinn.Platform.Profile.Tests.Utils
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(0, 1, 5), issuer);
+            string token = JwtGenerator.GenerateToken(principal, new TimeSpan(0, 1, 5), issuer);
 
             return token;
         }
@@ -49,7 +49,7 @@ namespace Altinn.Platform.Profile.Tests.Utils
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
+            string token = JwtGenerator.GenerateToken(principal, new TimeSpan(1, 1, 1));
 
             return token;
         }
