@@ -105,5 +105,11 @@ declare namespace Cypress {
      * @example cy.addItemToGroup(1, 2, 'automation')
      */
      addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
+
+     /**
+     * Test for WCAG violations of impact critical, serious, moderate
+     * @example cy.testWcag()
+     */
+      testWcag(): Chainable<Element>;
   }
 }

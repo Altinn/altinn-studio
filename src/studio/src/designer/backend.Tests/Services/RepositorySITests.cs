@@ -26,6 +26,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
@@ -40,6 +41,8 @@ namespace Designer.Tests.Services
             }
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
+            TestDataHelper.CleanUpLocalBranches("ttd", "apps-test-clone", "testUser");
+
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
             TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
             GC.SuppressFinalize(this);
@@ -174,7 +177,7 @@ namespace Designer.Tests.Services
             TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
             if (Directory.Exists(expectedRepoPath))
             {
-                Directory.Delete(expectedRepoPath, true);
+                TestDataHelper.DeleteDirectory(expectedRepoPath, true);
             }
 
             RepositorySI sut = GetServiceForTest(developer);
@@ -187,10 +190,33 @@ namespace Designer.Tests.Services
             string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
 
+            TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
+
             Assert.True(Directory.Exists(expectedRepoPath));
             Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);
             Assert.Contains("https://dev.altinn.studio/repos/ttd/apps-test-clone.git", gitConfigString);
             Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
+        }
+
+        [Fact]
+        public async Task DeleteRepository_SourceControlServiceIsCalled()
+        {
+            // Arrange
+            string developer = "testUser";
+            string org = "ttd";
+            string repository = "apps-test";
+
+            Mock<ISourceControl> mock = new Mock<ISourceControl>();
+            mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            RepositorySI sut = GetServiceForTest(developer, mock.Object);
+
+            // Act
+            await sut.DeleteRepository(org, repository);
+
+            // Assert
+            mock.VerifyAll();
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)
@@ -223,13 +249,14 @@ namespace Designer.Tests.Services
             }
         }
 
-        private static RepositorySI GetServiceForTest(string developer)
+        private static RepositorySI GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
+            sourceControlMock ??= new ISourceControlMock();
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
@@ -242,7 +269,7 @@ namespace Designer.Tests.Services
                 new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
-                new ISourceControlMock(),
+                sourceControlMock,
                 new Mock<ILoggerFactory>().Object,
                 new Mock<ILogger<RepositorySI>>().Object,
                 altinnGitRepositoryFactory);

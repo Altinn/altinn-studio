@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -98,6 +99,18 @@ namespace Altinn.Studio.Designer.Helpers
             if (fileInfo.Extension.ToLower() != fileExtension.ToLower())
             {
                 throw new ArgumentException($"The file {fileName} must be of type {fileExtension}.");
+            }
+        }
+
+        /// <summary>
+        /// Assert that a repository name is valid.
+        /// </summary>
+        /// <param name="repoName">The repository name.</param>
+        public static void AssertValidAppRepoName(string repoName)
+        {
+            if (string.IsNullOrEmpty(repoName) || !Regex.IsMatch(repoName, @"^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$"))
+            {
+                throw new ArgumentException($"The repository name {repoName} is invalid.");
             }
         }
     }

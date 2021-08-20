@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Configuration;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -87,6 +88,12 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Remote\\{org}\\{repository}");
         }
 
+        public static string GetTestDataRemoteRepositoryRootDirectory()
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote");
+        }
+
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
@@ -158,6 +165,7 @@ namespace Designer.Tests.Utils
 
                 var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
                 await File.WriteAllBytesAsync(tempPath, sourceBytes);
+                File.SetAttributes(tempPath, FileAttributes.Normal);
             }
 
             if (copySubDirs)
@@ -172,10 +180,14 @@ namespace Designer.Tests.Utils
 
         public static void CleanUpRemoteRepository(string org, string repository)
         {
-            string dir = GetTestDataRemoteRepository(org, repository);
-            if (Directory.Exists(dir))
+            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), $"{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
             {
-                Directory.Delete(dir);
+                if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
+                {
+                    DeleteDirectory(subDir, true);
+                }
             }
         }
 
@@ -189,11 +201,24 @@ namespace Designer.Tests.Utils
                 {
                     Directory.Delete(subDir, true);
                 }
-            } 
+            }
+        }
+
+        public static void CleanUpLocalBranches(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_complete_copy_of_app"))
+                {
+                    Directory.Delete(subDir, true);
+                }
+            }
         }
 
         public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
-        {            
+        {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
             if (File.Exists(filePath))
             {
