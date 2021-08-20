@@ -52,6 +52,21 @@ namespace DataModeling.Tests.Json
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContentExtension);
         }
 
+        [Theory]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension_negative.json", "#/properties/Root/allOf/[0]", "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)")]
+        public async Task IsValidComplexContentExtension_NotComplexContentExtention_ShouldReturnFalse(string path, string jsonPointer, string testCase)
+        {
+            _testOutputHelper.WriteLine($"{testCase}");
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var results = analyzer.AnalyzeSchema(schema);
+
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContent);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContentExtension);
+        }
+
         private JsonSchema QueryForSubSchema(JsonSchema jsonSchema, string jsonPointer)
         {
             var pointer = JsonPointer.Parse(jsonPointer);

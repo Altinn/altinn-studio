@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
+    <None Remove="_TestData\Model\JsonSchema\ComplexContentExtension_negative.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
