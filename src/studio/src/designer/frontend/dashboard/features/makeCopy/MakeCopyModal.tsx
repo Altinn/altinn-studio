@@ -21,7 +21,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
     anchorEl, handleClose, service,
   } = props;
   const language = useSelector((state: IDashboardAppState) => state.language.language);
-  const [repoName, setRepoName] = React.useState<string>(null);
+  const [repoName, setRepoName] = React.useState<string>('');
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const dispatch = useDispatch();
@@ -88,6 +88,8 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       btnConfirmText={isLoading ? null : getLanguageFromKey('dashboard.make_copy', language)}
       btnClick={handleClone}
       paperProps={{ style: { margin: '2.4rem' } }}
+      btnPrimaryId='clone-button'
+      btnSecondaryId='cancel-button'
     >
       <Typography variant='h2'>
         {getLanguageFromKey('dashboard.copy_application', language)}
@@ -97,6 +99,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       </Typography>
       <AltinnInputField
         id='new-clone-name'
+        textFieldId='new-clone-name-input'
         inputHeader={getLanguageFromKey('dashboard.new_service_copy', language)}
         inputHeaderStyling={{ fontSize: '18px' }}
         inputValue={repoName}

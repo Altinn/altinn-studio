@@ -5,6 +5,7 @@ import { mount } from 'enzyme';
 import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
 // eslint-disable-next-line import/no-named-as-default
 import ServiceCard from '../../../features/serviceOverview/serviceCard';
+import ErrorPopover from '../../../../shared/components/ErrorPopover';
 import { IRepository } from '../../../../shared/types';
 
 describe('>>> features/serviceCard', () => {
@@ -20,6 +21,9 @@ describe('>>> features/serviceCard', () => {
             open_repository: 'Åpne repository',
             open_new_tab: 'Åpne ny fane',
             make_copy: 'Lag kopi',
+            field_cannot_be_empty: 'Navnet kan ikke være tomt',
+            service_name_has_illegal_characters: 'Ugyldige karakterer',
+            service_name_is_too_long: 'For langt navn',
           },
           general: {
             cancel: 'Avbryt',
@@ -62,5 +66,50 @@ describe('>>> features/serviceCard', () => {
     expect(wrapper.find('#service-menu').hostNodes()).toHaveLength(1);
     wrapper.find('#make-copy-menu-button').hostNodes().simulate('click');
     expect(wrapper.find('#new-clone-name').hostNodes()).toHaveLength(1);
+  });
+
+  it('+++ should display non empty error message when trying to save empty name', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <ServiceCard service={mockService} />
+      </Provider>,
+    );
+    wrapper.find('#ellipsis-button').hostNodes().simulate('click');
+    expect(wrapper.find('#service-menu').hostNodes()).toHaveLength(1);
+    wrapper.find('#make-copy-menu-button').hostNodes().simulate('click');
+    wrapper.find('#new-clone-name-input').hostNodes().simulate('change', { target: { value: '' } });
+    wrapper.find('#clone-button').hostNodes().simulate('click');
+    const errorPopover = wrapper.find(ErrorPopover);
+    expect(errorPopover.text()).toContain('Navnet kan ikke være tomt');
+  });
+
+  it('+++ should display invalid name error when trying to save invalid name', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <ServiceCard service={mockService} />
+      </Provider>,
+    );
+    wrapper.find('#ellipsis-button').hostNodes().simulate('click');
+    expect(wrapper.find('#service-menu').hostNodes()).toHaveLength(1);
+    wrapper.find('#make-copy-menu-button').hostNodes().simulate('click');
+    wrapper.find('#new-clone-name-input').hostNodes().simulate('change', { target: { value: '--------' } });
+    wrapper.find('#clone-button').hostNodes().simulate('click');
+    const errorPopover = wrapper.find(ErrorPopover);
+    expect(errorPopover.text()).toContain('Ugyldige karakterer');
+  });
+
+  it('+++ should display too long error message when trying to save a too long name ', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <ServiceCard service={mockService} />
+      </Provider>,
+    );
+    wrapper.find('#ellipsis-button').hostNodes().simulate('click');
+    expect(wrapper.find('#service-menu').hostNodes()).toHaveLength(1);
+    wrapper.find('#make-copy-menu-button').hostNodes().simulate('click');
+    wrapper.find('#new-clone-name-input').hostNodes().simulate('change', { target: { value: 'abcdfgtdjstabcdfgtdjstabcdfgtdjst' } });
+    wrapper.find('#clone-button').hostNodes().simulate('click');
+    const errorPopover = wrapper.find(ErrorPopover);
+    expect(errorPopover.text()).toContain('For langt navn');
   });
 });
