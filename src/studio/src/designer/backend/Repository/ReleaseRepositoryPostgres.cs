@@ -56,8 +56,8 @@ namespace Altinn.Studio.Designer.Repository
                 pgcom.Parameters.AddWithValue("org", releaseEntity.Org);
                 pgcom.Parameters.AddWithValue("app", releaseEntity.App);
                 pgcom.Parameters.AddWithValue("buildId", releaseEntity.Build.Id);
-                pgcom.Parameters.AddWithValue("buildStatus", releaseEntity.Build.Status);
-                pgcom.Parameters.AddWithValue("buildResult", releaseEntity.Build.Result);
+                pgcom.Parameters.AddWithValue("buildStatus", releaseEntity.Build.Status.ToEnumMemberAttributeValue());
+                pgcom.Parameters.AddWithValue("buildResult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("created", releaseEntity.Created);
                 pgcom.Parameters.AddWithValue("entity", JsonString(releaseEntity));
 

@@ -88,10 +88,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
 
             release.Id = Guid.NewGuid().ToString();
-            _logger.LogDebug("ReleaseService BuildId: " + queuedBuild.Id.ToString());
-            _logger.LogDebug("ReleaseService Status: " + queuedBuild.Status.ToEnumMemberAttributeValue());
-            _logger.LogDebug("ReleaseService Started: " + queuedBuild.StartTime.ToString());
-            _logger.LogDebug("ReleaseService Id: " + release.Id);
+
             return await _releaseRepositoryPostgres.Create(release);
         }
 
@@ -130,11 +127,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             List<string> buildResult = new List<string>();
             buildResult.Add(BuildResult.Succeeded.ToEnumMemberAttributeValue());
-            _logger.LogInformation("Validate Org: " + release.Org);
-            _logger.LogInformation("Validate App: " + release.App);
-            _logger.LogInformation("Validate TagName: " + release.TagName);
-            _logger.LogInformation("Validate Buildstatus: " + buildStatus);
-            _logger.LogInformation("Validate BuildResult: " + buildResult);
+
             IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepositoryPostgres.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
             if (existingReleaseEntity.Any())
             {
