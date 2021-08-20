@@ -196,12 +196,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() > 2)
             {
                 var subSchemas = allOfKeyword.GetSubschemas();
-                var hasRefKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>()) != null;
-                var hasPropertiesKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>()) != null;
-
-                if (hasRefKeyword && hasPropertiesKeyword)
+                var subSchemaRefKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                var subSchemaPropertiesKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+                                
+                if (subSchemaRefKeyword != null && subSchemaPropertiesKeyword != null)
                 {
-                    return true;
+                    var isComplexType = IsValidComplexType(subSchemaRefKeyword);
+
+                    return isComplexType;
                 }                
             }
 
