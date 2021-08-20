@@ -58,6 +58,9 @@ const useStyles = makeStyles({
       backgroundColor: 'rgba(0, 0, 0, 0.04)',
     },
   },
+  ellipsisButtonLabel: {
+    margin: '7px',
+  },
 });
 
 export function ServiceCard(props: IServiceCardProps) {
@@ -100,7 +103,11 @@ export function ServiceCard(props: IServiceCardProps) {
     <Card elevation={0} className={classNames(classes.card)}>
       <CardActionArea onClick={openService}>
         <CardContent>
-          <Grid container={true} spacing={1}>
+          <Grid
+            container={true}
+            spacing={1}
+            alignItems='center'
+          >
             <Grid
               item={true}
               xl={11}
@@ -131,6 +138,7 @@ export function ServiceCard(props: IServiceCardProps) {
                 className={classes.ellipsisButton}
                 id='ellipsis-button'
                 onClick={handleIconClick}
+                classes={{ label: classes.ellipsisButtonLabel }}
               >
                 <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
               </IconButton>
