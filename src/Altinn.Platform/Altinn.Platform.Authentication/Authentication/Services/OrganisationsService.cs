@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.Services
         {
             _httpClient = httpClient;
             _logger = logger;
-            _organisationListLocation = new Uri(generalSettings.Value.GetOrganisationRepositoryLocation);
+            _organisationListLocation = new Uri(generalSettings.Value.OrganisationRepositoryLocation);
 
             _memoryCache = memoryCache;
             _cacheEntryOptions = new MemoryCacheEntryOptions()
