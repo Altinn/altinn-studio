@@ -37,6 +37,14 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(repo);
         }
 
+        public Task<bool> DeleteRepository(string org, string repository)
+        {
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
+            TestDataHelper.DeleteDirectory(remotePath, true);
+
+            return Task.FromResult(true);
+        }
+
         public Task<Branch> GetBranch(string org, string repository, string branch)
         {
             throw new NotImplementedException();
@@ -130,6 +138,17 @@ namespace Designer.Tests.Mocks
             string[] pathArray = filePath.Split("/");
 
             return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
+        }
+
+        public async Task<bool> CreatePullRequest(string org, string app, CreatePullRequestOption createPullRequestOption)
+        {
+            return await Task.FromResult(true);
+        }
+
+        public async Task<Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            Branch branch = new Branch { Name = branchName };
+            return await Task.FromResult(branch);
         }
     }
 }
