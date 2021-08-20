@@ -88,7 +88,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
 
             release.Id = Guid.NewGuid().ToString();
-            
+            _logger.LogDebug("ReleaseService BuildId: " + queuedBuild.Id.ToString());
+            _logger.LogDebug("ReleaseService Status: " + queuedBuild.Status.ToEnumMemberAttributeValue());
+            _logger.LogDebug("ReleaseService Started: " + queuedBuild.StartTime.ToString());
+            _logger.LogDebug("ReleaseService Id: " + release.Id);
             return await _releaseRepositoryPostgres.Create(release);
         }
 

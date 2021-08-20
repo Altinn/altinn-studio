@@ -46,6 +46,7 @@ namespace Altinn.Studio.Designer.Repository
         {
             try
             {
+                _logger.LogDebug("ReleasEntity: " + JsonString(releaseEntity));
                 using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
