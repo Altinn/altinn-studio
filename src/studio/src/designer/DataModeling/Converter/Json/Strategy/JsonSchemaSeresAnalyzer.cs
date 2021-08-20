@@ -99,9 +99,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
             }
 
-            if (IsValidComplexContent(schema))
+            if (IsValidComplexContentExtension(schema))
             {
                 metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
+                metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
 
             if (schema.Keywords != null)
@@ -190,9 +191,20 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidComplexContent(JsonSchema schema)
+        private bool IsValidComplexContentExtension(JsonSchema schema)
         {
-            // TODO: Implement
+            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() > 2)
+            {
+                var subSchemas = allOfKeyword.GetSubschemas();
+                var hasRefKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>()) != null;
+                var hasPropertiesKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>()) != null;
+
+                if (hasRefKeyword && hasPropertiesKeyword)
+                {
+                    return true;
+                }                
+            }
+
             return false;
         }
 
