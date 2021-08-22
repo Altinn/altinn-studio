@@ -67,6 +67,7 @@ namespace Altinn.Studio.Designer.Repository
             }
             catch (Exception e)
             {
+                _logger.LogError(e, JsonString(releaseEntity));
                 _logger.LogError(e, "ReleaseRepositoryPostgres // Create // Exception");
                 throw;
             }

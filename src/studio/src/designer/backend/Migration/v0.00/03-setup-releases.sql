@@ -8,7 +8,7 @@ CREATE OR REPLACE PROCEDURE designer.insert_release(
   buildId character varying,
   buildStatus character varying,
   buildResult character varying,
-  created character varying,
+  created timestamp with time zone,
 	entity text)
 LANGUAGE 'plpgsql'
 AS $BODY$
