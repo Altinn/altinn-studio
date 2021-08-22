@@ -15,10 +15,9 @@ AS $BODY$
 DECLARE createdTime timestamptz; 
 BEGIN
   SET TIME ZONE UTC;
-  createdTime := to_timestamp(created, 'YYYY-MM-DD"T"HH24:MI:SS.USOF');
 
   INSERT INTO designer.releases(id, tagName, org, app, buildId, buildStatus, buildResult, created, entity)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, createdTime, $8);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 
 END;
 $BODY$;
