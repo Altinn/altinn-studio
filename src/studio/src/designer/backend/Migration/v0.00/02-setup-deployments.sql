@@ -7,17 +7,16 @@ CREATE OR REPLACE PROCEDURE designer.insert_deployment(
 	app character varying,
   buildId character varying,
   buildResult character varying,
-  created character varying,
+  created timestamp with time zone,
 	entity text)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE createdTime timestamptz; 
 BEGIN
   SET TIME ZONE UTC;
-  createdTime := to_timestamp(created, 'YYYY-MM-DD"T"HH24:MI:SS.USOF');
 
   INSERT INTO designer.deployments(id, tagName, org, app, buildId, buildResult, created, entity)
-    VALUES ($1, $2, $3, $4, $5, $6, createdTime, $7);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 
 END;
 $BODY$;
@@ -52,11 +51,12 @@ $BODY$;
 CREATE OR REPLACE FUNCTION designer.get_deployment(
 	_org character varying,
 	_buildId character varying)
-    RETURNS text 
+    RETURNS TABLE(deployments text) 
     LANGUAGE 'plpgsql'
     
 AS $BODY$
 BEGIN
+  RETURN QUERY
   SELECT designer.deployments.entity
   FROM designer.deployments
   WHERE org = _org AND buildId = _buildId;

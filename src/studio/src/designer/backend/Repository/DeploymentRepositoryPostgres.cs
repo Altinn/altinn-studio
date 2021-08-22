@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,7 @@ namespace Altinn.Studio.Designer.Repository
                 pgcom.Parameters.AddWithValue("org", deploymentEntity.Org);
                 pgcom.Parameters.AddWithValue("app", deploymentEntity.App);
                 pgcom.Parameters.AddWithValue("buildId", deploymentEntity.Build.Id);
-                pgcom.Parameters.AddWithValue("buildResult", deploymentEntity.Build.Result);
+                pgcom.Parameters.AddWithValue("buildResult", deploymentEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("created", deploymentEntity.Created);
                 pgcom.Parameters.AddWithValue("entity", JsonString(deploymentEntity));
 

@@ -52,11 +52,12 @@ $BODY$;
 CREATE OR REPLACE FUNCTION designer.get_release(
 	_org character varying,
 	_buildId character varying)
-    RETURNS text 
+    RETURNS TABLE(releases text) 
     LANGUAGE 'plpgsql'
     
 AS $BODY$
 BEGIN
+  RETURN QUERY
   SELECT designer.releases.entity
   FROM designer.releases
   WHERE org = _org AND buildId = _buildId;
