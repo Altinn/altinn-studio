@@ -213,15 +213,19 @@ function DatepickerComponent(props: IDatePickerProps) {
             }}
             KeyboardButtonProps={{
               'aria-label': getLanguageFromKey('date_picker.aria_label_icon', props.language),
+              id: 'date-icon-button'
             }}
             leftArrowButtonProps={{
               'aria-label': getLanguageFromKey('date_picker.aria_label_left_arrow', props.language),
+              id: 'date-left-icon-button'
             }}
             rightArrowButtonProps={{
               'aria-label': getLanguageFromKey('date_picker.aria_label_right_arrow', props.language),
+              id: 'date-right-icon-button'
             }}
             keyboardIcon={
               <Icon
+                id='date-icon'
                 className={`${classes.icon} ai ai-date`}
               />
             }
