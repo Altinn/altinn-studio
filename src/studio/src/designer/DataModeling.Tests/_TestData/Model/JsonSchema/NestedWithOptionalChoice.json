@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,64 +12,60 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
-      "allOf": [
+  "allOf": [
+    {
+      "oneOf": [
         {
           "oneOf": [
             {
-              "oneOf": [
-                {
-                  "properties": {
-                    "i1": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    }
-                  },
-                  "required": [
-                    "i1"
-                  ]
-                },
-                {
-                  "properties": {
-                    "i2": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    }
-                  },
-                  "required": [
-                    "i2"
-                  ]
-                }
-              ],
-              "@xsdStructure": "choice"
-            },
-            {
               "properties": {
-                "o1": {
+                "i1": {
                   "type": "string",
                   "@xsdType": "string"
                 }
               },
               "required": [
-                "o1"
+                "i1"
               ]
             },
             {
               "properties": {
-                "o2": {
+                "i2": {
                   "type": "string",
                   "@xsdType": "string"
                 }
               },
               "required": [
-                "o2"
+                "i2"
               ]
             }
           ],
           "@xsdStructure": "choice"
+        },
+        {
+          "properties": {
+            "o1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "o1"
+          ]
+        },
+        {
+          "properties": {
+            "o2": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "o2"
+          ]
         }
-      ]
+      ],
+      "@xsdStructure": "choice"
     }
-  }
+  ]
 }

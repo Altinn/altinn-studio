@@ -130,5 +130,16 @@ namespace Altinn.Studio.DataModeling.Utils
         {
             return new WorkList<IJsonSchemaKeyword>(keywords);
         }
+
+        /// <summary>
+        /// Remove specific keywords from the enumerable.
+        /// </summary>
+        /// <param name="keywords">The list of keywords to filter</param>
+        /// <param name="keywordTypesToFilterAway">The types of keyword to filter away</param>
+        /// <returns>enumerable without the filtered out keywords</returns>
+        public static IEnumerable<IJsonSchemaKeyword> Filter(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypesToFilterAway)
+        {
+            return keywords.Where(keyword => !keywordTypesToFilterAway.Contains(keyword.GetType()));
+        }
     }
 }

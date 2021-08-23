@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -38,26 +38,21 @@
     "XSD-variant": "Altinn",
     "XSD-transformatorversjon": "1.2"
   },
-  "properties": {
-    "Root": {
+  "allOf": [
+    {
       "allOf": [
         {
-          "allOf": [
-            {
-              "properties": {
-                "e1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "e1"
-              ]
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string"
             }
-          ],
-          "@xsdStructure": "sequence"
+          },
+          "required": [
+            "e1"
+          ]
         }
       ]
     }
-  }
+  ]
 }

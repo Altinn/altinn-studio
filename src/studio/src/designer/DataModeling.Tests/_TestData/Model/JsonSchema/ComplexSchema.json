@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,11 +12,11 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "oneOf": [
+    {
       "$ref": "#/$defs/customer"
     }
-  },
+  ],
   "$defs": {
     "customer": {
       "allOf": [
@@ -74,8 +74,7 @@
                     "email"
                   ]
                 }
-              ],
-              "@xsdStructure": "sequence"
+              ]
             },
             {
               "$ref": "#/$defs/priorityAndTags",
@@ -109,8 +108,7 @@
               "$ref": "#/$defs/name",
               "@xsdType": "#ref"
             }
-          ],
-          "@xsdStructure": "sequence"
+          ]
         }
       ]
     },
@@ -158,8 +156,7 @@
             "lastName"
           ]
         }
-      ],
-      "@xsdStructure": "sequence"
+      ]
     },
     "title": {
       "allOf": [
@@ -210,8 +207,7 @@
                 "country"
               ]
             }
-          ],
-          "@xsdStructure": "sequence"
+          ]
         }
       ]
     },
@@ -261,8 +257,7 @@
                     "country"
                   ]
                 }
-              ],
-              "@xsdStructure": "sequence"
+              ]
             }
           ]
         }
@@ -314,8 +309,7 @@
                     "country"
                   ]
                 }
-              ],
-              "@xsdStructure": "sequence"
+              ]
             }
           ]
         }

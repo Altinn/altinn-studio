@@ -54,6 +54,14 @@ namespace DataModeling.Tests.Json
 
         [Theory]
         [InlineData(@"Model\JsonSchema\AltinnAnnotation.json", @"Model\JsonSchema\AltinnAnnotation_Normalized.json")]
+        [InlineData(@"Model\JsonSchema\normalize-root.json", @"Model\JsonSchema\normalize-root-expected.json")]
+        [InlineData(@"Model\JsonSchema\normalize-root-ref.json", @"Model\JsonSchema\normalize-root-ref.json")]
+        [InlineData(@"Model\JsonSchema\normalize-content.json", @"Model\JsonSchema\normalize-content-expected.json")]
+        [InlineData(@"Model\JsonSchema\normalize-content-ref.json", @"Model\JsonSchema\normalize-content-ref-expected.json")]
+        [InlineData(@"Model\JsonSchema\normalize-content-common-keywords.json", @"Model\JsonSchema\normalize-content-common-keywords.json")]
+        [InlineData(@"Model\JsonSchema\normalize-content-no-common-keywords.json", @"Model\JsonSchema\normalize-content-no-common-keywords-expected.json")]
+        [InlineData(@"Model\JsonSchema\normalize-collection.json", @"Model\JsonSchema\normalize-collection-expected.json")]
+        [InlineData(@"Model\JsonSchema\normalize-keyed-collection.json", @"Model\JsonSchema\normalize-keyed-collection-expected.json")]
         public async Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(string jsonSchemaTestdata, string expectedNormalizedSchemaTestdata)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -66,6 +74,8 @@ namespace DataModeling.Tests.Json
 
             var expectedNormalizedJsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(expectedNormalizedSchemaTestdata);
             var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
+
+            var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(expectedNormalizedJsonSchemaText);
         }

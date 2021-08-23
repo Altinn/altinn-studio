@@ -1,6 +1,8 @@
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Json.Pointer;
@@ -30,6 +32,10 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var normalizer = new JsonSchemaNormalizer();
+            var normalizedSchema = normalizer.Normalize(schema);
+            var json = JsonSerializer.Serialize(normalizedSchema, new JsonSerializerOptions { WriteIndented = true });
+
             var analyzer = new JsonSchemaSeresAnalyzer();
 
             var results = analyzer.AnalyzeSchema(schema);

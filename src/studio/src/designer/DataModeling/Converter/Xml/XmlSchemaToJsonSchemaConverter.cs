@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.More;
 using Json.Schema;
@@ -55,7 +56,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
                     (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()));
 
-            List<(string name, JsonSchemaBuilder schema)> items = new List<(string name, JsonSchemaBuilder schema)>();
+            List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)> items = new List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)>();
 
             foreach (XmlSchemaObject item in schema.Items.Cast<XmlSchemaObject>())
             {
@@ -69,36 +70,63 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         AddAnnotation(x, builder);
                         break;
                     case XmlSchemaSimpleType x:
-                        items.Add((x.Name, ConvertSchemaSimpleType(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaSimpleType(x, false, false), false));
                         break;
                     case XmlSchemaComplexType x:
-                        items.Add((x.Name, ConvertSchemaComplexType(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaComplexType(x, false, false), false));
                         break;
                     case XmlSchemaGroup x:
-                        items.Add((x.Name, ConvertSchemaGroup(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaGroup(x, false, false), false));
                         break;
                     case XmlSchemaElement x:
-                        items.Add((x.Name, ConvertSchemaElement(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaElement(x, false, false), true));
                         break;
                     case XmlSchemaAttribute x:
-                        items.Add((x.Name, ConvertSchemaAttribute(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaAttribute(x, false, false), false));
                         break;
                     case XmlSchemaAttributeGroup x:
-                        items.Add((x.Name, ConvertSchemaAttributeGroup(x, false, false)));
+                        items.Add((x.Name, ConvertSchemaAttributeGroup(x, false, false), false));
                         break;
                     default:
                         throw new XmlSchemaException("Unsupported global element in xml schema", null, item.LineNumber, item.LinePosition);
                 }
             }
 
-            if (items.Count > 0)
+            var potentialRoots = items.Where(item => item.potentialRootElement).ToList();
+            (string name, JsonSchema schema)? root = null;
+            if (potentialRoots.Count > 0)
             {
-                builder.Properties(items.Take(1).Select(def => (def.name, def.schema.Build())).ToArray());
+                root = (potentialRoots[0].name, potentialRoots[0].schema);
             }
 
-            if (items.Count > 1)
+            if (root.HasValue)
             {
-                builder.Defs(items.Skip(1).Select(def => (def.name, def.schema.Build())).ToArray());
+                var (_, rootSchema) = root.Value;
+                if (rootSchema.TryGetKeyword(out RefKeyword messageTypeReference))
+                {
+                    var messageTypeReferenceBuilder = new JsonSchemaBuilder();
+                    messageTypeReferenceBuilder.Add(messageTypeReference);
+
+                    builder.OneOf(messageTypeReferenceBuilder);
+                }
+                else
+                {
+                    // Inline root message
+                    foreach (var keyword in rootSchema.Keywords.Filter(typeof(SchemaKeyword), typeof(IdKeyword), typeof(TypeKeyword), typeof(XsdNamespacesKeyword), typeof(XsdSchemaAttributesKeyword)))
+                    {
+                        builder.Add(keyword);
+                    }
+                }
+            }
+
+            var definitions = items
+                .Where(def => def.name != root?.name)
+                .Select(def => (def.name, def.schema.Build()))
+                .ToArray();
+
+            if (definitions.Any())
+            {
+                builder.Defs(definitions);
             }
 
             return builder;
@@ -577,7 +605,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             properties.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
-            builder.XsdStructure("sequence");
         }
 
         private void HandleSimpleContent(XmlSchemaSimpleContent item, bool optional, bool array, JsonSchemaBuilder builder)

@@ -45,6 +45,21 @@
   <ItemGroup>
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-collection-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-collection.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-common-keywords.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-no-common-keywords-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-no-common-keywords.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-ref-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-ref.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-keyed-collection-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-keyed-collection.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-ref-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-ref.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />

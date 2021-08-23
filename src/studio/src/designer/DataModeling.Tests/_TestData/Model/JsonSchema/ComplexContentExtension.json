@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,44 +12,39 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "allOf": [
+    {
       "allOf": [
+        {
+          "$ref": "#/$defs/myBase"
+        },
         {
           "allOf": [
             {
-              "$ref": "#/$defs/myBase"
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "ce1": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    }
-                  },
-                  "required": [
-                    "ce1"
-                  ]
-                }
-              ],
-              "@xsdStructure": "sequence"
-            },
-            {
               "properties": {
-                "a1": {
-                  "type": "integer",
-                  "@xsdType": "int",
-                  "@xsdAttribute": true
+                "ce1": {
+                  "type": "string",
+                  "@xsdType": "string"
                 }
-              }
+              },
+              "required": [
+                "ce1"
+              ]
             }
           ]
+        },
+        {
+          "properties": {
+            "a1": {
+              "type": "integer",
+              "@xsdType": "int",
+              "@xsdAttribute": true
+            }
+          }
         }
       ]
     }
-  },
+  ],
   "$defs": {
     "myBase": {
       "allOf": [
@@ -66,8 +61,7 @@
                 "be1"
               ]
             }
-          ],
-          "@xsdStructure": "sequence"
+          ]
         }
       ]
     }

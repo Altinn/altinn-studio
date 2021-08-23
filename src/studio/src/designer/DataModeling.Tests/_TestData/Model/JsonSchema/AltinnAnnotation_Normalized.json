@@ -39,21 +39,12 @@
     "XSD-transformatorversjon": "1.2"
   },
   "properties": {
-    "Root": {     
-      "allOf": [
-        {
-          "properties": {
-            "e1": {
-              "type": "string",
-              "@xsdType": "string"
-            }
-          },
-          "required": [
-            "e1"
-          ]
-        }
-      ],
-      "@xsdStructure": "sequence"
+    "e1": {
+      "type": "string",
+      "@xsdType": "string"
     }
-  }
+  },
+  "required": [
+    "e1"
+  ]
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,59 +12,54 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "allOf": [
+    {
       "allOf": [
+        {
+          "$ref": "#/$defs/myBase"
+        },
         {
           "allOf": [
             {
-              "$ref": "#/$defs/myBase"
-            },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "be1": {
-                      "allOf": [
-                        {
-                          "type": "string",
-                          "@xsdType": "string"
-                        },
-                        {
-                          "maxLength": 10,
-                          "minLength": 10
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "be1"
-                  ]
-                }
-              ],
-              "@xsdStructure": "sequence"
-            },
-            {
               "properties": {
-                "a1": {
+                "be1": {
                   "allOf": [
                     {
-                      "type": "integer",
-                      "@xsdType": "int"
+                      "type": "string",
+                      "@xsdType": "string"
                     },
                     {
-                      "exclusiveMinimum": 100
+                      "maxLength": 10,
+                      "minLength": 10
                     }
-                  ],
-                  "@xsdAttribute": true
+                  ]
                 }
-              }
+              },
+              "required": [
+                "be1"
+              ]
             }
           ]
+        },
+        {
+          "properties": {
+            "a1": {
+              "allOf": [
+                {
+                  "type": "integer",
+                  "@xsdType": "int"
+                },
+                {
+                  "exclusiveMinimum": 100
+                }
+              ],
+              "@xsdAttribute": true
+            }
+          }
         }
       ]
     }
-  },
+  ],
   "$defs": {
     "myBase": {
       "allOf": [
@@ -81,8 +76,7 @@
                 "be1"
               ]
             }
-          ],
-          "@xsdStructure": "sequence"
+          ]
         },
         {
           "properties": {

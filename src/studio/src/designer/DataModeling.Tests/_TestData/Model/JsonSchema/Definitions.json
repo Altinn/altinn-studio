@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,11 +12,11 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "oneOf": [
+    {
       "$ref": "#/$defs/main"
     }
-  },
+  ],
   "$defs": {
     "main": {
       "allOf": [
@@ -26,8 +26,7 @@
               "$ref": "#/$defs/g1",
               "@xsdType": "#ref"
             }
-          ],
-          "@xsdStructure": "sequence"
+          ]
         },
         {
           "$ref": "#/$defs/ag1",
@@ -69,8 +68,7 @@
             "e1"
           ]
         }
-      ],
-      "@xsdStructure": "sequence"
+      ]
     },
     "e1": {
       "type": "string",
