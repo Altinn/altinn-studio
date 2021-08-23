@@ -149,6 +149,7 @@ namespace Altinn.Studio.Designer.Repository
             }
             catch (Exception e)
             {
+                _logger.LogError(e, JsonString(deploymentEntity));
                 _logger.LogError(e, "DeploymentRepositoryPostgres // Update // Exception");
                 throw;
             }
