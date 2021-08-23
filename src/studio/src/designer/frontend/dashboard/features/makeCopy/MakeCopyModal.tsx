@@ -49,6 +49,9 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
   };
 
   const closeHandler = (_x: string | React.MouseEvent<HTMLElement>, event?: React.MouseEvent<HTMLElement>) => {
+    if (isLoading) {
+      return;
+    }
     if (typeof _x !== 'string') {
       handleClose(_x);
     } else {
