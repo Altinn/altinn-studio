@@ -390,6 +390,13 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{targetRepository} is an invalid repository name.");
             }
 
+            var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
+
+            if (existingRepo != null)
+            {
+                return StatusCode(409);
+            }
+
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
@@ -401,12 +408,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return Created(repo.CloneUrl, repo);
                 }
 
-                // Avoid deleting pre-existing repositories that have resulted in a naming conflict.
-                if (repo.RepositoryCreatedStatus != HttpStatusCode.Conflict)
-                {
-                    await _repository.DeleteRepository(org, targetRepository);
-                }
-
+                await _repository.DeleteRepository(org, targetRepository);
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)

@@ -117,20 +117,12 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task CopyApp_RepoHasConflict_DeleteRepositoryIsNotCalled()
+        public async Task CopyApp_TargetRepoAlreadyExists_ConflictIsReturned()
         {
             // Arrange
             string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
-                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Conflict });
-
-            repositoryService
-                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
-
-            HttpClient client = GetTestClient(repositoryService.Object);
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -139,8 +131,6 @@ namespace Designer.Tests.Controllers
             HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
 
             // Assert
-            repositoryService.Verify(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            repositoryService.Verify(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
         }
 
