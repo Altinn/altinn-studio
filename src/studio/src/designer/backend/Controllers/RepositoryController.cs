@@ -401,7 +401,11 @@ namespace Altinn.Studio.Designer.Controllers
                     return Created(repo.CloneUrl, repo);
                 }
 
-                await _repository.DeleteRepository(org, targetRepository);
+                // Avoid deleting pre-existing repositories that have resulted in a naming conflict.
+                if(!repo.RepositoryCreatedStatus  == HttpStatusCode.Conflict){
+                    await _repository.DeleteRepository(org, targetRepository);
+                }
+
                 return StatusCode((int)repo.RepositoryCreatedStatus);
             }
             catch (Exception e)
