@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -71,6 +72,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Status = queuedBuild.Status,
                 Started = queuedBuild.StartTime
             };
+
+            deploymentEntity.Id = Guid.NewGuid().ToString();
 
             return await _deploymentRepositoryPostgres.Create(deploymentEntity);
         }
