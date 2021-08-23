@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            string issuer = _generalSettings.HostName.Contains("dev") ? AccessTokenIssuerDev : AccessTokenIssuerProd;
+            string issuer = _generalSettings.HostName.Contains("dev") || _generalSettings.HostName.Contains("staging") ? AccessTokenIssuerDev : AccessTokenIssuerProd;
             string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
             string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
