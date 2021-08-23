@@ -32,6 +32,7 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+
             var normalizer = new JsonSchemaNormalizer();
             var normalizedSchema = normalizer.Normalize(schema);
             var json = JsonSerializer.Serialize(normalizedSchema, new JsonSerializerOptions { WriteIndented = true });
@@ -51,6 +52,10 @@ namespace DataModeling.Tests.Json
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var normalizer = new JsonSchemaNormalizer();
+            var normalizedSchema = normalizer.Normalize(schema);
+            var json = JsonSerializer.Serialize(normalizedSchema, new JsonSerializerOptions { WriteIndented = true });
 
             var results = analyzer.AnalyzeSchema(schema);
 
