@@ -11,7 +11,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private static readonly ISet<CompatibleXsdType> Empty = new HashSet<CompatibleXsdType>();
 
         private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _types;
-        private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatilbeTypes;
+        private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
 
         /// <summary>
         /// Placeholder
@@ -34,6 +34,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         public JsonSchemaXsdMetadata()
         {
             _types = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
+            _incompatibleTypes = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
         }
 
         /// <summary>
@@ -62,10 +63,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// <param name="types">The type(s) to add as incompatible</param>
         public void AddIncompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
         {
-            if (!_types.TryGetValue(path, out var incompatibleTypes))
+            if (!_incompatibleTypes.TryGetValue(path, out var incompatibleTypes))
             {
                 incompatibleTypes = new HashSet<CompatibleXsdType>();
-                _types.Add(path, incompatibleTypes);
+                _incompatibleTypes.Add(path, incompatibleTypes);
             }
 
             foreach (var type in types)

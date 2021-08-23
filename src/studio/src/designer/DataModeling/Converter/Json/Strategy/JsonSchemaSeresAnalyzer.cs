@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -104,10 +105,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
             }
 
-            if (IsValidComplexContentExtension(schema))
+            if (IsValidComplexContentExtension(path, schema))
             {
-                _metadata.RemoveCompatibleTypes(path, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
-
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
@@ -198,19 +197,30 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidComplexContentExtension(JsonSchema schema)
+        private bool IsValidComplexContentExtension(JsonPointer path, JsonSchema schema)
         {
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() > 2)
             {
                 var subSchemas = allOfKeyword.GetSubschemas();
-                var subSchemaRefKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                var subSchemaPropertiesKeyword = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+                var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                var propertiesKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
                                 
-                if (subSchemaRefKeyword != null && subSchemaPropertiesKeyword != null)
+                if (refKeywordSubSchema != null && propertiesKeywordSubSchema != null)
                 {
-                    var isComplexType = IsValidComplexType(subSchemaRefKeyword);
+                    var isComplexType = IsValidComplexType(refKeywordSubSchema);
 
-                    return isComplexType;
+                    if (!isComplexType)
+                    {
+                        return false;
+                    }
+
+                    // If the type of $ref is used in the context of a ComplextContentExtension
+                    // it cannot be serialized as a SimpleContentExtension or SimpleContentRestriction.
+                    var refKeyword = refKeywordSubSchema.GetKeyword<RefKeyword>();
+                    var refKeywordPath = JsonPointer.Parse(refKeyword.Reference.ToString());
+                    _metadata.AddIncompatibleTypes(refKeywordPath, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
+
+                    return true;
                 }                
             }
 
