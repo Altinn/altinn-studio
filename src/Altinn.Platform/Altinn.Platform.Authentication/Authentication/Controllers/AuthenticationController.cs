@@ -173,7 +173,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                     OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
                     JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider);
-                    userAuthentication = GetUserFromToken(jwtSecurityToken);
+                    userAuthentication = GetUserFromToken(jwtSecurityToken, provider);
 
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
                     {
@@ -711,43 +711,115 @@ namespace Altinn.Platform.Authentication.Controllers
                 .FirstOrDefault();
         }
 
-        private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken)
+        private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>() };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
+                // General OIDC claims
+                if (claim.Type.Equals("nonce"))
+                {
+                    userAuthenticationModel.Nonce = claim.Value;
+                    continue;
+                }
+
+                // Altinn Specific claims
                 if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
                 {
                     userAuthenticationModel.UserID = Convert.ToInt32(claim.Value);
+                    continue;
                 }
 
                 if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID))
                 {
                     userAuthenticationModel.PartyID = Convert.ToInt32(claim.Value);
+                    continue;
                 }
 
                 if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticateMethod))
                 {
                     userAuthenticationModel.AuthenticationMethod = (Enum.AuthenticationMethod)System.Enum.Parse(typeof(Enum.AuthenticationMethod), claim.Value);
+                    continue;
                 }
 
                 if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
                 {
                     userAuthenticationModel.AuthenticationLevel = (Enum.SecurityLevel)System.Enum.Parse(typeof(Enum.SecurityLevel), claim.Value);
+                    continue;
                 }
 
+                // ID-porten specific claims
                 if (claim.Type.Equals("pid"))
                 {
                     userAuthenticationModel.SSN = claim.Value;
+                    continue;
                 }
 
-                if (claim.Type.Equals("nonce"))
+                if (claim.Type.Equals("amr"))
                 {
-                    userAuthenticationModel.Nonce = claim.Value;
+                    userAuthenticationModel.AuthenticationMethod = GetAuthenticationMethod(claim.Value);
+                    continue;
+                }
+
+                if (claim.Type.Equals("acr"))
+                {
+                    userAuthenticationModel.AuthenticationLevel = GetAuthenticationLevel(claim.Value);
+                    continue;
+                }
+
+                // General claims handling
+                if (provider.ProviderClaims != null && provider.ProviderClaims.Contains(claim.Type))
+                {
+                    userAuthenticationModel.ProviderClaims.Add(claim.Type, claim.Value);
                 }
             }
 
             return userAuthenticationModel;
+        }
+
+        /// <summary>
+        /// Converts IDporten acr claim “Authentication Context Class Reference” - The security level of assurance for the
+        /// authentication. Possible values are Level3 (i.e. MinID was used) or Level4 (other eIDs).
+        /// The level must be validated by the client.
+        /// </summary>
+        private static SecurityLevel GetAuthenticationLevel(string acr)
+        {
+            switch (acr)
+            {
+                case "Level3":
+                    return Enum.SecurityLevel.Sensitive;
+                case "Level4":
+                    return Enum.SecurityLevel.Sensitive;
+            }
+
+            return SecurityLevel.SelfIdentifed;
+        }
+
+        /// <summary>
+        /// Converts external methods to internal  Minid-PIN, Minid-OTC, Commfides, Buypass, BankID, BankID Mobil or eIDAS
+        /// </summary>
+        /// <returns></returns>
+        private static AuthenticationMethod GetAuthenticationMethod(string amr)
+        {
+            switch (amr)
+            {
+                case "Minid-PIN":
+                    return Enum.AuthenticationMethod.MinIDPin;
+                case "Minid-OTC":
+                    return Enum.AuthenticationMethod.MinIDOTC;
+                case "Commfides":
+                    return Enum.AuthenticationMethod.Commfides;
+                case "Buypass":
+                    return Enum.AuthenticationMethod.BuyPass;
+                case "BankID":
+                    return Enum.AuthenticationMethod.BankID;
+                case "BankID Mobil":
+                    return Enum.AuthenticationMethod.BankIDMobil;
+                case "eIDAS":
+                    return Enum.AuthenticationMethod.EIDAS;
+            }
+
+            return Enum.AuthenticationMethod.NotDefined;
         }
 
         private async Task<JwtSecurityToken> ValidateAndExtractIdPortToken(string originalToken)
@@ -900,6 +972,14 @@ namespace Altinn.Platform.Authentication.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
+
+            if (userAuthentication.ProviderClaims.Count > 0)
+            {
+                foreach (KeyValuePair<string, string> kvp in userAuthentication.ProviderClaims)
+                {
+                    claims.Add(new Claim(kvp.Key, kvp.Value, ClaimValueTypes.String, issuer));
+                }
+            }
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);

@@ -54,5 +54,10 @@ namespace Altinn.Platform.Authentication.Model
         /// A list of non standard claims that should be copied to 
         /// </summary>
         public string ClaimsToCopyTo { get; set; }
+
+        /// <summary>
+        /// A list of claims that need to be forwarded to Altinn token
+        /// </summary>
+        public string[] ProviderClaims { get; set; }
     }
 }
