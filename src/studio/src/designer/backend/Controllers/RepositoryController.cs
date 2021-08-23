@@ -402,7 +402,8 @@ namespace Altinn.Studio.Designer.Controllers
                 }
 
                 // Avoid deleting pre-existing repositories that have resulted in a naming conflict.
-                if(!repo.RepositoryCreatedStatus  == HttpStatusCode.Conflict){
+                if (repo.RepositoryCreatedStatus != HttpStatusCode.Conflict)
+                {
                     await _repository.DeleteRepository(org, targetRepository);
                 }
 
