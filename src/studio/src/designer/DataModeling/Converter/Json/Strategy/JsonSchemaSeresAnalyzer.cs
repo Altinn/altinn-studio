@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -15,36 +13,43 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     public class JsonSchemaSeresAnalyzer : IJsonSchemaAnalyzer
     {
         private JsonSchema _schema;
+        private readonly JsonSchemaXsdMetadata _metadata;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSchemaSeresAnalyzer"/> class.
+        /// </summary>
+        public JsonSchemaSeresAnalyzer()
+        {
+            _metadata = new JsonSchemaXsdMetadata();
+        }
 
         /// <inheritdoc />
         public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             _schema = schema;
 
-            var metadata = new JsonSchemaXsdMetadata();
-
             if (_schema.TryGetKeyword(out InfoKeyword info))
             {
                 var messageNameElement = info.Value.GetProperty("meldingsnavn");
                 var messageTypeNameElement = info.Value.GetProperty("modellnavn");
 
-                metadata.MessageName = messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
-                metadata.MessageTypeName = messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
+                _metadata.MessageName = messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
+                _metadata.MessageTypeName = messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
             }
             else
             {
-                metadata.MessageName = "melding";
+                _metadata.MessageName = "melding";
             }
 
-            DetermineRootModel(_schema, metadata);
-            AnalyzeSchema(JsonPointer.Parse("#"), _schema, metadata);
+            DetermineRootModel(_schema);
+            AnalyzeSchema(JsonPointer.Parse("#"), _schema);
 
-            return metadata;
+            return _metadata;
         }
 
-        private void DetermineRootModel(JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        private void DetermineRootModel(JsonSchema schema)
         {
-            metadata.HasInlineRoot = true;
+            _metadata.HasInlineRoot = true;
 
             var allOf = schema.GetKeyword<AllOfKeyword>();
             var anyOf = schema.GetKeyword<AnyOfKeyword>();
@@ -53,17 +58,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (allOf != null && anyOf == null && oneOf == null)
             {
                 // Only "allOf"
-                metadata.HasInlineRoot = !(allOf.Schemas.Count == 1 && IsRefSchema(allOf.Schemas[0]));
+                _metadata.HasInlineRoot = !(allOf.Schemas.Count == 1 && IsRefSchema(allOf.Schemas[0]));
             }
             else if (allOf == null && anyOf != null && oneOf == null)
             {
                 // Only "anyOf"
-                metadata.HasInlineRoot = !(anyOf.Schemas.Count == 1 && IsRefSchema(anyOf.Schemas[0]));
+                _metadata.HasInlineRoot = !(anyOf.Schemas.Count == 1 && IsRefSchema(anyOf.Schemas[0]));
             }
             else if (allOf == null && anyOf == null && oneOf != null)
             {
                 // Only "oneOf"
-                metadata.HasInlineRoot = !(oneOf.Schemas.Count == 1 && IsRefSchema(oneOf.Schemas[0]));
+                _metadata.HasInlineRoot = !(oneOf.Schemas.Count == 1 && IsRefSchema(oneOf.Schemas[0]));
             }
         }
 
@@ -72,37 +77,39 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return schema.HasKeyword<RefKeyword>();
         }
 
-        private void AnalyzeSchema(JsonPointer path, JsonSchema schema, JsonSchemaXsdMetadata metadata)
+        private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
             if (IsValidSimpleType(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
             }
 
             if (IsValidSimpleTypeRestriction(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleTypeRestriction);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleTypeRestriction);
             }
 
             if (IsValidComplexType(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexType);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexType);
             }
 
             if (IsValidSimpleContentExtension(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentExtension);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentExtension);
             }
 
             if (IsValidSimpleContentRestriction(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
             }
 
             if (IsValidComplexContentExtension(schema))
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
+                _metadata.RemoveCompatibleTypes(path, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
+
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
 
             if (schema.Keywords != null)
@@ -110,14 +117,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 foreach (var keyword in schema.Keywords)
                 {
                     var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
-                    AnalyzeKeyword(keywordPath, keyword, metadata);
+                    AnalyzeKeyword(keywordPath, keyword);
                 }
             }
 
             // Add "unknown" if no other was added on this path
-            if (metadata.GetCompatibleTypes(path).Count == 0)
+            if (_metadata.GetCompatibleTypes(path).Count == 0)
             {
-                metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
             }
         }
 
@@ -335,54 +342,54 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return schema.Keywords.Single() is AllOfKeyword;
         }
 
-        private void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword, JsonSchemaXsdMetadata metadata)
+        private void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
         {
             switch (keyword)
             {
                 case AllOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
                     }
 
                     break;
                 case AnyOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
                     }
 
                     break;
                 case OneOfKeyword item:
                     for (var i = 0; i < item.Schemas.Count; i++)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i], metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
                     }
 
                     break;
                 case DefinitionsKeyword item:
                     foreach (var (name, definition) in item.Definitions)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
                     }
 
                     break;
                 case DefsKeyword item:
                     foreach (var (name, definition) in item.Definitions)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
                     }
 
                     break;
                 case PropertiesKeyword item:
                     foreach (var (name, definition) in item.Properties)
                     {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition, metadata);
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
                     }
 
                     break;
                 case ISchemaContainer schemaContainer:
-                    AnalyzeSchema(path, schemaContainer.Schema, metadata);
+                    AnalyzeSchema(path, schemaContainer.Schema);
                     break;
             }
         }
