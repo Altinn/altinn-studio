@@ -140,7 +140,7 @@ namespace Altinn.Studio.Designer.Repository
                 using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertDeploymentSql, conn);
+                NpgsqlCommand pgcom = new NpgsqlCommand(updateDeploymentBuildSql, conn);
                 pgcom.Parameters.AddWithValue("_id", deploymentEntity.Id);
                 pgcom.Parameters.AddWithValue("_buildResult", deploymentEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("_entity", JsonString(deploymentEntity));
