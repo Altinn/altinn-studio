@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -1197,7 +1196,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
 
-            Application appMetadata = await targetAppRepository.GetApplicationMetadata();
+            PlatformStorageModels.Application appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{org}/{targetRepository}";
             appMetadata.CreatedBy = developer;
             appMetadata.LastChangedBy = developer;
