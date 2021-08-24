@@ -25,8 +25,8 @@ namespace DataModeling.Tests.Json
         [Theory]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", "#/$defs/melding-modell", "Schema has properties")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", "#/oneOf/[0]", "Schema has $ref keyword which in turn has properties")]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/properties/Root", "Schema has allOf keyword which in turn has a decendant with properties.")]
-        [InlineData(@"Model\JsonSchema\ComplexSchema.json", "#/properties/Root", "Nested $ref. Schema has a $ref keyword which points to a type which also has a $ref keyword which in turn points to a type which has properties.")]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#", "Schema has allOf keyword which in turn has a decendant with properties.")]
+        [InlineData(@"Model\JsonSchema\ComplexSchema.json", "#", "Nested $ref. Schema has a $ref keyword which points to a type which also has a $ref keyword which in turn points to a type which has properties.")]
         public async Task IsValidComplexType_ComplexType_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
@@ -45,7 +45,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/properties/Root/allOf/[0]", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/allOf/[0]", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
         public async Task IsValidComplexContentExtension_ComplexContentExtention_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
