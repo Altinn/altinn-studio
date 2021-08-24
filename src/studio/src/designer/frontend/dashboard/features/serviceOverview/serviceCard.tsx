@@ -1,25 +1,18 @@
-import { Card, CardActionArea, CardContent, Grid, Typography } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { Card, CardActionArea, CardContent, Grid, IconButton, Typography, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import TruncateMarkup from 'react-truncate-markup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useSelector } from 'react-redux';
+import { IRepository } from 'app-shared/types';
+import ServiceMenu from './serviceMenu';
 
-export interface IServiceCardComponentProvidedProps {
-  classes: any;
-  service: any;
+export interface IServiceCardProps {
+  service: IRepository;
 }
 
-export interface IServiceCardComponentProps extends IServiceCardComponentProvidedProps {
-  language: any;
-}
-
-export interface IServiceCardComponentState {
-}
-
-const styles = {
+const useStyles = makeStyles({
   displayInlineBlock: {
     display: 'inline-block',
   },
@@ -59,146 +52,166 @@ const styles = {
   fontSize_14: {
     fontSize: '14px',
   },
-};
+  ellipsisButton: {
+    padding: 0,
+    '&:focus': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    },
+  },
+  ellipsisButtonLabel: {
+    margin: '7px',
+  },
+});
 
-export class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
-  public openService = () => {
-    const repoPath = this.props.service.full_name;
-    if (this.props.service.is_cloned_to_local) {
+export function ServiceCard(props: IServiceCardProps) {
+  const { service } = props;
+  const classes = useStyles();
+  const language = useSelector((state: IDashboardAppState) => state.language.language);
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const openService = () => {
+    if (menuAnchorEl !== null) {
+      return;
+    }
+    const repoPath = props.service.full_name;
+    if (props.service.is_cloned_to_local) {
       if (repoPath.endsWith('-datamodels')) {
         window.location.assign(`#/datamodelling/${repoPath}`);
       } else {
         window.location.assign(`/designer/${repoPath}`);
       }
     } else {
-      // eslint-disable-next-line max-len
-      window.location.assign(`/Home/Index#/clone-app/${this.props.service.owner.login}/${this.props.service.name}`);
+      window.location.assign(`/Home/Index#/clone-app/${props.service.owner.login}/${props.service.name}`);
     }
-  }
+  };
 
-  // eslint-disable-next-line class-methods-use-this
-  public formatDate(date: any): any {
+  const handleIconClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const onMenuClose = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    setMenuAnchorEl(null);
+  };
+
+  const formatDate = (date: string): string => {
     return moment(new Date(date)).format('DD.MM.YYYY');
-  }
+  };
 
-  public render() {
-    const { classes, service } = this.props;
-    return (
-      <Card elevation={0} className={classNames(classes.card)}>
-        <CardActionArea onClick={this.openService}>
-          <CardContent>
-            <Grid container={true} spacing={1}>
-              <Grid
-                item={true}
-                xl={11}
-                lg={11}
-                md={11}
-                sm={11}
-                xs={11}
+  return (
+    <Card elevation={0} className={classNames(classes.card)}>
+      <CardActionArea onClick={openService}>
+        <CardContent>
+          <Grid
+            container={true}
+            spacing={1}
+            alignItems='center'
+          >
+            <Grid
+              item={true}
+              xl={11}
+              lg={11}
+              md={11}
+              sm={11}
+              xs={11}
+            >
+              <Typography
+                variant='h3'
+                className={
+                  classNames(
+                    classes.width100,
+                    classes.fontSize_16,
+                    classes.fontWeight_500,
+                  )}
+                noWrap={true}
               >
-                <Typography
-                  variant='h3'
-                  className={
-                    classNames(
-                      classes.displayInlineBlock,
-                      classes.width100,
-                      classes.fontSize_16,
-                      classes.fontWeight_500,
-                    )}
-                  noWrap={true}
-                >
-                  {service.name}
-                </Typography>
-              </Grid>
-              <Grid
-                item={true} xl={1}
-                lg={1} md={1}
-                sm={1} xs={1}
+                {service.name}
+              </Typography>
+            </Grid>
+            <Grid
+              item={true} xl={1}
+              lg={1} md={1}
+              sm={1} xs={1}
+            >
+              <IconButton
+                className={classes.ellipsisButton}
+                id='ellipsis-button'
+                onClick={handleIconClick}
+                classes={{ label: classes.ellipsisButtonLabel }}
               >
-                <i
-                  className={classNames(classes.iconStyling,
-                    { 'fa fa-read': service.permissions.push === false },
-                    { 'fa fa-write': service.permissions.push === true })}
-                  aria-hidden='true'
-                />
-              </Grid>
-              <Grid
-                item={true}
+                <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
+              </IconButton>
+              <ServiceMenu
+                anchorEl={menuAnchorEl}
+                open={Boolean(menuAnchorEl)}
+                onClose={onMenuClose}
+                service={service}
+              />
+            </Grid>
+            <Grid
+              item={true}
+              className={classNames(
+                classes.displayInlineBlock,
+                classes.width100,
+                classes.height,
+              )}
+            >
+              <Typography gutterBottom={true} className={classNames(classes.width100, classes.fontSize_14)}>
+                <TruncateMarkup lines={2}>
+                  <span>
+                    {service.description}
+                  </span>
+                </TruncateMarkup>
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid
+            container={true} spacing={0}
+            direction='row'
+          >
+            <Grid
+              item={true} xl={6}
+              lg={6} md={6}
+              sm={6} xs={6}
+            >
+              <Typography
+                className={
+                  classNames(
+                    classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500,
+                  )}
+                noWrap={true}
+              >
+                <img
+                  src={service.owner.avatar_url}
+                  className={classNames(classes.avatar)}
+                  alt=''
+                /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
+              </Typography>
+            </Grid>
+            <Grid
+              item={true} xl={6}
+              lg={6} md={6}
+              sm={6} xs={6}
+            >
+              <Typography
                 className={classNames(
                   classes.displayInlineBlock,
                   classes.width100,
-                  classes.height,
+                  classes.textToRight,
+                  classes.fontSize_14,
+                  classes.fontWeight_500,
                 )}
+                noWrap={true}
               >
-                <Typography gutterBottom={true} className={classNames(classes.width100, classes.fontSize_14)}>
-                  <TruncateMarkup lines={2}>
-                    <span>
-                      {service.description}
-                    </span>
-                  </TruncateMarkup>
-                </Typography>
-              </Grid>
+                {getLanguageFromKey('dashboard.last_changed_service', language)} {formatDate(service.updated_at)}
+              </Typography>
             </Grid>
-            <Grid
-              container={true} spacing={0}
-              direction='row'
-            >
-              <Grid
-                item={true} xl={6}
-                lg={6} md={6}
-                sm={6} xs={6}
-              >
-                <Typography
-                  className={
-                    classNames(
-                      classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500,
-                    )}
-                  noWrap={true}
-                >
-                  <img
-                    src={service.owner.avatar_url}
-                    className={classNames(classes.avatar)}
-                    alt=''
-                  /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
-                </Typography>
-              </Grid>
-              <Grid
-                item={true} xl={6}
-                lg={6} md={6}
-                sm={6} xs={6}
-              >
-                <Typography
-                  className={classNames(
-                    classes.displayInlineBlock,
-                    classes.width100,
-                    classes.textToRight,
-                    classes.fontSize_14,
-                    classes.fontWeight_500,
-                  )}
-                  noWrap={true}
-                >
-                  {getLanguageFromKey(
-                    'dashboard.last_changed_service', this.props.language,
-                  )} {this.formatDate(service.updated_at)}
-                </Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </CardActionArea>
-      </Card>
-    );
-  }
+          </Grid>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
 }
 
-const mapStateToProps = (
-  state: IDashboardAppState,
-  props: IServiceCardComponentProvidedProps,
-): IServiceCardComponentProps => {
-  return {
-    classes: props.classes,
-    service: props.service,
-    language: state.language.language,
-  };
-};
-
-export const ServiceCard = withStyles(styles)(connect(mapStateToProps)(ServiceCardComponent));
+export default ServiceCard;

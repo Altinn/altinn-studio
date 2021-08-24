@@ -252,25 +252,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
-            Stopwatch watchOwnerType = Stopwatch.StartNew();
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
             {
-                Stopwatch watch = Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
-                watch.Stop();
-                _logger.Log(LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
-                watch = Stopwatch.StartNew();
+
                 Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
-                watch.Stop();
-                _logger.Log(LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
                 if (organisation.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
-            watchOwnerType.Stop();
-            _logger.Log(LogLevel.Information, "To find if local repo and owner type - {0} ", watchOwnerType.ElapsedMilliseconds);
             return returnRepository;
         }
 

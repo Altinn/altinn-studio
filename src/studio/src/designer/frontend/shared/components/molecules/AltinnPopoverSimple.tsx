@@ -82,13 +82,13 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
 
   const classes = useStyles(props);
 
-  const handleButtonClose = () => {
-    props.handleClose('close');
+  const handleButtonClose = (event: React.MouseEvent<HTMLElement>) => {
+    props.handleClose('close', event);
   };
 
-  const btnClickedHandler = () => {
+  const btnClickedHandler = (event: React.MouseEvent<HTMLElement>) => {
     if (props.btnClick) {
-      props.btnClick();
+      props.btnClick(event);
     }
   };
 
