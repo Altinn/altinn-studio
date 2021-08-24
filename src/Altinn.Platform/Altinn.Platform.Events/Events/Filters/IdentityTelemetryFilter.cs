@@ -34,7 +34,7 @@ namespace Altinn.Platform.Events.Filters
         {
             RequestTelemetry request = item as RequestTelemetry;
 
-            if (request != null && request.Url.ToString().Contains("storage/api/"))
+            if (request != null && request.Url.ToString().Contains("events/api/"))
             {
                 HttpContext ctx = _httpContextAccessor.HttpContext;
 

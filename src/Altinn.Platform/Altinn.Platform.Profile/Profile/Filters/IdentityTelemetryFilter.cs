@@ -34,7 +34,7 @@ namespace Altinn.Platform.Profile.Filters
         {
             RequestTelemetry request = item as RequestTelemetry;
 
-            if (request != null && request.Url.ToString().Contains("storage/api/"))
+            if (request != null && request.Url.ToString().Contains("profile/api/"))
             {
                 HttpContext ctx = _httpContextAccessor.HttpContext;
 
