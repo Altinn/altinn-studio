@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.Filters
 
                     string idString = $"partyId:{partyId};userId:{userId};orgNumber:{orgNumber};authLevel:{authLevel}";
 
-                    item.Context.User.AuthenticatedUserId = (string)GetUserOrOrgId(ctx.User);
+                    item.Context.User.AuthenticatedUserId = GetUserOrOrgId(ctx.User);
                     item.Context.User.Id = idString;
                 }
             }
