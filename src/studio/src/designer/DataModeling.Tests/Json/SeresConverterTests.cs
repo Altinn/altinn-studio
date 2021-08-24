@@ -37,5 +37,29 @@ namespace DataModeling.Tests.Json
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresComplexContentExtension.json", @"Model\XmlSchema\SeresComplexContentExtension.xsd")]
+        public async Task Convert_ComplexContent(string jsonPath, string xsdPath)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
+            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+
+            var actualXsd = converter.Convert(jsonSchema);
+
+            string actualXml;
+            await using (var sw = new StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true, Encoding = System.Text.Encoding.UTF8 }))
+            {
+                actualXsd.Write(xw);
+                actualXml = sw.ToString();
+            }
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
     }
 }
