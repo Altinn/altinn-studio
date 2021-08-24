@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -14,41 +14,33 @@
     "FinalDefault": "None"
   },
   "properties": {
-    "Root": {
-      "allOf": [
-        {
-          "properties": {
-            "a1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            },
-            "a2": {
-              "type": "string",
-              "@xsdType": "string",
-              "default": "def",
-              "@xsdAttribute": true
-            },
-            "a3": {
-              "type": "string",
-              "@xsdType": "string",
-              "const": "fix",
-              "@xsdAttribute": true
-            },
-            "a4": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            }
-          },
-          "required": [
-            "a4"
-          ]
-        }
-      ],
-      "@xsdUnhandledAttributes": {
-        "test:unhandled": "Unhandled attribute"
-      }
+    "a1": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdAttribute": true
+    },
+    "a2": {
+      "type": "string",
+      "@xsdType": "string",
+      "default": "def",
+      "@xsdAttribute": true
+    },
+    "a3": {
+      "type": "string",
+      "@xsdType": "string",
+      "const": "fix",
+      "@xsdAttribute": true
+    },
+    "a4": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdAttribute": true
     }
+  },
+  "required": [
+    "a4"
+  ],
+  "@xsdUnhandledAttributes": {
+    "test:unhandled": "Unhandled attribute"
   }
 }

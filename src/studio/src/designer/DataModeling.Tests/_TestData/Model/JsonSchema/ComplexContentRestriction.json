@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,77 +12,59 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
-      "allOf": [
-        {
+  "allOf": [
+    {
+      "$ref": "#/$defs/myBase"
+    },
+    {
+      "properties": {
+        "be1": {
           "allOf": [
             {
-              "$ref": "#/$defs/myBase"
+              "type": "string",
+              "@xsdType": "string"
             },
             {
-              "allOf": [
-                {
-                  "properties": {
-                    "be1": {
-                      "allOf": [
-                        {
-                          "type": "string",
-                          "@xsdType": "string"
-                        },
-                        {
-                          "maxLength": 10,
-                          "minLength": 10
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "be1"
-                  ]
-                }
-              ],
-              "@xsdStructure": "sequence"
-            },
-            {
-              "properties": {
-                "a1": {
-                  "allOf": [
-                    {
-                      "type": "integer",
-                      "@xsdType": "int"
-                    },
-                    {
-                      "exclusiveMinimum": 100
-                    }
-                  ],
-                  "@xsdAttribute": true
-                }
-              }
+              "maxLength": 10,
+              "minLength": 10
             }
           ]
         }
+      },
+      "required": [
+        "be1"
       ]
+    },
+    {
+      "properties": {
+        "a1": {
+          "allOf": [
+            {
+              "type": "integer",
+              "@xsdType": "int"
+            },
+            {
+              "exclusiveMinimum": 100
+            }
+          ],
+          "@xsdAttribute": true
+        }
+      }
     }
-  },
+  ],
   "$defs": {
     "myBase": {
       "allOf": [
         {
-          "allOf": [
-            {
-              "properties": {
-                "be1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "be1"
-              ]
+          "properties": {
+            "be1": {
+              "type": "string",
+              "@xsdType": "string"
             }
-          ],
-          "@xsdStructure": "sequence"
+          },
+          "required": [
+            "be1"
+          ]
         },
         {
           "properties": {

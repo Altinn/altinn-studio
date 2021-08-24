@@ -93,7 +93,7 @@ describe('Administration', () => {
     mockClasses = {};
 
     const initialState: any = {
-      language: {
+      languageState: {
         language: mockLanguage,
       },
       appCluster: {

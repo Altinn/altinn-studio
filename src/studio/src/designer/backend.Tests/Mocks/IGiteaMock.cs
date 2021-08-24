@@ -99,7 +99,19 @@ namespace Designer.Tests.Mocks
 
         public Task<Repository> GetRepository(string org, string repository)
         {
-            throw new NotImplementedException();
+            Repository returnRepository = null;
+
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
+
+            if (Directory.Exists(remotePath))
+            {
+                returnRepository = new Repository
+                {
+                    FullName = repository
+                };
+            }
+
+            return Task.FromResult(returnRepository);
         }
 
         public Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)

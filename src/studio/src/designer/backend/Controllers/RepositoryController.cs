@@ -390,6 +390,13 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{targetRepository} is an invalid repository name.");
             }
 
+            var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
+
+            if (existingRepo != null)
+            {
+                return StatusCode(409);
+            }
+
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try

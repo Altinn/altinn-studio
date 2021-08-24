@@ -117,7 +117,25 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task CopyApp_RepoHasConflict_DeleteRepositoryIsCalled()
+        public async Task CopyApp_TargetRepoAlreadyExists_ConflictIsReturned()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_GiteaTimeout_DeleteRepositoryIsCalled()
         {
             // Arrange
             string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
@@ -125,7 +143,7 @@ namespace Designer.Tests.Controllers
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Conflict });
+                .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
             repositoryService
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
@@ -140,7 +158,7 @@ namespace Designer.Tests.Controllers
 
             // Assert
             repositoryService.VerifyAll();
-            Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+            Assert.Equal(HttpStatusCode.GatewayTimeout, res.StatusCode);
         }
 
         [Fact]
