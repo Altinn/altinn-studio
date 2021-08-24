@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -52,8 +53,8 @@ namespace DataModeling.Tests.Json
             var actualXsd = converter.Convert(jsonSchema);
 
             string actualXml;
-            await using (var sw = new StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true, Encoding = System.Text.Encoding.UTF8 }))
+            await using (var sw = new Utf8StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true}))
             {
                 actualXsd.Write(xw);
                 actualXml = sw.ToString();
@@ -61,5 +62,10 @@ namespace DataModeling.Tests.Json
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
+    }
+
+    internal class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding => Encoding.UTF8;
     }
 }
