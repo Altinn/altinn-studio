@@ -12,60 +12,54 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "allOf": [
+  "oneOf": [
     {
       "oneOf": [
         {
-          "oneOf": [
-            {
-              "properties": {
-                "i1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "i1"
-              ]
-            },
-            {
-              "properties": {
-                "i2": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "i2"
-              ]
-            }
-          ],
-          "@xsdStructure": "choice"
-        },
-        {
           "properties": {
-            "o1": {
+            "i1": {
               "type": "string",
               "@xsdType": "string"
             }
           },
           "required": [
-            "o1"
+            "i1"
           ]
         },
         {
           "properties": {
-            "o2": {
+            "i2": {
               "type": "string",
               "@xsdType": "string"
             }
           },
           "required": [
-            "o2"
+            "i2"
           ]
         }
-      ],
-      "@xsdStructure": "choice"
+      ]
+    },
+    {
+      "properties": {
+        "o1": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "o1"
+      ]
+    },
+    {
+      "properties": {
+        "o2": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "o2"
+      ]
     }
   ]
 }

@@ -14,68 +14,56 @@
   },
   "allOf": [
     {
-      "allOf": [
-        {
-          "$ref": "#/$defs/myBase"
-        },
-        {
+      "$ref": "#/$defs/myBase"
+    },
+    {
+      "properties": {
+        "be1": {
           "allOf": [
             {
-              "properties": {
-                "be1": {
-                  "allOf": [
-                    {
-                      "type": "string",
-                      "@xsdType": "string"
-                    },
-                    {
-                      "maxLength": 10,
-                      "minLength": 10
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "be1"
-              ]
+              "type": "string",
+              "@xsdType": "string"
+            },
+            {
+              "maxLength": 10,
+              "minLength": 10
             }
           ]
-        },
-        {
-          "properties": {
-            "a1": {
-              "allOf": [
-                {
-                  "type": "integer",
-                  "@xsdType": "int"
-                },
-                {
-                  "exclusiveMinimum": 100
-                }
-              ],
-              "@xsdAttribute": true
-            }
-          }
         }
+      },
+      "required": [
+        "be1"
       ]
+    },
+    {
+      "properties": {
+        "a1": {
+          "allOf": [
+            {
+              "type": "integer",
+              "@xsdType": "int"
+            },
+            {
+              "exclusiveMinimum": 100
+            }
+          ],
+          "@xsdAttribute": true
+        }
+      }
     }
   ],
   "$defs": {
     "myBase": {
       "allOf": [
         {
-          "allOf": [
-            {
-              "properties": {
-                "be1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "be1"
-              ]
+          "properties": {
+            "be1": {
+              "type": "string",
+              "@xsdType": "string"
             }
+          },
+          "required": [
+            "be1"
           ]
         },
         {

@@ -12,65 +12,57 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "allOf": [
-    {
-      "allOf": [
-        {
-          "properties": {
-            "t1": {
-              "$ref": "#/$defs/stringMinMaxLengthRestrictions"
-            },
-            "t2": {
-              "$ref": "#/$defs/stringLengthRestrictions"
-            },
-            "t3": {
-              "$ref": "#/$defs/stringEnumRestrictions"
-            },
-            "t4": {
-              "$ref": "#/$defs/stringPatternRestrictions"
-            },
-            "n1": {
-              "$ref": "#/$defs/numberRestrictions"
-            },
-            "n2": {
-              "$ref": "#/$defs/numberRestrictions2"
-            },
-            "f1": {
-              "$ref": "#/$defs/numberRestrictionsFractional0"
-            },
-            "f2": {
-              "$ref": "#/$defs/numberRestrictionsFractional1"
-            },
-            "f3": {
-              "$ref": "#/$defs/numberRestrictionsFractional2"
-            },
-            "f4": {
-              "$ref": "#/$defs/numberRestrictionsFractional3"
-            },
-            "f5": {
-              "$ref": "#/$defs/numberRestrictionsFractional4"
-            },
-            "f6": {
-              "$ref": "#/$defs/numberRestrictionsFractional5"
-            }
-          },
-          "required": [
-            "t1",
-            "t2",
-            "t3",
-            "t4",
-            "n1",
-            "n2",
-            "f1",
-            "f2",
-            "f3",
-            "f4",
-            "f5",
-            "f6"
-          ]
-        }
-      ]
+  "properties": {
+    "t1": {
+      "$ref": "#/$defs/stringMinMaxLengthRestrictions"
+    },
+    "t2": {
+      "$ref": "#/$defs/stringLengthRestrictions"
+    },
+    "t3": {
+      "$ref": "#/$defs/stringEnumRestrictions"
+    },
+    "t4": {
+      "$ref": "#/$defs/stringPatternRestrictions"
+    },
+    "n1": {
+      "$ref": "#/$defs/numberRestrictions"
+    },
+    "n2": {
+      "$ref": "#/$defs/numberRestrictions2"
+    },
+    "f1": {
+      "$ref": "#/$defs/numberRestrictionsFractional0"
+    },
+    "f2": {
+      "$ref": "#/$defs/numberRestrictionsFractional1"
+    },
+    "f3": {
+      "$ref": "#/$defs/numberRestrictionsFractional2"
+    },
+    "f4": {
+      "$ref": "#/$defs/numberRestrictionsFractional3"
+    },
+    "f5": {
+      "$ref": "#/$defs/numberRestrictionsFractional4"
+    },
+    "f6": {
+      "$ref": "#/$defs/numberRestrictionsFractional5"
     }
+  },
+  "required": [
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "n1",
+    "n2",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6"
   ],
   "$defs": {
     "stringMinMaxLengthRestrictions": {

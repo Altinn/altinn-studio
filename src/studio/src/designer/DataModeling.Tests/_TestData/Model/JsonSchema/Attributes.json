@@ -13,36 +13,32 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "allOf": [
-    {
-      "properties": {
-        "a1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdAttribute": true
-        },
-        "a2": {
-          "type": "string",
-          "@xsdType": "string",
-          "default": "def",
-          "@xsdAttribute": true
-        },
-        "a3": {
-          "type": "string",
-          "@xsdType": "string",
-          "const": "fix",
-          "@xsdAttribute": true
-        },
-        "a4": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdAttribute": true
-        }
-      },
-      "required": [
-        "a4"
-      ]
+  "properties": {
+    "a1": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdAttribute": true
+    },
+    "a2": {
+      "type": "string",
+      "@xsdType": "string",
+      "default": "def",
+      "@xsdAttribute": true
+    },
+    "a3": {
+      "type": "string",
+      "@xsdType": "string",
+      "const": "fix",
+      "@xsdAttribute": true
+    },
+    "a4": {
+      "type": "string",
+      "@xsdType": "string",
+      "@xsdAttribute": true
     }
+  },
+  "required": [
+    "a4"
   ],
   "@xsdUnhandledAttributes": {
     "test:unhandled": "Unhandled attribute"

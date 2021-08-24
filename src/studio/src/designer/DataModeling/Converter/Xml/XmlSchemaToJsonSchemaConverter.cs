@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.More;
@@ -129,7 +130,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 builder.Defs(definitions);
             }
 
-            return builder;
+            var normalizer = new JsonSchemaNormalizer();
+            return normalizer.Normalize(builder);
         }
 
         private void AddAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
@@ -546,7 +548,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             if (choices.Count > 0)
             {
                 builder.OneOf(choices);
-                builder.XsdStructure("choice");
             }
         }
 

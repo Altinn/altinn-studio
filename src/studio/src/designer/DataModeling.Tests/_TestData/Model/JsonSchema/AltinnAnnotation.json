@@ -38,21 +38,13 @@
     "XSD-variant": "Altinn",
     "XSD-transformatorversjon": "1.2"
   },
-  "allOf": [
-    {
-      "allOf": [
-        {
-          "properties": {
-            "e1": {
-              "type": "string",
-              "@xsdType": "string"
-            }
-          },
-          "required": [
-            "e1"
-          ]
-        }
-      ]
+  "properties": {
+    "e1": {
+      "type": "string",
+      "@xsdType": "string"
     }
+  },
+  "required": [
+    "e1"
   ]
 }

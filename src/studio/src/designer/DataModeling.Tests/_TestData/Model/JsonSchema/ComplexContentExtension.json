@@ -14,55 +14,39 @@
   },
   "allOf": [
     {
-      "allOf": [
-        {
-          "$ref": "#/$defs/myBase"
-        },
-        {
-          "allOf": [
-            {
-              "properties": {
-                "ce1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "ce1"
-              ]
-            }
-          ]
-        },
-        {
-          "properties": {
-            "a1": {
-              "type": "integer",
-              "@xsdType": "int",
-              "@xsdAttribute": true
-            }
-          }
+      "$ref": "#/$defs/myBase"
+    },
+    {
+      "properties": {
+        "ce1": {
+          "type": "string",
+          "@xsdType": "string"
         }
+      },
+      "required": [
+        "ce1"
       ]
+    },
+    {
+      "properties": {
+        "a1": {
+          "type": "integer",
+          "@xsdType": "int",
+          "@xsdAttribute": true
+        }
+      }
     }
   ],
   "$defs": {
     "myBase": {
-      "allOf": [
-        {
-          "allOf": [
-            {
-              "properties": {
-                "be1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "be1"
-              ]
-            }
-          ]
+      "properties": {
+        "be1": {
+          "type": "string",
+          "@xsdType": "string"
         }
+      },
+      "required": [
+        "be1"
       ]
     }
   }

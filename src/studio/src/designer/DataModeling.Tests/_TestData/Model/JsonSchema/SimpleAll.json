@@ -12,33 +12,29 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "allOf": [
-    {
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        "e2": {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        "e3": {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        "e4": {
-          "type": "string",
-          "@xsdType": "string"
-        }
-      },
-      "required": [
-        "e1",
-        "e2",
-        "e3",
-        "e4"
-      ],
-      "@xsdStructure": "all"
+  "properties": {
+    "e1": {
+      "type": "string",
+      "@xsdType": "string"
+    },
+    "e2": {
+      "type": "string",
+      "@xsdType": "string"
+    },
+    "e3": {
+      "type": "string",
+      "@xsdType": "string"
+    },
+    "e4": {
+      "type": "string",
+      "@xsdType": "string"
     }
-  ]
+  },
+  "required": [
+    "e1",
+    "e2",
+    "e3",
+    "e4"
+  ],
+  "@xsdStructure": "all"
 }

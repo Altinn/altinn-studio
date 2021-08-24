@@ -12,21 +12,13 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "allOf": [
-    {
-      "allOf": [
-        {
-          "properties": {
-            "intValues": {
-              "$ref": "#/$defs/valueList"
-            }
-          },
-          "required": [
-            "intValues"
-          ]
-        }
-      ]
+  "properties": {
+    "intValues": {
+      "$ref": "#/$defs/valueList"
     }
+  },
+  "required": [
+    "intValues"
   ],
   "$defs": {
     "valueList": {

@@ -43,7 +43,6 @@
     <EmbeddedResource Remove="_TestData\Model\CSharp\melding.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection-expected.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection.json" />

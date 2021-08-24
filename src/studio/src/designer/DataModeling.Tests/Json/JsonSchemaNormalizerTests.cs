@@ -53,7 +53,6 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\AltinnAnnotation.json", @"Model\JsonSchema\AltinnAnnotation_Normalized.json")]
         [InlineData(@"Model\JsonSchema\normalize-root.json", @"Model\JsonSchema\normalize-root-expected.json")]
         [InlineData(@"Model\JsonSchema\normalize-root-ref.json", @"Model\JsonSchema\normalize-root-ref.json")]
         [InlineData(@"Model\JsonSchema\normalize-content.json", @"Model\JsonSchema\normalize-content-expected.json")]
