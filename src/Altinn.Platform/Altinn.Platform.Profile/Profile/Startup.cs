@@ -5,6 +5,7 @@ using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Profile.Configuration;
+using Altinn.Platform.Profile.Filters;
 using Altinn.Platform.Profile.Health;
 using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
@@ -116,6 +117,7 @@ namespace Altinn.Platform.Profile
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
