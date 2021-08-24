@@ -198,7 +198,7 @@ namespace Designer.Tests.Utils
             {
                 if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
                 {
-                    // flytt dataen og slett kopiert mappe
+                    // move data and delete copied folder
                     string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
                     CopyDirectory(subDir, originalPath, true);
                     Directory.Delete(subDir, true);
