@@ -199,7 +199,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidComplexContentExtension(JsonPointer path, JsonSchema schema)
         {
-            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() > 2)
+            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() >= 2)
             {
                 var subSchemas = allOfKeyword.GetSubschemas();
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());

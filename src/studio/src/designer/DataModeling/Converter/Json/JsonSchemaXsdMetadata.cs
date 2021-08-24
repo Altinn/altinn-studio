@@ -100,7 +100,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// <returns>A list of compatible types for the JSON schema element</returns>
         public ISet<CompatibleXsdType> GetCompatibleTypes(JsonPointer path)
         {
-            return _types.TryGetValue(path, out HashSet<CompatibleXsdType> types) ? types : Empty;
+            var success = _types.TryGetValue(path, out HashSet<CompatibleXsdType> compatibleTypes);
+
+            if (success)
+            {
+                compatibleTypes.ExceptWith(GetIncompatibleTypes(path));
+            }
+
+            return success ? compatibleTypes : Empty;
+        }
+
+        private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
+        {
+            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes) ? incompatibleTypes : Empty;
         }
     }
 }
