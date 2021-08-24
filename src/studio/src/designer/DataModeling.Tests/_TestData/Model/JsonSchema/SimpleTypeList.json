@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -13,26 +13,13 @@
     "FinalDefault": "None"
   },
   "properties": {
-    "Root": {
-      "allOf": [
-        {
-          "allOf": [
-            {
-              "properties": {
-                "intValues": {
-                  "$ref": "#/$defs/valueList"
-                }
-              },
-              "required": [
-                "intValues"
-              ]
-            }
-          ],
-          "@xsdStructure": "sequence"
-        }
-      ]
+    "intValues": {
+      "$ref": "#/$defs/valueList"
     }
   },
+  "required": [
+    "intValues"
+  ],
   "$defs": {
     "valueList": {
       "type": "array",

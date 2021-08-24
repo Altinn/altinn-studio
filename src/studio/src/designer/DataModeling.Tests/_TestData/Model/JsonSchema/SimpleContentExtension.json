@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -13,54 +13,29 @@
     "FinalDefault": "None"
   },
   "properties": {
-    "Root": {
-      "allOf": [
-        {
-          "allOf": [
-            {
-              "properties": {
-                "e1": {
-                  "$ref": "#/$defs/myBase"
-                }
-              },
-              "required": [
-                "e1"
-              ]
-            }
-          ],
-          "@xsdStructure": "sequence"
-        }
-      ]
+    "e1": {
+      "$ref": "#/$defs/myBase"
     }
   },
+  "required": [
+    "e1"
+  ],
   "$defs": {
     "valueBase": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string"
     },
     "myBase": {
-      "allOf": [
-        {
-          "allOf": [
-            {
-              "properties": {
-                "value": {
-                  "$ref": "#/$defs/valueBase"
-                },
-                "a1": {
-                  "type": "string",
-                  "@xsdType": "string",
-                  "@xsdAttribute": true
-                }
-              }
-            }
-          ]
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/valueBase"
+        },
+        "a1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
         }
-      ]
+      }
     }
   }
 }

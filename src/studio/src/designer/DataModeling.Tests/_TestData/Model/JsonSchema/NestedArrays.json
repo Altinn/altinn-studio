@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,98 +12,83 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "allOf": [
+    {
+      "properties": {
+        "e1": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "e2": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxItems": 100
+          },
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "e1"
+      ]
+    },
+    {
       "allOf": [
         {
-          "allOf": [
-            {
-              "properties": {
-                "e1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                "e2": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxItems": 100
-                  },
-                  "@xsdType": "string"
-                }
+          "properties": {
+            "e3": {
+              "type": "array",
+              "items": {
+                "type": "string"
               },
-              "required": [
-                "e1"
-              ]
+              "@xsdType": "string"
             },
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "e3": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "@xsdType": "string"
-                    },
-                    "e4": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "@xsdType": "string"
-                    }
-                  }
-                },
-                {
-                  "allOf": [
-                    {
-                      "properties": {
-                        "e5": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "@xsdType": "string"
-                        },
-                        "e6": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "@xsdType": "string"
-                        }
-                      }
-                    }
-                  ],
-                  "@xsdStructure": "sequence"
-                },
-                {
-                  "properties": {
-                    "e7": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "@xsdType": "string"
-                    },
-                    "e8": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "@xsdType": "string"
-                    }
-                  }
-                }
-              ],
-              "@xsdStructure": "sequence"
+            "e4": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "@xsdType": "string"
             }
-          ],
-          "@xsdStructure": "sequence"
+          }
+        },
+        {
+          "properties": {
+            "e5": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "@xsdType": "string"
+            },
+            "e6": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "@xsdType": "string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "e7": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "@xsdType": "string"
+            },
+            "e8": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "@xsdType": "string"
+            }
+          }
         }
       ]
     }
-  }
+  ]
 }
