@@ -41,11 +41,11 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Equal(CompatibleXsdType.ComplexType);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexType);
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/allOf/[0]", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
         public async Task IsValidComplexContentExtension_ComplexContentExtention_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
