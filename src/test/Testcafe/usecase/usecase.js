@@ -56,6 +56,7 @@ test('Gitea connection - Pull changes', async () => {
       .click(designerPage.confirmDeleteLocalChanges)
       .expect(resetRepo.contains((r) => r.response.statusCode === 200))
       .ok()
+      .wait(5000)
       .click(designerPage.pullChanges)
       .expect(pullRepo.contains((r) => r.response.statusCode === 200))
       .ok();
