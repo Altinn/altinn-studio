@@ -91,23 +91,6 @@ namespace Altinn.Platform.Storage.Filters
             return null;
         }
 
-        private static string GetUserOrOrgId(ClaimsPrincipal user)
-        {
-            int? userId = GetUserIdAsInt(user);
-            if (userId.HasValue)
-            {
-                return userId.Value.ToString();
-            }
-
-            int? orgId = GetOrgNumber(user);
-            if (orgId.HasValue)
-            {
-                return orgId.Value.ToString();
-            }
-
-            return null;
-        }
-
         private static int? GetOrgNumber(ClaimsPrincipal user)
         {
             if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
