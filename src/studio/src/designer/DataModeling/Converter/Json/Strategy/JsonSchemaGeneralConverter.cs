@@ -351,26 +351,28 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                // Plain complex type
-                var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+                // Plain complex type                
                 var sequence = new XmlSchemaSequence
                 {
                     Parent = item
                 };
 
-                if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
-                {
-                    foreach (var (name, property) in propertiesKeyword.Properties)
-                    {
-                        var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+                HandlePropertiesKeyword(sequence, keywords, path);
 
-                        SetName(subItem, name);
-                        SetRequired(subItem, required.Contains(name));
+                //var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+                //if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
+                //{
+                //    foreach (var (name, property) in propertiesKeyword.Properties)
+                //    {
+                //        var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
 
-                        subItem.Parent = sequence;
-                        sequence.Items.Add(subItem);
-                    }
-                }
+                //        SetName(subItem, name);
+                //        SetRequired(subItem, required.Contains(name));
+
+                //        subItem.Parent = sequence;
+                //        sequence.Items.Add(subItem);
+                //    }
+                //}
 
                 if (sequence.Items.Count > 0)
                 {
@@ -419,22 +421,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 if (subSchema.HasKeyword<PropertiesKeyword>())
                 {                    
-                    HandlePropertiesKeyword(path.Combine(JsonPointer.Parse($"/allOf/[{i}]")), subSchema, sequence);
+                    HandlePropertiesKeyword(sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
                 }                
 
                 i++;
             }
 
-            extension.Particle = sequence;
-            
+            if (sequence.Items.Count > 0)
+            {
+                extension.Particle = sequence;
+            }
+
             item.ContentModel = complexContent;
         }
 
-        private void HandlePropertiesKeyword(JsonPointer path, JsonSchema subSchema, XmlSchemaSequence sequence)
+        private void HandlePropertiesKeyword(XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            var keywordsWorklist = subSchema.AsWorkList();
-            var required = keywordsWorklist.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
-            if (keywordsWorklist.TryPull(out PropertiesKeyword propertiesKeyword))
+            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+            if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
             {
                 foreach (var (name, property) in propertiesKeyword.Properties)
                 {
