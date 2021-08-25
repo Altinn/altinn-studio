@@ -47,6 +47,7 @@ export type ComponentTypes =
   'Input' |
   'NavigationButtons' |
   'Paragraph' |
+  'Image' |
   'RadioButtons' |
   'Summary' |
   'TextArea';
