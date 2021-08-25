@@ -45,10 +45,17 @@ namespace Altinn.Platform.Profile.Filters
                     int? partyId = GetPartyIdAsInt(ctx.User);
                     int authLevel = GetAuthenticationLevel(ctx.User);
 
-                    string idString = $"partyId:{partyId};userId:{userId};orgNumber:{orgNumber};authLevel:{authLevel}";
+                    request.Properties.Add("partyId", partyId.ToString());
+                    request.Properties.Add("authLevel", authLevel.ToString());
 
-                    item.Context.User.AuthenticatedUserId = GetUserOrOrgId(ctx.User);
-                    item.Context.User.Id = idString;
+                    if (userId != null)
+                    {
+                        request.Properties.Add("userId", userId.ToString());
+                    }
+
+                    if (orgNumber != null) {
+                        request.Properties.Add("orgNumber", orgNumber.ToString());
+                    }
                 }
             }
 
