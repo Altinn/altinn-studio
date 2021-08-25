@@ -75,6 +75,7 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -134,6 +135,7 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 200)]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<ActionResult> Post(
             [FromRoute] string org,
             [FromRoute] string app,
