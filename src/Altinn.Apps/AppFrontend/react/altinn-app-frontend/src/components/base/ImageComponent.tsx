@@ -38,6 +38,7 @@ export function ImageComponent(props: IImageProps) {
     useSelector((state: IRuntimeState) => state.profile.profile.profileSettingPreference.language);
   const width = props.imageSpecs.imgWidth || '100%';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg) || 'image';
+
   let imgSrc;
   if (language === 'en' && props.imageSpecs.imageSrc.en) {
     imgSrc = props.imageSpecs.imageSrc.en;
