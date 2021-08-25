@@ -32,6 +32,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient();
+            services.AddTransient<EnsureSuccessHandler>();
             services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
