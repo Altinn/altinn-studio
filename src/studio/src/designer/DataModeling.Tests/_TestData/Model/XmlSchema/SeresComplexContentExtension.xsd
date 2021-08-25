@@ -34,7 +34,7 @@
           <xsd:sequence>
             <xsd:element name="ce1" type="xsd:string" />
           </xsd:sequence>
-          <xsd:attribute name="a1" type="xsd:int" />
+          <!--xsd:attribute name="a1" type="xsd:int" / Add back in when we support attributes -->
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>

@@ -52,15 +52,6 @@
       "required": [
         "ce1"
       ]
-    },
-    {
-      "properties": {
-        "a1": {
-          "type": "integer",
-          "@xsdType": "int",
-          "@xsdAttribute": true
-        }
-      }
     }
   ],
   "$defs": {

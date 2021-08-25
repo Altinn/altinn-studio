@@ -339,60 +339,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.ComplexContentExtension))
             {
-                // <xsd:complexContent>
-                var complexContent = new XmlSchemaComplexContent()
-                {
-                    Parent = item
-                };
-                
-                if (keywords.TryPull(out AllOfKeyword allOfKeyword))
-                {
-                    var subSchemas = allOfKeyword.GetSubschemas();
-
-                    var refKeywordSchema = subSchemas.First(k => k.Keywords.HasKeyword<RefKeyword>());
-
-                    // <xsd:extension base="myBase">
-                    var extension = new XmlSchemaComplexContentExtension()
-                    {
-                        Parent = complexContent,
-                        BaseTypeName = GetTypeNameFromReference(refKeywordSchema.Keywords.GetKeyword<RefKeyword>().Reference)
-                    };
-
-                    complexContent.Content = extension;
-
-                    // <xsd:sequence>
-                    var sequence = new XmlSchemaSequence
-                    {
-                        Parent = extension
-                    };
-
-                    // Loop sub-schemas except the first ie. the one with RefKeyword
-                    var i = 1;
-                    foreach (var subSchema in subSchemas.Skip(1))
-                    {                        
-                        var keywordsWorklist = subSchema.AsWorkList();
-                        var required = keywordsWorklist.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
-                        if (keywordsWorklist.TryPull(out PropertiesKeyword propertiesKeyword))
-                        {                            
-                            foreach (var (name, property) in propertiesKeyword.Properties)
-                            {
-                                var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/allOf/[{i}]/properties/{name}")), property);
-
-                                SetName(subItem, name);
-                                SetRequired(subItem, required.Contains(name));
-
-                                subItem.Parent = sequence;
-                                sequence.Items.Add(subItem);                                
-                            }
-                        }
-
-                        i++;
-                    }
-
-                    extension.Particle = sequence;
-                }
-
-                item.ContentModel = complexContent;
+                HandleComplexContentExtension(item, keywords, path);                
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentRestriction))
             {
@@ -428,6 +375,75 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 if (sequence.Items.Count > 0)
                 {
                     item.Particle = sequence;
+                }
+            }
+        }
+
+        private void HandleComplexContentExtension(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            // <xsd:complexContent>
+            var complexContent = new XmlSchemaComplexContent()
+            {
+                Parent = item
+            };
+
+            var allOfKeyword = keywords.Pull<AllOfKeyword>();
+            var subSchemas = allOfKeyword.GetSubschemas();
+            var refKeywordSchema = subSchemas.First(k => k.Keywords.HasKeyword<RefKeyword>());
+
+            // <xsd:extension base="...">
+            var extension = new XmlSchemaComplexContentExtension()
+            {
+                Parent = complexContent,
+                BaseTypeName = GetTypeNameFromReference(refKeywordSchema.Keywords.GetKeyword<RefKeyword>().Reference)
+            };
+
+            complexContent.Content = extension;
+
+            // <xsd:sequence>
+            var sequence = new XmlSchemaSequence
+            {
+                Parent = extension
+            };
+
+            // Loop sub-schemas except the one with RefKeyword since this
+            // is alread handled.
+            var i = 0;            
+            foreach (var subSchema in subSchemas)
+            {
+                if (subSchema.HasKeyword<RefKeyword>())
+                {
+                    i++;
+                    continue;
+                }
+
+                if (subSchema.HasKeyword<PropertiesKeyword>())
+                {                    
+                    HandlePropertiesKeyword(path.Combine(JsonPointer.Parse($"/allOf/[{i}]")), subSchema, sequence);
+                }                
+
+                i++;
+            }
+
+            extension.Particle = sequence;
+            
+            item.ContentModel = complexContent;
+        }
+
+        private void HandlePropertiesKeyword(JsonPointer path, JsonSchema subSchema, XmlSchemaSequence sequence)
+        {
+            var keywordsWorklist = subSchema.AsWorkList();
+            var required = keywordsWorklist.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+            if (keywordsWorklist.TryPull(out PropertiesKeyword propertiesKeyword))
+            {
+                foreach (var (name, property) in propertiesKeyword.Properties)
+                {
+                    var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+                    SetName(subItem, name);
+                    SetRequired(subItem, required.Contains(name));
+
+                    subItem.Parent = sequence;
+                    sequence.Items.Add(subItem);
                 }
             }
         }
