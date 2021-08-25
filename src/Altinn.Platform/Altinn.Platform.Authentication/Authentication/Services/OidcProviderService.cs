@@ -43,7 +43,7 @@ namespace Altinn.Platform.Authentication.Services
             // REQUIRED.  Value MUST be set to "authorization_code".
             kvps.Add("grant_type", "authorization_code");
 
-            // REQUIRED.  Value MUST be set to "authorization_code".
+            // REQUIRED.  Value MUST be set to "client_id".
             kvps.Add("client_id", provider.ClientId);
 
             // Client secret. Set if configured

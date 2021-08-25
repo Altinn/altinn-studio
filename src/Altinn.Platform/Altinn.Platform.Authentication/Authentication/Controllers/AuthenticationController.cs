@@ -789,7 +789,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 case "Level3":
                     return Enum.SecurityLevel.Sensitive;
                 case "Level4":
-                    return Enum.SecurityLevel.Sensitive;
+                    return Enum.SecurityLevel.VerySensitive;
             }
 
             return SecurityLevel.SelfIdentifed;
@@ -798,7 +798,6 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Converts external methods to internal  Minid-PIN, Minid-OTC, Commfides, Buypass, BankID, BankID Mobil or eIDAS
         /// </summary>
-        /// <returns></returns>
         private static AuthenticationMethod GetAuthenticationMethod(string amr)
         {
             switch (amr)
