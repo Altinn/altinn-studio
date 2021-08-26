@@ -172,7 +172,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
 
                     OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
-                    JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider);
+                    JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider.WellKnownConfigEndpoint);
                     userAuthentication = GetUserFromToken(jwtSecurityToken, provider);
 
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
@@ -521,7 +521,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             try
             {
-                JwtSecurityToken token = await ValidateAndExtractIdPortToken(originalToken);
+                JwtSecurityToken token = await ValidateAndExtractOidcToken(originalToken, _generalSettings.IdPortenWellKnownConfigEndpoint);
 
                 string pid = token.Claims.Where(c => c.Type.Equals(PidClaimName)).Select(c => c.Value).FirstOrDefault();
                 string authLevel = token.Claims.Where(c => c.Type.Equals(AuthLevelClaimName)).Select(c => c.Value).FirstOrDefault();
@@ -821,18 +821,10 @@ namespace Altinn.Platform.Authentication.Controllers
             return Enum.AuthenticationMethod.NotDefined;
         }
 
-        private async Task<JwtSecurityToken> ValidateAndExtractIdPortToken(string originalToken)
+        private async Task<JwtSecurityToken> ValidateAndExtractOidcToken(string originalToken, string wellKnownConfigEndpoint)
         {
             ICollection<SecurityKey> signingKeys =
-               await _signingKeysRetriever.GetSigningKeys(_generalSettings.IdPortenWellKnownConfigEndpoint);
-
-            return ValidateToken(originalToken, signingKeys);
-        }
-
-        private async Task<JwtSecurityToken> ValidateAndExtractOidcToken(string originalToken, OidcProvider provider)
-        {
-            ICollection<SecurityKey> signingKeys =
-               await _signingKeysRetriever.GetSigningKeys(provider.WellKnownConfigEndpoint);
+               await _signingKeysRetriever.GetSigningKeys(wellKnownConfigEndpoint);
 
             return ValidateToken(originalToken, signingKeys);
         }
