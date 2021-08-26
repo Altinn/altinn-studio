@@ -387,6 +387,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             complexContent.Content = extension;
 
+            // This is a bit a naive and supports only sequence as of now. When implementing choice
+            // in issue https://github.com/Altinn/altinn-studio/issues/4803 this needs to be changed.
             // <xsd:sequence>
             var sequence = new XmlSchemaSequence
             {
