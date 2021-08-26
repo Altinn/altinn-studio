@@ -11,6 +11,7 @@ using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Events.Configuration;
+using Altinn.Platform.Events.Filters;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services;
@@ -157,6 +158,7 @@ namespace Altinn.Platform.Events
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
