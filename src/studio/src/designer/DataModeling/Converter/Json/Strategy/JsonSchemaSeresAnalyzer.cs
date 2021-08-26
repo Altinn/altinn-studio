@@ -202,7 +202,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() >= 2)
             {
-                var subSchemas = allOfKeyword.GetSubschemas();
+                var subSchemas = allOfKeyword.GetSubschemas().ToList();
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
                 var propertiesKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
                                 
