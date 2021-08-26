@@ -79,7 +79,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<AltinnCore.Authentication.Constants.CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
-            services.ConfigureOidcProviders<OidcProviderSettings>(Configuration.GetSection("OidcProviders"));
+            services.ConfigureOidcProviders(Configuration.GetSection("OidcProviders"));
             services.ConfigureDataProtection();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
