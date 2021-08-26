@@ -103,7 +103,7 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
 
 export const getListOfServicesExcludingDatamodels = (services: IRepository[]) => {
   // TODO: remove this filter when modeling tool is stable
-  return services?.filter((service: IRepository) => !service.name.includes('-datamodels'));
+  return services?.filter((service: IRepository) => !service.name.endsWith('-datamodels'));
 };
 
 const getCurrentUsersName = (user: any) => {
