@@ -16,6 +16,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_allOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_anyOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_inline.json", @"Model\XmlSchema\SeresBasicSchema_inline.xsd")]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", @"Model\XmlSchema\SeresWithAttributes.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();

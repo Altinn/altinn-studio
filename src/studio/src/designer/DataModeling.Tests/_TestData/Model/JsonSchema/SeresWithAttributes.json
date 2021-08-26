@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "seres": "http://seres.no/xsd/forvaltningsdata",
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "info": {
+    "XSLT-skriptnavn": "SERES_XSD_GEN",
+    "XSD-generatorversjon": "2.0.17",
+    "XSLT-prosessor": "SAXON versjon 9.1.0.7",
+    "generert": "2016-12-14T13:28:58.147+01:00",
+    "navneromprefix": "http://seres.no/xsd",
+    "namespace": "http://seres.no/xsd/altinn/test/basic",
+    "meldingsnavn": "melding",
+    "domenenavn": "altinn-test",
+    "modellnavn": "melding-modell",
+    "metamodellversjon": "1.2",
+    "guid": "true",
+    "orid": "false",
+    "nillable": "true",
+    "tillat-gjenbruk": "true",
+    "elementtype": "true",
+    "forvaltningsdata": "true",
+    "forvaltningsdata-navnerom": "http://seres.no/xsd/forvaltningsdata",
+    "saernorske-bokstaver-i-navn": "false",
+    "ft_guid_som_attributt": "false",
+    "sem-ref": "false",
+    "kodebibliotek": "false",
+    "spraak": "",
+    "XSD-variant": "Altinn 1.3.1"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/melding-modell"
+    }
+  ],
+  "$defs": {
+    "melding-modell": {
+      "properties": {
+        "e1": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "a1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
+        "a2": {
+          "type": "string",
+          "@xsdType": "string",
+          "default": "def",
+          "@xsdAttribute": true
+        },
+        "a3": {
+          "type": "string",
+          "@xsdType": "string",
+          "const": "fix",
+          "@xsdAttribute": true
+        },
+        "a4": {
+          "type": "integer",
+          "@xsdType": "integer",
+          "@xsdAttribute": true
+        }
+      },
+      "required": [
+        "e1",
+        "a4"
+      ]
+    }
+  }
+}

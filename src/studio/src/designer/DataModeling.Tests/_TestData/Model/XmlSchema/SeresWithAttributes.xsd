@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified"
+    xmlns:seres="http://seres.no/xsd/forvaltningsdata"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2016-12-14T13:28:58.147+01:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/altinn/test/basic" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="altinn-test" />
+      <xsd:attribute name="modellnavn" fixed="melding-modell" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="melding-modell" />
+  <xsd:complexType name="melding-modell">
+    <xsd:sequence>
+      <xsd:element name="e1" type="xsd:string" />
+    </xsd:sequence>
+    <xsd:attribute name="a1" type="xsd:string" />
+    <xsd:attribute name="a2" type="xsd:string" default="def" />
+    <xsd:attribute name="a3" type="xsd:string" fixed="fix" />
+    <xsd:attribute name="a4" type="xsd:integer" use="required" />
+  </xsd:complexType>
+</xsd:schema>

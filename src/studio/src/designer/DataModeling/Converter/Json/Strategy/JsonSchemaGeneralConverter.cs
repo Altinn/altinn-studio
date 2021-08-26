@@ -185,9 +185,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
             {
-                var item = new XmlSchemaElement();
-                HandleSimpleType(item, schema.AsWorkList(), path);
-                return item;
+                if (compatibleTypes.Contains(CompatibleXsdType.Attribute))
+                {
+                    var item = new XmlSchemaAttribute();
+                    HandleAttribute(item, schema.AsWorkList(), path);
+                    return item;
+                }
+                else
+                {
+                    var item = new XmlSchemaElement();
+                    HandleSimpleType(item, schema.AsWorkList(), path);
+                    return item;
+                }
             }
 
             throw new NotImplementedException();
@@ -277,8 +286,32 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 var subschemaPath = defsPath.Combine(JsonPointer.Parse($"/{name}"));
                 var item = ConvertSubschema(subschemaPath, definition);
                 SetName(item, name);
-                item.Parent = _xsd;
                 _xsd.Items.Add(item);
+            }
+        }
+
+        private void HandleAttribute(XmlSchemaAttribute attribute, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+
+            if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeList))
+            {
+                throw new NotImplementedException();
+            }
+
+            if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
+            {
+                throw new NotImplementedException();
+            }
+
+            if (keywords.TryPull(out RefKeyword refKeyword))
+            {
+                attribute.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+            }
+
+            if (keywords.TryPull(out TypeKeyword typeKeyword))
+            {
+                attribute.SchemaTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
         }
 
@@ -311,11 +344,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             switch (typeKeyword.Type)
             {
+                case SchemaValueType.Null:
+                    return null;
+                case SchemaValueType.Boolean:
                 case SchemaValueType.String:
-                    return new XmlQualifiedName("string", KnownXmlNamespaces.XmlSchemaNamespace);
+                case SchemaValueType.Number:
+                case SchemaValueType.Integer:
+                    XmlQualifiedName typeName = SetType(typeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
+                    return typeName;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
-            return XmlQualifiedName.Empty;
         }
 
         private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
@@ -366,9 +405,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         SetName(subItem, name);
                         SetRequired(subItem, required.Contains(name));
+                        SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
+                        SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
 
-                        subItem.Parent = sequence;
-                        sequence.Items.Add(subItem);
+                        switch (subItem)
+                        {
+                            case XmlSchemaAttribute attribute:
+                                attribute.Parent = item;
+                                item.Attributes.Add(attribute);
+                                break;
+                            case XmlSchemaElement element:
+                                element.Parent = sequence;
+                                sequence.Items.Add(element);
+                                break;
+                            default:
+                                throw new NotImplementedException();
+                        }
                     }
                 }
 
@@ -424,6 +476,84 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                     break;
             }
+        }
+
+        private void SetFixed(XmlSchemaObject item, ConstKeyword constKeyword)
+        {
+            if (constKeyword is null)
+            {
+                return;
+            }
+
+            switch (item)
+            {
+                case XmlSchemaParticle particle:
+                    break;
+                case XmlSchemaAttribute attribute:
+                    attribute.FixedValue = constKeyword.Value.ToString();
+                    break;
+            }
+        }
+
+        private void SetDefault(XmlSchemaObject item, DefaultKeyword defaultKeyword)
+        {
+            if (defaultKeyword is null)
+            {
+                return;
+            }
+
+            switch (item)
+            {
+                case XmlSchemaParticle particle:
+                    break;
+                case XmlSchemaAttribute attribute:
+                    attribute.DefaultValue = defaultKeyword.Value.ToString();
+                    break;
+            }
+        }
+
+        private static XmlQualifiedName SetType(SchemaValueType type, Format format, string xsdType)
+        {
+            if (string.IsNullOrWhiteSpace(xsdType))
+            {
+                switch (type)
+                {
+                    case SchemaValueType.Boolean:
+                        xsdType = "boolean";
+                        break;
+                    case SchemaValueType.String:
+                        xsdType = GetStringTypeFromFormat(format);
+                        break;
+                    case SchemaValueType.Number:
+                        xsdType = "double";
+                        break;
+                    case SchemaValueType.Integer:
+                        xsdType = "long";
+                        break;
+                    default:
+                        xsdType = "string"; // Fallback to open string value
+                        break;
+                }
+            }
+
+            return new XmlQualifiedName(xsdType, KnownXmlNamespaces.XmlSchemaNamespace);
+        }
+
+        private static string GetStringTypeFromFormat(Format format)
+        {
+            switch (format.Key)
+            {
+                case "date-time":
+                    return "dateTime";
+                case "date":
+                    return "date";
+                case "time":
+                    return "time";
+                case "uri":
+                    return "anyURI";
+            }
+
+            return "string"; // Fallback to open string value
         }
     }
 }
