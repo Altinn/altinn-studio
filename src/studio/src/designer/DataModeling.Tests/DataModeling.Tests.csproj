@@ -43,6 +43,8 @@
     <EmbeddedResource Remove="_TestData\Model\CSharp\melding.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
+    <None Remove="_TestData\Model\JsonSchema\ComplexContentExtension_negative.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection-expected.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection.json" />
@@ -63,11 +65,13 @@
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
   </ItemGroup>

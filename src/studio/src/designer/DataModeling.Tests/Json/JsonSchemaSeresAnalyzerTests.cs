@@ -41,11 +41,11 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Equal(CompatibleXsdType.ComplexType);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexType);
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#/allOf/[0]", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
         public async Task IsValidComplexContentExtension_ComplexContentExtention_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
@@ -61,6 +61,23 @@ namespace DataModeling.Tests.Json
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContent);
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContentExtension);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.SimpleContentExtension);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.SimpleContentRestriction);
+        }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\ComplexContentExtension_negative.json", "#/properties/Root/allOf/[0]", "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)")]
+        public async Task IsValidComplexContentExtension_NotComplexContentExtention_ShouldReturnFalse(string path, string jsonPointer, string testCase)
+        {
+            _testOutputHelper.WriteLine($"{testCase}");
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var results = analyzer.AnalyzeSchema(schema);
+
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContent);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContentExtension);
         }
 
         private JsonSchema QueryForSubSchema(JsonSchema jsonSchema, string jsonPointer)

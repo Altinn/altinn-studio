@@ -11,6 +11,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private static readonly ISet<CompatibleXsdType> Empty = new HashSet<CompatibleXsdType>();
 
         private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _types;
+        private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
 
         /// <summary>
         /// Placeholder
@@ -33,6 +34,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         public JsonSchemaXsdMetadata()
         {
             _types = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
+            _incompatibleTypes = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
         }
 
         /// <summary>
@@ -51,6 +53,25 @@ namespace Altinn.Studio.DataModeling.Converter.Json
             foreach (var type in types)
             {
                 compatibleTypes.Add(type);
+            }
+        }
+
+        /// <summary>
+        /// Add incompatible types to the give path.
+        /// </summary>
+        /// <param name="path">the path to the element in JSON schema</param>
+        /// <param name="types">The type(s) to add as incompatible</param>
+        public void AddIncompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+        {
+            if (!_incompatibleTypes.TryGetValue(path, out var incompatibleTypes))
+            {
+                incompatibleTypes = new HashSet<CompatibleXsdType>();
+                _incompatibleTypes.Add(path, incompatibleTypes);
+            }
+
+            foreach (var type in types)
+            {
+                incompatibleTypes.Add(type);
             }
         }
 
@@ -79,7 +100,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// <returns>A list of compatible types for the JSON schema element</returns>
         public ISet<CompatibleXsdType> GetCompatibleTypes(JsonPointer path)
         {
-            return _types.TryGetValue(path, out HashSet<CompatibleXsdType> types) ? types : Empty;
-        } 
+            var success = _types.TryGetValue(path, out HashSet<CompatibleXsdType> compatibleTypes);
+
+            if (success)
+            {
+                compatibleTypes.ExceptWith(GetIncompatibleTypes(path));
+            }
+
+            return success ? compatibleTypes : Empty;
+        }
+
+        private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
+        {
+            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes) ? incompatibleTypes : Empty;
+        }
     }
 }
