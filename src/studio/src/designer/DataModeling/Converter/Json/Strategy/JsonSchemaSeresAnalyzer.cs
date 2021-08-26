@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     public class JsonSchemaSeresAnalyzer : IJsonSchemaAnalyzer
     {
         private JsonSchema _schema;
-        private readonly JsonSchemaXsdMetadata _metadata;
+        private JsonSchemaXsdMetadata _metadata;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSchemaSeresAnalyzer"/> class.
@@ -28,6 +28,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             _schema = schema;
+            _metadata = new JsonSchemaXsdMetadata();
 
             if (_schema.TryGetKeyword(out InfoKeyword info))
             {

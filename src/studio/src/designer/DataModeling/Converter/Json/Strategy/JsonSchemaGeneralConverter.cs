@@ -359,21 +359,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 HandlePropertiesKeyword(sequence, keywords, path);
 
-                //var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
-                //if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
-                //{
-                //    foreach (var (name, property) in propertiesKeyword.Properties)
-                //    {
-                //        var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
-
-                //        SetName(subItem, name);
-                //        SetRequired(subItem, required.Contains(name));
-
-                //        subItem.Parent = sequence;
-                //        sequence.Items.Add(subItem);
-                //    }
-                //}
-
                 if (sequence.Items.Count > 0)
                 {
                     item.Particle = sequence;
