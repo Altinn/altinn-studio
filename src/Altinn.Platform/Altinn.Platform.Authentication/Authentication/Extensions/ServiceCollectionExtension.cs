@@ -19,16 +19,13 @@ namespace Altinn.Platform.Authentication.Extensions
         {
             IEnumerable<IConfigurationSection> providerSections = section.GetChildren();
 
-            List<OidcProvider> providers = new List<OidcProvider>();
             foreach (IConfigurationSection providerSection in providerSections)
             {
                 OidcProvider prov = new OidcProvider();
                 providerSection.Bind(prov);
                 prov.IssuerKey = providerSection.Key;
-                providers.Add(prov);
+                services.Configure<OidcProviderSettings>(x => x.Add(prov.IssuerKey, prov));
             }
-
-            services.Configure<OidcProviderSettings>(x => providers.ForEach(v => x.Add(v.IssuerKey, v)));
 
             return services;
         }
