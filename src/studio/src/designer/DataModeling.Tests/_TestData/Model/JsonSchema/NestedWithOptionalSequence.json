@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,48 +12,34 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
-      "allOf": [
-        {
-          "allOf": [
-            {
-              "allOf": [
-                {
-                  "properties": {
-                    "i1": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    },
-                    "i2": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    }
-                  }
-                }
-              ],
-              "@xsdStructure": "sequence"
-            },
-            {
-              "properties": {
-                "o1": {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                "o2": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "o1",
-                "o2"
-              ]
-            }
-          ],
-          "@xsdStructure": "sequence"
+  "allOf": [
+    {
+      "properties": {
+        "i1": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "i2": {
+          "type": "string",
+          "@xsdType": "string"
         }
+      }
+    },
+    {
+      "properties": {
+        "o1": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "o2": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "o1",
+        "o2"
       ]
     }
-  }
+  ]
 }

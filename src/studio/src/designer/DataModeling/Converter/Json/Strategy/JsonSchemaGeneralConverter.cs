@@ -378,7 +378,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.ComplexContentExtension))
             {
-                throw new NotImplementedException();
+                HandleComplexContentExtension(item, keywords, path);                
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentRestriction))
             {
@@ -391,42 +391,128 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else
             {
                 // Plain complex type
-                var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
                 var sequence = new XmlSchemaSequence
                 {
                     Parent = item
                 };
 
-                if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
-                {
-                    foreach (var (name, property) in propertiesKeyword.Properties)
-                    {
-                        var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
-
-                        SetName(subItem, name);
-                        SetRequired(subItem, required.Contains(name));
-                        SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
-                        SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
-
-                        switch (subItem)
-                        {
-                            case XmlSchemaAttribute attribute:
-                                attribute.Parent = item;
-                                item.Attributes.Add(attribute);
-                                break;
-                            case XmlSchemaElement element:
-                                element.Parent = sequence;
-                                sequence.Items.Add(element);
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
-                    }
-                }
+                HandlePropertiesKeyword(item, sequence, keywords, path);
 
                 if (sequence.Items.Count > 0)
                 {
                     item.Particle = sequence;
+                }
+            }
+        }
+
+        private void HandleComplexContentExtension(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            // <xsd:complexContent>
+            var complexContent = new XmlSchemaComplexContent()
+            {
+                Parent = item
+            };
+
+            var allOfKeyword = keywords.Pull<AllOfKeyword>();
+            var subSchemas = allOfKeyword.GetSubschemas();
+            var refKeywordSchema = subSchemas.First(k => k.Keywords.HasKeyword<RefKeyword>());
+
+            // <xsd:extension base="...">
+            var extension = new XmlSchemaComplexContentExtension()
+            {
+                Parent = complexContent,
+                BaseTypeName = GetTypeNameFromReference(refKeywordSchema.Keywords.GetKeyword<RefKeyword>().Reference)
+            };
+
+            complexContent.Content = extension;
+
+            // This is a bit a naive and supports only sequence as of now. When implementing choice
+            // in issue https://github.com/Altinn/altinn-studio/issues/4803 this needs to be changed.
+            // <xsd:sequence>
+            var sequence = new XmlSchemaSequence
+            {
+                Parent = extension
+            };
+
+            // Loop sub-schemas except the one with RefKeyword since this
+            // is alread handled.
+            var i = 0;
+            foreach (var subSchema in subSchemas)
+            {
+                if (subSchema.HasKeyword<RefKeyword>())
+                {
+                    i++;
+                    continue;
+                }
+
+                if (subSchema.HasKeyword<PropertiesKeyword>())
+                {
+                    HandlePropertiesKeyword(sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                }
+
+                i++;
+            }
+
+            if (sequence.Items.Count > 0)
+            {
+                extension.Particle = sequence;
+            }
+
+            item.ContentModel = complexContent;
+        }
+
+        private void HandlePropertiesKeyword(XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+            if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
+            {
+                foreach (var (name, property) in propertiesKeyword.Properties)
+                {
+                    var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+
+                    if (subItem is XmlSchemaAttribute)
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    SetName(subItem, name);
+                    SetRequired(subItem, required.Contains(name));
+                    SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
+                    SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
+
+                    subItem.Parent = sequence;
+                    sequence.Items.Add(subItem);
+                }
+            }
+        }
+
+        private void HandlePropertiesKeyword(XmlSchemaComplexType complexType, XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+            if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
+            {
+                foreach (var (name, property) in propertiesKeyword.Properties)
+                {
+                    var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+
+                    SetName(subItem, name);
+                    SetRequired(subItem, required.Contains(name));
+                    SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
+                    SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
+
+                    switch (subItem)
+                    {
+                        case XmlSchemaAttribute attribute:
+                            attribute.Parent = complexType;
+                            complexType.Attributes.Add(attribute);
+                            break;
+                        case XmlSchemaElement element:
+                            element.Parent = sequence;
+                            sequence.Items.Add(element);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
             }
         }

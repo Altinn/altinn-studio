@@ -44,17 +44,35 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
+    <None Remove="_TestData\Model\JsonSchema\ComplexContentExtension_negative.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-collection-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-collection.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-common-keywords.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-no-common-keywords-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-no-common-keywords.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-ref-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content-ref.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-content.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-keyed-collection-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-keyed-collection.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-ref-expected.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root-ref.json" />
+    <None Remove="_TestData\Model\JsonSchema\normalize-root.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresWithAttributes.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithAttributes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />

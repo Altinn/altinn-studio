@@ -1,8 +1,13 @@
+using System.IO;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
+using Json.More;
 using Json.Schema;
 using Xunit;
 
@@ -20,6 +25,13 @@ namespace DataModeling.Tests
             XmlSchema xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
 
             JsonSchema actual = converter.Convert(xsd);
+
+            //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
+            //await using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            //actual.ToJsonDocument().WriteTo(writer);
+            //await writer.FlushAsync();
+
+            // var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
 
             // Assert
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);

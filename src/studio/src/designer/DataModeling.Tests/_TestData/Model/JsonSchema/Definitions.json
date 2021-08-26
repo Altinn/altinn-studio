@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -12,22 +12,17 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "properties": {
-    "Root": {
+  "oneOf": [
+    {
       "$ref": "#/$defs/main"
     }
-  },
+  ],
   "$defs": {
     "main": {
       "allOf": [
         {
-          "allOf": [
-            {
-              "$ref": "#/$defs/g1",
-              "@xsdType": "#ref"
-            }
-          ],
-          "@xsdStructure": "sequence"
+          "$ref": "#/$defs/g1",
+          "@xsdType": "#ref"
         },
         {
           "$ref": "#/$defs/ag1",
@@ -49,28 +44,19 @@
       ]
     },
     "st1": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string"
     },
     "g1": {
-      "allOf": [
-        {
-          "properties": {
-            "e1": {
-              "$ref": "#/$defs/e1",
-              "@xsdType": "#ref"
-            }
-          },
-          "required": [
-            "e1"
-          ]
+      "properties": {
+        "e1": {
+          "$ref": "#/$defs/e1",
+          "@xsdType": "#ref"
         }
-      ],
-      "@xsdStructure": "sequence"
+      },
+      "required": [
+        "e1"
+      ]
     },
     "e1": {
       "type": "string",
@@ -81,40 +67,32 @@
       "@xsdAttribute": true
     },
     "ag1": {
-      "allOf": [
-        {
-          "properties": {
-            "ag1_1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            },
-            "ag1_2": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            }
-          }
+      "properties": {
+        "ag1_1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
+        "ag1_2": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
         }
-      ]
+      }
     },
     "ag2": {
-      "allOf": [
-        {
-          "properties": {
-            "ag2_1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            },
-            "ag2_2": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdAttribute": true
-            }
-          }
+      "properties": {
+        "ag2_1": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
+        "ag2_2": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
         }
-      ]
+      }
     }
   }
 }
