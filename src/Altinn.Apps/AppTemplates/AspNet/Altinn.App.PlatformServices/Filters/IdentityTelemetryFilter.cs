@@ -52,7 +52,8 @@ namespace Altinn.App.PlatformServices.Filters
                         request.Properties.Add("userId", userId.ToString());
                     }
 
-                    if (orgNumber != null) {
+                    if (orgNumber != null)
+                    {
                         request.Properties.Add("orgNumber", orgNumber.ToString());
                     }
                 }
