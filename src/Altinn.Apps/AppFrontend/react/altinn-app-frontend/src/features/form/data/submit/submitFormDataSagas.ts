@@ -10,9 +10,9 @@ import ProcessDispatcher from '../../../../shared/resources/process/processDispa
 import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
-  createValidator,
   getNumberOfComponentsWithErrors,
   getNumberOfComponentsWithWarnings,
+  getValidator,
   mapDataElementValidationToRedux,
   mergeValidationObjects,
   validateEmptyFields,
@@ -38,8 +38,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
     );
 
     // Run client validations
-    const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-    const validator = createValidator(schema);
+    const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
     const model = convertDataBindingToModel(state.formData.formData);
     const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
     const validationResult = validateFormData(
@@ -180,12 +179,13 @@ export function* saveFormDataSaga(): SagaIterator {
 }
 
 export function* saveStatelessData(state: IRuntimeState, model: any) {
+  const selectedPartyId = state.party.selectedParty.partyId;
   const currentDataType = getCurrentDataTypeForApplication(
     state.applicationMetadata.applicationMetadata,
     state.instanceData.instance,
     state.formLayout.layoutsets,
   );
-  const response = yield call(post, getStatelessFormDataUrl(currentDataType), null, model);
+  const response = yield call(post, getStatelessFormDataUrl(currentDataType), { headers: { party: `partyid:${selectedPartyId}` } }, model);
   const formData = convertModelToDataBinding(response?.data);
   yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
   yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);

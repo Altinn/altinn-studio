@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -13,6 +14,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// Class representing a Altinn Git Repository, either an app or a datamodels repository,
     /// ie. the shared properties and functionallity between the different types of repositories.
     /// </summary>
+    /// <remarks>This class knows that the repository is an Altinn Repository and hence knows
+    /// about folders and file names and can map them to their respective models.
+    /// It shoud hovever only have methods that are shared between the different types of Altinn Repositories
+    /// and not any methods that are specific to App or Datamodels repositories.</remarks>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";

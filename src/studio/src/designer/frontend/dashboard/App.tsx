@@ -83,7 +83,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               exact={true}
               render={() => (
                 <Grid
-                  container={true} justify='center'
+                  container={true} justifyContent='center'
                   direction='row' className='block-with-text'
                 >
                   <Grid item={true} xs={10}>

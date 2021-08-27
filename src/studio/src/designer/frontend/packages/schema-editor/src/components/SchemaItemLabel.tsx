@@ -89,9 +89,9 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         onClose={handleCloseContextMenu}
       >
         <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}</MenuItem>
-        {props.onImport && <MenuItem><i className='fa fa-clone'/> Import</MenuItem>}
-        {props.onDelete && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem> }
-        {props.onPromote && <MenuItem onClick={handlePromoteClick}><i className='fa fa-arrowup'/> Promote</MenuItem> }
+        {props.onImport && <MenuItem><i className='fa fa-clone'/> {getTranslation('import', props.language)}</MenuItem>}
+        {props.onDelete && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> {getTranslation('delete', props.language)}</MenuItem> }
+        {props.onPromote && <MenuItem onClick={handlePromoteClick}><i className='fa fa-arrowup'/> {getTranslation('promote', props.language)}</MenuItem> }
       </Menu>
     </div>);
 };

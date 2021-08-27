@@ -1,10 +1,14 @@
 using System;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
+using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
 {
@@ -32,14 +36,16 @@ namespace Designer.Tests.Utils
         public static Stream LoadDataFromEmbeddedResource(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            Stream resource = assembly.GetManifestResourceStream(resourceName);
+            Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
 
-            if (resource == null)
+            if (resourceStream == null)
             {
                 throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
             }
 
-            return resource;
+            resourceStream.Seek(0, SeekOrigin.Begin);
+
+            return resourceStream;
         }
 
         public static Stream LoadTestDataFromFile(string resourceName)
@@ -75,7 +81,19 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
         }
 
-        public async static Task<string> CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public static string GetTestDataRemoteRepository(string org, string repository)
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote\\{org}\\{repository}");
+        }
+
+        public static string GetTestDataRemoteRepositoryRootDirectory()
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote");
+        }
+
+        public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
@@ -119,6 +137,13 @@ namespace Designer.Tests.Utils
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
 
+        public static string CreateEmptyDirectory(string path)
+        {
+            string fullPath = $"{GetTestDataRepositoriesRootDirectory()}/{path}";
+            Directory.CreateDirectory(fullPath);
+            return fullPath;
+        }
+
         public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
@@ -136,20 +161,87 @@ namespace Designer.Tests.Utils
             foreach (FileInfo file in files)
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-                
+
                 var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
                 await File.WriteAllBytesAsync(tempPath, sourceBytes);
+                File.SetAttributes(tempPath, FileAttributes.Normal);
             }
 
             if (copySubDirs)
             {
                 foreach (DirectoryInfo subdir in sourceSubDirectories)
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);                    
+                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
                     await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
                 }
             }
         }
+
+        public static void CleanUpRemoteRepository(string org, string repository)
+        {
+            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), $"{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
+                {
+                    DeleteDirectory(subDir, true);
+                }
+            }
+        }
+
+        public static void CleanUpReplacedRepositories(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
+                {
+                    // move data and delete copied folder
+                    string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
+                    CopyDirectory(subDir, originalPath, true);
+                    Directory.Delete(subDir, true);
+                }
+            }
+        }
+
+        public static void CleanUpLocalBranches(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_complete_copy_of_app"))
+                {
+                    Directory.Delete(subDir, true);
+                }
+            }
+        }
+
+        public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllText(filePath);
+            }
+
+            return string.Empty;
+        }
+
+        public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
+
+        public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
+        {
+            builder.ClearProviders();
+            builder
+                .AddSimpleConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.TimestampFormat = "hh:mm:ss ";
+                });
+        });
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

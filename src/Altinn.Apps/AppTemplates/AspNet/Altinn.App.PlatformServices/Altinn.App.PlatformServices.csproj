@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.11.0</Version>
-    <AssemblyVersion>4.11.0.0</AssemblyVersion>
+    <Version>4.12.0-alpha</Version>
+    <AssemblyVersion>4.12.0.0</AssemblyVersion>
     <PackageId>Altinn.App.PlatformServices</PackageId>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
@@ -32,11 +32,11 @@
     <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.0.0-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.0" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" />
   </ItemGroup>
 
   <ItemGroup>
