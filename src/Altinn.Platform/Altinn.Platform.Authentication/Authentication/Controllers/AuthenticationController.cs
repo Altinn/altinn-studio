@@ -952,7 +952,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private async Task CreateTokenCookie(UserAuthenticationModel userAuthentication)
         {
             List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.PlatformEndpoint;
+            string issuer = _generalSettings.AltinnOidcIssuerUrl;
             claims.Add(new Claim(ClaimTypes.NameIdentifier, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
 
@@ -973,7 +973,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
             }
 
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.ClaimsIdentity);
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
             string serializedToken = await GenerateToken(principal);
