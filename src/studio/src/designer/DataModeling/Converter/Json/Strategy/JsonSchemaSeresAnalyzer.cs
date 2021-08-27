@@ -259,7 +259,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidAttribute(JsonSchema schema)
         {
-            if (schema.Keywords.TryGetKeyword(out XsdAttributeKeyword _))
+            if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
             {
                 return true;
             }

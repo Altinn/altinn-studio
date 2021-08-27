@@ -574,8 +574,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             switch (item)
             {
-                case XmlSchemaParticle particle:
-                    break;
                 case XmlSchemaAttribute attribute:
                     attribute.FixedValue = constKeyword.Value.ToString();
                     break;
@@ -591,8 +589,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             switch (item)
             {
-                case XmlSchemaParticle particle:
-                    break;
                 case XmlSchemaAttribute attribute:
                     attribute.DefaultValue = defaultKeyword.Value.ToString();
                     break;
