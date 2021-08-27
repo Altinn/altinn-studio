@@ -965,7 +965,7 @@ namespace Altinn.Platform.Authentication.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
 
-            if (userAuthentication.ProviderClaims.Count > 0)
+            if (userAuthentication.ProviderClaims != null && userAuthentication.ProviderClaims.Count > 0)
             {
                 foreach (KeyValuePair<string, string> kvp in userAuthentication.ProviderClaims)
                 {
