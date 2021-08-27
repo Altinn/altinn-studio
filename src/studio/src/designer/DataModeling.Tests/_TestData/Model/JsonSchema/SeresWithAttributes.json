@@ -45,37 +45,47 @@
   ],
   "$defs": {
     "melding-modell": {
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string"
+      "allOf": [
+        {
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "e1"
+          ]
         },
-        "a1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdAttribute": true
-        },
-        "a2": {
-          "type": "string",
-          "@xsdType": "string",
-          "default": "def",
-          "@xsdAttribute": true
-        },
-        "a3": {
-          "type": "string",
-          "@xsdType": "string",
-          "const": "fix",
-          "@xsdAttribute": true
-        },
-        "a4": {
-          "type": "integer",
-          "@xsdType": "integer",
-          "@xsdAttribute": true
+        {
+          "properties": {
+            "a1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "a2": {
+              "type": "string",
+              "@xsdType": "string",
+              "default": "def",
+              "@xsdAttribute": true
+            },
+            "a3": {
+              "type": "string",
+              "@xsdType": "string",
+              "const": "fix",
+              "@xsdAttribute": true
+            },
+            "a4": {
+              "type": "integer",
+              "@xsdType": "integer",
+              "@xsdAttribute": true
+            }
+          },
+          "required": [
+            "a4"
+          ]
         }
-      },
-      "required": [
-        "e1",
-        "a4"
       ]
     }
   }

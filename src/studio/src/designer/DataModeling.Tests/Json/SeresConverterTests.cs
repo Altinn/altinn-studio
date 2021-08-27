@@ -17,7 +17,6 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_allOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_anyOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_inline.json", @"Model\XmlSchema\SeresBasicSchema_inline.xsd")]
-        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", @"Model\XmlSchema\SeresWithAttributes.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -79,7 +78,7 @@ namespace DataModeling.Tests.Json
 
             string actualXml;
             await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true}))
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
             {
                 actualXsd.Write(xw);
                 actualXml = sw.ToString();

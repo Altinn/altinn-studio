@@ -107,7 +107,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                             keywords.MarkAsHandled<PropertiesKeyword>();
                         }
 
-                        HandleRootMessage(keywords);                        
+                        HandleRootMessage(keywords);
                         break;
                 }
             }
@@ -176,12 +176,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private XmlSchemaObject ConvertSubschema(JsonPointer path, JsonSchema schema)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
-            if (compatibleTypes.Contains(CompatibleXsdType.ComplexType))
-            {
-                var item = new XmlSchemaComplexType();
-                HandleComplexType(item, schema.AsWorkList(), path);
-                return item;
-            }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
             {
@@ -283,10 +277,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             foreach (var (name, definition) in definitions)
             {
-                var subschemaPath = defsPath.Combine(JsonPointer.Parse($"/{name}"));
-                var item = ConvertSubschema(subschemaPath, definition);
-                SetName(item, name);
-                _xsd.Items.Add(item);
+                var subSchemaPath = defsPath.Combine(JsonPointer.Parse($"/{name}"));
+                HandleDefinition(name, subSchemaPath, definition);
+            }
+        }
+
+        private void HandleDefinition(string name, JsonPointer path, JsonSchema definition)
+        {
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+            if (compatibleTypes.Contains(CompatibleXsdType.ComplexType))
+            {
+                var complexType = new XmlSchemaComplexType();
+                HandleComplexType(complexType, definition.AsWorkList(), path);
+                SetName(complexType, name);
+                complexType.Parent = _xsd;
+                _xsd.Items.Add(complexType);
             }
         }
 
@@ -362,7 +367,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var item = new XmlSchemaComplexType
             {
                 Parent = element
-                
             };
             element.SchemaType = item;
             HandleComplexType(item, keywords, path);
@@ -378,7 +382,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.ComplexContentExtension))
             {
-                HandleComplexContentExtension(item, keywords, path);                
+                HandleComplexContentExtension(item, keywords, path);
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentRestriction))
             {
@@ -396,7 +400,29 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     Parent = item
                 };
 
-                HandlePropertiesKeyword(item, sequence, keywords, path);
+                if (keywords.TryPull<AllOfKeyword>(out var allOfKeyword))
+                {
+                    var i = 0;
+                    foreach (var subSchema in allOfKeyword.GetSubschemas())
+                    {
+                        if (subSchema.HasKeyword<RefKeyword>())
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        if (subSchema.HasKeyword<PropertiesKeyword>())
+                        {
+                            HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                        }
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    HandlePropertiesKeyword(item, sequence, keywords, path);
+                }
 
                 if (sequence.Items.Count > 0)
                 {
@@ -447,7 +473,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 if (subSchema.HasKeyword<PropertiesKeyword>())
                 {
-                    HandlePropertiesKeyword(sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                    HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
                 }
 
                 i++;
@@ -459,31 +485,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             item.ContentModel = complexContent;
-        }
-
-        private void HandlePropertiesKeyword(XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
-        {
-            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
-            if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
-            {
-                foreach (var (name, property) in propertiesKeyword.Properties)
-                {
-                    var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
-
-                    if (subItem is XmlSchemaAttribute)
-                    {
-                        throw new NotImplementedException();
-                    }
-
-                    SetName(subItem, name);
-                    SetRequired(subItem, required.Contains(name));
-                    SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
-                    SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
-
-                    subItem.Parent = sequence;
-                    sequence.Items.Add(subItem);
-                }
-            }
         }
 
         private void HandlePropertiesKeyword(XmlSchemaComplexType complexType, XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
