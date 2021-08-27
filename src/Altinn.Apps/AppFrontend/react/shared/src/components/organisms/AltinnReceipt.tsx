@@ -118,6 +118,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         }
         <AltinnAttachment
           attachments={props.pdf}
+          id='attachment-list-pdf'
         />
         {props.attachmentGroupings && <RenderAttachmentGroupings/>}
 
