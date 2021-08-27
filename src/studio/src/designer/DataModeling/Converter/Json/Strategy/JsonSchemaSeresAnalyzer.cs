@@ -84,6 +84,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (IsValidSimpleType(schema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
+
+                if (IsValidAttribute(schema))
+                {
+                    _metadata.AddCompatibleTypes(path, CompatibleXsdType.Attribute);
+                }
             }
 
             if (IsValidSimpleTypeRestriction(schema))
@@ -250,6 +255,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 default:
                     return false;
             }
+        }
+
+        private bool IsValidAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsValidSimpleTypeRestriction(JsonSchema schema)

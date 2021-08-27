@@ -80,6 +80,24 @@ namespace DataModeling.Tests.Json
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContentExtension);
         }
 
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a1", "Schema has complex type with attributes. Property a1 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a2", "Schema has complex type with attributes. Property a2 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a3", "Schema has complex type with attributes. Property a3 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a4", "Schema has complex type with attributes. Property a4 is an attribute.")]
+        public async Task IsValidAttribute_Attribute_ShouldReturnTrue(string path, string jsonPointer, string testCase)
+        {
+            _testOutputHelper.WriteLine($"{testCase}");
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var results = analyzer.AnalyzeSchema(schema);
+
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.SimpleType);
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Attribute);
+        }
+
         private JsonSchema QueryForSubSchema(JsonSchema jsonSchema, string jsonPointer)
         {
             var pointer = JsonPointer.Parse(jsonPointer);

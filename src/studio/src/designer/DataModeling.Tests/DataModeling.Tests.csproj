@@ -66,12 +66,14 @@
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresWithAttributes.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresWithAttributes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
   </ItemGroup>

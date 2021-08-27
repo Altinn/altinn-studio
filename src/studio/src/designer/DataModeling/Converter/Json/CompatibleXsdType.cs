@@ -18,6 +18,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         Group,
         Sequence,
         Choice,
-        All
+        All,
+        Attribute
     }
 }

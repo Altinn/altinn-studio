@@ -40,6 +40,30 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
+        [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", @"Model\XmlSchema\SeresWithAttributes.xsd")]
+        public async Task Convert_SeresWIthAttributesSchema(string jsonPath, string xsdPath)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
+            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+
+            var actualXsd = converter.Convert(jsonSchema);
+
+            string actualXml;
+            await using (var sw = new StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                actualXsd.Write(xw);
+                actualXml = sw.ToString();
+            }
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
+
+        [Theory]
         [InlineData(@"Model\JsonSchema\SeresComplexContentExtension.json", @"Model\XmlSchema\SeresComplexContentExtension.xsd")]
         public async Task Convert_ComplexContent(string jsonPath, string xsdPath)
         {
@@ -54,7 +78,7 @@ namespace DataModeling.Tests.Json
 
             string actualXml;
             await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true}))
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
             {
                 actualXsd.Write(xw);
                 actualXml = sw.ToString();
