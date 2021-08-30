@@ -192,5 +192,11 @@ namespace DataModeling.Tests
         {
             return TestFiles("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json");
         }
+
+        [Fact]
+        public Task ComplexTypeWithAttributes()
+        {
+            return TestFiles("Model/XmlSchema/SeresWithAttributes.xsd", "Model/JsonSchema/SeresWithAttributes.json");
+        }
     }
 }
