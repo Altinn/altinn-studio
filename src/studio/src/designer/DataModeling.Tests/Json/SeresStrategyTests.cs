@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -25,6 +26,20 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell/properties/e1")).Should().Equal(CompatibleXsdType.SimpleType);
+        }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SimpleContentExtension.json")]
+        public async Task Analyze_SimpleContent_Extension(string path)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var metadata = analyzer.AnalyzeSchema(schema);
+
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(new[] { CompatibleXsdType.ComplexType, CompatibleXsdType.SimpleContentExtension });
         }
     }
 }

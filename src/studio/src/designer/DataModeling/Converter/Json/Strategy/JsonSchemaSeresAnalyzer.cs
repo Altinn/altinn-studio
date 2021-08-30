@@ -193,8 +193,67 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidSimpleContentExtension(JsonSchema schema)
         {
-            // TODO: Implement
-            return false;
+            // Exclude schemas with groupings
+            if (schema.HasAnyOfKeywords(
+                typeof(AllOfKeyword),
+                typeof(OneOfKeyword),
+                typeof(AnyOfKeyword),
+                typeof(IfKeyword),
+                typeof(ThenKeyword),
+                typeof(ElseKeyword),
+                typeof(NotKeyword)))
+            {
+                return false;
+            }
+
+            if (!schema.TryGetKeyword(out PropertiesKeyword properties))
+            {
+                return false;
+            }
+
+            // One of the properties must be named value
+            if (!properties.Properties.TryGetValue("value", out var valuePropertySchema))
+            {
+                return false;
+            }
+
+            // It must not be marked as attribute
+            if (valuePropertySchema.GetKeyword<XsdAttributeKeyword>()?.Value == true)
+            {
+                return false;
+            }
+
+            // follow any $ref keywords to validate against the actual subschema
+            while (valuePropertySchema.TryGetKeyword(out RefKeyword reference))
+            {
+                valuePropertySchema = FollowReference(reference);
+            }
+
+            // And it must be a valid SimpleType or a reference to a valid SimpleType
+            if (!IsValidSimpleTypeOrSimpleTypeRestriction(valuePropertySchema))
+            {
+                return false;
+            }
+
+            // All other properties must be attributes
+            var attributePropertiesCount = properties.Properties.Values.Count(prop =>
+                {
+                    // follow any $ref keywords to validate against the actual subschema
+                    while (prop.TryGetKeyword(out RefKeyword reference))
+                    {
+                        prop = FollowReference(reference);
+                    }
+
+                    return IsValidSimpleTypeOrSimpleTypeRestriction(prop) &&
+                           prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
+                });
+
+            if (attributePropertiesCount != (properties.Properties.Count - 1))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool IsValidSimpleContentRestriction(JsonSchema schema)
@@ -414,6 +473,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     }
 
                     break;
+
+                // case ISchemaCollector schemaCollector:
+                //    foreach (var schema in schemaCollector.Schemas)
+                //    {
+                //        AnalyzeSchema(path, schema);
+                //    }
+
+                //    break;
                 case ISchemaContainer schemaContainer:
                     AnalyzeSchema(path, schemaContainer.Schema);
                     break;
