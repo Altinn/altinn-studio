@@ -8,11 +8,6 @@ namespace Altinn.Studio.Designer.Infrastructure.Models
     public class Integrations
     {
         /// <summary>
-        /// Settings for Azure Cosmos Db
-        /// </summary>
-        public AzureCosmosDbSettings AzureCosmosDbSettings { get; set; }
-
-        /// <summary>
         /// Settings for Azure DevOps
         /// </summary>
         public AzureDevOpsSettings AzureDevOpsSettings { get; set; }

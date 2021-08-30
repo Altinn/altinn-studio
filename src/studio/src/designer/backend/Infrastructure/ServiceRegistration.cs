@@ -26,8 +26,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
 
-            services.AddSingleton<IReleaseRepositoryPostgres, ReleaseRepositoryPostgres>();
-            services.AddSingleton<IDeploymentRepositoryPostgres, DeploymentRepositoryPostgres>();
+            services.AddSingleton<IReleaseRepository, ReleaseRepository>();
+            services.AddSingleton<IDeploymentRepository, DeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();

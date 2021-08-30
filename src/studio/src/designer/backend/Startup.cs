@@ -73,7 +73,6 @@ namespace Altinn.Studio.Designer
             });
 
             services.RegisterServiceImplementations(Configuration);
-            services.RegisterIntegrations(Configuration);
 
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
@@ -87,13 +86,8 @@ namespace Altinn.Studio.Designer
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             
-            // services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
-
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication(Configuration, CurrentEnvironment);
-
-            /* services.AddSingleton<IDeploymentRepositoryPostgres, DeploymentRepositoryPostgres>();
-            services.AddSingleton<IReleaseRepositoryPostgres, ReleaseRepositoryPostgres>(); */
             
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 

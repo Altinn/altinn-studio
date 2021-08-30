@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Repository
     /// <summary>
     /// Interface
     /// </summary>
-    public interface IReleaseRepositoryPostgres
+    public interface IReleaseRepository
     {
         /// <summary>
         /// Creates an release entity in repository

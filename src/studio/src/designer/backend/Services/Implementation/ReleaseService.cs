@@ -14,12 +14,9 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
-using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
-using SqlParameterCollection = Microsoft.Azure.Documents.SqlParameterCollection;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -30,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
-        private IReleaseRepositoryPostgres _releaseRepositoryPostgres;
+        private IReleaseRepository _releaseRepository;
         private readonly HttpContext _httpContext;
         private readonly string _org;
         private readonly string _app;
@@ -41,19 +38,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
-        /// <param name="releaseRepositoryPostgres">IReleaseRepositoryPostgres</param>
+        /// <param name="releaseRepository">IReleaseRepository</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         /// <param name="logger">The logger.</param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
-            IReleaseRepositoryPostgres releaseRepositoryPostgres,
+            IReleaseRepository releaseRepository,
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
             ILogger<ReleaseService> logger)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
-            _releaseRepositoryPostgres = releaseRepositoryPostgres;
+            _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
             _app = _httpContext.GetRouteValue("app")?.ToString();
@@ -89,7 +86,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             release.Id = Guid.NewGuid().ToString();
 
-            return await _releaseRepositoryPostgres.Create(release);
+            return await _releaseRepository.Create(release);
         }
 
         /// <inheritdoc/>
@@ -98,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             query.Org = _org;
             query.App = _app;
 
-            IEnumerable<ReleaseEntity> results = await _releaseRepositoryPostgres.Get(query);
+            IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(query);
             return new SearchResults<ReleaseEntity>
             {
                 Results = results
@@ -108,7 +105,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task UpdateAsync(ReleaseEntity release, string appOwner)
         {
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepositoryPostgres.Get(appOwner, release.Build.Id);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, release.Build.Id);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -116,7 +113,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             releaseEntity.Build.Started = release.Build.Started;
             releaseEntity.Build.Finished = release.Build.Finished;
 
-            await _releaseRepositoryPostgres.Update(releaseEntity);
+            await _releaseRepository.Update(releaseEntity);
         }
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
@@ -128,7 +125,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<string> buildResult = new List<string>();
             buildResult.Add(BuildResult.Succeeded.ToEnumMemberAttributeValue());
 
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepositoryPostgres.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")

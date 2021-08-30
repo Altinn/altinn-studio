@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Repository
     /// <summary>
     /// Interface
     /// </summary>
-    public interface IDeploymentRepositoryPostgres
+    public interface IDeploymentRepository
     {
         /// <summary>
         /// Creates an deployment entity in repository
