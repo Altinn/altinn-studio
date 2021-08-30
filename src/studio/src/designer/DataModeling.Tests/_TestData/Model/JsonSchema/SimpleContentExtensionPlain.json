@@ -40,21 +40,18 @@
   },
   "properties": {
     "e1": {
-      "$ref": "#/$defs/myBase"
+      "$ref": "#/$defs/sce"
     }
   },
   "required": [
     "e1"
   ],
   "$defs": {
-    "valueBase": {
-      "type": "string",
-      "@xsdType": "string"
-    },
-    "myBase": {
+    "sce": {
       "properties": {
         "value": {
-          "$ref": "#/$defs/valueBase"
+          "type": "string",
+          "@xsdType": "string"
         },
         "a1": {
           "type": "string",

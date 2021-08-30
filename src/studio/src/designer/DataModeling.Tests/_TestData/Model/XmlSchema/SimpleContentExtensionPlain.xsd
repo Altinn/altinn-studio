@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:seres="http://seres.no/xsd/forvaltningsdata"
             attributeFormDefault="unqualified"
             elementFormDefault="qualified"
-            xmlns:seres="http://seres.no/xsd/forvaltningsdata"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xsd:annotation>
     <xsd:documentation>
@@ -35,18 +35,14 @@
   <xsd:element name="melding">
     <xsd:complexType>
       <xsd:sequence>
-        <xsd:element name="e1" type="myBase" />
+        <xsd:element name="e1" type="sce" />
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
-  
-  <xsd:simpleType name="valueBase">
-    <xsd:restriction base="xsd:string" />
-  </xsd:simpleType>
-  
-  <xsd:complexType name="myBase">
+
+  <xsd:complexType name="sce">
     <xsd:simpleContent>
-      <xsd:extension base="valueBase">
+      <xsd:extension base="xsd:string">
         <xsd:attribute name="a1" type="xsd:string" />
       </xsd:extension>
     </xsd:simpleContent>

@@ -193,6 +193,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
+            if (compatibleTypes.Contains(CompatibleXsdType.ComplexType))
+            {
+                var item = new XmlSchemaElement();
+                HandleComplexType(item, schema.AsWorkList(), path);
+                return item;
+            }
+
             throw new NotImplementedException();
         }
 
@@ -364,12 +371,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            var item = new XmlSchemaComplexType
+            if (keywords.TryPull(out RefKeyword reference))
             {
-                Parent = element
-            };
-            element.SchemaType = item;
-            HandleComplexType(item, keywords, path);
+                element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
+            }
+            else
+            {
+                var item = new XmlSchemaComplexType
+                {
+                    Parent = element
+                };
+                element.SchemaType = item;
+                HandleComplexType(item, keywords, path);
+            }
         }
 
         private void HandleComplexType(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
@@ -390,7 +404,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentExtension))
             {
-                throw new NotImplementedException();
+                HandleSimpleContentExtension(item, keywords, path);
             }
             else
             {
@@ -428,6 +442,51 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     item.Particle = sequence;
                 }
+            }
+        }
+
+        private void HandleSimpleContentExtension(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var simpleContent = new XmlSchemaSimpleContent
+            {
+                Parent = item
+            };
+            item.ContentModel = simpleContent;
+
+            var extension = new XmlSchemaSimpleContentExtension
+            {
+                Parent = simpleContent
+            };
+            simpleContent.Content = extension;
+
+            var properties = keywords.Pull<PropertiesKeyword>().Properties;
+            var valuePropertySchema = properties["value"];
+            var attributes = properties
+                .Where(prop => prop.Key != "value")
+                .Select(prop => (name: prop.Key, schema: prop.Value))
+                .ToList();
+
+            var valuePropertyKeywords = valuePropertySchema.AsWorkList();
+            if (valuePropertyKeywords.TryPull(out RefKeyword reference))
+            {
+                extension.BaseTypeName = GetTypeNameFromReference(reference.Reference);
+            }
+            else
+            {
+                var typeKeyword = valuePropertyKeywords.Pull<TypeKeyword>();
+                extension.BaseTypeName = GetTypeNameFromTypeKeyword(typeKeyword, valuePropertyKeywords);
+            }
+
+            foreach (var (name, schema) in attributes)
+            {
+                var attribute = new XmlSchemaAttribute
+                {
+                    Parent = extension,
+                    Name = name
+                };
+
+                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/properties/{name}")));
+                extension.Attributes.Add(attribute);
             }
         }
 
@@ -624,7 +683,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private static string GetStringTypeFromFormat(Format format)
         {
-            switch (format.Key)
+            switch (format?.Key)
             {
                 case "date-time":
                     return "dateTime";
