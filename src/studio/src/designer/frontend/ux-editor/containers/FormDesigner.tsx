@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { createMuiTheme, Drawer, Grid, makeStyles, Theme, Typography } from '@material-ui/core';
+import { createTheme, Drawer, Grid, makeStyles, Theme, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { DndProvider } from 'react-dnd';
@@ -31,7 +31,7 @@ export interface IFormDesignerState {
   codeEditorMode: LogicMode;
 }
 
-const useTheme = createMuiTheme(altinnTheme);
+const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {

@@ -14,12 +14,11 @@ namespace Altinn.Platform.Profile.Health
         /// Verifies the healht status
         /// </summary>
         /// <param name="context">The healtcheck context</param>
-        /// <param name="cancellationToken">The cancellationtoken</param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">A cancellation token</param>
+        /// <returns>A health result</returns>
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(
-                HealthCheckResult.Healthy("A healthy result."));
+            return Task.FromResult(HealthCheckResult.Healthy("A healthy result."));
         }
     }
 }

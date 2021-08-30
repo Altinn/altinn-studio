@@ -1,6 +1,6 @@
 /* eslint-disable react/no-access-state-in-setstate */
 /* eslint-disable react/no-unused-state */
-import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
@@ -9,7 +9,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   textDisabled: {

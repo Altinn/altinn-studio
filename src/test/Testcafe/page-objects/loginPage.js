@@ -11,10 +11,8 @@ export default class LoginPage {
   async login(userName, userPassword) {
     await t
       .click(this.welcomeLoginButton)
-      .typeText(this.userInput, userName);
-    await t
+      .typeText(this.userInput, userName)
       .typeText(this.passwordInput, userPassword)
       .click(this.loginButton);
-  };
-
-};
+  }
+}

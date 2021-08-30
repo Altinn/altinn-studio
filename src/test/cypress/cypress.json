@@ -5,10 +5,12 @@
     "userPwd": "Studio@123",
     "testEmail": "test1@test.com",
     "appOwner": "ttd",
-    "localTestAppName": "frontend-test",
+    "multiData2Stage": "frontend-test",
+    "stateless": "stateless-app",
     "localTest": "http://altinn3local.no/",
     "at21": "at21.altinn.cloud",
-    "at22": "at22.altinn.cloud"
+    "at22": "at22.altinn.cloud",
+    "tt02": "tt02.altinn.no"
   },
   "video": false,
   "fixturesFolder": "e2e/fixtures",

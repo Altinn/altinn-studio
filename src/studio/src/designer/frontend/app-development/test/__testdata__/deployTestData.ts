@@ -1,9 +1,4 @@
-import { IDeploymentResults } from '../../src/sharedResources/appDeployment/types';
-
-// Might want to add the following to the saga for testing
-
-// mockDeployments.results[0].created = moment().format();
-// mockDeployments.results[0].build.finished = moment().format();
+import { IDeploymentResults } from '../../sharedResources/appDeployment/types';
 
 export const mockDeployments: IDeploymentResults = {
   results: [

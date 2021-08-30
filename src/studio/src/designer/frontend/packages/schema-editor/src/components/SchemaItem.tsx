@@ -3,9 +3,10 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addProperty, deleteProperty, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
+import { getDomFriendlyID } from '../utils';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -87,8 +88,8 @@ const useStyles = (isRef: boolean) => makeStyles({
   },
 });
 
-const getRefItem = (schema: any[], id: string | undefined): UiSchemaItem => {
-  return schema.find((item) => item.id === id);
+const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
+  return schema.find((item) => item.path === path);
 };
 
 function SchemaItem(props: SchemaItemProps) {
@@ -110,33 +111,37 @@ function SchemaItem(props: SchemaItemProps) {
   });
   // if item props changed, update with latest item, or if reference, refItem.
   React.useEffect(() => {
-    setItemToDisplay(refItem ?? item);
+    setItemToDisplay(item);
   }, [item.restrictions, item, refItem]);
 
-  const onItemClick = (e: UiSchemaItem) => {
-    dispatch(setSelectedId({ id: e.id }));
+  const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
+    e.preventDefault();
+    dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
   const renderProperties = (itemProperties: UiSchemaItem[]) => itemProperties.map((property: UiSchemaItem) => {
     return (
       <SchemaItem
         keyPrefix={`${keyPrefix}-properties`}
-        key={`${keyPrefix}-${property.id}`}
+        key={`${keyPrefix}-${property.path}`}
         item={property}
-        nodeId={`${keyPrefix}-${property.id}`}
-        onClick={() => onItemClick(property)}
+        nodeId={`${getDomFriendlyID(property.path)}`}
+        onLabelClick={(e) => onItemClick(e, property)}
         language={props.language}
       />
     );
   });
 
+  const handlePromoteClick = () => {
+    dispatch(promoteProperty({ path: item.path }));
+  };
   const handleDeleteClick = () => {
-    dispatch(deleteProperty({ path: item.id }));
+    dispatch(deleteProperty({ path: item.path }));
   };
 
   const handleAddProperty = () => {
     dispatch(addProperty({
-      path: itemToDisplay.id,
+      path: itemToDisplay.path,
     }));
   };
 
@@ -148,27 +153,15 @@ function SchemaItem(props: SchemaItemProps) {
     return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
   };
 
-  const renderLabel = () => {
-    const iconStr = getIconStr();
-    const label = refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName;
-    return <SchemaItemLabel
-      language={props.language}
-      icon={iconStr}
-      label={label}
-      onAddProperty={handleAddProperty}
-      onDelete={handleDeleteClick}
-    />;
-  };
-
   const renderTreeChildren = () => {
     const items = [];
     if (itemToDisplay.$ref && refItem) {
       items.push(<SchemaItem
-        keyPrefix={`${keyPrefix}-${refItem.id}`}
-        key={`${keyPrefix}-${refItem.id}`}
-        onClick={() => onItemClick(refItem)}
+        keyPrefix={`${keyPrefix}-${refItem.path}`}
+        key={`${keyPrefix}-${refItem.path}`}
+        onLabelClick={(e) => onItemClick(e, refItem)}
         item={refItem}
-        nodeId={`${keyPrefix}-${refItem.id}-ref`}
+        nodeId={getDomFriendlyID(refItem.path)}
         language={props.language}
       />);
     }
@@ -180,8 +173,15 @@ function SchemaItem(props: SchemaItemProps) {
   return (
     <TreeItem
       classes={{ root: classes.treeItem }}
-      label={renderLabel()}
-      onClick={() => onItemClick(itemToDisplay)}
+      label={<SchemaItemLabel
+        language={props.language}
+        icon={getIconStr()}
+        label={refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName}
+        onAddProperty={handleAddProperty}
+        onDelete={handleDeleteClick}
+        onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+      />}
+      onLabelClick={(e) => onItemClick(e, itemToDisplay)}
       {...other}
     >
       { renderTreeChildren() }

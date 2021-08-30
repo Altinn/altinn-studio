@@ -1,5 +1,5 @@
 # base image
-FROM node:14.17.0-alpine3.13 AS generate-app-development
+FROM node:14.17.5-alpine3.14 AS generate-app-development
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .
@@ -13,7 +13,7 @@ COPY ./src/designer/frontend/shared/package-lock.json /shared/
 COPY ./src/designer/frontend/app-development/package.json /app-development/
 COPY ./src/designer/frontend/app-development/package-lock.json /app-development/
 COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
-COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
+  COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
 
 RUN npm run install-deps
 

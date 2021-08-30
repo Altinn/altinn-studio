@@ -5,7 +5,7 @@ import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
-import { Grid } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
 import components from '.';
@@ -13,7 +13,7 @@ import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, IGrid, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
-import ValidationActions from '../features/form/validation/validationActions';
+import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
@@ -42,13 +42,21 @@ export interface IGenericComponentProps {
   hidden?: boolean;
 }
 
+const useStyles = makeStyles({
+  container: {
+    '@media print': {
+      display: 'flex !important',
+    },
+  },
+});
+
 export function GenericComponent(props: IGenericComponentProps) {
   const {
     id,
     ...passThroughProps
   } = props;
   const dispatch = useDispatch();
-
+  const classes = useStyles(props);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
   const [isSimple, setIsSimple] = React.useState(true);
@@ -65,9 +73,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[currentView]?.[props.id], shallowEqual);
 
   React.useEffect(() => {
-    if (props.dataModelBindings && props.type) {
-      setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
-    }
+    setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
   }, []);
 
   React.useEffect(() => {
@@ -97,13 +103,17 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    const dataModelField = props.dataModelBindings[key];
+    const dataModelBinding = props.dataModelBindings[key];
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      ValidationActions.setCurrentSingleFieldValidation(dataModelField);
+      dispatch(setCurrentSingleFieldValidation({
+        dataModelBinding,
+        componentId: props.id,
+        layoutId: currentView,
+      }));
     }
 
     dispatch(FormDataActions.updateFormData({
-      field: dataModelField,
+      field: dataModelBinding,
       data: value,
       componentId: props.id,
     }));
@@ -122,7 +132,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   };
 
-  // some components handle their validations internally (i.e merge with internal validaiton state)
+  // some components handle their validations internally (i.e merge with internal validation state)
   const internalComponentValidations = getValidationsForInternalHandling();
   if (internalComponentValidations !== null) {
     passThroughProps.componentValidations = internalComponentValidations;
@@ -224,7 +234,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       lg={props.grid?.lg || false}
       xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
-      className='form-group a-form-group'
+      className={`form-group a-form-group ${classes.container}`}
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) &&

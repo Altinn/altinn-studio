@@ -2,10 +2,10 @@
 
 exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with all the properties 1`] = `
 <div
-  className="MuiGrid-root AltinnInformationCard-root-1 MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-content-xs-center MuiGrid-justify-xs-center"
+  className="MuiGrid-root AltinnInformationCard-root-1 MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-content-xs-center MuiGrid-justify-content-xs-center"
 >
   <div
-    className="MuiGrid-root AltinnInformationCard-scrollable-9 MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-xs-center"
+    className="MuiGrid-root AltinnInformationCard-scrollable-9 MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-content-xs-center"
   >
     <div
       className="MuiGrid-root AltinnInformationCard-paper-2 AltinnInformationCard-shadowBox-3 MuiGrid-container MuiGrid-item"
@@ -59,7 +59,7 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-xs-center MuiGrid-grid-sm-12 MuiGrid-grid-md-5"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center MuiGrid-justify-content-xs-center MuiGrid-grid-sm-12 MuiGrid-grid-md-5"
         >
           <img
             alt="information"

@@ -18,26 +18,18 @@ export default class CommonPage {
 
   async repoLogout() {
     if (this.repoLogoutButton.exists) {
-      await t
-        .click(this.repologoutButton);
+      await t.click(this.repologoutButton);
     } else {
-      await t
-        .click(this.designerLogoutButton);
+      await t.click(this.designerLogoutButton);
     }
 
-    const signInElement = Selector('.signin')
-      .find('option')
-      .withExactText('Sign In');
+    const signInElement = Selector('.signin').find('option').withExactText('Sign In');
 
-    await t
-      .expect(signInElement.exists)
-      .ok({ timeout: 5000 });
+    await t.expect(signInElement.exists).ok({ timeout: 5000 });
   }
 
   async logout(header) {
-    await t
-      .hover(header.userMenu)
-      .click(header.logOutButton);
+    await t.hover(header.userMenu).click(header.logOutButton);
   }
 
   async ensureUserHasNoRepos(user, landingPage, repoPage) {
@@ -48,7 +40,6 @@ export default class CommonPage {
   async returnToHomePage() {
     let repoProfileHomeButton = Selector('#navbar > div.item.brand > a > img'); //the home button, should the user be on the repository profile page
     let home = repoProfileHomeButton.exists ? repoProfileHomeButton : homeButton;
-    await t
-      .click(home);
+    await t.click(home);
   }
 }

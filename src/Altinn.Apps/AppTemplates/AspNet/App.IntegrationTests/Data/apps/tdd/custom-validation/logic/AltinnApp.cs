@@ -22,6 +22,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
 
+        private readonly GeneralSettings _settings;
+
         public AltinnApp(
             IAppResources appResourcesService,
             ILogger<AltinnApp> logger,
@@ -36,9 +38,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             IText textService,
             IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
         {
-            _validationHandler = new ValidationHandler();
+            _validationHandler = new ValidationHandler(settings.Value, httpContextAccessor);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _settings = settings.Value;
         }
 
         public override object CreateNewAppModel(string classRef)

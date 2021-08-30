@@ -215,13 +215,13 @@ namespace Altinn.Studio.Designer.Controllers
 
         private string GetCommaSeparatedFileList(List<AltinnCoreFile> files)
         {
-            string fileList = string.Empty;
+            var fileList = new StringBuilder();
             foreach (AltinnCoreFile file in files)
             {
-                fileList += file.FileName + ",";
+                fileList.Append(file.FileName + ",");                
             }
 
-            return fileList.Substring(0, fileList.Length - 1);
+            return fileList.ToString().Substring(0, fileList.Length - 1);
         }
     }
 }

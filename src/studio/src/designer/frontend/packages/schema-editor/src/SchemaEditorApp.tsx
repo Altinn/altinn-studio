@@ -1,30 +1,30 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-// eslint-disable-next-line import/no-named-as-default
-import SchemaEditor from './components/schemaEditor';
+import SchemaEditor from './components/Editor';
 import { store } from './store';
 import { ILanguage, ISchema } from './types';
 
-export interface IAppProps {
+export interface IAppProps extends React.PropsWithChildren<any> {
   schema: ISchema;
   language: ILanguage;
-  rootItemId?: string;
+  name?: string;
   onSaveSchema: (payload: any) => void;
+  LoadingComponent?: JSX.Element;
 }
 
 function SchemaEditorApp(props: IAppProps) {
   return (
-    <div id='schema-editor-container'>
-      <Provider store={store}>
-        <SchemaEditor
-          schema={props.schema}
-          language={props.language}
-          onSaveSchema={props.onSaveSchema}
-          rootItemId={props.rootItemId}
-        />
-      </Provider>
-    </div>
+    <Provider store={store}>
+      <SchemaEditor
+        Toolbar={props.children}
+        LoadingIndicator={props.LoadingComponent || <div>Loading...</div>}
+        schema={props.schema}
+        language={props.language}
+        onSaveSchema={props.onSaveSchema}
+        name={props.name}
+      />
+    </Provider>
   );
 }
 

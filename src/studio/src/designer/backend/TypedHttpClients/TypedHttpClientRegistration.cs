@@ -70,7 +70,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                         General.AuthorizationTokenHeaderName,
                         AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
                 })
-                .AddHttpMessageHandler<EnsureSuccessHandler>()
                 .ConfigurePrimaryHttpMessageHandler(() =>
                     new HttpClientHandler
                     {

@@ -13,6 +13,10 @@ export default class AppFrontend {
     this.helpText = '.ai-circle-plus';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
+    this.altinnError = 'div[class*="AltinnError-contentMargin"]';
+    this.profileIconButton = '#profile-icon-button';
+    this.logOut = '#logout-menu-item';
+    this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -49,6 +53,7 @@ export default class AppFrontend {
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
+      sources: '#sources',
     };
 
     //group - task 3
@@ -68,6 +73,14 @@ export default class AppFrontend {
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
+    };
+
+    //Stateless-app
+    this.stateless = {
+      name: '#name',
+      number: '#number',
+      idnumber: '#idnummer',
+      idnummer2: '#idnummer2',
     };
   }
 }

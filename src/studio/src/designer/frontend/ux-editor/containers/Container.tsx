@@ -9,7 +9,7 @@ import '../styles/index.css';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import ErrorPopover from '../components/message/ErrorPopover';
+import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,

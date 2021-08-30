@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:14.17.0-alpine3.13 AS generate-studio-frontend
+FROM node:14.17.5-alpine3.14 AS generate-studio-frontend
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .
@@ -49,7 +49,7 @@ COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:14.17.0-alpine3.13 AS generate-designer-js
+FROM node:14.17.5-alpine3.14 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci

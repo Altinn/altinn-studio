@@ -1,5 +1,5 @@
 import { Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -16,7 +16,7 @@ export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   body: string;
   collapsibleTitle: string;
-  instanceMetaDataObject: any;
+  instanceMetadataObject: any;
   pdf?: IAttachment[];
   subtitle?: boolean;
   subtitleurl?: string;
@@ -24,10 +24,10 @@ export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   titleSubmitted: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
-  instanceMetaData: {
+  instanceMetadata: {
     marginTop: 36,
   },
   tableCell: {
@@ -43,7 +43,7 @@ const styles = createStyles({
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
-  const returnInstanceMetaDataGridRow = (name: string, prop: string, classes: any, index: number) => {
+  const returnInstanceMetadataGridRow = (name: string, prop: string, classes: any, index: number) => {
     return (
       <TableRow
         key={index}
@@ -84,11 +84,11 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Table
           style={{ height: 'auto', width: 'auto' }}
           padding='none'
-          className={props.classes.instanceMetaData}
+          className={props.classes.instanceMetadata}
         >
           <TableBody>
-            {Object.keys(props.instanceMetaDataObject).map((name, i) => (
-              returnInstanceMetaDataGridRow(name, props.instanceMetaDataObject[name], props.classes, i)
+            {Object.keys(props.instanceMetadataObject).map((name, i) => (
+              returnInstanceMetadataGridRow(name, props.instanceMetadataObject[name], props.classes, i)
             ))}
           </TableBody>
         </Table>

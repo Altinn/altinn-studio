@@ -11,5 +11,6 @@ export default class Common {
     this.tableBody = 'table > tbody';
     this.tableElement = 'tr > td';
     this.listedAnchor = 'ul > a';
+    this.caption = '.MuiTypography-caption';
   }
 }

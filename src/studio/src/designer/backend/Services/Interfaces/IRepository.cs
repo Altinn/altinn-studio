@@ -43,12 +43,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         ModelMetadata GetModelMetadata(string org, string app);
 
         /// <summary>
-        /// List the available apps on local disk
-        /// </summary>
-        /// <returns>A list of apps</returns>
-        List<ModelMetadata> GetAvailableApps();
-
-        /// <summary>
         /// Get content of configuration file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -162,6 +156,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
         Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
+
+        /// <summary>
+        /// Copies a repository within an organisation
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="sourceRepository">The name of the repository to be copied.</param>        
+        /// <param name="targetRepository">The name of the new repository.</param>
+        /// <param name="developer">Developer's username</param>
+        /// <returns>The repository created in gitea</returns>
+        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer);
 
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
@@ -564,5 +568,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
         /// <param name="classRef">The class ref</param>
         void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
+
+        /// <summary>
+        /// Deletes the repository both locally and remotely.
+        /// </summary>
+        /// <param name="org">The repository owner id.</param>
+        /// <param name="repository">The repository name.</param>
+        Task DeleteRepository(string org, string repository);
     }
 }

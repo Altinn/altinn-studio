@@ -39,18 +39,18 @@ export default function (data) {
   const dataModelBinding = 'OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value';
 
   //Test to create a new data object for a stateless app
-  res = stateless.postData(runtimeToken, 'default', appOwner, appName);
+  res = stateless.getStatelessData(runtimeToken, 'default', appOwner, appName);
   success = check(res, {
-    'POST create new stateless data object by type status is 200': (r) => r.status === 200,
-    'POST create new stateless data object by type response prefilled': (r) => r.json(dataModelBinding) == '1234567890',
+    'GET create new stateless data object by type status is 200': (r) => r.status === 200,
+    'GET create new stateless data object by type response prefilled': (r) => r.json(dataModelBinding) == '1234567890',
   });
   addErrorCount(success);
 
   //Test to run calculations on the provided data object and validate the data in the response
-  res = stateless.putDataByType(runtimeToken, 'default', instanceFormDataXml, appOwner, appName);
+  res = stateless.postStatelessData(runtimeToken, 'default', instanceFormDataXml, appOwner, appName);
   success = check(res, {
-    'PUT update stateless data object status is 200': (r) => r.status === 200,
-    'PUT update stateless data object data field is updated': (r) => r.json(dataModelBinding) == '1705',
+    'POST update stateless data object status is 200': (r) => r.status === 200,
+    'POST update stateless data object data field is updated': (r) => r.json(dataModelBinding) == '1705',
   });
   addErrorCount(success);
 }

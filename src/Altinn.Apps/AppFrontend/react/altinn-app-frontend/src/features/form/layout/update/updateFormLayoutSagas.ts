@@ -8,9 +8,10 @@ import { AxiosRequestConfig } from 'axios';
 import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
 import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
+import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
+import { updateValidations } from 'src/features/form/validation/validationSlice';
 import { ILayoutComponent, ILayoutEntry, ILayoutGroup, ILayouts } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
@@ -18,7 +19,6 @@ import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePag
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
-import FormValidationActions from '../../validation/validationActions';
 
 const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
@@ -99,8 +99,11 @@ function* updateRepeatingGroupsSaga({ payload: {
         layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId]);
 
       // Remove the validations associated with the group
-      const updatedValidations = removeGroupValidationsByIndex(layoutElementId, index, formLayoutState.uiConfig.currentView, formLayoutState.layouts, formLayoutState.uiConfig.repeatingGroups, state.formValidations.validations);
-      yield call(FormValidationActions.updateValidations, updatedValidations);
+      const updatedValidations = removeGroupValidationsByIndex(
+        layoutElementId, index, formLayoutState.uiConfig.currentView, formLayoutState.layouts,
+        formLayoutState.uiConfig.repeatingGroups, state.formValidations.validations,
+      );
+      yield put(updateValidations({ validations: updatedValidations }));
 
       yield put(FormDataActions.setFormDataFulfilled({ formData: updatedFormData }));
       yield put(FormDataActions.saveFormData());
@@ -136,11 +139,13 @@ export function* updateCurrentViewSaga({ payload: {
         state.applicationMetadata.applicationMetadata.dataTypes,
       );
       const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
-      const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-      const validator = createValidator(schema);
+      const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
       const model = convertDataBindingToModel(state.formData.formData);
-      const validationResult = validateFormData(model, state.formLayout.layouts, layoutOrder, validator, state.language.language);
-      let validations = validationResult.validations;
+      const validationResult = validateFormData(
+        model, state.formLayout.layouts, layoutOrder,
+        validator, state.language.language, state.textResources.resources,
+      );
+
       const componentSpecificValidations =
         validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
           state.language.language, state.formLayout.uiConfig.hiddenFields);
@@ -152,8 +157,7 @@ export function* updateCurrentViewSaga({ payload: {
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
       );
-      validations = mergeValidationObjects(validations, componentSpecificValidations);
-      validations = mergeValidationObjects(validations, emptyFieldsValidations);
+      let validations = mergeValidationObjects(validationResult.validations, componentSpecificValidations, emptyFieldsValidations);
       const instanceId = state.instanceData.instance.id;
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
@@ -177,7 +181,7 @@ export function* updateCurrentViewSaga({ payload: {
         // only store validations for the specific page
         validations = { [currentView]: validations[currentView] };
       }
-      yield call(FormValidationActions.updateValidations, validations);
+      yield put(updateValidations({ validations }));
       if (state.formLayout.uiConfig.returnToView) {
         if (!skipPageCaching) {
           localStorage.setItem(currentViewCacheKey, newView);
@@ -311,7 +315,7 @@ export function* updateRepeatingGroupEditIndexSaga({ payload: {
         yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error: null }));
         // only overwrite validtions specific to the group - leave all other untouched
         const newValidations = { ...validations, [currentView]: { ...validations[currentView], ...combinedValidations[currentView] } };
-        yield call(FormValidationActions.updateValidations, newValidations);
+        yield put(updateValidations({ validations: newValidations }));
       }
     } else {
       yield put(FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({ group, index }));
@@ -350,11 +354,11 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
       }
     }
-    yield call(FormValidationActions.updateValidations, validations);
+    yield put(updateValidations({ validations }));
   }
   // preserve current edit index if still valid
   currentGroupKeys.filter((key) => !groupsToRemoveValidations.includes(key)).forEach((key) => {
-    if (newGroups[key].count >= currentGroups[key].editIndex) {
+    if (newGroups[key]?.count >= currentGroups[key].editIndex) {
       newGroups[key].editIndex = currentGroups[key].editIndex;
     }
   });

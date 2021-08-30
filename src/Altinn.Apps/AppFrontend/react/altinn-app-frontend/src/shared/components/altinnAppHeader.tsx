@@ -1,5 +1,5 @@
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnLogo } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
@@ -15,7 +15,7 @@ export interface IHeaderProps {
   type?: string;
 }
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const styles = createStyles({
   appBarWrapper: {
@@ -65,9 +65,6 @@ const styles = createStyles({
   headerProfile: {
     float: 'right',
   },
-  partyChoice: {
-    backgroundColor: '#F5F5F5',
-  },
   languageDropdown: {
     fontSize: '1.4rem',
   },
@@ -102,7 +99,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
     <div className={classes.appBarWrapper}>
       <AppBar
         position='static'
-        className={type === 'partyChoice' ? classes.partyChoice : classes.default}
+        className={classes.default}
       >
         <Toolbar className={`container ${classes.toolbarContainer}`}>
           <Grid

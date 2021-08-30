@@ -167,7 +167,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
           // Keeping the switch statement because we might extends the enums to handle more errors
           case HttpStatusCodes.Forbidden: {
             return (
-              <Typography className={classes.partySelectionError}>
+              <Typography className={classes.partySelectionError} id='party-selection-error'>
                 {`
                   ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
                   ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
@@ -278,7 +278,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   }
 
   return (
-    <InstantiationContainer>
+    <InstantiationContainer type='partyChoice'>
       <Grid
         container={true}
         direction='row'
@@ -310,7 +310,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       >
         <Grid
           container={true}
-          justify='space-between'
+          justifyContent='space-between'
           direction='row'
         >
           <Grid item={true}>

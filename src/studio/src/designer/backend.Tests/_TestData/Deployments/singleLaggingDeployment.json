@@ -1,0 +1,130 @@
+[
+  {
+    "tagName": "8",
+    "envName": "at22",
+    "build": {
+      "id": "142287",
+      "status": "inProgress",
+      "result": "none",
+      "started": "2021-04-29T12:26:34.2330053Z",
+      "finished": null
+    },
+    "id": "6066571d-7efc-4bc1-b928-9a15140d451d",
+    "created": "2021-04-29T12:26:16.6111023+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "7",
+    "envName": "at22",
+    "build": {
+      "id": "142234",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-29T11:06:47.5955344Z",
+      "finished": "2021-04-29T11:07:29.5203981Z"
+    },
+    "id": "ccbd4d9f-aa41-4f01-878d-1c3d05b11490",
+    "created": "2021-04-29T11:06:31.3500859+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "6.1",
+    "envName": "at22",
+    "build": {
+      "id": "142224",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-29T10:53:49.2985506Z",
+      "finished": "2021-04-29T10:54:25.181546Z"
+    },
+    "id": "e502445c-bf1d-4b1f-a9af-5db75d19e0d2",
+    "created": "2021-04-29T10:53:26.1119506+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "5",
+    "envName": "at22",
+    "build": {
+      "id": "142210",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-29T10:42:17.4733782Z",
+      "finished": "2021-04-29T10:43:03.3566622Z"
+    },
+    "id": "42577f09-8a22-449a-9907-0b0810f2157b",
+    "created": "2021-04-29T10:41:55.4982254+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "4",
+    "envName": "at22",
+    "build": {
+      "id": "142194",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-29T10:18:48.6453866Z",
+      "finished": "2021-04-29T10:19:34.6741235Z"
+    },
+    "id": "20542eef-66ad-4288-867e-5baac0d0158b",
+    "created": "2021-04-29T10:18:26.9857976+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "3",
+    "envName": "at22",
+    "build": {
+      "id": "141706",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-28T16:50:38.1426234Z",
+      "finished": "2021-04-28T16:51:16.54358Z"
+    },
+    "id": "16d0dfb3-04f3-4f61-b4ca-204c9829b337",
+    "created": "2021-04-28T16:50:22.422334+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "2.2",
+    "envName": "at22",
+    "build": {
+      "id": "141698",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-28T16:42:23.11579Z",
+      "finished": "2021-04-28T16:43:02.4065406Z"
+    },
+    "id": "2faf16f6-5489-4023-8196-5e7cb3890589",
+    "created": "2021-04-28T16:42:06.6254865+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  },
+  {
+    "tagName": "1",
+    "envName": "at22",
+    "build": {
+      "id": "141674",
+      "status": "completed",
+      "result": "succeeded",
+      "started": "2021-04-28T16:00:37.8835239Z",
+      "finished": "2021-04-28T16:01:23.2467536Z"
+    },
+    "id": "d1f82244-913c-4075-8adc-15ef7b5b10fd",
+    "created": "2021-04-28T16:00:16.9575686+00:00",
+    "createdBy": "steph",
+    "app": "issue-6094",
+    "org": "ttd"
+  }
+]

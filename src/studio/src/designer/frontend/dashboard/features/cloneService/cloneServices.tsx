@@ -1,7 +1,7 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -28,7 +28,7 @@ export interface ICloneServiceComponentState {
   lastChangedBy: string;
   isLoading: boolean;
 }
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   mainStyle: {
@@ -96,9 +96,10 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
 
   public componentDidMount() {
     this._isMounted = true;
-    const altinnWindow: any = window as any;
+    const { location } = window as Window;
+    const { org, serviceName } = (this.props.match.params as any);
     // eslint-disable-next-line max-len
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
+    const url = `${location.origin}/designerapi/Repository/Branch?org=${org}&repository=${serviceName}&branch=master`;
     get(url).then((result: any) => {
       if (result && this._isMounted) {
         this.setState({
@@ -118,10 +119,11 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public getCurrentRepositoryInfo = () => {
+    const { org, serviceName } = (this.props.match.params as any);
     // eslint-disable-next-line consistent-return
     const returnService = this.props.services.filter((service: any) => {
       // eslint-disable-next-line max-len
-      if (service.full_name === `${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`) {
+      if (service.full_name === `${org}/${serviceName}`) {
         return service;
       }
     });
@@ -130,15 +132,17 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public cloneAndEditService = () => {
-    const altinnWindow: any = window as any;
+    const altinnWindow = window as Window as IAltinnWindow;
+    const { location } = altinnWindow;
     const repoInfo = this.getCurrentRepositoryInfo();
+    const { org, serviceName } = (this.props.match.params as any);
     if (repoInfo && repoInfo.is_cloned_to_local) {
       // eslint-disable-next-line max-len
-      window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
+      window.location.assign(`${location.origin}/designer/${org}/${serviceName}`);
     }
 
     // eslint-disable-next-line max-len
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
+    const url = `${location.origin}/designerapi/Repository/CloneRemoteRepository?org=${org}&repository=${serviceName}`;
     this.setState({
       isLoading: true,
     });
@@ -146,7 +150,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     get(url).then((result: any) => {
       if (this._isMounted) {
         // eslint-disable-next-line max-len
-        window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
+        window.location.assign(`${location.origin}/designer/${org}/${serviceName}`);
       }
     });
   }

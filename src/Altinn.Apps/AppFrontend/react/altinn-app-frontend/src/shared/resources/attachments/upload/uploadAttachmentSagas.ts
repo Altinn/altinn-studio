@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeEvery } from 'redux-saga/effects';
+import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
 import { customEncodeURI } from 'altinn-shared/utils';
+import { updateComponentValidations } from 'src/features/form/validation/validationSlice';
 import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
 import { IRuntimeState } from '../../../../types';
 import { post } from '../../../../utils/networking';
 import { fileUploadUrl } from '../../../../utils/urlHelper';
@@ -27,7 +27,11 @@ export function* uploadAttachmentSaga(
   try {
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
-    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, newValidations, componentId);
+    yield put(updateComponentValidations({
+      componentId,
+      layoutId: currentView,
+      validations: newValidations,
+    }));
 
     const fileUploadLink = fileUploadUrl(attachmentType);
     let contentType;
@@ -61,13 +65,21 @@ export function* uploadAttachmentSaga(
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {
       const validations = getFileUploadComponentValidations('upload', language);
-      yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
+      yield put(updateComponentValidations({
+        componentId,
+        layoutId: currentView,
+        validations,
+      }));
       yield call(AttachmentDispatcher.uploadAttachmentRejected,
         tmpAttachmentId, attachmentType, componentId);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('upload', language);
-    yield call(FormValidationsDispatcher.updateComponentValidations, currentView, validations, componentId);
+    yield put(updateComponentValidations({
+      componentId,
+      layoutId: currentView,
+      validations,
+    }));
     yield call(AttachmentDispatcher.uploadAttachmentRejected,
       tmpAttachmentId, attachmentType, componentId);
   }

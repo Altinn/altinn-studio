@@ -1,9 +1,9 @@
-import { Button, createMuiTheme, createStyles, Grid, Typography, WithStyles, withStyles } from '@material-ui/core';
+import { Button, createTheme, createStyles, Grid, Typography, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   cloneButton: {

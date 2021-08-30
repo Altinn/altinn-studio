@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Altinn.Platform.Authentication.Enum;
 
 namespace Altinn.Platform.Authentication.Model
@@ -52,5 +53,15 @@ namespace Altinn.Platform.Authentication.Model
         /// Gets or sets a flag stating if the ticket is updated or not
         /// </summary>
         public bool TicketUpdated { get; set; }
+
+        /// <summary>
+        /// Nonce used for OIDC requests
+        /// </summary>
+        public string Nonce { get; set; }
+
+        /// <summary>
+        /// Additional claims from provider
+        /// </summary>
+        public Dictionary<string, string> ProviderClaims { get; set; }
     }
 }

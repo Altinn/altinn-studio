@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 
-import { createMuiTheme, createStyles, Grid, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -14,7 +14,7 @@ import { HandleServiceInformationActions } from '../handleServiceInformationSlic
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
-import { getRepoStatusUrl } from '../../../utils/urlHelper';
+import { repoStatusUrl } from '../../../utils/urlHelper';
 
 export interface IAdministrationComponentProvidedProps {
   classes: any;
@@ -43,7 +43,7 @@ export interface IAdministrationComponentState {
   serviceNameAnchorEl: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   avatar: {
@@ -144,7 +144,7 @@ export class AdministrationComponent extends
       { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
     ));
     this.props.dispatch(fetchRepoStatus({
-      url: getRepoStatusUrl(),
+      url: repoStatusUrl,
       org,
       repo: app,
     }));
@@ -237,36 +237,37 @@ export class AdministrationComponent extends
     );
   }
 
-  public RenderSideMenuContent = () => {
-    return (
+  public render() {
+    const {
+      classes, service, serviceName, serviceDescription, serviceId,
+    } = this.props;
+    const render = service &&
+      serviceName !== null &&
+      serviceDescription !== null &&
+      serviceId !== null;
+    const AboveColumnChildren = () => (
+      <div className={classes.versionControlHeaderMargin}>
+        <VersionControlHeader language={this.props.language} />
+      </div>
+    );
+    const SideMenuChildren = () => (
       <SideMenuContent
         initialCommit={this.props.initialCommit}
         language={this.props.language}
         service={this.props.service}
       />
     );
-  }
-
-  public render() {
-    const { classes } = this.props;
-
     return (
       <div data-testid='administration-container'>
-        {this.props.service &&
-        this.props.serviceName !== null &&
-        this.props.serviceDescription !== null &&
-        this.props.serviceId !== null ?
+        {render ? (
           <AltinnColumnLayout
-            aboveColumnChildren={
-              <div className={this.props.classes.versionControlHeaderMargin}>
-                <VersionControlHeader language={this.props.language} />
-              </div>}
-            sideMenuChildren={<this.RenderSideMenuContent />}
+            aboveColumnChildren={<AboveColumnChildren />}
+            sideMenuChildren={<SideMenuChildren />}
             header={getLanguageFromKey('administration.administration', this.props.language)}
           >
             <this.RenderMainContent />
           </AltinnColumnLayout>
-          :
+        ) :
           <Grid container={true}>
             <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
           </Grid>

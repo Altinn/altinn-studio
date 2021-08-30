@@ -1,0 +1,1427 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> DeleteDialog.tsx +++ Should match snapshot with the least amount of params 1`] = `
+<DeleteDialog
+  anchor={
+    <body
+      style="padding-right: 0px; overflow: hidden;"
+    >
+      <div
+        class="MuiPopover-root"
+        role="presentation"
+        style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+      >
+        <div
+          aria-hidden="true"
+          style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+        />
+        <div
+          data-test="sentinelStart"
+          tabindex="0"
+        />
+        <div
+          class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+          style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+          tabindex="-1"
+        >
+          <div
+            class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+          >
+            <div
+              class="MuiGrid-root MuiGrid-item"
+            >
+              <div
+                class="makeStyles-iconWrapper-4"
+              >
+                <i
+                  class="icon fa fa-circle-exclamation"
+                />
+              </div>
+            </div>
+            <div
+              class="MuiGrid-root MuiGrid-item"
+            >
+              <h2
+                class="MuiTypography-root MuiTypography-h2"
+              >
+                administration.delete_model_confirm
+              </h2>
+              <button
+                class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                id="confirm-delete-button"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label"
+                >
+                  general.continue
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+              <button
+                class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                id="cancel-delete-button"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label"
+                >
+                  <span
+                    class="makeStyles-borderBottom-2"
+                  >
+                    general.cancel
+                  </span>
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          data-test="sentinelEnd"
+          tabindex="0"
+        />
+      </div>
+    </body>
+  }
+  language={
+    Object {
+      "administration": Object {},
+    }
+  }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  schemaName="some-name"
+>
+  <WithStyles(ForwardRef(Popover))
+    anchorEl={
+      <body
+        style="padding-right: 0px; overflow: hidden;"
+      >
+        <div
+          class="MuiPopover-root"
+          role="presentation"
+          style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+        >
+          <div
+            aria-hidden="true"
+            style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+          />
+          <div
+            data-test="sentinelStart"
+            tabindex="0"
+          />
+          <div
+            class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+            style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+            tabindex="-1"
+          >
+            <div
+              class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+            >
+              <div
+                class="MuiGrid-root MuiGrid-item"
+              >
+                <div
+                  class="makeStyles-iconWrapper-4"
+                >
+                  <i
+                    class="icon fa fa-circle-exclamation"
+                  />
+                </div>
+              </div>
+              <div
+                class="MuiGrid-root MuiGrid-item"
+              >
+                <h2
+                  class="MuiTypography-root MuiTypography-h2"
+                >
+                  administration.delete_model_confirm
+                </h2>
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                  id="confirm-delete-button"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    general.continue
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                  id="cancel-delete-button"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <span
+                      class="makeStyles-borderBottom-2"
+                    >
+                      general.cancel
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            data-test="sentinelEnd"
+            tabindex="0"
+          />
+        </div>
+      </body>
+    }
+    anchorOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "bottom",
+      }
+    }
+    onClose={[Function]}
+    open={true}
+    transformOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "top",
+      }
+    }
+  >
+    <ForwardRef(Popover)
+      anchorEl={
+        <body
+          style="padding-right: 0px; overflow: hidden;"
+        >
+          <div
+            class="MuiPopover-root"
+            role="presentation"
+            style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+          >
+            <div
+              aria-hidden="true"
+              style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+            />
+            <div
+              data-test="sentinelStart"
+              tabindex="0"
+            />
+            <div
+              class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+              style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+              tabindex="-1"
+            >
+              <div
+                class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+              >
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <div
+                    class="makeStyles-iconWrapper-4"
+                  >
+                    <i
+                      class="icon fa fa-circle-exclamation"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <h2
+                    class="MuiTypography-root MuiTypography-h2"
+                  >
+                    administration.delete_model_confirm
+                  </h2>
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                    id="confirm-delete-button"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiButton-label"
+                    >
+                      general.continue
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </button>
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                    id="cancel-delete-button"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiButton-label"
+                    >
+                      <span
+                        class="makeStyles-borderBottom-2"
+                      >
+                        general.cancel
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              data-test="sentinelEnd"
+              tabindex="0"
+            />
+          </div>
+        </body>
+      }
+      anchorOrigin={
+        Object {
+          "horizontal": "right",
+          "vertical": "bottom",
+        }
+      }
+      classes={
+        Object {
+          "paper": "MuiPopover-paper",
+          "root": "MuiPopover-root",
+        }
+      }
+      onClose={[Function]}
+      open={true}
+      transformOrigin={
+        Object {
+          "horizontal": "right",
+          "vertical": "top",
+        }
+      }
+    >
+      <ForwardRef(Modal)
+        BackdropProps={
+          Object {
+            "invisible": true,
+          }
+        }
+        className="MuiPopover-root"
+        container={
+          <body
+            style="padding-right: 0px; overflow: hidden;"
+          >
+            <div
+              class="MuiPopover-root"
+              role="presentation"
+              style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+            >
+              <div
+                aria-hidden="true"
+                style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+              />
+              <div
+                data-test="sentinelStart"
+                tabindex="0"
+              />
+              <div
+                class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+                style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+                tabindex="-1"
+              >
+                <div
+                  class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+                >
+                  <div
+                    class="MuiGrid-root MuiGrid-item"
+                  >
+                    <div
+                      class="makeStyles-iconWrapper-4"
+                    >
+                      <i
+                        class="icon fa fa-circle-exclamation"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="MuiGrid-root MuiGrid-item"
+                  >
+                    <h2
+                      class="MuiTypography-root MuiTypography-h2"
+                    >
+                      administration.delete_model_confirm
+                    </h2>
+                    <button
+                      class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                      id="confirm-delete-button"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiButton-label"
+                      >
+                        general.continue
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                    <button
+                      class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                      id="cancel-delete-button"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiButton-label"
+                      >
+                        <span
+                          class="makeStyles-borderBottom-2"
+                        >
+                          general.cancel
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                data-test="sentinelEnd"
+                tabindex="0"
+              />
+            </div>
+          </body>
+        }
+        onClose={[Function]}
+        open={true}
+      >
+        <ForwardRef(Portal)
+          container={
+            <body
+              style="padding-right: 0px; overflow: hidden;"
+            >
+              <div
+                class="MuiPopover-root"
+                role="presentation"
+                style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+              >
+                <div
+                  aria-hidden="true"
+                  style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+                />
+                <div
+                  data-test="sentinelStart"
+                  tabindex="0"
+                />
+                <div
+                  class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+                  style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+                  tabindex="-1"
+                >
+                  <div
+                    class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+                  >
+                    <div
+                      class="MuiGrid-root MuiGrid-item"
+                    >
+                      <div
+                        class="makeStyles-iconWrapper-4"
+                      >
+                        <i
+                          class="icon fa fa-circle-exclamation"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="MuiGrid-root MuiGrid-item"
+                    >
+                      <h2
+                        class="MuiTypography-root MuiTypography-h2"
+                      >
+                        administration.delete_model_confirm
+                      </h2>
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                        id="confirm-delete-button"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          general.continue
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                        id="cancel-delete-button"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <span
+                            class="makeStyles-borderBottom-2"
+                          >
+                            general.cancel
+                          </span>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  data-test="sentinelEnd"
+                  tabindex="0"
+                />
+              </div>
+            </body>
+          }
+          disablePortal={false}
+        >
+          <Portal
+            containerInfo={
+              <body
+                style="padding-right: 0px; overflow: hidden;"
+              >
+                <div
+                  class="MuiPopover-root"
+                  role="presentation"
+                  style="position: fixed; z-index: 1300; right: 0px; bottom: 0px; top: 0px; left: 0px;"
+                >
+                  <div
+                    aria-hidden="true"
+                    style="z-index: -1; position: fixed; right: 0px; bottom: 0px; top: 0px; left: 0px; background-color: transparent;"
+                  />
+                  <div
+                    data-test="sentinelStart"
+                    tabindex="0"
+                  />
+                  <div
+                    class="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+                    style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+                    tabindex="-1"
+                  >
+                    <div
+                      class="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+                    >
+                      <div
+                        class="MuiGrid-root MuiGrid-item"
+                      >
+                        <div
+                          class="makeStyles-iconWrapper-4"
+                        >
+                          <i
+                            class="icon fa fa-circle-exclamation"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="MuiGrid-root MuiGrid-item"
+                      >
+                        <h2
+                          class="MuiTypography-root MuiTypography-h2"
+                        >
+                          administration.delete_model_confirm
+                        </h2>
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                          id="confirm-delete-button"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            general.continue
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                          id="cancel-delete-button"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <span
+                              class="makeStyles-borderBottom-2"
+                            >
+                              general.cancel
+                            </span>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    data-test="sentinelEnd"
+                    tabindex="0"
+                  />
+                </div>
+              </body>
+            }
+          >
+            <div
+              className="MuiPopover-root"
+              onKeyDown={[Function]}
+              role="presentation"
+              style={
+                Object {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "fixed",
+                  "right": 0,
+                  "top": 0,
+                  "zIndex": 1300,
+                }
+              }
+            >
+              <ForwardRef(SimpleBackdrop)
+                invisible={true}
+                onClick={[Function]}
+                open={true}
+              >
+                <div
+                  aria-hidden={true}
+                  onClick={[Function]}
+                  style={
+                    Object {
+                      "WebkitTapHighlightColor": "transparent",
+                      "backgroundColor": "transparent",
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "fixed",
+                      "right": 0,
+                      "top": 0,
+                      "zIndex": -1,
+                    }
+                  }
+                />
+              </ForwardRef(SimpleBackdrop)>
+              <Unstable_TrapFocus
+                disableAutoFocus={false}
+                disableEnforceFocus={false}
+                disableRestoreFocus={false}
+                getDoc={[Function]}
+                isEnabled={[Function]}
+                open={true}
+              >
+                <div
+                  data-test="sentinelStart"
+                  tabIndex={0}
+                />
+                <ForwardRef(Grow)
+                  appear={true}
+                  in={true}
+                  onEnter={[Function]}
+                  onEntering={[Function]}
+                  onExited={[Function]}
+                  tabIndex="-1"
+                  timeout="auto"
+                >
+                  <Transition
+                    addEndListener={[Function]}
+                    appear={true}
+                    enter={true}
+                    exit={true}
+                    in={true}
+                    mountOnEnter={false}
+                    onEnter={[Function]}
+                    onEntered={[Function]}
+                    onEntering={[Function]}
+                    onExit={[Function]}
+                    onExited={[Function]}
+                    onExiting={[Function]}
+                    tabIndex="-1"
+                    timeout={null}
+                    unmountOnExit={false}
+                  >
+                    <WithStyles(ForwardRef(Paper))
+                      className="MuiPopover-paper"
+                      elevation={8}
+                      style={
+                        Object {
+                          "opacity": 1,
+                          "transform": "scale(1, 1)",
+                          "visibility": undefined,
+                        }
+                      }
+                      tabIndex="-1"
+                    >
+                      <ForwardRef(Paper)
+                        className="MuiPopover-paper"
+                        classes={
+                          Object {
+                            "elevation0": "MuiPaper-elevation0",
+                            "elevation1": "MuiPaper-elevation1",
+                            "elevation10": "MuiPaper-elevation10",
+                            "elevation11": "MuiPaper-elevation11",
+                            "elevation12": "MuiPaper-elevation12",
+                            "elevation13": "MuiPaper-elevation13",
+                            "elevation14": "MuiPaper-elevation14",
+                            "elevation15": "MuiPaper-elevation15",
+                            "elevation16": "MuiPaper-elevation16",
+                            "elevation17": "MuiPaper-elevation17",
+                            "elevation18": "MuiPaper-elevation18",
+                            "elevation19": "MuiPaper-elevation19",
+                            "elevation2": "MuiPaper-elevation2",
+                            "elevation20": "MuiPaper-elevation20",
+                            "elevation21": "MuiPaper-elevation21",
+                            "elevation22": "MuiPaper-elevation22",
+                            "elevation23": "MuiPaper-elevation23",
+                            "elevation24": "MuiPaper-elevation24",
+                            "elevation3": "MuiPaper-elevation3",
+                            "elevation4": "MuiPaper-elevation4",
+                            "elevation5": "MuiPaper-elevation5",
+                            "elevation6": "MuiPaper-elevation6",
+                            "elevation7": "MuiPaper-elevation7",
+                            "elevation8": "MuiPaper-elevation8",
+                            "elevation9": "MuiPaper-elevation9",
+                            "outlined": "MuiPaper-outlined",
+                            "root": "MuiPaper-root",
+                            "rounded": "MuiPaper-rounded",
+                          }
+                        }
+                        elevation={8}
+                        style={
+                          Object {
+                            "opacity": 1,
+                            "transform": "scale(1, 1)",
+                            "visibility": undefined,
+                          }
+                        }
+                        tabIndex="-1"
+                      >
+                        <div
+                          className="MuiPaper-root MuiPopover-paper MuiPaper-elevation8 MuiPaper-rounded"
+                          style={
+                            Object {
+                              "opacity": 1,
+                              "transform": "scale(1, 1)",
+                              "visibility": undefined,
+                            }
+                          }
+                          tabIndex="-1"
+                        >
+                          <WithStyles(ForwardRef(Grid))
+                            className="makeStyles-root-1"
+                            container={true}
+                          >
+                            <ForwardRef(Grid)
+                              className="makeStyles-root-1"
+                              classes={
+                                Object {
+                                  "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                                  "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                                  "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                                  "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                                  "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                                  "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                                  "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                                  "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                                  "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                                  "container": "MuiGrid-container",
+                                  "direction-xs-column": "MuiGrid-direction-xs-column",
+                                  "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                                  "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                                  "grid-lg-1": "MuiGrid-grid-lg-1",
+                                  "grid-lg-10": "MuiGrid-grid-lg-10",
+                                  "grid-lg-11": "MuiGrid-grid-lg-11",
+                                  "grid-lg-12": "MuiGrid-grid-lg-12",
+                                  "grid-lg-2": "MuiGrid-grid-lg-2",
+                                  "grid-lg-3": "MuiGrid-grid-lg-3",
+                                  "grid-lg-4": "MuiGrid-grid-lg-4",
+                                  "grid-lg-5": "MuiGrid-grid-lg-5",
+                                  "grid-lg-6": "MuiGrid-grid-lg-6",
+                                  "grid-lg-7": "MuiGrid-grid-lg-7",
+                                  "grid-lg-8": "MuiGrid-grid-lg-8",
+                                  "grid-lg-9": "MuiGrid-grid-lg-9",
+                                  "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                                  "grid-lg-true": "MuiGrid-grid-lg-true",
+                                  "grid-md-1": "MuiGrid-grid-md-1",
+                                  "grid-md-10": "MuiGrid-grid-md-10",
+                                  "grid-md-11": "MuiGrid-grid-md-11",
+                                  "grid-md-12": "MuiGrid-grid-md-12",
+                                  "grid-md-2": "MuiGrid-grid-md-2",
+                                  "grid-md-3": "MuiGrid-grid-md-3",
+                                  "grid-md-4": "MuiGrid-grid-md-4",
+                                  "grid-md-5": "MuiGrid-grid-md-5",
+                                  "grid-md-6": "MuiGrid-grid-md-6",
+                                  "grid-md-7": "MuiGrid-grid-md-7",
+                                  "grid-md-8": "MuiGrid-grid-md-8",
+                                  "grid-md-9": "MuiGrid-grid-md-9",
+                                  "grid-md-auto": "MuiGrid-grid-md-auto",
+                                  "grid-md-true": "MuiGrid-grid-md-true",
+                                  "grid-sm-1": "MuiGrid-grid-sm-1",
+                                  "grid-sm-10": "MuiGrid-grid-sm-10",
+                                  "grid-sm-11": "MuiGrid-grid-sm-11",
+                                  "grid-sm-12": "MuiGrid-grid-sm-12",
+                                  "grid-sm-2": "MuiGrid-grid-sm-2",
+                                  "grid-sm-3": "MuiGrid-grid-sm-3",
+                                  "grid-sm-4": "MuiGrid-grid-sm-4",
+                                  "grid-sm-5": "MuiGrid-grid-sm-5",
+                                  "grid-sm-6": "MuiGrid-grid-sm-6",
+                                  "grid-sm-7": "MuiGrid-grid-sm-7",
+                                  "grid-sm-8": "MuiGrid-grid-sm-8",
+                                  "grid-sm-9": "MuiGrid-grid-sm-9",
+                                  "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                                  "grid-sm-true": "MuiGrid-grid-sm-true",
+                                  "grid-xl-1": "MuiGrid-grid-xl-1",
+                                  "grid-xl-10": "MuiGrid-grid-xl-10",
+                                  "grid-xl-11": "MuiGrid-grid-xl-11",
+                                  "grid-xl-12": "MuiGrid-grid-xl-12",
+                                  "grid-xl-2": "MuiGrid-grid-xl-2",
+                                  "grid-xl-3": "MuiGrid-grid-xl-3",
+                                  "grid-xl-4": "MuiGrid-grid-xl-4",
+                                  "grid-xl-5": "MuiGrid-grid-xl-5",
+                                  "grid-xl-6": "MuiGrid-grid-xl-6",
+                                  "grid-xl-7": "MuiGrid-grid-xl-7",
+                                  "grid-xl-8": "MuiGrid-grid-xl-8",
+                                  "grid-xl-9": "MuiGrid-grid-xl-9",
+                                  "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                                  "grid-xl-true": "MuiGrid-grid-xl-true",
+                                  "grid-xs-1": "MuiGrid-grid-xs-1",
+                                  "grid-xs-10": "MuiGrid-grid-xs-10",
+                                  "grid-xs-11": "MuiGrid-grid-xs-11",
+                                  "grid-xs-12": "MuiGrid-grid-xs-12",
+                                  "grid-xs-2": "MuiGrid-grid-xs-2",
+                                  "grid-xs-3": "MuiGrid-grid-xs-3",
+                                  "grid-xs-4": "MuiGrid-grid-xs-4",
+                                  "grid-xs-5": "MuiGrid-grid-xs-5",
+                                  "grid-xs-6": "MuiGrid-grid-xs-6",
+                                  "grid-xs-7": "MuiGrid-grid-xs-7",
+                                  "grid-xs-8": "MuiGrid-grid-xs-8",
+                                  "grid-xs-9": "MuiGrid-grid-xs-9",
+                                  "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                                  "grid-xs-true": "MuiGrid-grid-xs-true",
+                                  "item": "MuiGrid-item",
+                                  "justify-content-xs-center": "MuiGrid-justify-content-xs-center",
+                                  "justify-content-xs-flex-end": "MuiGrid-justify-content-xs-flex-end",
+                                  "justify-content-xs-space-around": "MuiGrid-justify-content-xs-space-around",
+                                  "justify-content-xs-space-between": "MuiGrid-justify-content-xs-space-between",
+                                  "justify-content-xs-space-evenly": "MuiGrid-justify-content-xs-space-evenly",
+                                  "root": "MuiGrid-root",
+                                  "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                                  "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                                  "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                                  "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                                  "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                                  "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                                  "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                                  "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                                  "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                                  "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                                  "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                                  "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                                  "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                                }
+                              }
+                              container={true}
+                            >
+                              <div
+                                className="MuiGrid-root makeStyles-root-1 MuiGrid-container"
+                              >
+                                <WithStyles(ForwardRef(Grid))
+                                  item={true}
+                                >
+                                  <ForwardRef(Grid)
+                                    classes={
+                                      Object {
+                                        "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                                        "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                                        "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                                        "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                                        "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                                        "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                                        "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                                        "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                                        "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                                        "container": "MuiGrid-container",
+                                        "direction-xs-column": "MuiGrid-direction-xs-column",
+                                        "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                                        "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                                        "grid-lg-1": "MuiGrid-grid-lg-1",
+                                        "grid-lg-10": "MuiGrid-grid-lg-10",
+                                        "grid-lg-11": "MuiGrid-grid-lg-11",
+                                        "grid-lg-12": "MuiGrid-grid-lg-12",
+                                        "grid-lg-2": "MuiGrid-grid-lg-2",
+                                        "grid-lg-3": "MuiGrid-grid-lg-3",
+                                        "grid-lg-4": "MuiGrid-grid-lg-4",
+                                        "grid-lg-5": "MuiGrid-grid-lg-5",
+                                        "grid-lg-6": "MuiGrid-grid-lg-6",
+                                        "grid-lg-7": "MuiGrid-grid-lg-7",
+                                        "grid-lg-8": "MuiGrid-grid-lg-8",
+                                        "grid-lg-9": "MuiGrid-grid-lg-9",
+                                        "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                                        "grid-lg-true": "MuiGrid-grid-lg-true",
+                                        "grid-md-1": "MuiGrid-grid-md-1",
+                                        "grid-md-10": "MuiGrid-grid-md-10",
+                                        "grid-md-11": "MuiGrid-grid-md-11",
+                                        "grid-md-12": "MuiGrid-grid-md-12",
+                                        "grid-md-2": "MuiGrid-grid-md-2",
+                                        "grid-md-3": "MuiGrid-grid-md-3",
+                                        "grid-md-4": "MuiGrid-grid-md-4",
+                                        "grid-md-5": "MuiGrid-grid-md-5",
+                                        "grid-md-6": "MuiGrid-grid-md-6",
+                                        "grid-md-7": "MuiGrid-grid-md-7",
+                                        "grid-md-8": "MuiGrid-grid-md-8",
+                                        "grid-md-9": "MuiGrid-grid-md-9",
+                                        "grid-md-auto": "MuiGrid-grid-md-auto",
+                                        "grid-md-true": "MuiGrid-grid-md-true",
+                                        "grid-sm-1": "MuiGrid-grid-sm-1",
+                                        "grid-sm-10": "MuiGrid-grid-sm-10",
+                                        "grid-sm-11": "MuiGrid-grid-sm-11",
+                                        "grid-sm-12": "MuiGrid-grid-sm-12",
+                                        "grid-sm-2": "MuiGrid-grid-sm-2",
+                                        "grid-sm-3": "MuiGrid-grid-sm-3",
+                                        "grid-sm-4": "MuiGrid-grid-sm-4",
+                                        "grid-sm-5": "MuiGrid-grid-sm-5",
+                                        "grid-sm-6": "MuiGrid-grid-sm-6",
+                                        "grid-sm-7": "MuiGrid-grid-sm-7",
+                                        "grid-sm-8": "MuiGrid-grid-sm-8",
+                                        "grid-sm-9": "MuiGrid-grid-sm-9",
+                                        "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                                        "grid-sm-true": "MuiGrid-grid-sm-true",
+                                        "grid-xl-1": "MuiGrid-grid-xl-1",
+                                        "grid-xl-10": "MuiGrid-grid-xl-10",
+                                        "grid-xl-11": "MuiGrid-grid-xl-11",
+                                        "grid-xl-12": "MuiGrid-grid-xl-12",
+                                        "grid-xl-2": "MuiGrid-grid-xl-2",
+                                        "grid-xl-3": "MuiGrid-grid-xl-3",
+                                        "grid-xl-4": "MuiGrid-grid-xl-4",
+                                        "grid-xl-5": "MuiGrid-grid-xl-5",
+                                        "grid-xl-6": "MuiGrid-grid-xl-6",
+                                        "grid-xl-7": "MuiGrid-grid-xl-7",
+                                        "grid-xl-8": "MuiGrid-grid-xl-8",
+                                        "grid-xl-9": "MuiGrid-grid-xl-9",
+                                        "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                                        "grid-xl-true": "MuiGrid-grid-xl-true",
+                                        "grid-xs-1": "MuiGrid-grid-xs-1",
+                                        "grid-xs-10": "MuiGrid-grid-xs-10",
+                                        "grid-xs-11": "MuiGrid-grid-xs-11",
+                                        "grid-xs-12": "MuiGrid-grid-xs-12",
+                                        "grid-xs-2": "MuiGrid-grid-xs-2",
+                                        "grid-xs-3": "MuiGrid-grid-xs-3",
+                                        "grid-xs-4": "MuiGrid-grid-xs-4",
+                                        "grid-xs-5": "MuiGrid-grid-xs-5",
+                                        "grid-xs-6": "MuiGrid-grid-xs-6",
+                                        "grid-xs-7": "MuiGrid-grid-xs-7",
+                                        "grid-xs-8": "MuiGrid-grid-xs-8",
+                                        "grid-xs-9": "MuiGrid-grid-xs-9",
+                                        "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                                        "grid-xs-true": "MuiGrid-grid-xs-true",
+                                        "item": "MuiGrid-item",
+                                        "justify-content-xs-center": "MuiGrid-justify-content-xs-center",
+                                        "justify-content-xs-flex-end": "MuiGrid-justify-content-xs-flex-end",
+                                        "justify-content-xs-space-around": "MuiGrid-justify-content-xs-space-around",
+                                        "justify-content-xs-space-between": "MuiGrid-justify-content-xs-space-between",
+                                        "justify-content-xs-space-evenly": "MuiGrid-justify-content-xs-space-evenly",
+                                        "root": "MuiGrid-root",
+                                        "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                                        "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                                        "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                                        "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                                        "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                                        "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                                        "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                                        "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                                        "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                                        "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                                        "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                                        "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                                        "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                                      }
+                                    }
+                                    item={true}
+                                  >
+                                    <div
+                                      className="MuiGrid-root MuiGrid-item"
+                                    >
+                                      <div
+                                        className="makeStyles-iconWrapper-4"
+                                      >
+                                        <i
+                                          className="icon fa fa-circle-exclamation"
+                                        />
+                                      </div>
+                                    </div>
+                                  </ForwardRef(Grid)>
+                                </WithStyles(ForwardRef(Grid))>
+                                <WithStyles(ForwardRef(Grid))
+                                  item={true}
+                                >
+                                  <ForwardRef(Grid)
+                                    classes={
+                                      Object {
+                                        "align-content-xs-center": "MuiGrid-align-content-xs-center",
+                                        "align-content-xs-flex-end": "MuiGrid-align-content-xs-flex-end",
+                                        "align-content-xs-flex-start": "MuiGrid-align-content-xs-flex-start",
+                                        "align-content-xs-space-around": "MuiGrid-align-content-xs-space-around",
+                                        "align-content-xs-space-between": "MuiGrid-align-content-xs-space-between",
+                                        "align-items-xs-baseline": "MuiGrid-align-items-xs-baseline",
+                                        "align-items-xs-center": "MuiGrid-align-items-xs-center",
+                                        "align-items-xs-flex-end": "MuiGrid-align-items-xs-flex-end",
+                                        "align-items-xs-flex-start": "MuiGrid-align-items-xs-flex-start",
+                                        "container": "MuiGrid-container",
+                                        "direction-xs-column": "MuiGrid-direction-xs-column",
+                                        "direction-xs-column-reverse": "MuiGrid-direction-xs-column-reverse",
+                                        "direction-xs-row-reverse": "MuiGrid-direction-xs-row-reverse",
+                                        "grid-lg-1": "MuiGrid-grid-lg-1",
+                                        "grid-lg-10": "MuiGrid-grid-lg-10",
+                                        "grid-lg-11": "MuiGrid-grid-lg-11",
+                                        "grid-lg-12": "MuiGrid-grid-lg-12",
+                                        "grid-lg-2": "MuiGrid-grid-lg-2",
+                                        "grid-lg-3": "MuiGrid-grid-lg-3",
+                                        "grid-lg-4": "MuiGrid-grid-lg-4",
+                                        "grid-lg-5": "MuiGrid-grid-lg-5",
+                                        "grid-lg-6": "MuiGrid-grid-lg-6",
+                                        "grid-lg-7": "MuiGrid-grid-lg-7",
+                                        "grid-lg-8": "MuiGrid-grid-lg-8",
+                                        "grid-lg-9": "MuiGrid-grid-lg-9",
+                                        "grid-lg-auto": "MuiGrid-grid-lg-auto",
+                                        "grid-lg-true": "MuiGrid-grid-lg-true",
+                                        "grid-md-1": "MuiGrid-grid-md-1",
+                                        "grid-md-10": "MuiGrid-grid-md-10",
+                                        "grid-md-11": "MuiGrid-grid-md-11",
+                                        "grid-md-12": "MuiGrid-grid-md-12",
+                                        "grid-md-2": "MuiGrid-grid-md-2",
+                                        "grid-md-3": "MuiGrid-grid-md-3",
+                                        "grid-md-4": "MuiGrid-grid-md-4",
+                                        "grid-md-5": "MuiGrid-grid-md-5",
+                                        "grid-md-6": "MuiGrid-grid-md-6",
+                                        "grid-md-7": "MuiGrid-grid-md-7",
+                                        "grid-md-8": "MuiGrid-grid-md-8",
+                                        "grid-md-9": "MuiGrid-grid-md-9",
+                                        "grid-md-auto": "MuiGrid-grid-md-auto",
+                                        "grid-md-true": "MuiGrid-grid-md-true",
+                                        "grid-sm-1": "MuiGrid-grid-sm-1",
+                                        "grid-sm-10": "MuiGrid-grid-sm-10",
+                                        "grid-sm-11": "MuiGrid-grid-sm-11",
+                                        "grid-sm-12": "MuiGrid-grid-sm-12",
+                                        "grid-sm-2": "MuiGrid-grid-sm-2",
+                                        "grid-sm-3": "MuiGrid-grid-sm-3",
+                                        "grid-sm-4": "MuiGrid-grid-sm-4",
+                                        "grid-sm-5": "MuiGrid-grid-sm-5",
+                                        "grid-sm-6": "MuiGrid-grid-sm-6",
+                                        "grid-sm-7": "MuiGrid-grid-sm-7",
+                                        "grid-sm-8": "MuiGrid-grid-sm-8",
+                                        "grid-sm-9": "MuiGrid-grid-sm-9",
+                                        "grid-sm-auto": "MuiGrid-grid-sm-auto",
+                                        "grid-sm-true": "MuiGrid-grid-sm-true",
+                                        "grid-xl-1": "MuiGrid-grid-xl-1",
+                                        "grid-xl-10": "MuiGrid-grid-xl-10",
+                                        "grid-xl-11": "MuiGrid-grid-xl-11",
+                                        "grid-xl-12": "MuiGrid-grid-xl-12",
+                                        "grid-xl-2": "MuiGrid-grid-xl-2",
+                                        "grid-xl-3": "MuiGrid-grid-xl-3",
+                                        "grid-xl-4": "MuiGrid-grid-xl-4",
+                                        "grid-xl-5": "MuiGrid-grid-xl-5",
+                                        "grid-xl-6": "MuiGrid-grid-xl-6",
+                                        "grid-xl-7": "MuiGrid-grid-xl-7",
+                                        "grid-xl-8": "MuiGrid-grid-xl-8",
+                                        "grid-xl-9": "MuiGrid-grid-xl-9",
+                                        "grid-xl-auto": "MuiGrid-grid-xl-auto",
+                                        "grid-xl-true": "MuiGrid-grid-xl-true",
+                                        "grid-xs-1": "MuiGrid-grid-xs-1",
+                                        "grid-xs-10": "MuiGrid-grid-xs-10",
+                                        "grid-xs-11": "MuiGrid-grid-xs-11",
+                                        "grid-xs-12": "MuiGrid-grid-xs-12",
+                                        "grid-xs-2": "MuiGrid-grid-xs-2",
+                                        "grid-xs-3": "MuiGrid-grid-xs-3",
+                                        "grid-xs-4": "MuiGrid-grid-xs-4",
+                                        "grid-xs-5": "MuiGrid-grid-xs-5",
+                                        "grid-xs-6": "MuiGrid-grid-xs-6",
+                                        "grid-xs-7": "MuiGrid-grid-xs-7",
+                                        "grid-xs-8": "MuiGrid-grid-xs-8",
+                                        "grid-xs-9": "MuiGrid-grid-xs-9",
+                                        "grid-xs-auto": "MuiGrid-grid-xs-auto",
+                                        "grid-xs-true": "MuiGrid-grid-xs-true",
+                                        "item": "MuiGrid-item",
+                                        "justify-content-xs-center": "MuiGrid-justify-content-xs-center",
+                                        "justify-content-xs-flex-end": "MuiGrid-justify-content-xs-flex-end",
+                                        "justify-content-xs-space-around": "MuiGrid-justify-content-xs-space-around",
+                                        "justify-content-xs-space-between": "MuiGrid-justify-content-xs-space-between",
+                                        "justify-content-xs-space-evenly": "MuiGrid-justify-content-xs-space-evenly",
+                                        "root": "MuiGrid-root",
+                                        "spacing-xs-1": "MuiGrid-spacing-xs-1",
+                                        "spacing-xs-10": "MuiGrid-spacing-xs-10",
+                                        "spacing-xs-2": "MuiGrid-spacing-xs-2",
+                                        "spacing-xs-3": "MuiGrid-spacing-xs-3",
+                                        "spacing-xs-4": "MuiGrid-spacing-xs-4",
+                                        "spacing-xs-5": "MuiGrid-spacing-xs-5",
+                                        "spacing-xs-6": "MuiGrid-spacing-xs-6",
+                                        "spacing-xs-7": "MuiGrid-spacing-xs-7",
+                                        "spacing-xs-8": "MuiGrid-spacing-xs-8",
+                                        "spacing-xs-9": "MuiGrid-spacing-xs-9",
+                                        "wrap-xs-nowrap": "MuiGrid-wrap-xs-nowrap",
+                                        "wrap-xs-wrap-reverse": "MuiGrid-wrap-xs-wrap-reverse",
+                                        "zeroMinWidth": "MuiGrid-zeroMinWidth",
+                                      }
+                                    }
+                                    item={true}
+                                  >
+                                    <div
+                                      className="MuiGrid-root MuiGrid-item"
+                                    >
+                                      <WithStyles(ForwardRef(Typography))
+                                        variant="h2"
+                                      >
+                                        <ForwardRef(Typography)
+                                          classes={
+                                            Object {
+                                              "alignCenter": "MuiTypography-alignCenter",
+                                              "alignJustify": "MuiTypography-alignJustify",
+                                              "alignLeft": "MuiTypography-alignLeft",
+                                              "alignRight": "MuiTypography-alignRight",
+                                              "body1": "MuiTypography-body1",
+                                              "body2": "MuiTypography-body2",
+                                              "button": "MuiTypography-button",
+                                              "caption": "MuiTypography-caption",
+                                              "colorError": "MuiTypography-colorError",
+                                              "colorInherit": "MuiTypography-colorInherit",
+                                              "colorPrimary": "MuiTypography-colorPrimary",
+                                              "colorSecondary": "MuiTypography-colorSecondary",
+                                              "colorTextPrimary": "MuiTypography-colorTextPrimary",
+                                              "colorTextSecondary": "MuiTypography-colorTextSecondary",
+                                              "displayBlock": "MuiTypography-displayBlock",
+                                              "displayInline": "MuiTypography-displayInline",
+                                              "gutterBottom": "MuiTypography-gutterBottom",
+                                              "h1": "MuiTypography-h1",
+                                              "h2": "MuiTypography-h2",
+                                              "h3": "MuiTypography-h3",
+                                              "h4": "MuiTypography-h4",
+                                              "h5": "MuiTypography-h5",
+                                              "h6": "MuiTypography-h6",
+                                              "noWrap": "MuiTypography-noWrap",
+                                              "overline": "MuiTypography-overline",
+                                              "paragraph": "MuiTypography-paragraph",
+                                              "root": "MuiTypography-root",
+                                              "srOnly": "MuiTypography-srOnly",
+                                              "subtitle1": "MuiTypography-subtitle1",
+                                              "subtitle2": "MuiTypography-subtitle2",
+                                            }
+                                          }
+                                          variant="h2"
+                                        >
+                                          <h2
+                                            className="MuiTypography-root MuiTypography-h2"
+                                          >
+                                            administration.delete_model_confirm
+                                          </h2>
+                                        </ForwardRef(Typography)>
+                                      </WithStyles(ForwardRef(Typography))>
+                                      <WithStyles(ForwardRef(Button))
+                                        className="makeStyles-deleteButton-3"
+                                        id="confirm-delete-button"
+                                        onClick={[Function]}
+                                        variant="contained"
+                                      >
+                                        <ForwardRef(Button)
+                                          className="makeStyles-deleteButton-3"
+                                          classes={
+                                            Object {
+                                              "colorInherit": "MuiButton-colorInherit",
+                                              "contained": "MuiButton-contained",
+                                              "containedPrimary": "MuiButton-containedPrimary",
+                                              "containedSecondary": "MuiButton-containedSecondary",
+                                              "containedSizeLarge": "MuiButton-containedSizeLarge",
+                                              "containedSizeSmall": "MuiButton-containedSizeSmall",
+                                              "disableElevation": "MuiButton-disableElevation",
+                                              "disabled": "Mui-disabled",
+                                              "endIcon": "MuiButton-endIcon",
+                                              "focusVisible": "Mui-focusVisible",
+                                              "fullWidth": "MuiButton-fullWidth",
+                                              "iconSizeLarge": "MuiButton-iconSizeLarge",
+                                              "iconSizeMedium": "MuiButton-iconSizeMedium",
+                                              "iconSizeSmall": "MuiButton-iconSizeSmall",
+                                              "label": "MuiButton-label",
+                                              "outlined": "MuiButton-outlined",
+                                              "outlinedPrimary": "MuiButton-outlinedPrimary",
+                                              "outlinedSecondary": "MuiButton-outlinedSecondary",
+                                              "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                                              "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                                              "root": "MuiButton-root",
+                                              "sizeLarge": "MuiButton-sizeLarge",
+                                              "sizeSmall": "MuiButton-sizeSmall",
+                                              "startIcon": "MuiButton-startIcon",
+                                              "text": "MuiButton-text",
+                                              "textPrimary": "MuiButton-textPrimary",
+                                              "textSecondary": "MuiButton-textSecondary",
+                                              "textSizeLarge": "MuiButton-textSizeLarge",
+                                              "textSizeSmall": "MuiButton-textSizeSmall",
+                                            }
+                                          }
+                                          id="confirm-delete-button"
+                                          onClick={[Function]}
+                                          variant="contained"
+                                        >
+                                          <WithStyles(ForwardRef(ButtonBase))
+                                            className="MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                                            component="button"
+                                            disabled={false}
+                                            focusRipple={true}
+                                            focusVisibleClassName="Mui-focusVisible"
+                                            id="confirm-delete-button"
+                                            onClick={[Function]}
+                                            type="button"
+                                          >
+                                            <ForwardRef(ButtonBase)
+                                              className="MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                                              classes={
+                                                Object {
+                                                  "disabled": "Mui-disabled",
+                                                  "focusVisible": "Mui-focusVisible",
+                                                  "root": "MuiButtonBase-root",
+                                                }
+                                              }
+                                              component="button"
+                                              disabled={false}
+                                              focusRipple={true}
+                                              focusVisibleClassName="Mui-focusVisible"
+                                              id="confirm-delete-button"
+                                              onClick={[Function]}
+                                              type="button"
+                                            >
+                                              <button
+                                                className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-deleteButton-3"
+                                                disabled={false}
+                                                id="confirm-delete-button"
+                                                onBlur={[Function]}
+                                                onClick={[Function]}
+                                                onDragLeave={[Function]}
+                                                onFocus={[Function]}
+                                                onKeyDown={[Function]}
+                                                onKeyUp={[Function]}
+                                                onMouseDown={[Function]}
+                                                onMouseLeave={[Function]}
+                                                onMouseUp={[Function]}
+                                                onTouchEnd={[Function]}
+                                                onTouchMove={[Function]}
+                                                onTouchStart={[Function]}
+                                                tabIndex={0}
+                                                type="button"
+                                              >
+                                                <span
+                                                  className="MuiButton-label"
+                                                >
+                                                  general.continue
+                                                </span>
+                                                <WithStyles(memo)
+                                                  center={false}
+                                                >
+                                                  <ForwardRef(TouchRipple)
+                                                    center={false}
+                                                    classes={
+                                                      Object {
+                                                        "child": "MuiTouchRipple-child",
+                                                        "childLeaving": "MuiTouchRipple-childLeaving",
+                                                        "childPulsate": "MuiTouchRipple-childPulsate",
+                                                        "ripple": "MuiTouchRipple-ripple",
+                                                        "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                                        "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                                        "root": "MuiTouchRipple-root",
+                                                      }
+                                                    }
+                                                  >
+                                                    <span
+                                                      className="MuiTouchRipple-root"
+                                                    >
+                                                      <TransitionGroup
+                                                        childFactory={[Function]}
+                                                        component={null}
+                                                        exit={true}
+                                                      />
+                                                    </span>
+                                                  </ForwardRef(TouchRipple)>
+                                                </WithStyles(memo)>
+                                              </button>
+                                            </ForwardRef(ButtonBase)>
+                                          </WithStyles(ForwardRef(ButtonBase))>
+                                        </ForwardRef(Button)>
+                                      </WithStyles(ForwardRef(Button))>
+                                      <WithStyles(ForwardRef(Button))
+                                        color="primary"
+                                        id="cancel-delete-button"
+                                        onClick={[Function]}
+                                      >
+                                        <ForwardRef(Button)
+                                          classes={
+                                            Object {
+                                              "colorInherit": "MuiButton-colorInherit",
+                                              "contained": "MuiButton-contained",
+                                              "containedPrimary": "MuiButton-containedPrimary",
+                                              "containedSecondary": "MuiButton-containedSecondary",
+                                              "containedSizeLarge": "MuiButton-containedSizeLarge",
+                                              "containedSizeSmall": "MuiButton-containedSizeSmall",
+                                              "disableElevation": "MuiButton-disableElevation",
+                                              "disabled": "Mui-disabled",
+                                              "endIcon": "MuiButton-endIcon",
+                                              "focusVisible": "Mui-focusVisible",
+                                              "fullWidth": "MuiButton-fullWidth",
+                                              "iconSizeLarge": "MuiButton-iconSizeLarge",
+                                              "iconSizeMedium": "MuiButton-iconSizeMedium",
+                                              "iconSizeSmall": "MuiButton-iconSizeSmall",
+                                              "label": "MuiButton-label",
+                                              "outlined": "MuiButton-outlined",
+                                              "outlinedPrimary": "MuiButton-outlinedPrimary",
+                                              "outlinedSecondary": "MuiButton-outlinedSecondary",
+                                              "outlinedSizeLarge": "MuiButton-outlinedSizeLarge",
+                                              "outlinedSizeSmall": "MuiButton-outlinedSizeSmall",
+                                              "root": "MuiButton-root",
+                                              "sizeLarge": "MuiButton-sizeLarge",
+                                              "sizeSmall": "MuiButton-sizeSmall",
+                                              "startIcon": "MuiButton-startIcon",
+                                              "text": "MuiButton-text",
+                                              "textPrimary": "MuiButton-textPrimary",
+                                              "textSecondary": "MuiButton-textSecondary",
+                                              "textSizeLarge": "MuiButton-textSizeLarge",
+                                              "textSizeSmall": "MuiButton-textSizeSmall",
+                                            }
+                                          }
+                                          color="primary"
+                                          id="cancel-delete-button"
+                                          onClick={[Function]}
+                                        >
+                                          <WithStyles(ForwardRef(ButtonBase))
+                                            className="MuiButton-root MuiButton-text MuiButton-textPrimary"
+                                            component="button"
+                                            disabled={false}
+                                            focusRipple={true}
+                                            focusVisibleClassName="Mui-focusVisible"
+                                            id="cancel-delete-button"
+                                            onClick={[Function]}
+                                            type="button"
+                                          >
+                                            <ForwardRef(ButtonBase)
+                                              className="MuiButton-root MuiButton-text MuiButton-textPrimary"
+                                              classes={
+                                                Object {
+                                                  "disabled": "Mui-disabled",
+                                                  "focusVisible": "Mui-focusVisible",
+                                                  "root": "MuiButtonBase-root",
+                                                }
+                                              }
+                                              component="button"
+                                              disabled={false}
+                                              focusRipple={true}
+                                              focusVisibleClassName="Mui-focusVisible"
+                                              id="cancel-delete-button"
+                                              onClick={[Function]}
+                                              type="button"
+                                            >
+                                              <button
+                                                className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary"
+                                                disabled={false}
+                                                id="cancel-delete-button"
+                                                onBlur={[Function]}
+                                                onClick={[Function]}
+                                                onDragLeave={[Function]}
+                                                onFocus={[Function]}
+                                                onKeyDown={[Function]}
+                                                onKeyUp={[Function]}
+                                                onMouseDown={[Function]}
+                                                onMouseLeave={[Function]}
+                                                onMouseUp={[Function]}
+                                                onTouchEnd={[Function]}
+                                                onTouchMove={[Function]}
+                                                onTouchStart={[Function]}
+                                                tabIndex={0}
+                                                type="button"
+                                              >
+                                                <span
+                                                  className="MuiButton-label"
+                                                >
+                                                  <span
+                                                    className="makeStyles-borderBottom-2"
+                                                  >
+                                                    general.cancel
+                                                  </span>
+                                                </span>
+                                                <WithStyles(memo)
+                                                  center={false}
+                                                >
+                                                  <ForwardRef(TouchRipple)
+                                                    center={false}
+                                                    classes={
+                                                      Object {
+                                                        "child": "MuiTouchRipple-child",
+                                                        "childLeaving": "MuiTouchRipple-childLeaving",
+                                                        "childPulsate": "MuiTouchRipple-childPulsate",
+                                                        "ripple": "MuiTouchRipple-ripple",
+                                                        "ripplePulsate": "MuiTouchRipple-ripplePulsate",
+                                                        "rippleVisible": "MuiTouchRipple-rippleVisible",
+                                                        "root": "MuiTouchRipple-root",
+                                                      }
+                                                    }
+                                                  >
+                                                    <span
+                                                      className="MuiTouchRipple-root"
+                                                    >
+                                                      <TransitionGroup
+                                                        childFactory={[Function]}
+                                                        component={null}
+                                                        exit={true}
+                                                      />
+                                                    </span>
+                                                  </ForwardRef(TouchRipple)>
+                                                </WithStyles(memo)>
+                                              </button>
+                                            </ForwardRef(ButtonBase)>
+                                          </WithStyles(ForwardRef(ButtonBase))>
+                                        </ForwardRef(Button)>
+                                      </WithStyles(ForwardRef(Button))>
+                                    </div>
+                                  </ForwardRef(Grid)>
+                                </WithStyles(ForwardRef(Grid))>
+                              </div>
+                            </ForwardRef(Grid)>
+                          </WithStyles(ForwardRef(Grid))>
+                        </div>
+                      </ForwardRef(Paper)>
+                    </WithStyles(ForwardRef(Paper))>
+                  </Transition>
+                </ForwardRef(Grow)>
+                <div
+                  data-test="sentinelEnd"
+                  tabIndex={0}
+                />
+              </Unstable_TrapFocus>
+            </div>
+          </Portal>
+        </ForwardRef(Portal)>
+      </ForwardRef(Modal)>
+    </ForwardRef(Popover)>
+  </WithStyles(ForwardRef(Popover))>
+</DeleteDialog>
+`;

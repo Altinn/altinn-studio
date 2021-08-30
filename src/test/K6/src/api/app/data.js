@@ -17,10 +17,10 @@ export function findDataId(instanceJson) {
 }
 
 //Api call to App Api:Data to edit a data by id of an app instance and returns response
-export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, dataType, data, appOwner, appName) {
+export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, attachmentType, data, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
   var isBinaryAttachment = typeof data === 'object' ? true : false;
-  var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'app');
   var requestBody = data;
   return http.put(endpoint, requestBody, params);
 }
@@ -40,9 +40,9 @@ export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, inst
 }
 
 //Api call to App Api:Data to add a data to an app instance and returns response
-export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data, appOwner, appName) {
+export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data, attachmentType, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, '', 'instanceid') + '/data?dataType=' + dataType;
   var isBinaryAttachment = typeof data === 'object' ? true : false;
-  var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'app');
   return http.post(endpoint, data, params);
 }

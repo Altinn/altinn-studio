@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.CosmosBackup
         /// <param name="context">Function context.</param>
         /// <param name="log">Logger.</param>
         [FunctionName("InstancesCollectionBackup")]
-        public static async void InstancesCollectionBackup(
+        public static async Task InstancesCollectionBackup(
             [CosmosDBTrigger(
             databaseName: "Storage",
             collectionName: "instances",

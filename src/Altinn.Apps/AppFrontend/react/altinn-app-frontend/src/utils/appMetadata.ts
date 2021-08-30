@@ -65,3 +65,8 @@ export function getCurrentDataTypeForApplication(
   // instance - get data element based on current process step
   return getDataTaskDataTypeId(instance.process.currentTask.elementId, application.dataTypes);
 }
+
+export function isStatelessApp(application: IApplication) {
+  const show = application.onEntry?.show;
+  return show && show !== 'new-instance';
+}

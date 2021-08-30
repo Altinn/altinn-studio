@@ -1,12 +1,11 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { CloneModal } from '../../../version-control/cloneModal';
+import CloneModal from '../../../version-control/cloneModal';
 
 describe('>>> components/version-control/cloneModal.test.tsx', () => {
-
   let mockClasses: any;
-
+  let element: Element;
   beforeAll(() => {
     mockClasses = {
       modalContainer: '',
@@ -14,6 +13,9 @@ describe('>>> components/version-control/cloneModal.test.tsx', () => {
       sectionSeparator: '',
       blackText: '',
     };
+    element = mount(
+      <div />,
+    ).getDOMNode();
   });
 
   it('+++ should show copy link if copy feature is supported', () => {
@@ -21,7 +23,11 @@ describe('>>> components/version-control/cloneModal.test.tsx', () => {
       return true;
     });
     const wrapper = mount(
-      <CloneModal open={true} anchorEl={null} onClose={null} language={{}} classes={mockClasses}/>,
+      <CloneModal
+        open={true} anchorEl={element}
+        onClose={(null)} language={{}}
+        classes={mockClasses}
+      />,
     );
     const exists = wrapper.exists('#copy-repository-url-button');
     expect(exists).toBe(true);
@@ -32,10 +38,13 @@ describe('>>> components/version-control/cloneModal.test.tsx', () => {
       return false;
     });
     const wrapper = mount(
-      <CloneModal open={true} anchorEl={null} onClose={null} language={{}} classes={mockClasses}/>,
+      <CloneModal
+        open={true} anchorEl={element}
+        onClose={(null)} language={{}}
+        classes={mockClasses}
+      />,
     );
     const exists = wrapper.exists('#copy-repository-url-button');
     expect(exists).toBe(false);
   });
-
 });

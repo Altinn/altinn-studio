@@ -71,7 +71,7 @@ export default function () {
   addErrorCount(success);
 
   //Test to add an form data to an instance with storage api and validate the response
-  res = instanceData.postData(runtimeToken, partyId, instanceId, 'schema_4222_160523_forms_212_20160523', instanceFormDataXml);
+  res = instanceData.postData(runtimeToken, partyId, instanceId, 'schema_4222_160523_forms_212_20160523', instanceFormDataXml, null);
   success = check(res, {
     'POST Create Data status is 201': (r) => r.status === 201,
     'POST Create Instance Data Id is not null': (r) => JSON.parse(r.body).id != null,

@@ -12,6 +12,10 @@ module.exports = (on, config) => {
       config.baseUrl = `https://${config.env.at22}`;
       config.env.userFullName = 'ÅSLAND DAG';
       break;
+    case 'tt02':
+      config.baseUrl = `https://${config.env.tt02}`;
+      config.env.userFullName = 'FAGERLAND MAIKEN';
+      break;
   }
 
   return config;
