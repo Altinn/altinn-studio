@@ -18,7 +18,7 @@
     "gulp": "^4.0.2",
     "gulp-run-command": "^0.0.10",
     "lerna": "^4.0.0",
-    "webpack": "^4.44.2",
+    "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
