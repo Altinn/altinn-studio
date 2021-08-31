@@ -1,9 +1,7 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems,
-  promoteProperty,
-  addRootItem } from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -101,9 +99,34 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer({...state, selectedEditorTab: '1'}, setSelectedId(payload));
+    const nextState = reducer({ ...state, selectedEditorTab: '1' }, setSelectedId(payload));
     expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/Kommentar2000Restriksjon');
   });
+
+  it('handles setSelectedId by properties tab', () => {
+    const payload = {
+      id: '#/properties/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: '0' }, setSelectedId(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
+  });
+
+  it('handles navigateToType', () => {
+    const payload = {
+      id: '#/definitions/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: '0' }, navigateToType(payload));
+    expect(nextState.selectedEditorTab).toEqual('1');
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/someField');
+  });
+
+  it('handles setSelectedTab', () => {
+    const payload = {
+      selectedTab: '1',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: '0' }, setSelectedTab(payload));
+    expect(nextState.selectedEditorTab).toEqual('1');
+  })
 
   it('handles deleteField', () => {
     const payload = {

@@ -1,4 +1,3 @@
-
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];

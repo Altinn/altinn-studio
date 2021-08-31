@@ -67,7 +67,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(null);
     event.stopPropagation();
     props.onGoToType?.();
-  }
+  };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
     setContextAnchor(null);

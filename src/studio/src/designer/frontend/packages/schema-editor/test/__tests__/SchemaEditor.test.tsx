@@ -37,7 +37,7 @@ beforeEach(() => {
     uiSchema: [],
     selectedDefinitionNodeId: '',
     selectedPropertyNodeId: '',
-    selectedEditorTab: '0'
+    selectedEditorTab: '0',
   };
   createStore = configureStore();
 });

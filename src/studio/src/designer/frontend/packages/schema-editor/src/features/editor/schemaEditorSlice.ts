@@ -321,7 +321,7 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, focusName
+        id, focusName,
       } = action.payload;
       state.focusNameField = focusName;
       if (state.selectedEditorTab === '1') {

@@ -15,6 +15,10 @@ type SchemaItemProps = TreeItemProps & {
   isPropertiesView?: boolean;
 };
 
+SchemaItem.defaultProps = {
+  isPropertiesView: false,
+};
+
 const useStyles = (isRef: boolean) => makeStyles({
   root: {
     height: 216,
@@ -151,7 +155,7 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(navigateToType({
       id: item?.$ref,
     }));
-  }
+  };
 
   const getIconStr = () => {
     const type = item.type;
@@ -190,7 +194,7 @@ function SchemaItem(props: SchemaItemProps) {
         onDelete={handleDeleteClick}
         onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
-        key={item.path + '-label'}
+        key={`${item.path}-label`}
       />}
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
       key={item.path}
