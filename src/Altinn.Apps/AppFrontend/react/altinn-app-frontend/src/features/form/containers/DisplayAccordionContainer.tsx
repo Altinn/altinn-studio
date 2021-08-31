@@ -98,7 +98,7 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
     return undefined;
   });
   const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const hasErrors = true;
+  const hasErrors = false;
 
   const setIcon = (label: string) => {
     // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
