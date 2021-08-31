@@ -41,16 +41,17 @@ const useStyles = makeStyles({
     fontSize: '2rem',
   },
   accordionBody: {
-    paddingTop: 20,
-    paddingBottom: 20,
+    padding: 30,
+    paddingBottom: 40,
     display: 'grid',
     '& .MuiGrid-item': {
       marginTop: '0.2em',
     },
   },
   spacing: {
-    margin: '12px',
     spacing: 0,
+    justifyContent: 'start',
+    gridGap: '12px 24px',
   },
   icon: {
     flexBasis: '10%',
@@ -147,6 +148,7 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
       item={true}
       id={props.container.id}
       spacing={3}
+      alignItems='flex-start'
     >
       <div className={classes.root}>
         <Accordion
@@ -164,7 +166,12 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
             </Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.accordionBody}>
-            <Grid className={classes.spacing}>
+            <Grid
+              className={classes.spacing}
+              item={true}
+              container={true}
+              xs={12}
+            >
               {props.components.map((component) => {
                 return props.renderLayoutComponent(component, layout);
               })}
