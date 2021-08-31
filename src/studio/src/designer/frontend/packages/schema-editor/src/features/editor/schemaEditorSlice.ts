@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
+import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -8,9 +8,10 @@ export const initialState: ISchemaState = {
   uiSchema: [],
   name: '/',
   saveSchemaUrl: '',
-  selectedId: '',
-  selectedTreeNodeId: '',
+  selectedPropertyNodeId: '',
+  selectedDefinitionNodeId: '',
   focusNameField: '',
+  selectedEditorTab: '0',
 };
 
 const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
@@ -76,8 +77,11 @@ const schemaEditorSlice = createSlice({
           displayName: name,
         },
       );
-      state.selectedId = path;
-      state.selectedTreeNodeId = getDomFriendlyID(path);
+      if (location === 'definitions') {
+        state.selectedDefinitionNodeId = path;
+      } else {
+        state.selectedPropertyNodeId = path;
+      }
       state.focusNameField = path;
     },
     clearNameFocus(state) {
@@ -102,8 +106,7 @@ const schemaEditorSlice = createSlice({
         addToItem.properties = [item];
       }
       if (!keepSelection) {
-        state.selectedId = item.path;
-        state.selectedTreeNodeId = getDomFriendlyID(item.path);
+        state.selectedPropertyNodeId = item.path;
         state.focusNameField = item.path;
       }
     },
@@ -157,8 +160,10 @@ const schemaEditorSlice = createSlice({
     },
     deleteProperty(state, action) {
       const path: string = action.payload.path;
-      if (state.selectedId === path) {
-        state.selectedId = undefined;
+      if (state.selectedDefinitionNodeId === path) {
+        state.selectedDefinitionNodeId = '';
+      } else if (state.selectedPropertyNodeId === path) {
+        state.selectedPropertyNodeId = '';
       }
       const [parentPath, propertyName] = splitParentPathAndName(path);
       if (parentPath) {
@@ -306,8 +311,7 @@ const schemaEditorSlice = createSlice({
         }
 
         if (navigate) {
-          state.selectedId = item.path;
-          state.selectedTreeNodeId = getDomFriendlyID(item.path);
+          state.selectedPropertyNodeId = item.path;
         }
       }
     },
@@ -317,11 +321,16 @@ const schemaEditorSlice = createSlice({
     },
     setSelectedId(state, action) {
       const {
-        id, focusName,
+        id, focusName
       } = action.payload;
-      state.selectedId = id;
-      state.selectedTreeNodeId = getDomFriendlyID(id);
       state.focusNameField = focusName;
+      if (state.selectedEditorTab === '1') {
+        // triggered from definitions view
+        state.selectedDefinitionNodeId = id;
+      } else {
+        // triggered from properties view
+        state.selectedPropertyNodeId = id;
+      }
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
@@ -341,8 +350,7 @@ const schemaEditorSlice = createSlice({
       // set first item as selected
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
-        state.selectedId = id;
-        state.selectedTreeNodeId = getDomFriendlyID(id);
+        state.selectedPropertyNodeId = id;
         state.focusNameField = id;
       }
     },
@@ -356,6 +364,15 @@ const schemaEditorSlice = createSlice({
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
       }
+    },
+    setSelectedTab(state, action) {
+      const { selectedTab } = action.payload;
+      state.selectedEditorTab = selectedTab;
+    },
+    navigateToType(state, action) {
+      const { id } = action.payload;
+      state.selectedEditorTab = '1';
+      state.selectedDefinitionNodeId = id;
     },
   },
 });
@@ -385,6 +402,8 @@ export const {
   setDescription,
   setType,
   setRequired,
+  setSelectedTab,
+  navigateToType,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

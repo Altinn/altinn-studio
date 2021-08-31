@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
-import { getDomFriendlyID } from '../utils';
+import { getDomFriendlyID, getTranslation } from '../utils';
 import { ILanguage } from '../types';
 
 export interface IEnumFieldProps {
@@ -73,7 +73,7 @@ export const EnumField = (props: IEnumFieldProps) => {
       <Grid item xs={3}>
         <IconButton
           id={`${baseId}-delete-${props.value}`}
-          aria-label='Delete field'
+          aria-label={getTranslation('delete_field', props.language)}
           onClick={() => props.onDelete?.(props.path, props.value)}
           className={classes.delete}
         >

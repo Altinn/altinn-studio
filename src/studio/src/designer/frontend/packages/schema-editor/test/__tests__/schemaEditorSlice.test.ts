@@ -101,8 +101,8 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(state, setSelectedId(payload));
-    expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
+    const nextState = reducer({...state, selectedEditorTab: '1'}, setSelectedId(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/Kommentar2000Restriksjon');
   });
 
   it('handles deleteField', () => {
@@ -169,7 +169,7 @@ describe('SchemaEditorSlice', () => {
     expect(nextState.uiSchema).toContainEqual({
       path: '#/definitions/superman0', displayName: 'superman0', type: 'object',
     });
-    expect(nextState.selectedId).toBe('#/definitions/superman0');
+    expect(nextState.selectedDefinitionNodeId).toBe('#/definitions/superman0');
   });
 
   it('handles addEnum & deleteEnum', () => {

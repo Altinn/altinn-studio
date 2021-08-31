@@ -5,7 +5,7 @@ import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button } from '@material-ui/core';
 import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
-import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName } from '../features/editor/schemaEditorSlice';
+import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
 import SchemaInspector from './SchemaInspector';
@@ -105,10 +105,13 @@ export const Editor = (props: IEditorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const selectedTreeNode = useSelector((state: ISchemaState) => state.selectedTreeNodeId);
+  const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
+  const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
   const definitions = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/definitions')));
   const properties = useSelector((state: ISchemaState) => state.uiSchema.filter((d: UiSchemaItem) => d.path.startsWith('#/properties/')));
-  const [tabIndex, setTabIndex] = React.useState('0');
+  const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
+  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = React.useState<string[]>([]);
+  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = React.useState<string[]>([]);
 
   function saveSchema() {
     dispatch(updateJsonSchema({ onSaveSchema }));
@@ -128,13 +131,6 @@ export const Editor = (props: IEditorProps) => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
-  React.useEffect(() => {
-    if (selectedTreeNode) {
-      const tab = selectedTreeNode.startsWith('definitions') ? '1' : '0';
-      setTabIndex(tab);
-    }
-  }, [selectedTreeNode]);
-
   const handleAddProperty = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(addRootItem({
@@ -149,6 +145,15 @@ export const Editor = (props: IEditorProps) => {
       location: 'definitions',
     }));
   };
+
+  const handlePropertiesNodeExpanded = (_x: any, nodeIds: string[]) => {
+    setExpandedPropertiesNodes(nodeIds);
+  };
+
+  const handleDefinitionsNodeExpanded = (_x: any, nodeIds: string[]) => {
+    setExpandedDefinitionsNodes(nodeIds);
+  };
+
   if (!name) {
     return (
       <div className={classes.root}>
@@ -174,34 +179,39 @@ export const Editor = (props: IEditorProps) => {
         </section>
         {schema ? (
           <div id='schema-editor' className={classes.editor}>
-            <TabContext value={tabIndex}>
+            <TabContext value={selectedTab}>
               <AppBar
                 position='static' color='default'
                 className={classes.appBar}
               >
                 <TabList
-                  onChange={(e, v) => setTabIndex(v)}
+                  onChange={(_x, value) => dispatch(setSelectedTab({ selectedTab: value }))}
                   aria-label='model-tabs'
                 >
                   <SchemaTab
                     label='models'
                     language={language}
                     value='0'
+                    key='0'
                   />
                   <SchemaTab
                     label='types'
                     language={language}
                     value='1'
+                    key='1'
                   />
                 </TabList>
               </AppBar>
-              <TabPanel value='0'>
+              <TabPanel value='0' key='0'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
-                  selected={selectedTreeNode ?? ''}
+                  selected={getDomFriendlyID(selectedPropertyNode)}
                   defaultCollapseIcon={<ArrowDropDown />}
                   defaultExpandIcon={<ArrowRight />}
+                  expanded={expandedPropertiesNodes}
+                  key='properties-tree-view'
+                  onNodeToggle={handlePropertiesNodeExpanded}
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
                     keyPrefix='properties'
@@ -210,6 +220,7 @@ export const Editor = (props: IEditorProps) => {
                     nodeId={getDomFriendlyID(item.path)}
                     id={getDomFriendlyID(item.path)}
                     language={language}
+                    isPropertiesView={true}
                   />)}
                   <TreeItem
                     nodeId='add_property'
@@ -219,13 +230,16 @@ export const Editor = (props: IEditorProps) => {
                   />
                 </TreeView>
               </TabPanel>
-              <TabPanel value='1'>
+              <TabPanel value='1' key='1'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
-                  selected={selectedTreeNode ?? ''}
+                  selected={getDomFriendlyID(selectedDefinitionNode)}
                   defaultCollapseIcon={<ArrowDropDown />}
                   defaultExpandIcon={<ArrowRight />}
+                  expanded={expandedDefinitionsNodes}
+                  key='definition-tree-view'
+                  onNodeToggle={handleDefinitionsNodeExpanded}
                 >
                   {definitions.map((def) => <SchemaItem
                     keyPrefix='definitions'

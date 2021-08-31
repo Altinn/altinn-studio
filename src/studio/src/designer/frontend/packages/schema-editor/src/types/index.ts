@@ -1,12 +1,14 @@
+
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];
   name: string;
   saveSchemaUrl: string;
-  selectedId?: string;
-  selectedTreeNodeId?: string;
+  selectedDefinitionNodeId: string;
+  selectedPropertyNodeId: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.
   navigate?: string; // used to trigger navigation in tree, the value is not used.
+  selectedEditorTab: string;
 }
 export interface ILanguage {
   [key: string]: string | ILanguage;

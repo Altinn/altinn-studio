@@ -17,12 +17,14 @@ let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
 
-const mountWithId = (id: string) => {
+const mountWithId = (definitionId: string) => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
-    selectedId: id,
+    selectedDefinitionNodeId: definitionId,
+    selectedPropertyNodeId: definitionId,
+    selectedEditorTab: 0,
   });
   mockStore.dispatch = jest.fn(dispatchMock);
   return mountComponent();
@@ -41,7 +43,9 @@ beforeEach(() => {
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
-    selectedId: '#/definitions/Kommentar2000Restriksjon',
+    selectedDefinitionNodeId: '#/definitions/Kommentar2000Restriksjon',
+    selectedPropertyNodeId: '#/definitions/Kommentar2000Restriksjon',
+    selectedEditorTab: '0',
   };
   createStore = configureStore();
 
@@ -298,7 +302,9 @@ it('renders no item if nothing is selected', () => {
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
-    selectedId: null,
+    selectedPropertyNodeId: '',
+    selectedDefinitionNodeId: '',
+    selectedEditorTab: '0',
   });
   act(() => {
     const wrapper = mountComponent();

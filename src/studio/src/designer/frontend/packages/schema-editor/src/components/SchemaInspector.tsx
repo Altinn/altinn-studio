@@ -7,8 +7,8 @@ import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
-  setSelectedId, setTitle, setDescription, setType, setRequired, addProperty, setItems,
-  addEnum, deleteEnum }
+  setTitle, setDescription, setType, setRequired, addProperty, setItems,
+  addEnum, deleteEnum, navigateToType }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
@@ -105,7 +105,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
-  const selectedId = useSelector((state: ISchemaState) => state.selectedId);
+  const selectedId = useSelector((state: ISchemaState) => (state.selectedEditorTab === '0') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId);
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
 
@@ -256,10 +256,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (!selectedItem?.$ref) {
       return;
     }
-    dispatch(setSelectedId(
+    dispatch(navigateToType(
       {
-        id: selectedItem?.$ref, readOnly: false, navigate: selectedItem?.path,
-      },
+        id: selectedItem?.$ref,
+      }
     ));
   };
 
@@ -267,7 +267,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (selectedItem && objectKind === 'reference') {
       return (
         <div>
-          <p className={classes.header}>Refererer til</p>
+          <p className={classes.header}>{getTranslation('reference_to', props.language)}</p>
           { selectedItem.type === 'array' ?
             <RefSelect
               id={selectedItem.path}
@@ -288,7 +288,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             className={classes.navButton}
             onClick={onGoToDefButtonClick}
           >
-            {getTranslation('go_to_main_component', props.language)}
+            {getTranslation('go_to_type', props.language)}
           </button>
         </div>);
     }
@@ -453,14 +453,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       >
         <MenuItem value='type'>{getTranslation('type', props.language)}</MenuItem>
         <MenuItem value='reference'>{getTranslation('reference', props.language)}</MenuItem>
-        <MenuItem value='group'>{getTranslation('group', props.language)}</MenuItem>
       </Select>
       {selectedItem && objectKind === 'type' &&
       <>
-        <p className={classes.header}>Type</p>
+        <p className={classes.header}>{getTranslation('type', props.language)}</p>
         { selectedItem.type === 'array' ?
           <TypeSelect
-            label='Type'
+            label={getTranslation('type', props.language)}
             language={props.language}
             fullWidth={true}
             value={arrayType}
@@ -468,7 +467,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             onChange={onChangeArrayType}
           /> :
           <TypeSelect
-            label='Type'
+            label={getTranslation('type', props.language)}
             language={props.language}
             fullWidth={true}
             value={objectType}
