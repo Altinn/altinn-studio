@@ -62,6 +62,11 @@ const useStyles = makeStyles({
       backgroundColor: AltinnAppTheme.altinnPalette.primary.greyLight,
     },
   },
+  hoverError: {
+    '&:hover': {
+      backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
+    },
+  },
 });
 
 const AccordionSummary = withStyles((theme) => ({
@@ -93,6 +98,7 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
     return undefined;
   });
   const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
+  const hasErrors = true;
 
   const setIcon = (label: string) => {
     // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
@@ -153,10 +159,11 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
       <div className={classes.root}>
         <Accordion
           square={true}
+          className={hasErrors ? 'validation-error accordionError' : ''}
         >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
-            className={classes.hover}
+            className={hasErrors ? classes.hoverError : classes.hover}
           >
             <Typography className={classes.icon}>
               {setIcon(props.iconLabel)}
