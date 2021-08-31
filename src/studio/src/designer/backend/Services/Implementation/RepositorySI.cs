@@ -1195,7 +1195,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
-            await targetAppRepository.UpdateAppId();
+
+            PlatformStorageModels.Application appMetadata = await targetAppRepository.GetApplicationMetadata();
+            appMetadata.Id = $"{org}/{targetRepository}";
+            appMetadata.CreatedBy = developer;
+            appMetadata.LastChangedBy = developer;
+            appMetadata.Created = DateTime.UtcNow;
+            appMetadata.LastChanged = appMetadata.Created;
+            await targetAppRepository.UpdateApplicationMetadata(appMetadata);
 
             CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);

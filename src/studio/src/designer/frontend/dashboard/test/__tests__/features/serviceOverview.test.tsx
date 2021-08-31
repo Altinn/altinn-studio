@@ -4,7 +4,8 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { getListOfServicesExcludingCodelist, ServicesOverview } from '../../../features/serviceOverview/servicesOverview';
+import { IRepository } from '../../../../shared/types';
+import { getListOfServicesExcludingDatamodels, ServicesOverview } from '../../../features/serviceOverview/servicesOverview';
 
 describe('>>> features/serviceOverview', () => {
   let mockStore: any;
@@ -59,36 +60,36 @@ describe('>>> features/serviceOverview', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ if there are no services getListOfServicesExcludingCodelist should return null', () => {
-    const services = getListOfServicesExcludingCodelist(null);
-    expect(services).toEqual(null);
+  it('+++ if there are no services getListOfServicesExcludingDatamodels should return null', () => {
+    const services = getListOfServicesExcludingDatamodels(null);
+    expect(services).toEqual(undefined);
   });
 
-  it('+++ if there are services getListOfServicesExcludingCodelist should return services without codelists', () => {
-    const serviceList = [
+  it('+++ if there are services getListOfServicesExcludingDatamodels should return services without datamodels', () => {
+    const serviceList: IRepository[] = [
       {
         name: 'testService',
         owner: { full_name: 'Ulf Utvikler' },
         permissions: {
           push: true,
         },
-      },
+      } as unknown as IRepository,
       {
         name: 'NullSkatt',
         owner: { full_name: 'Ulf Utvikler' },
         permissions: {
           push: true,
         },
-      },
+      } as unknown as IRepository,
       {
-        name: 'codelists',
+        name: 'test-datamodels',
         owner: { full_name: 'Ulf Utvikler' },
         permissions: {
           push: true,
         },
-      },
+      } as unknown as IRepository,
     ];
-    const services = getListOfServicesExcludingCodelist(serviceList);
+    const services = getListOfServicesExcludingDatamodels(serviceList);
     const mockResult = [
       {
         name: 'testService',

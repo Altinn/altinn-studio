@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node .\\testRunner",
     "wcag": "node .\\WCAGRunner",
-    "usecase": "testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml",
+    "usecase": "testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 10000 --selector-timeout 15000 -u -e -q successThreshold=1 --reporter junit > testresult.xml",
     "prettier:check": "prettier -c **/*.js",
     "prettier:format": "prettier -w **/*.js",
     "eslint:check": "eslint \"**/*.js\"",

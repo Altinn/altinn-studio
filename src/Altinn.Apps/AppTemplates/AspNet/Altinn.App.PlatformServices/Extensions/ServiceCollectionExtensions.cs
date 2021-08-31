@@ -1,5 +1,6 @@
 using System;
 
+using Altinn.App.PlatformServices.Filters;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
@@ -96,6 +97,7 @@ namespace Altinn.App.PlatformServices.Extensions
             if (!string.IsNullOrEmpty(applicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
         }

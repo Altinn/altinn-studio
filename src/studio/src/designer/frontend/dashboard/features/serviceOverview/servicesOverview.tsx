@@ -16,6 +16,7 @@ import { connect } from 'react-redux';
 import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 // import { get } from 'app-shared/utils/networking';
+import { IRepository } from 'app-shared/types';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
@@ -100,11 +101,9 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
-export const getListOfServicesExcludingCodelist = (services: any) => {
-  if (services) {
-    return services.filter((service: any) => service.name !== 'codelists');
-  }
-  return services;
+export const getListOfServicesExcludingDatamodels = (services: IRepository[]) => {
+  // TODO: remove this filter when modeling tool is stable
+  return services?.filter((service: IRepository) => !service.name.endsWith('-datamodels'));
 };
 
 const getCurrentUsersName = (user: any) => {
@@ -250,7 +249,7 @@ const mapStateToProps = (
     classes: props.classes,
     width: props.width,
     language: state.language.language,
-    services: getListOfServicesExcludingCodelist(state.dashboard.services),
+    services: getListOfServicesExcludingDatamodels(state.dashboard.services),
     // eslint-disable-next-line max-len
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
