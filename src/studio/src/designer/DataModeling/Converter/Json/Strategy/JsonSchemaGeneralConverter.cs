@@ -581,27 +581,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void SetUnhandled(XmlSchemaElement element, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
-        {
-            if (xsdUnhandledAttributesKeyword == null)
-            {
-                return;
-            }
-
-            var unhandledAttributes = new XmlSchemaAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
-            var i = 0;
-            
-            foreach (var property in xsdUnhandledAttributesKeyword.Properties)
-            {
-                var unhandledAttribute = new XmlSchemaAttribute();
-                unhandledAttribute.Name = property.name;
-                unhandledAttribute.FixedValue = property.value;
-
-                unhandledAttributes[i] = unhandledAttribute;
-                i++;
-            }
-        }
-
         private void AddUnhandledAttributes(XmlSchemaObject item, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
         {
             if (xsdUnhandledAttributesKeyword == null)
