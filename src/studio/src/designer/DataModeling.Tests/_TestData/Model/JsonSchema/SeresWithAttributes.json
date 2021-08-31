@@ -50,7 +50,10 @@
           "properties": {
             "e1": {
               "type": "string",
-              "@xsdType": "string"
+              "@xsdType": "string",
+              "@xsdUnhandledAttributes": {
+                "seres:guid": "http://seres.no/guid/Altinn3/Test/485901"
+              }
             }
           },
           "required": [

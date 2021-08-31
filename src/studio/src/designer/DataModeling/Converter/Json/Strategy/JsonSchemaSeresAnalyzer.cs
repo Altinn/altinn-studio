@@ -89,6 +89,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     _metadata.AddCompatibleTypes(path, CompatibleXsdType.Attribute);
                 }
+
+                if (IsValidUnhandledAttribute(schema))
+                {
+                    _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+                }
             }
 
             if (IsValidSimpleTypeRestriction(schema))
@@ -319,6 +324,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private bool IsValidAttribute(JsonSchema schema)
         {
             if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsValidUnhandledAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
             {
                 return true;
             }

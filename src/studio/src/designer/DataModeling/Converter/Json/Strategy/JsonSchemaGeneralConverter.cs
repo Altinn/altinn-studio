@@ -16,18 +16,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     public class JsonSchemaGeneralConverter : IJsonSchemaConverter
     {
         private readonly XmlDocument _xmlFactoryDocument = new XmlDocument();
-
+        
         private JsonSchema _schema;
         private JsonSchemaXsdMetadata _metadata;
         private XmlSchema _xsd;
+        private Dictionary<string, string> _namespaces;
 
         /// <inheritdoc />
         public XmlSchema Convert(JsonSchema schema, JsonSchemaXsdMetadata metadata)
         {
             _schema = schema;
             _metadata = metadata;
-
             _xsd = new XmlSchema();
+            _namespaces = new Dictionary<string, string>();
 
             HandleSchemaAttributes();
             HandleNamespaces();
@@ -189,6 +190,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     var item = new XmlSchemaElement();
                     HandleSimpleType(item, schema.AsWorkList(), path);
+
                     return item;
                 }
             }
@@ -205,27 +207,27 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleNamespaces()
         {
-            Dictionary<string, string> namespaces = new Dictionary<string, string>();
+            _namespaces = new Dictionary<string, string>();
 
             if (_schema.TryGetKeyword(out XsdNamespacesKeyword keyword))
             {
                 foreach (var (prefix, ns) in keyword.Namespaces)
                 {
-                    namespaces.Add(prefix, ns);
+                    _namespaces.Add(prefix, ns);
                 }
             }
 
-            if (!namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaNamespace))
+            if (!_namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaNamespace))
             {
-                namespaces.Add("xsd", KnownXmlNamespaces.XmlSchemaNamespace);
+                _namespaces.Add("xsd", KnownXmlNamespaces.XmlSchemaNamespace);
             }
 
-            if (!namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaInstanceNamespace))
+            if (!_namespaces.ContainsValue(KnownXmlNamespaces.XmlSchemaInstanceNamespace))
             {
-                namespaces.Add("xsi", KnownXmlNamespaces.XmlSchemaInstanceNamespace);
+                _namespaces.Add("xsi", KnownXmlNamespaces.XmlSchemaInstanceNamespace);
             }
 
-            foreach (var (prefix, ns) in namespaces)
+            foreach (var (prefix, ns) in _namespaces)
             {
                 _xsd.Namespaces.Add(prefix, ns);
             }
@@ -569,12 +571,76 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         case XmlSchemaElement element:
                             element.Parent = sequence;
                             sequence.Items.Add(element);
+
+                            AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                             break;
                         default:
                             throw new NotImplementedException();
                     }
                 }
             }
+        }
+
+        private void SetUnhandled(XmlSchemaElement element, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
+        {
+            if (xsdUnhandledAttributesKeyword == null)
+            {
+                return;
+            }
+
+            var unhandledAttributes = new XmlSchemaAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
+            var i = 0;
+            
+            foreach (var property in xsdUnhandledAttributesKeyword.Properties)
+            {
+                var unhandledAttribute = new XmlSchemaAttribute();
+                unhandledAttribute.Name = property.name;
+                unhandledAttribute.FixedValue = property.value;
+
+                unhandledAttributes[i] = unhandledAttribute;
+                i++;
+            }
+        }
+
+        private void AddUnhandledAttributes(XmlSchemaObject item, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
+        {
+            if (xsdUnhandledAttributesKeyword == null)
+            {
+                return;
+            }
+
+            if (item is not XmlSchemaAnnotated annotatedItem)
+            {
+                throw new ArgumentException("Unhandled attributes must be added to an annotated xml schema object.");
+            }
+
+            var unhandledAttributes = new XmlAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
+            var i = 0;
+            foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
+            {
+                string prefix = null;
+                string localName;
+                string @namespace = null;
+
+                string[] nameParts = name.Split(':', 2);
+                if (nameParts.Length == 2)
+                {
+                    prefix = nameParts[0];
+                    localName = nameParts[1];
+
+                    @namespace = _namespaces[prefix];
+                }
+                else
+                {
+                    localName = name;
+                }
+
+                XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(prefix, localName, @namespace);
+                attribute.Value = value;
+                unhandledAttributes[i] = attribute;
+            }
+
+            annotatedItem.UnhandledAttributes = unhandledAttributes.ToArray();
         }
 
         private void SetName(XmlSchemaObject item, string name)
