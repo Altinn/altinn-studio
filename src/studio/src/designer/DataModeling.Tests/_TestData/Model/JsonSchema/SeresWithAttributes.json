@@ -3,9 +3,9 @@
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     "seres": "http://seres.no/xsd/forvaltningsdata",
-    "xsd": "http://www.w3.org/2001/XMLSchema"
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
   },
   "@xsdSchemaAttributes": {
     "AttributeFormDefault": "Unqualified",
@@ -38,30 +38,55 @@
     "spraak": "",
     "XSD-variant": "Altinn 1.3.1"
   },
-  "properties": {
-    "e1": {
-      "$ref": "#/$defs/myBase"
+  "oneOf": [
+    {
+      "$ref": "#/$defs/melding-modell"
     }
-  },
-  "required": [
-    "e1"
   ],
   "$defs": {
-    "valueBase": {
-      "type": "string",
-      "@xsdType": "string"
-    },
-    "myBase": {
-      "properties": {
-        "value": {
-          "$ref": "#/$defs/valueBase"
+    "melding-modell": {
+      "allOf": [
+        {
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "e1"
+          ]
         },
-        "a1": {
-          "type": "string",
-          "@xsdType": "string",
-          "@xsdAttribute": true
+        {
+          "properties": {
+            "a1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "a2": {
+              "type": "string",
+              "@xsdType": "string",
+              "default": "def",
+              "@xsdAttribute": true
+            },
+            "a3": {
+              "type": "string",
+              "@xsdType": "string",
+              "const": "fix",
+              "@xsdAttribute": true
+            },
+            "a4": {
+              "type": "integer",
+              "@xsdType": "integer",
+              "@xsdAttribute": true
+            }
+          },
+          "required": [
+            "a4"
+          ]
         }
-      }
+      ]
     }
   }
 }

@@ -112,6 +112,29 @@ namespace Altinn.Studio.DataModeling.Utils
         }
 
         /// <summary>
+        /// Determine if any of the keywords are present in the keyword list
+        /// </summary>
+        /// <param name="schema">Look for the keywords in this schema instance</param>
+        /// <param name="keywordTypes">The keyword types to look for</param>
+        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
+        public static bool HasAnyOfKeywords(this JsonSchema schema, params Type[] keywordTypes)
+        {
+            return HasAnyOfKeywords(schema.Keywords, keywordTypes);
+        }
+
+        /// <summary>
+        /// Determine if any of the keywords are present in the keyword list
+        /// </summary>
+        /// <param name="keywords">Look for the keywords in this schema instance</param>
+        /// <param name="keywordTypes">The keyword types to look for</param>
+        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
+        public static bool HasAnyOfKeywords(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypes)
+        {
+            return keywords
+                .Any(keyword => keywordTypes.Contains(keyword.GetType()));
+        }
+
+        /// <summary>
         /// Create a <see cref="WorkList{T}"/> from the keywords in this instance of <see cref="JsonSchema"/>
         /// </summary>
         /// <param name="schema">The schema instance</param>
