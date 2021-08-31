@@ -74,9 +74,18 @@
     <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
+    <None Remove="_TestData\Seres\HvemErHvem.xml" />
+    <None Remove="_TestData\Seres\HvemErHvem.xsd" />
+    <None Remove="_TestData\Seres\HvemErHvem_Simple.xml" />
+    <None Remove="_TestData\Seres\HvemErHvem_Simple.xsd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="_TestData\Seres\HvemErHvem_Simple.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
