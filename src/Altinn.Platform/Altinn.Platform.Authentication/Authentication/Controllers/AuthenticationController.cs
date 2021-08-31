@@ -301,7 +301,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 JwtSecurityToken jwt = _validator.ReadJwtToken(originalToken);
 
-                if (!jwt.Issuer.Equals("studio") && !jwt.Issuer.Equals("dev-studio"))
+                if (!jwt.Issuer.Equals("studio") && !jwt.Issuer.Equals("dev-studio") && !jwt.Issuer.Equals("staging-studio"))
                 {
                     return Unauthorized();
                 }
