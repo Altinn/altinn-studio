@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -18,7 +17,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         private readonly HttpClient _httpClient;
         private readonly GeneralSettings _generalSettings;
         private readonly ISourceControl _sourceControl;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor
@@ -26,17 +24,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
         /// <param name="sourceControl">ISourceControl</param>
-        /// <param name="logger">The logger.</param>
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
             IOptionsMonitor<GeneralSettings> generalSettingsOptions,
-            ISourceControl sourceControl,
-            ILogger<AzureDevOpsBuildClient> logger)
+            ISourceControl sourceControl)
         {
             _generalSettings = generalSettingsOptions.CurrentValue;
             _httpClient = httpClient;
             _sourceControl = sourceControl;
-            _logger = logger;
         }
 
         /// <inheritdoc/>

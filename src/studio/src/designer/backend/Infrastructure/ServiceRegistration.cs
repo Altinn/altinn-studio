@@ -1,7 +1,7 @@
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
