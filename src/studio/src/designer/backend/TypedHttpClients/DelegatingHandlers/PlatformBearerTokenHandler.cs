@@ -19,6 +19,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         private readonly GeneralSettings _generalSettings;
         private const string AccessTokenIssuerProd = "studio";
         private const string AccessTokenIssuerDev = "dev-studio";
+        private const string AccessTokenIssuerStaging = "staging-studio";
         private const string AccessTokenApp = "studio.designer";
 
         /// <summary>
@@ -43,7 +44,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            string issuer = _generalSettings.HostName.Contains("dev") || _generalSettings.HostName.Contains("staging") ? AccessTokenIssuerDev : AccessTokenIssuerProd;
+            string issuer;
+            if (_generalSettings.HostName.Contains("dev"))
+            {
+                issuer = AccessTokenIssuerDev;
+            }
+            else if (_generalSettings.HostName.Contains("staging"))
+            {
+                issuer = AccessTokenIssuerStaging;
+            }
+            else
+            {
+                issuer = AccessTokenIssuerProd;
+            }
+            
             string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
             string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
