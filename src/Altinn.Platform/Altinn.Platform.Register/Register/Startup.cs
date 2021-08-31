@@ -1,15 +1,19 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Configuration;
+using Altinn.Platform.Register.Filters;
 using Altinn.Platform.Register.Health;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Telemetry;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -136,6 +140,7 @@ namespace Altinn.Platform.Register
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");

@@ -138,17 +138,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return allResourceTexts;
         }
 
-        /// <summary>
-        /// Ensures that the application id in appliation metadata matches the repository
-        /// </summary>
-        public async Task UpdateAppId()
-        {
-            Application applicationMetadata = await GetApplicationMetadata();
-            applicationMetadata.Id = $"{Org}/{Repository}";
-
-            await UpdateApplicationMetadata(applicationMetadata);
-        }
-
         private static void GetTextResourceForLanguage(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts, Designer.Models.TextResource textResource, string language)
         {
             foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
