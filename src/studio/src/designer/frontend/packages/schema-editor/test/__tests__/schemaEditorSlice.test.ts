@@ -126,7 +126,7 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer({ ...state, selectedEditorTab: '0' }, setSelectedTab(payload));
     expect(nextState.selectedEditorTab).toEqual('1');
-  })
+  });
 
   it('handles deleteField', () => {
     const payload = {
@@ -155,6 +155,22 @@ describe('SchemaEditorSlice', () => {
     }
 
     expect(item.properties).not.toContainEqual({ path: '#/definitions/Kontaktperson/properties/navn' });
+  });
+
+  it('resets selected id when deleting selected definition', () => {
+    const payload = {
+      path: '#/definitions/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: '1', selectedDefinitionNodeId: '#/definitions/someField' }, deleteProperty(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('');
+  });
+
+    it('resets selected id when deleting selected property', () => {
+    const payload = {
+      path: '#/properties/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: '0', selectedPropertyNodeId: '#/properties/someField' }, deleteProperty(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('');
   });
 
   it('handles deleteProperty (root definition)', () => {
