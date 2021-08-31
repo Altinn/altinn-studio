@@ -1,18 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Xml;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Helpers;
-using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -35,7 +34,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="policyRetrievalPoint">The policy retrieval point</param>
         /// <param name="policyRepository">The policy repository</param>
         /// <param name="delegationRepository">The delegation change repository</param>
-        /// <param name="memoryCache">The cache handler </param>
+        /// <param name="memoryCache">The cache handler</param>
         /// <param name="settings">The app settings</param>
         public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
@@ -47,7 +46,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
+        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
             if (string.IsNullOrWhiteSpace(org))
             {
@@ -64,7 +63,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("The policy file can not be null");
             }
 
-            return WritePolicyInternalAsync(org, app, fileStream);
+            string filePath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
+            Azure.Response<BlobContentInfo> response = await _policyRepository.WritePolicyAsync(filePath, fileStream);
+
+            return response.GetRawResponse().Status == (int)HttpStatusCode.Created;
         }
 
         /// <inheritdoc/>
@@ -81,38 +83,43 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return false;
             }
 
-            XacmlPolicy existingPolicy = await _prp.GetDelegationPolicyAsync(org, app, offeredByPartyId.ToString(), coveredBy);
+            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredByPartyId.ToString(), coveredBy);
+            XacmlPolicy existingPolicy = await _prp.GetPolicyAsync(policyPath);
 
+            XacmlPolicy delegationPolicy;
             if (existingPolicy != null)
             {
-                // ToDo: evaluate existing policy and add new rules
+                // ToDo: evaluate (?) existing policy and add new rules
+                delegationPolicy = existingPolicy;
+                foreach (Rule rule in rules)
+                {
+                    delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredBy, rule));
+                }
             }
             else
             {
-                // ToDo: create new policy file
+                // ToDo: build new policy file
+                delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredBy, rules);
             }
 
-            bool savePolicyResult = await WriteDelegationPolicyInternalAsync(org, app, offeredByPartyId.ToString(), coveredBy, null);
+            MemoryStream dataStream = new MemoryStream();
+            XmlWriter writer = XmlWriter.Create(dataStream);
 
-            if (!savePolicyResult)
+            // ToDo: Do xmlwriter through XacmlSerializer. Need ABAC nuget update or direct ABAC project dependency. Until this line is uncommented only empty xml files will be stored to blobstorage.
+            ////XacmlSerializer.WritePolicy(writer, delegationPolicy);
+
+            writer.Flush();
+            dataStream.Position = 0;
+
+            Azure.Response<BlobContentInfo> response = await _policyRepository.WritePolicyAsync(policyPath, dataStream);
+
+            if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
             {
                 return false;
             }
 
-            // ToDo: How to handle transaction accross blobstorage and postgresql?
-            return await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, "/", "0"); // Todo: Get blobstorage information as input
-        }
-
-        private async Task<bool> WritePolicyInternalAsync(string org, string app, Stream fileStream)
-        {
-            string filePath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
-            return await _policyRepository.WritePolicyAsync(filePath, fileStream);
-        }
-
-        private async Task<bool> WriteDelegationPolicyInternalAsync(string org, string app, string offeredBy, string coveredBy, Stream fileStream)
-        {
-            string filePath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy, coveredBy);
-            return await _policyRepository.WritePolicyAsync(filePath, fileStream);
+            // ToDo: How to handle transaction across blobstorage and postgresql?
+            return await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? "0");
         }
     }
 }

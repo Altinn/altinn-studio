@@ -3,6 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Azure;
+using Azure.Storage.Blobs.Models;
+using Moq;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
@@ -20,13 +23,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 }
 
                 return Task.FromResult(ms);
-
             }
 
             return Task.FromResult(ms);
         }
 
-        public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
+        public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
         {
             string dataPath = GetDataBlobPath() + filepath;
 
@@ -44,7 +46,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 filesize = (int)streamToWriteTo.Length;
             }
 
-            return filesize > 0;
+            BlobContentInfo mockedBlobInfo = BlobsModelFactory.BlobContentInfo(new ETag("etag"), DateTime.Now, new byte[1], "1", "encryptionKeySha256", "encryptionScope", 1);
+            Mock<Response<BlobContentInfo>> mockResponse = new Mock<Response<BlobContentInfo>>();
+            mockResponse.SetupGet(r => r.Value).Returns(mockedBlobInfo);
+
+            return mockResponse.Object;
         }
 
         private string GetDataBlobPath()

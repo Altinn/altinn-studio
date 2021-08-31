@@ -1,10 +1,11 @@
 using System.IO;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs.Models;
 
 namespace Altinn.Platform.Authorization.Repositories.Interface
 {
     /// <summary>
-    /// Interface for operations on authorization rules.
+    /// Interface for operations on policy files.
     /// </summary>
     public interface IPolicyRepository
     {
@@ -20,7 +21,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// </summary>
         /// <param name="filepath">The file path. </param> 
         /// <param name="fileStream">data to be written to the rule file</param>
-        /// <returns>Returns a bool based on writing file to storage was successful</returns>
-        Task<bool> WritePolicyAsync(string filepath, Stream fileStream);
+        /// <returns>Azure response BlobContentInfo</returns>
+        Task<Azure.Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream);
     }
 }

@@ -192,11 +192,127 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
         /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
-        /// <param name="delegatedByUserId">The user id of the entity performing the delegation of the policy</param>
         /// <param name="rules">The set of rules to be delegated</param>
-        public static XacmlPolicy BuildDelegationPolicy(string org, string app, int offeredByPartyId, string coveredBy, int delegatedByUserId, IList<Rule> rules)
+        public static XacmlPolicy BuildDelegationPolicy(string org, string app, int offeredByPartyId, string coveredBy, IList<Rule> rules)
         {
-            throw new NotImplementedException();
+            XacmlPolicy delegationPolicy = new XacmlPolicy(new Uri("urn:altinn:example:policyid:1"), new Uri("urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides"), new XacmlTarget(new List<XacmlAnyOf>()));
+            delegationPolicy.Version = "1.0";
+
+            foreach (Rule rule in rules)
+            {
+                delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredBy, rule));
+            }
+
+            delegationPolicy.ObligationExpressions.Add(BuildDelegationPolicyObligationExpression("2"));
+
+            return delegationPolicy;
+        }
+
+        /// <summary>
+        /// Builds a XacmlRule representation based on the Rule input
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">Application identifier which is unique within an organisation</param>
+        /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
+        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
+        /// <param name="rule">The rule to be delegated</param>
+        public static XacmlRule BuildDelegationRule(string org, string app, int offeredByPartyId, string coveredBy, Rule rule)
+        {
+            XacmlRule delegationRule = new XacmlRule($"urn:altinn:example:ruleid:{Guid.NewGuid()}", XacmlEffectType.Permit)
+            {
+                Description = $"Delegation of rights from {offeredByPartyId} to {coveredBy}, for the app; {org}/{app}"
+            };
+
+            delegationRule.Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredBy, rule);
+
+            return delegationRule;
+        }
+
+        /// <summary>
+        /// Builds a XacmlTarget representation based on the Rule input
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">Application identifier which is unique within an organisation</param>
+        /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
+        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
+        /// <param name="rule">The set of rule to be delegated</param>
+        public static XacmlTarget BuildDelegationRuleTarget(string org, string app, int offeredByPartyId, string coveredBy, Rule rule)
+        {
+            List<XacmlAnyOf> targetList = new List<XacmlAnyOf>();
+
+            List<XacmlAllOf> subjectAllOfs = new List<XacmlAllOf>
+            {
+                new XacmlAllOf(new List<XacmlMatch>
+                {
+                    new XacmlMatch(
+                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), coveredBy),
+                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"), new Uri("urn:altinn:userid"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                })
+            };
+
+            List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf>
+            {
+                new XacmlAllOf(new List<XacmlMatch>
+                {
+                    new XacmlMatch(
+                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), offeredByPartyId.ToString()),
+                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:resource"), new Uri("urn:altinn:reportee"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                }),
+                new XacmlAllOf(new List<XacmlMatch>
+                {
+                    new XacmlMatch(
+                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), org),
+                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:resource"), new Uri("urn:altinn:org"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                }),
+                new XacmlAllOf(new List<XacmlMatch>
+                {
+                    new XacmlMatch(
+                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), app),
+                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:resource"), new Uri("urn:altinn:app"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                })
+            };
+
+            List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
+            foreach (Models.Action action in rule.Actions)
+            {
+                actionAllOfs.Add(new XacmlAllOf(new List<XacmlMatch>
+                {
+                    new XacmlMatch(
+                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), action.Name),
+                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:action"), new Uri("urn:oasis:names:tc:xacml:1.0:action:action-id"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                }));
+            }
+
+            targetList.Add(new XacmlAnyOf(subjectAllOfs));
+            targetList.Add(new XacmlAnyOf(resourceAllOfs));
+            targetList.Add(new XacmlAnyOf(actionAllOfs));
+
+            return new XacmlTarget(targetList);
+        }
+
+        /// <summary>
+        /// Builds a XacmlObligationExpression representation for the required authentication level
+        /// </summary>
+        /// <param name="authLevel">The required authentication level</param>
+        public static XacmlObligationExpression BuildDelegationPolicyObligationExpression(string authLevel)
+        {
+            XacmlAttributeValue attributeValue = new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#integer"))
+            {
+                Value = authLevel
+            };
+
+            XacmlObligationExpression obligation = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel1"), XacmlEffectType.Permit);
+            obligation.AttributeAssignmentExpressions.Add(new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), attributeValue)
+            {
+                Category = new Uri("urn:altinn:minimum-authenticationlevel")
+            });
+
+            return obligation;
         }
     }
 }

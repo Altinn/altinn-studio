@@ -70,6 +70,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<XacmlPolicy> GetPolicyAsync(string policyPath)
+        {
+            return await GetPolicyInternalAsync(policyPath);
+        }
+
+        /// <inheritdoc/>
         public async Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy)
         {
             // ToDo: Wrap in IMemoryCache use?
@@ -86,6 +92,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return policy;
-        }        
+        }
     }
 }

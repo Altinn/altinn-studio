@@ -39,6 +39,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             IMemoryCache memoryCache = serviceProvider.GetService<IMemoryCache>();
 
             _pap = new PolicyAdministrationPoint(
+                new PolicyRetrievalPoint(new PolicyRepositoryMock(), memoryCache, Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 })),
                 new PolicyRepositoryMock(),
                 new PolicyDelegationRepositoryMock(),
                 memoryCache,

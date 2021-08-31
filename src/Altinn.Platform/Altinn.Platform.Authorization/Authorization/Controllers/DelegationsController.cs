@@ -89,8 +89,8 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to delegation change in database. {e}");
-                return StatusCode(500, $"Unable to delegation change in database. {e}");
+                _logger.LogError($"Unable to store delegation change in database. {e}");
+                return StatusCode(500, $"Unable to store delegation change in database. {e}");
             }
         }
 
@@ -103,7 +103,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
         [HttpGet]
         [Route("authorization/api/v1/[controller]/{org}/{app}/{offeredBy}/{coveredBy}/")]
-        public async Task<ActionResult> Get([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy)
+        public async Task<ActionResult<DelegatedPolicy>> Get([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy)
         {
             if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) ||
             offeredBy == 0 || string.IsNullOrEmpty(coveredBy))
@@ -121,15 +121,21 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                var result = await _pap.GetDelegationPolicy(org, app, offeredBy, coveredByPartyId, coveredByUserId);
+                DelegatedPolicy result = await _pap.GetDelegationPolicy(org, app, offeredBy, coveredByPartyId, coveredByUserId);
+
+                if (result != null)
+                {
+                    _logger.LogInformation("Delegation retrieved");
+                    return result;
+                }
 
                 _logger.LogInformation("Delegation could not be completed");
                 return StatusCode(500, $"Unable to complete delegation");
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to delegation change in database. {e}");
-                return StatusCode(500, $"Unable to delegation change in database. {e}");
+                _logger.LogError($"Unable to read delegation change from database. {e}");
+                return StatusCode(500, $"Unable to read delegation change from database. {e}");
             }
         }
 

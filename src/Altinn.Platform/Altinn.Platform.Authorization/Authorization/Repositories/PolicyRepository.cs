@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Authorization.Repositories
 {
     /// <summary>
-    /// Repository for handling authorization rules
+    /// Repository for handling policy files
     /// </summary>
     public class PolicyRepository : IPolicyRepository
     {
@@ -50,16 +50,13 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
+        public async Task<Azure.Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
         {
             try
             {
                 BlobClient blockBlob = CreateBlobClient(filepath);
 
-                await blockBlob.UploadAsync(fileStream, true);
-                BlobProperties properties = await blockBlob.GetPropertiesAsync();
-
-                return properties.ContentLength > 0;
+                return await blockBlob.UploadAsync(fileStream, true);
             }
             catch (Exception ex)
             {

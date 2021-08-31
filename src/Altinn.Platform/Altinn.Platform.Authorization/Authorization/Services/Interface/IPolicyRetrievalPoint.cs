@@ -13,7 +13,7 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// Returns a policy based on the context request
         /// </summary>
         /// <param name="request">The context request</param>
-        /// <returns></returns>
+        /// <returns>XacmlPolicy</returns>
         Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request);
 
         /// <summary>
@@ -21,8 +21,15 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// </summary>
         /// <param name="org">The organisation</param>
         /// <param name="app">The app</param>
-        /// <returns></returns>
+        /// <returns>XacmlPolicy</returns>
         Task<XacmlPolicy> GetPolicyAsync(string org, string app);
+
+        /// <summary>
+        /// Returns a policy if it exits on the provided path
+        /// </summary>
+        /// <param name="policyPath">The blobstorage path to the policy file</param>
+        /// <returns>XacmlPolicy</returns>
+        Task<XacmlPolicy> GetPolicyAsync(string policyPath);
 
         /// <summary>
         /// Returns a policy based the org, app and ids for the delegating and receiving entities
@@ -31,7 +38,7 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <param name="app">The app</param>
         /// <param name="offeredBy">The party id of the entity which the policy is delegated from</param>
         /// <param name="coveredBy">The party or user id of the entity which the policy is delegated to</param>
-        /// <returns></returns>
+        /// <returns>XacmlPolicy</returns>
         Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy);
     }
 }

@@ -29,13 +29,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))
             {
-                if (File.Exists(Path.Combine(GetPolicyPath(request),"policy.xml")))
+                if (File.Exists(Path.Combine(GetPolicyPath(request), "policy.xml")))
                 {
                     return ParsePolicy("policy.xml", GetPolicyPath(request));
                 }
 
                 return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
-              
             }
             else
             {
@@ -51,6 +50,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
 
             return null;
+        }
+
+        public Task<XacmlPolicy> GetPolicyAsync(string policyPath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy)
+        {
+            throw new NotImplementedException();
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
