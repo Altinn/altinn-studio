@@ -18,6 +18,9 @@ import FaceIcon from '@material-ui/icons/Face';
 import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import MapIcon from '@material-ui/icons/Map';
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon';
+import ApartmentIcon from '@material-ui/icons/Apartment';
+import AccessTimeIcon from '@material-ui/icons/AccessTime';
+import InfoIcon from '@material-ui/icons/Info';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 
 export interface IDisplayAccordionContainer {
@@ -117,6 +120,15 @@ export function DisplayAccordionContainer(props: IDisplayAccordionContainer) {
         break;
       case 'smile-emoji':
         component = <InsertEmoticonIcon fontSize='large'>star</InsertEmoticonIcon>;
+        break;
+      case 'apartment':
+        component = <ApartmentIcon fontSize='large'>star</ApartmentIcon>;
+        break;
+      case 'time':
+        component = <AccessTimeIcon fontSize='large'>star</AccessTimeIcon>;
+        break;
+      case 'info':
+        component = <InfoIcon fontSize='large'>star</InfoIcon>;
         break;
       default:
         component = <AccountBoxIcon fontSize='large'>star</AccountBoxIcon>;
