@@ -1,9 +1,7 @@
-import reducer, {
-  addRestriction, addProperty, deleteField, deleteProperty, initialState,
+import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab
-} from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -166,7 +164,7 @@ describe('SchemaEditorSlice', () => {
     const mockState = {
       ...state,
       selectedEditorTab: '1',
-      selectedDefinitionNodeId: '#/definitions/someField'
+      selectedDefinitionNodeId: '#/definitions/someField',
     };
     const nextState = reducer(mockState, deleteProperty(payload));
     expect(nextState.selectedDefinitionNodeId).toEqual('');
@@ -179,7 +177,7 @@ describe('SchemaEditorSlice', () => {
     const mockState = {
       ...state,
       selectedEditorTab: '0',
-      selectedPropertyNodeId: '#/properties/someField'
+      selectedPropertyNodeId: '#/properties/someField',
     };
     const nextState = reducer(mockState, deleteProperty(payload));
     expect(nextState.selectedPropertyNodeId).toEqual('');
