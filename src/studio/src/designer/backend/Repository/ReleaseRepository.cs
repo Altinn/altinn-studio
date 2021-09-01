@@ -46,7 +46,6 @@ namespace Altinn.Studio.Designer.Repository
         {
             try
             {
-                _logger.LogDebug("ReleasEntity: " + JsonString(releaseEntity));
                 using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
@@ -67,7 +66,6 @@ namespace Altinn.Studio.Designer.Repository
             }
             catch (Exception e)
             {
-                _logger.LogError(e, JsonString(releaseEntity));
                 _logger.LogError(e, "ReleaseRepository // Create // Exception");
                 throw;
             }
