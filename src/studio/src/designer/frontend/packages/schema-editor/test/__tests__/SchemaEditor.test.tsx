@@ -35,6 +35,9 @@ beforeEach(() => {
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
+    selectedDefinitionNodeId: '',
+    selectedPropertyNodeId: '',
+    selectedEditorTab: 'properties',
   };
   createStore = configureStore();
 });
