@@ -65,7 +65,6 @@
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
-    <None Remove="_TestData\Model\JsonSchema\SeresBuiltinTypes.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresSimpleTypeRestrictions.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresWithAnyAttribute.json" />
@@ -77,27 +76,18 @@
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
-    <None Remove="_TestData\Model\XmlSchema\SeresBuiltinTypes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresSimpleTypeRestrictions.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithAnyAttribute.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresSimpleContentRestriction.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithAttributes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithSpecifiedAndAnyAttributes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentExtensionPlain.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
-    <None Remove="_TestData\Seres\HvemErHvem.xml" />
-    <None Remove="_TestData\Seres\HvemErHvem.xsd" />
-    <None Remove="_TestData\Seres\HvemErHvem_Simple.xml" />
-    <None Remove="_TestData\Seres\HvemErHvem_Simple.xsd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="_TestData\Seres\HvemErHvem_Simple.xsd">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
