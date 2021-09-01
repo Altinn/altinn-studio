@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -294,11 +296,25 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
             if (compatibleTypes.Contains(CompatibleXsdType.ComplexType))
             {
-                var complexType = new XmlSchemaComplexType();
+                var complexType = new XmlSchemaComplexType
+                {
+                    Parent = _xsd
+                };
+
                 HandleComplexType(complexType, definition.AsWorkList(), path);
                 SetName(complexType, name);
-                complexType.Parent = _xsd;
                 _xsd.Items.Add(complexType);
+            }
+            else if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
+            {
+                var simpleType = new XmlSchemaSimpleType
+                {
+                    Parent = _xsd
+                };
+
+                HandleSimpleType(simpleType, definition.AsWorkList(), path);
+                SetName(simpleType, name);
+                _xsd.Items.Add(simpleType);
             }
         }
 
@@ -329,27 +345,290 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
+            if (keywords.TryPull(out RefKeyword reference))
+            {
+                element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
+            }
+            else if (keywords.TryPull(out TypeKeyword type))
+            {
+                element.SchemaTypeName = GetTypeNameFromTypeKeyword(type, keywords);
+            }
+            else
+            {
+                var item = new XmlSchemaSimpleType
+                {
+                    Parent = element,
+                };
+                element.SchemaType = item;
+                HandleSimpleType(item, keywords, path);
+            }
+        }
+
+        private void HandleSimpleType(XmlSchemaSimpleType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeList))
             {
                 throw new NotImplementedException();
             }
-
-            if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
+            else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
             {
-                throw new NotImplementedException();
+                HandleSimpleTypeRestriction(item, keywords, path);
+            }
+            else
+            {
+                var restriction = new XmlSchemaSimpleTypeRestriction
+                {
+                    Parent = item
+                };
+                item.Content = restriction;
+
+                if (keywords.TryPull(out RefKeyword reference))
+                {
+                    restriction.BaseTypeName = GetTypeNameFromReference(reference.Reference);
+                }
+                else if (keywords.TryPull(out TypeKeyword typeKeyword))
+                {
+                    restriction.BaseTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
+                }
+                else
+                {
+                    throw new Exception($"This is not a valid SimpleType {path}");
+                }
+            }
+        }
+
+        private void HandleSimpleTypeRestriction(XmlSchemaSimpleType simpleType, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var restriction = new XmlSchemaSimpleTypeRestriction
+            {
+                Parent = simpleType
+            };
+            simpleType.Content = restriction;
+
+            // the final builtin base type for this simple type refinement chain
+            var targetBaseType = XmlQualifiedName.Empty;
+
+            var restrictionsKeywordsList = new List<WorkList<IJsonSchemaKeyword>>();
+            if (keywords.TryPull(out TypeKeyword type))
+            {
+                restriction.BaseTypeName = GetTypeNameFromTypeKeyword(type, keywords);
+                restrictionsKeywordsList.Add(keywords);
+                targetBaseType = restriction.BaseTypeName;
+            }
+            else if (keywords.TryPull(out AllOfKeyword allOf))
+            {
+                var baseTypeSchemaIndex = allOf.Schemas.Select((_, idx) => idx).Single(idx =>
+                    _metadata.GetCompatibleTypes(path.Combine(JsonPointer.Parse($"/allOf/[{idx}]")))
+                        .Contains(CompatibleXsdType.SimpleType));
+
+                var baseTypeSchema = allOf.Schemas[baseTypeSchemaIndex];
+                var restrictionSchemas = allOf.Schemas.Where((_, idx) => idx != baseTypeSchemaIndex).ToList();
+
+                if (baseTypeSchema.TryGetKeyword(out RefKeyword baseTypeReference))
+                {
+                    restriction.BaseTypeName = GetTypeNameFromReference(baseTypeReference.Reference);
+
+                    targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path);
+                    if (targetBaseType == XmlQualifiedName.Empty)
+                    {
+                        throw new Exception($"Could not find target built-in type for SimpleType Restriction in {path}");
+                    }
+                }
+                else if (baseTypeSchema.HasKeyword<TypeKeyword>())
+                {
+                    var baseTypeKeywords = baseTypeSchema.AsWorkList();
+                    restriction.BaseTypeName = GetTypeNameFromTypeKeyword(baseTypeKeywords.Pull<TypeKeyword>(), baseTypeKeywords);
+                    targetBaseType = restriction.BaseTypeName;
+                }
+                else
+                {
+                    // Inline base types support can be added in this if/else chain (base type may also be an inline SimpleTypeRestriction)
+                    throw new Exception($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
+                }
+
+                restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
+            }
+            else
+            {
+                throw new Exception($"This is not a valid SimpleType restriction {path}");
             }
 
-            if (keywords.TryPull(out RefKeyword refKeyword))
+            foreach (var restrictionKeywords in restrictionsKeywordsList)
             {
-                element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                var restrictionFacets = GetRestrictionFacets(restrictionKeywords, targetBaseType);
+                foreach (var restrictionFacet in restrictionFacets)
+                {
+                    restrictionFacet.Parent = restriction;
+                    restriction.Facets.Add(restrictionFacet);
+                }
+            }
+        }
+
+        // Search for target base type by following direct references and then a depth first search through allOf keywords
+        // This should result in minimal search effort in real life as base types are usually in a direct reference or in the first subschema when using allOf
+        private XmlQualifiedName FindTargetBaseTypeForSimpleTypeRestriction(JsonSchema schema, JsonPointer path)
+        {
+            // follow all direct references
+            while (schema.TryGetKeyword(out RefKeyword reference))
+            {
+                schema = _schema.FollowReference(JsonPointer.Parse(reference.Reference.ToString()));
             }
 
+            // depth first search
+            if (schema.TryGetKeyword(out AllOfKeyword allOf))
+            {
+                foreach (var subschema in allOf.Schemas)
+                {
+                    var baseType = FindTargetBaseTypeForSimpleTypeRestriction(subschema, path);
+                    if (baseType != XmlQualifiedName.Empty)
+                    {
+                        return baseType;
+                    }
+                }
+            }
+
+            var keywords = schema.AsWorkList();
             if (keywords.TryPull(out TypeKeyword typeKeyword))
             {
-                element.SchemaTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
+                return GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
+
+            return XmlQualifiedName.Empty;
+        }
+
+        private IEnumerable<XmlSchemaFacet> GetRestrictionFacets(WorkList<IJsonSchemaKeyword> keywords, XmlQualifiedName type)
+        {
+            var facets = new List<XmlSchemaFacet>();
+
+            foreach (var keyword in keywords.EnumerateUnhandledItems())
+            {
+                switch (keyword)
+                {
+                    case MaxLengthKeyword maxLength:
+                        {
+                            var value = maxLength.Value.ToString();
+                            if (IsNumericXmlSchemaType(type))
+                            {
+                                facets.Add(new XmlSchemaTotalDigitsFacet { Value = value });
+                            }
+                            else
+                            {
+                                MinLengthKeyword minLength = keywords.GetKeyword<MinLengthKeyword>();
+                                if (minLength?.Value == maxLength.Value)
+                                {
+                                    facets.Add(new XmlSchemaLengthFacet { Value = value });
+                                    keywords.Pull<MinLengthKeyword>();
+                                }
+                                else
+                                {
+                                    facets.Add(new XmlSchemaMaxLengthFacet { Value = value });
+                                }
+                            }
+                        }
+
+                        break;
+                    case MinLengthKeyword minLength:
+                        {
+                            var value = minLength.Value.ToString();
+                            var maxLength = keywords.GetKeyword<MaxLengthKeyword>();
+                            if (maxLength?.Value == minLength.Value)
+                            {
+                                facets.Add(new XmlSchemaLengthFacet { Value = value });
+                                keywords.Pull<MaxLengthKeyword>();
+                            }
+                            else
+                            {
+                                facets.Add(new XmlSchemaMinLengthFacet { Value = value });
+                            }
+                        }
+
+                        break;
+                    case EnumKeyword enumKeyword:
+                        foreach (var value in enumKeyword.Values)
+                        {
+                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.GetString() });
+                        }
+
+                        break;
+                    case PatternKeyword pattern:
+                        facets.Add(new XmlSchemaPatternFacet { Value = pattern.Value.ToString() });
+                        break;
+                    case MaximumKeyword maximum:
+                        facets.Add(new XmlSchemaMaxInclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case MinimumKeyword minimum:
+                        facets.Add(new XmlSchemaMinInclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case ExclusiveMaximumKeyword maximum:
+                        facets.Add(new XmlSchemaMaxExclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case ExclusiveMinimumKeyword minimum:
+                        facets.Add(new XmlSchemaMinExclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case MultipleOfKeyword multipleOf:
+                        var fractionDigits = GetFractionDigitsFromMultipleOf(multipleOf.Value);
+                        if (fractionDigits == null)
+                        {
+                            throw new Exception($"Could not find fraction digits from multipleOf '{multipleOf.Value}'");
+                        }
+                        else
+                        {
+                            facets.Add(new XmlSchemaFractionDigitsFacet() { Value = fractionDigits });
+                        }
+
+                        break;
+                    default:
+                        throw new Exception($"Unknown restriction keyword '{keyword.Keyword()}'");
+                }
+            }
+
+            return facets;
+        }
+
+        private static bool IsNumericXmlSchemaType(XmlQualifiedName type)
+        {
+            if (type.IsEmpty || type.Namespace != KnownXmlNamespaces.XmlSchemaNamespace)
+            {
+                return false;
+            }
+
+            switch (type.Name)
+            {
+                case "integer":
+                case "nonPositiveInteger":
+                case "negativeInteger":
+                case "nonNegativeInteger":
+                case "positiveInteger":
+                case "long":
+                case "int":
+                case "short":
+                case "byte":
+                case "unsignedLong":
+                case "unsignedInt":
+                case "unsignedShort":
+                case "unsignedByte":
+                case "decimal":
+                case "float":
+                case "double":
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string GetFractionDigitsFromMultipleOf(decimal value)
+        {
+            var digits = 0;
+
+            while (value < 1)
+            {
+                value *= 10;
+                digits++;
+            }
+
+            return value == 1 ? digits.ToString() : null;
         }
 
         private XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)

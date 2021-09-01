@@ -103,5 +103,30 @@ namespace Altinn.Platform.Authentication.Configuration
                 return PlatformEndpoint + "authentication/api/v1/openid/";
             }
         }
+
+        /// <summary>
+        /// Get or sets the value indicating if OIDC authentication is enabled
+        /// </summary>
+        public bool EnableOidc { get; set; }
+
+        /// <summary>
+        /// Get or sets the default oidc provider
+        /// </summary>
+        public string DefaultOidcProvider { get; set; }
+
+        /// <summary>
+        /// Defines if OIDC is the default authentication
+        /// </summary>
+        public bool ForceOidc { get; set; }
+
+        /// <summary>
+        /// Name of Oidc Nonce cookie
+        /// </summary>
+        public string OidcNonceCookieName { get; set; } = "oidcnonce";
+
+        /// <summary>
+        /// Cookie to store original 
+        /// </summary>
+        public string AuthnGotToCookieName { get; set; } = "authngoto";
     }
 }

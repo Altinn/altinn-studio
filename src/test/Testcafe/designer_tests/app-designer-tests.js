@@ -163,6 +163,7 @@ test('Add and delete conditional rendering connections', async () => {
 test('Clone modal functionality', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/' + designerApp + '#/about')
+    .wait(5000)
     .expect(designer.cloneButton.exists)
     .ok()
     .hover(designer.cloneButton)
