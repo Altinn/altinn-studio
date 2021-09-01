@@ -81,6 +81,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
+            // Follow all references, this will mark the schema as the type referenced if it has a $ref keyword
+            // This will analyze some schemas multiple times and can be optimized if needed
+            schema = FollowReferencesIfAny(schema);
+
             if (IsValidSimpleType(schema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
@@ -98,6 +102,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (IsValidSimpleTypeRestriction(schema))
             {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleTypeRestriction);
             }
 
@@ -145,16 +150,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <returns></returns>
         private bool IsValidComplexType(JsonSchema schema)
         {
+            schema = FollowReferencesIfAny(schema);
+
             if (schema.HasKeyword<PropertiesKeyword>())
             {
                 return true;
-            }
-
-            if (schema.TryGetKeyword(out RefKeyword refKeyword))
-            {
-                var subschema = FollowReference(refKeyword);
-
-                return IsValidComplexType(subschema);
             }
 
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword))
@@ -345,12 +345,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             if (!HasSingleAllOf(schema))
             {
-                return false;
+                var keywords = schema.AsWorkList();
+                var type = keywords.Pull<TypeKeyword>();
+                if (type == null)
+                {
+                    return false;
+                }
+
+                // Clear out other known keywords for this type
+                keywords.MarkAsHandled<XsdTypeKeyword>();
+                keywords.MarkAsHandled<FormatKeyword>();
+
+                return IsPlainRestrictionSchema(keywords);
             }
 
             var allOf = schema.GetKeyword<AllOfKeyword>();
 
-            JsonSchema baseTypeSchema = null;
+            var hasBaseType = false;
+            var hasRestrictions = false;
 
             foreach (var item in allOf.Schemas)
             {
@@ -364,44 +376,55 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 if (IsValidSimpleTypeOrSimpleTypeRestriction(subschema))
                 {
-                    if (baseTypeSchema != null)
+                    if (hasBaseType)
                     {
                         return false;
                     }
 
-                    baseTypeSchema = subschema;
+                    hasBaseType = true;
                 }
-                else if (!IsPlainRestrictionSchema(subschema))
+                else if (IsPlainRestrictionSchema(subschema))
+                {
+                    hasRestrictions = true;
+                }
+                else
                 {
                     return false;
                 }
             }
 
-            return baseTypeSchema != null;
+            return hasBaseType && hasRestrictions;
+        }
+
+        private JsonSchema FollowReferencesIfAny(JsonSchema schema)
+        {
+            while (schema.TryGetKeyword(out RefKeyword reference))
+            {
+                schema = FollowReference(reference);
+            }
+
+            return schema;
         }
 
         private JsonSchema FollowReference(RefKeyword refKeyword)
         {
             var pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
-            IRefResolvable schemaSegment = _schema;
-            foreach (var segment in pointer.Segments)
-            {
-                schemaSegment = schemaSegment.ResolvePointerSegment(segment.Value);
-                if (schemaSegment == null)
-                {
-                    return null;
-                }
-            }
-
-            return schemaSegment as JsonSchema;
+            return _schema.FollowReference(pointer);
         }
 
         private bool IsPlainRestrictionSchema(JsonSchema schema)
         {
-            var keywords = schema.AsWorkList();
+            return IsPlainRestrictionSchema(schema.AsWorkList());
+        }
 
-            foreach (var keyword in keywords)
+        private bool IsPlainRestrictionSchema(WorkList<IJsonSchemaKeyword> keywords)
+        {
+            var keywordsValidated = 0;
+
+            foreach (var keyword in keywords.EnumerateUnhandledItems())
             {
+                keywordsValidated++;
+
                 switch (keyword)
                 {
                     case MinLengthKeyword:
@@ -414,12 +437,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case PatternKeyword:
                     case MultipleOfKeyword:
                         continue;
+
+                    // Allow No-op keywords
+                    case TitleKeyword:
+                    case CommentKeyword:
+                    case DeprecatedKeyword:
+                    case DescriptionKeyword:
+                    case ExamplesKeyword:
+                        continue;
+
                     default:
                         return false;
                 }
             }
 
-            return true;
+            return keywordsValidated > 0;
         }
 
         private bool IsValidSimpleTypeOrSimpleTypeRestriction(JsonSchema schema)

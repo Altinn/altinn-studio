@@ -10,193 +10,69 @@ using DataModeling.Tests.Assertions;
 using Json.More;
 using Json.Schema;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
     public class XmlSchemaToJsonTests
     {
-        private static async Task TestFiles(string schemaPath, string expectedPath)
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public XmlSchemaToJsonTests(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
+        }
+
+        [Theory]
+        [InlineData("Model/XmlSchema/SimpleAll.xsd", "Model/JsonSchema/SimpleAll.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleAll")]
+        [InlineData("Model/XmlSchema/AltinnAnnotation.xsd", "Model/JsonSchema/AltinnAnnotation.json", "Test to verify conversion from XSD to JSON Schema - feature: AltinnAnnotation")]
+        [InlineData("Model/XmlSchema/Any.xsd", "Model/JsonSchema/Any.json", "Test to verify conversion from XSD to JSON Schema - feature: Any")]
+        [InlineData("Model/XmlSchema/Attributes.xsd", "Model/JsonSchema/Attributes.json", "Test to verify conversion from XSD to JSON Schema - feature: Attributes")]
+        [InlineData("Model/XmlSchema/BuiltinTypes.xsd", "Model/JsonSchema/BuiltinTypes.json", "Test to verify conversion from XSD to JSON Schema - feature: BuiltinTypes")]
+        [InlineData("Model/XmlSchema/SimpleChoice.xsd", "Model/JsonSchema/SimpleChoice.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleChoice")]
+        [InlineData("Model/XmlSchema/NestedChoice.xsd", "Model/JsonSchema/NestedChoice.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedChoice")]
+        [InlineData("Model/XmlSchema/NestedWithOptionalChoice.xsd", "Model/JsonSchema/NestedWithOptionalChoice.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedWithOptionalChoice")]
+        [InlineData("Model/XmlSchema/NestedWithArrayChoice.xsd", "Model/JsonSchema/NestedWithArrayChoice.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedWithArrayChoice")]
+        [InlineData("Model/XmlSchema/ComplexContentExtension.xsd", "Model/JsonSchema/ComplexContentExtension.json", "Test to verify conversion from XSD to JSON Schema - feature: ComplexContentExtension")]
+        [InlineData("Model/XmlSchema/ComplexContentRestriction.xsd", "Model/JsonSchema/ComplexContentRestriction.json", "Test to verify conversion from XSD to JSON Schema - feature: ComplexContentRestriction")]
+        [InlineData("Model/XmlSchema/ComplexSchema.xsd", "Model/JsonSchema/ComplexSchema.json", "Test to verify conversion from XSD to JSON Schema - feature: ComplexSchema")]
+        [InlineData("Model/XmlSchema/Definitions.xsd", "Model/JsonSchema/Definitions.json", "Test to verify conversion from XSD to JSON Schema - feature: Definitions")]
+        [InlineData("Model/XmlSchema/ElementAnnotation.xsd", "Model/JsonSchema/ElementAnnotation.json", "Test to verify conversion from XSD to JSON Schema - feature: ElementAnnotation")]
+        [InlineData("Model/XmlSchema/SimpleTypeRestrictions.xsd", "Model/JsonSchema/SimpleTypeRestrictions.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleTypeRestrictions")]
+        [InlineData("Model/XmlSchema/SimpleSequence.xsd", "Model/JsonSchema/SimpleSequence.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleSequence")]
+        [InlineData("Model/XmlSchema/NestedArrays.xsd", "Model/JsonSchema/NestedArrays.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedArrays")]
+        [InlineData("Model/XmlSchema/NestedSequence.xsd", "Model/JsonSchema/NestedSequence.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedSequence")]
+        [InlineData("Model/XmlSchema/NestedSequences.xsd", "Model/JsonSchema/NestedSequences.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedSequences")]
+        [InlineData("Model/XmlSchema/InterleavedNestedSequences.xsd", "Model/JsonSchema/InterleavedNestedSequences.json", "Test to verify conversion from XSD to JSON Schema - feature: InterleavedNestedSequences")]
+        [InlineData("Model/XmlSchema/NestedWithOptionalSequence.xsd", "Model/JsonSchema/NestedWithOptionalSequence.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedWithOptionalSequence")]
+        [InlineData("Model/XmlSchema/NestedWithArraySequence.xsd", "Model/JsonSchema/NestedWithArraySequence.json", "Test to verify conversion from XSD to JSON Schema - feature: NestedWithArraySequence")]
+        [InlineData("Model/XmlSchema/SimpleContentExtension.xsd", "Model/JsonSchema/SimpleContentExtension.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleContentExtension")]
+        [InlineData("Model/XmlSchema/SimpleContentRestriction.xsd", "Model/JsonSchema/SimpleContentRestriction.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleContentRestriction")]
+        [InlineData("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleTypeList")]
+        [InlineData("Model/XmlSchema/SeresWithAttributes.xsd", "Model/JsonSchema/SeresWithAttributes.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAttributes")]
+        public async Task XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
+        {
+            _testOutputHelper.WriteLine(testCase);
+
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
-            XmlSchemaToJsonSchemaConverter converter = new XmlSchemaToJsonSchemaConverter();
+            var converter = new XmlSchemaToJsonSchemaConverter();
 
-            JsonSchema expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
-            XmlSchema xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
+            var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
+            var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
 
-            JsonSchema actual = converter.Convert(xsd);
+            var actual = converter.Convert(xsd);
 
             //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
-            //await using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            //await using var ms = new MemoryStream();
+            //await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             //actual.ToJsonDocument().WriteTo(writer);
             //await writer.FlushAsync();
 
-            // var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
+            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
 
             // Assert
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);
-        }
-
-        [Fact]
-        public Task SimpleAll()
-        {
-            return TestFiles("Model/XmlSchema/SimpleAll.xsd", "Model/JsonSchema/SimpleAll.json");
-        }
-
-        [Fact]
-        public Task AltinnAnnotation()
-        {
-            return TestFiles("Model/XmlSchema/AltinnAnnotation.xsd", "Model/JsonSchema/AltinnAnnotation.json");
-        }
-
-        [Fact]
-        public Task Any()
-        {
-            return TestFiles("Model/XmlSchema/Any.xsd", "Model/JsonSchema/Any.json");
-        }
-
-        [Fact]
-        public Task Attributes()
-        {
-            return TestFiles("Model/XmlSchema/Attributes.xsd", "Model/JsonSchema/Attributes.json");
-        }
-
-        [Fact]
-        public Task BuiltinTypes()
-        {
-            return TestFiles("Model/XmlSchema/BuiltinTypes.xsd", "Model/JsonSchema/BuiltinTypes.json");
-        }
-
-        [Fact]
-        public Task SimpleChoice()
-        {
-            return TestFiles("Model/XmlSchema/SimpleChoice.xsd", "Model/JsonSchema/SimpleChoice.json");
-        }
-
-        [Fact]
-        public Task NestedChoice()
-        {
-            return TestFiles("Model/XmlSchema/NestedChoice.xsd", "Model/JsonSchema/NestedChoice.json");
-        }
-
-        [Fact]
-        public Task NestedWithOptionalChoice()
-        {
-            return TestFiles("Model/XmlSchema/NestedWithOptionalChoice.xsd", "Model/JsonSchema/NestedWithOptionalChoice.json");
-        }
-
-        [Fact]
-        public Task NestedWithArrayChoice()
-        {
-            return TestFiles("Model/XmlSchema/NestedWithArrayChoice.xsd", "Model/JsonSchema/NestedWithArrayChoice.json");
-        }
-
-        [Fact]
-        public Task ComplexContentExtension()
-        {
-            return TestFiles("Model/XmlSchema/ComplexContentExtension.xsd", "Model/JsonSchema/ComplexContentExtension.json");
-        }
-
-        [Fact]
-        public Task ComplexContentRestriction()
-        {
-            return TestFiles("Model/XmlSchema/ComplexContentRestriction.xsd", "Model/JsonSchema/ComplexContentRestriction.json");
-        }
-
-        [Fact]
-        public Task ComplexSchema()
-        {
-            return TestFiles("Model/XmlSchema/ComplexSchema.xsd", "Model/JsonSchema/ComplexSchema.json");
-        }
-
-        [Fact]
-        public Task Definitions()
-        {
-            return TestFiles("Model/XmlSchema/Definitions.xsd", "Model/JsonSchema/Definitions.json");
-        }
-
-        [Fact]
-        public Task ElementAnnotation()
-        {
-            return TestFiles("Model/XmlSchema/ElementAnnotation.xsd", "Model/JsonSchema/ElementAnnotation.json");
-        }
-
-        [Fact]
-        public Task SimpleTypeRestrictions()
-        {
-            return TestFiles("Model/XmlSchema/SimpleTypeRestrictions.xsd", "Model/JsonSchema/SimpleTypeRestrictions.json");
-        }
-
-        [Fact]
-        public Task SimpleSequence()
-        {
-            return TestFiles("Model/XmlSchema/SimpleSequence.xsd", "Model/JsonSchema/SimpleSequence.json");
-        }
-
-        [Fact]
-        public Task NestedArrays()
-        {
-            return TestFiles("Model/XmlSchema/NestedArrays.xsd", "Model/JsonSchema/NestedArrays.json");
-        }
-
-        [Fact]
-        public Task NestedSequence()
-        {
-            return TestFiles("Model/XmlSchema/NestedSequence.xsd", "Model/JsonSchema/NestedSequence.json");
-        }
-
-        [Fact]
-        public Task NestedSequences()
-        {
-            return TestFiles("Model/XmlSchema/NestedSequences.xsd", "Model/JsonSchema/NestedSequences.json");
-        }
-
-        [Fact]
-        public Task InterleavedNestedSequences()
-        {
-            return TestFiles("Model/XmlSchema/InterleavedNestedSequences.xsd", "Model/JsonSchema/InterleavedNestedSequences.json");
-        }
-
-        [Fact]
-        public Task NestedWithOptionalSequence()
-        {
-            return TestFiles("Model/XmlSchema/NestedWithOptionalSequence.xsd", "Model/JsonSchema/NestedWithOptionalSequence.json");
-        }
-
-        [Fact]
-        public Task NestedWithArraySequence()
-        {
-            return TestFiles("Model/XmlSchema/NestedWithArraySequence.xsd", "Model/JsonSchema/NestedWithArraySequence.json");
-        }
-
-        [Fact]
-        public Task SimpleContentExtension()
-        {
-            return TestFiles("Model/XmlSchema/SimpleContentExtension.xsd", "Model/JsonSchema/SimpleContentExtension.json");
-        }
-
-        [Fact]
-        public Task SimpleContentRestriction()
-        {
-            return TestFiles("Model/XmlSchema/SimpleContentRestriction.xsd", "Model/JsonSchema/SimpleContentRestriction.json");
-        }
-
-        [Fact]
-        public Task SimpleTypeList()
-        {
-            return TestFiles("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json");
-        }
-
-        [Fact]
-        public Task SequenceWithGroupRef()
-        {
-            return TestFiles("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json");
-        }
-
-        [Fact]
-        public Task ComplexTypeWithAttributes()
-        {
-            return TestFiles("Model/XmlSchema/SeresWithAttributes.xsd", "Model/JsonSchema/SeresWithAttributes.json");
         }
     }
 }
