@@ -1,4 +1,7 @@
 using System.IO;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -7,7 +10,6 @@ using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
-using DataModeling.Tests.TestHelpers;
 using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +26,7 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Seres/HvemErHvem_Simple.xsd", "Seres/HvemErHvem_Simple.xml", Skip = "Not feature complete to support this yet.")]
+        [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -34,10 +36,13 @@ namespace DataModeling.Tests
             // Convert the XSD to JSON Schema
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
             JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
+            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
             // Convert the converted JSON Schema back to XSD
             var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
             var convertedXsd = jsonToXsdConverter.Convert(convertedJsonSchema);
+
+            //var convertedXsdString = await Serialize(convertedXsd);
 
             // The two XSD's should be structural equal, but there might be minor differences if you compare the text
             XmlSchemaAssertions.IsEquivalentTo(originalXsd, convertedXsd);
@@ -61,14 +66,17 @@ namespace DataModeling.Tests
             return validXml;
         }
 
-        private async Task<string> SerializeXsdAsync(XmlSchema xmlSchema)
+        private static async Task<string> Serialize(XmlSchema xmlSchema)
         {
+            string actualXml;
             await using (var sw = new StringWriter())
             await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
             {
                 xmlSchema.Write(xw);
-                return sw.ToString();
+                actualXml = sw.ToString();
             }
+
+            return actualXml;
         }
     }
 }
