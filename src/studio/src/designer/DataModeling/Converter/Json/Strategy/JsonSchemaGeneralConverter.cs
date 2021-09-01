@@ -33,6 +33,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             _namespaces = new Dictionary<string, string>();
 
             HandleSchemaAttributes();
+            HandleSchemaUnhandledAttributes();
             HandleNamespaces();
 
             var keywords = _schema.AsWorkList();
@@ -42,6 +43,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             keywords.MarkAsHandled<TypeKeyword>();
             keywords.MarkAsHandled<XsdNamespacesKeyword>();
             keywords.MarkAsHandled<XsdSchemaAttributesKeyword>();
+            keywords.MarkAsHandled<XsdUnhandledAttributesKeyword>();
 
             foreach (var keyword in keywords.EnumerateUnhandledItems(false))
             {
@@ -176,6 +178,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
+        private void HandleSchemaUnhandledAttributes()
+        {
+            AddUnhandledAttributes(_xsd, _schema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+        }
+
         private XmlSchemaObject ConvertSubschema(JsonPointer path, JsonSchema schema)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
@@ -305,6 +312,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 HandleComplexType(complexType, definition.AsWorkList(), path);
                 SetName(complexType, name);
+                AddUnhandledAttributes(complexType, definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                 _xsd.Items.Add(complexType);
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
@@ -316,6 +324,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 HandleSimpleType(simpleType, definition.AsWorkList(), path);
                 SetName(simpleType, name);
+                AddUnhandledAttributes(simpleType, definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                 _xsd.Items.Add(simpleType);
             }
         }
@@ -876,29 +885,53 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var i = 0;
             foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
             {
-                string prefix = null;
-                string localName;
-                string @namespace = null;
-
-                string[] nameParts = name.Split(':', 2);
-                if (nameParts.Length == 2)
-                {
-                    prefix = nameParts[0];
-                    localName = nameParts[1];
-
-                    @namespace = _namespaces[prefix];
-                }
-                else
-                {
-                    localName = name;
-                }
-
-                XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(prefix, localName, @namespace);
-                attribute.Value = value;
+                XmlAttribute attribute = CreateAttribute(name, value);
                 unhandledAttributes[i] = attribute;
             }
 
-            annotatedItem.UnhandledAttributes = unhandledAttributes.ToArray();
+            annotatedItem.UnhandledAttributes = unhandledAttributes;
+        }
+
+        private void AddUnhandledAttributes(XmlSchema xmlSchema, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
+        {
+            if (xsdUnhandledAttributesKeyword == null)
+            {
+                return;
+            }
+
+            var unhandledAttributes = new XmlAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
+            var i = 0;
+            foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
+            {
+                XmlAttribute attribute = CreateAttribute(name, value);
+                unhandledAttributes[i] = attribute;
+            }
+
+            xmlSchema.UnhandledAttributes = unhandledAttributes;
+        }
+
+        private XmlAttribute CreateAttribute(string name, string value)
+        {
+            string prefix = null;
+            string localName;
+            string @namespace = null;
+
+            string[] nameParts = name.Split(':', 2);
+            if (nameParts.Length == 2)
+            {
+                prefix = nameParts[0];
+                localName = nameParts[1];
+
+                @namespace = prefix == "xml" ? @"http://www.w3.org/XML/1998/namespace" : _namespaces[prefix];
+            }
+            else
+            {
+                localName = name;
+            }
+
+            XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(prefix, localName, @namespace);
+            attribute.Value = value;
+            return attribute;
         }
 
         private void SetName(XmlSchemaObject item, string name)

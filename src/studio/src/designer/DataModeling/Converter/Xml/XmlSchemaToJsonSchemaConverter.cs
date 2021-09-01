@@ -55,7 +55,10 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     (nameof(XmlSchema.AttributeFormDefault), schema.AttributeFormDefault.ToString()),
                     (nameof(XmlSchema.ElementFormDefault), schema.ElementFormDefault.ToString()),
                     (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
-                    (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()));
+                    (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()))
+               .XsdUnhandledAttributes(
+                    schema.UnhandledAttributes
+                    .Select(a => (a.Name, a.Value)));
 
             List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)> items = new List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)>();
 
