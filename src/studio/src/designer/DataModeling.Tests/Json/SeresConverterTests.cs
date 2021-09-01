@@ -12,6 +12,11 @@ namespace DataModeling.Tests.Json
 {
     public class SeresConverterTests
     {
+        public SeresConverterTests()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+        }
+
         [Theory]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_allOf.json", @"Model\XmlSchema\SeresBasicSchema.xsd")]
@@ -19,22 +24,11 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresBasicSchema_inline.json", @"Model\XmlSchema\SeresBasicSchema_inline.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
-            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
 
-            var actualXsd = converter.Convert(jsonSchema);
-
-            string actualXml;
-            await using (var sw = new StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
-            {
-                actualXsd.Write(xw);
-                actualXml = sw.ToString();
-            }
+            string actualXml = await Serialize(actualXsd);
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
@@ -43,22 +37,11 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresWithAttributes.json", @"Model\XmlSchema\SeresWithAttributes.xsd")]
         public async Task Convert_SeresWIthAttributesSchema(string jsonPath, string xsdPath)
         {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
-            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
 
-            var actualXsd = converter.Convert(jsonSchema);
-
-            string actualXml;
-            await using (var sw = new StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
-            {
-                actualXsd.Write(xw);
-                actualXml = sw.ToString();
-            }
+            string actualXml = await Serialize(actualXsd);
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
@@ -67,22 +50,11 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SeresComplexContentExtension.json", @"Model\XmlSchema\SeresComplexContentExtension.xsd")]
         public async Task Convert_ComplexContent(string jsonPath, string xsdPath)
         {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
-            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
 
-            var actualXsd = converter.Convert(jsonSchema);
-
-            string actualXml;
-            await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
-            {
-                actualXsd.Write(xw);
-                actualXml = sw.ToString();
-            }
+            string actualXml = await Serialize(actualXsd);
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
@@ -91,15 +63,40 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\SimpleContentExtensionPlain.json", @"Model\XmlSchema\SimpleContentExtensionPlain.xsd")]
         public async Task Convert_SimpleContentExtension(string jsonPath, string xsdPath)
         {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
+
+            string actualXml = await Serialize(actualXsd);
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresBuiltinTypes.json", @"Model\XmlSchema\SeresBuiltinTypes.xsd")]
+        public async Task Convert_BuiltinTypes(string jsonPath, string xsdPath)
+        {
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
+
+            string actualXml = await Serialize(actualXsd);
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
+
+        private static async Task<System.Xml.Schema.XmlSchema> ConvertJsonSchema(string jsonPath)
+        {
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
             var actualXsd = converter.Convert(jsonSchema);
 
+            return actualXsd;
+        }
+
+        private static async Task<string> Serialize(System.Xml.Schema.XmlSchema actualXsd)
+        {
             string actualXml;
             await using (var sw = new Utf8StringWriter())
             await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
@@ -108,7 +105,7 @@ namespace DataModeling.Tests.Json
                 actualXml = sw.ToString();
             }
 
-            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+            return actualXml;
         }
 
         [Theory]
