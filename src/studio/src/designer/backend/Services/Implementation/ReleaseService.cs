@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
-        private IReleaseRepository _releaseRepository;
+        private readonly IReleaseRepository _releaseRepository;
         private readonly HttpContext _httpContext;
         private readonly string _org;
         private readonly string _app;
