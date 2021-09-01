@@ -154,7 +154,7 @@ export const Editor = (props: IEditorProps) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
-  const handleTabChanged= (_x: React.ChangeEvent<{}>, value: string) => {
+  const handleTabChanged = (_x: React.ChangeEvent<{}>, value: string) => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
 
