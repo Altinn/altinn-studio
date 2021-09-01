@@ -146,12 +146,16 @@ export const Editor = (props: IEditorProps) => {
     }));
   };
 
-  const handlePropertiesNodeExpanded = (_x: any, nodeIds: string[]) => {
+  const handlePropertiesNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
-  const handleDefinitionsNodeExpanded = (_x: any, nodeIds: string[]) => {
+  const handleDefinitionsNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
     setExpandedDefinitionsNodes(nodeIds);
+  };
+
+  const handleTabChanged= (_x: React.ChangeEvent<{}>, value: string) => {
+    dispatch(setSelectedTab({ selectedTab: value }));
   };
 
   if (!name) {
@@ -185,7 +189,7 @@ export const Editor = (props: IEditorProps) => {
                 className={classes.appBar}
               >
                 <TabList
-                  onChange={(_x, value) => dispatch(setSelectedTab({ selectedTab: value }))}
+                  onChange={handleTabChanged}
                   aria-label='model-tabs'
                 >
                   <SchemaTab
