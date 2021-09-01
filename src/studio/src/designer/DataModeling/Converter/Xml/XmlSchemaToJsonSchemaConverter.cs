@@ -504,6 +504,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 builder.XsdAnyAttribute();
             }
+
+            AddUnhandledAttributes(item, builder);
         }
 
         private void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)

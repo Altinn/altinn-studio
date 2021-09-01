@@ -28,7 +28,13 @@ namespace DataModeling.Tests
         public static XmlSchema LoadXmlSchemaTestData(string resourceName)
         {
             using XmlReader xmlReader = XmlReader.Create(LoadTestData(resourceName));
-            return XmlSchema.Read(xmlReader, (_, _) => { });
+            var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
+
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(xmlSchema);
+            schemaSet.Compile();
+
+            return xmlSchema;
         }
 
         public static Stream LoadTestData(string resourceName)

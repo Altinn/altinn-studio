@@ -27,7 +27,7 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Model/XmlSchema/SeresBasicSchema.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
+        [InlineData("Seres/HvemErHvem_Simple.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -44,14 +44,15 @@ namespace DataModeling.Tests
             var convertedXsd = jsonToXsdConverter.Convert(convertedJsonSchema);
 
             var convertedXsdString = await Serialize(convertedXsd);
+            var originalXsdString = await Serialize(originalXsd);
 
             // The two XSD's should be structural equal, but there might be minor differences if you compare the text
             XmlSchemaAssertions.IsEquivalentTo(originalXsd, convertedXsd);
 
             // The XML should validate against both XSD's
-            var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
-            Assert.True(ValidateXml(originalXsd, xml));
-            Assert.True(ValidateXml(convertedXsd, xml));
+            //var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
+            //Assert.True(ValidateXml(originalXsd, xml));
+            //Assert.True(ValidateXml(convertedXsd, xml));
         }
 
         private bool ValidateXml(XmlSchema xmlSchema, string xml)

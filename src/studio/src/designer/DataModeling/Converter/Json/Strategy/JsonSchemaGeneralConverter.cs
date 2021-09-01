@@ -18,7 +18,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     public class JsonSchemaGeneralConverter : IJsonSchemaConverter
     {
         private readonly XmlDocument _xmlFactoryDocument = new XmlDocument();
-        
+        private XmlSchemaSet _schemaSet;
         private JsonSchema _schema;
         private JsonSchemaXsdMetadata _metadata;
         private XmlSchema _xsd;
@@ -123,6 +123,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 throw new Exception($"Unhandled keyword(s) in root JSON Schema '{string.Join("', '", unhandledKeywords.Select(kw => kw.Keyword()))}'");
             }
 
+            _schemaSet = new XmlSchemaSet();
+            _schemaSet.Add(_xsd);
+            _schemaSet.Compile();
+
             return _xsd;
         }
 
@@ -144,6 +148,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 Parent = _xsd
             };
             _xsd.Items.Add(annotation);
+
             var documentation = new XmlSchemaDocumentation
             {
                 Parent = annotation,
@@ -235,7 +240,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 _namespaces.Add("xsi", KnownXmlNamespaces.XmlSchemaInstanceNamespace);
             }
-
+            
             foreach (var (prefix, ns) in _namespaces)
             {
                 _xsd.Namespaces.Add(prefix, ns);
@@ -881,15 +886,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 throw new ArgumentException("Unhandled attributes must be added to an annotated xml schema object.");
             }
 
-            var unhandledAttributes = new XmlAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
-            var i = 0;
+            var unhandledAttributes = new List<XmlAttribute>();
             foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
             {
                 XmlAttribute attribute = CreateAttribute(name, value);
-                unhandledAttributes[i] = attribute;
+                unhandledAttributes.Add(attribute);
             }
 
-            annotatedItem.UnhandledAttributes = unhandledAttributes;
+            annotatedItem.UnhandledAttributes = unhandledAttributes.ToArray();
         }
 
         private void AddUnhandledAttributes(XmlSchema xmlSchema, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
@@ -899,15 +903,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            var unhandledAttributes = new XmlAttribute[xsdUnhandledAttributesKeyword.Properties.Count];
-            var i = 0;
+            var unhandledAttributes = new List<XmlAttribute>();            
             foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
             {
                 XmlAttribute attribute = CreateAttribute(name, value);
-                unhandledAttributes[i] = attribute;
+                unhandledAttributes.Add(attribute);
             }
 
-            xmlSchema.UnhandledAttributes = unhandledAttributes;
+            xmlSchema.UnhandledAttributes = unhandledAttributes.ToArray();
         }
 
         private XmlAttribute CreateAttribute(string name, string value)
@@ -931,6 +934,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(prefix, localName, @namespace);
             attribute.Value = value;
+
             return attribute;
         }
 
