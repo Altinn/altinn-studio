@@ -251,6 +251,7 @@ namespace Altinn.Platform.Authorization.Helpers
                 })
             };
 
+            string[] resourceStrings = rule.Resource.Split("/");
             List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf>
             {
                 new XacmlAllOf(new List<XacmlMatch>
@@ -276,17 +277,26 @@ namespace Altinn.Platform.Authorization.Helpers
                 })
             };
 
-            List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
-            foreach (Models.Action action in rule.Actions)
+            if (resourceStrings.Length > 2)
             {
-                actionAllOfs.Add(new XacmlAllOf(new List<XacmlMatch>
-                {
-                    new XacmlMatch(
-                        new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
-                        new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), action.Name),
-                        new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:action"), new Uri("urn:oasis:names:tc:xacml:1.0:action:action-id"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
-                }));
+                resourceAllOfs.Add(
+                    new XacmlAllOf(new List<XacmlMatch>
+                    {
+                        new XacmlMatch(
+                            new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                            new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), resourceStrings[2]),
+                            new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:resource"), new Uri("urn:altinn:task"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+                    }));
             }
+
+            List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
+            actionAllOfs.Add(new XacmlAllOf(new List<XacmlMatch>
+            {
+                new XacmlMatch(
+                    new Uri("urn:oasis:names:tc:xacml:1.0:function:string-equal"),
+                    new XacmlAttributeValue(new Uri("http://www.w3.org/2001/XMLSchema#string"), rule.Action.Name),
+                    new XacmlAttributeDesignator(new Uri("urn:oasis:names:tc:xacml:3.0:attribute-category:action"), new Uri("urn:oasis:names:tc:xacml:1.0:action:action-id"), new Uri("http://www.w3.org/2001/XMLSchema#string"), false))
+            }));
 
             targetList.Add(new XacmlAnyOf(subjectAllOfs));
             targetList.Add(new XacmlAnyOf(resourceAllOfs));

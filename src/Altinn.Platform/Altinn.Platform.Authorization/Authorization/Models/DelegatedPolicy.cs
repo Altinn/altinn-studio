@@ -23,7 +23,11 @@ namespace Altinn.Platform.Authorization.Models
         public int CoveredByUserId { get; set; }
 
         /// <summary>
-        /// Gets or sets the type of policy this is and why it is relevant for a given coveredby (recipient).
+        /// Gets or sets the type of policy this is and why it is relevant for a given coveredby (recipient). Policies may apply (grant rights) in four different ways:
+        /// 1. Direct delegations.This policy includes rights given directly to the recipient.
+        /// 2. Inherited via key role. This policy includes rights given to a party where the recipient has a key role, thus inheriting all rights given to the party.
+        /// 3. Inherited as subunit.If offeredby is a subunit, rights given from its parent to the recipient also applies to the subunit.
+        /// 4. Inherited as subunit via keyrole.If offeredby is a subunit, rights given from its parent to a party in which the recipient has a key role also applies to the subunit.
         /// </summary>
         public string Type { get; set; }
 
@@ -31,10 +35,5 @@ namespace Altinn.Platform.Authorization.Models
         /// Gets or sets the list of rules describing which rules exists in the delegated policy
         /// </summary>
         public List<Rule> Rules { get; set; }
-
-        /// <summary>
-        /// Gets or sets the user creating a particular policy. Only used in input model. 
-        /// </summary>
-        public int DelegatedByUserId { get; set; }
     }
 }

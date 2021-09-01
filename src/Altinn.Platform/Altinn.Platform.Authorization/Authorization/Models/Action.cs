@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace Altinn.Platform.Authorization.Models
 {
     /// <summary>
@@ -6,33 +9,24 @@ namespace Altinn.Platform.Authorization.Models
     public class Action
     {
         /// <summary>
-        /// Gets or sets the unique identifier for a specific rule within a policy. Not part of input model.
-        /// </summary>
-        public AppliesTo AppliesTo { get; set; }
-
-        /// <summary>
         /// Gets or sets the name of the action, eg. read, write, sign.
         /// </summary>
+        [Required]
         public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the title
         /// </summary>
-        public string Title { get; set; }
+        public LocalizedText Title { get; set; }
 
         /// <summary>
         /// Gets or sets the description
         /// </summary>
-        public string Description { get; set; }
+        public LocalizedText Description { get; set; }
 
         /// <summary>
-        /// Gets or sets the reason why the action cannot be delegated.
+        /// Gets or sets which roles are granted access to this action on this resource
         /// </summary>
-        public string CannotDelegateReason { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the action can be delegated by the user.
-        /// </summary>
-        public bool CanBeDelegatedByUser { get; set; }
+        public List<RoleGrant> RoleGrants { get; set; }
     }
 }
