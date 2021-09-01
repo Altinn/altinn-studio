@@ -4,9 +4,9 @@ on:
     - cron: '0 6 * * 4' # every thursday @ AM 6:00
 
 jobs:
-  npm_update_sync:
+  designer_npm_update_sync:
     runs-on: ubuntu-latest
-    name: Update npm packages and sync package.json
+    name: Update designer npm packages and sync package.json
     steps:
       - name: checkout code
         uses: actions/checkout@v2
@@ -25,8 +25,34 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
-          branch: "dependencies/npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          title: "Updated designer npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/designer-npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
+
+  appfrontend_npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update App frontend npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/Altinn.Apps/AppFrontend/react"
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: "Updated app frontend npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/app-frontend-npm-updates-w${{ steps.week.outputs.NUMBER }}"
           body: ${{ steps.update.outputs.body }}
           labels: dependencies
 
