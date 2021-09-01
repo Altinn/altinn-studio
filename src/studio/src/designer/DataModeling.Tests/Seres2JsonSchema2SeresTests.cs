@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
@@ -26,7 +27,7 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
+        [InlineData("Model/XmlSchema/SeresBasicSchema.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -42,7 +43,7 @@ namespace DataModeling.Tests
             var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
             var convertedXsd = jsonToXsdConverter.Convert(convertedJsonSchema);
 
-            //var convertedXsdString = await Serialize(convertedXsd);
+            var convertedXsdString = await Serialize(convertedXsd);
 
             // The two XSD's should be structural equal, but there might be minor differences if you compare the text
             XmlSchemaAssertions.IsEquivalentTo(originalXsd, convertedXsd);
@@ -69,7 +70,7 @@ namespace DataModeling.Tests
         private static async Task<string> Serialize(XmlSchema xmlSchema)
         {
             string actualXml;
-            await using (var sw = new StringWriter())
+            await using (var sw = new Utf8StringWriter())
             await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
             {
                 xmlSchema.Write(xw);
@@ -77,6 +78,11 @@ namespace DataModeling.Tests
             }
 
             return actualXml;
+        }
+
+        internal class Utf8StringWriter : StringWriter
+        {
+            public override Encoding Encoding => Encoding.UTF8;
         }
     }
 }
