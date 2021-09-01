@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "3.10.4",
+  "version": "3.11.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -134,6 +134,7 @@
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testURL": "http:/altinn3local.no/ttd/test"
   }
 }
