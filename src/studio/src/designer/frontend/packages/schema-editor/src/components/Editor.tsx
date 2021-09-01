@@ -192,17 +192,15 @@ export const Editor = (props: IEditorProps) => {
                     label='models'
                     language={language}
                     value='0'
-                    key='0'
                   />
                   <SchemaTab
                     label='types'
                     language={language}
                     value='1'
-                    key='1'
                   />
                 </TabList>
               </AppBar>
-              <TabPanel value='0' key='0'>
+              <TabPanel value='0'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -210,7 +208,6 @@ export const Editor = (props: IEditorProps) => {
                   defaultCollapseIcon={<ArrowDropDown />}
                   defaultExpandIcon={<ArrowRight />}
                   expanded={expandedPropertiesNodes}
-                  key='properties-tree-view'
                   onNodeToggle={handlePropertiesNodeExpanded}
                 >
                   {properties?.map((item: UiSchemaItem) => <SchemaItem
@@ -230,7 +227,7 @@ export const Editor = (props: IEditorProps) => {
                   />
                 </TreeView>
               </TabPanel>
-              <TabPanel value='1' key='1'>
+              <TabPanel value='1'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -238,7 +235,6 @@ export const Editor = (props: IEditorProps) => {
                   defaultCollapseIcon={<ArrowDropDown />}
                   defaultExpandIcon={<ArrowRight />}
                   expanded={expandedDefinitionsNodes}
-                  key='definition-tree-view'
                   onNodeToggle={handleDefinitionsNodeExpanded}
                 >
                   {definitions.map((def) => <SchemaItem
