@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
-export const initialState: ISchemaState = {
+const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
   uiSchema: [],
   name: '/',
@@ -347,11 +347,19 @@ const schemaEditorSlice = createSlice({
       state.uiSchema = uiSchema;
       state.name = name;
 
+      // reset state if switching between schemas
+      state.selectedPropertyNodeId = '';
+      state.selectedDefinitionNodeId = '';
+
       // set first item as selected
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
-        state.selectedPropertyNodeId = id;
         state.focusNameField = id;
+        if (id.startsWith('#/definitions')) {
+          state.selectedDefinitionNodeId = id;
+        } else {
+          state.selectedPropertyNodeId = id;
+        }
       }
     },
     updateJsonSchema(state, action) {
