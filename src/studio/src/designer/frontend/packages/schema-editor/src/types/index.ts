@@ -7,7 +7,7 @@ export interface ISchemaState {
   selectedPropertyNodeId: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.
   navigate?: string; // used to trigger navigation in tree, the value is not used.
-  selectedEditorTab: string;
+  selectedEditorTab: 'definitions' | 'properties';
 }
 export interface ILanguage {
   [key: string]: string | ILanguage;

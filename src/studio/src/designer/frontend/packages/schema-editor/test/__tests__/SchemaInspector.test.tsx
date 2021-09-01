@@ -24,7 +24,7 @@ const mountWithId = (definitionId: string) => {
     uiSchema: mockUiSchema,
     selectedDefinitionNodeId: definitionId,
     selectedPropertyNodeId: definitionId,
-    selectedEditorTab: 0,
+    selectedEditorTab: 'properties',
   });
   mockStore.dispatch = jest.fn(dispatchMock);
   return mountComponent();
@@ -45,7 +45,7 @@ beforeEach(() => {
     uiSchema: [],
     selectedDefinitionNodeId: '#/definitions/Kommentar2000Restriksjon',
     selectedPropertyNodeId: '#/definitions/Kommentar2000Restriksjon',
-    selectedEditorTab: '0',
+    selectedEditorTab: 'properties',
   };
   createStore = configureStore();
 
@@ -304,7 +304,7 @@ it('renders no item if nothing is selected', () => {
     uiSchema: mockUiSchema,
     selectedPropertyNodeId: '',
     selectedDefinitionNodeId: '',
-    selectedEditorTab: '0',
+    selectedEditorTab: 'properties',
   });
   act(() => {
     const wrapper = mountComponent();

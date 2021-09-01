@@ -105,7 +105,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
-  const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === '0') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
+  const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === 'properties') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
 

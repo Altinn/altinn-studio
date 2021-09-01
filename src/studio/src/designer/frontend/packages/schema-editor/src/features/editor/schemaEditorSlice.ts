@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
-const initialState: ISchemaState = {
+export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
   uiSchema: [],
   name: '/',
@@ -11,7 +11,7 @@ const initialState: ISchemaState = {
   selectedPropertyNodeId: '',
   selectedDefinitionNodeId: '',
   focusNameField: '',
-  selectedEditorTab: '0',
+  selectedEditorTab: 'properties',
 };
 
 const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
@@ -324,7 +324,7 @@ const schemaEditorSlice = createSlice({
         id, focusName,
       } = action.payload;
       state.focusNameField = focusName;
-      if (state.selectedEditorTab === '1') {
+      if (state.selectedEditorTab === 'definitions') {
         // triggered from definitions view
         state.selectedDefinitionNodeId = id;
       } else {
@@ -379,7 +379,7 @@ const schemaEditorSlice = createSlice({
     },
     navigateToType(state, action) {
       const { id } = action.payload;
-      state.selectedEditorTab = '1';
+      state.selectedEditorTab = 'definitions';
       state.selectedDefinitionNodeId = id;
     },
   },

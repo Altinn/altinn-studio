@@ -99,7 +99,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer({ ...state, selectedEditorTab: '1' }, setSelectedId(payload));
+    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
     expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/Kommentar2000Restriksjon');
   });
 
@@ -107,7 +107,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/properties/someField',
     };
-    const nextState = reducer({ ...state, selectedEditorTab: '0' }, setSelectedId(payload));
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
     expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
   });
 
@@ -115,17 +115,17 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/someField',
     };
-    const nextState = reducer({ ...state, selectedEditorTab: '0' }, navigateToType(payload));
-    expect(nextState.selectedEditorTab).toEqual('1');
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
     expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/someField');
   });
 
   it('handles setSelectedTab', () => {
     const payload = {
-      selectedTab: '1',
+      selectedTab: 'definitions',
     };
-    const nextState = reducer({ ...state, selectedEditorTab: '0' }, setSelectedTab(payload));
-    expect(nextState.selectedEditorTab).toEqual('1');
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
   });
 
   it('handles deleteField', () => {
@@ -163,9 +163,9 @@ describe('SchemaEditorSlice', () => {
     };
     const mockState = {
       ...state,
-      selectedEditorTab: '1',
+      selectedEditorTab: 'definitions',
       selectedDefinitionNodeId: '#/definitions/someField',
-    };
+    } as ISchemaState;
     const nextState = reducer(mockState, deleteProperty(payload));
     expect(nextState.selectedDefinitionNodeId).toEqual('');
   });
@@ -176,9 +176,9 @@ describe('SchemaEditorSlice', () => {
     };
     const mockState = {
       ...state,
-      selectedEditorTab: '0',
+      selectedEditorTab: 'properties',
       selectedPropertyNodeId: '#/properties/someField',
-    };
+    } as ISchemaState;
     const nextState = reducer(mockState, deleteProperty(payload));
     expect(nextState.selectedPropertyNodeId).toEqual('');
   });

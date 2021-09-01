@@ -195,16 +195,16 @@ export const Editor = (props: IEditorProps) => {
                   <SchemaTab
                     label='models'
                     language={language}
-                    value='0'
+                    value='properties'
                   />
                   <SchemaTab
                     label='types'
                     language={language}
-                    value='1'
+                    value='definitions'
                   />
                 </TabList>
               </AppBar>
-              <TabPanel value='0'>
+              <TabPanel value='properties'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -231,7 +231,7 @@ export const Editor = (props: IEditorProps) => {
                   />
                 </TreeView>
               </TabPanel>
-              <TabPanel value='1'>
+              <TabPanel value='definitions'>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
