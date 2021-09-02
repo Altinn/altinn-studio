@@ -383,7 +383,7 @@ namespace Altinn.App.Api.Controllers
                 Instance updatedInstance = await _instanceService.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
-                await RegisterEvent("app.instance.substatus.updated", instance);
+                await RegisterEvent("app.instance.substatus.changed", instance);
 
                 return Ok(updatedInstance);
             }
