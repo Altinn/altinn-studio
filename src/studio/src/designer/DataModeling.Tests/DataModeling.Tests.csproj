@@ -68,6 +68,7 @@
     <None Remove="_TestData\Model\JsonSchema\SeresBuiltinTypes.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresSimpleTypeRestrictions.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresWithAnyAttribute.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresWithAttributes.json" />
     <None Remove="_TestData\Model\JsonSchema\SimpleContentExtensionPlain.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
@@ -78,6 +79,7 @@
     <None Remove="_TestData\Model\XmlSchema\SeresBuiltinTypes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresSimpleTypeRestrictions.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresWithAnyAttribute.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithAttributes.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentExtensionPlain.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SimpleContentRestriction.fromJson.xsd" />

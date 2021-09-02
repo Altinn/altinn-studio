@@ -74,5 +74,32 @@ namespace DataModeling.Tests
             // Assert
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);
         }
+
+        [Theory]
+        [InlineData("Model/XmlSchema/SeresWithAnyAttribute.xsd", "Model/JsonSchema/SeresWithAnyAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAttributes")]
+        public async Task XmlSchema_to_JsonSchema_Converter_v2(string schemaPath, string expectedPath, string testCase)
+        {
+            _testOutputHelper.WriteLine(testCase);
+
+            // Arrange
+            JsonSchemaKeywords.RegisterXsdKeywords();
+            var converter = new XmlSchemaToJsonSchemaConverter();
+
+            var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
+            var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
+
+            var actual = converter.Convert(xsd);
+
+            //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
+            //await using var ms = new MemoryStream();
+            //await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            //actual.ToJsonDocument().WriteTo(writer);
+            //await writer.FlushAsync();
+
+            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
+
+            // Assert
+            JsonSchemaAssertions.IsEquivalentTo(expected, actual);
+        }
     }
 }
