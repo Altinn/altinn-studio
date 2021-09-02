@@ -304,7 +304,7 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
-            await RegisterInstanceCreatedEvent(instance);
+            await RegisterEvent("app.instance.created", instance);
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
@@ -382,6 +382,8 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance updatedInstance = await _instanceService.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                await RegisterEvent("app.instance.substatus.updated", instance);
 
                 return Ok(updatedInstance);
             }
@@ -615,13 +617,13 @@ namespace Altinn.App.Api.Controllers
             return instanceTemplate;
         }
 
-        private async Task RegisterInstanceCreatedEvent(Instance instance)
+        private async Task RegisterEvent(string eventType, Instance instance)
         {
             if (_appSettings.RegisterEventsWithEventsComponent)
             {
                 try
                 {
-                    await _eventsService.AddEvent("app.instance.created", instance);
+                    await _eventsService.AddEvent(eventType, instance);
                 }
                 catch (Exception exception)
                 {
