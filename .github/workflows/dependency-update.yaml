@@ -1,5 +1,6 @@
 name: Update dependencies
-on: 
+on:
+  workflow_dispatch:
   schedule:
     - cron: '0 6 * * 4' # every thursday @ AM 6:00
 
