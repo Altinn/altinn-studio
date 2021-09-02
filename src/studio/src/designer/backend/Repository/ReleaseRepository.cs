@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Repository
         private readonly string getReleasesSql = "select designer.get_releases(@_org, @_app, @_limit, @_order_asc_desc)";
         private readonly string checkExistingReleaseSql = "select designer.check_existing_release(@_org, @_app, @_tagname, @_buildstatus, @_buildresult)";
         private readonly string getReleaseSql = "select designer.get_release(@_org, @_buildid)";
-        private readonly string updateReleaseBuildSql = "call designer.update_release_build(@_org, @build_id, @_buildstatus, @_buildresult, @_entity)";
+        private readonly string updateReleaseBuildSql = "call designer.update_release_build(@_org, @_buildid, @_buildstatus, @_buildresult, @_entity)";
         private readonly string _connectionString;
         private readonly ILogger _logger;
 
