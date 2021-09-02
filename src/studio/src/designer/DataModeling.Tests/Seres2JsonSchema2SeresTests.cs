@@ -50,9 +50,9 @@ namespace DataModeling.Tests
             XmlSchemaAssertions.IsEquivalentTo(originalXsd, convertedXsd);
 
             // The XML should validate against both XSD's
-            //var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
-            //Assert.True(ValidateXml(originalXsd, xml));
-            //Assert.True(ValidateXml(convertedXsd, xml));
+            var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
+            Assert.True(ValidateXml(originalXsd, xml));
+            Assert.True(ValidateXml(convertedXsd, xml));
         }
 
         private bool ValidateXml(XmlSchema xmlSchema, string xml)
