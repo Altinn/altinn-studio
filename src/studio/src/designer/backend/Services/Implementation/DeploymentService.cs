@@ -72,8 +72,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            deploymentEntity.Id = Guid.NewGuid().ToString();
-
             return await _deploymentRepository.Create(deploymentEntity);
         }
 

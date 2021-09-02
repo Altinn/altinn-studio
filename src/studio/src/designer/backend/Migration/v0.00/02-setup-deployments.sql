@@ -1,22 +1,20 @@
 -- Procedure: insert_deployment
 
 CREATE OR REPLACE PROCEDURE designer.insert_deployment(
-	id character varying,
-	tagName character varying,
+  buildid character varying,
+	tagname character varying,
 	org character varying,
 	app character varying,
-  buildId character varying,
-  buildResult character varying,
+  buildresult character varying,
   created timestamp with time zone,
 	entity text)
 LANGUAGE 'plpgsql'
-AS $BODY$
-DECLARE createdTime timestamptz; 
+AS $BODY$ 
 BEGIN
   SET TIME ZONE UTC;
 
-  INSERT INTO designer.deployments(id, tagName, org, app, buildId, buildResult, created, entity)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+  INSERT INTO designer.deployments(buildid, tagname, org, app, buildresult, created, entity)
+    VALUES ($1, $2, $3, $4, $5, $6, $7);
 
 END;
 $BODY$;
@@ -50,7 +48,7 @@ $BODY$;
 
 CREATE OR REPLACE FUNCTION designer.get_deployment(
 	_org character varying,
-	_buildId character varying)
+	_buildid character varying)
     RETURNS TABLE(deployments text) 
     LANGUAGE 'plpgsql'
     
@@ -59,20 +57,21 @@ BEGIN
   RETURN QUERY
   SELECT designer.deployments.entity
   FROM designer.deployments
-  WHERE org = _org AND buildId = _buildId;
+  WHERE org = _org AND buildid = _buildid;
 END;
 $BODY$;
 
 CREATE OR REPLACE PROCEDURE designer.update_deployment_build(
-	_id character varying,
-  _buildResult character varying,
+  _org character varying,
+	_buildid character varying,
+  _buildresult character varying,
 	_entity text)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
   UPDATE designer.deployments
-  SET buildResult = _buildResult,
+  SET buildresult = _buildresult,
       entity = _entity
-  WHERE id = _id;
+  WHERE org = _org AND buildid = _buildid;
 END;
 $BODY$;

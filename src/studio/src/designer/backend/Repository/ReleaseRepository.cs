@@ -22,11 +22,11 @@ namespace Altinn.Studio.Designer.Repository
     [ExcludeFromCodeCoverage]
     public class ReleaseRepository : IReleaseRepository
     {
-        private readonly string insertReleaseSql = "call designer.insert_release(@id, @tagName, @org, @app, @buildId, @buildStatus, @buildResult, @created, @entity)";
+        private readonly string insertReleaseSql = "call designer.insert_release(@buildid, @tagname, @org, @app, @buildstatus, @buildresult, @created, @entity)";
         private readonly string getReleasesSql = "select designer.get_releases(@_org, @_app, @_limit, @_order_asc_desc)";
-        private readonly string checkExistingReleaseSql = "select designer.check_existing_release(@_org, @_app, @_tagName, @_buildStatus, @_buildResult)";
-        private readonly string getReleaseSql = "select designer.get_release(@_org, @_buildId)";
-        private readonly string updateReleaseBuildSql = "call designer.update_release_build(@_id, @_buildStatus, @_buildResult, @_entity)";
+        private readonly string checkExistingReleaseSql = "select designer.check_existing_release(@_org, @_app, @_tagname, @_buildstatus, @_buildresult)";
+        private readonly string getReleaseSql = "select designer.get_release(@_org, @_buildid)";
+        private readonly string updateReleaseBuildSql = "call designer.update_release_build(@_org, @build_id, @_buildstatus, @_buildresult, @_entity)";
         private readonly string _connectionString;
         private readonly ILogger _logger;
 
@@ -50,13 +50,12 @@ namespace Altinn.Studio.Designer.Repository
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(insertReleaseSql, conn);
-                pgcom.Parameters.AddWithValue("id", releaseEntity.Id);
-                pgcom.Parameters.AddWithValue("tagName", releaseEntity.TagName);
+                pgcom.Parameters.AddWithValue("buildid", releaseEntity.Build.Id);
+                pgcom.Parameters.AddWithValue("tagname", releaseEntity.TagName);
                 pgcom.Parameters.AddWithValue("org", releaseEntity.Org);
                 pgcom.Parameters.AddWithValue("app", releaseEntity.App);
-                pgcom.Parameters.AddWithValue("buildId", releaseEntity.Build.Id);
-                pgcom.Parameters.AddWithValue("buildStatus", releaseEntity.Build.Status.ToEnumMemberAttributeValue());
-                pgcom.Parameters.AddWithValue("buildResult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
+                pgcom.Parameters.AddWithValue("buildstatus", releaseEntity.Build.Status.ToEnumMemberAttributeValue());
+                pgcom.Parameters.AddWithValue("buildresult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("created", releaseEntity.Created);
                 pgcom.Parameters.AddWithValue("entity", JsonString(releaseEntity));
 
@@ -118,9 +117,9 @@ namespace Altinn.Studio.Designer.Repository
                 NpgsqlCommand pgcom = new NpgsqlCommand(checkExistingReleaseSql, conn);
                 pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, org);
                 pgcom.Parameters.AddWithValue("_app", NpgsqlDbType.Varchar, app);
-                pgcom.Parameters.AddWithValue("_tagName", NpgsqlDbType.Varchar, tagName);
-                pgcom.Parameters.AddWithValue("_buildStatus", NpgsqlDbType.Array | NpgsqlDbType.Text, buildStatus ?? (object)DBNull.Value);
-                pgcom.Parameters.AddWithValue("_buildResult", NpgsqlDbType.Array | NpgsqlDbType.Text, buildResult ?? (object)DBNull.Value);
+                pgcom.Parameters.AddWithValue("_tagname", NpgsqlDbType.Varchar, tagName);
+                pgcom.Parameters.AddWithValue("_buildstatus", NpgsqlDbType.Array | NpgsqlDbType.Text, buildStatus ?? (object)DBNull.Value);
+                pgcom.Parameters.AddWithValue("_buildresult", NpgsqlDbType.Array | NpgsqlDbType.Text, buildResult ?? (object)DBNull.Value);
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
@@ -152,7 +151,7 @@ namespace Altinn.Studio.Designer.Repository
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getReleaseSql, conn);
                 pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, org);
-                pgcom.Parameters.AddWithValue("_buildId", NpgsqlDbType.Varchar, buildId);
+                pgcom.Parameters.AddWithValue("_buildid", NpgsqlDbType.Varchar, buildId);
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
@@ -191,9 +190,10 @@ namespace Altinn.Studio.Designer.Repository
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(updateReleaseBuildSql, conn);
-                pgcom.Parameters.AddWithValue("_id", releaseEntity.Id);
-                pgcom.Parameters.AddWithValue("_buildStatus", releaseEntity.Id);
-                pgcom.Parameters.AddWithValue("_buildResult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
+                pgcom.Parameters.AddWithValue("_org", releaseEntity.Org);
+                pgcom.Parameters.AddWithValue("_buildid", releaseEntity.Build.Id);
+                pgcom.Parameters.AddWithValue("_buildstatus", releaseEntity.Build.Status);
+                pgcom.Parameters.AddWithValue("_buildresult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("_entity", JsonString(releaseEntity));
 
                 await pgcom.ExecuteNonQueryAsync();

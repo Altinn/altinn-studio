@@ -84,8 +84,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            release.Id = Guid.NewGuid().ToString();
-
             return await _releaseRepository.Create(release);
         }
 
