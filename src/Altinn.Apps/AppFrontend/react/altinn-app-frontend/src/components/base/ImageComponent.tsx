@@ -1,26 +1,26 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid, GridJustification, makeStyles } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { IRuntimeState } from '../../types';
 
 export interface IImageProps {
   id: string;
-  imageSpecs: IImagesSpecifics;
+  image: IImage;
   textResourceBindings: ITextResourceBindings;
-  commonPhrases: any;
+  language: any;
   getTextResource: (key: string) => string;
   getTextResourceAsString: (key: string) => string;
 }
 
-export interface IImagesSpecifics {
-  imageSrc: IImageSrc;
-  imgWidth: string;
-  align: string;
+export interface IImage {
+  src: IImagesrc;
+  width: string;
+  align: GridJustification;
 }
 
-export interface IImageSrc {
+export interface IImagesrc {
   nb: string;
   nn: string;
   en: string;
@@ -36,25 +36,17 @@ export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
   const language: string =
     useSelector((state: IRuntimeState) => state.profile.profile.profileSettingPreference.language);
-  const width = props.imageSpecs.imgWidth || '100%';
+  const width = props.image.width || '100%';
+  const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg) || 'image';
 
   let imgSrc;
-  if (language === 'en' && props.imageSpecs.imageSrc.en) {
-    imgSrc = props.imageSpecs.imageSrc.en;
-  } else if (language === 'nn' && props.imageSpecs.imageSrc.nn) {
-    imgSrc = props.imageSpecs.imageSrc.nn;
+  if (language === 'en' && props.image.src.en) {
+    imgSrc = props.image.src.en;
+  } else if (language === 'nn' && props.image.src.nn) {
+    imgSrc = props.image.src.nn;
   } else {
-    imgSrc = props.imageSpecs.imageSrc.nb;
-  }
-
-  let align;
-  if (props.imageSpecs.align === 'right') {
-    align = 'flex-end';
-  } else if (props.imageSpecs.align === 'left') {
-    align = 'flex-start';
-  } else {
-    align = 'center';
+    imgSrc = props.image.src.nb;
   }
 
   let showImg;
@@ -93,7 +85,7 @@ export function ImageComponent(props: IImageProps) {
       {props.textResourceBindings?.help &&
       <Grid item={true} className={classes.spacing}>
         <HelpTextContainer
-          language={props.commonPhrases}
+          language={props.language}
           id={props.id}
           helpText={props.getTextResource(props.textResourceBindings.help)}
         />
