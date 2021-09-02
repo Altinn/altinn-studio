@@ -471,12 +471,36 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            if (schema.Keywords.Count != 1)
+            var keywords = schema.AsWorkList();
+            if (!keywords.TryPull(out AllOfKeyword _))
             {
                 return false;
             }
 
-            return schema.Keywords.Single() is AllOfKeyword;
+            foreach (var item in keywords.EnumerateUnhandledItems())
+            {
+                // Check if the keyword is allowed
+                switch (item)
+                {
+                    case TitleKeyword:
+                    case CommentKeyword:
+                    case DeprecatedKeyword:
+                    case DescriptionKeyword:
+                    case ExamplesKeyword:
+                    case ConstKeyword:
+                    case DefaultKeyword:
+                    case XsdAnyKeyword:
+                    case XsdAnyAttributeKeyword:
+                    case XsdStructureKeyword:
+                    case XsdUnhandledAttributesKeyword:
+                    case InfoKeyword:
+                        continue;
+                    default:
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         private void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
