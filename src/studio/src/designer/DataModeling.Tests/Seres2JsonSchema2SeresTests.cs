@@ -27,7 +27,7 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Seres/HvemErHvem_Simple.xsd", "Seres/HvemErHvem.xml", Skip = "Not feature complete to support this yet.")]
+        [InlineData("Seres/HvemErHvem_Simple.xsd", "Seres/HvemErHvem_Simple.xml", Skip = "Not feature complete to support this yet.")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();

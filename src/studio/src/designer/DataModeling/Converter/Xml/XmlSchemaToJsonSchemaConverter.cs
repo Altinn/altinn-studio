@@ -1004,7 +1004,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
             HandleSimpleType(item, optional, array, builder);
-
+            AddUnhandledAttributes(item, builder);
             return builder;
         }
 

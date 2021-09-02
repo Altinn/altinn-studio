@@ -136,6 +136,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
+            if (IsValidUnhandledAttribute(schema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+            }
+
             // Add "unknown" if no other was added on this path
             if (_metadata.GetCompatibleTypes(path).Count == 0)
             {

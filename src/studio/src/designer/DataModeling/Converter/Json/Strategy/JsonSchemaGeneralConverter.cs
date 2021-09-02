@@ -204,7 +204,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     var item = new XmlSchemaElement();
                     HandleSimpleType(item, schema.AsWorkList(), path);
-
                     return item;
                 }
             }
@@ -213,6 +212,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 var item = new XmlSchemaElement();
                 HandleComplexType(item, schema.AsWorkList(), path);
+                return item;
+            }
+
+            if (compatibleTypes.Contains(CompatibleXsdType.UnhandledAttribute))
+            {
+                var item = new XmlSchemaAttribute();
+                AddUnhandledAttributes(item, schema.GetKeyword<XsdUnhandledAttributesKeyword>());
                 return item;
             }
 
