@@ -7,24 +7,53 @@ import { getTextResource } from '../../utils/formComponentUtils';
 
 const useStyles = makeStyles({
   ul: {
-    backgroundColor: "#0062BA", 
-    height: '50px', 
+    height: '50px',
     listStyleType: 'none',
-    textDecoration: 'none!important' as 'none'
+    textDecoration: 'none!important' as 'none',
+    paddingLeft: '0px!important' as 'noPadding'
   },
   li: {
     float: 'left', 
-    borderRight: '1px solid #bbb',
+    border: '2px solid #008FD6',
     '&:hover': {
-      background: "#3494eb",
+      border: '3px solid #008FD6'
+    },
+    borderRadius: '20px',
+    marginRight: '20px',
+    "&:active": {
+      backgroundColor: "#0062BA"
     }
+  },
+  li2: {
+    float: 'left', 
+    border: '2px solid #008FD6',
+    '&:hover': {
+      border: '3px solid #008FD6'
+    },
+    borderRadius: '20px',
+    marginRight: '20px',
+    backgroundColor: "#022f51"
   },
   a: {
     display: 'block', 
-    color: 'white', 
     textAlign: "center", 
-    padding: '14px 16px', 
-    borderBottom: '0'
+    padding: '1px 10px', 
+    borderBottom: '0',
+    "&:hover": {
+      borderBottom: "0px solid rgba(0,0,0,0)"
+    }
+  },
+  a2: {
+    display: 'block', 
+    textAlign: "center", 
+    padding: '1px 10px', 
+    borderBottom: '0',
+    color: 'white',
+    "&:hover": {
+      borderBottom: "0px solid rgba(0,0,0,0)"
+    },
+    width: '100%',
+    fontSize: '1.5rem'
   }
 });
 
@@ -50,9 +79,16 @@ export function NavComponent(props: INavComponent) {
     const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
     dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
   };
- 
-  const pageList = orderedLayoutKeys.map((x, y) => 
-    <li className={classes.li}><a className={classes.a} href="#" onClick={() => OnClickNav(x)}>{getTextResource(x, textResources)}</a></li>
+
+  const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+
+  const pageList = orderedLayoutKeys.map((x) => 
+    <li className={ currentView == x ? classes.li2 : classes.li } >
+        <a className={`${currentView == x ? classes.a2 : classes.a} ${currentView == x ? 'ai ai-expand' : ''}`} 
+          href="#" onClick={() => OnClickNav(x)}>
+            {getTextResource(x, textResources)}
+        </a>
+    </li>
   );
   
   return (
