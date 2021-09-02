@@ -192,7 +192,7 @@ namespace Altinn.Studio.Designer.Repository
                 NpgsqlCommand pgcom = new NpgsqlCommand(updateReleaseBuildSql, conn);
                 pgcom.Parameters.AddWithValue("_org", releaseEntity.Org);
                 pgcom.Parameters.AddWithValue("_buildid", releaseEntity.Build.Id);
-                pgcom.Parameters.AddWithValue("_buildstatus", releaseEntity.Build.Status);
+                pgcom.Parameters.AddWithValue("_buildstatus", releaseEntity.Build.Status.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("_buildresult", releaseEntity.Build.Result.ToEnumMemberAttributeValue());
                 pgcom.Parameters.AddWithValue("_entity", JsonString(releaseEntity));
 
