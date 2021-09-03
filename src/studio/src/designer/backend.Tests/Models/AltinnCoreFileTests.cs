@@ -16,13 +16,17 @@ namespace Designer.Tests
             var repository = "ttd-datamodels";
             var userName = "testUser";
             var repositoryRootPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, userName);
-            var filePath = $"{repositoryRootPath}\\App\\models\\0678.xsd";
+            var fileName = "0678.xsd";
+            var directory = $"{repositoryRootPath}\\App\\models";
+            var filePath = $"{directory}\\0678.xsd";
 
             var altinnCoreFile = AltinnCoreFile.CreateFromPath(filePath, repositoryRootPath);
 
-            Assert.Equal(@"0678.xsd", altinnCoreFile.FileName);
+            Assert.Equal(fileName, altinnCoreFile.FileName);
             Assert.Equal(@".xsd", altinnCoreFile.FileType);
             Assert.Equal(@"/App/models/0678.xsd", altinnCoreFile.RepositoryRelativeUrl);
+            Assert.Equal(directory, altinnCoreFile.Directory);
+            Assert.Equal(filePath, altinnCoreFile.FilePath);
             altinnCoreFile.LastChanged.Should().BeOnOrBefore(DateTime.Now);
         }
 

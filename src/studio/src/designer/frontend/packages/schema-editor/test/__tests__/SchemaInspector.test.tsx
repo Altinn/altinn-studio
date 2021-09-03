@@ -7,7 +7,7 @@ import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
-import { buildUISchema } from '../../src/utils';
+import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 
 let mockStore: any = null;
@@ -16,35 +16,36 @@ let createStore: any;
 let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
-let addPropertyMock = jest.fn();
 
-const mountWithId = (id: string) => {
+const mountWithId = (definitionId: string) => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
-    selectedId: id,
+    selectedDefinitionNodeId: definitionId,
+    selectedPropertyNodeId: definitionId,
+    selectedEditorTab: 'properties',
   });
   mockStore.dispatch = jest.fn(dispatchMock);
   return mountComponent();
 };
 const mountComponent = () => mount(
   <Provider store={mockStore}>
-    <SchemaInspector onAddPropertyClick={addPropertyMock} language={{}} />
+    <SchemaInspector language={{}} />
   </Provider>,
 );
 
 beforeEach(() => {
-  const rootPath = '#/definitions/RA-0678_M';
-  addPropertyMock = jest.fn();
   mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
 
   mockInitialState = {
-    rootName: rootPath,
+    name: 'test',
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
-    selectedId: '#/definitions/Kommentar2000Restriksjon',
+    selectedDefinitionNodeId: '#/definitions/Kommentar2000Restriksjon',
+    selectedPropertyNodeId: '#/definitions/Kommentar2000Restriksjon',
+    selectedEditorTab: 'properties',
   };
   createStore = configureStore();
 
@@ -54,6 +55,7 @@ beforeEach(() => {
     uiSchema: mockUiSchema,
   });
   mockStore.dispatch = jest.fn(dispatchMock);
+  resetUniqueNumber();
 });
 
 afterEach(() => {
@@ -83,7 +85,7 @@ it('Should match snapshot (restrictions)', () => {
   });
 });
 
-it('dispatches correctly when changing restriction key', (done) => {
+it('dispatches correctly when changing restriction key', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -93,17 +95,16 @@ it('dispatches correctly when changing restriction key', (done) => {
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-key').last().simulate('change', { target: { value: 'maxLength' } });
   wrapper.find('#definitionsKommentar2000Restriksjon-minLength-key').last().simulate('blur');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setKey',
+    type: 'schemaEditor/setRestrictionKey',
     payload: {
       oldKey: 'minLength',
       path: '#/definitions/Kommentar2000Restriksjon',
       newKey: 'maxLength',
     },
   });
-  done();
 });
 
-it('dispatches correctly when changing restriction value', (done) => {
+it('dispatches correctly when changing restriction value', () => {
   let wrapper: any = null;
   act(() => {
     wrapper = mountComponent();
@@ -119,8 +120,6 @@ it('dispatches correctly when changing restriction value', (done) => {
       value: 666,
     },
   });
-
-  done();
 });
 
 it('dispatches correctly when changing node name', () => {
@@ -162,7 +161,7 @@ it('dispatches correctly when changing field key', () => {
     wrapper = mountWithId('#/definitions/RA-0678_M');
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-InternInformasjon').hostNodes().at(0);
+  const input = wrapper.find('#definitionsRA-0678_MpropertiesInternInformasjon-key-6').hostNodes().at(0);
   input.simulate('change', { target: { value: 'Test' } });
   wrapper.update();
   input.simulate('blur');
@@ -303,7 +302,9 @@ it('renders no item if nothing is selected', () => {
     ...mockInitialState,
     schema: dataMock,
     uiSchema: mockUiSchema,
-    selectedId: null,
+    selectedPropertyNodeId: '',
+    selectedDefinitionNodeId: '',
+    selectedEditorTab: 'properties',
   });
   act(() => {
     const wrapper = mountComponent();
@@ -320,7 +321,7 @@ it('dispatches correctly when deleting fields', () => {
   });
   wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
   wrapper.update();
-  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-dataFormatProvider').hostNodes().at(0).simulate('click');
+  wrapper.find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-1').hostNodes().at(0).simulate('click');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
     type: 'schemaEditor/deleteProperty',
     payload: {

@@ -2,7 +2,7 @@
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -11,6 +11,7 @@ import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import './App.css';
 import { Dispatch } from 'redux';
+import { StandaloneDataModelling } from './features';
 import { CloneService } from './features/cloneService/cloneServices';
 import { KnownIssues } from './features/knownIssues/knownIssues';
 import { ServicesOverview } from './features/serviceOverview/servicesOverview';
@@ -29,7 +30,7 @@ export interface IDashboardProps extends IDashboardProvidedProps {
   user: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 class App extends React.Component<IDashboardProps, IMainDashboardState> {
   public state: IMainDashboardState = {
@@ -75,15 +76,14 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               app={null}
               user={this.props.user.login}
               logoutButton={true}
-              showSubHeader={false}
-              backgroundColor={theme.altinnPalette.primary.white}
+              showSubMenu={false}
             />
             <Route
               path='/'
               exact={true}
               render={() => (
                 <Grid
-                  container={true} justify='center'
+                  container={true} justifyContent='center'
                   direction='row' className='block-with-text'
                 >
                   <Grid item={true} xs={10}>
@@ -100,6 +100,11 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               path='/known-issues'
               exact={true}
               component={KnownIssues}
+            />
+            <Route
+              path='/datamodelling/:org/:repoName'
+              exact={true}
+              component={StandaloneDataModelling}
             />
           </div>
         </Router>

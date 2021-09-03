@@ -5,7 +5,7 @@ import DeployPage from '../features/appPublish/pages/deployPage';
 // eslint-disable-next-line import/no-named-as-default
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
-import DataModelingContainer from '../features/dataModeling/containers/DataModelingContainer';
+import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 
 export interface IRouteProps {
   headerTextKey?: string;
@@ -17,6 +17,7 @@ export interface IRouteProps {
   shadow?: boolean;
   iframeEndingUrl?: string;
   filePath?: string;
+  language?: any;
 }
 
 export interface IRoute {
@@ -35,13 +36,6 @@ const routes: IRoute[] = [
     exact: true,
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'UI-Editor',
-    menu: 'create',
-    subapp: uieditorApp,
-  },
-  {
-    path: '/preview',
-    exact: true,
-    activeSubHeaderSelection: 'Lage',
     menu: 'create',
     subapp: uieditorApp,
   },
@@ -93,15 +87,15 @@ const routes: IRoute[] = [
     path: '/datamodelling',
     exact: true,
     activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Data-Editor',
+    activeLeftMenuSelection: 'Data-Modelling',
     menu: 'create',
-    subapp: DataModelingContainer,
+    subapp: DataModellingContainer,
   },
   {
     path: '/accesscontrol',
     exact: true,
     activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Tilgangsstyring',
+    activeLeftMenuSelection: 'Access-Controll',
     menu: 'create',
     subapp: AccessControlContainer,
     props: {

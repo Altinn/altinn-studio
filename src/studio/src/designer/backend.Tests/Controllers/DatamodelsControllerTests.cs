@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -306,7 +307,7 @@ namespace Designer.Tests.Controllers
             var altinnCoreFiles = System.Text.Json.JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(8, altinnCoreFiles.Count);
+            Assert.Equal(7, altinnCoreFiles.Count);
         }
 
         [Fact]
@@ -323,24 +324,45 @@ namespace Designer.Tests.Controllers
         }
 
         [Theory]
+        [InlineData("App/models/HvemErHvem_SERES.schema.json")]
+        [InlineData("App/models/hvemerhvem_seres.schema.json")]
+        [InlineData("App%2Fmodels%2FHvemErHvem_SERES.schema.json")]
+        public async Task GetDatamodel_ValidPath_ShouldReturnContent(string modelPath)
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{repository}/datamodels/{modelPath}";
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            var response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Theory]
         [InlineData("testModel.schema.json")]
         [InlineData("App/testModel.schema.json")]
         [InlineData("App/models/testModel.schema.json")]
         [InlineData("/App/models/testModel.schema.json")]
+        [InlineData("App%2Fmodels%2FtestModel.schema.json")]
         public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
         {
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
 
-            if (gitRepository.FileExistsByRelativePath(modelPath))
-            {
-                gitRepository.DeleteFileByRelativePath(modelPath);
-            }
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             var client = GetTestClient();
-            var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/?modelPath={modelPath}";
-            string requestBody = "{}";
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/?modelPath={modelPath}";
+            var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+            string requestBody = minimumValidJsonSchema;
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
@@ -355,7 +377,44 @@ namespace Designer.Tests.Controllers
             }
             finally
             {
-                gitRepository.DeleteFileByRelativePath(modelPath);
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task PostDatamodel_FromXsd_ShouldReturnCreated()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-datamodels";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels";
+
+            var fileStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+            var formData = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = formData
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
 

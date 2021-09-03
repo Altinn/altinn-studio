@@ -93,7 +93,7 @@ describe('Administration', () => {
     mockClasses = {};
 
     const initialState: any = {
-      language: {
+      languageState: {
         language: mockLanguage,
       },
       appCluster: {
@@ -221,7 +221,7 @@ describe('Administration', () => {
 
     return (
       <Provider store={mockStore}>
-        <AdministrationComponent {...defaultProps} {...props}/>
+        <AdministrationComponent {...defaultProps} {...props} />
       </Provider>
     );
   };

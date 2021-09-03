@@ -15,15 +15,15 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     public class TextsController : ControllerBase
     {
-        private readonly IText _text;
+        private readonly IAppResources _appResources;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
-        /// <param name="text">A service with access to text resources.</param>
-        public TextsController(IText text)
+        /// <param name="appResources">A service with access to text resources.</param>
+        public TextsController(IAppResources appResources)
         {
-            _text = text;
+            _appResources = appResources;
         }
 
         /// <summary>
@@ -36,27 +36,24 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
         {
-            TextResource textResource;
-
             if (!string.IsNullOrEmpty(language) && language.Length != 2)
             {
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            textResource = await _text.GetText(org, app, language);
-            if (textResource != null)
+            TextResource textResource = await _appResources.GetTexts(org, app, language);
+
+            if (textResource == null && language != "nb")
             {
-                return textResource;
+                textResource = await _appResources.GetTexts(org, app, "nb");
             }
 
-            // using default language if requested language doesn't exist
-            textResource = await _text.GetText(org, app, "nb");
-            if (textResource != null)
+            if (textResource == null)
             {
-                return textResource;
+                return NotFound();
             }
 
-            return NotFound();
+            return textResource;
         }
     }
 }

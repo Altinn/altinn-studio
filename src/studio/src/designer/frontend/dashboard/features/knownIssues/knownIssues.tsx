@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
@@ -24,7 +24,7 @@ export interface IKnownIssuesComponentState {
   knownIssues: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   mainStyle: {

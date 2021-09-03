@@ -1,7 +1,7 @@
-import React from 'react';
-import { render } from '@testing-library/react';
+import * as React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
+import { mount } from 'enzyme';
 import SchemaEditorApp from '../../src/SchemaEditorApp';
 import { dataMock } from '../../src/mockData';
 
@@ -17,17 +17,17 @@ afterEach(() => {
   container = null;
 });
 
-test('renders schema editor container', () => {
-  let utils: any = null;
+test('renders schema editor app', () => {
+  let wrapper: any = null;
   act(() => {
-    utils = render(
+    wrapper = mount(
       <SchemaEditorApp
         schema={dataMock}
         language={{}}
         onSaveSchema={() => {}}
-        rootItemId='#/properties/melding'
+        name='test'
       />,
     );
   });
-  expect(utils.container.firstChild.getAttribute('id')).toBe('schema-editor-container');
+  expect(wrapper.find('SchemaEditorApp')).toHaveLength(1);
 });

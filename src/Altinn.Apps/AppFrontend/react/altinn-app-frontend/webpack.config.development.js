@@ -8,9 +8,7 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
+    "core-js/es",
     "./src/index.tsx"
   ],
   output: {
@@ -45,59 +43,64 @@ module.exports = {
     hints: 'warning',
   },
   module: {
-    rules: [{
-      test: /\.jsx?/,
-      exclude: /node_modules/,
-      use: {
-        loader: "babel-loader",
-      }
-    },
-    {
-      test: /\.html$/,
-      use: [{
-        loader: "html-loader",
-        options: {
-          minimize: true
+    rules: [
+      {
+        test: /\.jsx?/,
+        include: [
+          path.resolve(__dirname, "./src"),
+          path.resolve(__dirname, "../node_modules/ajv"),
+          path.resolve(__dirname, "../node_modules/ajv-formats")
+        ],
+        use: {
+          loader: "babel-loader",
         }
-      }]
-    },
-    {
-      test: /\.scss$/,
-      use: [
-        "style-loader",
-        "css-loader"
-      ]
-    },
-    {
-      test: /\.svg$/,
-      use: {
-        loader: "svg-inline-loader",
-      }
-    },
-    {
-      test: /\.css$/,
-      use: [{
-        loader: MiniCssExtractPlugin.loader,
       },
       {
-        loader: "css-loader",
-        options: {
-          url: false
+        test: /\.html$/,
+        use: [{
+          loader: "html-loader",
+          options: {
+            minimize: true
+          }
+        }]
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          "style-loader",
+          "css-loader"
+        ]
+      },
+      {
+        test: /\.svg$/,
+        use: {
+          loader: "svg-inline-loader",
         }
       },
-      ]
-    },
-    {
-      test: /\.tsx?/,
-      use: [
-        {loader: "ts-loader", options: { transpileOnly: true } }
-      ]
-    },
-    {
-      enforce: "pre",
-      test: /\.js$/,
-      loader: "source-map-loader",
-    }
+      {
+        test: /\.css$/,
+        use: [{
+          loader: MiniCssExtractPlugin.loader,
+        },
+        {
+          loader: "css-loader",
+          options: {
+            url: false
+          }
+        },
+        ]
+      },
+      {
+        test: /\.tsx?/,
+        use: [
+          { loader: "ts-loader", options: { transpileOnly: true } }
+        ]
+      },
+      {
+        enforce: "pre",
+        test: /\.js$/,
+        loader: "source-map-loader",
+      },
     ],
   },
   plugins: [

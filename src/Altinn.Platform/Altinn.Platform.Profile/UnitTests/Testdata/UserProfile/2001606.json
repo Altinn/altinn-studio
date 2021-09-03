@@ -1,0 +1,44 @@
+{
+  "UserId": 2001606,
+  "UserType": 1,
+  "UserName": "",
+  "PhoneNumber": null,
+  "Email": null,
+  "PartyId": 50002113,
+  "Party": {
+    "PartyTypeName": 1,
+    "SSN": "01025101037",
+    "OrgNumber": "",
+    "Person": {
+      "SSN": "01025101037",
+      "Name": "TUVA LANDRO",
+      "FirstName": "TUVA",
+      "MiddleName": "",
+      "LastName": "LANDRO",
+      "TelephoneNumber": "",
+      "MobileNumber": "",
+      "MailingAddress": " Teisenveien 15 0666 OSLO",
+      "MailingPostalCode": "0666",
+      "MailingPostalCity": "OSLO",
+      "AddressMunicipalNumber": "",
+      "AddressMunicipalName": "",
+      "AddressStreetName": "",
+      "AddressHouseNumber": "",
+      "AddressHouseLetter": "",
+      "AddressPostalCode": "0666",
+      "AddressCity": "OSLO"
+    },
+    "Organization": null,
+    "PartyId": 50002113,
+    "UnitType": null,
+    "Name": "TUVA LANDRO",
+    "IsDeleted": false,
+    "OnlyHierarchyElementWithNoAccess": false,
+    "ChildParties": null
+  },
+  "ProfileSettingPreference": {
+    "LanguageType": "1044",
+    "PreSelectedPartyId": 0,
+    "DoNotPromptForParty": false
+  }
+}

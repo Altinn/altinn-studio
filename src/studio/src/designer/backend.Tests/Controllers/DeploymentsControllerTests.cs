@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-using Designer.Tests.Controllers;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
@@ -26,7 +25,7 @@ using Moq;
 
 using Xunit;
 
-namespace Designer.Tests.TestingControllers
+namespace Designer.Tests.Controllers
 {
     public class DeploymentsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {

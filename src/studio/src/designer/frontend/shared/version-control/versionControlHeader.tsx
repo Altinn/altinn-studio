@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../utils/networking';
@@ -30,7 +30,7 @@ export interface IVersionControlHeaderState {
   cloneModalAnchor: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   headerStyling: {

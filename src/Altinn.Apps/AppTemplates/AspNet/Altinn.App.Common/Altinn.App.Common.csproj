@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.9.1-alpha</Version>
-    <AssemblyVersion>4.9.1.0</AssemblyVersion>
+    <Version>4.13.0-alpha</Version>
+    <AssemblyVersion>4.13.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
@@ -17,7 +17,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IsPackable>true</IsPackable>
-    
+
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{7D2FF2B1-7F21-4934-9D77-DBCDC15BD8CC}</ProjectGuid>
   </PropertyGroup>

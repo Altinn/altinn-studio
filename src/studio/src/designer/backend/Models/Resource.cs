@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Models
     /// <summary>
     /// Class representing a resource
     /// </summary>
-    public class Resource
+    public partial class Resource
     {
         /// <summary>
         /// Gets or sets the ID of the resource
@@ -25,24 +25,6 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty("variables")]
         public List<Variable> Variables { get; set; }
-
-        /// <summary>
-        /// Class representing the variables of a resource.
-        /// </summary>
-        public class Variable
-        {
-            /// <summary>
-            /// Gets or sets the value of the key
-            /// </summary>
-            [JsonProperty("key")]
-            public string Key { get; set; }
-
-            /// <summary>
-            /// Gets or sets the value of the data source
-            /// </summary>
-            [JsonProperty("dataSource")]
-            public string DataSource { get; set; }
-        }
 
         /// <summary>
         /// String representation, for debug

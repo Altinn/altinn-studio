@@ -11,9 +11,10 @@ export interface IAltinnCollapsableListProps {
   onClickExpand: () => void;
   /** React nodes values for the list header */
   listHeader: React.ReactNode;
+  children: React.ReactNode;
 }
 
-const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (props) => {
+const AltinnCollapsableList = (props: IAltinnCollapsableListProps) => {
   const {
     transition,
     listHeader,
@@ -31,18 +32,18 @@ const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (props) =>
   return (
     <Grid
       container={true}
-      direction={'column'}
+      direction='column'
     >
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         onClick={onClickExpand}
         onKeyPress={onKeyPress}
         tabIndex={0}
       >
         <Grid
           container={true}
-          direction={'row'}
+          direction='row'
         >
           {listHeader}
         </Grid>

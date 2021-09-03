@@ -3,7 +3,7 @@
     Command: docker-compose run k6 run /src/tests/platform/events/subscriptions.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as subscriptions from '../../../api/platform/events/subscriptions.js';
 import * as setUpData from '../../../setup.js';
@@ -56,6 +56,8 @@ export default function (data) {
     'GET event subscription by id - id matches': (r) => r.json('id') == subscriptionId,
   });
   addErrorCount(success);
+
+  sleep(20);
 
   res = subscriptions.deleteSubscriptionById(runtimeToken, subscriptionId);
   success = check(res, {

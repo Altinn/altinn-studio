@@ -3,18 +3,18 @@ import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
 
 //Api call to Platform:Storage to upload a data to an instance and returns the response
-export function postData(altinnStudioRuntimeCookie, partyId, instanceId, dataType, instanceData) {
+export function postData(altinnStudioRuntimeCookie, partyId, instanceId, dataType, instanceData, attachmentType) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'instanceid') + '/data?dataType=' + dataType;
   var isBinaryAttachment = typeof data === 'object' ? true : false;
-  var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'platform');
   return http.post(endpoint, instanceData, params);
 }
 
 //Api call to Platform:Storage to upload a data to an instance and returns the response
-export function putData(altinnStudioRuntimeCookie, partyId, instanceId, dataId, dataType, instanceData) {
+export function putData(altinnStudioRuntimeCookie, partyId, instanceId, dataId, attachmentType, instanceData) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, dataId, 'dataid');
   var isBinaryAttachment = typeof data === 'object' ? true : false;
-  var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'platform');
   return http.put(endpoint, instanceData, params);
 }
 

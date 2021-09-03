@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, FormControl, MenuItem, TextField, Typography } from '@material-ui/core';
+import { createTheme, createStyles, FormControl, MenuItem, TextField, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -18,7 +18,7 @@ export interface IAltinnDropdownComponentProvidedProps {
 export interface IAltinnDropdownComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   inputHeader: {

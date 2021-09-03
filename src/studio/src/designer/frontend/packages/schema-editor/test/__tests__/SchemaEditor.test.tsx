@@ -1,9 +1,9 @@
-import React from 'react';
+import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import SchemaEditor from '../../src/components/schemaEditor';
+import SchemaEditor from '../../src/components/Editor';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
@@ -12,15 +12,16 @@ let mockStore: any = null;
 let mockInitialState: ISchemaState;
 let createStore: any;
 let mockUiSchema: UiSchemaItem[];
-const rootPath = '#/definitions/RA-0678_M';
 
 const mountComponent = () => mount(
   <Provider store={mockStore}>
     <SchemaEditor
+      Toolbar={<div>toolbar goes here</div>}
+      LoadingIndicator={<div>loading</div>}
       schema={dataMock}
       language={{}}
       onSaveSchema={() => {}}
-      rootItemId='#/properties/melding'
+      name='test'
     />
   </Provider>,
 );
@@ -30,10 +31,13 @@ beforeEach(() => {
     .concat(buildUISchema(dataMock.definitions, '#/definitions'));
 
   mockInitialState = {
-    rootName: rootPath,
+    name: 'test',
     saveSchemaUrl: '',
     schema: { properties: {}, definitions: {} },
     uiSchema: [],
+    selectedDefinitionNodeId: '',
+    selectedPropertyNodeId: '',
+    selectedEditorTab: 'properties',
   };
   createStore = configureStore();
 });
@@ -58,9 +62,11 @@ test('renders schema editor with populated schema', () => {
   expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Save data model'))).toBeTruthy();
 });
 
-const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find('.MuiTypography-root').findWhere((r: ReactWrapper) => r.text() === text);
+const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find(
+  '.MuiTypography-root',
+).findWhere((r: ReactWrapper) => r.text() === text);
 
-test('Renders properties', () => {
+test('Does not renders properties on item click while in models view', () => {
   mockStore = createStore({
     ...mockInitialState,
     schema: dataMock,
@@ -71,6 +77,6 @@ test('Renders properties', () => {
   act(() => {
     wrapper = mountComponent();
   });
-  wrapper.find('.MuiTypography-root').hostNodes().at(0).simulate('click');
-  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(4);
+  wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
+  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
 });

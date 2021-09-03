@@ -16,6 +16,7 @@ import { connect } from 'react-redux';
 import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 // import { get } from 'app-shared/utils/networking';
+import { IRepository } from 'app-shared/types';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
@@ -100,11 +101,9 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
-export const getListOfServicesExcludingCodelist = (services: any) => {
-  if (services) {
-    return services.filter((service: any) => service.name !== 'codelists');
-  }
-  return services;
+export const getListOfServicesExcludingDatamodels = (services: IRepository[]) => {
+  // TODO: remove this filter when modeling tool is stable
+  return services?.filter((service: IRepository) => !service.name.endsWith('-datamodels'));
 };
 
 const getCurrentUsersName = (user: any) => {
@@ -131,30 +130,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
 
   public componentDidMount() {
     this._isMounted = true;
-    /* get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
-    .then((res) => {
-      if (this._isMounted) {
-        marked.setOptions({
-          headerIds: false,
-        });
-
-        const unsafeHTML = marked(res);
-        const safeHTML = DOMPurify.sanitize(unsafeHTML,
-          {
-            ALLOWED_TAGS: ['ul', 'li', 'a'],
-            ALLOWED_ATTR: ['href', 'target'],
-          },
-        );
-
-        const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
-        if (doc.getElementsByTagName('ul').length > 0) {
-          const majorWeaknessesList = ReactHtmlParser(doc.getElementsByTagName('ul')[0].innerHTML);
-          this.setState({
-            majorIssues: majorWeaknessesList,
-          });
-        }
-      }
-    }); */
   }
 
   public componentWillUnmount() {
@@ -193,8 +168,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     const {
       classes, services, currentUserName,
     } = this.props;
-    // const altinnWindow: Window = window;
-    // const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -224,26 +197,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             </Grid>
           }
         </Grid>
-        {/* this.state.majorIssues &&
-          <div className={classes.mar_top_13}>
-            <AltinnInformationPaper>
-              <Typography className={classes.font_16}>
-                {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
-              </Typography>
-
-              <Typography className={classes.paperList} component={'ul'}>{this.state.majorIssues}</Typography>
-
-              <AltinnLink
-                url={knownIssuesUrl}
-                linkTxt={getLanguageFromKey('dashboard.known_issues_link', this.props.language)}
-                shouldShowIcon={true}
-              />
-            </AltinnInformationPaper>
-          </div> */
-        }
-        {/* <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
-          {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
-        </Typography> */}
         {services &&
           <>
             <Grid
@@ -296,7 +249,7 @@ const mapStateToProps = (
     classes: props.classes,
     width: props.width,
     language: state.language.language,
-    services: getListOfServicesExcludingCodelist(state.dashboard.services),
+    services: getListOfServicesExcludingDatamodels(state.dashboard.services),
     // eslint-disable-next-line max-len
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),

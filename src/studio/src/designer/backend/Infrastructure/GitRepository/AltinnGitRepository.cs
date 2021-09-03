@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -14,9 +14,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// Class representing a Altinn Git Repository, either an app or a datamodels repository,
     /// ie. the shared properties and functionallity between the different types of repositories.
     /// </summary>
+    /// <remarks>This class knows that the repository is an Altinn Repository and hence knows
+    /// about folders and file names and can map them to their respective models.
+    /// It shoud hovever only have methods that are shared between the different types of Altinn Repositories
+    /// and not any methods that are specific to App or Datamodels repositories.</remarks>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
 
@@ -90,15 +93,26 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files regardless of type ie. JSON Schema, XSD and C# generated classes.
+        /// Finds all schema files regardless of location in repository.
         /// </summary>        
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
-            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON, SCHEMA_FILES_PATTERN_XSD });
+            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
             return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
+        /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
+        /// </summary>
+        /// <param name="realtiveFilepath">The relative path to the file seen from the repository root.</param>
+        public AltinnCoreFile GetAltinnCoreFileByRealtivePath(string realtiveFilepath)
+        {
+            var absoluteFilepath = GetAbsoluteFilePathSanitized(realtiveFilepath);
+            return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
         private AltinnStudioSettings GetAltinnStudioSettings()

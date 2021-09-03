@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -21,13 +23,47 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer);
 
         /// <summary>
-        /// Updates a schema file based on it's relative path within the repository.
+        /// Gets the JSON content of the specified schema file.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name where the schema file recides.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file.</param>     
+        /// <returns>JSON content of the schema file specified.</returns>
+        Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath);
+
+        /// <summary>
+        /// Updates a schema based on the relative path to the JSON Schema within the repository.
+        /// For a datamodels repository this will only update the file itself. For a app
+        /// repository this will update the generated files as well e.g. the C# class.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
         /// <param name="relativeFilePath">Relative path to the file.</param>
-        /// <param name="content">The contents of the file.</param>
-        Task UpdateSchemaFile(string org, string repository, string developer, string relativeFilePath, string content);
+        /// <param name="jsonContent">The JSON contents of the file.</param>
+        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent);
+
+        /// <summary>
+        /// Creates a JSON schema based on a XSD.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file (where in the repository it should be stored).</param>
+        /// <param name="xsdStream">Stream representing the XSD.</param>
+        Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
+
+        /// <summary>
+        /// Deletes a schema based on the relative path to the JSON Schema within the repository.
+        /// For a datamodels repository this will only delete the file itself. For a app
+        /// repository this will remove the datatype from the <see cref="Application"/> as well
+        /// as clean up other generated files.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="relativeFilePath">Relative path to the file.</param>        
+        Task DeleteSchema(string org, string repository, string developer, string relativeFilePath);
     }
 }

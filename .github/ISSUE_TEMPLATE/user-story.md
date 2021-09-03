@@ -31,7 +31,7 @@ labels: kind/user-story
 > Add test cases here as checkboxes that are being tested as part of the changes.
 
 ## Definition of done
-Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) (Only for project members) before closing.
+Verify that this issue meets [DoD](https://digdir-digitalisering.atlassian.net/wiki/spaces/T3KP/pages/5049246/Definition+of+Done) (Only for project members) before closing.
 
 - [ ] Documentation is updated (if relevant)
   - [ ] Technical documentation (docs.altinn.studio)

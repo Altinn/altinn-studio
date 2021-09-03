@@ -73,7 +73,7 @@ export function NavigationButtons(props: INavigationButtons) {
   return (
     <Grid
       container={true}
-      justify='space-between'
+      justifyContent='space-between'
     >
       <Grid item={true} xs={10}>
         {!disableBack && props.showBackButton &&

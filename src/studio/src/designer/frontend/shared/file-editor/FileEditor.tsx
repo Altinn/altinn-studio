@@ -1,5 +1,5 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as diff from 'diff';
 import * as React from 'react';
@@ -10,7 +10,7 @@ import { IAltinnWindow } from '../types';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 export interface ICodeLanguageItem {
   name: string;

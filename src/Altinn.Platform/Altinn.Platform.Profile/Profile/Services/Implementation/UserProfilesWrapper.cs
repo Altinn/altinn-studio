@@ -39,7 +39,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         public async Task<UserProfile> GetUser(int userId)
         {
             UserProfile user = null;
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users/{userId}");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}users/{userId}");
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         {
             UserProfile user = null;
 
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}users");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);

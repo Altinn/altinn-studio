@@ -9,5 +9,8 @@
   "next": "Neste",
   "goToRightPage": "Gå til riktig side i skjema",
   "ttd": "Testdepartementet",
-  "confirmBody": "Vennligst vent, endrer navn til a a."
+  "confirmBody": "Vennligst vent, endrer navn til a a.",
+  "clientSide": "client side validering",
+  "missingRights": "Du mangler rettigheter for å se denne tjenesten",
+  "tryAgain": "Det har skjedd en ukjent feil, vennligst prøv igjen senere"
 }

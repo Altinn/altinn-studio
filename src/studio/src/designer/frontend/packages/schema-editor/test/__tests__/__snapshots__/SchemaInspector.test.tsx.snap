@@ -131,7 +131,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -171,7 +171,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
@@ -402,7 +402,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -442,7 +442,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
@@ -673,7 +673,7 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -713,7 +713,7 @@ exports[`Should match snapshot 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"

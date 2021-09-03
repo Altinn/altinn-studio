@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<mvaMeldingInnsending xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <norskIdentifikator>
+    <organisasjonsnummer>888888888</organisasjonsnummer>
+  </norskIdentifikator>
+  <skattleggingsperiode>
+    <periode>
+      <skattleggingsperiodeToMaaneder>januar-februar</skattleggingsperiodeToMaaneder>
+    </periode>
+    <aar>2021</aar>
+  </skattleggingsperiode>
+  <meldingskategori>alminnelig</meldingskategori>
+  <innsendingstype>komplett</innsendingstype>
+  <instansstatus>En status</instansstatus>
+  <opprettetAv>test test</opprettetAv>
+  <opprettingstidspunkt>2017-05-15T07:41:13+00:00</opprettingstidspunkt>
+  <vedlegg>
+    <vedleggstype>binaerVedlegg</vedleggstype>
+    <kildegruppe>sluttbruker</kildegruppe>
+    <opprettetAv>test test</opprettetAv>
+    <opprettingstidspunkt>2016-02-20T14:56:29+00:00</opprettingstidspunkt>
+    <vedleggsfil>
+      <filnavn>mva-vedlegg</filnavn>
+      <filekstensjon>xml</filekstensjon>
+      <filinnhold>En mystisk fil</filinnhold>
+    </vedleggsfil>
+  </vedlegg>
+  <endringstidspunkt>2013-12-21T11:32:42+00:00</endringstidspunkt>
+</mvaMeldingInnsending>

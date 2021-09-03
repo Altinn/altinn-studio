@@ -9,6 +9,8 @@ const userParty = {partyId: 12, person: {firstName: 'Ola', middleName: '', lastN
   headerBackgroundColor={'#1EAEF7'}
   party={userParty}
   userParty={userParty}
+  logoutText={'Logg ut'}
+  ariaLabelIcon={'Profil ikon knapp'};
 />
 
 ```
@@ -25,6 +27,8 @@ const party = {partyId: 13, person: {firstName: 'Tine', middleName: '', lastName
   headerBackgroundColor={'#1EAEF7'}
   party={party}
   userParty={userParty}
+  logoutText={'Logg ut'}
+  ariaLabelIcon={'Profil ikon knapp'};
 />
 
 ```
@@ -41,6 +45,8 @@ const party = {partyId: 13, organisation: {name: 'FIRMA AS'}, orgNumber: '123467
   headerBackgroundColor={'#1EAEF7'}
   party={party}
   userParty={userParty}
+  logoutText={'Logg ut'}
+  ariaLabelIcon={'Profil ikon knapp'};
 />
 
 ```
