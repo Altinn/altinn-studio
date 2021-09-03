@@ -82,11 +82,11 @@ export function NavComponent(props: INavComponent) {
 
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
 
-  const pageList = orderedLayoutKeys.map((x) => 
-    <li className={ currentView == x ? classes.li2 : classes.li } >
-        <a className={ currentView == x ? classes.a2 : classes.a } 
-          href="#" onClick={() => OnClickNav(x)}>
-            {getTextResource(x, textResources)}
+  const pageList = orderedLayoutKeys.map((view) => 
+    <li className={ currentView == view ? classes.li2 : classes.li } >
+        <a className={ currentView == view ? classes.a2 : classes.a } 
+          href="#" onClick={() => OnClickNav(view)}>
+            {getTextResource(view, textResources)}
         </a>
     </li>
   );
