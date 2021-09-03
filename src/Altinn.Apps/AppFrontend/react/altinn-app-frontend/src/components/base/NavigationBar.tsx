@@ -57,14 +57,14 @@ const useStyles = makeStyles({
   }
 });
 
-export interface INavComponent {
+export interface INavigationBar {
   id: string;
   showBackButton: boolean;
   textResourceBindings: any;
   triggers?: Triggers[];
 }
 
-export function NavComponent(props: INavComponent) {
+export function NavigationBar(props: INavigationBar) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const orderedLayoutKeys = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
