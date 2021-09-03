@@ -84,7 +84,7 @@ export function NavComponent(props: INavComponent) {
 
   const pageList = orderedLayoutKeys.map((x) => 
     <li className={ currentView == x ? classes.li2 : classes.li } >
-        <a className={`${currentView == x ? classes.a2 : classes.a} ${currentView == x ? 'ai ai-expand' : ''}`} 
+        <a className={ currentView == x ? classes.a2 : classes.a } 
           href="#" onClick={() => OnClickNav(x)}>
             {getTextResource(x, textResources)}
         </a>
