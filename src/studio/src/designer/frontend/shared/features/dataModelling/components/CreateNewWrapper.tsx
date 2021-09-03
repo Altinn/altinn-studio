@@ -1,4 +1,4 @@
-import { Button } from '@material-ui/core';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { AddCircleOutline } from '@material-ui/icons';
 import * as React from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
@@ -60,14 +60,13 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   };
   return (
     <>
-      <Button
-        id='new-button'
-        variant='contained'
+      <TopToolbarButton
         startIcon={<AddCircleOutline />}
         onClick={onCreateClick}
+        hideText={true}
       >
         {getLanguageFromKey('general.create_new', props.language)}
-      </Button>
+      </TopToolbarButton>
       {createButtonAnchor &&
         <AltinnPopoverSimple
           anchorEl={createButtonAnchor}

@@ -1,4 +1,4 @@
-import { Button } from '@material-ui/core';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { DeleteOutline } from '@material-ui/icons';
 import * as React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
@@ -25,15 +25,14 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
 
   return (
     <>
-      <Button
+      <TopToolbarButton
         disabled={!props.schemaName}
-        id='delete-button'
-        variant='contained'
         startIcon={<DeleteOutline />}
         onClick={onDeleteClick}
+        hideText={true}
       >
         {getLanguageFromKey('general.delete', props.language)}
-      </Button>
+      </TopToolbarButton>
       {deleteButtonAnchor && <DeleteDialog
         anchor={deleteButtonAnchor}
         language={props.language}
