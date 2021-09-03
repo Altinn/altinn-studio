@@ -45,14 +45,33 @@
   ],
   "$defs": {
     "melding-modell": {
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string"
+      "allOf": [
+        {
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "e1"
+          ]
+        },
+        {
+          "properties": {
+            "a1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdAttribute": true
+            },
+            "a2": {
+              "type": "string",
+              "@xsdType": "string",
+              "default": "def",
+              "@xsdAttribute": true
+            }
+          }
         }
-      },
-      "required": [
-        "e1"
       ],
       "@xsdAnyAttribute": true
     }
