@@ -343,6 +343,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 case XmlSchemaEnumerationFacet:
                     enumValues.Add(facet.Value);
+                    AddUnhandledAttributes(facet, builder);
                     break;
                 case XmlSchemaFractionDigitsFacet:
                     if (!string.IsNullOrWhiteSpace(facet.Value) && uint.TryParse(facet.Value, out uiLength))
