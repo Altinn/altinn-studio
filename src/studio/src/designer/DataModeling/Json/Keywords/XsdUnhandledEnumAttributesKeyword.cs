@@ -127,9 +127,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
             /// </summary>
             public override void Write(Utf8JsonWriter writer, XsdUnhandledEnumAttributesKeyword value, JsonSerializerOptions options)
             {
-                writer.WriteStartObject();
                 writer.WritePropertyName(Name);
-
                 writer.WriteStartObject();
 
                 foreach (var item in value.Properties)
@@ -143,8 +141,6 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
 
                     writer.WriteEndObject();
                 }
-
-                writer.WriteEndObject();
 
                 writer.WriteEndObject();
 

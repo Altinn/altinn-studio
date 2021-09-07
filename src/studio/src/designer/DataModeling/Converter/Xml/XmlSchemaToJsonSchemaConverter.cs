@@ -321,6 +321,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (enumValues.Count > 0)
                     {
+                        AddUnhandledEnumAttributes(item, b);
                         b.Enum(enumValues.Select(val => val.AsJsonElement()));
                     }
                 });
@@ -343,7 +344,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 case XmlSchemaEnumerationFacet:
                     enumValues.Add(facet.Value);
-                    AddUnhandledAttributes(facet, builder);
                     break;
                 case XmlSchemaFractionDigitsFacet:
                     if (!string.IsNullOrWhiteSpace(facet.Value) && uint.TryParse(facet.Value, out uiLength))
@@ -867,6 +867,23 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 IEnumerable<(string Name, string Value)> unhandledAttributes = item.UnhandledAttributes.Select(attr => (attr.Name, attr.Value));
                 builder.XsdUnhandledAttributes(unhandledAttributes);
             }
+        }
+
+        private void AddUnhandledEnumAttributes(XmlSchemaSimpleTypeRestriction item, JsonSchemaBuilder builder)
+        {
+            var namedKeyValuePairsList = new List<NamedKeyValuePairs>();
+
+            foreach (XmlSchemaFacet facet in item.Facets.Cast<XmlSchemaFacet>())
+            {
+                if (facet.UnhandledAttributes != null && facet.UnhandledAttributes.Length > 0)
+                {
+                    var namedKeyValuePairs = new NamedKeyValuePairs(facet.Value);
+                    facet.UnhandledAttributes.ToList().ForEach(a => namedKeyValuePairs.Add(a.Name, a.Value));
+                    namedKeyValuePairsList.Add(namedKeyValuePairs);
+                }
+            }
+
+            builder.XsdUnhandledEnumAttributes(namedKeyValuePairsList);
         }
 
         private JsonSchemaBuilder ConvertSchemaAttributeGroup(XmlSchemaAttributeGroup item, bool optional, bool array)
