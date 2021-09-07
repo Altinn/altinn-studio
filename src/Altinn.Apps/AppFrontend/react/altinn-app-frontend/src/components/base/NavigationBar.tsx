@@ -1,16 +1,28 @@
 import * as React from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useState } from 'react';
+
+const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   ul: {
-    height: '50px',
+    height: '25px',
     listStyleType: 'none',
     textDecoration: 'none!important' as 'none',
-    paddingLeft: '0px!important' as 'noPadding'
+    paddingLeft: '0px!important' as 'noPadding',
+    position: 'relative'
+  },
+  ulMounted: {
+    height: '200px',
+    listStyleType: 'none',
+    textDecoration: 'none!important' as 'none',
+    paddingLeft: '0px!important' as 'noPadding',
+    position: 'relative'
   },
   li: {
     float: 'left', 
@@ -22,6 +34,26 @@ const useStyles = makeStyles({
     marginRight: '20px',
     "&:active": {
       backgroundColor: "#0062BA"
+    },
+    [theme.breakpoints.down(600)]: {
+      float: 'none',
+      display: 'none'
+    },
+  },
+  liMounted: {
+    marginBottom: '10px',
+    border: '2px solid #008FD6',
+    '&:hover': {
+      border: '3px solid #008FD6'
+    },
+    borderRadius: '20px',
+    marginRight: '20px',
+    "&:active": {
+      backgroundColor: "#0062BA"
+    },
+    [theme.breakpoints.up(600)]: {
+      float: 'none',
+      display: 'none'
     }
   },
   li2: {
@@ -32,7 +64,38 @@ const useStyles = makeStyles({
     },
     borderRadius: '20px',
     marginRight: '20px',
-    backgroundColor: "#022f51"
+    backgroundColor: "#022f51",
+    [theme.breakpoints.down(600)]: {
+      float: 'none',
+      display: 'none'
+    },
+  },
+  li2Mounted: {
+    marginBottom: '10px',
+    border: '2px solid #008FD6',
+    '&:hover': {
+      border: '3px solid #008FD6'
+    },
+    borderRadius: '20px',
+    marginRight: '20px',
+    backgroundColor: "#022f51",
+    [theme.breakpoints.up(600)]: {
+      float: 'none',
+      display: 'none'
+    },
+  },
+  li3: {
+    border: '2px solid #008FD6',
+    '&:hover': {
+      border: '3px solid #008FD6'
+    },
+    borderRadius: '20px',
+    marginRight: '20px',
+    backgroundColor: "#022f51",
+    [theme.breakpoints.up(600)]: {
+      float: 'none',
+      display: 'none'
+    }
   },
   a: {
     display: 'block', 
@@ -48,12 +111,18 @@ const useStyles = makeStyles({
     textAlign: "center", 
     padding: '1px 10px', 
     borderBottom: '0',
-    color: 'white',
+    color: 'white!important',
     "&:hover": {
       borderBottom: "0px solid rgba(0,0,0,0)"
     },
     width: '100%',
     fontSize: '1.5rem'
+  },
+  i: {
+    color: 'white'
+  },
+  hide: {
+    display: 'none'
   }
 });
 
@@ -72,24 +141,55 @@ export function NavigationBar(props: INavigationBar) {
   const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const triggers = props.triggers || pageTriggers;
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  
+  const NavBar = () => {
+    const [mounted, setMounted] = useState(true);
+    
+    const OnClickNav = (index: string) => {
+      const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
+      const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
+      const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
+      dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
+    };
 
-  const OnClickNav = (index: string) => {
-    const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
-    const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
-    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
-    dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
+    const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+
+    const pageList = orderedLayoutKeys.map((view) => 
+      <li className={ currentView == view ? classes.li2 : classes.li } >
+          <a className={ currentView == view ? classes.a2 : classes.a } 
+              onClick={() => OnClickNav(view)}>
+              {getTextResource(view, textResources)}
+          </a>
+      </li>
+    );
+  
+    pageList.unshift(
+      <li className={ classes.li3 } >
+        <a className={ classes.a2 } 
+            onClick={() => setMounted(!mounted)}>
+              {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
+              <i className={`${classes.i} ${'ai ai-expand'}`} />
+          </a>
+          
+      </li>  
+    );
+
+    const pageListMobile = orderedLayoutKeys.map((view) => 
+      <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
+          <a className={ currentView == view ? classes.a2 : classes.a } 
+              onClick={ () => { OnClickNav(view); setMounted(!mounted); } }>
+                {getTextResource(view, textResources)}
+          </a>
+      </li>
+    );
+
+    return (
+      <div>
+        {<ul className={ classes.ul }>{pageList}</ul>}
+        { mounted && <ul className={ classes.ulMounted }>{pageListMobile}</ul> }
+      </div>
+    );
   };
-
-  const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-
-  const pageList = orderedLayoutKeys.map((view) => 
-    <li className={ currentView == view ? classes.li2 : classes.li } >
-        <a className={ currentView == view ? classes.a2 : classes.a } 
-          href="#" onClick={() => OnClickNav(view)}>
-            {getTextResource(view, textResources)}
-        </a>
-    </li>
-  );
   
   return (
     <Grid
@@ -97,7 +197,7 @@ export function NavigationBar(props: INavigationBar) {
       justify='space-between'
     >
       <Grid item={true} xs={10}>
-        <ul className={ classes.ul }>{pageList}</ul>
+        <NavBar />
       </Grid>
     </Grid>
   );
