@@ -862,23 +862,23 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
 
-                    switch (subItem)
-                    {
-                        case XmlSchemaAttribute attribute:
-                            attribute.Parent = complexType;
-                            complexType.Attributes.Add(attribute);
-                            break;
-                        case XmlSchemaElement element:
-                            element.Parent = sequence;
-                            sequence.Items.Add(element);
+                switch (subItem)
+                {
+                    case XmlSchemaAttribute attribute:
+                        attribute.Parent = complexType;
+                        complexType.Attributes.Add(attribute);
+                        break;
+                    case XmlSchemaElement element:
+                        element.Parent = sequence;
+                        sequence.Items.Add(element);
 
-                            AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
-                            break;
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                        break;
+                    default:
+                        throw new NotImplementedException();
                 }
             }
+        }
 
         private void AddUnhandledAttributes(XmlSchemaObject item, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
         {
