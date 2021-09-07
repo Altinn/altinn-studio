@@ -141,6 +141,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
             }
 
+            if (IsValidUnhandledEnumAttribute(schema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledEnumAttribute);
+            }
+
             // Add "unknown" if no other was added on this path
             if (_metadata.GetCompatibleTypes(path).Count == 0)
             {
@@ -339,6 +344,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private bool IsValidUnhandledAttribute(JsonSchema schema)
         {
             if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsValidUnhandledEnumAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledEnumAttributesKeyword>())
             {
                 return true;
             }
