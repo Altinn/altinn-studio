@@ -480,12 +480,33 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             foreach (var restrictionKeywords in restrictionsKeywordsList)
             {
                 var restrictionFacets = GetRestrictionFacets(restrictionKeywords, targetBaseType);
+                IReadOnlyList<NamedKeyValuePairs> unhandledEnumAttributes = GetUnhandledEnumAttributes(restrictionKeywords);
                 foreach (var restrictionFacet in restrictionFacets)
                 {
                     restrictionFacet.Parent = restriction;
+
+                    var unhandledEnumAttributesForFacet = new List<XmlAttribute>();
+                    foreach ((string key, string value) in unhandledEnumAttributes.First(a => a.Name == restrictionFacet.Value).Properties)
+                    {
+                        var xmlUnhandledEnumAttribute = CreateAttribute(key, value);
+                        unhandledEnumAttributesForFacet.Add(xmlUnhandledEnumAttribute);
+                    }
+
+                    restrictionFacet.UnhandledAttributes = unhandledEnumAttributesForFacet.ToArray();
                     restriction.Facets.Add(restrictionFacet);
                 }
             }
+        }
+
+        private IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> restrictionKeywords)
+        {
+            var unhandledEnumAttributesKeyword = restrictionKeywords.GetKeyword<XsdUnhandledEnumAttributesKeyword>();
+            if (unhandledEnumAttributesKeyword == null)
+            {
+                return new List<NamedKeyValuePairs>();
+            }
+
+            return unhandledEnumAttributesKeyword.Properties;
         }
 
         // Search for target base type by following direct references and then a depth first search through allOf keywords
