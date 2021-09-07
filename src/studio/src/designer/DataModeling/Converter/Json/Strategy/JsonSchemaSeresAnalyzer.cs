@@ -449,6 +449,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case DeprecatedKeyword:
                     case DescriptionKeyword:
                     case ExamplesKeyword:
+                    case XsdUnhandledEnumAttributesKeyword:
                         continue;
 
                     default:

@@ -602,7 +602,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         break;
                     default:
-                        throw new Exception($"Unknown restriction keyword '{keyword.Keyword()}'");
+                        continue;
                 }
             }
 
