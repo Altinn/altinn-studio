@@ -84,5 +84,25 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/numberRestrictionsFractional5")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/complexStructure")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
         }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresSimpleContentRestriction.json")]
+        public async Task Analyze_SimpleContent_Restriction(string path)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var metadata = analyzer.AnalyzeSchema(schema);
+
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/ageType")).Should().Contain(CompatibleXsdType.SimpleType);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedAgeType")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/genderType")).Should().Contain(CompatibleXsdType.SimpleType);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedGenderType")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/person")).Should().Contain(CompatibleXsdType.SimpleContentExtension);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson-inline")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
+        }
     }
 }

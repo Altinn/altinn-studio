@@ -273,7 +273,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidSimpleContentRestriction(JsonSchema schema)
         {
-            // TODO: Implement
+            if (!HasSingleAllOf(schema))
+            {
+                return false;
+            }
+
+            var allOf = schema.GetKeyword<AllOfKeyword>();
+
             return false;
         }
 

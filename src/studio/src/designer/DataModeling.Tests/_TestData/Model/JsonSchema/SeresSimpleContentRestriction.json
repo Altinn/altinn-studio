@@ -124,7 +124,15 @@
         {
           "properties": {
             "value": {
-              "maxLength": 50
+              "allOf": [
+                {
+                  "type": "string",
+                  "@xsdType": "token"
+                },
+                {
+                  "maxLength": 50
+                }
+              ]
             },
             "gender": {
               "allOf": [

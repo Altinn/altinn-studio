@@ -63,13 +63,9 @@ namespace DataModeling.Tests
             var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
             var actual = converter.Convert(xsd);
 
-            //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
-            //await using var ms = new MemoryStream();
-            //await using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            //actual.ToJsonDocument().WriteTo(writer);
-            //await writer.FlushAsync();
+            // await SerializeJsonSchemaToFile(actual, expectedPath);
 
-            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
+            // var actualJson = SerializeJsonSchemaToString(actual);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
@@ -101,5 +97,23 @@ namespace DataModeling.Tests
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);
         }
+
+        private static async Task SerializeJsonSchemaToFile(JsonSchema schema, string filename)
+        {
+            await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(filename)), FileMode.Truncate, FileAccess.Write);
+            await using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            schema.ToJsonDocument().WriteTo(writer);
+            await writer.FlushAsync();
+        }
+
+        private static async Task<string> SerializeJsonSchemaToString(JsonSchema schema)
+        {
+            await using var ms = new MemoryStream();
+            await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            schema.ToJsonDocument().WriteTo(writer);
+            await writer.FlushAsync();
+            return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+        }
     }
+
 }
