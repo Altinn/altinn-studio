@@ -726,10 +726,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                             continue;
                         }
 
-                        if (subSchema.HasKeyword<PropertiesKeyword>())
-                        {
-                            HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
-                        }
+                        HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
 
                         i++;
                     }
@@ -738,6 +735,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     HandlePropertiesKeyword(item, sequence, keywords, path);
                 }
+
+                HandleAnyAttributeKeyword(item, keywords);
 
                 if (sequence.Items.Count > 0)
                 {
@@ -831,10 +830,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     continue;
                 }
 
-                if (subSchema.HasKeyword<PropertiesKeyword>())
-                {
-                    HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
-                }
+                HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                HandleAnyAttributeKeyword(item, subSchema.AsWorkList());
 
                 i++;
             }
@@ -849,17 +846,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandlePropertiesKeyword(XmlSchemaComplexType complexType, XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
-            if (keywords.TryPull(out PropertiesKeyword propertiesKeyword))
+            if (!keywords.TryPull(out PropertiesKeyword propertiesKeyword))
             {
-                foreach (var (name, property) in propertiesKeyword.Properties)
-                {
-                    var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+                return;
+            }
 
-                    SetName(subItem, name);
-                    SetRequired(subItem, required.Contains(name));
-                    SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
-                    SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
+            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
+
+            foreach (var (name, property) in propertiesKeyword.Properties)
+            {
+                var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+
+                SetName(subItem, name);
+                SetRequired(subItem, required.Contains(name));
+                SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
+                SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
 
                     switch (subItem)
                     {
@@ -878,7 +879,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     }
                 }
             }
-        }
 
         private void AddUnhandledAttributes(XmlSchemaObject item, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
         {
@@ -942,6 +942,23 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             attribute.Value = value;
 
             return attribute;
+        }
+
+        private void HandleAnyAttributeKeyword(XmlSchemaComplexType complexType, WorkList<IJsonSchemaKeyword> keywords)
+        {
+            if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
+            {
+                return;
+            }
+
+            if (anyAttributeKeyword.Value)
+            {
+                XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
+                {
+                    Parent = complexType
+                };
+                complexType.AnyAttribute = xmlSchemaAnyAttribute;
+            }
         }
 
         private void SetName(XmlSchemaObject item, string name)
