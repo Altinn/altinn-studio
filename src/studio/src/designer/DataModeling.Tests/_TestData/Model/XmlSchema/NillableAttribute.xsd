@@ -13,6 +13,10 @@
       <xsd:element name="nilint" nillable="true" type="xsd:int"/>
       <xsd:element name="nilstring" nillable="true" type="xsd:string"/>
       <xsd:element minOccurs="0" name="minzeronil" nillable="true" type="xsd:string"/>
+      <xsd:element name="refered" nillable="true" type="referedtype"/>
     </xsd:sequence>
   </xsd:complexType>
+  <xsd:simpleType name="referedtype">
+    <xsd:restriction base="xsd:integer"/>
+  </xsd:simpleType>
 </xsd:schema>

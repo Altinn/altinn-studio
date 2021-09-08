@@ -1066,7 +1066,18 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
                 else
                 {
-                    typeBuilder.Ref(GetReferenceFromTypename(typeName));
+                    if (nillable)
+                    {
+                        var oneOfSchemaBuilder = new JsonSchemaBuilder();
+                        oneOfSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
+                        oneOfSchemaBuilder.Type(SchemaValueType.Null);
+
+                        typeBuilder.OneOf(oneOfSchemaBuilder);
+                    }
+                    else
+                    {
+                        typeBuilder.Ref(GetReferenceFromTypename(typeName));
+                    }
                 }
 
                 if (format != null)

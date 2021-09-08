@@ -48,13 +48,26 @@
             "null"
           ],
           "@xsdType": "string"
+        },
+        "refered": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/referedtype",
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
         "nonboth",
         "nilint",
-        "nilstring"
+        "nilstring",
+        "refered"
       ]
+    },
+    "referedtype": {
+      "type": "integer",
+      "@xsdType": "integer"
     }
   }
 }
