@@ -9,9 +9,6 @@ import { IRuntimeState } from '../../../src/types';
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import InstantiationActions from '../../../src/features/instantiate/instantiation/actions';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
-
-jest.mock('axios');
 
 describe('>>> features/instantiate/index.ts', () => {
   let mockInitialState: IRuntimeState;
@@ -21,13 +18,6 @@ describe('>>> features/instantiate/index.ts', () => {
   beforeAll(() => {
     mockInitialState = getInitialStateMock({});
     mockStore = createStore(mockInitialState);
-    (axios.post as jest.Mock).mockResolvedValue({
-      data: {
-        valid: true,
-        validParties: [],
-        message: ''
-      }
-    })
     mockStore.dispatch = jest.fn();
     InstantiationActions.instantiate = jest.fn();
   });
@@ -44,11 +34,6 @@ describe('>>> features/instantiate/index.ts', () => {
         </Provider>
       </BrowserRouter>,
     );
-
-    await waitFor(() => {
-      // validate party
-      expect(axios.post).toHaveBeenCalledTimes(1);
-    });
 
     await waitFor(() => {
       // start instantiation
