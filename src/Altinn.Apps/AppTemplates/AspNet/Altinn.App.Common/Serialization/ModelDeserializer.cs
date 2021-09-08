@@ -96,8 +96,8 @@ namespace Altinn.App.Common.Serialization
             string streamContent = null;
             try
             {
-                // In this first try block we assume that both the modelType and the XML has declared a
-                // namespace for the root element.
+                // In this first try block we assume that the namespace is the same in the model
+                // and in the XML. This includes no namespace in both.
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 streamContent = await reader.ReadToEndAsync();
 
@@ -128,7 +128,8 @@ namespace Altinn.App.Common.Serialization
                 }
                 catch (InvalidOperationException invalidOperationException)
                 {
-                    Error = $"{invalidOperationException.Message}";
+                    // One possible fail condition is if the XML has a namespace, but the model does not, or that the namespaces are different.
+                    Error = $"{invalidOperationException.Message} {invalidOperationException?.InnerException.Message}";
                     return null;
                 }
                 catch (Exception ex)
