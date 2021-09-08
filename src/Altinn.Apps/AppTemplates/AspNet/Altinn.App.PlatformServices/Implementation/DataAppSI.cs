@@ -9,7 +9,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-
+using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
@@ -164,18 +164,17 @@ namespace Altinn.App.Services.Implementation
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                try
-                {
-                    using Stream stream = await response.Content.ReadAsStreamAsync();
+                using Stream stream = await response.Content.ReadAsStreamAsync();
+                ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
+                object model = await deserializer.DeserializeAsync(stream, "application/xml");
 
-                    return serializer.Deserialize(stream);
-                }
-                catch (Exception ex)
+                if (deserializer.Error != null)
                 {
-                    _logger.LogError($"Cannot deserialize XML form data read from storage: {ex}");
-                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage", ex);
+                    _logger.LogError($"Cannot deserialize XML form data read from storage: {deserializer.Error}");
+                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage {deserializer.Error}");
                 }
+
+                return model;
             }
 
             throw await PlatformHttpException.CreateAsync(response);
