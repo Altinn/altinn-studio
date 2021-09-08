@@ -149,8 +149,6 @@ namespace Altinn.Studio.Designer
 
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
-                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
-
                 ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
                 string connectionString = string.Format(
