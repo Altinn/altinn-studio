@@ -126,9 +126,6 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
                     className="fa fa-editing-file makeStyles-editIcon-6"
                   />
                 </span>
-                <span
-                  className="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -195,9 +192,6 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
                     className="fa fa-editing-file makeStyles-editIcon-6"
                   />
                 </span>
-                <span
-                  className="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -264,9 +258,6 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
                     className="fa fa-editing-file makeStyles-editIcon-6"
                   />
                 </span>
-                <span
-                  className="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -333,9 +324,6 @@ exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = 
                     className="fa fa-editing-file makeStyles-editIcon-6"
                   />
                 </span>
-                <span
-                  className="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
