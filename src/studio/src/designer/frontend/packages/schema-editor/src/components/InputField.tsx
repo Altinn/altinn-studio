@@ -114,7 +114,7 @@ export function InputField(props: IInputFieldProps) {
         { props.onDeleteField &&
         <IconButton
           id={`${baseId}-delete-${getUniqueNumber()}`}
-          aria-label='Delete field'
+          aria-label={getTranslation('delete_field', props.language)}
           onClick={onClickDelete}
           className={classes.delete}
         >

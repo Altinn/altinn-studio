@@ -1,12 +1,13 @@
 name: Update dependencies
-on: 
+on:
+  workflow_dispatch:
   schedule:
     - cron: '0 6 * * 4' # every thursday @ AM 6:00
 
 jobs:
-  npm_update_sync:
+  designer_npm_update_sync:
     runs-on: ubuntu-latest
-    name: Update npm packages and sync package.json
+    name: Update designer npm packages and sync package.json
     steps:
       - name: checkout code
         uses: actions/checkout@v2
@@ -23,14 +24,125 @@ jobs:
           echo "::set-output name=NUMBER::$(date +%U)"
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v3.10.1
         with:
-          title: "Updated npm dependencies w${{ steps.week.outputs.NUMBER }}"
-          branch: "dependencies/npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          title: "Updated designer npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/designer-npm-updates-w${{ steps.week.outputs.NUMBER }}"
           body: ${{ steps.update.outputs.body }}
           labels: dependencies
 
-  dotnet_update:
+  appfrontend_react_npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update App frontend npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/Altinn.Apps/AppFrontend/react"
+          ignore-folders: |
+            altinn-app-frontend
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.10.1
+        with:
+          title: "Updated app frontend npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/app-frontend-npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
+  
+  appfrontend_main_npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update App frontend with version update npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
+
+      - name: Bump version number
+        if: steps.update.outputs.updated == 'true'
+        working-directory: src/Altinn.Apps/AppFrontend/react/altinn-app-frontend
+        run: npm version patch
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.10.1
+        with:
+          title: "Updated app frontend package npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/app-frontend-package-npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
+
+  platform_npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update Platform npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/Altinn.Platform"
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.10.1
+        with:
+          title: "Updated platform npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/platform-npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
+
+  test_npm_update_sync:
+    runs-on: ubuntu-latest
+    name: Update test npm packages and sync package.json
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package.json
+        id: update
+        uses: tjololo/npm-package-update-sync@v1
+        with:
+          root-folder: "src/test"
+
+      - name: Get week number
+        id: week
+        run: |
+          echo "::set-output name=NUMBER::$(date +%U)"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.10.1
+        with:
+          title: "Updated test npm dependencies w${{ steps.week.outputs.NUMBER }}"
+          branch: "dependencies/test-npm-updates-w${{ steps.week.outputs.NUMBER }}"
+          body: ${{ steps.update.outputs.body }}
+          labels: dependencies
+
+  designer_dotnet_update:
     runs-on: ubuntu-latest
     name: Update dotnet dependencies for studio
     steps:
@@ -58,9 +170,9 @@ jobs:
         echo "::set-output name=NUMBER::$(date +%U)"
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v3
+      uses: peter-evans/create-pull-request@v3.10.1
       with:
-        title: "Updated dotnet dependencies w${{ steps.week.outputs.NUMBER }}"
-        branch: "dependencies/dotnet-updates-w${{ steps.week.outputs.NUMBER }}"
+        title: "Updated designer dotnet dependencies w${{ steps.week.outputs.NUMBER }}"
+        branch: "dependencies/designer-dotnet-updates-w${{ steps.week.outputs.NUMBER }}"
         body: ${{ steps.update.outputs.body }}
         labels: dependencies

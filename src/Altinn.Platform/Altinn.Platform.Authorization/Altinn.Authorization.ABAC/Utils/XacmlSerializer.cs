@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Authorization.ABAC.Constants;
@@ -7,7 +8,7 @@ using Altinn.Authorization.ABAC.Xacml;
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Utility to parse XACM objects to XML or JSON.
+    /// Utility to serialize XACML objects to XML or JSON.
     /// </summary>
     public static class XacmlSerializer
     {
@@ -31,6 +32,60 @@ namespace Altinn.Authorization.ABAC.Utils
             foreach (var result in xacmlContextResponse.Results)
             {
                 WriteContextResult(writer, result);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        /// <summary>
+        /// Method to serialize a XACML Policy.
+        /// </summary>
+        /// <param name="writer">XML Writer</param>
+        /// <param name="xacmlPolicy">The XACML Policy to be serialized</param>
+        public static void WritePolicy(XmlWriter writer, XacmlPolicy xacmlPolicy)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlPolicy, nameof(xacmlPolicy));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Policy, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.PolicyId, xacmlPolicy.PolicyId.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.Version, xacmlPolicy.Version);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.RuleCombiningAlgId, xacmlPolicy.RuleCombiningAlgId.OriginalString);
+
+            if (xacmlPolicy.MaxDelegationDepth != null)
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.MaxDelegationDepth, xacmlPolicy.MaxDelegationDepth.ToString());
+            }
+
+            if (xacmlPolicy.PolicyIssuer != null)
+            {
+                WriteIssuer(writer, xacmlPolicy.PolicyIssuer);
+            }
+
+            if (xacmlPolicy.Description != null)
+            {
+                WriteDescription(writer, xacmlPolicy.Description);
+            }
+
+            if (xacmlPolicy.Target != null)
+            {
+                WriteTarget(writer, xacmlPolicy.Target);
+            }
+
+            foreach (XacmlRule rule in xacmlPolicy.Rules)
+            {
+                WriteRule(writer, rule);
+            }
+
+            if (xacmlPolicy.ObligationExpressions != null && xacmlPolicy.ObligationExpressions.Count > 0)
+            {
+                WriteObligationExpressions(writer, xacmlPolicy.ObligationExpressions);
+            }
+
+            if (xacmlPolicy.AdviceExpressions != null && xacmlPolicy.AdviceExpressions.Count > 0)
+            {
+                WriteAdviceExpressions(writer, xacmlPolicy.AdviceExpressions);
             }
 
             writer.WriteEndElement();
@@ -178,6 +233,39 @@ namespace Altinn.Authorization.ABAC.Utils
             writer.WriteEndElement();
         }
 
+        private static void WriteObligationExpressions(XmlWriter writer, ICollection<XacmlObligationExpression> xacmlObligationExpressions)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlObligationExpressions, nameof(xacmlObligationExpressions));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.ObligationExpressions, Xacml30Constants.NameSpaces.Policy);
+
+            foreach (XacmlObligationExpression xacmlObligationExpression in xacmlObligationExpressions)
+            {
+                WriteObligationExpression(writer, xacmlObligationExpression);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteObligationExpression(XmlWriter writer, XacmlObligationExpression xacmlObligationExpression)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlObligationExpression, nameof(xacmlObligationExpression));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.ObligationExpression, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.ObligationId, xacmlObligationExpression.ObligationId.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.FulfillOn, xacmlObligationExpression.FulfillOn.ToString());
+
+            foreach (XacmlAttributeAssignmentExpression attributeAssigmentExpression in xacmlObligationExpression.AttributeAssignmentExpressions)
+            {
+                WriteAttributeAssignmentExpression(writer, attributeAssigmentExpression);
+            }
+
+            writer.WriteEndElement();
+        }
+
         private static void WriteAdvice(XmlWriter writer, XacmlAdvice xacmlAdvice)
         {
             Guard.ArgumentNotNull(writer, nameof(writer));
@@ -189,6 +277,39 @@ namespace Altinn.Authorization.ABAC.Utils
             foreach (var attributeAssigment in xacmlAdvice.AttributeAssignment)
             {
                 WriteAttributeAssignment(writer, attributeAssigment);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAdviceExpressions(XmlWriter writer, ICollection<XacmlAdviceExpression> xacmlAdviceExpressions)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAdviceExpressions, nameof(xacmlAdviceExpressions));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AdviceExpressions, Xacml30Constants.NameSpaces.Policy);
+
+            foreach (XacmlAdviceExpression xacmlAdviceExpression in xacmlAdviceExpressions)
+            {
+                WriteAdviceExpression(writer, xacmlAdviceExpression);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAdviceExpression(XmlWriter writer, XacmlAdviceExpression xacmlAdviceExpression)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAdviceExpression, nameof(xacmlAdviceExpression));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AdviceExpression, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.AdviceId, xacmlAdviceExpression.AdviceId.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.FulfillOn, xacmlAdviceExpression.AppliesTo.ToString());
+
+            foreach (XacmlAttributeAssignmentExpression attributeAssigmentExpression in xacmlAdviceExpression.AttributeAssignmentExpressions)
+            {
+                WriteAttributeAssignmentExpression(writer, attributeAssigmentExpression);
             }
 
             writer.WriteEndElement();
@@ -224,6 +345,51 @@ namespace Altinn.Authorization.ABAC.Utils
             }
 
             writer.WriteEndElement();
+        }
+
+        private static void WriteAttributeAssignmentExpression(XmlWriter writer, XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAttributeAssignmentExpression, nameof(xacmlAttributeAssignmentExpression));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AttributeAssignmentExpression, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.AttributeId, xacmlAttributeAssignmentExpression.AttributeId.OriginalString);
+            if (xacmlAttributeAssignmentExpression.Category != null)
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.Category, xacmlAttributeAssignmentExpression.Category.OriginalString);
+            }
+
+            if (!string.IsNullOrEmpty(xacmlAttributeAssignmentExpression.Issuer))
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.Issuer, xacmlAttributeAssignmentExpression.Issuer);
+            }
+
+            if (xacmlAttributeAssignmentExpression.Property != null)
+            {
+                WriteExpression(writer, xacmlAttributeAssignmentExpression.Property);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteExpression(XmlWriter writer, IXacmlExpression xacmlExpression)
+        {
+            switch (xacmlExpression.GetType().Name)
+            {
+                case "XacmlAttributeValue":
+                    WriteAttributeValue(writer, (XacmlAttributeValue)xacmlExpression);
+                    break;
+                case "XacmlAttributeDesignator":
+                    WriteAttributeDesignator(writer, (XacmlAttributeDesignator)xacmlExpression);
+                    break;
+                case "XacmlAttributeSelector":
+                case "XacmlApply":
+                case "XacmlVariableReference":
+                case "XacmlFunction":
+                default:
+                    throw new NotImplementedException($"XacmlSerializer: Serialization of type {xacmlExpression.GetType().Name} currently not supported");
+            }
         }
 
         private static void WriteContextAttributes(XmlWriter writer, XacmlContextAttributes xacmlContextAttributes)
@@ -282,6 +448,53 @@ namespace Altinn.Authorization.ABAC.Utils
             else
             {
                 WriteAnyElement(writer, (XacmlAnyElement)xacmlAttributeValue);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAttributeDesignator(XmlWriter writer, XacmlAttributeDesignator xacmlAttributeDesignator)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAttributeDesignator, nameof(xacmlAttributeDesignator));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.AttributeId, xacmlAttributeDesignator.AttributeId.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.Category, xacmlAttributeDesignator.Category.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.DataType, xacmlAttributeDesignator.DataType.OriginalString);
+
+            if (xacmlAttributeDesignator.MustBePresent != null)
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.MustBePresent, xacmlAttributeDesignator.MustBePresent.ToString().ToLower());
+            }
+
+            if (!string.IsNullOrEmpty(xacmlAttributeDesignator.Issuer))
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.Issuer, xacmlAttributeDesignator.Issuer);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAttribute(XmlWriter writer, XacmlAttribute xacmlAttribute)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAttribute, nameof(xacmlAttribute));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.AttributeId, xacmlAttribute.AttributeId.OriginalString);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.IncludeInResult, xacmlAttribute.IncludeInResult.ToString().ToLower());
+
+            if (xacmlAttribute.Issuer != null)
+            {
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.Issuer, xacmlAttribute.Issuer);
+            }
+
+            foreach (XacmlAttributeValue attributeValue in xacmlAttribute.AttributeValues)
+            {
+                WriteAttributeValue(writer, attributeValue);
             }
 
             writer.WriteEndElement();
@@ -368,6 +581,144 @@ namespace Altinn.Authorization.ABAC.Utils
             {
                 elem.WriteTo(writer);
             }
+        }
+
+        private static void WriteTarget(XmlWriter writer, XacmlTarget xacmlTarget)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlTarget, nameof(xacmlTarget));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Target, Xacml30Constants.NameSpaces.Policy);
+
+            foreach (XacmlAnyOf xacmlAnyOf in xacmlTarget.AnyOf)
+            {
+                WriteAnyOf(writer, xacmlAnyOf);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAnyOf(XmlWriter writer, XacmlAnyOf xacmlAnyOf)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAnyOf, nameof(xacmlAnyOf));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AnyOf, Xacml30Constants.NameSpaces.Policy);
+
+            foreach (XacmlAllOf xacmlAllOf in xacmlAnyOf.AllOf)
+            {
+                WriteAllOf(writer, xacmlAllOf);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteAllOf(XmlWriter writer, XacmlAllOf xacmlAllOf)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlAllOf, nameof(xacmlAllOf));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AllOf, Xacml30Constants.NameSpaces.Policy);
+
+            foreach (XacmlMatch xacmlMatch in xacmlAllOf.Matches)
+            {
+                WriteMatch(writer, xacmlMatch);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteMatch(XmlWriter writer, XacmlMatch xacmlMatch)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlMatch, nameof(xacmlMatch));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Match, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.MatchId, xacmlMatch.MatchId.OriginalString);
+
+            if (xacmlMatch.AttributeValue != null)
+            {
+                WriteAttributeValue(writer, xacmlMatch.AttributeValue);
+            }
+
+            if (xacmlMatch.AttributeDesignator != null)
+            {
+                WriteAttributeDesignator(writer, xacmlMatch.AttributeDesignator);
+            }
+
+            if (xacmlMatch.AttributeSelector != null)
+            {
+                throw new NotImplementedException($"XacmlSerializer: Serialization of type {xacmlMatch.AttributeSelector.GetType().Name} currently not supported");
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteRule(XmlWriter writer, XacmlRule xacmlRule)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlRule, nameof(xacmlRule));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Rule, Xacml30Constants.NameSpaces.Policy);
+
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.RuleId, xacmlRule.RuleId);
+            writer.WriteAttributeString(XacmlConstants.AttributeNames.Effect, xacmlRule.Effect.ToString());
+
+            if (xacmlRule.Description != null)
+            {
+                WriteDescription(writer, xacmlRule.Description);
+            }
+
+            if (xacmlRule.Target != null)
+            {
+                WriteTarget(writer, xacmlRule.Target);
+            }
+
+            if (xacmlRule.Condition != null)
+            {
+                throw new NotImplementedException($"XacmlSerializer: Serialization of type {xacmlRule.Condition.GetType().Name} currently not supported");
+            }
+
+            if (xacmlRule.Obligations != null && xacmlRule.Obligations.Count > 0)
+            {
+                WriteObligationExpressions(writer, xacmlRule.Obligations);
+            }
+
+            if (xacmlRule.Advices != null && xacmlRule.Advices.Count > 0)
+            {
+                WriteAdviceExpressions(writer, xacmlRule.Advices);
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteIssuer(XmlWriter writer, XacmlPolicyIssuer xacmlPolicyIssuer)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(xacmlPolicyIssuer, nameof(xacmlPolicyIssuer));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.PolicyIssuer, Xacml30Constants.NameSpaces.Policy);
+
+            if (xacmlPolicyIssuer.Attributes != null)
+            {
+                foreach (XacmlAttribute attribute in xacmlPolicyIssuer.Attributes)
+                {
+                    WriteAttribute(writer, attribute);
+                }
+            }
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteDescription(XmlWriter writer, string description)
+        {
+            Guard.ArgumentNotNull(writer, nameof(writer));
+            Guard.ArgumentNotNull(description, nameof(description));
+
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Description, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteString(description);
+            writer.WriteEndElement();
         }
     }
 }
