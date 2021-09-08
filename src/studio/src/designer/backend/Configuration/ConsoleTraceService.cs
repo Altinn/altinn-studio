@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Yuniql.Extensibility;
 
 namespace Altinn.Studio.Designer.Configuration
@@ -6,6 +7,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Copied from sample project.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
