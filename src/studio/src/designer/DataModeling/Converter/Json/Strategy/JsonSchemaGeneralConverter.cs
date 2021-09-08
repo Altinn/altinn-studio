@@ -484,18 +484,34 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 foreach (var restrictionFacet in restrictionFacets)
                 {
                     restrictionFacet.Parent = restriction;
-
-                    var unhandledEnumAttributesForFacet = new List<XmlAttribute>();
-                    foreach ((string key, string value) in unhandledEnumAttributes.First(a => a.Name == restrictionFacet.Value).Properties)
-                    {
-                        var xmlUnhandledEnumAttribute = CreateAttribute(key, value);
-                        unhandledEnumAttributesForFacet.Add(xmlUnhandledEnumAttribute);
-                    }
-
-                    restrictionFacet.UnhandledAttributes = unhandledEnumAttributesForFacet.ToArray();
+                    AddUnhandledEnumAttributesToFacet(restrictionFacet, unhandledEnumAttributes);
                     restriction.Facets.Add(restrictionFacet);
                 }
             }
+        }
+
+        private void AddUnhandledEnumAttributesToFacet(XmlSchemaFacet xmlSchemaFacet, IReadOnlyList<NamedKeyValuePairs> unhandledEnumAttributes)
+        {
+            if (unhandledEnumAttributes.Count == 0)
+            {
+                return;
+            }
+
+            var namedKeyValuePairs = unhandledEnumAttributes.First(a => a.Name == xmlSchemaFacet.Value);
+
+            if (namedKeyValuePairs == null)
+            {
+                return;
+            }
+
+            var unhandledEnumAttributesForFacet = new List<XmlAttribute>();
+            foreach ((string key, string value) in namedKeyValuePairs.Properties)
+            {
+                var xmlUnhandledEnumAttribute = CreateAttribute(key, value);
+                unhandledEnumAttributesForFacet.Add(xmlUnhandledEnumAttribute);
+            }
+
+            xmlSchemaFacet.UnhandledAttributes = unhandledEnumAttributesForFacet.ToArray();
         }
 
         private IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> restrictionKeywords)

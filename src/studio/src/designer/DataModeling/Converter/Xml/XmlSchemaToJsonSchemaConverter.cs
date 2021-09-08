@@ -883,7 +883,10 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
             }
 
-            builder.XsdUnhandledEnumAttributes(namedKeyValuePairsList);
+            if (namedKeyValuePairsList.Count > 0)
+            {
+                builder.XsdUnhandledEnumAttributes(namedKeyValuePairsList);
+            }
         }
 
         private JsonSchemaBuilder ConvertSchemaAttributeGroup(XmlSchemaAttributeGroup item, bool optional, bool array)

@@ -143,8 +143,6 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                 }
 
                 writer.WriteEndObject();
-
-                writer.Flush();
             }
         }
     }

@@ -51,7 +51,11 @@ namespace DataModeling.Tests.Json.Keywords
             // Act
             var keywordConverter = new XsdUnhandledEnumAttributesKeywordJsonConverter();
             var jsonStream = new MemoryStream();
-            keywordConverter.Write(new Utf8JsonWriter(jsonStream), keyword, new JsonSerializerOptions());
+            var jsonWriter = new Utf8JsonWriter(jsonStream);
+            jsonWriter.WriteStartObject();
+            keywordConverter.Write(jsonWriter, keyword, new JsonSerializerOptions());
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
 
             // Assert
             jsonStream.Seek(0, SeekOrigin.Begin);
