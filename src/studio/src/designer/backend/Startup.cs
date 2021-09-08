@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
-using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
@@ -20,7 +19,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Npgsql.Logging;
 using Yuniql.AspNetCore;
 using Yuniql.PostgreSql;
 
