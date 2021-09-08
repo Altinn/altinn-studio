@@ -175,7 +175,7 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private List<ReleaseEntity> GetReleases(string filename)
+        private static List<ReleaseEntity> GetReleases(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath);
             string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\ReleasesCollection\{filename}");
@@ -188,7 +188,7 @@ namespace Designer.Tests.Services
             return null;
         }
 
-        private Build GetBuild()
+        private static Build GetBuild()
         {
             return new Build
             {
@@ -198,7 +198,7 @@ namespace Designer.Tests.Services
             };
         }
 
-        private AzureDevOpsSettings GetAzureDevOpsSettings()
+        private static AzureDevOpsSettings GetAzureDevOpsSettings()
         {
             return new AzureDevOpsSettings
             {
