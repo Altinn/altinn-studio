@@ -48,40 +48,35 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Endpoint for making a delegation of an Altinn App between two parties
+        /// Endpoint for adding one or more rules for the given app/offeredby/coveredby. This updates or creates a new delegated policy of type "DirectlyDelegated". DelegatedByUserId is included to store history information in 3.0.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
-        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
-        /// <param name="rules">Array of rules to be delegated</param>
+        /// <param name="rules">All rules to be delegated</param>
+        /// <response code="200">Ok</response>
+        /// <response code="206" cref="CustomErrorModel">Partial Content</response>
+        /// <response code="400" cref="CustomErrorModel">Bad Request</response>
         [HttpPost]
-        [Route("authorization/api/v1/[controller]/{org}/{app}/{offeredBy}/{coveredBy}/")]
-        public async Task<ActionResult> Post([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy, [FromBody] List<Rule> rules)
+        ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
+        [Route("authorization/api/v1/[controller]/AddRules")]
+        public async Task<ActionResult> Post([FromBody] List<Rule> rules)
         {
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) ||
-            offeredBy == 0 || string.IsNullOrEmpty(coveredBy) || rules == null || rules.Count < 1)
+            if (rules == null || rules.Count < 1)
             {
-                return BadRequest("Missing parameter. Values: org, app, offeredBy, coveredBy or rules cannot be null or empty");
+                return BadRequest("Missing rules in body");
             }
 
-            ////var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
-
-            int createdByUserId = rules.First().DelegatedByUserId;
-
-            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out _, out _))
+            if (!ModelState.IsValid)
             {
-                return BadRequest($"CoveredBy parameter invalid: {coveredBy}. Value must be either a valid PartyId prefixed with 'p' or a valid UserId prefixed with 'u'.");
+                return BadRequest("Invalid model");
             }
 
             try
             {
-                bool success = await _pap.WriteDelegationPolicy(org, app, offeredBy, coveredBy, createdByUserId, rules);
+                Dictionary<string, bool> delegationResults = await _pap.TryWriteDelegationPolicyRules(rules);
 
-                if (success)
+                if (delegationResults.Values.All(result => result == true))
                 {
                     _logger.LogInformation("Delegation completed");
-                    return Created("Delegation completed", success);
+                    return Created("Created", delegationResults);
                 }
 
                 _logger.LogInformation("Delegation could not be completed");
@@ -89,53 +84,62 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to store delegation change in database. {e}");
-                return StatusCode(500, $"Unable to store delegation change in database. {e}");
+                _logger.LogError($"Unable to store delegation rules in database. {e}");
+                return StatusCode(500, $"Unable to store delegation rules in database. {e}");
             }
         }
 
         /// <summary>
-        /// Endpoint for making a delegation of an Altinn App between two parties
+        /// Endpoint for retrieving delegated rules between parties
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
-        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
-        [HttpGet]
-        [Route("authorization/api/v1/[controller]/{org}/{app}/{offeredBy}/{coveredBy}/")]
-        public async Task<ActionResult<DelegatedPolicy>> Get([FromRoute] string org, [FromRoute] string app, [FromRoute] int offeredBy, [FromRoute] string coveredBy)
+        [HttpPost]
+        [Route("authorization/api/v1/[controller]/GetRules")]
+        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleMatch ruleMatch, [FromQuery] bool onlyDirectDelegations = false)
         {
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) ||
-            offeredBy == 0 || string.IsNullOrEmpty(coveredBy))
-            {
-                return BadRequest("Missing parameter. Values: org, app, offeredBy, coveredBy cannot be null or empty");
-            }
-
-            ////var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
-
-            int coveredByUserId, coveredByPartyId;
-            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out coveredByPartyId, out coveredByUserId))
-            {
-                return BadRequest($"CoveredBy parameter invalid: {coveredBy}. Value must be either a valid PartyId prefixed with 'p' or a valid UserId prefixed with 'u'.");
-            }
-
             try
             {
-                DelegatedPolicy result = await _pap.GetDelegationPolicy(org, app, offeredBy, coveredByPartyId, coveredByUserId);
-
-                if (result != null)
-                {
-                    _logger.LogInformation("Delegation retrieved");
-                    return result;
-                }
-
-                _logger.LogInformation("Delegation could not be completed");
-                return StatusCode(500, $"Unable to complete delegation");
+                return StatusCode(404, "Not yet implemented");
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to read delegation change from database. {e}");
-                return StatusCode(500, $"Unable to read delegation change from database. {e}");
+                _logger.LogError($"Unable to get rules. {e}");
+                return StatusCode(500, $"Unable to get rules. {e}");
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for deleting delegated rules between parties
+        /// </summary>
+        [HttpPost]
+        [Route("authorization/api/v1/[controller]/DeleteRules")]
+        public async Task<ActionResult> DeleteRules([FromBody] List<string> ruleIds)
+        {
+            try
+            {
+                return StatusCode(404, "Not yet implemented");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to delete rules. {e}");
+                return StatusCode(500, $"Unable to delete rules. {e}");
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for deleting an entire delegated policy between parties
+        /// </summary>
+        [HttpPost]
+        [Route("authorization/api/v1/[controller]/DeletePolicy")]
+        public async Task<ActionResult> DeletePolicy([FromBody] RuleMatch policyMatch)
+        {
+            try
+            {
+                return StatusCode(404, "Not yet implemented");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to delete delegated policy. {e}");
+                return StatusCode(500, $"Unable to delete delegated policy. {e}");
             }
         }
 

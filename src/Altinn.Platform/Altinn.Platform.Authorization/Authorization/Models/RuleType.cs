@@ -1,9 +1,9 @@
 namespace Altinn.Platform.Authorization.Models
 {
     /// <summary>
-    /// This model defines the different types of delegation policies and why it is relevant for a given coveredby (recipient).
+    /// This model defines the different types of rules and why it is relevant for a given coveredby (recipient).
     /// </summary>
-    public enum DelegatedPolicyType
+    public enum RuleType
     {
         /// <summary>
         /// Not set

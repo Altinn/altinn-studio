@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml;
@@ -70,43 +71,59 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DelegatedPolicy> GetDelegationPolicy(string org, string app, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        public async Task<Dictionary<string, bool>> TryWriteDelegationPolicyRules(IList<Rule> rules)
         {
-            return await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
+            Dictionary<string, List<Rule>> delegationDict = DelegationHelper.SortRulesByDelegationPolicyPath(rules);
+
+            Dictionary<string, bool> resultDict = new Dictionary<string, bool>();
+            foreach (string delegationPolicypath in delegationDict.Keys)
+            {
+                bool result = await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
+                resultDict.Add(delegationPolicypath, result);
+            }
+
+            return resultDict;
         }
 
-        /// <inheritdoc/>
-        public async Task<bool> WriteDelegationPolicy(string org, string app, int offeredByPartyId, string coveredBy, int delegatedByUserId, IList<Rule> rules)
+        private async Task<bool> WriteDelegationPolicyInternal(string policyPath, List<Rule> rules)
         {
-            if (!PolicyHelper.TryParseCoveredBy(coveredBy, out int coveredByPartyId, out int coveredByUserId))
+            if (!DelegationHelper.TryGetDelegationParamsFromRule(rules.First(), out string org, out string app, out int offeredByPartyId, out int? coveredByPartyId, out int? coveredByUserId, out int delegatedByUserId))
             {
+                // ToDo: response to AltinnII?
                 return false;
             }
 
-            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredByPartyId.ToString(), coveredBy);
-            XacmlPolicy existingPolicy = await _prp.GetPolicyAsync(policyPath);
+            XacmlPolicy appPolicy = await _prp.GetPolicyAsync(org, app);
+            if (appPolicy == null)
+            {
+                // ToDo: Invalid Org/App. Response to AltinnII? 
+                return false;
+            }
 
+            XacmlPolicy existingDelegationPolicy = await _prp.GetPolicyAsync(policyPath);
             XacmlPolicy delegationPolicy;
-            if (existingPolicy != null)
+
+            // What if app/existing policy couldn't be read cause blobstorage downtime?
+            if (existingDelegationPolicy != null)
             {
                 // ToDo: evaluate (?) existing policy and add new rules
-                delegationPolicy = existingPolicy;
+                delegationPolicy = existingDelegationPolicy;
                 foreach (Rule rule in rules)
                 {
-                    delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredBy, rule));
+                    delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
                 }
             }
             else
             {
                 // ToDo: build new policy file
-                delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredBy, rules);
-            }
+                delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules, appPolicy);
+            }            
 
             MemoryStream dataStream = new MemoryStream();
             XmlWriter writer = XmlWriter.Create(dataStream);
 
             // ToDo: Do xmlwriter through XacmlSerializer. Need ABAC nuget update or direct ABAC project dependency. Until this line is uncommented only empty xml files will be stored to blobstorage.
-            ////XacmlSerializer.WritePolicy(writer, delegationPolicy);
+            //XacmlSerializer.WritePolicy(writer, delegationPolicy);
 
             writer.Flush();
             dataStream.Position = 0;
@@ -115,10 +132,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
             {
+                // ToDo: How to handle transaction across blobstorage and postgresql and response to AltinnII
                 return false;
             }
-
-            // ToDo: How to handle transaction across blobstorage and postgresql?
+                        
             return await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? "0");
         }
     }

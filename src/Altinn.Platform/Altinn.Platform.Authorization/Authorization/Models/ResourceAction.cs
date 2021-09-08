@@ -6,21 +6,21 @@ namespace Altinn.Platform.Authorization.Models
     /// <summary>
     /// This model describes an action that may be used in a rule describing a right.
     /// </summary>
-    public class Action
+    public class ResourceAction
     {
         /// <summary>
-        /// Gets or sets the name of the action, eg. read, write, sign.
+        /// Gets or sets the set of Attribute Id and Attribute Value for the specific action, from the original app policy
         /// </summary>
         [Required]
-        public string Name { get; set; }
+        public AttributeMatch Match { get; set; }
 
         /// <summary>
-        /// Gets or sets the title
+        /// Gets or sets a title for the action
         /// </summary>
         public LocalizedText Title { get; set; }
 
         /// <summary>
-        /// Gets or sets the description
+        /// Gets or sets a description of the action.
         /// </summary>
         public LocalizedText Description { get; set; }
 

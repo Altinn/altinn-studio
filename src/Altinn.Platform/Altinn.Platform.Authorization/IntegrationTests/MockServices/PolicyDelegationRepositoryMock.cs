@@ -19,17 +19,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             throw new NotImplementedException();
         }
 
-        public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId)
+        public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<DelegatedPolicy>> GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        void IPolicyDelegationRepository.GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<DelegatedPolicy> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        void IPolicyDelegationRepository.GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
         {
             throw new NotImplementedException();
         }
