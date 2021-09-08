@@ -49,6 +49,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CreateAsync_OK()
         {
+            // Arrange
             DeploymentModel deploymentModel = new DeploymentModel
             {
                 TagName = "1",
@@ -87,7 +88,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _applicationInformationService.Object);
 
+            // Act
             DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(deploymentModel);
+
+            // Assert
             Assert.NotNull(deploymentEntity);
             _releaseRepository.Verify(
                 r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -105,6 +109,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task GetAsync()
         {
+            // Arrange
             _deploymentRepository.Setup(r => r.Get(It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
 
             DeploymentService deploymentService = new DeploymentService(
@@ -115,8 +120,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _applicationInformationService.Object);
 
+            // Act
             SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(new DocumentQueryModel());
 
+            // Assert
             Assert.Equal(8, results.Results.Count());
             _deploymentRepository.Verify(r => r.Get(It.IsAny<DocumentQueryModel>()), Times.Once);
         }
@@ -124,6 +131,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task UpdateAsync()
         {
+            // Arrange
             _deploymentRepository.Setup(r => r.Get(
                 It.IsAny<string>(),
                 It.IsAny<string>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
@@ -139,7 +147,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _applicationInformationService.Object);
 
+            // Act
             await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First(), "ttd");
+
+            // Assert
             _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);            
             _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
         }

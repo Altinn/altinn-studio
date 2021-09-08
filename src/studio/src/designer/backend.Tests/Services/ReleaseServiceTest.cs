@@ -44,6 +44,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CreateAsync_OK()
         {
+            // Arrange
             ReleaseEntity releaseEntity = new ReleaseEntity
             {
                 TagName = "1",
@@ -72,7 +73,10 @@ namespace Designer.Tests.Services
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
 
+            // Act
             ReleaseEntity result = await releaseService.CreateAsync(releaseEntity);
+
+            // Assert
             _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult), Times.Once);
             _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Once);
             azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
@@ -81,6 +85,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CreateAsync_Exception()
         {
+            // Arrange
             ReleaseEntity releaseEntity = new ReleaseEntity
             {
                 TagName = "1",
@@ -110,6 +115,7 @@ namespace Designer.Tests.Services
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
             
+            // Act            
             HttpRequestWithStatusException resultException = null;
             try
             {
@@ -120,6 +126,7 @@ namespace Designer.Tests.Services
                 resultException = e;
             }
 
+            // Assert
             Assert.NotNull(resultException);
             Assert.Equal(HttpStatusCode.Conflict, resultException.StatusCode);
         }
@@ -127,6 +134,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task GetAsync_OK()
         {
+            // Arrange
             _releaseRepository.Setup(r => r.Get(It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetReleases("completedReleases.json"));
 
             ReleaseService releaseService = new ReleaseService(
@@ -136,7 +144,10 @@ namespace Designer.Tests.Services
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
 
+            // Act
             SearchResults<ReleaseEntity> results = await releaseService.GetAsync(new DocumentQueryModel());
+
+            // Assert
             Assert.Equal(5, results.Results.Count());
             _releaseRepository.Verify(r => r.Get(It.IsAny<DocumentQueryModel>()), Times.Once);
         }
@@ -144,6 +155,7 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task UpdateAsync_OK()
         {
+            // Arrange
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json"));
             _releaseRepository.Setup(r => r.Update(It.IsAny<ReleaseEntity>())).Returns(Task.CompletedTask);
 
@@ -154,7 +166,10 @@ namespace Designer.Tests.Services
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
 
+            // Act
             await releaseService.UpdateAsync(GetReleases("createdRelease.json").First(), "ttd");
+
+            // Assert
             _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _releaseRepository.Verify(r => r.Update(It.IsAny<ReleaseEntity>()), Times.Once);
         }
