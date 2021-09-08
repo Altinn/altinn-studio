@@ -253,7 +253,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             else if (!item.SchemaTypeName.IsEmpty)
             {
                 int minOccurs = (optional || item.Use == XmlSchemaUse.Optional) ? 0 : 1;
-                HandleType(item.SchemaTypeName, minOccurs, 1, array, builder);
+                HandleType(item.SchemaTypeName, minOccurs, 1, array, false, builder);
             }
             else if (item.SchemaType != null)
             {
@@ -299,7 +299,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.BaseTypeName.IsEmpty)
             {
-                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
             }
 
             if (item.Facets.Count > 0)
@@ -426,7 +426,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             else if (!item.ItemTypeName.IsEmpty)
             {
                 itemTypeSchema = new JsonSchemaBuilder();
-                HandleType(item.ItemTypeName, optional ? 0 : 1, 1, false, itemTypeSchema);
+                HandleType(item.ItemTypeName, optional ? 0 : 1, 1, false, false, itemTypeSchema);
             }
             else
             {
@@ -654,7 +654,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 JsonSchemaBuilder valueSchemaBuilder = new JsonSchemaBuilder();
                 if (item.BaseTypeName.Namespace == XmlSchemaNamespace)
                 {
-                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchemaBuilder);
+                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchemaBuilder);
                 }
                 else
                 {
@@ -663,11 +663,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (type is XmlSchemaSimpleType)
                     {
-                        HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchemaBuilder);
+                        HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchemaBuilder);
                     }
                     else if (type is XmlSchemaComplexType)
                     {
-                        steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+                        steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
                     }
                 }
 
@@ -713,7 +713,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             PropertiesBuilder properties = new PropertiesBuilder();
 
             JsonSchemaBuilder valueSchema = new JsonSchemaBuilder();
-            HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchema);
+            HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchema);
             properties.Add("value", valueSchema, false);
 
             foreach (XmlSchemaObject attribute in item.Attributes)
@@ -761,7 +761,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
             switch (item.Particle)
             {
@@ -810,7 +810,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
             switch (item.Particle)
             {
@@ -918,7 +918,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.SchemaTypeName.IsEmpty)
             {
-                HandleType(item.SchemaTypeName, optional ? 0 : item.MinOccurs, item.MaxOccurs, array, builder);
+                HandleType(item.SchemaTypeName, optional ? 0 : item.MinOccurs, item.MaxOccurs, array, item.IsNillable, builder);
             }
             else
             {
@@ -932,6 +932,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         break;
                 }
             }
+
+            // TODO: Add support for nillable here
 
             AddUnhandledAttributes(item, builder);
 
@@ -1038,7 +1040,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return $"#/$defs/{name}";
         }
 
-        private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, JsonSchemaBuilder builder)
+        private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, bool nillable, JsonSchemaBuilder builder)
         {
             array = array || maxOccurs > 1;
 
@@ -1053,7 +1055,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 if (type != null)
                 {
-                    typeBuilder.Type(type.Value);
+                    if (nillable)
+                    {
+                        typeBuilder.Type(new SchemaValueType[] { type.Value, SchemaValueType.Null });
+                    }
+                    else
+                    { 
+                        typeBuilder.Type(type.Value);
+                    }
                 }
                 else
                 {

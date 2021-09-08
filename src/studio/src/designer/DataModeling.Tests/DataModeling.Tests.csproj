@@ -46,6 +46,7 @@
     <None Remove="_TestData\Model\JsonSchema\AltinnAnnotation_Normalized.json" />
     <None Remove="_TestData\Model\JsonSchema\ComplexContentExtension_negative.json" />
     <None Remove="_TestData\Model\JsonSchema\NestedArrays.json" />
+    <None Remove="_TestData\Model\JsonSchema\NillableAttribute.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection-expected.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-collection.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-content-common-keywords.json" />
@@ -74,6 +75,7 @@
     <None Remove="_TestData\Model\JsonSchema\SimpleContentExtensionPlain.json" />
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\NillableAttribute.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />

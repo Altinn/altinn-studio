@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  
+  <xsd:element name="Root" type="main" />
+
+  <xsd:complexType name="main">
+    <xsd:sequence>
+      <xsd:element name="nonboth" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="minzero" type="xsd:int"/>
+      <xsd:element name="nilint" nillable="true" type="xsd:int"/>
+      <xsd:element name="nilstring" nillable="true" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="minzeronil" nillable="true" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

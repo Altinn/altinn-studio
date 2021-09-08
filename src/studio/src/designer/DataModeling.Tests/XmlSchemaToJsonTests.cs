@@ -51,6 +51,7 @@ namespace DataModeling.Tests
         [InlineData("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleTypeList")]
         [InlineData("Model/XmlSchema/SeresWithAttributes.xsd", "Model/JsonSchema/SeresWithAttributes.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAttributes")]
         [InlineData("Model/XmlSchema/SeresWithAnyAttribute.xsd", "Model/JsonSchema/SeresWithAnyAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAnyAttribute")]
+        [InlineData("Model/XmlSchema/NillableAttribute.xsd", "Model/JsonSchema/NillableAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: NillableAttribute")]
         public async Task XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
         {
             _testOutputHelper.WriteLine(testCase);
@@ -63,12 +64,12 @@ namespace DataModeling.Tests
             var actual = converter.Convert(xsd);
 
             //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
-            //await using var ms = new MemoryStream();
-            //await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            //actual.ToJsonDocument().WriteTo(writer);
-            //await writer.FlushAsync();
+            await using var ms = new MemoryStream();
+            await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            actual.ToJsonDocument().WriteTo(writer);
+            await writer.FlushAsync();
 
-            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
+            var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
