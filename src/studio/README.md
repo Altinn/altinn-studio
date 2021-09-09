@@ -64,7 +64,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [altinn3.no](http://altinn3.no)
+The solution is now available locally at [altinn3.no](http://altinn3.no). (Just create a new user for testing. No email verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
 
@@ -77,8 +77,6 @@ Example
 ```bash
 docker-compose up -d --build altinn_designer
 ```
-
-Next you just have to create a new user and start testing. (No email verification required)
 
 ### Running solutions locally
 
