@@ -142,15 +142,15 @@ namespace Altinn.App.Common.Serialization
             }
         }
 
-        private string GetRootElementName(Type modelType)
+        private static string GetRootElementName(Type modelType)
         {
             Attribute[] attributes = Attribute.GetCustomAttributes(modelType);
 
             foreach (var attribute in attributes)
             {
-                if (attribute is XmlRootAttribute)
+                var xmlRootAttribute = attribute as XmlRootAttribute;
+                if (xmlRootAttribute != null)
                 {
-                    var xmlRootAttribute = (XmlRootAttribute)attribute;
                     return xmlRootAttribute.ElementName;
                 }
             }
