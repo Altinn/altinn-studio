@@ -78,6 +78,8 @@ Example
 docker-compose up -d --build altinn_designer
 ```
 
+Next you just have to create a new user and start testing. (No email verification required)
+
 ### Running solutions locally
 
 #### Designer
