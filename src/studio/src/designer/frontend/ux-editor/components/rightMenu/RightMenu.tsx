@@ -121,7 +121,7 @@ export default function RightMenu(props: IRightMenuProps) {
             <a
               target='_blank'
               rel='noopener noreferrer'
-              href='https://altinn.github.io/docs/altinn-studio/app-creation/logic/#dynamics'
+              href='https://docs.altinn.studio/app/development/logic/dynamic/'
             >
               {getLanguageFromKey('right_menu.dynamics_link', props.language)}
             </a>
