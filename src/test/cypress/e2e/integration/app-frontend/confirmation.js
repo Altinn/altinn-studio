@@ -7,11 +7,8 @@ import * as texts from '../../fixtures/texts.json';
 const appFrontend = new AppFrontend();
 
 describe('Confirm', () => {
-  before(() => {
-    cy.compelteTask3Form();
-  });
-
   it('Confirm page displays texts and attachments', () => {
+    cy.compelteTask3Form();
     cy.get(appFrontend.backButton).should('be.visible');
     cy.intercept('GET', '**/orgs/altinn-orgs.json').as('getAltinnOrgs');
     cy.get(appFrontend.sendinButton).should('be.visible').click();
