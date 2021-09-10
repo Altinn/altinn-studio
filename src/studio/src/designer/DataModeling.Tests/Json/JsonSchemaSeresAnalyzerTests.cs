@@ -112,22 +112,5 @@ namespace DataModeling.Tests.Json
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Nillable);
         }
-
-        private JsonSchema QueryForSubSchema(JsonSchema jsonSchema, string jsonPointer)
-        {
-            var pointer = JsonPointer.Parse(jsonPointer);
-
-            IRefResolvable schemaSegment = jsonSchema;
-            foreach (var segment in pointer.Segments)
-            {                
-                schemaSegment = schemaSegment.ResolvePointerSegment(segment.Value);
-                if (schemaSegment == null)
-                {
-                    return null;
-                }
-            }
-
-            return schemaSegment as JsonSchema;
-        }
     }
 }
