@@ -1068,11 +1068,13 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 {
                     if (nillable)
                     {
-                        var oneOfSchemaBuilder = new JsonSchemaBuilder();
-                        oneOfSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
-                        oneOfSchemaBuilder.Type(SchemaValueType.Null);
+                        var refSchemaBuilder = new JsonSchemaBuilder();
+                        refSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
 
-                        typeBuilder.OneOf(oneOfSchemaBuilder);
+                        var typeSchemaBuilder = new JsonSchemaBuilder();
+                        typeSchemaBuilder.Type(SchemaValueType.Null);
+
+                        typeBuilder.OneOf(refSchemaBuilder, typeSchemaBuilder);
                     }
                     else
                     {

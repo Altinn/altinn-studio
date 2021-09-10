@@ -122,6 +122,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
 
+            if (IsValidNillableElement(schema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
+            }
+
             if (schema.Keywords != null)
             {
                 foreach (var keyword in schema.Keywords)
@@ -136,6 +141,39 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
             }
+        }
+
+        private bool IsValidNillableElement(JsonSchema schema)
+        {
+            if (HasTypeKeywordWithNullAndOtherTypes(schema))
+            {
+                return true;
+            }
+
+            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)
+            {
+                return false;
+            }
+
+            var subSchemas = oneOfKeyword.GetSubschemas().ToList();
+            var typeKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<TypeKeyword>());
+
+            if (typeKeywordSubSchema == null)
+            {
+                return false;
+            }
+
+            if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
+        {
+            return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle) && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null) && typeKeywordSingle.Type > SchemaValueType.Null;
         }
 
         /// <summary>

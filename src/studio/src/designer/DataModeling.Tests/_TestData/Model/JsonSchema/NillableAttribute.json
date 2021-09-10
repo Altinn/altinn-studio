@@ -52,7 +52,9 @@
         "refered": {
           "oneOf": [
             {
-              "$ref": "#/$defs/referedtype",
+              "$ref": "#/$defs/referedtype"
+            },
+            {
               "type": "null"
             }
           ]

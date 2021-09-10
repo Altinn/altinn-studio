@@ -19,6 +19,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         Sequence,
         Choice,
         All,
-        Attribute
+        Attribute,
+        Nillable
     }
 }
