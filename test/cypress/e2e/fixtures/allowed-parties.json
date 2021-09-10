@@ -1,0 +1,42 @@
+[  
+  {
+      "partyId": 500000,
+      "partyTypeName": 2,
+      "orgNumber": "897069650",
+      "ssn": null,
+      "unitType": "AS",
+      "name": "DDG Fitness AS",
+      "isDeleted": false,
+      "onlyHierarchyElementWithNoAccess": false,
+      "person": null,
+      "organization": null,
+      "childParties": [
+          {
+              "partyId": 500001,
+              "partyTypeName": 2,
+              "orgNumber": "897069651",
+              "ssn": null,
+              "unitType": "BEDR",
+              "name": "DDG Fitness Bergen",
+              "isDeleted": false,
+              "onlyHierarchyElementWithNoAccess": false,
+              "person": null,
+              "organization": null,
+              "childParties": null
+          }
+      ]
+  },
+  {
+      "partyId": 500600,
+      "partyTypeName": 2,
+      "orgNumber": "897069631",
+      "ssn": null,
+      "unitType": "AS",
+      "name": "EAS Health Consulting",
+      "isDeleted": true,
+      "onlyHierarchyElementWithNoAccess": false,
+      "person": null,
+      "organization": null,
+      "childParties": []
+  }  
+]

@@ -9,11 +9,8 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Summary', () => {
-  before(() => {
-    cy.navigateToChangeName();
-  });
-
   it('Summary of change name form', () => {
+    cy.navigateToChangeName();
     cy.completeChangeNameForm('a', 'a');
     cy.get(appFrontend.backButton).should('be.visible');
 
