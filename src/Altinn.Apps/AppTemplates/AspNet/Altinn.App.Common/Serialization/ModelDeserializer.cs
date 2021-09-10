@@ -101,14 +101,12 @@ namespace Altinn.App.Common.Serialization
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 streamContent = await reader.ReadToEndAsync();
 
-                _logger.LogInformation(streamContent);
-
                 using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
                 XmlSerializer serializer = new XmlSerializer(_modelType);
 
                 return serializer.Deserialize(xmlTextReader);
             }
-            catch
+            catch (InvalidOperationException)
             {
                 try
                 {
@@ -132,13 +130,17 @@ namespace Altinn.App.Common.Serialization
                     Error = $"{invalidOperationException.Message} {invalidOperationException?.InnerException.Message}";
                     return null;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    string message = $"Unexpected exception when attempting to deserialize XML into '{_modelType}'";
-                    _logger.LogError(ex, message);
-                    Error = message;
-                    return null;
+                    throw;
                 }
+            }
+            catch (Exception ex)
+            {
+                string message = $"Unexpected exception when attempting to deserialize XML into '{_modelType}'";
+                _logger.LogError(ex, message);
+                Error = message;
+                return null;
             }
         }
 
