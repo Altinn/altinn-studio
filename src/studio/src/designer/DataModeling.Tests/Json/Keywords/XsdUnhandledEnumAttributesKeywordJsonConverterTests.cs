@@ -17,7 +17,7 @@ namespace DataModeling.Tests.Json.Keywords
         {
             // Arrange
             var keywordConverter = new XsdUnhandledEnumAttributesKeywordJsonConverter();
-            ReadOnlySpan<byte> jsonBytes = Encoding.UTF8.GetBytes(@"{""@xsdUnhandledEnumAttributes"":{""frontend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784952""},""backend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784951""},""other"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784950""}}}");
+            ReadOnlySpan<byte> jsonBytes = Encoding.UTF8.GetBytes(@"{""frontend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784952""},""backend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784951""},""other"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784950""}}");
             var jsonReader = new Utf8JsonReader(jsonBytes);
 
             // Act

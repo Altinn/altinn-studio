@@ -107,7 +107,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                 }
 
                 List<NamedKeyValuePairs> namedKeyValuePairsList = new List<NamedKeyValuePairs>();
-                foreach (var item in document.RootElement.GetProperty(Name).EnumerateObject())
+                foreach (var item in document.RootElement.EnumerateObject())
                 {
                     var namedValuedKeyPairs = new NamedKeyValuePairs(item.Name);
 
