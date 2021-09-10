@@ -362,6 +362,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 element.SchemaType = item;
                 HandleSimpleType(item, keywords, path);
             }
+
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+            if (compatibleTypes.Contains(CompatibleXsdType.Nillable))
+            {
+                element.IsNillable = true;
+            }
         }
 
         private void HandleSimpleType(XmlSchemaSimpleType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)

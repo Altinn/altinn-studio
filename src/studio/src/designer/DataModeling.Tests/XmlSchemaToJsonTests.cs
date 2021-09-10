@@ -64,12 +64,12 @@ namespace DataModeling.Tests
             var actual = converter.Convert(xsd);
 
             //await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(expectedPath)), FileMode.Truncate, FileAccess.Write);
-            await using var ms = new MemoryStream();
-            await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            actual.ToJsonDocument().WriteTo(writer);
-            await writer.FlushAsync();
 
-            var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+            //await using var ms = new MemoryStream();
+            //await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            //actual.ToJsonDocument().WriteTo(writer);
+            //await writer.FlushAsync();
+            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
