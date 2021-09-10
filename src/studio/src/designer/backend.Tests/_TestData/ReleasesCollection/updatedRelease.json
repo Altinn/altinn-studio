@@ -1,0 +1,19 @@
+[
+  {
+    "tagName": "1",
+    "name": "1",
+    "body": "test-app",
+    "targetCommitish": "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+    "build": {
+        "id": "84993",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2021-01-27T13:12:11.1304601Z",
+        "finished": "2021-01-27T13:14:05.9839439Z"
+    },
+    "created": "2021-01-27T14:11:55.5132578+01:00",
+    "createdBy": "thomabak",
+    "app": "apps-test-tba",
+    "org": "ttd"
+  }
+]
