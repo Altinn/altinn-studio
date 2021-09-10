@@ -130,10 +130,6 @@ namespace Altinn.App.Common.Serialization
                     Error = $"{invalidOperationException.Message} {invalidOperationException?.InnerException.Message}";
                     return null;
                 }
-                catch
-                {
-                    throw;
-                }
             }
             catch (Exception ex)
             {
