@@ -39,6 +39,9 @@
     "XSD-variant": "Altinn 1.3.1"
   },
   "properties": {
+    "SeresValue": {
+      "$ref": "#/$defs/SeresType"
+    },
     "t1": {
       "$ref": "#/$defs/stringMinMaxLengthRestrictions"
     },
@@ -80,6 +83,7 @@
     }
   },
   "required": [
+    "SeresValue",
     "t1",
     "t2",
     "t3",
@@ -94,15 +98,54 @@
     "f6"
   ],
   "$defs": {
+    "SeresType": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "@xsdUnhandledEnumAttributes": {
+            "frontend": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/frontend/784952"
+            },
+            "backend": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/backend/784951"
+            },
+            "other": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/other/784950"
+            }
+          },
+          "enum": [
+            "frontend",
+            "backend",
+            "other"
+          ]
+        }
+      ],
+      "@xsdUnhandledAttributes": {
+        "seres:elementtype": "Datakodeliste",
+        "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953"
+      }
+    },
     "simpleString": {
       "type": "string",
       "@xsdType": "string"
     },
     "stringMinMaxLengthRestrictions": {
-      "type": "string",
-      "@xsdType": "string",
-      "maxLength": 20,
-      "minLength": 5
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "maxLength": 20,
+          "minLength": 5
+        }
+      ]
     },
     "stringLengthRestrictions": {
       "allOf": [

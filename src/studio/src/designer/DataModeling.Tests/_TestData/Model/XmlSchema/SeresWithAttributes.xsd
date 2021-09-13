@@ -33,7 +33,7 @@
   <xsd:element name="melding" type="melding-modell" />
   <xsd:complexType name="melding-modell">
     <xsd:sequence>
-      <xsd:element name="e1" type="xsd:string" />
+      <xsd:element name="e1" type="xsd:string" seres:guid="http://seres.no/guid/Altinn3/Test/485901"/>
     </xsd:sequence>
     <xsd:attribute name="a1" type="xsd:string" />
     <xsd:attribute name="a2" type="xsd:string" default="def" />

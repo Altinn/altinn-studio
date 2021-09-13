@@ -57,6 +57,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
                     (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()));
 
+            if (schema.UnhandledAttributes is not null)
+            {
+                builder.XsdUnhandledAttributes(schema.UnhandledAttributes.Select(a => (a.Name, a.Value)));
+            }
+
             List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)> items = new List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)>();
 
             foreach (XmlSchemaObject item in schema.Items.Cast<XmlSchemaObject>())
@@ -316,6 +321,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (enumValues.Count > 0)
                     {
+                        AddUnhandledEnumAttributes(item, b);
                         b.Enum(enumValues.Select(val => val.AsJsonElement()));
                     }
                 });
@@ -499,6 +505,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 builder.XsdAnyAttribute();
             }
+
+            AddUnhandledAttributes(item, builder);
         }
 
         private void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)
@@ -861,6 +869,26 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
+        private void AddUnhandledEnumAttributes(XmlSchemaSimpleTypeRestriction item, JsonSchemaBuilder builder)
+        {
+            var namedKeyValuePairsList = new List<NamedKeyValuePairs>();
+
+            foreach (XmlSchemaFacet facet in item.Facets.Cast<XmlSchemaFacet>())
+            {
+                if (facet.UnhandledAttributes != null && facet.UnhandledAttributes.Length > 0)
+                {
+                    var namedKeyValuePairs = new NamedKeyValuePairs(facet.Value);
+                    facet.UnhandledAttributes.ToList().ForEach(a => namedKeyValuePairs.Add(a.Name, a.Value));
+                    namedKeyValuePairsList.Add(namedKeyValuePairs);
+                }
+            }
+
+            if (namedKeyValuePairsList.Count > 0)
+            {
+                builder.XsdUnhandledEnumAttributes(namedKeyValuePairsList);
+            }
+        }
+
         private JsonSchemaBuilder ConvertSchemaAttributeGroup(XmlSchemaAttributeGroup item, bool optional, bool array)
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
@@ -997,7 +1025,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
             HandleSimpleType(item, optional, array, builder);
-
+            AddUnhandledAttributes(item, builder);
             return builder;
         }
 

@@ -42,6 +42,9 @@
                       seres:elementtype="Meldingsdel"
                       seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"/>
       </xsd:sequence>
+     <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES"/>
+     <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="5742"/>
+     <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="34627"/>
    </xsd:complexType>
    <xsd:complexType name="Innrapportoer" seres:elementtype="Meldingsdel"
                     seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916">
