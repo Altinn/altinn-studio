@@ -30,6 +30,7 @@
   <xsd:element name="melding">
     <xsd:complexType>
       <xsd:sequence>
+        <xsd:element name="SeresValue" type="SeresType" />
         <xsd:element name="t1" type="stringMinMaxLengthRestrictions" />
         <xsd:element name="t2" type="stringLengthRestrictions" />
         <xsd:element name="t3" type="stringEnumRestrictions" />
@@ -46,6 +47,13 @@
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
+  <xsd:simpleType name="SeresType" seres:elementtype="Datakodeliste" seres:guid="http://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="frontend" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Kursdomene/Datakodeelement/frontend/784952"/>
+      <xsd:enumeration value="backend" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Kursdomene/Datakodeelement/backend/784951"/>
+      <xsd:enumeration value="other" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Kursdomene/Datakodeelement/other/784950"/>
+    </xsd:restriction>
+  </xsd:simpleType>
   <xsd:simpleType name="simpleString">
     <xsd:restriction base="xsd:string" />
   </xsd:simpleType>

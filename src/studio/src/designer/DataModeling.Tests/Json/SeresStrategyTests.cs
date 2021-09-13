@@ -68,6 +68,7 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/properties/c0")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/simpleString")).Should().Contain(CompatibleXsdType.SimpleType);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/SeresType")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/simpleString")).Should().NotContain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/stringMinMaxLengthRestrictions")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/stringLengthRestrictions")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);

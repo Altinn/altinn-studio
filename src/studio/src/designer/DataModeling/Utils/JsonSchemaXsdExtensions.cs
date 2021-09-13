@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
@@ -67,6 +68,18 @@ namespace Altinn.Studio.DataModeling.Utils
         public static JsonSchemaBuilder XsdUnhandledAttributes(this JsonSchemaBuilder builder, IEnumerable<(string Name, string Value)> attributes)
         {
             builder.Add(new XsdUnhandledAttributesKeyword(attributes));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add <see cref="XsdUnhandledEnumAttributesKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="namedKeyValuePairsList">A list of named unhandled attributes for the enum values</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdUnhandledEnumAttributes(this JsonSchemaBuilder builder, IEnumerable<NamedKeyValuePairs> namedKeyValuePairsList)
+        {
+            builder.Add(new XsdUnhandledEnumAttributesKeyword(namedKeyValuePairsList));
             return builder;
         }
 

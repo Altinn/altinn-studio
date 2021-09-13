@@ -20,6 +20,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         Choice,
         All,
         Attribute,
-        Nillable
+        Nillable,
+        UnhandledAttribute,
+        UnhandledEnumAttribute
     }
 }

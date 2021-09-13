@@ -93,6 +93,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     _metadata.AddCompatibleTypes(path, CompatibleXsdType.Attribute);
                 }
+
+                if (IsValidUnhandledAttribute(schema))
+                {
+                    _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+                }
             }
 
             if (IsValidSimpleTypeRestriction(schema))
@@ -134,6 +139,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
                     AnalyzeKeyword(keywordPath, keyword);
                 }
+            }
+
+            if (IsValidUnhandledAttribute(schema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+            }
+
+            if (IsValidUnhandledEnumAttribute(schema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledEnumAttribute);
             }
 
             // Add "unknown" if no other was added on this path
@@ -364,6 +379,26 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
+        private bool IsValidUnhandledAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsValidUnhandledEnumAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledEnumAttributesKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private bool IsValidSimpleTypeRestriction(JsonSchema schema)
         {
             if (!HasSingleAllOf(schema))
@@ -467,6 +502,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case DeprecatedKeyword:
                     case DescriptionKeyword:
                     case ExamplesKeyword:
+                    case XsdUnhandledEnumAttributesKeyword:
                         continue;
 
                     default:
@@ -489,12 +525,36 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            if (schema.Keywords.Count != 1)
+            var keywords = schema.AsWorkList();
+            if (!keywords.TryPull(out AllOfKeyword _))
             {
                 return false;
             }
 
-            return schema.Keywords.Single() is AllOfKeyword;
+            foreach (var item in keywords.EnumerateUnhandledItems())
+            {
+                // Check if the keyword is allowed
+                switch (item)
+                {
+                    case TitleKeyword:
+                    case CommentKeyword:
+                    case DeprecatedKeyword:
+                    case DescriptionKeyword:
+                    case ExamplesKeyword:
+                    case ConstKeyword:
+                    case DefaultKeyword:
+                    case XsdAnyKeyword:
+                    case XsdAnyAttributeKeyword:
+                    case XsdStructureKeyword:
+                    case XsdUnhandledAttributesKeyword:
+                    case InfoKeyword:
+                        continue;
+                    default:
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         private void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
