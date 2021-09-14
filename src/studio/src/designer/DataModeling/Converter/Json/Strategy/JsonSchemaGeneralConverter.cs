@@ -898,6 +898,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             simpleContent.Content = extension;
 
             var properties = keywords.Pull<PropertiesKeyword>().Properties;
+            var required = keywords.Pull<RequiredKeyword>()?.Properties ?? new List<string>();
             var valuePropertySchema = properties["value"];
             var attributes = properties
                 .Where(prop => prop.Key != "value")
@@ -924,6 +925,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 };
 
                 HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/properties/{name}")));
+                SetFixed(attribute, schema.GetKeyword<ConstKeyword>());
+                SetDefault(attribute, schema.GetKeyword<DefaultKeyword>());
+                SetRequired(attribute, required.Contains(name));
                 extension.Attributes.Add(attribute);
             }
         }
