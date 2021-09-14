@@ -83,6 +83,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
+            if (IsValidNillableElement(schema, out var valueSchema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
+                if (valueSchema != null)
+                {
+                    AnalyzeSchema(path, valueSchema);
+                    return;
+                }                
+            }
+
             // Follow all references, this will mark the schema as the type referenced if it has a $ref keyword
             // This will analyze some schemas multiple times and can be optimized if needed
             schema = FollowReferencesIfAny(schema);
@@ -129,11 +139,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
 
-            if (IsValidNillableElement(schema))
-            {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
-            }
-
             if (schema.Keywords != null)
             {
                 foreach (var keyword in schema.Keywords)
@@ -160,15 +165,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private bool IsValidNillableElement(JsonSchema schema)
+        private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
         {
             if (HasTypeKeywordWithNullAndOtherTypes(schema))
             {
+                valueSchema = null;
                 return true;
             }
 
             if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)
             {
+                valueSchema = null;
                 return false;
             }
 
@@ -177,14 +184,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (typeKeywordSubSchema == null)
             {
+                valueSchema = null;
                 return false;
             }
 
             if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
             {
+                var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                valueSchema = refKeywordSubSchema;
                 return true;
             }
 
+            valueSchema = null;
             return false;
         }
 
@@ -468,12 +479,20 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidSimpleType(JsonSchema schema)
         {
-            if (!schema.TryGetKeyword(out TypeKeyword type))
+            if (!schema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
                 return false;
             }
 
-            switch (type.Type)
+            // This is the case of nillable, so we remove the Null type to be left with the actual type.
+            var type = typeKeyword.Type;
+
+            if (type.HasFlag(SchemaValueType.Null) && type > SchemaValueType.Null)
+            {
+                type &= ~SchemaValueType.Null;
+            }
+
+            switch (type)
             {
                 case SchemaValueType.Object:
                 case SchemaValueType.Null:

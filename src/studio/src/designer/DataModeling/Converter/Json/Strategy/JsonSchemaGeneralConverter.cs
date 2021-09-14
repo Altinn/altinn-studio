@@ -378,7 +378,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            if (keywords.TryPull(out RefKeyword reference))
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+            if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
+            {
+                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                element.IsNillable = true;
+            }
+            else if (keywords.TryPull(out RefKeyword reference))
             {
                 element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
             }
@@ -396,11 +403,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 HandleSimpleType(item, keywords, path);            
             }
 
-            var compatibleTypes = _metadata.GetCompatibleTypes(path);
             if (compatibleTypes.Contains(CompatibleXsdType.Nillable))
             {
                 element.IsNillable = true;
             }
+
         }
 
         private void HandleSimpleType(XmlSchemaSimpleType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
@@ -715,7 +722,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
         {
-            switch (typeKeyword.Type)
+            // This is the case of nillable, so we remove the Null type to be left with the actual type.
+            var type = typeKeyword.Type;
+            if (type.HasFlag(SchemaValueType.Null) && type > SchemaValueType.Null)
+            {
+                type &= ~SchemaValueType.Null;
+            }
+
+            switch (type)
             {
                 case SchemaValueType.Null:
                     return null;
@@ -732,7 +746,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            if (keywords.TryPull(out RefKeyword reference))
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+            if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
+            {
+                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                element.IsNillable = true;
+            }
+            else if (keywords.TryPull(out RefKeyword reference))
             {
                 element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
             }

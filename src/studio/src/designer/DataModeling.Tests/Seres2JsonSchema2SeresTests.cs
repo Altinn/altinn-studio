@@ -34,6 +34,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_4741_4280_forms_5273_41269.xsd", "", Skip = "Missing array support.")]
         [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "", Skip = "Missing array support.")]
         [InlineData("Seres/schema_5222_2_forms_5909_43507.xsd", "")]
+        [InlineData("Model/XmlSchema/SeresNillable.xsd", "")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
