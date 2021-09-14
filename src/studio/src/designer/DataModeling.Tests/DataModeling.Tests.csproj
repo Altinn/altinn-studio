@@ -61,11 +61,13 @@
     <None Remove="_TestData\Model\JsonSchema\normalize-root-ref-expected.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-root-ref.json" />
     <None Remove="_TestData\Model\JsonSchema\normalize-root.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresArray.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_allOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_anyOf.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresBasicSchema_inline.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresComplexContentExtension.json" />
+    <None Remove="_TestData\Model\JsonSchema\SeresComplexType.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresSimpleContentRestriction.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresSimpleTypeRestrictions.json" />
     <None Remove="_TestData\Model\JsonSchema\SeresWithAnyAttribute.json" />
@@ -75,9 +77,11 @@
     <None Remove="_TestData\Model\XmlSchema\InterleavedNestedSequences.xsd" />
     <None Remove="_TestData\Model\XmlSchema\NestedArrays.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SequenceWithGroupRef.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresArray.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresBasicSchema_inline.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresComplexContentExtension.xsd" />
+    <None Remove="_TestData\Model\XmlSchema\SeresComplexType.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresSimpleContentRestriction.fromJson.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresSimpleTypeRestrictions.xsd" />
     <None Remove="_TestData\Model\XmlSchema\SeresWithAnyAttribute.xsd" />
@@ -90,6 +94,14 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="_TestData\Model\XmlSchema\SeresArray.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="_TestData\Model\XmlSchema\SeresComplexType.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
