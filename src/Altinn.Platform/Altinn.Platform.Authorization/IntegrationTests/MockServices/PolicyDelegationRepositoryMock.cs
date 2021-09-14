@@ -14,14 +14,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             throw new NotImplementedException();
         }
 
-        public Task<bool> WriteDelegationPolicyAsync(string filepath, Stream fileStream)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId)
         {
-            throw new NotImplementedException();
+            if (offeredByPartyId != 0)
+            {
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
         }
 
         void IPolicyDelegationRepository.GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)

@@ -252,28 +252,17 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             // Build Resource
-            XacmlAllOf resourceAllOf = new XacmlAllOf(new List<XacmlMatch>
-            {
-                new XacmlMatch(
-                        new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                        new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), org),
-                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Resource), new Uri(XacmlRequestAttribute.OrgAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false)),
-                new XacmlMatch(
-                        new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                        new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), app),
-                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Resource), new Uri(XacmlRequestAttribute.AppAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
-            });
-
+            List<XacmlMatch> resourceMatches = new List<XacmlMatch>();
             foreach (AttributeMatch resourceMatch in rule.Resource)
             {
-                resourceAllOf.Matches.Add(
+                resourceMatches.Add(
                     new XacmlMatch(
                         new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                         new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), resourceMatch.Value),
                         new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Resource), new Uri(resourceMatch.Id), new Uri(XacmlConstants.DataTypes.XMLString), false)));
             }
 
-            List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf> { resourceAllOf };
+            List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf> { new XacmlAllOf(resourceMatches) };
 
             // Build Action
             List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();

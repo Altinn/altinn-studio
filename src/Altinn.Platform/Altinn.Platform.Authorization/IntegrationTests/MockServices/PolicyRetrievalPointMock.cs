@@ -131,10 +131,5 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
             return policy;
         }
-
-        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
-        {
-            return await Task.FromResult(true);
-        }
     }
 }

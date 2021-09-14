@@ -51,9 +51,10 @@ namespace Altinn.Platform.Authorization.Controllers
         /// Endpoint for adding one or more rules for the given app/offeredby/coveredby. This updates or creates a new delegated policy of type "DirectlyDelegated". DelegatedByUserId is included to store history information in 3.0.
         /// </summary>
         /// <param name="rules">All rules to be delegated</param>
-        /// <response code="200">Ok</response>
-        /// <response code="206" cref="CustomErrorModel">Partial Content</response>
+        /// <response code="201" cref="CustomResultModel">Created</response>
+        /// <response code="206" cref="CustomResultModel">Partial Content</response>
         /// <response code="400" cref="CustomErrorModel">Bad Request</response>
+        /// <response code="500" cref="CustomErrorModel">Internal Server Error</response>
         [HttpPost]
         ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
         [Route("authorization/api/v1/[controller]/AddRules")]
@@ -77,6 +78,12 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     _logger.LogInformation("Delegation completed");
                     return Created("Created", delegationResults);
+                }
+
+                if (delegationResults.Values.Any(result => result == true))
+                {
+                    _logger.LogInformation("Partial delegation completed");
+                    return StatusCode(206, delegationResults);
                 }
 
                 _logger.LogInformation("Delegation could not be completed");

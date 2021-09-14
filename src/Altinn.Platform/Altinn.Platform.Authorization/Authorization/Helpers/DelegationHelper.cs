@@ -56,29 +56,6 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets a list of valid/supported subject attribute ids
-        /// </summary>
-        /// <returns>A list of valid/supported subject attribute ids</returns>
-        public static List<string> GetSupportedSubjectAttributeIds()
-        {
-            return new List<string> { userIdAttributeId, partyIdAttributeId };
-        }
-
-        /// <summary>
-        /// Gets a string representation of the CoveredBy whether it is a UserId or a PartyId
-        /// </summary>
-        /// <returns>The CoveredBy value</returns>
-        public static string GetCoveredByFromMatch(List<AttributeMatch> match)
-        {
-            if (match == null || match.Count != 1 || !GetSupportedSubjectAttributeIds().Contains(match.First().Id))
-            {
-                throw new ArgumentException($"CoveredBy could not be retrieved from match specification on rule. Currently only a single attribute is supported of one of the supported attribute types: {string.Join(", ", GetSupportedSubjectAttributeIds())}");
-            }
-
-            return match.First().Value;
-        }
-
-        /// <summary>
         /// Gets a string representation of the CoveredByPartyId
         /// </summary>
         /// <returns>The CoveredByPartyId value</returns>

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -49,6 +50,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             BlobContentInfo mockedBlobInfo = BlobsModelFactory.BlobContentInfo(new ETag("etag"), DateTime.Now, new byte[1], "1", "encryptionKeySha256", "encryptionScope", 1);
             Mock<Response<BlobContentInfo>> mockResponse = new Mock<Response<BlobContentInfo>>();
             mockResponse.SetupGet(r => r.Value).Returns(mockedBlobInfo);
+
+            Mock<Response> responseMock = new Mock<Response>();
+            responseMock.SetupGet(r => r.Status).Returns((int)HttpStatusCode.Created);
+            mockResponse.Setup(r => r.GetRawResponse()).Returns(responseMock.Object);
 
             return mockResponse.Object;
         }
