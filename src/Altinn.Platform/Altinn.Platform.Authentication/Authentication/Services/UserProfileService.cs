@@ -35,13 +35,40 @@ namespace Altinn.Platform.Authentication.Services
         }
 
         /// <inheritdoc/>
-        public async Task<UserProfile> GetUser(string ssn)
+        public async Task<UserProfile> GetUser(string ssnOrExternalIdentity)
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users");
-            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssnOrExternalIdentity), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+                user = serializer.ReadObject(stream) as UserProfile;
+            }
+            else
+            {
+                _logger.LogError($"Creating user failed {response.StatusCode}");
+            }
+
+            return user;
+        }
+
+        /// <summary>
+        /// Method to create a new user based on identity
+        /// </summary>
+        /// <param name="userProfile">The userprofile</param>
+        /// <returns>The created users with userId and partyID</returns>
+        public async Task<UserProfile> CreateUser(UserProfile userProfile)
+        {
+            UserProfile user = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
+
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(userProfile), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)

@@ -174,10 +174,14 @@ namespace Altinn.Platform.Authentication.Controllers
                     OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
                     JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider.WellKnownConfigEndpoint);
                     userAuthentication = GetUserFromToken(jwtSecurityToken, provider);
-
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
                     {
                         return BadRequest("Invalid nonce");
+                    }
+
+                    if (userAuthentication.UserID == 0)
+                    {
+                        await IdentifyOrCreateAltinnUser(userAuthentication);
                     }
                 }
                 else
@@ -714,7 +718,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>() };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>(), Iss = provider.IssuerKey };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -768,6 +772,12 @@ namespace Altinn.Platform.Authentication.Controllers
                     continue;
                 }
 
+                if (!string.IsNullOrEmpty(provider.ExternalIdentityClaim) && claim.Type.Equals(provider.ExternalIdentityClaim))
+                {
+                    userAuthenticationModel.ExternalIdentity = claim.Value;
+                    continue;
+                }
+
                 // General claims handling
                 if (provider.ProviderClaims != null && provider.ProviderClaims.Contains(claim.Type))
                 {
@@ -776,6 +786,36 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             return userAuthenticationModel;
+        }
+
+        private async Task IdentifyOrCreateAltinnUser(UserAuthenticationModel userAuthenticationModel)
+        {
+            UserProfile profile = null;
+
+            if (!string.IsNullOrEmpty(userAuthenticationModel.ExternalIdentity))
+            {
+                profile = await _userProfileService.GetUser(userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity);
+
+                if (profile != null)
+                {
+                    userAuthenticationModel.UserID = profile.UserId;
+                    userAuthenticationModel.PartyID = profile.PartyId;
+                    return;
+                }
+
+                UserProfile userToCreate = new UserProfile();
+                userToCreate.ExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
+                userToCreate.UserName = CreateUserName(userAuthenticationModel);
+
+                UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
+                userAuthenticationModel.UserID = userCreated.UserId;
+                userAuthenticationModel.PartyID = userCreated.PartyId;
+             }
+        }
+
+        private string CreateUserName(UserAuthenticationModel userAuthenticationModel)
+        {
+            return "asdf";
         }
 
         /// <summary>

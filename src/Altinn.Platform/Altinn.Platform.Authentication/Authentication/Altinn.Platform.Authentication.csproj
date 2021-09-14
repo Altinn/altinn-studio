@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.10" />
-    <PackageReference Include="Altinn.Platform.Models" Version="1.1.0" />
+    <PackageReference Include="Altinn.Platform.Models" Version="1.1.1-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />

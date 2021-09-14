@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -651,6 +652,154 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         ///  In real life the ODIC provider will then authenticate user and redirect user back to authentication component
         ///  In this test the authorization code is created in test
         ///  5. User is redirectet back to authentication component with state and XSRF cookie
+        ///  6. Authenticaiton component verifies XSRF header and cookie
+        ///  7. Autentication component calls OIDC provider with code to exchange it to a token
+        ///  8. Authentication compoment verifies token and create authentication info
+        ///  9. Authentication component realizes it does not have a Altinn userId. Tryies to search for user based on external identity and the creates one Enriches the authentication info with userid and partyid
+        ///  10. Authentication component creates altinn 3 token and puts it in to a cookie
+        ///  11. Redirects back to original app
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDCExternalIDentity_FullProcess_RedirectsToOIDCAndBackWithValidToken()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=uidp";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Call Authentication component equalt to browsr beeing redirect from Altinn app
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("uidp-qa.udir.no/connect/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
+
+            // Verify GoToCookie
+            ValidateGoToCookie(redirectToOidcProviderResponse, HttpUtility.UrlEncode(gotoUrl));
+
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "asdf34argf", out string stateParam, out string nonceParam, out string redirectUriParam);
+
+            // This part is the where we prepare the response as a OIDC Provider would do.
+            // When returned from the OIDC Provider user will have an Authorization code. This code can have
+            // different formats and this component does not need to understand it. It just exchanged code with
+            // OIDC Provider to get a JWT ID token in response. In this test we create a JWTToken as code to make
+            // the exchange in OidcProviderMock simple
+            List<Claim> issClaims = new List<Claim>();
+            issClaims.Add(new Claim("sub", "XAWED"));
+
+            string authorizationCode = CreateOidcCode(null, null, nonceParam, issClaims);
+            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, "https://uidp-qa.udir.no");
+            HttpRequestMessage redirectFromOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, redirectFromOidcProviderUri);
+
+            // Act 2. This simulates the request the browser will do when user is authenticated at OIDC provider and returns to Altinn authentication.
+            HttpResponseMessage redirectFromOidcProviderResponse = await client.SendAsync(redirectFromOidcProviderRequest);
+
+            // Assert: Now the user should be redirected back to original requested app.
+            Assert.Equal(HttpStatusCode.Redirect, redirectFromOidcProviderResponse.StatusCode);
+            Assert.StartsWith(gotoUrl, redirectFromOidcProviderResponse.Headers.Location.ToString());
+
+            // Check to see if platform cookie is set with token and verify token and claims
+            redirectFromOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookieHeaders);
+            Assert.NotEmpty(cookieHeaders);
+            string platformToken = GetTokenFromSetCookieHeader(cookieHeaders);
+            Assert.NotNull(platformToken);
+            ClaimsPrincipal claimPrincipal = JwtTokenMock.ValidateToken(platformToken);
+            Assert.NotNull(claimPrincipal);
+            Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")));
+            Assert.Equal("234234",  claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")).Value);
+        }
+
+        /// <summary>
+        /// This test veryf the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component
+        /// 3. OIDC is enabled and is the default authentication component
+        /// 4. First expections: Authentication components redirects to correct OIDC provider
+        ///  In real life the ODIC provider will then authenticate user and redirect user back to authentication component
+        ///  In this test the authorization code is created in test
+        ///  5. User is redirectet back to authentication component with state and XSRF cookie
+        ///  6. Authenticaiton component verifies XSRF header and cookie
+        ///  7. Autentication component calls OIDC provider with code to exchange it to a token
+        ///  8. Authentication compoment verifies token and create authentication info
+        ///  9. Authentication component realizes it does not have a Altinn userId. Tryies to search for user based on external identity and the creates one Enriches the authentication info with userid and partyid
+        ///  10. Authentication component creates altinn 3 token and puts it in to a cookie
+        ///  11. Redirects back to original app
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUserWithOIDCExternalIDentityRelogin_FullProcess_RedirectsToOIDCAndBackWithValidToken()
+        {
+            // Arrange         
+            string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
+            string redirectUri = "http://localhost/authentication/api/v1/authentication";
+
+            string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=uidp";
+            HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Call Authentication component equalt to browsr beeing redirect from Altinn app
+            HttpResponseMessage redirectToOidcProviderResponse = await client.SendAsync(redirectToOidcProviderRequest);
+
+            // Assert that user is redirected to correct Oidc provider and a XSRF Cookie was set
+            Assert.Equal(HttpStatusCode.Redirect, redirectToOidcProviderResponse.StatusCode);
+            Uri redirectToOidcProviderUri = new Uri(redirectToOidcProviderResponse.Headers.Location.ToString());
+            Assert.Equal("uidp-qa.udir.no/connect/authorize", redirectToOidcProviderUri.Host + redirectToOidcProviderUri.AbsolutePath);
+
+            // Verify that XSRF token cookie set is set. 
+            ValidateXSRFTokenPresent(redirectToOidcProviderResponse);
+
+            // Verify GoToCookie
+            ValidateGoToCookie(redirectToOidcProviderResponse, HttpUtility.UrlEncode(gotoUrl));
+
+            // Verify that all required OIDC Params are set and have the correct values
+            ValidateOidcParams(redirectToOidcProviderUri, redirectUri, "asdf34argf", out string stateParam, out string nonceParam, out string redirectUriParam);
+
+            // This part is the where we prepare the response as a OIDC Provider would do.
+            // When returned from the OIDC Provider user will have an Authorization code. This code can have
+            // different formats and this component does not need to understand it. It just exchanged code with
+            // OIDC Provider to get a JWT ID token in response. In this test we create a JWTToken as code to make
+            // the exchange in OidcProviderMock simple
+            List<Claim> issClaims = new List<Claim>();
+            issClaims.Add(new Claim("sub", "2346t44663423s"));
+
+            string authorizationCode = CreateOidcCode(null, null, nonceParam, issClaims);
+            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, "https://uidp-qa.udir.no");
+            HttpRequestMessage redirectFromOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, redirectFromOidcProviderUri);
+
+            // Act 2. This simulates the request the browser will do when user is authenticated at OIDC provider and returns to Altinn authentication.
+            HttpResponseMessage redirectFromOidcProviderResponse = await client.SendAsync(redirectFromOidcProviderRequest);
+
+            // Assert: Now the user should be redirected back to original requested app.
+            Assert.Equal(HttpStatusCode.Redirect, redirectFromOidcProviderResponse.StatusCode);
+            Assert.StartsWith(gotoUrl, redirectFromOidcProviderResponse.Headers.Location.ToString());
+
+            // Check to see if platform cookie is set with token and verify token and claims
+            redirectFromOidcProviderResponse.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookieHeaders);
+            Assert.NotEmpty(cookieHeaders);
+            string platformToken = GetTokenFromSetCookieHeader(cookieHeaders);
+            Assert.NotNull(platformToken);
+            ClaimsPrincipal claimPrincipal = JwtTokenMock.ValidateToken(platformToken);
+            Assert.NotNull(claimPrincipal);
+            Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")));
+            Assert.Equal("234235", claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")).Value);
+        }
+
+        /// <summary>
+        /// This test veryf the following Scenario
+        /// 1. User tries to access app (http://ttd.apps.localhost/ttd/testapp)
+        /// 2. User is redirected from app to authentication component
+        /// 3. OIDC is enabled and is the default authentication component
+        /// 4. First expections: Authentication components redirects to correct OIDC provider
+        ///  In real life the ODIC provider will then authenticate user and redirect user back to authentication component
+        ///  In this test the authorization code is created in test
+        ///  5. User is redirectet back to authentication component with state and XSRF cookie
         ///  6. Authenticaiton component verifies XSRF header and cookie and Nonce
         ///  Expection: Nonce is identifed as wrong an returns bad request
         /// </summary>
@@ -1190,6 +1339,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
                     services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationServiceMock>();
                     services.AddSingleton<IOidcProvider, OidcProviderServiceMock>();
+                    services.AddSingleton<IUserProfileService, UserProfileServiceMock>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
@@ -1207,15 +1357,23 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             return redirectUri + "?state=" + state + "&code=" + code + "&iss=" + iss;
         }
 
-        private static string CreateOidcCode(string userId, string partyId, string nonce)
+        private static string CreateOidcCode(string userId, string partyId, string nonce, List<Claim> issClaims = null)
         {
             List<Claim> claims = new List<Claim>();
 
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, Enum.AuthenticationMethod.BankIDMobil.ToString()));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, Enum.SecurityLevel.VerySensitive.ToString()));
+            if (!string.IsNullOrEmpty(userId))
+            {
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId));
+                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, Enum.AuthenticationMethod.BankIDMobil.ToString()));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, Enum.SecurityLevel.VerySensitive.ToString()));
+            }
+
             claims.Add(new Claim("nonce", nonce));
+            if (issClaims != null)
+            {
+                claims.AddRange(issClaims);
+            }
 
             ClaimsIdentity identity = new ClaimsIdentity();
             identity.AddClaims(claims);

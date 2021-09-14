@@ -59,5 +59,10 @@ namespace Altinn.Platform.Authentication.Model
         /// A list of claims that need to be forwarded to Altinn token
         /// </summary>
         public string[] ProviderClaims { get; set; }
+
+        /// <summary>
+        /// The claim to use for external identity if
+        /// </summary>
+        public string ExternalIdentityClaim { get; set; }
     }
 }
