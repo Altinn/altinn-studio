@@ -805,25 +805,56 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             };
             simpleContent.Content = restriction;
 
+            DeconstructSimpleContentRestriction(keywords, out var baseTypeSchema, out var baseTypeSchemaIndex, out var propertiesSchema, out var propertiesSchemaIndex);
+            DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeyword<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
+
+            HandleSimpleContentRestrictionValueProperty(restriction, path, valuePropertySchema, propertiesSchemaIndex, baseTypeSchema, baseTypeSchemaIndex);
+            HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
+        }
+
+        private static void DeconstructSimpleContentRestriction(WorkList<IJsonSchemaKeyword> keywords, out JsonSchema baseTypeSchema, out int baseTypeSchemaIndex, out JsonSchema propertiesSchema, out int propertiesSchemaIndex)
+        {
             var allOf = keywords.Pull<AllOfKeyword>();
 
-            var refSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<RefKeyword>()).Select(x => x.idx).Single();
-            var propertiesSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<PropertiesKeyword>()).Select(x => x.idx).Single();
+            baseTypeSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<RefKeyword>()).Select(x => x.idx).Single();
+            propertiesSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<PropertiesKeyword>()).Select(x => x.idx).Single();
 
-            var baseTypeReference = allOf.Schemas[refSchemaIndex].GetKeyword<RefKeyword>();
-            restriction.BaseTypeName = GetTypeNameFromReference(baseTypeReference.Reference);
+            baseTypeSchema = allOf.Schemas[baseTypeSchemaIndex];
+            propertiesSchema = allOf.Schemas[propertiesSchemaIndex];
+        }
 
-            var properties = allOf.Schemas[propertiesSchemaIndex].GetKeyword<PropertiesKeyword>().Properties;
-            var valuePropertySchema = properties.GetValueOrDefault("value");
-            var attributes = properties
+        private static void DeconstructSimpleContentRestrictionProperties(PropertiesKeyword propertiesKeyword, out JsonSchema valuePropertySchema, out List<(string name, JsonSchema)> attributeSchemas)
+        {
+            var properties = propertiesKeyword.Properties;
+            valuePropertySchema = properties.GetValueOrDefault("value");
+            attributeSchemas = properties
                 .Where(prop => prop.Key != "value")
                 .Select(prop => (name: prop.Key, schema: prop.Value))
                 .ToList();
+        }
 
+        private void HandleSimpleContentRestrictionAttributeProperties(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, List<(string name, JsonSchema)> attributePropertiesSchemas, int propertiesSchemaIndex)
+        {
+            foreach (var (name, schema) in attributePropertiesSchemas)
+            {
+                var attribute = new XmlSchemaAttribute
+                {
+                    Parent = restriction,
+                    Name = name
+                };
+
+                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/{name}")));
+                restriction.Attributes.Add(attribute);
+            }
+        }
+
+        private void HandleSimpleContentRestrictionValueProperty(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, JsonSchema valuePropertySchema, int propertiesSchemaIndex, JsonSchema baseTypeSchema, int baseTypeSchemaIndex)
+        {
             if (valuePropertySchema != null)
             {
                 if (valuePropertySchema.HasAnyOfKeywords(typeof(TypeKeyword), typeof(AllOfKeyword)))
                 {
+                    // "value" property contains a simple type
                     var valueType = new XmlSchemaSimpleType
                     {
                         Parent = restriction
@@ -834,7 +865,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(allOf.Schemas[refSchemaIndex], path.Combine(JsonPointer.Parse($"/allOf/[{refSchemaIndex}]")));
+                    // "value" property only contains restrictions
+                    var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]")));
 
                     var valuePropertyKeywords = valuePropertySchema.AsWorkList();
                     var restrictionFacets = GetRestrictionFacets(valuePropertyKeywords, targetBaseType);
@@ -846,18 +878,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         restriction.Facets.Add(restrictionFacet);
                     }
                 }
-            }
-
-            foreach (var (name, schema) in attributes)
-            {
-                var attribute = new XmlSchemaAttribute
-                {
-                    Parent = restriction,
-                    Name = name
-                };
-
-                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/{name}")));
-                restriction.Attributes.Add(attribute);
             }
         }
 
