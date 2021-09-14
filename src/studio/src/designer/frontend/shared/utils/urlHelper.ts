@@ -4,7 +4,6 @@ const cdn = 'https://altinncdn.no';
 export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-blue.svg`;
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
 
 export const sharedUrls = () => {
   const [org, repo] = getNamesFromLocation();

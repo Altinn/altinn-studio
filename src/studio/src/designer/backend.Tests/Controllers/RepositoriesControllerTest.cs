@@ -207,6 +207,26 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task CopyApp_InvalidSourceRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = "/designerapi/Repository/CopyApp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            string actual = await res.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+            Assert.Contains("is an invalid repository name", actual);
+        }
+
+        [Fact]
         public async Task CreateApp_InvalidRepoName_BadRequest()
         {
             // Arrange
