@@ -572,7 +572,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
-            return hasBaseType && hasRestrictions;
+            return hasBaseType && (hasRestrictions || allOf.Schemas.Count == 1);
         }
 
         private JsonSchema FollowReferencesIfAny(JsonSchema schema)

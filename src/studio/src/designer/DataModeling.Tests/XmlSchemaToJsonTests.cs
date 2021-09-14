@@ -53,6 +53,8 @@ namespace DataModeling.Tests
         [InlineData("Model/XmlSchema/SeresWithAnyAttribute.xsd", "Model/JsonSchema/SeresWithAnyAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAnyAttribute")]
         [InlineData("Model/XmlSchema/NillableAttribute.xsd", "Model/JsonSchema/NillableAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: NillableAttribute")]
         [InlineData("Model/XmlSchema/SeresSimpleContentRestriction.xsd", "Model/JsonSchema/SeresSimpleContentRestriction.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresSimpleContentRestriction")]
+        [InlineData("Model/XmlSchema/SeresArray.xsd", "Model/JsonSchema/SeresArray.json", "Test to verify conversion from XSD to JSON Schema - feature: arrays")]
+        [InlineData("Model/XmlSchema/SeresComplexType.xsd", "Model/JsonSchema/SeresComplexType.json", "Test to verify conversion from XSD to JSON Schema - feature: arrays")]
         public async Task XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
         {
             _testOutputHelper.WriteLine(testCase);
