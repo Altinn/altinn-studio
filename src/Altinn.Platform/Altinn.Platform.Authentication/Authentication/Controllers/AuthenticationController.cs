@@ -181,7 +181,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                     if (userAuthentication.UserID == 0)
                     {
-                        await IdentifyOrCreateAltinnUser(userAuthentication);
+                        await IdentifyOrCreateAltinnUser(userAuthentication, provider);
                     }
                 }
                 else
@@ -788,7 +788,7 @@ namespace Altinn.Platform.Authentication.Controllers
             return userAuthenticationModel;
         }
 
-        private async Task IdentifyOrCreateAltinnUser(UserAuthenticationModel userAuthenticationModel)
+        private async Task IdentifyOrCreateAltinnUser(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
         {
             UserProfile profile = null;
 
@@ -805,7 +805,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 UserProfile userToCreate = new UserProfile();
                 userToCreate.ExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
-                userToCreate.UserName = CreateUserName(userAuthenticationModel);
+                userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
 
                 UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
                 userAuthenticationModel.UserID = userCreated.UserId;
@@ -813,9 +813,12 @@ namespace Altinn.Platform.Authentication.Controllers
              }
         }
 
-        private string CreateUserName(UserAuthenticationModel userAuthenticationModel)
+        /// <summary>
+        /// Creates a automatic username based on external identity and prefix.
+        /// </summary>
+        private string CreateUserName(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
         {
-            return "asdf";
+            return provider.UserNamePrefix + HashNonce(userAuthenticationModel.ExternalIdentity);
         }
 
         /// <summary>
