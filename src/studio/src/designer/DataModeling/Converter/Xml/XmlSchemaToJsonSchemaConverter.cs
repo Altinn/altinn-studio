@@ -654,43 +654,42 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             HandleAnnotation(item, builder);
 
-            StepsBuilder steps = new StepsBuilder();
-            PropertiesBuilder properties = new PropertiesBuilder();
+            var steps = new StepsBuilder();
+            var properties = new PropertiesBuilder();
 
-            if (!item.BaseTypeName.IsEmpty)
+            if (item.BaseTypeName.IsEmpty)
             {
-                JsonSchemaBuilder valueSchemaBuilder = new JsonSchemaBuilder();
-                if (item.BaseTypeName.Namespace == XmlSchemaNamespace)
-                {
-                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchemaBuilder);
-                }
-                else
-                {
-                    XmlQualifiedName typeName = item.BaseTypeName;
-                    XmlSchemaObject type = _schemaSet.GlobalTypes[typeName];
-
-                    if (type is XmlSchemaSimpleType)
-                    {
-                        HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchemaBuilder);
-                    }
-                    else if (type is XmlSchemaComplexType)
-                    {
-                        steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
-                    }
-                }
-
-                AddRestrictionFacets(item.Facets.Cast<XmlSchemaFacet>().ToList(), valueSchemaBuilder);
-                properties.Add("value", valueSchemaBuilder, false);
-            }
-            else if (item.BaseType != null)
-            {
-                JsonSchemaBuilder valueSchemaBuilder = new JsonSchemaBuilder();
-                HandleSimpleType(item.BaseType, optional, array, valueSchemaBuilder);
-                AddRestrictionFacets(item.Facets.Cast<XmlSchemaFacet>().ToList(), valueSchemaBuilder);
-                properties.Add("value", valueSchemaBuilder, false);
+                throw new Exception("base is required on simpleContent/restriction");
             }
 
-            foreach (XmlSchemaObject attribute in item.Attributes)
+            // base type name must be present and refer to a ComplexType/SimpleContent[Restriction/Extension]
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+
+            var valueRestrictionsBuilder = new JsonSchemaBuilder();
+            AddRestrictionFacets(item.Facets.Cast<XmlSchemaFacet>().ToList(), valueRestrictionsBuilder);
+
+            if (item.BaseType != null)
+            {
+                var valueBuilder = new JsonSchemaBuilder();
+                HandleSimpleType(item.BaseType, optional, array, valueBuilder);
+                var allOfSchemas = new List<JsonSchema>
+                {
+                    valueBuilder
+                };
+                var valueRestrictionsSchema = valueRestrictionsBuilder.Build();
+                if (valueRestrictionsSchema.Keywords?.Count > 0)
+                {
+                    allOfSchemas.Add(valueRestrictionsSchema);
+                }
+
+                properties.Add("value", new JsonSchemaBuilder().AllOf(allOfSchemas), false);
+            }
+            else
+            {
+                properties.Add("value", valueRestrictionsBuilder, false);
+            }
+
+            foreach (var attribute in item.Attributes)
             {
                 switch (attribute)
                 {

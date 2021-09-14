@@ -351,7 +351,7 @@ namespace DataModeling.Tests.Assertions
 
             // TODO: This should be commented back in when we get support for nillable attribute
             // as described in https://github.com/Altinn/altinn-studio/issues/6749
-            //Assert.Equal(expected.IsNillable, actual.IsNillable);
+            // Assert.Equal(expected.IsNillable, actual.IsNillable);
             Assert.Equal(expected.RefName, actual.RefName);
             Assert.Equal(expected.SubstitutionGroup, actual.SubstitutionGroup);
             Assert.Equal(expected.SchemaTypeName, actual.SchemaTypeName);
@@ -593,8 +593,7 @@ namespace DataModeling.Tests.Assertions
                 return false;
             }
 
-            //TODO: Enum facets are missing comparison of unhandled attributs
-
+            // TODO: Enum facets are missing comparison of unhandled attributs
             return facet1.IsFixed == facet2.IsFixed && string.Equals(facet1.Value, facet2.Value);
         }
     }
