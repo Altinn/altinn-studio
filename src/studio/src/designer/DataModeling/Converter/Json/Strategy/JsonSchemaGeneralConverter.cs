@@ -836,6 +836,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             DeconstructSimpleContentRestriction(keywords, out var baseTypeSchema, out var baseTypeSchemaIndex, out var propertiesSchema, out var propertiesSchemaIndex);
             DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeyword<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
 
+            restriction.BaseTypeName = GetTypeNameFromReference(baseTypeSchema.GetKeyword<RefKeyword>().Reference);
+
             HandleSimpleContentRestrictionValueProperty(restriction, path, valuePropertySchema, propertiesSchemaIndex, baseTypeSchema, baseTypeSchemaIndex);
             HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
         }
