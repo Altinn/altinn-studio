@@ -215,13 +215,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return item;
             }
 
-            if (compatibleTypes.Contains(CompatibleXsdType.UnhandledAttribute))
-            {
-                var item = new XmlSchemaAttribute();
-                AddUnhandledAttributes(item, schema.GetKeyword<XsdUnhandledAttributesKeyword>());
-                return item;
-            }
-
             throw new NotImplementedException();
         }
 
