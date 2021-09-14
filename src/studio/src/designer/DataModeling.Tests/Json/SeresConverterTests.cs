@@ -125,6 +125,19 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
+        [InlineData(@"Model\JsonSchema\SeresArray.json", @"Model\XmlSchema\SeresArray.xsd")]
+        public async Task Convert_Array(string jsonPath, string xsdPath)
+        {
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+
+            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
+
+            string actualXml = await Serialize(actualXsd);
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
+
+        [Theory]
         [InlineData(@"Model\JsonSchema\SeresSimpleTypeRestrictions.json", @"Model\XmlSchema\SeresSimpleTypeRestrictions.xsd")]
         public async Task Convert_SimpleTypeRestriction(string jsonPath, string xsdPath)
         {

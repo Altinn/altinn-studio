@@ -191,6 +191,20 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private XmlSchemaObject ConvertSubschema(JsonPointer path, JsonSchema schema)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
+            string arrayMinOccurs = null;
+            string arrayMaxOccurs = null;
+
+            if (compatibleTypes.Contains(CompatibleXsdType.Array))
+            {
+                schema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
+
+                if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
+                {
+                    arrayMinOccurs = minItemsKeyword.Value.ToString();
+                }
+
+                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+            }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
             {
@@ -204,6 +218,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     var item = new XmlSchemaElement();
                     HandleSimpleType(item, schema.AsWorkList(), path);
+
+                    if (arrayMinOccurs != null && arrayMinOccurs != "1")
+                    {
+                        item.MinOccursString = arrayMinOccurs;
+                    }
+
+                    if (arrayMaxOccurs != null)
+                    {
+                        item.MaxOccursString = arrayMaxOccurs;
+                    }
+
                     return item;
                 }
             }
@@ -212,6 +237,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 var item = new XmlSchemaElement();
                 HandleComplexType(item, schema.AsWorkList(), path);
+
+                if (arrayMinOccurs != null && arrayMinOccurs != "1")
+                {
+                    item.MinOccursString = arrayMinOccurs;
+                }
+
+                if (arrayMaxOccurs != null)
+                {
+                    item.MaxOccursString = arrayMaxOccurs;
+                }
+
                 return item;
             }
 
@@ -977,6 +1013,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             item.ContentModel = complexContent;
+
+            HandleAnyAttributeKeyword(extension, keywords);
         }
 
         private void HandlePropertiesKeyword(XmlSchemaComplexType complexType, XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
@@ -1093,6 +1131,23 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     Parent = complexType
                 };
                 complexType.AnyAttribute = xmlSchemaAnyAttribute;
+            }
+        }
+
+        private void HandleAnyAttributeKeyword(XmlSchemaComplexContentExtension complexContentExtension, WorkList<IJsonSchemaKeyword> keywords)
+        {
+            if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
+            {
+                return;
+            }
+
+            if (anyAttributeKeyword.Value)
+            {
+                XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
+                {
+                    Parent = complexContentExtension
+                };
+                complexContentExtension.AnyAttribute = xmlSchemaAnyAttribute;
             }
         }
 

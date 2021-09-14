@@ -66,11 +66,32 @@
             "$ref": "#/$defs/complexType",
             "minItems": 1
           }
+        },
+        "e5": {
+          "type": "array",
+          "items": {
+            "minItems": 1,
+            "properties": {
+              "fish": {
+                "type": "string",
+                "@xsdType": "string"
+              },
+              "stew": {
+                "type": "string",
+                "@xsdType": "string"
+              }
+            },
+            "required": [
+              "fish",
+              "stew"
+            ]
+          }
         }
       },
       "required": [
         "e1",
-        "e4"
+        "e4",
+        "e5"
       ]
     },
     "simpleType": {
