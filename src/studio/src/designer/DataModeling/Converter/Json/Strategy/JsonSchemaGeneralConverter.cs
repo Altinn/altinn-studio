@@ -215,6 +215,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return item;
             }
 
+            if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && !compatibleTypes.Contains(CompatibleXsdType.SimpleType))
+            {
+                var item = new XmlSchemaElement();
+                HandleNillableSimpleType(item, schema.AsWorkList(), path);
+                return item;
+            }
+
             if (compatibleTypes.Contains(CompatibleXsdType.UnhandledAttribute))
             {
                 var item = new XmlSchemaAttribute();
@@ -223,6 +230,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             throw new NotImplementedException();
+        }
+
+        private void HandleNillableSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            if (keywords.TryPull(out OneOfKeyword oneOf))
+            {
+                var subSchemas = oneOf.GetSubschemas().ToList();
+                var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+
+                if (refKeywordSubSchema.TryGetKeyword(out RefKeyword reference))
+                {
+                    element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
+                    element.IsNillable = true;
+                }
+            }            
         }
 
         private void HandleNamespaces()
@@ -382,7 +404,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     Parent = element,
                 };
                 element.SchemaType = item;
-                HandleSimpleType(item, keywords, path);
+                HandleSimpleType(item, keywords, path);            
             }
 
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
