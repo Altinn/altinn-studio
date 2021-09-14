@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -291,13 +293,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             // All other properties must be attributes
             var attributePropertiesCount = properties.Properties.Values.Count(prop =>
                 {
+                    var typeSchema = prop;
+
                     // follow any $ref keywords to validate against the actual subschema
-                    while (prop.TryGetKeyword(out RefKeyword reference))
+                    while (typeSchema.TryGetKeyword(out RefKeyword reference))
                     {
-                        prop = FollowReference(reference);
+                        typeSchema = FollowReference(reference);
                     }
 
-                    return IsValidSimpleTypeOrSimpleTypeRestriction(prop) &&
+                    return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema) &&
                            prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
                 });
 
@@ -311,12 +315,129 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidSimpleContentRestriction(JsonSchema schema)
         {
-            // TODO: Implement
-            return false;
+            if (!HasSingleAllOf(schema))
+            {
+                return false;
+            }
+
+            var allOf = schema.GetKeyword<AllOfKeyword>();
+            var baseReferenceSchemas = allOf.Schemas.Where(s => s.HasKeyword<RefKeyword>()).ToList();
+            if (baseReferenceSchemas.Count != 1)
+            {
+                return false;
+            }
+
+            var baseReferenceSchema = baseReferenceSchemas[0];
+            var baseSchema = FollowReference(baseReferenceSchema.GetKeyword<RefKeyword>());
+
+            // Make sure base is valid for SimpleContent restriction
+            if (!IsValidSimpleContentExtension(baseSchema) && !IsValidSimpleContentRestriction(baseSchema))
+            {
+                return false;
+            }
+
+            var propertiesSchemas = allOf.Schemas.Where(s => s.HasKeyword<PropertiesKeyword>()).ToList();
+
+            // Don't allow extra subschemas not used in the pattern
+            if (propertiesSchemas.Count + 1 != allOf.Schemas.Count)
+            {
+                return false;
+            }
+
+            // All restriction properties must match properties from base type(s)
+            var basePropertyNames = new HashSet<string>();
+            while (!IsValidSimpleType(baseSchema))
+            {
+                foreach (var (propertyName, _) in FindSimpleContentProperties(baseSchema))
+                {
+                    basePropertyNames.Add(propertyName);
+                }
+
+                if (!baseSchema.TryGetKeyword(out AllOfKeyword baseAllOf))
+                {
+                    break;
+                }
+
+                var baseRefSchema = baseAllOf.Schemas
+                    .SingleOrDefault(s => s.HasKeyword<RefKeyword>())
+                    ?.GetKeyword<RefKeyword>();
+
+                if (baseRefSchema == null)
+                {
+                    break;
+                }
+
+                baseSchema = FollowReference(baseRefSchema);
+            }
+
+            var hasValueProperty = false;
+
+            foreach (var (propertyName, propertySchema) in propertiesSchemas.SelectMany(ps => ps.GetKeyword<PropertiesKeyword>().Properties.Select(prop => (prop.Key, prop.Value))))
+            {
+                if (!basePropertyNames.Contains(propertyName))
+                {
+                    // Can't restrict a property that is not present in base types, this is not a valid simple content restriction
+                    return false;
+                }
+
+                var propertyTargetSchema = FollowReferencesIfAny(propertySchema);
+
+                if (!hasValueProperty && propertyName == "value")
+                {
+                    // "value" property
+                    hasValueProperty = true;
+
+                    // "value" property cannot be an attribute
+                    if (propertySchema.HasKeyword<XsdAttributeKeyword>())
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // restriction property must be an attribute
+                    if (!propertySchema.HasKeyword<XsdAttributeKeyword>())
+                    {
+                        return false;
+                    }
+                }
+
+                if (!IsValidSimpleTypeOrSimpleTypeRestriction(propertyTargetSchema) && !IsPlainRestrictionSchema(propertyTargetSchema))
+                {
+                    return false;
+                }
+            }
+
+            return hasValueProperty;
+        }
+
+        private List<(string propertyName, JsonSchema propertySchema)> FindSimpleContentProperties(JsonSchema schema)
+        {
+            var properties = new List<(string propertyName, JsonSchema propertySchema)>();
+
+            if (HasSingleAllOf(schema))
+            {
+                foreach (var propertiesSchema in schema.GetKeyword<AllOfKeyword>().Schemas.Where(s => s.HasKeyword<PropertiesKeyword>()))
+                {
+                    var propertiesKeyword = propertiesSchema.GetKeyword<PropertiesKeyword>();
+                    properties.AddRange(propertiesKeyword.Properties.Select(prop => (prop.Key, prop.Value)));
+                }
+            }
+            else if (schema.TryGetKeyword(out PropertiesKeyword propertiesKeyword))
+            {
+                properties.AddRange(propertiesKeyword.Properties.Select(prop => (prop.Key, prop.Value)));
+            }
+
+            return properties;
         }
 
         private bool IsValidComplexContentExtension(JsonPointer path, JsonSchema schema)
         {
+            if (_metadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleContentRestriction))
+            {
+                return false;
+            }
+
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() >= 2)
             {
                 var subSchemas = allOfKeyword.GetSubschemas().ToList();
@@ -546,6 +667,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XsdAnyKeyword:
                     case XsdAnyAttributeKeyword:
                     case XsdStructureKeyword:
+                    case XsdAttributeKeyword:
                     case XsdUnhandledAttributesKeyword:
                     case InfoKeyword:
                         continue;
@@ -609,7 +731,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 //    {
                 //        AnalyzeSchema(path, schema);
                 //    }
-
+                //
                 //    break;
                 case ISchemaContainer schemaContainer:
                     AnalyzeSchema(path, schemaContainer.Schema);

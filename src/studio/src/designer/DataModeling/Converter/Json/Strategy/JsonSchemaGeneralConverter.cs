@@ -366,24 +366,27 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
-            if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeList))
-            {
-                throw new NotImplementedException();
-            }
-
-            if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
-            {
-                throw new NotImplementedException();
-            }
-
             if (keywords.TryPull(out RefKeyword refKeyword))
             {
                 attribute.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
             }
-
-            if (keywords.TryPull(out TypeKeyword typeKeyword))
+            else if (keywords.TryPull(out TypeKeyword typeKeyword))
             {
                 attribute.SchemaTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
+            }
+            else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
+            {
+                var simpleType = new XmlSchemaSimpleType
+                {
+                    Parent = attribute
+                };
+                attribute.SchemaType = simpleType;
+
+                HandleSimpleType(simpleType, keywords, path);
+            }
+            else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeList))
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -508,7 +511,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             foreach (var restrictionKeywords in restrictionsKeywordsList)
             {
                 var restrictionFacets = GetRestrictionFacets(restrictionKeywords, targetBaseType);
-                IReadOnlyList<NamedKeyValuePairs> unhandledEnumAttributes = GetUnhandledEnumAttributes(restrictionKeywords);
+                var unhandledEnumAttributes = GetUnhandledEnumAttributes(restrictionKeywords);
                 foreach (var restrictionFacet in restrictionFacets)
                 {
                     restrictionFacet.Parent = restriction;
@@ -533,7 +536,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             var unhandledEnumAttributesForFacet = new List<XmlAttribute>();
-            foreach ((string key, string value) in namedKeyValuePairs.Properties)
+            foreach (var (key, value) in namedKeyValuePairs.Properties)
             {
                 var xmlUnhandledEnumAttribute = CreateAttribute(key, value);
                 unhandledEnumAttributesForFacet.Add(xmlUnhandledEnumAttribute);
@@ -542,15 +545,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             xmlSchemaFacet.UnhandledAttributes = unhandledEnumAttributesForFacet.ToArray();
         }
 
-        private IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> restrictionKeywords)
+        private IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> keywords)
         {
-            var unhandledEnumAttributesKeyword = restrictionKeywords.GetKeyword<XsdUnhandledEnumAttributesKeyword>();
-            if (unhandledEnumAttributesKeyword == null)
-            {
-                return new List<NamedKeyValuePairs>();
-            }
-
-            return unhandledEnumAttributesKeyword.Properties;
+            return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties ?? new List<NamedKeyValuePairs>();
         }
 
         // Search for target base type by following direct references and then a depth first search through allOf keywords
@@ -589,12 +586,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             var facets = new List<XmlSchemaFacet>();
 
-            foreach (var keyword in keywords.EnumerateUnhandledItems())
+            foreach (var keyword in keywords.EnumerateUnhandledItems(false))
             {
                 switch (keyword)
                 {
                     case MaxLengthKeyword maxLength:
                         {
+                            keywords.MarkAsHandled<MaxLengthKeyword>();
+
                             var value = maxLength.Value.ToString();
                             if (IsNumericXmlSchemaType(type))
                             {
@@ -618,6 +617,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         break;
                     case MinLengthKeyword minLength:
                         {
+                            keywords.MarkAsHandled<MinLengthKeyword>();
+
                             var value = minLength.Value.ToString();
                             var maxLength = keywords.GetKeyword<MaxLengthKeyword>();
                             if (maxLength?.Value == minLength.Value)
@@ -633,6 +634,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         break;
                     case EnumKeyword enumKeyword:
+                        keywords.MarkAsHandled<EnumKeyword>();
+
                         foreach (var value in enumKeyword.Values)
                         {
                             facets.Add(new XmlSchemaEnumerationFacet { Value = value.GetString() });
@@ -640,21 +643,27 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         break;
                     case PatternKeyword pattern:
+                        keywords.MarkAsHandled<PatternKeyword>();
                         facets.Add(new XmlSchemaPatternFacet { Value = pattern.Value.ToString() });
                         break;
                     case MaximumKeyword maximum:
+                        keywords.MarkAsHandled<MaximumKeyword>();
                         facets.Add(new XmlSchemaMaxInclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
                     case MinimumKeyword minimum:
+                        keywords.MarkAsHandled<MinimumKeyword>();
                         facets.Add(new XmlSchemaMinInclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
                     case ExclusiveMaximumKeyword maximum:
+                        keywords.MarkAsHandled<ExclusiveMaximumKeyword>();
                         facets.Add(new XmlSchemaMaxExclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
                     case ExclusiveMinimumKeyword minimum:
+                        keywords.MarkAsHandled<ExclusiveMinimumKeyword>();
                         facets.Add(new XmlSchemaMinExclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
                     case MultipleOfKeyword multipleOf:
+                        keywords.MarkAsHandled<MultipleOfKeyword>();
                         var fractionDigits = GetFractionDigitsFromMultipleOf(multipleOf.Value);
                         if (fractionDigits == null)
                         {
@@ -766,7 +775,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentRestriction))
             {
-                throw new NotImplementedException();
+                HandleSimpleContentRestriction(item, keywords, path);
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleContentExtension))
             {
@@ -806,6 +815,96 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 if (sequence.Items.Count > 0)
                 {
                     item.Particle = sequence;
+                }
+            }
+        }
+
+        private void HandleSimpleContentRestriction(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            var simpleContent = new XmlSchemaSimpleContent
+            {
+                Parent = item
+            };
+            item.ContentModel = simpleContent;
+
+            var restriction = new XmlSchemaSimpleContentRestriction
+            {
+                Parent = simpleContent
+            };
+            simpleContent.Content = restriction;
+
+            DeconstructSimpleContentRestriction(keywords, out var baseTypeSchema, out var baseTypeSchemaIndex, out var propertiesSchema, out var propertiesSchemaIndex);
+            DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeyword<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
+
+            HandleSimpleContentRestrictionValueProperty(restriction, path, valuePropertySchema, propertiesSchemaIndex, baseTypeSchema, baseTypeSchemaIndex);
+            HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
+        }
+
+        private static void DeconstructSimpleContentRestriction(WorkList<IJsonSchemaKeyword> keywords, out JsonSchema baseTypeSchema, out int baseTypeSchemaIndex, out JsonSchema propertiesSchema, out int propertiesSchemaIndex)
+        {
+            var allOf = keywords.Pull<AllOfKeyword>();
+
+            baseTypeSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<RefKeyword>()).Select(x => x.idx).Single();
+            propertiesSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<PropertiesKeyword>()).Select(x => x.idx).Single();
+
+            baseTypeSchema = allOf.Schemas[baseTypeSchemaIndex];
+            propertiesSchema = allOf.Schemas[propertiesSchemaIndex];
+        }
+
+        private static void DeconstructSimpleContentRestrictionProperties(PropertiesKeyword propertiesKeyword, out JsonSchema valuePropertySchema, out List<(string name, JsonSchema)> attributeSchemas)
+        {
+            var properties = propertiesKeyword.Properties;
+            valuePropertySchema = properties.GetValueOrDefault("value");
+            attributeSchemas = properties
+                .Where(prop => prop.Key != "value")
+                .Select(prop => (name: prop.Key, schema: prop.Value))
+                .ToList();
+        }
+
+        private void HandleSimpleContentRestrictionAttributeProperties(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, List<(string name, JsonSchema)> attributePropertiesSchemas, int propertiesSchemaIndex)
+        {
+            foreach (var (name, schema) in attributePropertiesSchemas)
+            {
+                var attribute = new XmlSchemaAttribute
+                {
+                    Parent = restriction,
+                    Name = name
+                };
+
+                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/{name}")));
+                restriction.Attributes.Add(attribute);
+            }
+        }
+
+        private void HandleSimpleContentRestrictionValueProperty(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, JsonSchema valuePropertySchema, int propertiesSchemaIndex, JsonSchema baseTypeSchema, int baseTypeSchemaIndex)
+        {
+            if (valuePropertySchema != null)
+            {
+                if (valuePropertySchema.HasAnyOfKeywords(typeof(TypeKeyword), typeof(AllOfKeyword)))
+                {
+                    // "value" property contains a simple type
+                    var valueType = new XmlSchemaSimpleType
+                    {
+                        Parent = restriction
+                    };
+                    restriction.BaseType = valueType;
+
+                    HandleSimpleType(valueType, valuePropertySchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/value")));
+                }
+                else
+                {
+                    // "value" property only contains restrictions
+                    var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]")));
+
+                    var valuePropertyKeywords = valuePropertySchema.AsWorkList();
+                    var restrictionFacets = GetRestrictionFacets(valuePropertyKeywords, targetBaseType);
+                    var unhandledEnumAttributes = GetUnhandledEnumAttributes(valuePropertyKeywords);
+                    foreach (var restrictionFacet in restrictionFacets)
+                    {
+                        restrictionFacet.Parent = restriction;
+                        AddUnhandledEnumAttributesToFacet(restrictionFacet, unhandledEnumAttributes);
+                        restriction.Facets.Add(restrictionFacet);
+                    }
                 }
             }
         }

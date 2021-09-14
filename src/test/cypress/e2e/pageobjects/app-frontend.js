@@ -82,5 +82,15 @@ export default class AppFrontend {
       idnumber: '#idnummer',
       idnummer2: '#idnummer2',
     };
+
+    this.reporteeSelection = {
+      appHeader: 'div[class*=AltinnAppHeader-toolbarContainer]',
+      searchReportee: 'input[placeholder="Søk etter aktør"]',
+      checkbox: 'input[type="checkbox"]',
+      seeSubUnits: '.ai.ai-expand-circle',
+      reportee: 'div[class*=AltinnParty-partyWrapper][id^=party-]',
+      subUnits: 'div[class*=AltinnParty-subUnitWrapper]',
+      error: '#party-selection-error',
+    };
   }
 }

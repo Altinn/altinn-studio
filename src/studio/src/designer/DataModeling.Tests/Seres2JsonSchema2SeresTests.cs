@@ -19,7 +19,7 @@ namespace DataModeling.Tests
 {
     public class Seres2JsonSchema2SeresTests
     {
-        ITestOutputHelper _testOutputHelper;
+        private readonly ITestOutputHelper _testOutputHelper;
 
         public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
         {
@@ -28,7 +28,6 @@ namespace DataModeling.Tests
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml")]
-        [InlineData("Seres/schema_3473_201512_forms_3123_37927.xsd", "")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();

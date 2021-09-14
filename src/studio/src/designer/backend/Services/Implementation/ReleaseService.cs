@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,12 +14,9 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
-using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
-using SqlParameterCollection = Microsoft.Azure.Documents.SqlParameterCollection;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -27,9 +25,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class ReleaseService : IReleaseService
     {
-        private readonly ReleaseRepository _releaseRepository;
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
+        private readonly IReleaseRepository _releaseRepository;
         private readonly HttpContext _httpContext;
         private readonly string _org;
         private readonly string _app;
@@ -38,21 +36,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="releaseRepository">Document db repository</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
+        /// <param name="releaseRepository">IReleaseRepository</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         /// <param name="logger">The logger.</param>
         public ReleaseService(
-            ReleaseRepository releaseRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
+            IReleaseRepository releaseRepository,
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
             ILogger<ReleaseService> logger)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
-            _releaseRepository = releaseRepository;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
+            _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
             _app = _httpContext.GetRouteValue("app")?.ToString();
@@ -86,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            return await _releaseRepository.CreateAsync(release);
+            return await _releaseRepository.Create(release);
         }
 
         /// <inheritdoc/>
@@ -95,7 +93,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             query.Org = _org;
             query.App = _app;
 
-            IEnumerable<ReleaseEntity> results = await _releaseRepository.GetAsync<ReleaseEntity>(query);
+            IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(query);
             return new SearchResults<ReleaseEntity>
             {
                 Results = results
@@ -105,16 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task UpdateAsync(ReleaseEntity release, string appOwner)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-            {
-                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@buildId", release.Build.Id),
-                }
-            };
-
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec, appOwner);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, release.Build.Id);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -122,13 +111,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             releaseEntity.Build.Started = release.Build.Started;
             releaseEntity.Build.Finished = release.Build.Finished;
 
-            await _releaseRepository.UpdateAsync(releaseEntity);
+            await _releaseRepository.Update(releaseEntity);
         }
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
-            SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery, _org);
+            List<string> buildStatus = new List<string>();
+            buildStatus.Add(BuildStatus.InProgress.ToEnumMemberAttributeValue());
+            buildStatus.Add(BuildStatus.NotStarted.ToEnumMemberAttributeValue());
+
+            List<string> buildResult = new List<string>();
+            buildResult.Add(BuildResult.Succeeded.ToEnumMemberAttributeValue());
+
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")
@@ -136,30 +131,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
-        }
-
-        private SqlQuerySpec CreateSqlQueryForUniqueness(ReleaseEntity release)
-        {
-            string resultSucceeded = BuildResult.Succeeded.ToEnumMemberAttributeValue();
-            string statusInProgress = BuildStatus.InProgress.ToEnumMemberAttributeValue();
-            string statusNotStarted = BuildStatus.NotStarted.ToEnumMemberAttributeValue();
-            string queryString = "SELECT * FROM db WHERE " +
-                                 "db.org = @org AND " +
-                                 "db.app = @app AND " +
-                                 "db.tagName = @tagName AND (" +
-                                 $"db.build.result = '{resultSucceeded}' OR " +
-                                 $"db.build.status = '{statusInProgress}' OR " +
-                                 $"db.build.status = '{statusNotStarted}')";
-            return new SqlQuerySpec
-            {
-                QueryText = queryString,
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@org", _org),
-                    new SqlParameter("@app", _app),
-                    new SqlParameter("@tagName", release.TagName),
-                }
-            };
         }
     }
 }

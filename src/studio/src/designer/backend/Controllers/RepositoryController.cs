@@ -390,6 +390,15 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{targetRepository} is an invalid repository name.");
             }
 
+            try
+            {
+                Guard.AssertValidAppRepoName(sourceRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{sourceRepository} is an invalid repository name.");
+            }
+
             var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
 
             if (existingRepo != null)
