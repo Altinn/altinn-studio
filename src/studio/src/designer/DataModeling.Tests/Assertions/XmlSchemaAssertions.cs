@@ -349,9 +349,7 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Form, actual.Form);
             Assert.Equal(expected.Name, actual.Name);
 
-            // TODO: This should be commented back in when we get support for nillable attribute
-            // as described in https://github.com/Altinn/altinn-studio/issues/6749
-            //Assert.Equal(expected.IsNillable, actual.IsNillable);
+            Assert.Equal(expected.IsNillable, actual.IsNillable);
             Assert.Equal(expected.RefName, actual.RefName);
             Assert.Equal(expected.SubstitutionGroup, actual.SubstitutionGroup);
             Assert.Equal(expected.SchemaTypeName, actual.SchemaTypeName);
