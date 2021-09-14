@@ -672,7 +672,17 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 var valueBuilder = new JsonSchemaBuilder();
                 HandleSimpleType(item.BaseType, optional, array, valueBuilder);
-                properties.Add("value", new JsonSchemaBuilder().AllOf(valueBuilder, valueRestrictionsBuilder), false);
+                var allOfSchemas = new List<JsonSchema>
+                {
+                    valueBuilder
+                };
+                var valueRestrictionsSchema = valueRestrictionsBuilder.Build();
+                if (valueRestrictionsSchema.Keywords?.Count > 0)
+                {
+                    allOfSchemas.Add(valueRestrictionsSchema);
+                }
+
+                properties.Add("value", new JsonSchemaBuilder().AllOf(allOfSchemas), false);
             }
             else
             {

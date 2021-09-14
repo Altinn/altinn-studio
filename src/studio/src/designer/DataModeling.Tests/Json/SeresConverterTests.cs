@@ -135,6 +135,30 @@ namespace DataModeling.Tests.Json
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
 
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresSimpleContentRestriction.json", @"Model\XmlSchema\SeresSimpleContentRestriction.fromJson.xsd")]
+        public async Task Convert_SimpleContentRestriction(string jsonPath, string xsdPath)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
+            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+
+            var actualXsd = converter.Convert(jsonSchema);
+
+            string actualXml;
+            await using (var sw = new Utf8StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                actualXsd.Write(xw);
+                actualXml = sw.ToString();
+            }
+
+            XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
+        }
+
         private static async Task<System.Xml.Schema.XmlSchema> ConvertJsonSchema(string jsonPath)
         {
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);

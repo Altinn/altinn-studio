@@ -19,7 +19,7 @@ namespace DataModeling.Tests
 {
     public class Seres2JsonSchema2SeresTests
     {
-        ITestOutputHelper _testOutputHelper;
+        private readonly ITestOutputHelper _testOutputHelper;
 
         public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
         {

@@ -165,6 +165,56 @@
           }
         }
       ]
+    },
+    "limitedPerson-inline-2": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/person"
+        },
+        {
+          "properties": {
+            "value": {
+              "allOf": [
+                {
+                  "type": "string",
+                  "@xsdType": "token"
+                },
+                {
+                  "maxLength": 50
+                }
+              ]
+            },
+            "gender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/genderType"
+                },
+                {
+                  "enum": [
+                    "male",
+                    "female",
+                    "unknown"
+                  ]
+                }
+              ],
+              "@xsdAttribute": true
+            },
+            "age": {
+              "allOf": [
+                {
+                  "type": "integer",
+                  "@xsdType": "int"
+                },
+                {
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              ],
+              "@xsdAttribute": true
+            }
+          }
+        }
+      ]
     }
   }
 }

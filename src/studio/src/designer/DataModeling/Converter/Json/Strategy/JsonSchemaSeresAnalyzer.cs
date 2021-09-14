@@ -283,12 +283,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             var allOf = schema.GetKeyword<AllOfKeyword>();
-            var baseReferenceSchema = allOf.Schemas.SingleOrDefault(s => s.HasKeyword<RefKeyword>());
-            if (baseReferenceSchema == null)
+            var baseReferenceSchemas = allOf.Schemas.Where(s => s.HasKeyword<RefKeyword>()).ToList();
+            if (baseReferenceSchemas.Count != 1)
             {
                 return false;
             }
 
+            var baseReferenceSchema = baseReferenceSchemas[0];
             var baseSchema = FollowReference(baseReferenceSchema.GetKeyword<RefKeyword>());
 
             // Make sure base is valid for SimpleContent restriction
@@ -692,7 +693,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 //    {
                 //        AnalyzeSchema(path, schema);
                 //    }
-
+                //
                 //    break;
                 case ISchemaContainer schemaContainer:
                     AnalyzeSchema(path, schemaContainer.Schema);

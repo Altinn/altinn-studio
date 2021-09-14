@@ -64,8 +64,7 @@ namespace DataModeling.Tests
             var actual = converter.Convert(xsd);
 
             // await SerializeJsonSchemaToFile(actual, expectedPath);
-
-            // var actualJson = SerializeJsonSchemaToString(actual);
+            var actualJson = await SerializeJsonSchemaToString(actual);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
@@ -91,7 +90,7 @@ namespace DataModeling.Tests
             ////actual.ToJsonDocument().WriteTo(writer);
             ////await writer.FlushAsync();
 
-            //var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
+            // var actualJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int) ms.Length);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
@@ -115,5 +114,4 @@ namespace DataModeling.Tests
             return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
         }
     }
-
 }

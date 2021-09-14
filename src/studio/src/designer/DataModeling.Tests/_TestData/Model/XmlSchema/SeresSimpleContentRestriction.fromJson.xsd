@@ -105,9 +105,10 @@
     <xsd:simpleContent>
       <xsd:restriction base="person">
         <xsd:simpleType>
-          <xsd:restriction base="xsd:token" />
+          <xsd:restriction base="xsd:token">
+            <xsd:maxLength value="50" />
+          </xsd:restriction>
         </xsd:simpleType>
-        <xsd:maxLength value="50" />
         <xsd:attribute name="gender">
           <xsd:simpleType>
             <xsd:restriction base="genderType">
