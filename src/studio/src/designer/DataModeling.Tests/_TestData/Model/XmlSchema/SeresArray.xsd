@@ -38,6 +38,14 @@
       <xsd:element name="e1" type="xsd:string" maxOccurs="unbounded" />
       <xsd:element name="e2" type="simpleType" maxOccurs="unbounded" minOccurs="0" />
       <xsd:element name="e4" type="complexType" maxOccurs="unbounded" />
+      <xsd:element name="e5" maxOccurs="unbounded">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="fish" type="xsd:string" />
+            <xsd:element name="stew" type="xsd:string" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
     </xsd:sequence>
   </xsd:complexType>
 

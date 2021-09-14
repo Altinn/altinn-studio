@@ -29,10 +29,10 @@ namespace DataModeling.Tests
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml")]
         [InlineData("Seres/schema_3473_201512_forms_3123_37927.xsd", "")]
-        [InlineData("Seres/schema_4008_180226_forms_4186_37199.xsd", "", Skip = "Missing array support.")]
+        [InlineData("Seres/schema_4008_180226_forms_4186_37199.xsd", "")]
         [InlineData("Seres/schema_3919_2_forms_4623_39043.xsd", "")]
-        [InlineData("Seres/schema_4741_4280_forms_5273_41269.xsd", "", Skip = "Missing array support.")]
-        [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "", Skip = "Missing array support.")]
+        [InlineData("Seres/schema_4741_4280_forms_5273_41269.xsd", "")]
+        [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "")]
         [InlineData("Seres/schema_5222_2_forms_5909_43507.xsd", "")]
         [InlineData("Model/XmlSchema/SeresNillable.xsd", "")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)

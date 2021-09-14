@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -83,6 +84,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
+            if (IsArray(schema, out var itemSchema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
+                AnalyzeSchema(path, itemSchema);
+                return;
+            }
             if (IsValidNillableElement(schema, out var valueSchema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
@@ -163,6 +170,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
             }
+        }
+
+        private bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
+        {
+            if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Array)
+            {
+                var itemsKeyword = schema.GetKeyword<ItemsKeyword>();
+                if (itemsKeyword == null)
+                {
+                    throw new Exception("schema must have an \"items\" keyword when \"type\" is set to array");
+                }
+
+                itemsSchema = itemsKeyword.SingleSchema;
+                return true;
+            }
+
+            itemsSchema = null;
+            return false;
         }
 
         private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
@@ -449,13 +474,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword) && allOfKeyword.GetSubschemas().Count() >= 2)
+            if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
                 var subSchemas = allOfKeyword.GetSubschemas().ToList();
+                var refKeywordSubSchemaCount = subSchemas.Count(s => s.Keywords.HasKeyword<RefKeyword>());
+                if (refKeywordSubSchemaCount > 1)
+                {
+                    return false;
+                }
+
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                var propertiesKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
-                                
-                if (refKeywordSubSchema != null && propertiesKeywordSubSchema != null)
+                
+                if (refKeywordSubSchema != null)
                 {
                     var isComplexType = IsValidComplexType(refKeywordSubSchema);
 
@@ -464,7 +494,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         return false;
                     }
 
-                    // If the type of $ref is used in the context of a ComplextContentExtension
+                    // If the type of $ref is used in the context of a ComplexContentExtension
                     // it cannot be serialized as a SimpleContentExtension or SimpleContentRestriction.
                     var refKeyword = refKeywordSubSchema.GetKeyword<RefKeyword>();
                     var refKeywordPath = JsonPointer.Parse(refKeyword.Reference.ToString());

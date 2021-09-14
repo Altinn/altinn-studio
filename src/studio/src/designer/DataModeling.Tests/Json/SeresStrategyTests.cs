@@ -104,5 +104,22 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson-inline")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
         }
+
+        [Theory]
+        [InlineData(@"Model\JsonSchema\SeresComplexContentExtension.json")]
+        public async Task Analyze_ComplexContent_Extension(string path)
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
+
+            var metadata = analyzer.AnalyzeSchema(schema);
+
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Contain(CompatibleXsdType.ComplexContentExtension);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(CompatibleXsdType.ComplexType);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/badBoy")).Should().Contain(CompatibleXsdType.ComplexType);
+            metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/badBoy/properties/reallyNasty")).Should().Contain(CompatibleXsdType.ComplexContentExtension);
+        }
     }
 }

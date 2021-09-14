@@ -44,4 +44,17 @@
       <xsd:element name="be1" type="xsd:string" />
     </xsd:sequence>
   </xsd:complexType>
+  <xsd:complexType name="badBoy">
+    <xsd:sequence>
+      <xsd:element name="reallyNasty">
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="myBase">
+              <xsd:anyAttribute namespace="##any" />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
 </xsd:schema>

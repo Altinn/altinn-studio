@@ -949,14 +949,36 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else
             {
+                var itemsBuilder = builder; 
+                if (item.MaxOccurs > 1)
+                {
+                    itemsBuilder = new JsonSchemaBuilder();
+                }
+
                 switch (item.SchemaType)
                 {
                     case XmlSchemaSimpleType x:
-                        HandleSimpleType(x, optional, array, builder);
+                        HandleSimpleType(x, optional, array, itemsBuilder);
                         break;
                     case XmlSchemaComplexType x:
-                        HandleComplexType(x, optional, array, builder);
+                        HandleComplexType(x, optional, array, itemsBuilder);
                         break;
+                }
+
+                if (item.MaxOccurs > 1)
+                {
+                    builder.Type(SchemaValueType.Array);
+                    if (item.MinOccurs != 0)
+                    {
+                        itemsBuilder.MinItems((uint) item.MinOccurs);
+                    }
+
+                    if (item.MaxOccursString != "unbounded")
+                    {
+                        itemsBuilder.MaxItems((uint) item.MaxOccurs);
+                    }
+
+                    builder.Items(itemsBuilder);
                 }
             }
 
