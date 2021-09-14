@@ -90,6 +90,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 AnalyzeSchema(path, itemSchema);
                 return;
             }
+
             if (IsValidNillableElement(schema, out var valueSchema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
