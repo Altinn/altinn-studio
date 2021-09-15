@@ -54,7 +54,10 @@
       "required": [
         "e1"
       ],
-      "@xsdAnyAttribute": true
+      "@xsdAnyAttribute": {
+        "Namespace": "##any",
+        "ProcessContent": "None"
+      }
     }
   }
 }

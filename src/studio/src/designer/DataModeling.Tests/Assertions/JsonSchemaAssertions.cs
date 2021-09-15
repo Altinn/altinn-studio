@@ -672,7 +672,9 @@ namespace DataModeling.Tests.Assertions
 
         private static void KeywordEqual(XsdAnyAttributeKeyword expected, XsdAnyAttributeKeyword actual)
         {
-            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Namespace, actual.Namespace);
+            Assert.Equal(expected.ProcessContent, actual.ProcessContent);
         }
 
         private static void KeywordEqual(XsdAnyKeyword expected, XsdAnyKeyword actual)
