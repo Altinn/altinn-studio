@@ -442,7 +442,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             builder.Items(itemTypeSchema);
         }
 
-        private void HandleComplexType(XmlSchemaComplexType item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexType(XmlSchemaComplexType item, bool optional, bool array, bool nillable, JsonSchemaBuilder builder)
         {
             HandleAnnotation(item, builder);
 
@@ -471,11 +471,29 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaChoice x:
                         steps.Add(b => HandleChoice(x, optional, array, b));
                         break;
-                    case XmlSchemaAll x:
+                    case XmlSchemaAll x:                        
                         steps.Add(b => HandleAll(x, optional, array, b));
                         break;
                     case XmlSchemaSequence x:
-                        steps.Add(b => HandleSequence(x, optional, array, b));
+                        if (nillable)
+                        {
+                            var oneOfBuilder = new JsonSchemaBuilder();
+
+                            var sequenceBuilder = new StepsBuilder();
+                            sequenceBuilder.Add(b => HandleSequence(x, optional, array, b));
+
+                            var typeSchemaBuilder = new JsonSchemaBuilder();
+                            typeSchemaBuilder.Type(SchemaValueType.Null);
+
+                            sequenceBuilder.BuildWithAllOf(oneOfBuilder);
+
+                            steps.Add(b => b.OneOf(oneOfBuilder, typeSchemaBuilder));
+                        }
+                        else
+                        {
+                            steps.Add(b => HandleSequence(x, optional, array, b));
+                        }
+
                         break;
                 }
             }
@@ -961,7 +979,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         HandleSimpleType(x, optional, array, itemsBuilder);
                         break;
                     case XmlSchemaComplexType x:
-                        HandleComplexType(x, optional, array, itemsBuilder);
+                        HandleComplexType(x, optional, array, item.IsNillable, itemsBuilder);
                         break;
                 }
 
@@ -981,8 +999,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     builder.Items(itemsBuilder);
                 }
             }
-
-            // TODO: Add support for nillable here
 
             AddUnhandledAttributes(item, builder);
 
@@ -1056,7 +1072,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
-            HandleComplexType(item, optional, array, builder);
+            HandleComplexType(item, optional, array, false, builder);
 
             return builder;
         }

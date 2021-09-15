@@ -786,7 +786,26 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
             {
                 var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+
+                if (refKeywordSubSchema != null)
+                {
+                    element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                }
+                else if (propertiesKeywordSubSchema != null)
+                {
+                    var item = new XmlSchemaComplexType
+                    {
+                        Parent = element
+                    };
+                    element.SchemaType = item;
+                    HandleComplexType(item, propertiesKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse("/oneOf/[0]")));
+                }
+                else
+                {
+                    throw new ArgumentException("The provided OnOfKeyword could not be handled as a nillable complex type.");
+                }
+
                 element.IsNillable = true;
             }
             else if (keywords.TryPull(out RefKeyword reference))

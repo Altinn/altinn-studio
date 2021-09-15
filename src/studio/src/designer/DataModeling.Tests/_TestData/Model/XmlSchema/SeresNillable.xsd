@@ -38,6 +38,14 @@
       <xsd:element name="p1" type="xsd:string" nillable="true" />
       <xsd:element name="p2" type="simpleType" nillable="true" />
       <xsd:element name="p3" type="complexType" nillable="true" />
+      <xsd:element name="p4" nillable="true">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="fish" type="xsd:string" />
+            <xsd:element name="stew" type="xsd:string" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
     </xsd:sequence>
   </xsd:complexType>
 
