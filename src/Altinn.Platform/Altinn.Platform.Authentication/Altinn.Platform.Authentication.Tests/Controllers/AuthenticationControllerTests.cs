@@ -664,6 +664,10 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+            UserProfile userProfileNotFound = null;
+            UserProfile userProfile = new UserProfile { UserId = 234234, PartyId = 234234, UserName = "steph" };
+            _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(userProfileNotFound);
+            _userProfileService.Setup(u => u.CreateUser(It.IsAny<UserProfile>())).ReturnsAsync(userProfile);
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
             string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
@@ -738,6 +742,9 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             // Arrange         
             string gotoUrl = "http://ttd.apps.localhost/ttd/testapp";
+
+            UserProfile userProfile = new UserProfile { UserId = 234235, PartyId = 234235, UserName = "steph" };
+            _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(userProfile);
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
             string redirectUri = "http://localhost/authentication/api/v1/authentication";
 
@@ -1339,7 +1346,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
                     services.AddSingleton<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationServiceMock>();
                     services.AddSingleton<IOidcProvider, OidcProviderServiceMock>();
-                    services.AddSingleton<IUserProfileService, UserProfileServiceMock>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
