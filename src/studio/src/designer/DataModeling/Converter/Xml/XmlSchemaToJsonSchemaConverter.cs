@@ -477,17 +477,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaSequence x:
                         if (nillable)
                         {
-                            var oneOfBuilder = new JsonSchemaBuilder();
-
-                            var sequenceBuilder = new StepsBuilder();
-                            sequenceBuilder.Add(b => HandleSequence(x, optional, array, b));
-
-                            var typeSchemaBuilder = new JsonSchemaBuilder();
-                            typeSchemaBuilder.Type(SchemaValueType.Null);
-
-                            sequenceBuilder.BuildWithAllOf(oneOfBuilder);
-
-                            steps.Add(b => b.OneOf(oneOfBuilder, typeSchemaBuilder));
+                            steps.Add(b => HandleNillable(x, optional, array, b));
                         }
                         else
                         {
@@ -525,6 +515,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
+        }
+
+        private void HandleNillable(XmlSchemaSequence sequence, bool optional, bool array, JsonSchemaBuilder builder)
+        {
+            var steps = new StepsBuilder();
+            steps.Add(b => HandleSequence(sequence, optional, array, b));
+            var propertiesSchemaBuilder = new JsonSchemaBuilder();
+            steps.BuildWithAllOf(propertiesSchemaBuilder);
+
+            var typeSchemaBuilder = new JsonSchemaBuilder();
+            typeSchemaBuilder.Type(SchemaValueType.Null);
+
+            builder.OneOf(propertiesSchemaBuilder, typeSchemaBuilder);
         }
 
         private void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)
