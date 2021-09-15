@@ -5,13 +5,13 @@ import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   ul: {
-    height: '25px',
+    marginBottom: '6px!important',
     listStyleType: 'none',
     textDecoration: 'none!important' as 'none',
     paddingLeft: '0px!important' as 'noPadding',
@@ -22,7 +22,7 @@ const useStyles = makeStyles({
     listStyleType: 'none',
     textDecoration: 'none!important' as 'none',
     paddingLeft: '0px!important' as 'noPadding',
-    position: 'relative'
+    position: 'relative',
   },
   li: {
     float: 'left', 
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
     '&:hover': {
       border: '3px solid #008FD6'
     },
-    borderRadius: '20px',
+    borderRadius: '40px',
     marginRight: '20px',
     "&:active": {
       backgroundColor: "#0062BA"
@@ -38,15 +38,15 @@ const useStyles = makeStyles({
     [theme.breakpoints.down(600)]: {
       float: 'none',
       display: 'none'
-    },
+    }
   },
   liMounted: {
-    marginBottom: '10px',
+    marginBottom: '6px',
     border: '2px solid #008FD6',
     '&:hover': {
       border: '3px solid #008FD6'
     },
-    borderRadius: '20px',
+    borderRadius: '40px',
     marginRight: '20px',
     "&:active": {
       backgroundColor: "#0062BA"
@@ -62,34 +62,34 @@ const useStyles = makeStyles({
     '&:hover': {
       border: '3px solid #008FD6'
     },
-    borderRadius: '20px',
+    borderRadius: '40px',
     marginRight: '20px',
     backgroundColor: "#022f51",
     [theme.breakpoints.down(600)]: {
       float: 'none',
       display: 'none'
-    },
+    }
   },
   li2Mounted: {
-    marginBottom: '10px',
+    marginBottom: '6px',
     border: '2px solid #008FD6',
     '&:hover': {
       border: '3px solid #008FD6'
     },
-    borderRadius: '20px',
+    borderRadius: '40px',
     marginRight: '20px',
     backgroundColor: "#022f51",
     [theme.breakpoints.up(600)]: {
       float: 'none',
       display: 'none'
-    },
+    }
   },
   li3: {
     border: '2px solid #008FD6',
     '&:hover': {
       border: '3px solid #008FD6'
     },
-    borderRadius: '20px',
+    borderRadius: '40px',
     marginRight: '20px',
     backgroundColor: "#022f51",
     [theme.breakpoints.up(600)]: {
@@ -100,16 +100,16 @@ const useStyles = makeStyles({
   a: {
     display: 'block', 
     textAlign: "center", 
-    padding: '1px 10px', 
+    padding: '12px', 
     borderBottom: '0',
     "&:hover": {
       borderBottom: "0px solid rgba(0,0,0,0)"
     }
   },
   a2: {
-    display: 'block', 
+    display: 'block',   
     textAlign: "center", 
-    padding: '1px 10px', 
+    padding: '12px', 
     borderBottom: '0',
     color: 'white!important',
     "&:hover": {
@@ -141,18 +141,27 @@ export function NavigationBar(props: INavigationBar) {
   const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const triggers = props.triggers || pageTriggers;
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  
+  const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+
+
+
   const NavBar = () => {
-    const [mounted, setMounted] = useState(true);
-    
+
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      console.log("Mounted")
+    }, [])
+
     const OnClickNav = (index: string) => {
+
       const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
       const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
       const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
-      dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
-    };
 
-    const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+      dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
+
+    };
 
     const pageList = orderedLayoutKeys.map((view) => 
       <li className={ currentView == view ? classes.li2 : classes.li } >
@@ -163,34 +172,38 @@ export function NavigationBar(props: INavigationBar) {
       </li>
     );
   
-    pageList.unshift(
-      <li className={ classes.li3 } >
-        <a className={ classes.a2 } 
-            onClick={() => setMounted(!mounted)}>
-              {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
-              <i className={`${classes.i} ${'ai ai-expand'}`} />
-          </a>
-          
-      </li>  
-    );
+    if(!mounted) {
+      pageList.unshift(
+        <li className={ classes.li3 } >
+          <a className={ classes.a2 } 
+              onClick={() => setMounted(!mounted)}>
+                {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
+                <i className={`${classes.i} ${'ai ai-expand'}`} />
+            </a>
+            
+        </li>  
+      );
+    }
 
     const pageListMobile = orderedLayoutKeys.map((view) => 
-      <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
-          <a className={ currentView == view ? classes.a2 : classes.a } 
-              onClick={ () => { OnClickNav(view); setMounted(!mounted); } }>
-                {getTextResource(view, textResources)}
-          </a>
-      </li>
-    );
+    <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
+        <a className={ currentView == view ? classes.a2 : classes.a } 
+            onClick={ () => { OnClickNav(view); } }>
+              {getTextResource(view, textResources)}
+        </a>
+    </li>
+  );
+
+
 
     return (
       <div>
         {<ul className={ classes.ul }>{pageList}</ul>}
-        { mounted && <ul className={ classes.ulMounted }>{pageListMobile}</ul> }
+        { mounted && <ul className={ classes.ulMounted }>{ mounted ? pageListMobile : null }</ul> }
       </div>
     );
   };
-  
+
   return (
     <Grid
       container={true}
