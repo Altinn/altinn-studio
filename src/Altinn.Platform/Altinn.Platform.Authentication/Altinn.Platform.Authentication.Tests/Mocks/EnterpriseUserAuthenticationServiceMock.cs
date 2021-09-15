@@ -30,7 +30,10 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
 
         public async Task<HttpResponseMessage> AuthenticateEnterpriseUser(EnterpriseUserCredentials credentials)
         {
-             if (credentials.UserName == "Test" && credentials.Password == "Testesen")
+            // Just to remove warning that method will run syncronus as no await is performed
+            var result = await Task.Run(() => { return new HttpResponseMessage(); });
+            
+            if (credentials.UserName == "Test" && credentials.Password == "Testesen")
             {
                 string credentialsJson = JsonSerializer.Serialize(credentials);
                 var request = new HttpRequestMessage
@@ -40,13 +43,12 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
                     Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
                 };
 
-                var result = await _client.SendAsync(request).ConfigureAwait(false);
                 result.StatusCode = HttpStatusCode.TooManyRequests;
                 RetryConditionHeaderValue retryAfter = new RetryConditionHeaderValue(DateTime.Now);
                 result.Headers.RetryAfter = retryAfter;
                 return result;
             }
-             else if (credentials.UserName == "ValidUser" && credentials.Password == "ValidPassword")
+            else if (credentials.UserName == "ValidUser" && credentials.Password == "ValidPassword")
             {
                 string credentialsJson = JsonSerializer.Serialize(credentials);
                 var request = new HttpRequestMessage
@@ -56,13 +58,12 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
                     Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
                 };
 
-                var result = await _client.SendAsync(request).ConfigureAwait(false);
                 result.StatusCode = HttpStatusCode.OK;
-                result.Content = GetEnterpriseUserContent();
+                result.Content = GetEnterpriseUserContent(credentials.UserName);
 
                 return result;
             }
-             else
+            else if (credentials.UserName == "ValidUser2" && credentials.Password == "Valid:Password")
             {
                 string credentialsJson = JsonSerializer.Serialize(credentials);
                 var request = new HttpRequestMessage
@@ -72,15 +73,29 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
                     Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
                 };
 
-                var result = await _client.SendAsync(request).ConfigureAwait(false);
+                result.StatusCode = HttpStatusCode.OK;
+                result.Content = GetEnterpriseUserContent(credentials.UserName);
+
+                return result;
+            }
+            else
+            {
+                string credentialsJson = JsonSerializer.Serialize(credentials);
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_settings.BridgeAuthnApiEndpoint + "enterpriseuser"),
+                    Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
+                };
+
                 result.StatusCode = HttpStatusCode.NotFound;
                 return result;
             }
         }
 
-        private HttpContent GetEnterpriseUserContent()
+        private HttpContent GetEnterpriseUserContent(string userName)
         {
-            string jsonString = "{\r\n\t\"UserID\": 1234,\r\n\t\"Username\": \"ValidUser\",\r\n\t\"SSN\": null,\r\n\t\"PartyID\": 0,\r\n\t\"AuthenticateResult\": 1,\r\n\t\"AuthenticationMethod\": 9,\r\n\t\"LockedOutDate\": \"1753-01-01T00:00:00\",\r\n\t\"SmsPinUpgraded\": false,\r\n\t\"IsTestUser\": false,\r\n\t\"IDPortenNameID\": null,\r\n\t\"IDPortenSessionIndex\": null\r\n}";
+            string jsonString = string.Format("{{\r\n\t\"UserID\": 1234,\r\n\t\"Username\": \"{0}\",\r\n\t\"SSN\": null,\r\n\t\"PartyID\": 0,\r\n\t\"AuthenticateResult\": 1,\r\n\t\"AuthenticationMethod\": 9,\r\n\t\"LockedOutDate\": \"1753-01-01T00:00:00\",\r\n\t\"SmsPinUpgraded\": false,\r\n\t\"IsTestUser\": false,\r\n\t\"IDPortenNameID\": null,\r\n\t\"IDPortenSessionIndex\": null\r\n}}", userName);
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
             return content;
