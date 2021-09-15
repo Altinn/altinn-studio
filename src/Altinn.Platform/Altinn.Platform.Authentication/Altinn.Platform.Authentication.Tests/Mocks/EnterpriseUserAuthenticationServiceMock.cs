@@ -93,7 +93,7 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
             }
         }
 
-        private HttpContent GetEnterpriseUserContent(string userName)
+        private static HttpContent GetEnterpriseUserContent(string userName)
         {
             string jsonString = string.Format("{{\r\n\t\"UserID\": 1234,\r\n\t\"Username\": \"{0}\",\r\n\t\"SSN\": null,\r\n\t\"PartyID\": 0,\r\n\t\"AuthenticateResult\": 1,\r\n\t\"AuthenticationMethod\": 9,\r\n\t\"LockedOutDate\": \"1753-01-01T00:00:00\",\r\n\t\"SmsPinUpgraded\": false,\r\n\t\"IsTestUser\": false,\r\n\t\"IDPortenNameID\": null,\r\n\t\"IDPortenSessionIndex\": null\r\n}}", userName);
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
