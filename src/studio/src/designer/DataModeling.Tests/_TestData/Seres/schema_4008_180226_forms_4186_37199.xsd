@@ -1,1 +1,163 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><xsd:annotation><xsd:documentation><xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" /><xsd:attribute name="XSD-generatorversjon" fixed="2.0.13" /><xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" /><xsd:attribute name="generert" fixed="2014-02-13T14:47:51.75+01:00" /><xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" /><xsd:attribute name="namespace" fixed="http://seres.no/xsd/Skattedirektoratet-diverse/Boligsameie_M/2014" /><xsd:attribute name="meldingsnavn" fixed="melding" /><xsd:attribute name="domenenavn" fixed="Skattedirektoratet-diverse" /><xsd:attribute name="modellnavn" fixed="Boligsameie_M" /><xsd:attribute name="metamodellversjon" fixed="1.2" /><xsd:attribute name="guid" fixed="false" /><xsd:attribute name="orid" fixed="false" /><xsd:attribute name="nillable" fixed="true" /><xsd:attribute name="tillat-gjenbruk" fixed="true" /><xsd:attribute name="elementtype" fixed="false" /><xsd:attribute name="forvaltningsdata" fixed="true" /><xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" /><xsd:attribute name="særnorske-bokstaver-i-navn" fixed="false" /><xsd:attribute name="ft_guid_som_attributt" fixed="false" /><xsd:attribute name="sem-ref" fixed="false" /><xsd:attribute name="kodebibliotek" fixed="false" /><xsd:attribute name="språk" fixed="" /><xsd:attribute name="XSD-variant" fixed="Altinn" /><xsd:attribute name="XSD-transformatorversjon" fixed="1.2" /></xsd:documentation></xsd:annotation><xsd:element name="melding" type="Boligsameie_M" /><xsd:complexType name="Boligsameie_M"><xsd:sequence><xsd:element name="Leveranse" type="Leveranse" /></xsd:sequence><xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" /><xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="4186" /><xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="37199" /><xsd:anyAttribute /></xsd:complexType><xsd:complexType name="Leveranse"><xsd:sequence><xsd:element name="kildesystem" type="Kildesystem" nillable="true" minOccurs="0" /><xsd:element name="oppgavegiver" type="Oppgavegiver" /><xsd:element name="inntektsaar" type="Inntektsaar" nillable="true" minOccurs="0" /><xsd:element name="leveransetype" type="leveransetype" nillable="true" minOccurs="0" /><xsd:element name="oppgave" type="OppgaveBoligsameie" nillable="true" minOccurs="0" maxOccurs="unbounded" /><xsd:element name="oppgaveoppsummering" type="OppgaveoppsummeringBoligsameie" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="Oppgavegiver"><xsd:sequence><xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" /><xsd:element name="organisasjonsnavn" type="Organisasjonsnavn" /><xsd:element name="kontaktinformasjon" type="Kontaktinformasjon" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="Kontaktinformasjon"><xsd:sequence><xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" /><xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" /><xsd:element name="varselEpostadresse" type="Epostadresse" nillable="true" minOccurs="0" /><xsd:element name="varselSmsMobilnummer" type="Telefonnummer" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="OppgaveBoligsameie"><xsd:sequence><xsd:element name="oppgaveeier" type="oppgaveeier" /><xsd:element name="matrikkelnummer" type="Matrikkelnummer" /><xsd:element name="eiertid" type="Eiertid" /><xsd:element name="andelSkattepliktigeInntekter" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="andelFradragsberettigedeKostnader" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="andelFormue" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="andelGjeld" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="erSlettingAvOppgave" type="Boolsk" nillable="true" minOccurs="0" /></xsd:sequence><xsd:anyAttribute /></xsd:complexType><xsd:complexType name="oppgaveeier"><xsd:sequence><xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" /><xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" /><xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="Matrikkelnummer"><xsd:sequence><xsd:element name="kommunenummer" type="Kommunenummer" nillable="true" minOccurs="0" /><xsd:element name="gaardsnummer" type="Gaardsnummer" nillable="true" minOccurs="0" /><xsd:element name="bruksnummer" type="Bruksnummer" nillable="true" minOccurs="0" /><xsd:element name="seksjonsnummer" type="Seksjonsnummer" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="Eiertid"><xsd:sequence><xsd:element name="start" type="DatoUtenAAr" nillable="true" minOccurs="0" /><xsd:element name="slutt" type="DatoUtenAAr" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:complexType name="OppgaveoppsummeringBoligsameie"><xsd:sequence><xsd:element name="antallOppgaver" type="Antall" nillable="true" minOccurs="0" /><xsd:element name="sumAndelSkattepliktigeInntekter" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="sumAndelFradragsberettigedeKostnader" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="sumAndelFormue" type="Beloep" nillable="true" minOccurs="0" /><xsd:element name="sumAndelGjeld" type="Beloep" nillable="true" minOccurs="0" /></xsd:sequence></xsd:complexType><xsd:simpleType name="Kildesystem"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Organisasjonsnummer"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Organisasjonsnavn"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Navn"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Telefonnummer"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Epostadresse"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Inntektsaar"><xsd:restriction base="xsd:integer" /></xsd:simpleType><xsd:simpleType name="leveransetype"><xsd:restriction base="xsd:string"><xsd:enumeration value="ordinaer" /><xsd:enumeration value="ingenoppgaver" /></xsd:restriction></xsd:simpleType><xsd:simpleType name="Foedselsnummer"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Kommunenummer"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Gaardsnummer"><xsd:restriction base="xsd:integer" /></xsd:simpleType><xsd:simpleType name="Bruksnummer"><xsd:restriction base="xsd:integer" /></xsd:simpleType><xsd:simpleType name="Seksjonsnummer"><xsd:restriction base="xsd:integer" /></xsd:simpleType><xsd:simpleType name="DatoUtenAAr"><xsd:restriction base="xsd:string" /></xsd:simpleType><xsd:simpleType name="Beloep"><xsd:restriction base="xsd:decimal" /></xsd:simpleType><xsd:simpleType name="Boolsk"><xsd:restriction base="xsd:boolean" /></xsd:simpleType><xsd:simpleType name="Antall"><xsd:restriction base="xsd:integer" /></xsd:simpleType></xsd:schema>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.13" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2014-02-13T14:47:51.75+01:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/Skattedirektoratet-diverse/Boligsameie_M/2014" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="Skattedirektoratet-diverse" />
+      <xsd:attribute name="modellnavn" fixed="Boligsameie_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="false" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="false" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="særnorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="språk" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn" />
+      <xsd:attribute name="XSD-transformatorversjon" fixed="1.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="Boligsameie_M" />
+  <xsd:complexType name="Boligsameie_M">
+    <xsd:sequence>
+      <xsd:element name="Leveranse" type="Leveranse" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="4186" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="37199" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="Leveranse">
+    <xsd:sequence>
+      <xsd:element name="kildesystem" type="Kildesystem" nillable="true" minOccurs="0" />
+      <xsd:element name="oppgavegiver" type="Oppgavegiver" />
+      <xsd:element name="inntektsaar" type="Inntektsaar" nillable="true" minOccurs="0" />
+      <xsd:element name="leveransetype" type="leveransetype" nillable="true" minOccurs="0" />
+      <xsd:element name="oppgave" type="OppgaveBoligsameie" nillable="true" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="oppgaveoppsummering" type="OppgaveoppsummeringBoligsameie" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Oppgavegiver">
+    <xsd:sequence>
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" />
+      <xsd:element name="organisasjonsnavn" type="Organisasjonsnavn" />
+      <xsd:element name="kontaktinformasjon" type="Kontaktinformasjon" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktinformasjon">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="varselEpostadresse" type="Epostadresse" nillable="true" minOccurs="0" />
+      <xsd:element name="varselSmsMobilnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OppgaveBoligsameie">
+    <xsd:sequence>
+      <xsd:element name="oppgaveeier" type="oppgaveeier" />
+      <xsd:element name="matrikkelnummer" type="Matrikkelnummer" />
+      <xsd:element name="eiertid" type="Eiertid" />
+      <xsd:element name="andelSkattepliktigeInntekter" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="andelFradragsberettigedeKostnader" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="andelFormue" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="andelGjeld" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="erSlettingAvOppgave" type="Boolsk" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="oppgaveeier">
+    <xsd:sequence>
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Matrikkelnummer">
+    <xsd:sequence>
+      <xsd:element name="kommunenummer" type="Kommunenummer" nillable="true" minOccurs="0" />
+      <xsd:element name="gaardsnummer" type="Gaardsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="bruksnummer" type="Bruksnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="seksjonsnummer" type="Seksjonsnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Eiertid">
+    <xsd:sequence>
+      <xsd:element name="start" type="DatoUtenAAr" nillable="true" minOccurs="0" />
+      <xsd:element name="slutt" type="DatoUtenAAr" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OppgaveoppsummeringBoligsameie">
+    <xsd:sequence>
+      <xsd:element name="antallOppgaver" type="Antall" nillable="true" minOccurs="0" />
+      <xsd:element name="sumAndelSkattepliktigeInntekter" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="sumAndelFradragsberettigedeKostnader" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="sumAndelFormue" type="Beloep" nillable="true" minOccurs="0" />
+      <xsd:element name="sumAndelGjeld" type="Beloep" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Kildesystem">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnavn">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Navn">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Epostadresse">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Inntektsaar">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="leveransetype">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ordinaer" />
+      <xsd:enumeration value="ingenoppgaver" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Kommunenummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Gaardsnummer">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Bruksnummer">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Seksjonsnummer">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="DatoUtenAAr">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Beloep">
+    <xsd:restriction base="xsd:decimal" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Boolsk">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Antall">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+</xsd:schema>

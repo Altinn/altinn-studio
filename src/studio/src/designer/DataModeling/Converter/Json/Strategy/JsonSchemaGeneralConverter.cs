@@ -783,9 +783,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
-            if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
+            if (compatibleTypes.Contains(CompatibleXsdType.Nillable))
             {
-                HandleNillableComplexType(element, path, oneOfKeyword);
+                HandleNillableComplexType(element, path, keywords);
             }
             else if (keywords.TryPull(out RefKeyword reference))
             {
@@ -860,10 +860,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleNillableComplexType(XmlSchemaElement element, JsonPointer path, OneOfKeyword oneOfKeyword)
+        private void HandleNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
         {
+            var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
             var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
             var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+
+            var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
 
             // Element with type reference to a ComplexType
             if (refKeywordSubSchema != null)
@@ -872,6 +875,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             // Element with inline ComplexType
+            // TODO: fix hardcoded index in path ref
             else if (propertiesKeywordSubSchema != null)
             {
                 var item = new XmlSchemaComplexType
@@ -881,11 +885,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 element.SchemaType = item;
                 HandleComplexType(item, propertiesKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse("/oneOf/[0]")));
             }
+
+            // Array
+            // TODO: fix hardcoded index in path ref
+            else if (itemsKeyword != null)
+            {
+                var item = new XmlSchemaComplexType
+                {
+                    Parent = element
+                };
+                element.SchemaType = item;
+                var itemsKeywordSubSchema = itemsKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<AllOfKeyword>());
+                HandleComplexType(item, itemsKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse("/allOf/[0]")));
+            }
             else
             {
-                throw new ArgumentException("The provided OnOfKeyword could not be handled as a nillable complex type.");
+                throw new ArgumentException("The provided schema could not be handled as a nillable complex type.");
             }
-
+            
             element.IsNillable = true;
         }
 

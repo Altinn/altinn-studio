@@ -84,21 +84,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
-            if (IsArray(schema, out var itemSchema))
-            {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
-                AnalyzeSchema(path, itemSchema);
-                return;
-            }
-
-            if (IsValidNillableElement(schema, out var valueSchema))
+            if (IsValidNillableElement(path, schema, out var valueSchema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
                 if (valueSchema != null)
                 {
                     AnalyzeSchema(path, valueSchema);
                     return;
-                }                
+                }
+            }
+
+            if (IsArray(schema, out var itemSchema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
+                AnalyzeSchema(path, itemSchema);
+                return;
             }
 
             // Follow all references, this will mark the schema as the type referenced if it has a $ref keyword
@@ -175,7 +175,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
         {
-            if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Array)
+            if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
             {
                 var itemsKeyword = schema.GetKeyword<ItemsKeyword>();
                 if (itemsKeyword == null)
@@ -191,7 +191,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
+        private bool IsValidNillableElement(JsonPointer path, JsonSchema schema, out JsonSchema valueSchema)
         {
             if (HasTypeKeywordWithNullAndOtherTypes(schema))
             {
