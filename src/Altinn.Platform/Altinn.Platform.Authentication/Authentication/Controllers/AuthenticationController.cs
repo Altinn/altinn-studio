@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -818,7 +819,11 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         private string CreateUserName(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
         {
-            return provider.UserNamePrefix + HashNonce(userAuthenticationModel.ExternalIdentity);
+            string hashedIdentity = HashNonce(userAuthenticationModel.ExternalIdentity).Substring(5, 10);
+            Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+            hashedIdentity = rgx.Replace(hashedIdentity, string.Empty);
+
+            return provider.UserNamePrefix + hashedIdentity.ToLower();
         }
 
         /// <summary>
