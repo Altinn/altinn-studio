@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Helpers;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -119,6 +120,35 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             return Ok(PolicyHelper.GetRolesWithAccess(policy));
+        }
+
+        /// <summary>
+        /// Gets a list of role codes which might give access to an app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        [AllowAnonymous]
+        [HttpGet("/authorization/api/v1/resourcepolicies/{org}/{app}")]
+        public async Task<ActionResult> GetResourcePolicies(string org, string app)
+        {
+            if (string.IsNullOrWhiteSpace(org))
+            {
+                return BadRequest("Organisation must be defined in the path");
+            }
+
+            if (string.IsNullOrWhiteSpace(app))
+            {
+                return BadRequest("App must be defined in the path");
+            }
+
+            XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
+
+            if (policy == null)
+            {
+                return NotFound($"No valid policy found for org '{org}' and app '{app}'");
+            }
+
+            return Ok(PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy));
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Linq;
 
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-
+using Altinn.Platform.Authorization.Models;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Util
@@ -61,6 +61,28 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
             Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
             AssertEqual(expected.Attributes, actual.Attributes);
+        }
+
+        /// <summary>
+        /// Assert that two lists of <see cref="ResourcePolicy"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertEqual(List<ResourcePolicy> expected, List<ResourcePolicy> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.NotNull(actual);
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
         }
 
         private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
@@ -256,6 +278,93 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.AttributeId, actual.AttributeId);
             Assert.Equal(expected.DataType, actual.DataType);
+        }
+
+        public static void AssertEqual(ResourcePolicy expected, ResourcePolicy actual)
+        {
+            Assert.Equal(expected.Title, actual.Title);
+            AssertEqual(expected.Actions, actual.Actions);
+            AssertEqual(expected.Resource, actual.Resource);
+        }
+
+        private static void AssertEqual(List<ResourceAction> expected, List<ResourceAction> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        private static void AssertEqual(ResourceAction expected, ResourceAction actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.NotNull(actual);
+            Assert.Equal(expected.Description, actual.Description);
+            Assert.Equal(expected.Title, actual.Title);
+
+            AssertEqual(expected.Match, actual.Match);
+            AssertEqual(expected.RoleGrants, actual.RoleGrants);
+
+        }
+
+        private static void AssertEqual(List<RoleGrant> expected, List<RoleGrant> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        private static void AssertEqual(RoleGrant expected, RoleGrant actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            Assert.Equal(expected.IsDelegable, actual.IsDelegable);
+            Assert.Equal(expected.RoleTypeCode, actual.RoleTypeCode);
+        }
+
+        private static void AssertEqual(List<AttributeMatch> expected, List<AttributeMatch> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        private static void AssertEqual(AttributeMatch expected, AttributeMatch actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Value, actual.Value);
         }
     }
 }
