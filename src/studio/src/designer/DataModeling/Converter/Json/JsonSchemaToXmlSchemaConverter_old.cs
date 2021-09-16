@@ -411,11 +411,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                 attribute.DefaultValue = defaultKeyword?.Value.GetString();
             }
 
-            if (keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword) && anyAttributeKeyword.Value)
+            if (keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
             {
                 XmlSchemaAnyAttribute anyAttribute = new XmlSchemaAnyAttribute
                 {
-                    Parent = item
+                    Parent = item,
+                    Id = anyAttributeKeyword.Id,
+                    Namespace = anyAttributeKeyword.Namespace,
+                    ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(anyAttributeKeyword.ProcessContent)
                 };
 
                 switch (item)
