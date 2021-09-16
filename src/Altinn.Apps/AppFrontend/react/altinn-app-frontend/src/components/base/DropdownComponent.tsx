@@ -15,6 +15,7 @@ export interface IDropdownProps {
   isValid?: boolean;
   optionsId: string;
   readOnly: boolean;
+  preselectedOptionIndex: number;
 }
 
 export interface IDropdownState {
@@ -35,6 +36,21 @@ const useStyles = makeStyles({
 function DropdownComponent(props: IDropdownProps) {
   const classes = useStyles();
   const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+
+  React.useEffect(() => {
+    returnState();
+  }, [options]);
+
+  const returnState = () => {
+    if (
+      !props.formData &&
+      props.preselectedOptionIndex >= 0 &&
+      options &&
+      props.preselectedOptionIndex < options.length
+    ) {
+      props.handleDataChange(options[props.preselectedOptionIndex].value);
+    }
+  };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     props.handleDataChange(event.target.value);
