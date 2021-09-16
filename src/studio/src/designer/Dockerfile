@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:14.17.5-alpine3.14 AS generate-studio-frontend
+FROM node:14.17.6-alpine3.14 AS generate-studio-frontend
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .
@@ -49,26 +49,21 @@ COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:14.17.5-alpine3.14 AS generate-designer-js
+FROM node:14.17.6-alpine3.14 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-# We experienced a hard crash in Altinn Studio Designer when updating to Alpine 3.13 ref GitHub issue 5992
-# Verify that this is resolved before updating to a newer version of Alpine.
-# sdk:5.0.301-alpine3.12 causing issues with libgit2sharp
-FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.12 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.401-alpine3.14 AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-# Ref. comment above on upgrading Alpine.
-# aspnet:5.0.7-alpine3.12 appears to be causing issues with libgit2sharp
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.6-alpine3.12 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.10-alpine3.14 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
@@ -89,5 +84,6 @@ COPY /AppTemplates/AspNet ./Templates/AspNet
 
 COPY src/designer/backend/Languages/ini ./Languages
 
+COPY src/designer/backend/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

@@ -17,7 +17,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
   let mockReducer: any;
 
 
-  beforeAll(() => {
+  beforeEach(() => {
     mockInitialState = getInitialStateMock({});
     (axios.post as jest.Mock).mockResolvedValue({
       data: {
@@ -39,6 +39,28 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
       return state;
     };
     mockStore = createStore(mockReducer, mockInitialState);
+  });
+
+  it('+++ should show invalid party error if user has no valid parties', async () => {
+    (axios.post as jest.Mock).mockResolvedValue({
+      data: {
+        valid: false,
+        validParties: [],
+        message: ''
+      }
+    });
+    const rendered = render(
+      <Provider store={mockStore}>
+        <Entrypoint />
+      </Provider>
+    );
+    await waitFor(() => {
+      // validate party
+      expect(axios.post).toBeCalled();
+    });
+
+    const invalidPartyText = await rendered.findByText('For å starte denne tjenesten må du ha tilganger som knytter deg til en privatperson.');
+    expect(invalidPartyText).not.toBeNull();
   });
 
   it('+++ should show loader while fetching data then start instantiation by default ', async () => {

@@ -1,15 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Authentication

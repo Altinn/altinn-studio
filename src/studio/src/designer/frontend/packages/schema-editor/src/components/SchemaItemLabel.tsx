@@ -7,10 +7,11 @@ export interface SchemaItemLabelProps {
   icon: string;
   label: string;
   language: ILanguage;
-  onAddProperty: () => void;
+  onAddProperty?: () => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
+  onGoToType?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -50,7 +51,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
   const handleAddPropertyClick = (e: React.MouseEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
-    props.onAddProperty();
+    props.onAddProperty?.();
   };
   const handlePromoteClick = (e: React.MouseEvent) => {
     setContextAnchor(null);
@@ -61,6 +62,11 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(null);
     e.stopPropagation();
     props.onDelete?.();
+  };
+  const handleGoToType = (event: React.MouseEvent) => {
+    setContextAnchor(null);
+    event.stopPropagation();
+    props.onGoToType?.();
   };
 
   const handleCloseContextMenu = (e: React.MouseEvent) => {
@@ -88,10 +94,11 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}</MenuItem>
+        {props.onAddProperty && <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}</MenuItem>}
         {props.onImport && <MenuItem><i className='fa fa-clone'/> {getTranslation('import', props.language)}</MenuItem>}
         {props.onDelete && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> {getTranslation('delete', props.language)}</MenuItem> }
         {props.onPromote && <MenuItem onClick={handlePromoteClick}><i className='fa fa-arrowup'/> {getTranslation('promote', props.language)}</MenuItem> }
+        {props.onGoToType && <MenuItem onClick={handleGoToType}><i className='fa fa-datamodel-ref'/>{getTranslation('go_to_type', props.language)}</MenuItem> }
       </Menu>
     </div>);
 };

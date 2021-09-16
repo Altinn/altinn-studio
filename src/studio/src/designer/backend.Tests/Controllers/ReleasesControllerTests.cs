@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers
         public async Task GetReleases_NoLaggingReleases_PipelineServiceNotCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortBy=created&sortDirection=Descending";
+            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("completedReleases.json");
 
             Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers
         public async Task GetReleases_SingleLaggingRelease_PipelineServiceCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortBy=created&sortDirection=Descending";
+            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("singleLaggingRelease.json");
 
             Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();

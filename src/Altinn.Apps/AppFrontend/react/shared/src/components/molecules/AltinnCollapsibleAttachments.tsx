@@ -51,6 +51,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       {props.collapsible ? (
         <List
           component='nav'
+          id='attachment-collapsible-list'
         >
           <ListItem button={true} onClick={handleOpenClose} disableGutters={true}>
             <ListItemIcon
@@ -92,6 +93,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
             attachments={props.attachments}
             nested={false}
             listDisableVerticalPadding={false}
+            id='attachment-list'
           />
         </>
 

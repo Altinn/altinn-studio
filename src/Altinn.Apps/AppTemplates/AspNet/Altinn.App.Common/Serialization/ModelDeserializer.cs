@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 
 using Microsoft.Extensions.Logging;
@@ -92,20 +93,43 @@ namespace Altinn.App.Common.Serialization
         {
             Error = null;
 
+            string streamContent = null;
             try
             {
+                // In this first try block we assume that the namespace is the same in the model
+                // and in the XML. This includes no namespace in both.
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                string content = await reader.ReadToEndAsync();
+                streamContent = await reader.ReadToEndAsync();
 
-                using TextReader sr = new StringReader(content);
-
+                using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
                 XmlSerializer serializer = new XmlSerializer(_modelType);
-                return serializer.Deserialize(sr);
+
+                return serializer.Deserialize(xmlTextReader);
             }
-            catch (InvalidOperationException invalidOperationException)
+            catch (InvalidOperationException)
             {
-                Error = $"{invalidOperationException.Message} {invalidOperationException?.InnerException.Message}";
-                return null;
+                try
+                {
+                    // In this backup try block we assume that the modelType has declared a namespace,
+                    // but that the XML is without any namespace declaration.
+                    string elementName = GetRootElementName(_modelType);
+
+                    XmlAttributeOverrides attributeOverrides = new XmlAttributeOverrides();
+                    XmlAttributes attributes = new XmlAttributes();
+                    attributes.XmlRoot = new XmlRootAttribute(elementName);
+                    attributeOverrides.Add(_modelType, attributes);
+
+                    using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
+                    XmlSerializer serializer = new XmlSerializer(_modelType, attributeOverrides);
+
+                    return serializer.Deserialize(xmlTextReader);
+                }
+                catch (InvalidOperationException invalidOperationException)
+                {
+                    // One possible fail condition is if the XML has a namespace, but the model does not, or that the namespaces are different.
+                    Error = $"{invalidOperationException.Message} {invalidOperationException?.InnerException.Message}";
+                    return null;
+                }
             }
             catch (Exception ex)
             {
@@ -114,6 +138,22 @@ namespace Altinn.App.Common.Serialization
                 Error = message;
                 return null;
             }
+        }
+
+        private static string GetRootElementName(Type modelType)
+        {
+            Attribute[] attributes = Attribute.GetCustomAttributes(modelType);
+
+            foreach (var attribute in attributes)
+            {
+                var xmlRootAttribute = attribute as XmlRootAttribute;
+                if (xmlRootAttribute != null)
+                {
+                    return xmlRootAttribute.ElementName;
+                }
+            }
+
+            return modelType.Name;
         }
     }
 }

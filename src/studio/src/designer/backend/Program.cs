@@ -93,10 +93,10 @@ namespace Altinn.Studio.Designer
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                     try
                     {
-                        string secretId =
-                        hostingEnvironment.IsDevelopment() ? "ApplicationInsights--InstrumentationKey--Dev" : "ApplicationInsights--InstrumentationKey";
+                        string secretId = "ApplicationInsights--InstrumentationKey";
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, secretId).Result;
+
                         Startup.ApplicationInsightsKey = secretBundle.Value;
                     }
                     catch (Exception vaultException)
