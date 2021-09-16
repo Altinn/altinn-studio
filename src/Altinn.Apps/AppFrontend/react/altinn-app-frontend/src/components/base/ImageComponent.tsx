@@ -22,8 +22,8 @@ export interface IImage {
 
 export interface IImagesrc {
   nb: string;
-  nn: string;
-  en: string;
+  nn?: string;
+  en?: string;
 }
 
 const useStyles = makeStyles({
@@ -40,13 +40,11 @@ export function ImageComponent(props: IImageProps) {
   const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg) || 'image';
 
-  let imgSrc;
+  let imgSrc = props.image.src.nb;
   if (language === 'en' && props.image.src.en) {
     imgSrc = props.image.src.en;
   } else if (language === 'nn' && props.image.src.nn) {
     imgSrc = props.image.src.nn;
-  } else {
-    imgSrc = props.image.src.nb;
   }
 
   let showImg;
