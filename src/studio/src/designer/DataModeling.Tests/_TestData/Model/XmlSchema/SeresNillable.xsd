@@ -46,6 +46,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
+      <xsd:element name="p5" nillable="true" type="veryComplexType" />
     </xsd:sequence>
   </xsd:complexType>
 
@@ -60,4 +61,26 @@
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:complexType name="veryComplexType">
+    <xsd:sequence>
+      <xsd:element name="value" nillable="true" minOccurs="0" maxOccurs="unbounded">
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="toBeExtended">
+              <xsd:anyAttribute />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="code" type="xsd:string" nillable="true" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="toBeExtended">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string" nillable="true" minOccurs="0" />
+      <xsd:element name="email" type="xsd:string" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  
 </xsd:schema>

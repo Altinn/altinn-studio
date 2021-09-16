@@ -44,7 +44,7 @@ namespace DataModeling.Tests
             // Convert the XSD to JSON Schema
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
             JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
-            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
+            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
 
             // Convert the converted JSON Schema back to XSD
             var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());

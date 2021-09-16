@@ -987,8 +987,16 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
 
                 if (item.MaxOccurs > 1)
-                {
-                    builder.Type(SchemaValueType.Array);
+                {                    
+                    if (item.IsNillable)
+                    {
+                        builder.Type(SchemaValueType.Array, SchemaValueType.Null);
+                    }
+                    else
+                    {
+                        builder.Type(SchemaValueType.Array);
+                    }
+
                     if (item.MinOccurs != 0)
                     {
                         itemsBuilder.MinItems((uint) item.MinOccurs);
