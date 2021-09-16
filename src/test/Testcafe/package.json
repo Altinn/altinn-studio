@@ -20,7 +20,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-testcafe": "^0.2.1",
-    "prettier": "^2.3.2",
+    "prettier": "^2.4.1",
     "process": "^0.11.10",
     "testcafe": "^1.16.0",
     "testcafe-browser-provider-puppeteer": "^1.5.2"
