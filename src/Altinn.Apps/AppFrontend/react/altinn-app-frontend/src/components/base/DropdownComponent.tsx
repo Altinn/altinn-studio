@@ -15,7 +15,7 @@ export interface IDropdownProps {
   isValid?: boolean;
   optionsId: string;
   readOnly: boolean;
-  preselectedOptionIndex: number;
+  preselectedOptionIndex?: number;
 }
 
 export interface IDropdownState {
