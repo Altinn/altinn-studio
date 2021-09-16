@@ -823,7 +823,7 @@ namespace Altinn.Platform.Authentication.Controllers
             Regex rgx = new Regex("[^a-zA-Z0-9 -]");
             hashedIdentity = rgx.Replace(hashedIdentity, string.Empty);
 
-            return provider.UserNamePrefix + hashedIdentity.ToLower();
+            return provider.UserNamePrefix + hashedIdentity.ToLower() + DateTime.Now.Millisecond;
         }
 
         /// <summary>
