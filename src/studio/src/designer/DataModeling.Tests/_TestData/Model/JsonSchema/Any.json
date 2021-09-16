@@ -35,7 +35,10 @@
           "@xsdType": "#any"
         }
       ],
-      "@xsdAnyAttribute": true
+      "@xsdAnyAttribute": {
+        "Namespace": "##any",
+        "ProcessContent": "None"
+      }
     }
   }
 }

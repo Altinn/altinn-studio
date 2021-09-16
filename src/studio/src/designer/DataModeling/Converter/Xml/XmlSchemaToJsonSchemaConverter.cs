@@ -509,10 +509,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             steps.BuildWithAllOf(builder);
 
-            if (item.AnyAttribute != null)
-            {
-                builder.XsdAnyAttribute();
-            }
+            AddAnyAttribute(item.AnyAttribute, builder);
 
             AddUnhandledAttributes(item, builder);
         }
@@ -727,10 +724,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             properties.AddCurrentPropertiesToStep(steps);
             steps.BuildWithAllOf(builder);
 
-            if (item.AnyAttribute != null)
-            {
-                builder.XsdAnyAttribute();
-            }
+            AddAnyAttribute(item.AnyAttribute, builder);
         }
 
         private void HandleSimpleContentExtension(XmlSchemaSimpleContentExtension item, bool optional, bool array, JsonSchemaBuilder builder)
@@ -761,10 +755,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             properties.AddCurrentPropertiesToStep(steps);
             steps.BuildWithAllOf(builder);
 
-            if (item.AnyAttribute != null)
-            {
-                builder.XsdAnyAttribute();
-            }
+            AddAnyAttribute(item.AnyAttribute, builder);
         }
 
         private void HandleComplexContent(XmlSchemaComplexContent item, bool optional, bool array, JsonSchemaBuilder builder)
@@ -825,10 +816,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             steps.BuildWithAllOf(builder);
 
-            if (item.AnyAttribute != null)
-            {
-                builder.XsdAnyAttribute();
-            }
+            AddAnyAttribute(item.AnyAttribute, builder);
         }
 
         private void HandleComplexContentExtension(XmlSchemaComplexContentExtension item, bool optional, bool array, JsonSchemaBuilder builder)
@@ -874,10 +862,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             steps.BuildWithAllOf(builder);
 
-            if (item.AnyAttribute != null)
-            {
-                builder.XsdAnyAttribute();
-            }
+            AddAnyAttribute(item.AnyAttribute, builder);
         }
 
         private void AddUnhandledAttributes(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
@@ -907,6 +892,16 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 builder.XsdUnhandledEnumAttributes(namedKeyValuePairsList);
             }
+        }
+
+        private void AddAnyAttribute(XmlSchemaAnyAttribute anyAttribute, JsonSchemaBuilder builder)
+        {
+            if (anyAttribute == null)
+            {
+                return;
+            }
+
+            builder.XsdAnyAttribute(anyAttribute.Id, anyAttribute.Namespace, anyAttribute.ProcessContents.ToString());
         }
 
         private JsonSchemaBuilder ConvertSchemaAttributeGroup(XmlSchemaAttributeGroup item, bool optional, bool array)
@@ -999,12 +994,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (item.MinOccurs != 0)
                     {
-                        itemsBuilder.MinItems((uint) item.MinOccurs);
+                        itemsBuilder.MinItems((uint)item.MinOccurs);
                     }
 
                     if (item.MaxOccursString != "unbounded")
                     {
-                        itemsBuilder.MaxItems((uint) item.MaxOccurs);
+                        itemsBuilder.MaxItems((uint)item.MaxOccurs);
                     }
 
                     builder.Items(itemsBuilder);

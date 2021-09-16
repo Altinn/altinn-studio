@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.Schema;
@@ -20,17 +22,31 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         internal const string Name = "@xsdAnyAttribute";
 
         /// <summary>
-        /// The value
+        /// The value of the id attribute on the AnyAttribute element in an XSD.
         /// </summary>
-        public bool Value { get; }
+        public string Id { get; }
 
         /// <summary>
-        /// Create a new instance of XsdAnyAttributeKeyword with the specified value
+        /// The value of the namespacee attribute on the AnyAttribute element in an XSD.
         /// </summary>
-        /// <param name="value">info value</param>
-        public XsdAnyAttributeKeyword(bool value)
+        public string Namespace { get; }
+
+        /// <summary>
+        /// The value of the process content attribute on the AnyAttribute element in an XSD.
+        /// </summary>
+        public string ProcessContent { get; }
+
+        /// <summary>
+        /// Create a new instance of XsdAnyAttributeKeyword.
+        /// </summary>
+        /// <param name="id">The value of the Id property.</param>
+        /// <param name="namespace">The value of the Namespace property.</param>
+        /// <param name="processContent">The value of the ProcessContent property.</param>
+        public XsdAnyAttributeKeyword(string id, string @namespace, string processContent)
         {
-            Value = value;
+            Id = id;
+            Namespace = @namespace;
+            ProcessContent = processContent;
         }
 
         /// <summary>
@@ -51,7 +67,12 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                 return false;
             }
 
-            return ReferenceEquals(this, other) || Equals(Value, other.Value);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Id == other.Id && Namespace == other.Namespace && ProcessContent == other.ProcessContent;
         }
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
@@ -66,7 +87,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
         {
-            return Value.GetHashCode();
+            return HashCode.Combine(Id, Namespace, ProcessContent);
         }
 
         /// <summary>
@@ -79,12 +100,37 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
             /// </summary>
             public override XsdAnyAttributeKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                if (reader.TokenType != JsonTokenType.True || reader.TokenType == JsonTokenType.False)
+                JsonDocument document = JsonDocument.ParseValue(ref reader);
+
+                if (document.RootElement.ValueKind != JsonValueKind.Object)
                 {
-                    throw new JsonException("Expected boolean");
+                    throw new JsonException("Expected object");
                 }
 
-                return new XsdAnyAttributeKeyword(reader.GetBoolean());
+                string id = null;
+                string @namespace = null;
+                string processContent = null;
+
+                IEnumerable<(string Name, string Value)> properties = document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString()));
+                foreach (var property in properties)
+                {
+                    switch (property.Name)
+                    {
+                        case nameof(Id):
+                            id = property.Value;
+                            break;
+                        case nameof(Namespace):
+                            @namespace = property.Value;
+                            break;
+                        case nameof(ProcessContent):
+                            processContent = property.Value;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return new XsdAnyAttributeKeyword(id, @namespace, processContent);
             }
 
             /// <summary>
@@ -92,7 +138,25 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
             /// </summary>
             public override void Write(Utf8JsonWriter writer, XsdAnyAttributeKeyword value, JsonSerializerOptions options)
             {
-                writer.WriteBoolean(Name, value.Value);
+                writer.WritePropertyName(Name);
+                writer.WriteStartObject();
+
+                if (value.Id != null)
+                {
+                    writer.WriteString(nameof(value.Id), value.Id);
+                }
+
+                if (value.Namespace != null)
+                {
+                    writer.WriteString(nameof(value.Namespace), value.Namespace);
+                }
+
+                if (value.ProcessContent != null)
+                {
+                    writer.WriteString(nameof(value.ProcessContent), value.ProcessContent);
+                }
+
+                writer.WriteEndObject();
             }
         }
     }

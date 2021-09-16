@@ -73,7 +73,10 @@
           }
         }
       ],
-      "@xsdAnyAttribute": true
+      "@xsdAnyAttribute": {
+        "Namespace": "##any",
+        "ProcessContent": "None"
+      }
     }
   }
 }

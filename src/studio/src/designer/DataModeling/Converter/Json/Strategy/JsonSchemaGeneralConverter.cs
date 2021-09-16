@@ -1193,14 +1193,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            if (anyAttributeKeyword.Value)
+            XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
             {
-                XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
-                {
-                    Parent = complexType
-                };
-                complexType.AnyAttribute = xmlSchemaAnyAttribute;
-            }
+                Parent = complexType,
+                Id = anyAttributeKeyword.Id,
+                Namespace = anyAttributeKeyword.Namespace,
+                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(anyAttributeKeyword.ProcessContent)
+            };
+            complexType.AnyAttribute = xmlSchemaAnyAttribute;
         }
 
         private void HandleAnyAttributeKeyword(XmlSchemaComplexContentExtension complexContentExtension, WorkList<IJsonSchemaKeyword> keywords)
@@ -1210,14 +1210,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            if (anyAttributeKeyword.Value)
+            XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
             {
-                XmlSchemaAnyAttribute xmlSchemaAnyAttribute = new XmlSchemaAnyAttribute
-                {
-                    Parent = complexContentExtension
-                };
-                complexContentExtension.AnyAttribute = xmlSchemaAnyAttribute;
-            }
+                Parent = complexContentExtension,
+                Id = anyAttributeKeyword.Id,
+                Namespace = anyAttributeKeyword.Namespace,
+                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(anyAttributeKeyword.ProcessContent)
+            };
+            complexContentExtension.AnyAttribute = xmlSchemaAnyAttribute;
         }
 
         private void SetName(XmlSchemaObject item, string name)

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
@@ -39,11 +38,13 @@ namespace Altinn.Studio.DataModeling.Utils
         /// Add <see cref="XsdAnyAttributeKeyword"/> keyword to the builder
         /// </summary>
         /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="anyAttribute">True to set the any attribute keyword</param>
+        /// <param name="id">The original id of the any attribute.</param>
+        /// <param name="namespace">The original namespace value of the any attribute.</param>
+        /// <param name="processContent">The original processContent value of the any attribute.</param>
         /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
-        public static JsonSchemaBuilder XsdAnyAttribute(this JsonSchemaBuilder builder, bool anyAttribute = true)
+        public static JsonSchemaBuilder XsdAnyAttribute(this JsonSchemaBuilder builder, string id, string @namespace, string processContent)
         {
-            builder.Add(new XsdAnyAttributeKeyword(anyAttribute));
+            builder.Add(new XsdAnyAttributeKeyword(id, @namespace, processContent));
             return builder;
         }
 
