@@ -196,14 +196,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
-                schema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
+                var itemSchema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
 
-                if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
+                if (itemSchema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
                 {
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
                 }
 
-                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+                arrayMaxOccurs = itemSchema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
             }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
@@ -346,6 +346,20 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return new XmlQualifiedName(pointer.Segments[1].Value);
         }
 
+        private XmlQualifiedName GetTypeNameFromArray(JsonSchema schema, WorkList<IJsonSchemaKeyword> keywords)
+        {
+            if (schema.TryGetKeyword<TypeKeyword>(out TypeKeyword typeKeyword))
+            {
+                return GetTypeNameFromTypeKeyword(typeKeyword, keywords);
+            }
+            else if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
+            {
+                return GetTypeNameFromReference(refKeyword.Reference);
+            }
+
+            return new XmlQualifiedName();
+        }
+
         private void HandleDefinitions(JsonPointer defsPath, IReadOnlyDictionary<string, JsonSchema> definitions)
         {
             foreach (var (name, definition) in definitions)
@@ -415,7 +429,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private void HandleSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
-            if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
+            if (compatibleTypes.Contains(CompatibleXsdType.Array))
+            {
+                var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
+                element.SchemaTypeName = GetTypeNameFromArray(itemsKeyword.SingleSchema, itemsKeyword.SingleSchema.AsWorkList());
+            }
+            else if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
             {
                 var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
                 element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
@@ -443,7 +462,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 element.IsNillable = true;
             }
-
         }
 
         private void HandleSimpleType(XmlSchemaSimpleType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
@@ -775,6 +793,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 case SchemaValueType.Integer:
                     XmlQualifiedName typeName = SetType(typeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
                     return typeName;
+                case SchemaValueType.Array:
+                    var arrayTypeKeyword = keywords.GetKeyword<ItemsKeyword>().SingleSchema.GetKeyword<TypeKeyword>();
+                    XmlQualifiedName arrayType = SetType(arrayTypeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
+                    return arrayType;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -783,9 +805,31 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
+
+            // Not ideal, but for now order matters when it comes to handling nillable
+            // and arrays. HandleNillableComplexType will handle arrays within if the nillable
+            // is also an array. But the handling of arrays won't handle nillables.
             if (compatibleTypes.Contains(CompatibleXsdType.Nillable))
             {
                 HandleNillableComplexType(element, path, keywords);
+            }
+            else if (compatibleTypes.Contains(CompatibleXsdType.Array))
+            {
+                var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
+                if (itemsKeyword.SingleSchema.HasKeyword<PropertiesKeyword>())
+                {
+                    var item = new XmlSchemaComplexType
+                    {
+                        Parent = element
+                    };
+                    element.SchemaType = item;
+                    HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
+                }
+                else
+                {
+                    element.SchemaTypeName = GetTypeNameFromArray(itemsKeyword.SingleSchema, itemsKeyword.SingleSchema.AsWorkList());
+                }
+
             }
             else if (keywords.TryPull(out RefKeyword reference))
             {
@@ -862,10 +906,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
         {
+            var compatibleTypes = _metadata.GetCompatibleTypes(path);
+
             var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
             var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
             var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
 
+            var typeKeyword = keywords.GetKeyword<TypeKeyword>();
             var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
 
             // Element with type reference to a ComplexType
@@ -888,15 +935,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // Array
             // TODO: fix hardcoded index in path ref
-            else if (itemsKeyword != null)
+            // TODO: Replace this with TypeKeyword and ItemsKeyword
+            else if (typeKeyword != null || itemsKeyword != null)
             {
-                var item = new XmlSchemaComplexType
+                if (compatibleTypes.Contains(CompatibleXsdType.ComplexContentExtension))
                 {
-                    Parent = element
-                };
-                element.SchemaType = item;
-                var itemsKeywordSubSchema = itemsKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<AllOfKeyword>());
-                HandleComplexType(item, itemsKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse("/allOf/[0]")));
+                    var item = new XmlSchemaComplexType
+                    {
+                        Parent = element
+                    };
+                    element.SchemaType = item;
+
+                    HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
+                }
+                else
+                {
+                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                    element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                }
             }
             else
             {
