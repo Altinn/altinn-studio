@@ -677,7 +677,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (item.BaseTypeName.IsEmpty)
             {
-                throw new Exception("base is required on simpleContent/restriction");
+                throw new XmlSchemaConvertException("base is required on simpleContent/restriction");
             }
 
             // base type name must be present and refer to a ComplexType/SimpleContent[Restriction/Extension]
@@ -1277,7 +1277,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         return true;
 
                     default:
-                        throw new IndexOutOfRangeException($"Unknown in-build type '{typename}'");
+                        throw new ArgumentOutOfRangeException($"The provided typename {typename} could not be mapped to any SchemaValueType.");
                 }
             }
 
@@ -1349,20 +1349,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     step(stepBuilder);
                     return stepBuilder.Build();
                 }));
-
-                // if (_steps.Count == 1)
-                // {
-                //     _steps[0](builder);
-                // }
-                // else if (_steps.Count > 1)
-                // {
-                //     builder.AllOf(_steps.Select(step =>
-                //     {
-                //         JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-                //         step(stepBuilder);
-                //         return stepBuilder.Build();
-                //     }));
-                // }
             }
         }
     }
