@@ -38,6 +38,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="loggerFactory">Factory class that knows how to create an instance of <see cref="ILogger"/>.</param>
+        /// <param name="serviceRepositorySettings">Settings for the ServiceRepository. Service is the old name on Apps. This settings class contains alot, only use the parts related to SchemaModels to make it easier to separate out later.</param>
         public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILoggerFactory loggerFactory, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -84,8 +85,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
             {
                 await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
-
-                var schemaUri = GetSchemaUri(org, repository, GetSchemaName(relativeFilePath));
+                
                 JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
 
                 var jsonContent = SerializeJson(jsonSchema);
