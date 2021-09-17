@@ -453,7 +453,7 @@ export function validateComponentFormData(
   };
 
   if (!valid) {
-    validator.errors.filter((error) => error.instancePath === `.${dataModelField}`).forEach((error) => {
+    validator.errors.filter((error) => processInstancePath(error.instancePath) === dataModelField).forEach((error) => {
       if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
         validationResult.invalidDataTypes = true;
       }
@@ -462,7 +462,9 @@ export function validateComponentFormData(
         errorParams = errorParams.join(', ');
       }
       // backward compatible if we are validating against a sub scheme.
-      const fieldSchema = getSchemaPart(error.schemaPath, rootElementPath ? getSchemaPart(`${rootElementPath}/#`, schema) : schema);
+      const fieldSchema = rootElementPath ?
+        getSchemaPartOldGenerator(error.schemaPath, schema, rootElementPath) :
+        getSchemaPart(error.schemaPath, schema);
       let errorMessage;
       if (fieldSchema.errorMessage) {
         errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
@@ -500,15 +502,38 @@ export function validateComponentFormData(
   return null;
 }
 
+/**
+ * Wrapper method around getSchemaPart for schemas made with our old generator tool
+ * @param schemaPath the path, format #/properties/model/properties/person/properties/name/maxLength
+ * @param mainSchema the main schema to get part from
+ * @param rootElementPath the subschema to get part from
+ * @returns the part, or null if not found
+ */
+export function getSchemaPartOldGenerator(schemaPath: string, mainSchema: object, rootElementPath: string): any {
+  // for old generators we can have a ref to a definition that is placed outside of the subSchema we validate against.
+  // if we are looking for #/definitons/x we search in main schema
+
+  if (schemaPath.startsWith('#/definitions/')) {
+    return getSchemaPart(schemaPath, mainSchema);
+  }
+  // all other in sub schema
+  return getSchemaPart(schemaPath, getSchemaPart(`${rootElementPath}/#`, mainSchema));
+}
+
+/**
+ * Gets a json schema part by a schema patch
+ * @param schemaPath the path, format #/properties/model/properties/person/properties/name/maxLength
+ * @param jsonSchema the json schema to get part from
+ * @returns the part, or null if not found
+ */
 export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
-  // comes at format "#/properties/model/properties/person/properties/name/maxLength"
-  // want to transform to /properties/model/properties/person/properties/name
   try {
+    // want to transform path example format to to /properties/model/properties/person/properties/name
     const pointer = schemaPath.substr(1).split('/').slice(0, -1).join('/');
-    const ptr = JsonPointer.compile(pointer);
-    return ptr.get(jsonSchema);
-  } catch {
-    return null;
+    return JsonPointer.compile(pointer).get(jsonSchema);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
 
@@ -577,8 +602,9 @@ export function validateFormDataForLayout(
 
     const dataBindingName = processInstancePath(error.instancePath);
     // backward compatible if we are validating against a sub scheme.
-    const fieldSchema = getSchemaPart(error.schemaPath, rootElementPath ? getSchemaPart(`${rootElementPath}/#`, schema) : schema);
-
+    const fieldSchema = rootElementPath ?
+      getSchemaPartOldGenerator(error.schemaPath, schema, rootElementPath) :
+      getSchemaPart(error.schemaPath, schema);
     let errorMessage;
     if (fieldSchema?.errorMessage) {
       errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);

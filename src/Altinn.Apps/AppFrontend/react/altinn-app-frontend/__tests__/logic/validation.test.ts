@@ -1595,4 +1595,26 @@ describe('>>> utils/validations.ts', () => {
       },
     );
   });
+
+  it('getSchemaPartOldGenerator should return definition from parent schema', () => {
+    const result = validation.getSchemaPartOldGenerator('#/definitions/Name/minimum', refOnRootSchema, '#/definitions/Skjema');
+    expect(result).toEqual(
+      {
+        type: 'string',
+        minimum: 5,
+        maximum: 10,
+      },
+    );
+  });
+
+  it('getSchemaPartOldGenerator should return property from sub schema', () => {
+    const result = validation.getSchemaPartOldGenerator('#/properties/person/properties/age/maximum', refOnRootSchema, '#/definitions/Skjema');
+    expect(result).toEqual(
+      {
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+      },
+    );
+  });
 });
