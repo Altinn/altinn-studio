@@ -2,7 +2,9 @@
 /* eslint-disable max-len */
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
-import Ajv from 'ajv';
+import Ajv, { Options } from 'ajv';
+import Ajv2020 from 'ajv/dist/2020';
+import dot from 'dot-object';
 import addFormats from 'ajv-formats';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings, IRuntimeState } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
@@ -33,7 +35,7 @@ export function getValidator(currentDataTaskTypeId, schemas) {
 }
 
 export function createValidator(schema: any): ISchemaValidator {
-  const ajv = new Ajv({
+  const ajvOptions: Options = {
     allErrors: true,
     coerceTypes: true,
     jsPropertySyntax: true,
@@ -42,19 +44,28 @@ export function createValidator(schema: any): ISchemaValidator {
     strictTuples: false,
     unicodeRegExp: false,
     code: { es5: true },
-  });
+  };
+  let ajv: Ajv | Ajv2020;
+  let rootElementPath;
+  if (schema.$schema?.includes('2020-12')) {
+    // we have to use a different ajv-instance for 2020-12 draft
+    // here we actually validate against the root json-schema object
+    ajv = new Ajv2020(ajvOptions);
+    rootElementPath = '';
+  } else {
+    // leave existing schemas untouched. Here we actually validate against a sub schema with the name of the model
+    // for instance "skjema"
+    ajv = new Ajv(ajvOptions);
+    const rootKey: string = Object.keys(schema.properties)[0];
+    rootElementPath = schema.properties[rootKey].$ref;
+  }
   addFormats(ajv);
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
-  const rootKey = Object.keys(schema.properties)[0];
-  const rootElementPath = schema.properties[rootKey].$ref;
-  const rootPtr = JsonPointer.compile(rootElementPath.substr(1));
-  const rootElement = rootPtr.get(schema);
   const schemaValidator: ISchemaValidator = {
     validator: ajv,
     schema,
-    rootElement,
     rootElementPath,
   };
   return schemaValidator;
@@ -112,6 +123,22 @@ export const errorMessageKeys = {
   multipleOf: {
     textKey: 'multipleOf',
     paramKey: 'multipleOf',
+  },
+  oneOf: {
+    textKey: 'oneOf',
+    paramKey: 'passingSchemas',
+  },
+  anyOf: {
+    textKey: 'anyOf',
+    paramKey: 'passingSchemas',
+  },
+  allOf: {
+    textKey: 'allOf',
+    paramKey: 'passingSchemas',
+  },
+  not: {
+    textKey: 'not',
+    paramKey: 'passingSchemas',
   },
 };
 
@@ -402,15 +429,15 @@ export function validateComponentFormData(
 ): IValidationResult {
   const {
     validator,
-    rootElement,
+    rootElementPath,
     schema,
   } = schemaValidator;
   const fieldKey = Object.keys(component.dataModelBindings).find(
     (binding: string) => component.dataModelBindings[binding] === dataModelField,
   );
-  const dataModelPaths = dataModelField.split('.');
-  const fieldSchema = getSchemaPart(dataModelPaths || [dataModelField], rootElement, schema);
-  const valid = (!formData || formData === '') || validator.validate(fieldSchema, formData);
+  const data = {};
+  dot.str(dataModelField, formData, data);
+  const valid = validator.validate(`schema${rootElementPath}`, data);
   const validationResult: IValidationResult = {
     validations: {
       [layoutId]: {
@@ -426,7 +453,7 @@ export function validateComponentFormData(
   };
 
   if (!valid) {
-    validator.errors.forEach((error) => {
+    validator.errors.filter((error) => error.instancePath === `.${dataModelField}`).forEach((error) => {
       if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
         validationResult.invalidDataTypes = true;
       }
@@ -434,8 +461,9 @@ export function validateComponentFormData(
       if (Array.isArray(errorParams)) {
         errorParams = errorParams.join(', ');
       }
+      // backward compatible if we are validating against a sub scheme.
+      const fieldSchema = getSchemaPart(error.schemaPath, rootElementPath ? getSchemaPart(`${rootElementPath}/#`, schema) : schema);
       let errorMessage;
-
       if (fieldSchema.errorMessage) {
         errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
       } else {
@@ -472,38 +500,17 @@ export function validateComponentFormData(
   return null;
 }
 
-export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchema: any) {
-  const dataModelRoot = dataModelPath[0];
-  if (subSchema.properties && subSchema.properties[dataModelRoot] && dataModelPath && dataModelPath.length !== 0) {
-    const localRootElement = subSchema.properties[dataModelRoot];
-    if (localRootElement.$ref) {
-      const childSchemaPtr = JsonPointer.compile(localRootElement.$ref.substr(1));
-      return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
-    }
-    if (localRootElement.items && localRootElement.items.$ref) {
-      const childSchemaPtr = JsonPointer.compile(localRootElement.items.$ref.substr(1));
-      return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
-    }
-    return localRootElement;
+export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
+  // comes at format "#/properties/model/properties/person/properties/name/maxLength"
+  // want to transform to /properties/model/properties/person/properties/name
+  try {
+    const pointer = schemaPath.substr(1).split('/').slice(0, -1).join('/');
+    const ptr = JsonPointer.compile(pointer);
+    const schemaElement = ptr.get(jsonSchema);
+    return schemaElement;
+  } catch {
+    return null;
   }
-
-  if (subSchema.allOf) {
-    let tmpSchema: any = {};
-    subSchema.allOf.forEach((element) => {
-      tmpSchema = {
-        ...tmpSchema,
-        ...element,
-      };
-    });
-    return getSchemaPart(dataModelPath, tmpSchema, mainSchema);
-  }
-
-  if (subSchema.$ref) {
-    const ptr = JsonPointer.compile(subSchema.$ref.substr(1));
-    return getSchemaPart(dataModelPath.slice(1), ptr.get(mainSchema), mainSchema);
-  }
-
-  return subSchema;
 }
 
 export function validateFormData(
@@ -545,7 +552,6 @@ export function validateFormDataForLayout(
     validator,
     rootElementPath,
     schema,
-    rootElement,
   } = schemaValidator;
   const valid = validator.validate(`schema${rootElementPath}`, formData);
   const result: IValidationResult = {
@@ -571,7 +577,8 @@ export function validateFormDataForLayout(
     }
 
     const dataBindingName = processInstancePath(error.instancePath);
-    const fieldSchema = getSchemaPart(dataBindingName.split('.'), rootElement, schema);
+    // backward compatible if we are validating against a sub scheme.
+    const fieldSchema = getSchemaPart(error.schemaPath, rootElementPath ? getSchemaPart(`${rootElementPath}/#`, schema) : schema);
 
     let errorMessage;
     if (fieldSchema?.errorMessage) {
@@ -1187,7 +1194,7 @@ export function removeGroupValidationsByIndex(
   });
 
   if (shift) {
-  // Shift validations if necessary
+    // Shift validations if necessary
     if (index < repeatingGroup.count + 1) {
       for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
         const key = `${id}-${i}`;

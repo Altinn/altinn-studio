@@ -219,7 +219,6 @@ export interface IRuntimeState {
 }
 
 export interface ISchemaValidator {
-  rootElement: any;
   rootElementPath: string;
   schema: any;
   validator: Ajv;

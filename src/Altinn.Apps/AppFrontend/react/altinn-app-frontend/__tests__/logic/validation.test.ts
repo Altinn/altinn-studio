@@ -11,6 +11,9 @@ import { mapToComponentValidations } from '../../src/utils/validation';
 import { getParsedTextResourceByKey } from '../../src/utils/textResource';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 import { getMockValidationState } from '../../__mocks__/validationStateMock';
+import * as oneOfOnRootSchema from '../../__mocks__/json-schema/one-of-on-root.json';
+import * as refOnRootSchema from '../../__mocks__/json-schema/ref-on-root.json';
+import * as complexSchema from '../../__mocks__/json-schema/complex.json';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -1555,5 +1558,41 @@ describe('>>> utils/validations.ts', () => {
         componentId_new: componentValidation,
       },
     });
+  });
+
+  it('getSchemaPart should return items based in a oneOf ref on root', () => {
+    const nestedPathResult = validation.getSchemaPart('#/$defs/skjema/properties/alder/maximum', oneOfOnRootSchema);
+    expect(nestedPathResult).toEqual(
+      {
+        type: 'number',
+        minimum: 0,
+        maximum: 10,
+      },
+    );
+  });
+
+  it('getSchemaPart should return item based on ref on root', () => {
+    const result = validation.getSchemaPart('#/definitions/Skjema/properties/person/properties/age/minimum', refOnRootSchema);
+    expect(result).toEqual(
+      {
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+      },
+    );
+  });
+
+  it('getSchemaPart should handle complex schema', () => {
+    const result = validation.getSchemaPart('#/$defs/Navn/maxLength', complexSchema);
+    expect(result).toEqual(
+      {
+        type: 'string',
+        '@xsdType': 'string',
+        '@xsdUnhandledAttributes': {
+          'seres:elementtype': 'Dataenkeltype',
+          'seres:guid': 'http://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007',
+        },
+      },
+    );
   });
 });
