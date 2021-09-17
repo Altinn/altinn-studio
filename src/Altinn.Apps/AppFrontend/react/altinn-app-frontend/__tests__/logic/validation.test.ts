@@ -1590,7 +1590,7 @@ describe('>>> utils/validations.ts', () => {
         '@xsdType': 'string',
         '@xsdUnhandledAttributes': {
           'seres:elementtype': 'Dataenkeltype',
-          'seres:guid': 'http://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007',
+          'seres:guid': 'https://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007',
         },
       },
     );

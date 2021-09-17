@@ -3,9 +3,9 @@
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
-      "seres": "http://seres.no/xsd/forvaltningsdata",
-      "xsd": "http://www.w3.org/2001/XMLSchema",
-      "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+      "seres": "https://seres.no/xsd/forvaltningsdata",
+      "xsd": "https://www.w3.org/2001/XMLSchema",
+      "xsi": "https://www.w3.org/2001/XMLSchema-instance"
   },
   "@xsdSchemaAttributes": {
       "AttributeFormDefault": "Unqualified",
@@ -21,8 +21,8 @@
       "XSD-generatorversjon": "2.0.23",
       "XSLT-prosessor": "SAXON versjon 9.1.0.7",
       "generert": "2021-04-08T18:54:19.034\u002B02:00",
-      "navneromprefix": "http://seres.no/xsd",
-      "namespace": "http://seres.no/xsd/Kursdomene/HvemErHvem_M/2021",
+      "navneromprefix": "https://seres.no/xsd",
+      "namespace": "https://seres.no/xsd/Kursdomene/HvemErHvem_M/2021",
       "meldingsnavn": "melding",
       "domenenavn": "Kursdomene",
       "modellnavn": "HvemErHvem_M",
@@ -33,7 +33,7 @@
       "tillat-gjenbruk": "true",
       "elementtype": "true",
       "forvaltningsdata": "true",
-      "forvaltningsdata-navnerom": "http://seres.no/xsd/forvaltningsdata",
+      "forvaltningsdata-navnerom": "https://seres.no/xsd/forvaltningsdata",
       "saernorske-bokstaver-i-navn": "false",
       "ft_guid_som_attributt": "false",
       "sem-ref": "false",
@@ -55,14 +55,14 @@
                           "$ref": "#/$defs/Innrapportoer",
                           "@xsdUnhandledAttributes": {
                               "seres:elementtype": "Meldingsdel",
-                              "seres:guid": "http://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
+                              "seres:guid": "https://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
                           }
                       },
                       "InnrapporterteData": {
                           "$ref": "#/$defs/InnrapporterteData",
                           "@xsdUnhandledAttributes": {
                               "seres:elementtype": "Meldingsdel",
-                              "seres:guid": "http://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
+                              "seres:guid": "https://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
                           }
                       }
                   },
@@ -102,7 +102,7 @@
           "@xsdAnyAttribute": true,
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Meldingsmodell",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Meldingsmodell/HvemErHvem_M/784912"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Meldingsmodell/HvemErHvem_M/784912"
           }
       },
       "Innrapportoer": {
@@ -111,7 +111,7 @@
                   "$ref": "#/$defs/Geek",
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Relasjonsegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Relasjonsegenskap/geek/784941"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Relasjonsegenskap/geek/784941"
                   }
               }
           },
@@ -120,7 +120,7 @@
           ],
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Meldingsdel",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Meldingsdel/Innrapportør/784916"
           }
       },
       "Geek": {
@@ -129,21 +129,21 @@
                   "$ref": "#/$defs/Navn",
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Dataegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Dataegenskap/Navn/784939"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Dataegenskap/Navn/784939"
                   }
               },
               "foedselsdato": {
                   "$ref": "#/$defs/Tekst",
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Dataegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Dataegenskap/Fødselsdato/784938"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Dataegenskap/Fødselsdato/784938"
                   }
               },
               "epost": {
                   "$ref": "#/$defs/EPost",
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Dataegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Dataegenskap/epost/784954"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Dataegenskap/epost/784954"
                   }
               }
           },
@@ -154,7 +154,7 @@
           ],
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Dataobjekttype",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Dataobjekttype/Geek/784940"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Dataobjekttype/Geek/784940"
           }
       },
       "InnrapporterteData": {
@@ -163,7 +163,7 @@
                   "$ref": "#/$defs/GeekType",
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Dataegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Dataegenskap/geekType/784948"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Dataegenskap/geekType/784948"
                   }
               },
               "altinnErfaringAAr": {
@@ -177,7 +177,7 @@
                   ],
                   "@xsdUnhandledAttributes": {
                       "seres:elementtype": "Dataegenskap",
-                      "seres:guid": "http://seres.no/guid/Kursdomene/Dataegenskap/altinnErfaringÅr/784955"
+                      "seres:guid": "https://seres.no/guid/Kursdomene/Dataegenskap/altinnErfaringÅr/784955"
                   }
               }
           },
@@ -186,7 +186,7 @@
           ],
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Meldingsdel",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Meldingsdel/InnrapporterteData/784915"
           }
       },
       "Navn": {
@@ -194,7 +194,7 @@
           "@xsdType": "string",
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Dataenkeltype",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007"
           }
       },
       "Tekst": {
@@ -202,7 +202,7 @@
           "@xsdType": "string",
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Dataenkeltype",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Dataenkeltype/Tekst/4008"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Dataenkeltype/Tekst/4008"
           }
       },
       "EPost": {
@@ -210,7 +210,7 @@
           "@xsdType": "string",
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Dataenkeltype",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Dataenkeltype/EPost/4003"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Dataenkeltype/EPost/4003"
           }
       },
       "GeekType": {
@@ -223,15 +223,15 @@
                   "@xsdUnhandledEnumAttributes": {
                       "frontend": {
                           "seres:elementtype": "Datakodeelement",
-                          "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/frontend/784952"
+                          "seres:guid": "https://seres.no/guid/Kursdomene/Datakodeelement/frontend/784952"
                       },
                       "backend": {
                           "seres:elementtype": "Datakodeelement",
-                          "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/backend/784951"
+                          "seres:guid": "https://seres.no/guid/Kursdomene/Datakodeelement/backend/784951"
                       },
                       "other": {
                           "seres:elementtype": "Datakodeelement",
-                          "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/other/784950"
+                          "seres:guid": "https://seres.no/guid/Kursdomene/Datakodeelement/other/784950"
                       }
                   },
                   "enum": [
@@ -243,7 +243,7 @@
           ],
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Datakodeliste",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953"
           }
       },
       "AltinnErfaringAAr": {
@@ -251,7 +251,7 @@
           "@xsdType": "integer",
           "@xsdUnhandledAttributes": {
               "seres:elementtype": "Dataenkeltype",
-              "seres:guid": "http://seres.no/guid/Kursdomene/Dataenkeltype/YearsInDigdir/784949"
+              "seres:guid": "https://seres.no/guid/Kursdomene/Dataenkeltype/YearsInDigdir/784949"
           }
       }
   }

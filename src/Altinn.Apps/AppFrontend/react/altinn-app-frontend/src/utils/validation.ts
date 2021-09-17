@@ -506,8 +506,7 @@ export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
   try {
     const pointer = schemaPath.substr(1).split('/').slice(0, -1).join('/');
     const ptr = JsonPointer.compile(pointer);
-    const schemaElement = ptr.get(jsonSchema);
-    return schemaElement;
+    return ptr.get(jsonSchema);
   } catch {
     return null;
   }
