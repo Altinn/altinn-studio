@@ -479,6 +479,13 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
+        private static void Equal(XmlAttribute expected, XmlAttribute actual)
+        {
+            Assert.Equal(expected.NamespaceURI, actual.NamespaceURI);
+            Assert.Equal(expected.LocalName, actual.LocalName);
+            Assert.Equal(expected.Value, actual.Value);
+        }
+
         private static void XmlAttributesIsEquivalentTo(IReadOnlyCollection<XmlAttribute> expected, IReadOnlyCollection<XmlAttribute> actual)
         {
             if (expected == null)
@@ -509,13 +516,6 @@ namespace DataModeling.Tests.Assertions
                 XmlAttribute actualAttribute = actualAttributes.First().Value;
                 throw new DoesNotContainException(expected, $"{actualAttribute.Name}=\"{actualAttribute.Value}\"");
             }
-        }
-
-        private static void Equal(XmlAttribute expected, XmlAttribute actual)
-        {
-            Assert.Equal(expected.NamespaceURI, actual.NamespaceURI);
-            Assert.Equal(expected.LocalName, actual.LocalName);
-            Assert.Equal(expected.Value, actual.Value);
         }
 
         private static void AnnotatedEqual(XmlSchemaAnnotated expected, XmlSchemaAnnotated actual)
