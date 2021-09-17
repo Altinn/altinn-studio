@@ -12,10 +12,8 @@ import Presentation from 'src/shared/containers/Presentation';
 import { IAltinnWindow, IRuntimeState, ProcessTaskType } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
-import { post } from '../../../utils/networking';
 import InstantiationActions from '../instantiation/actions';
 import MissingRolesError from './MissingRolesError';
-import NoValidPartiesError from './NoValidPartiesError';
 import UnknownError from './UnknownError';
 import InstantiateValidationError from './InstantiateValidationError';
 
@@ -39,9 +37,7 @@ function InstantiateContainer() {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, app } = window as Window as IAltinnWindow;
 
-  const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
-
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const titleText: any = useSelector((state: IRuntimeState) => {
@@ -57,42 +53,14 @@ function InstantiateContainer() {
     InstantiationActions.instantiate(org, app);
   };
 
-  const validatatePartySelection = async () => {
-    if (!selectedParty) {
-      return;
-    }
-    try {
-      const { data } = await post(
-        `${window.location.origin}/${org}/${app}/api/v1/parties/` +
-        `validateInstantiation?partyId=${selectedParty.partyId}`,
-      );
-      setPartyValidation(data);
-    } catch (err) {
-      console.error(err);
-      throw new Error('Server did not respond with party validation');
-    }
-  };
-
-  React.useEffect(() => {
-    validatatePartySelection();
-  }, [selectedParty]);
-
-  React.useEffect(() => {
-    if (partyValidation !== null) {
-      // validations
-    }
-  }, [partyValidation]);
-
   React.useEffect(() => {
     if (
-      partyValidation !== null &&
-      partyValidation.valid &&
       !instantiating &&
       !instantiation.instanceId
     ) {
       createNewInstance();
     }
-  }, [partyValidation, instantiating, selectedParty]);
+  }, [instantiating]);
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
     const axiosError = instantiation.error as AxiosError;
@@ -108,18 +76,6 @@ function InstantiateContainer() {
 
     return (
       <UnknownError />
-    );
-  }
-
-  if (partyValidation !== null && !partyValidation.valid) {
-    if (partyValidation.validParties !== null &&
-      partyValidation.validParties.length === 0) {
-      return (
-        <NoValidPartiesError />
-      );
-    }
-    return (
-      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />
     );
   }
 
