@@ -3,9 +3,9 @@
   "$id": "schema.json",
   "type": "object",
   "@xsdNamespaces": {
-    "xsd": "http://www.w3.org/2001/XMLSchema",
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    "seres": "http://seres.no/xsd/forvaltningsdata"
+    "seres": "http://seres.no/xsd/forvaltningsdata",
+    "xsd": "http://www.w3.org/2001/XMLSchema"
   },
   "@xsdSchemaAttributes": {
     "AttributeFormDefault": "Unqualified",
@@ -17,7 +17,7 @@
     "XSLT-skriptnavn": "SERES_XSD_GEN",
     "XSD-generatorversjon": "2.0.17",
     "XSLT-prosessor": "SAXON versjon 9.1.0.7",
-    "generert": "2016-12-14T13:28:58.147+01:00",
+    "generert": "2016-12-14T13:28:58.147\u002B01:00",
     "navneromprefix": "http://seres.no/xsd",
     "namespace": "http://seres.no/xsd/altinn/test/basic",
     "meldingsnavn": "melding",
@@ -45,76 +45,74 @@
   ],
   "$defs": {
     "main": {
-      "allOf": [
-        {
-          "properties": {
-            "p1": { // compatible types: SimpleType, Nillable
-              "type": [ "string", "null" ],
-              "@xsdType": "string"
-            },
-            "p2": { // compatible types: SimpleType, Nillable
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/simpleType"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "p3": { // compatible types: ComplexType, Nillable
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/complexType"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            // inline nillable complex type (not sure we need to support this for SERES)
-            "p4": {
-              "oneof": [
-                {
-                  "properties": {
-                    "fish": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    },
-                    "stew": {
-                      "type": "string",
-                      "@xsdType": "string"
-                    }
-                  }
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [ "p1", "p2", "p3", "p4" ]
+      "properties": {
+        "p1": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "@xsdType": "string"
         },
-        {
-          "properties": {
-            "p1_a": { // compatible types: SimpleType, Nillable
-              "type": [ "string", "null" ],
-              "@xsdType": "string",
-              "@xsdAttribute": true
+        "p2": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/simpleType"
             },
-            "p2_a": { // compatible types: SimpleType, Nillable
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/simpleType"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "@xsdAttribute": true
+            {
+              "type": "null"
             }
-          }
+          ]
+        },
+        "p3": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/complexType"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "p4": {
+          "oneOf": [
+            {
+              "properties": {
+                "fish": {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                "stew": {
+                  "type": "string",
+                  "@xsdType": "string"
+                }
+              },
+              "required": [
+                "fish",
+                "stew"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "p5": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/veryComplexType"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
+      },
+      "required": [
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5"
       ]
     },
     "simpleType": {
@@ -129,6 +127,56 @@
         },
         "stew": {
           "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "fish",
+        "stew"
+      ]
+    },
+    "veryComplexType": {
+      "properties": {
+        "value": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/toBeExtended"
+              }
+            ],
+            "@xsdAnyAttribute": {
+              "Namespace": "##any",
+              "ProcessContent": "None"
+            }
+          }
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "@xsdType": "string"
+        }
+      }
+    },
+    "toBeExtended": {
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "@xsdType": "string"
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ],
           "@xsdType": "string"
         }
       }
