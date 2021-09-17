@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -84,6 +81,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
+            if (IsValidNillableElement(schema, out var valueSchema))
+            {
+                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
+                if (valueSchema != null)
+                {
+                    AnalyzeSchema(path, valueSchema);
+                    return;
+                }
+            }
+
             if (IsArray(schema, out var itemSchema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
@@ -165,12 +172,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
         {
-            if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Array)
+            if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
             {
                 var itemsKeyword = schema.GetKeyword<ItemsKeyword>();
                 if (itemsKeyword == null)
                 {
-                    throw new Exception("schema must have an \"items\" keyword when \"type\" is set to array");
+                    throw new JsonSchemaConvertException("schema must have an \"items\" keyword when \"type\" is set to array");
                 }
 
                 itemsSchema = itemsKeyword.SingleSchema;
@@ -179,6 +186,45 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             itemsSchema = null;
             return false;
+        }
+
+        private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
+        {
+            if (HasTypeKeywordWithNullAndOtherTypes(schema))
+            {
+                valueSchema = null;
+                return true;
+            }
+
+            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)
+            {
+                valueSchema = null;
+                return false;
+            }
+
+            var subSchemas = oneOfKeyword.GetSubschemas().ToList();
+            var typeKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<TypeKeyword>());
+
+            if (typeKeywordSubSchema == null)
+            {
+                valueSchema = null;
+                return false;
+            }
+
+            if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
+            {
+                var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                valueSchema = refKeywordSubSchema;
+                return true;
+            }
+
+            valueSchema = null;
+            return false;
+        }
+
+        private static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
+        {
+            return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle) && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null) && typeKeywordSingle.Type > SchemaValueType.Null;
         }
 
         /// <summary>
@@ -461,12 +507,20 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool IsValidSimpleType(JsonSchema schema)
         {
-            if (!schema.TryGetKeyword(out TypeKeyword type))
+            if (!schema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
                 return false;
             }
 
-            switch (type.Type)
+            // This is the case of nillable, so we remove the Null type to be left with the actual type.
+            var type = typeKeyword.Type;
+
+            if (type.HasFlag(SchemaValueType.Null) && type > SchemaValueType.Null)
+            {
+                type &= ~SchemaValueType.Null;
+            }
+
+            switch (type)
             {
                 case SchemaValueType.Object:
                 case SchemaValueType.Null:
@@ -719,13 +773,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                     break;
 
-                // case ISchemaCollector schemaCollector:
-                //    foreach (var schema in schemaCollector.Schemas)
-                //    {
-                //        AnalyzeSchema(path, schema);
-                //    }
-                //
-                //    break;
                 case ISchemaContainer schemaContainer:
                     AnalyzeSchema(path, schemaContainer.Schema);
                     break;

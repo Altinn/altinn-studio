@@ -258,7 +258,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             else if (!item.SchemaTypeName.IsEmpty)
             {
                 int minOccurs = (optional || item.Use == XmlSchemaUse.Optional) ? 0 : 1;
-                HandleType(item.SchemaTypeName, minOccurs, 1, array, builder);
+                HandleType(item.SchemaTypeName, minOccurs, 1, array, false, builder);
             }
             else if (item.SchemaType != null)
             {
@@ -304,7 +304,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.BaseTypeName.IsEmpty)
             {
-                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
             }
 
             if (item.Facets.Count > 0)
@@ -432,7 +432,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             else if (!item.ItemTypeName.IsEmpty)
             {
                 itemTypeSchema = new JsonSchemaBuilder();
-                HandleType(item.ItemTypeName, optional ? 0 : 1, 1, false, itemTypeSchema);
+                HandleType(item.ItemTypeName, optional ? 0 : 1, 1, false, false, itemTypeSchema);
             }
             else
             {
@@ -442,7 +442,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             builder.Items(itemTypeSchema);
         }
 
-        private void HandleComplexType(XmlSchemaComplexType item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexType(XmlSchemaComplexType item, bool optional, bool array, bool nillable, JsonSchemaBuilder builder)
         {
             HandleAnnotation(item, builder);
 
@@ -471,11 +471,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaChoice x:
                         steps.Add(b => HandleChoice(x, optional, array, b));
                         break;
-                    case XmlSchemaAll x:
+                    case XmlSchemaAll x:                        
                         steps.Add(b => HandleAll(x, optional, array, b));
                         break;
                     case XmlSchemaSequence x:
-                        steps.Add(b => HandleSequence(x, optional, array, b));
+                        if (nillable)
+                        {
+                            steps.Add(b => HandleNillable(x, optional, array, b));
+                        }
+                        else
+                        {
+                            steps.Add(b => HandleSequence(x, optional, array, b));
+                        }
+
                         break;
                 }
             }
@@ -504,6 +512,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddAnyAttribute(item.AnyAttribute, builder);
 
             AddUnhandledAttributes(item, builder);
+        }
+
+        private void HandleNillable(XmlSchemaSequence sequence, bool optional, bool array, JsonSchemaBuilder builder)
+        {
+            var steps = new StepsBuilder();
+            steps.Add(b => HandleSequence(sequence, optional, array, b));
+            var propertiesSchemaBuilder = new JsonSchemaBuilder();
+            steps.BuildWithAllOf(propertiesSchemaBuilder);
+
+            var typeSchemaBuilder = new JsonSchemaBuilder();
+            typeSchemaBuilder.Type(SchemaValueType.Null);
+
+            builder.OneOf(propertiesSchemaBuilder, typeSchemaBuilder);
         }
 
         private void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)
@@ -656,11 +677,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (item.BaseTypeName.IsEmpty)
             {
-                throw new Exception("base is required on simpleContent/restriction");
+                throw new XmlSchemaConvertException("base is required on simpleContent/restriction");
             }
 
             // base type name must be present and refer to a ComplexType/SimpleContent[Restriction/Extension]
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
             var valueRestrictionsBuilder = new JsonSchemaBuilder();
             AddRestrictionFacets(item.Facets.Cast<XmlSchemaFacet>().ToList(), valueRestrictionsBuilder);
@@ -714,7 +735,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             PropertiesBuilder properties = new PropertiesBuilder();
 
             JsonSchemaBuilder valueSchema = new JsonSchemaBuilder();
-            HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, valueSchema);
+            HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchema);
             properties.Add("value", valueSchema, false);
 
             foreach (XmlSchemaObject attribute in item.Attributes)
@@ -759,7 +780,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
             switch (item.Particle)
             {
@@ -805,7 +826,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, b));
+            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
             switch (item.Particle)
             {
@@ -940,7 +961,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.SchemaTypeName.IsEmpty)
             {
-                HandleType(item.SchemaTypeName, optional ? 0 : item.MinOccurs, item.MaxOccurs, array, builder);
+                HandleType(item.SchemaTypeName, optional ? 0 : item.MinOccurs, item.MaxOccurs, array, item.IsNillable, builder);
             }
             else
             {
@@ -956,13 +977,21 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         HandleSimpleType(x, optional, array, itemsBuilder);
                         break;
                     case XmlSchemaComplexType x:
-                        HandleComplexType(x, optional, array, itemsBuilder);
+                        HandleComplexType(x, optional, array, item.IsNillable, itemsBuilder);
                         break;
                 }
 
                 if (item.MaxOccurs > 1)
-                {
-                    builder.Type(SchemaValueType.Array);
+                {                    
+                    if (item.IsNillable)
+                    {
+                        builder.Type(SchemaValueType.Array, SchemaValueType.Null);
+                    }
+                    else
+                    {
+                        builder.Type(SchemaValueType.Array);
+                    }
+
                     if (item.MinOccurs != 0)
                     {
                         itemsBuilder.MinItems((uint)item.MinOccurs);
@@ -1049,7 +1078,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
-            HandleComplexType(item, optional, array, builder);
+            HandleComplexType(item, optional, array, false, builder);
 
             return builder;
         }
@@ -1082,7 +1111,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return $"#/$defs/{name}";
         }
 
-        private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, JsonSchemaBuilder builder)
+        private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, bool nillable, JsonSchemaBuilder builder)
         {
             array = array || maxOccurs > 1;
 
@@ -1097,11 +1126,31 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 if (type != null)
                 {
-                    typeBuilder.Type(type.Value);
+                    if (nillable)
+                    {
+                        typeBuilder.Type(new SchemaValueType[] { type.Value, SchemaValueType.Null });
+                    }
+                    else
+                    { 
+                        typeBuilder.Type(type.Value);
+                    }
                 }
                 else
                 {
-                    typeBuilder.Ref(GetReferenceFromTypename(typeName));
+                    if (nillable)
+                    {
+                        var refSchemaBuilder = new JsonSchemaBuilder();
+                        refSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
+
+                        var typeSchemaBuilder = new JsonSchemaBuilder();
+                        typeSchemaBuilder.Type(SchemaValueType.Null);
+
+                        typeBuilder.OneOf(refSchemaBuilder, typeSchemaBuilder);
+                    }
+                    else
+                    {
+                        typeBuilder.Ref(GetReferenceFromTypename(typeName));
+                    }
                 }
 
                 if (format != null)
@@ -1228,7 +1277,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         return true;
 
                     default:
-                        throw new IndexOutOfRangeException($"Unknown in-build type '{typename}'");
+                        throw new ArgumentOutOfRangeException($"The provided typename {typename} could not be mapped to any SchemaValueType.");
                 }
             }
 
@@ -1300,20 +1349,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     step(stepBuilder);
                     return stepBuilder.Build();
                 }));
-
-                // if (_steps.Count == 1)
-                // {
-                //     _steps[0](builder);
-                // }
-                // else if (_steps.Count > 1)
-                // {
-                //     builder.AllOf(_steps.Select(step =>
-                //     {
-                //         JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-                //         step(stepBuilder);
-                //         return stepBuilder.Build();
-                //     }));
-                // }
             }
         }
     }

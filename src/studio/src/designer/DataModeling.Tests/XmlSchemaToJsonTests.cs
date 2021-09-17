@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
@@ -51,11 +50,13 @@ namespace DataModeling.Tests
         [InlineData("Model/XmlSchema/SimpleTypeList.xsd", "Model/JsonSchema/SimpleTypeList.json", "Test to verify conversion from XSD to JSON Schema - feature: SimpleTypeList")]
         [InlineData("Model/XmlSchema/SeresWithAttributes.xsd", "Model/JsonSchema/SeresWithAttributes.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAttributes")]
         [InlineData("Model/XmlSchema/SeresWithAnyAttribute.xsd", "Model/JsonSchema/SeresWithAnyAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithAnyAttribute")]
+        [InlineData("Model/XmlSchema/NillableAttribute.xsd", "Model/JsonSchema/NillableAttribute.json", "Test to verify conversion from XSD to JSON Schema - feature: NillableAttribute")]
         [InlineData("Model/XmlSchema/SeresSimpleContentRestriction.xsd", "Model/JsonSchema/SeresSimpleContentRestriction.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresSimpleContentRestriction")]
         [InlineData("Model/XmlSchema/SeresArray.xsd", "Model/JsonSchema/SeresArray.json", "Test to verify conversion from XSD to JSON Schema - feature: arrays")]
         [InlineData("Model/XmlSchema/SeresComplexType.xsd", "Model/JsonSchema/SeresComplexType.json", "Test to verify conversion from XSD to JSON Schema - feature: arrays")]
         [InlineData("Model/XmlSchema/SeresComplexContentExtension.xsd", "Model/JsonSchema/SeresComplexContentExtension.json", "Test to verify conversion from XSD to JSON Schema - feature: complex content extension")]
         [InlineData("Model/XmlSchema/SeresWithSpecifiedAndAnyAttributes.xsd", "Model/JsonSchema/SeresWithSpecifiedAndAnyAttributes.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithSpecifiedAndAnyAttributes")]
+        [InlineData("Model/XmlSchema/SeresNillable.xsd", "Model/JsonSchema/SeresNillable.json", "Test to verify conversion from XSD to JSON Schema - feature: Nillable ellements")]
         public async Task XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
         {
             _testOutputHelper.WriteLine(testCase);
@@ -67,20 +68,11 @@ namespace DataModeling.Tests
             var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
             var actual = converter.Convert(xsd);
 
-            // await SerializeJsonSchemaToFile(actual, expectedPath);
             var actualJson = await SerializeJsonSchemaToString(actual);
 
             // Assert
             var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
             JsonSchemaAssertions.IsEquivalentTo(expected, actual);
-        }
-
-        private static async Task SerializeJsonSchemaToFile(JsonSchema schema, string filename)
-        {
-            await using var fs = new FileStream(Path.Join("C:\\Dev\\altinn-studio\\src\\studio\\src\\designer\\DataModeling.Tests\\_TestData\\Model\\JsonSchema\\", Path.GetFileName(filename)), FileMode.Truncate, FileAccess.Write);
-            await using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            schema.ToJsonDocument().WriteTo(writer);
-            await writer.FlushAsync();
         }
 
         private static async Task<string> SerializeJsonSchemaToString(JsonSchema schema)

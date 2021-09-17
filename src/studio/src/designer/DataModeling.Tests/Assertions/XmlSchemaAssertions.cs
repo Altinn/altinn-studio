@@ -57,7 +57,7 @@ namespace DataModeling.Tests.Assertions
                 return;
             }
 
-            // Assert.Equal(expected.Count, actual.Count);
+            Assert.Equal(expected.Count, actual.Count);
 
             for (int i = 0; i < expected.Count; i++)
             {
@@ -349,9 +349,7 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Form, actual.Form);
             Assert.Equal(expected.Name, actual.Name);
 
-            // TODO: This should be commented back in when we get support for nillable attribute
-            // as described in https://github.com/Altinn/altinn-studio/issues/6749
-            // Assert.Equal(expected.IsNillable, actual.IsNillable);
+            Assert.Equal(expected.IsNillable, actual.IsNillable);
             Assert.Equal(expected.RefName, actual.RefName);
             Assert.Equal(expected.SubstitutionGroup, actual.SubstitutionGroup);
             Assert.Equal(expected.SchemaTypeName, actual.SchemaTypeName);
@@ -481,6 +479,13 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
+        private static void Equal(XmlAttribute expected, XmlAttribute actual)
+        {
+            Assert.Equal(expected.NamespaceURI, actual.NamespaceURI);
+            Assert.Equal(expected.LocalName, actual.LocalName);
+            Assert.Equal(expected.Value, actual.Value);
+        }
+
         private static void XmlAttributesIsEquivalentTo(IReadOnlyCollection<XmlAttribute> expected, IReadOnlyCollection<XmlAttribute> actual)
         {
             if (expected == null)
@@ -511,13 +516,6 @@ namespace DataModeling.Tests.Assertions
                 XmlAttribute actualAttribute = actualAttributes.First().Value;
                 throw new DoesNotContainException(expected, $"{actualAttribute.Name}=\"{actualAttribute.Value}\"");
             }
-        }
-
-        private static void Equal(XmlAttribute expected, XmlAttribute actual)
-        {
-            Assert.Equal(expected.NamespaceURI, actual.NamespaceURI);
-            Assert.Equal(expected.LocalName, actual.LocalName);
-            Assert.Equal(expected.Value, actual.Value);
         }
 
         private static void AnnotatedEqual(XmlSchemaAnnotated expected, XmlSchemaAnnotated actual)

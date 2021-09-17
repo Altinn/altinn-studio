@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     [SchemaKeyword(Name)]
     [SchemaDraft(Draft.Unspecified)]
     [JsonConverter(typeof(XsdUnhandledEnumAttributesKeywordJsonConverter))]
-    public class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdUnhandledEnumAttributesKeyword>
+    public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdUnhandledEnumAttributesKeyword>
     {
         /// <summary>
         /// The name of the keyword

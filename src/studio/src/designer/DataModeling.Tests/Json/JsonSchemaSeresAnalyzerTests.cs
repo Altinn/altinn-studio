@@ -98,21 +98,19 @@ namespace DataModeling.Tests.Json
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Attribute);
         }
 
-        private JsonSchema QueryForSubSchema(JsonSchema jsonSchema, string jsonPointer)
+        [Theory]
+        [InlineData(@"Model\JsonSchema\NillableAttribute.json", "#/$defs/main/properties/refered", "Schema (refered) has a oneOf with one refered type and one null schema.")]
+        [InlineData(@"Model\JsonSchema\NillableAttribute.json", "#/$defs/main/properties/nilstring", "Schema (nillstring) has a multiple Json value types allowed, including null.")]
+        public async Task IsValidNillableAttribute_NillableAttribute_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
-            var pointer = JsonPointer.Parse(jsonPointer);
+            _testOutputHelper.WriteLine($"{testCase}");
 
-            IRefResolvable schemaSegment = jsonSchema;
-            foreach (var segment in pointer.Segments)
-            {                
-                schemaSegment = schemaSegment.ResolvePointerSegment(segment.Value);
-                if (schemaSegment == null)
-                {
-                    return null;
-                }
-            }
+            var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
+            var analyzer = new JsonSchemaSeresAnalyzer();
 
-            return schemaSegment as JsonSchema;
+            var results = analyzer.AnalyzeSchema(schema);
+
+            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Nillable);
         }
     }
 }
