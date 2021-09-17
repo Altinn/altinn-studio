@@ -280,7 +280,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    throw new Exception("Schema has inlined root element, but it is not defined as being a valid SimpleType or ComplexType");
+                    throw new ArgumentException("Schema has inlined root element, but it is not defined as being a valid SimpleType or ComplexType");
                 }
             }
             else
@@ -379,7 +379,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     element.SchemaTypeName = GetTypeNameFromArray(itemsKeyword.SingleSchema, itemsKeyword.SingleSchema.AsWorkList());
                 }
-
             }
             else if (keywords.TryPull(out RefKeyword reference))
             {
@@ -447,7 +446,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                throw new ArgumentException("The provided schema could not be handled as a nillable complex type.");
+                throw new JsonSchemaConvertException("The provided schema could not be handled as a nillable complex type.");
             }
 
             element.IsNillable = true;
@@ -521,7 +520,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    throw new Exception($"This is not a valid SimpleType {path}");
+                    throw new JsonSchemaConvertException($"This is not a valid SimpleType {path}");
                 }
             }
         }
@@ -563,7 +562,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             simpleType.Content = restriction;
 
             // the final builtin base type for this simple type refinement chain
-            var targetBaseType = XmlQualifiedName.Empty;
+#pragma warning disable S1854 // Unused assignments should be removed
+            XmlQualifiedName targetBaseType = XmlQualifiedName.Empty;
+#pragma warning restore S1854 // Unused assignments should be removed
 
             var restrictionsKeywordsList = new List<WorkList<IJsonSchemaKeyword>>();
             if (keywords.TryPull(out TypeKeyword type))
@@ -588,7 +589,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path);
                     if (targetBaseType == XmlQualifiedName.Empty)
                     {
-                        throw new Exception($"Could not find target built-in type for SimpleType Restriction in {path}");
+                        throw new JsonSchemaConvertException($"Could not find target built-in type for SimpleType Restriction in {path}");
                     }
                 }
                 else if (baseTypeSchema.HasKeyword<TypeKeyword>())
@@ -600,14 +601,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 else
                 {
                     // Inline base types support can be added in this if/else chain (base type may also be an inline SimpleTypeRestriction)
-                    throw new Exception($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
+                    throw new JsonSchemaConvertException($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
                 }
 
                 restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
             }
             else
             {
-                throw new Exception($"This is not a valid SimpleType restriction {path}");
+                throw new JsonSchemaConvertException($"This is not a valid SimpleType restriction {path}");
             }
 
             foreach (var restrictionKeywords in restrictionsKeywordsList)
@@ -745,7 +746,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         var fractionDigits = GetFractionDigitsFromMultipleOf(multipleOf.Value);
                         if (fractionDigits == null)
                         {
-                            throw new Exception($"Could not find fraction digits from multipleOf '{multipleOf.Value}'");
+                            throw new JsonSchemaConvertException($"Could not find fraction digits from multipleOf '{multipleOf.Value}'");
                         }
                         else
                         {
@@ -785,7 +786,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     XmlQualifiedName arrayType = SetType(arrayTypeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
                     return arrayType;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"The provided typeKeyword {typeKeyword} could not be mapped to any SchemaValueType.");
             }
         }
 
@@ -1215,7 +1216,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var pointer = JsonPointer.Parse(reference.ToString());
             if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
             {
-                throw new Exception("Reference uri must point to a definition in $defs/definitions to be used as TypeName");
+                throw new JsonSchemaConvertException("Reference uri must point to a definition in $defs/definitions to be used as TypeName");
             }
 
             return new XmlQualifiedName(pointer.Segments[1].Value);

@@ -84,7 +84,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
-            if (IsValidNillableElement(path, schema, out var valueSchema))
+            if (IsValidNillableElement(schema, out var valueSchema))
             {
                 _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
                 if (valueSchema != null)
@@ -180,7 +180,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 var itemsKeyword = schema.GetKeyword<ItemsKeyword>();
                 if (itemsKeyword == null)
                 {
-                    throw new Exception("schema must have an \"items\" keyword when \"type\" is set to array");
+                    throw new JsonSchemaConvertException("schema must have an \"items\" keyword when \"type\" is set to array");
                 }
 
                 itemsSchema = itemsKeyword.SingleSchema;
@@ -191,7 +191,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidNillableElement(JsonPointer path, JsonSchema schema, out JsonSchema valueSchema)
+        private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
         {
             if (HasTypeKeywordWithNullAndOtherTypes(schema))
             {
@@ -776,13 +776,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                     break;
 
-                // case ISchemaCollector schemaCollector:
-                //    foreach (var schema in schemaCollector.Schemas)
-                //    {
-                //        AnalyzeSchema(path, schema);
-                //    }
-                //
-                //    break;
                 case ISchemaContainer schemaContainer:
                     AnalyzeSchema(path, schemaContainer.Schema);
                     break;
