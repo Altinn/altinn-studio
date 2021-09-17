@@ -13,7 +13,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     [SchemaPriority(int.MinValue)]
     [SchemaDraft(Draft.Unspecified)]
     [JsonConverter(typeof(InfoKeywordJsonConverter))]
-    public class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
+    public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
     {
         /// <summary>
         /// The name of the keyword

@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     [SchemaKeyword(Name)]
     [SchemaDraft(Draft.Unspecified)]
     [JsonConverter(typeof(XsdNamespacesKeywordJsonConverter))]
-    public class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNamespacesKeyword>
+    public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNamespacesKeyword>
     {
         /// <summary>
         /// The name of the keyword

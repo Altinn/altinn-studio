@@ -12,7 +12,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     [SchemaPriority(int.MinValue)]
     [SchemaDraft(Draft.Unspecified)]
     [JsonConverter(typeof(XsdAttributeKeywordJsonConverter))]
-    public class XsdAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdAttributeKeyword>
+    public sealed class XsdAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdAttributeKeyword>
     {
         /// <summary>
         /// The name of the keyword
