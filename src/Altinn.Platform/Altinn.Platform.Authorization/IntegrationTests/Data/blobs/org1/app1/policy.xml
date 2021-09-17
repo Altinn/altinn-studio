@@ -17,6 +17,12 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">priv</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
       </xacml:AnyOf>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -56,6 +62,12 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">priv</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
       </xacml:AnyOf>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -84,9 +96,14 @@
     </xacml:Target>
   </xacml:Rule>
   <xacml:ObligationExpressions>
-    <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:authenticationLevel1">
-      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation1-assignment1" Category="urn:altinn:minimum-authenticationlevel">
-        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">2</xacml:AttributeValue>
+    <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:1">
+      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation-assignment:1" Category="urn:altinn:minimum-authenticationlevel">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">4</xacml:AttributeValue>
+      </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+    <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:2">
+      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation-assignment:2" Category="urn:altinn:minimum-authenticationlevel-org">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">3</xacml:AttributeValue>
       </xacml:AttributeAssignmentExpression>
     </xacml:ObligationExpression>
   </xacml:ObligationExpressions>

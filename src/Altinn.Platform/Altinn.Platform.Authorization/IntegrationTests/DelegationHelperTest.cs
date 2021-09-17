@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             int delegatedByUserId = 20001336;
             int offeredByPartyId = 50001337;
             string coveredBy = "20001337";
-            string coveredByType = XacmlRequestAttribute.UserAttribute;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
 
             List<Rule> unsortedRules = new List<Rule>
             {
@@ -65,10 +65,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             });
 
             // Act
-            Dictionary<string, List<Rule>> actual = DelegationHelper.SortRulesByDelegationPolicyPath(unsortedRules);
+            Dictionary<string, List<Rule>> actual = DelegationHelper.SortRulesByDelegationPolicyPath(unsortedRules, out List<Rule> unsortables);
 
             // Assert
             Assert.NotNull(actual);
+            Assert.Empty(unsortables);
 
             Assert.Equal(expected.Keys.Count, actual.Keys.Count);
             foreach (string expectedPathKey in expected.Keys)
@@ -98,32 +99,87 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> unsortedRules = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", XacmlRequestAttribute.UserAttribute, "Read", "org1", "app1", "task1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001331", XacmlRequestAttribute.UserAttribute, "Read", "org1", "app1", null, "event1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "50001333", XacmlRequestAttribute.PartyAttribute, "Read", "org1", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", XacmlRequestAttribute.UserAttribute, "Write", "org1", "app1") // Should be sorted together with the first rule
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", "task1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001331", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", null, "event1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "50001333", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1") // Should be sorted together with the first rule
             };
 
             Dictionary<string, List<Rule>> expected = new Dictionary<string, List<Rule>>();
             expected.Add($"org1/app1/{offeredByPartyId}/20001337/delegationpolicy.xml", new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", XacmlRequestAttribute.UserAttribute, "Read", "org1", "app1", "task1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", XacmlRequestAttribute.UserAttribute, "Write", "org1", "app1")
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", "task1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1")
             });
             expected.Add($"org1/app1/{offeredByPartyId}/20001331/delegationpolicy.xml", new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001331", XacmlRequestAttribute.UserAttribute, "Read", "org1", "app1", null, "event1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001331", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", null, "event1"),
             });
             expected.Add($"org1/app1/{offeredByPartyId}/50001333/delegationpolicy.xml", new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "50001333", XacmlRequestAttribute.PartyAttribute, "Read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "50001333", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Read", "org1", "app1"),
             });
 
             // Act
-            Dictionary<string, List<Rule>> actual = DelegationHelper.SortRulesByDelegationPolicyPath(unsortedRules);
+            Dictionary<string, List<Rule>> actual = DelegationHelper.SortRulesByDelegationPolicyPath(unsortedRules, out List<Rule> unsortables);
 
             // Assert
             Assert.NotNull(actual);
+            Assert.Empty(unsortables);
+
+            Assert.Equal(expected.Keys.Count, actual.Keys.Count);
+            foreach (string expectedPathKey in expected.Keys)
+            {
+                Assert.True(actual.ContainsKey(expectedPathKey));
+                Assert.Equal(expected[expectedPathKey].Count, actual[expectedPathKey].Count);
+                AssertionUtil.AssertEqual(expected[expectedPathKey], actual[expectedPathKey]);
+            }
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the SortRulesByDelegationPolicyPath function
+        /// Input:
+        /// List of un ordered rules for delegation of the same apps from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// Dictionary with rules sorted by the path of the 3 delegation policy files
+        /// Success Criteria:
+        /// Dictionary with the expected keys (policy paths) and values (sorted rules for each file)
+        /// </summary>
+        [Fact]
+        public void SortRulesByDelegationPolicyPath_Unsortables_Success()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", "task1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", null, "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1")
+            };
+
+            Dictionary<string, List<Rule>> expected = new Dictionary<string, List<Rule>>();
+            expected.Add($"org1/app1/{offeredByPartyId}/20001337/delegationpolicy.xml", new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", "task1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1")
+            });
+
+            List<Rule> expectedUnsortable = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", null, "app1")
+            };
+
+            // Act
+            Dictionary<string, List<Rule>> actual = DelegationHelper.SortRulesByDelegationPolicyPath(unsortedRules, out List<Rule> unsortables);
+
+            // Assert
+            Assert.NotNull(actual);
+
+            Assert.Equal(expectedUnsortable.Count, unsortables.Count);
+            AssertionUtil.AssertEqual(expectedUnsortable, unsortables);
 
             Assert.Equal(expected.Keys.Count, actual.Keys.Count);
             foreach (string expectedPathKey in expected.Keys)

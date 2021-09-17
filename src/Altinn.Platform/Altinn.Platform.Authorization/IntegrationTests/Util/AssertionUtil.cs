@@ -68,7 +68,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
         /// <param name="actual">The instance to verify.</param>
-        public static void AssertEqual(List<Rule> expected, List<Rule> actual)
+        /// <param name="assertOutputValues">Whether output only values should also be asserted</param>
+        public static void AssertEqual(List<Rule> expected, List<Rule> actual, bool assertOutputValues = false)
         {
             if (expected == null)
             {
@@ -79,7 +80,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Count, actual.Count);
             for (int i = 0; i < expected.Count; i++)
             {
-                AssertEqual(expected[i], actual[i]);
+                AssertEqual(expected[i], actual[i], assertOutputValues);
             }
         }
 
@@ -88,13 +89,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
         /// <param name="actual">The instance to verify.</param>
-        public static void AssertEqual(Rule expected, Rule actual)
+        /// <param name="assertOutputValues">Whether output only values should also be asserted</param>
+        public static void AssertEqual(Rule expected, Rule actual, bool assertOutputValues = false)
         {
             Assert.NotNull(actual);
             Assert.NotNull(expected);
 
-            Assert.Equal(expected.RuleId, actual.RuleId);
-            Assert.Equal(expected.Type, actual.Type);
+            if (assertOutputValues)
+            {
+                Assert.Equal(expected.RuleId, actual.RuleId);
+                Assert.Equal(expected.Type, actual.Type);
+            }
+
+            Assert.Equal(expected.CreatedSuccessfully, actual.CreatedSuccessfully);
             Assert.Equal(expected.DelegatedByUserId, actual.DelegatedByUserId);
             Assert.Equal(expected.OfferedByPartyId, actual.OfferedByPartyId);
             AssertEqual(expected.CoveredBy, actual.CoveredBy);

@@ -18,16 +18,6 @@ namespace Altinn.Platform.Authorization.Helpers
     /// </summary>
     public static class PolicyHelper
     {
-        private static string orgAttributeId = "urn:altinn:org";
-        private static string appAttributeId = "urn:altinn:app";
-        private static string taskAttributeId = "urn:altinn:task";
-        private static string eventAttributeId = "urn:altinn:event";
-        private static string userIdAttributeId = "urn:altinn:userid";
-        private static string partyIdAttributeId = "urn:altinn:partyid";
-        private static string minimumAuthenticationLevelAttributeId = "urn:altinn:minimum-authenticationlevel";
-        private static string minimumAuthenticationLevelObligationId = "urn:altinn:obligation:authenticationLevel1";
-        private static string minimumAuthenticationLevelObligationAssignmentId = "urn:altinn:obligation1-assignment1";
-
         /// <summary>
         /// Extracts a list of all roles codes mentioned in a permit rule in a policy. 
         /// </summary>
@@ -47,7 +37,7 @@ namespace Altinn.Platform.Authorization.Helpers
                         {
                             foreach (XacmlMatch xacmlMatch in allOf.Matches)
                             {
-                                if (xacmlMatch.AttributeDesignator.AttributeId.Equals(XacmlRequestAttribute.RoleAttribute))
+                                if (xacmlMatch.AttributeDesignator.AttributeId.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.RoleAttribute))
                                 {
                                     roleCodes.Add(xacmlMatch.AttributeValue.Value);
                                 }
@@ -76,12 +66,12 @@ namespace Altinn.Platform.Authorization.Helpers
                 {
                     foreach (XacmlAttribute asd in attr.Attributes)
                     {
-                        if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute))
                         {
                             org = asd.AttributeValues.FirstOrDefault().Value;
                         }
 
-                        if (asd.AttributeId.OriginalString.Equals(appAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute))
                         {
                             app = asd.AttributeValues.FirstOrDefault().Value;
                         }
@@ -175,7 +165,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="appPolicy">The original app policy</param>
         public static XacmlPolicy BuildDelegationPolicy(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, IList<Rule> rules, XacmlPolicy appPolicy)
         {
-            XacmlPolicy delegationPolicy = new XacmlPolicy(new Uri("urn:altinn:policyid:1"), new Uri(XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
+            XacmlPolicy delegationPolicy = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
             delegationPolicy.Version = "1.0";
 
             string coveredBy = coveredByPartyId.HasValue ? coveredByPartyId.Value.ToString() : coveredByUserId.Value.ToString();
@@ -186,7 +176,10 @@ namespace Altinn.Platform.Authorization.Helpers
                 delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
             }
 
-            delegationPolicy.ObligationExpressions.Add(BuildDelegationPolicyObligationExpression("2"));
+            foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
+            {
+                delegationPolicy.ObligationExpressions.Add(obligation);
+            }
 
             return delegationPolicy;
         }
@@ -203,14 +196,16 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="appPolicy">The original app policy</param>
         public static XacmlRule BuildDelegationRule(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, Rule rule, XacmlPolicy appPolicy)
         {
+            rule.RuleId = Guid.NewGuid().ToString();
+            
             string coveredBy = coveredByPartyId.HasValue ? coveredByPartyId.Value.ToString() : coveredByUserId.Value.ToString();
-            XacmlRule delegationRule = new XacmlRule($"urn:altinn:ruleid:{Guid.NewGuid()}", XacmlEffectType.Permit)
+            XacmlRule delegationRule = new XacmlRule($"{AltinnXacmlConstants.Prefixes.RuleId}{rule.RuleId}", XacmlEffectType.Permit)
             {
                 Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}"
             };
 
             delegationRule.Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy);
-
+            
             return delegationRule;
         }
 
@@ -237,7 +232,7 @@ namespace Altinn.Platform.Authorization.Helpers
                     new XacmlMatch(
                         new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                         new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), coveredByUserId.Value.ToString()),
-                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Subject), new Uri(XacmlRequestAttribute.UserAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
+                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Subject), new Uri(AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
                 }));
             }
             else
@@ -247,7 +242,7 @@ namespace Altinn.Platform.Authorization.Helpers
                     new XacmlMatch(
                         new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                         new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), coveredByPartyId.Value.ToString()),
-                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.SubjectId), new Uri(XacmlRequestAttribute.PartyAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
+                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.SubjectId), new Uri(AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
                 }));
             }
 
@@ -279,26 +274,6 @@ namespace Altinn.Platform.Authorization.Helpers
             targetList.Add(new XacmlAnyOf(actionAllOfs));
 
             return new XacmlTarget(targetList);
-        }
-
-        /// <summary>
-        /// Builds a XacmlObligationExpression representation for the required authentication level
-        /// </summary>
-        /// <param name="authLevel">The required authentication level</param>
-        public static XacmlObligationExpression BuildDelegationPolicyObligationExpression(string authLevel)
-        {
-            XacmlAttributeValue attributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger))
-            {
-                Value = authLevel
-            };
-
-            XacmlObligationExpression obligation = new XacmlObligationExpression(new Uri(minimumAuthenticationLevelObligationId), XacmlEffectType.Permit);
-            obligation.AttributeAssignmentExpressions.Add(new XacmlAttributeAssignmentExpression(new Uri(minimumAuthenticationLevelObligationAssignmentId), attributeValue)
-            {
-                Category = new Uri(minimumAuthenticationLevelAttributeId)
-            });
-
-            return obligation;
         }
 
         /// <summary>

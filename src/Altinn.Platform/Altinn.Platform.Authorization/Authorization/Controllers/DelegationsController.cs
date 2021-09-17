@@ -10,10 +10,12 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -72,15 +74,15 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                Dictionary<string, bool> delegationResults = await _pap.TryWriteDelegationPolicyRules(rules);
+                List<Rule> delegationResults = await _pap.TryWriteDelegationPolicyRules(rules);
 
-                if (delegationResults.Values.All(result => result == true))
+                if (delegationResults.All(r => r.CreatedSuccessfully))
                 {
                     _logger.LogInformation("Delegation completed");
                     return Created("Created", delegationResults);
                 }
 
-                if (delegationResults.Values.Any(result => result == true))
+                if (delegationResults.Any(r => r.CreatedSuccessfully))
                 {
                     _logger.LogInformation("Partial delegation completed");
                     return StatusCode(206, delegationResults);

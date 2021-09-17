@@ -21,10 +21,10 @@ namespace Altinn.Platform.Authorization.Services.Interface
         Task<bool> WritePolicyAsync(string org, string app, Stream fileStream);
 
         /// <summary>
-        /// Returns a bool based on writing rules for delegation to delegation policy files completed successfully.
+        /// Trys to sort and store the set of rules as delegation policy files in blob storage.
         /// </summary>
         /// <param name="rules">The set of rules to be delegated</param>
-        /// <returns>Bool result of success.</returns>
-        Task<Dictionary<string, bool>> TryWriteDelegationPolicyRules(IList<Rule> rules);
+        /// <returns>The list of rules with created Id and result status</returns>
+        Task<List<Rule>> TryWriteDelegationPolicyRules(List<Rule> rules);
     }
 }

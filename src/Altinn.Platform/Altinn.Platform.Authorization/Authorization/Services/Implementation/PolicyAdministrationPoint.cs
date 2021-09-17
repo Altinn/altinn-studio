@@ -71,18 +71,24 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<string, bool>> TryWriteDelegationPolicyRules(IList<Rule> rules)
+        public async Task<List<Rule>> TryWriteDelegationPolicyRules(List<Rule> rules)
         {
-            Dictionary<string, List<Rule>> delegationDict = DelegationHelper.SortRulesByDelegationPolicyPath(rules);
+            List<Rule> result = new List<Rule>();
+            Dictionary<string, List<Rule>> delegationDict = DelegationHelper.SortRulesByDelegationPolicyPath(rules, out List<Rule> unsortables);
 
-            Dictionary<string, bool> resultDict = new Dictionary<string, bool>();
             foreach (string delegationPolicypath in delegationDict.Keys)
             {
-                bool result = await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
-                resultDict.Add(delegationPolicypath, result);
+                bool writePolicySuccess = await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
+                if (writePolicySuccess)
+                {
+                    delegationDict[delegationPolicypath].ForEach(r => r.CreatedSuccessfully = true);
+                }
+
+                result.AddRange(delegationDict[delegationPolicypath]);
             }
 
-            return resultDict;
+            result.AddRange(unsortables);
+            return result;
         }
 
         private async Task<bool> WriteDelegationPolicyInternal(string policyPath, List<Rule> rules)
@@ -110,7 +116,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 delegationPolicy = existingDelegationPolicy;
                 foreach (Rule rule in rules)
                 {
-                    delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                    if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
+                    {
+                        delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                    }
                 }
             }
             else
@@ -123,7 +132,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             XmlWriter writer = XmlWriter.Create(dataStream);
 
             // ToDo: Do xmlwriter through XacmlSerializer. Need ABAC nuget update or direct ABAC project dependency. Until this line is uncommented only empty xml files will be stored to blobstorage.
-            //// XacmlSerializer.WritePolicy(writer, delegationPolicy);
+            ////XacmlSerializer.WritePolicy(writer, delegationPolicy);
 
             writer.Flush();
             dataStream.Position = 0;
@@ -136,7 +145,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return false;
             }
                         
-            return await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? "0");
+            bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? "0");
+            if (!postgreSuccess)
+            {
+                // RollBack DelegationPolicy
+                return false;
+            }
+
+            return true;
         }
     }
 }
