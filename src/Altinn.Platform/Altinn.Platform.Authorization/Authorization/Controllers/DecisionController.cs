@@ -62,10 +62,11 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model);
                 }
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogError("// DecisionsController // Post // Retrieving authorization decision for request {Request} failes with exception {Exception}", e, System.Text.Json.JsonSerializer.Serialize(model));
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
-                {
+                {                   
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
                 XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
