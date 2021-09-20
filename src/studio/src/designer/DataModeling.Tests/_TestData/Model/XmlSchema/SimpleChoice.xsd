@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:element name="e1" type="xsd:string" />
+        <xsd:element name="e2" type="xsd:string" />
+        <xsd:element name="e3" type="xsd:string" />
+        <xsd:element name="e4" type="xsd:string" />
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

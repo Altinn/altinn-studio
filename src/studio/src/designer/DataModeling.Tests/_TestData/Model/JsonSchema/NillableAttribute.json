@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/main"
+    }
+  ],
+  "$defs": {
+    "main": {
+      "properties": {
+        "nonboth": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "minzero": {
+          "type": "integer",
+          "@xsdType": "int"
+        },
+        "nilint": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "@xsdType": "int"
+        },
+        "nilstring": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "@xsdType": "string"
+        },
+        "minzeronil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "@xsdType": "string"
+        },
+        "refered": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/referedtype"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "nonboth",
+        "nilint",
+        "nilstring",
+        "refered"
+      ]
+    },
+    "referedtype": {
+      "type": "integer",
+      "@xsdType": "integer"
+    }
+  }
+}

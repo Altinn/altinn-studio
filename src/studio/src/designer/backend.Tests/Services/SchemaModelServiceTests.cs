@@ -29,7 +29,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(7);
 
@@ -67,7 +67,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(6);
 
@@ -100,7 +100,7 @@ namespace Designer.Tests.Services
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
                 // Act
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 
@@ -149,7 +149,7 @@ namespace Designer.Tests.Services
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
@@ -185,8 +185,8 @@ namespace Designer.Tests.Services
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
-                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());                
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Skjema-1603-12392";
@@ -228,7 +228,7 @@ namespace Designer.Tests.Services
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
@@ -248,6 +248,22 @@ namespace Designer.Tests.Services
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        [Fact]
+        public void GetSchemaUri_ValidNameProvided_ShouldReturnUri()
+        {
+            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            var schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+
+            var org = "ttd";
+            var repository = "apprepo";
+            var schemaName = "test";
+            var repositoryBaseUrl = "http://altinn3.no/repos";
+
+            var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName);
+
+            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}/{schemaName}.schema.json");            
         }
     }
 }
