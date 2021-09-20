@@ -525,7 +525,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             builder.OneOf(propertiesSchemaBuilder, typeSchemaBuilder);
         }
 
-        private void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)
+        private static void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)
         {
             HandleAnnotation(item, builder);
 
@@ -704,18 +704,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 properties.Add("value", valueRestrictionsBuilder, false);
             }
 
-            foreach (var attribute in item.Attributes)
+            foreach (XmlSchemaObject attribute in item.Attributes)
             {
-                switch (attribute)
-                {
-                    case XmlSchemaAttribute x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
-                        break;
-                    case XmlSchemaAttributeGroupRef x:
-                        properties.AddCurrentPropertiesToStep(steps);
-                        steps.Add(b => HandleAttributeGroupRef(x, b));
-                        break;
-                }
+                AddAttribute(attribute, optional, array, steps, properties);
             }
 
             properties.AddCurrentPropertiesToStep(steps);
@@ -737,16 +728,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             foreach (XmlSchemaObject attribute in item.Attributes)
             {
-                switch (attribute)
-                {
-                    case XmlSchemaAttribute x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
-                        break;
-                    case XmlSchemaAttributeGroupRef x:
-                        properties.AddCurrentPropertiesToStep(steps);
-                        steps.Add(b => HandleAttributeGroupRef(x, b));
-                        break;
-                }
+                AddAttribute(attribute, optional, array, steps, properties);
             }
 
             properties.AddCurrentPropertiesToStep(steps);
@@ -797,16 +779,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             foreach (XmlSchemaObject attribute in item.Attributes)
             {
-                switch (attribute)
-                {
-                    case XmlSchemaAttribute x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
-                        break;
-                    case XmlSchemaAttributeGroupRef x:
-                        properties.AddCurrentPropertiesToStep(steps);
-                        steps.Add(b => HandleAttributeGroupRef(x, b));
-                        break;
-                }
+                AddAttribute(attribute, optional, array, steps, properties);
             }
 
             properties.AddCurrentPropertiesToStep(steps);
@@ -843,16 +816,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             foreach (XmlSchemaObject attribute in item.Attributes)
             {
-                switch (attribute)
-                {
-                    case XmlSchemaAttribute x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
-                        break;
-                    case XmlSchemaAttributeGroupRef x:
-                        properties.AddCurrentPropertiesToStep(steps);
-                        steps.Add(b => HandleAttributeGroupRef(x, b));
-                        break;
-                }
+                AddAttribute(attribute, optional, array, steps, properties);
             }
 
             properties.AddCurrentPropertiesToStep(steps);
@@ -860,6 +824,20 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             steps.BuildWithAllOf(builder);
 
             AddAnyAttribute(item.AnyAttribute, builder);
+        }
+
+        private void AddAttribute(XmlSchemaObject attribute, bool optional, bool array, StepsBuilder stepsBuilder, PropertiesBuilder propertiesBuilder)
+        {
+            switch (attribute)
+            {
+                case XmlSchemaAttribute x:
+                    propertiesBuilder.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
+                    break;
+                case XmlSchemaAttributeGroupRef x:
+                    propertiesBuilder.AddCurrentPropertiesToStep(stepsBuilder);
+                    stepsBuilder.Add(b => HandleAttributeGroupRef(x, b));
+                    break;
+            }
         }
 
         private static void AddUnhandledAttributes(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
@@ -937,7 +915,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddUnhandledAttributes(attributes, builder);
         }
 
-        private void HandleAttributeGroupRef(XmlSchemaAttributeGroupRef item, JsonSchemaBuilder builder)
+        private static void HandleAttributeGroupRef(XmlSchemaAttributeGroupRef item, JsonSchemaBuilder builder)
         {
             HandleAnnotation(item, builder);
 
@@ -1053,7 +1031,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private JsonSchemaBuilder ConvertSchemaGroupRef(XmlSchemaGroupRef item)
+        private static JsonSchemaBuilder ConvertSchemaGroupRef(XmlSchemaGroupRef item)
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
@@ -1080,7 +1058,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return builder;
         }
 
-        private void HandleAnnotation(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
+        private static void HandleAnnotation(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
         {
             if (item.Annotation != null)
             {
