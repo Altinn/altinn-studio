@@ -58,14 +58,24 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
-            catch
+            catch (Exception e)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
+
                 XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
-                return CreateResponse(xacmlContextResponse);
+
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
+                    return Ok(jsonResult);
+                }
+                else
+                {
+                    return CreateResponse(xacmlContextResponse);
+                }
             }
         }
 
