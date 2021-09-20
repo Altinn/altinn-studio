@@ -58,7 +58,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
-            catch (Exception e)
+            catch
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
