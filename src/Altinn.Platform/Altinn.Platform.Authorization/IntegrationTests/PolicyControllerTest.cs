@@ -180,11 +180,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(4, roleCodes.Count);
-            Assert.Contains("REGNA", roleCodes);
-            Assert.Contains("DAGL", roleCodes);
-            Assert.Contains("PRIV", roleCodes);
-            Assert.Contains("PRIV2", roleCodes);
+            Assert.Equal(2, roleCodes.Count);
+            Assert.Contains("regna", roleCodes);
+            Assert.Contains("dagl", roleCodes);
         }
 
         /// <summary>
@@ -253,7 +251,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             // Arrange
             string org = "SKD";
-            string app = "TaxReport";
+            string app = "TaxReport2";
             List<ResourcePolicy> expectedResourcePolicies = GetResourcePoliciesForSKDTaxReport();
 
             // Act
