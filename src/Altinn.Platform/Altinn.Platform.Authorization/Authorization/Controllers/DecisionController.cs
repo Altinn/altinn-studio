@@ -72,8 +72,17 @@ namespace Altinn.Platform.Authorization.Controllers
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
 
-                XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(new XacmlContextResponse(result));
-                return Ok(jsonResult);
+                XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
+
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
+                    return Ok(jsonResult);
+                }
+                else
+                {
+                    return CreateResponse(xacmlContextResponse);
+                }
             }
         }
 
