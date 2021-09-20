@@ -704,10 +704,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 properties.Add("value", valueRestrictionsBuilder, false);
             }
 
-            foreach (XmlSchemaObject attribute in item.Attributes)
-            {
-                AddAttribute(attribute, optional, array, steps, properties);
-            }
+            AddAttributes(item.Attributes, optional, array, steps, properties);
 
             properties.AddCurrentPropertiesToStep(steps);
             steps.BuildWithAllOf(builder);
@@ -726,10 +723,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchema);
             properties.Add("value", valueSchema, false);
 
-            foreach (XmlSchemaObject attribute in item.Attributes)
-            {
-                AddAttribute(attribute, optional, array, steps, properties);
-            }
+            AddAttributes(item.Attributes, optional, array, steps, properties);
 
             properties.AddCurrentPropertiesToStep(steps);
             steps.BuildWithAllOf(builder);
@@ -761,26 +755,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
-            switch (item.Particle)
-            {
-                case XmlSchemaGroupRef x:
-                    steps.Add(b => HandleGroupRef(x, b));
-                    break;
-                case XmlSchemaChoice x:
-                    steps.Add(b => HandleChoice(x, optional, array, b));
-                    break;
-                case XmlSchemaAll x:
-                    steps.Add(b => HandleAll(x, optional, array, b));
-                    break;
-                case XmlSchemaSequence x:
-                    steps.Add(b => HandleSequence(x, false, false, b));
-                    break;
-            }
+            HandleParticle(item.Particle, optional, array, steps);
 
-            foreach (XmlSchemaObject attribute in item.Attributes)
-            {
-                AddAttribute(attribute, optional, array, steps, properties);
-            }
+            AddAttributes(item.Attributes, optional, array, steps, properties);
 
             properties.AddCurrentPropertiesToStep(steps);
 
@@ -798,7 +775,20 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
-            switch (item.Particle)
+            HandleParticle(item.Particle, optional, array, steps);
+
+            AddAttributes(item.Attributes, optional, array, steps, properties);
+            
+            properties.AddCurrentPropertiesToStep(steps);
+
+            steps.BuildWithAllOf(builder);
+
+            AddAnyAttribute(item.AnyAttribute, builder);
+        }
+
+        private void HandleParticle(XmlSchemaParticle particle, bool optional, bool array, StepsBuilder steps)
+        {
+            switch (particle)
             {
                 case XmlSchemaGroupRef x:
                     steps.Add(b => HandleGroupRef(x, b));
@@ -813,30 +803,22 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     steps.Add(b => HandleSequence(x, false, false, b));
                     break;
             }
-
-            foreach (XmlSchemaObject attribute in item.Attributes)
-            {
-                AddAttribute(attribute, optional, array, steps, properties);
-            }
-
-            properties.AddCurrentPropertiesToStep(steps);
-
-            steps.BuildWithAllOf(builder);
-
-            AddAnyAttribute(item.AnyAttribute, builder);
         }
 
-        private void AddAttribute(XmlSchemaObject attribute, bool optional, bool array, StepsBuilder stepsBuilder, PropertiesBuilder propertiesBuilder)
+        private void AddAttributes(XmlSchemaObjectCollection attributes, bool optional, bool array, StepsBuilder stepsBuilder, PropertiesBuilder propertiesBuilder)
         {
-            switch (attribute)
+            foreach (XmlSchemaObject attribute in attributes)
             {
-                case XmlSchemaAttribute x:
-                    propertiesBuilder.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
-                    break;
-                case XmlSchemaAttributeGroupRef x:
-                    propertiesBuilder.AddCurrentPropertiesToStep(stepsBuilder);
-                    stepsBuilder.Add(b => HandleAttributeGroupRef(x, b));
-                    break;
+                switch (attribute)
+                {
+                    case XmlSchemaAttribute x:
+                        propertiesBuilder.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
+                        break;
+                    case XmlSchemaAttributeGroupRef x:
+                        propertiesBuilder.AddCurrentPropertiesToStep(stepsBuilder);
+                        stepsBuilder.Add(b => HandleAttributeGroupRef(x, b));
+                        break;
+                }
             }
         }
 
