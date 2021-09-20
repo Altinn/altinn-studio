@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+
 using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
@@ -12,9 +13,11 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Services.Interface;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -62,15 +65,15 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model);
                 }
             }
-            catch (Exception e)
+            catch
             {
-                _logger.LogError("// DecisionsController // Post // Retrieving authorization decision for request {Request} failes with exception {Exception}", e, System.Text.Json.JsonSerializer.Serialize(model));
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
-                {                   
+                {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
-                XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
-                return CreateResponse(xacmlContextResponse);
+
+                XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(new XacmlContextResponse(result));
+                return Ok(jsonResult);
             }
         }
 
