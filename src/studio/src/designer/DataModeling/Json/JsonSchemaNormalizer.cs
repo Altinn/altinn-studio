@@ -58,37 +58,34 @@ namespace Altinn.Studio.DataModeling.Json
         {
             var keywords = new List<IJsonSchemaKeyword>();
 
-            if (keyword is AllOfKeyword allOf)
+            if (keyword is AllOfKeyword allOf && HasSingleSubschema(allOf))
             {
-                if (HasSingleSubschema(allOf))
-                {
-                    var subSchema = NormalizeSchema(allOf.Schemas[0]);
+                var subSchema = NormalizeSchema(allOf.Schemas[0]);
 
-                    if (schema.Keywords!.Count > 1 && subSchema.HasKeyword<RefKeyword>())
-                    {
-                        // $ref is not allowed together with other keywords
-                        keywords.Add(new AllOfKeyword(subSchema));
-                    }
-                    else if (subSchema.Keywords!.Count == 1 && subSchema.HasKeyword<AllOfKeyword>())
-                    {
-                        // Collapse nested single subschema "allOf"s
-                        keywords.Add(subSchema.Keywords!.Single());
-                    }
-                    else if (schema.Keywords!.Count == 1)
-                    {
-                        // The allOf was the only keyword
-                        keywords.AddRange(subSchema.Keywords!);
-                    }
-                    else if (!HasCommonKeywords(schema, subSchema))
-                    {
-                        // Merge the keywords the current schema
-                        keywords.AddRange(subSchema.Keywords!);
-                    }
-                    else
-                    {
-                        // We need to keep a single level of allOf with our normalized subschema
-                        keywords.Add(new AllOfKeyword(subSchema));
-                    }
+                if (schema.Keywords!.Count > 1 && subSchema.HasKeyword<RefKeyword>())
+                {
+                    // $ref is not allowed together with other keywords
+                    keywords.Add(new AllOfKeyword(subSchema));
+                }
+                else if (subSchema.Keywords!.Count == 1 && subSchema.HasKeyword<AllOfKeyword>())
+                {
+                    // Collapse nested single subschema "allOf"s
+                    keywords.Add(subSchema.Keywords!.Single());
+                }
+                else if (schema.Keywords!.Count == 1)
+                {
+                    // The allOf was the only keyword
+                    keywords.AddRange(subSchema.Keywords!);
+                }
+                else if (!HasCommonKeywords(schema, subSchema))
+                {
+                    // Merge the keywords the current schema
+                    keywords.AddRange(subSchema.Keywords!);
+                }
+                else
+                {
+                    // We need to keep a single level of allOf with our normalized subschema
+                    keywords.Add(new AllOfKeyword(subSchema));
                 }
             }
 

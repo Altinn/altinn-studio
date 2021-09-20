@@ -20,8 +20,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
 
-        private XmlSchemaSet _schemaSet;
-
         /// <summary>
         /// Convert a schema into the give type
         /// </summary>
@@ -39,9 +37,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <param name="schemaUri">Uri that represents the unique id of the Json Schema.</param>
         public JsonSchema Convert(XmlSchema schema, Uri schemaUri)
         {
-            _schemaSet = new XmlSchemaSet();
-            _schemaSet.Add(schema);
-            _schemaSet.Compile();
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(schema);
+            schemaSet.Compile();
 
             JsonSchemaBuilder builder = new JsonSchemaBuilder()
                .Schema(MetaSchemas.Draft202012Id)
@@ -188,7 +186,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <summary>
         /// Specifically for handling SERES schema annotation
         /// </summary>
-        private void AddSchemaRootAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
+        private static void AddSchemaRootAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
         {
             XmlSchemaDocumentation documentation = (XmlSchemaDocumentation)annotation.Items
                .OfType<XmlSchemaObject>()
@@ -330,7 +328,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             steps.BuildWithAllOf(builder);
         }
 
-        private void HandleRestrictionFacet(XmlSchemaFacet facet, JsonSchemaBuilder builder, ref List<string> enumValues, ref List<string> xsdRestrictions)
+        private static void HandleRestrictionFacet(XmlSchemaFacet facet, JsonSchemaBuilder builder, ref List<string> enumValues, ref List<string> xsdRestrictions)
         {
             decimal dLength;
             uint uiLength;
@@ -566,7 +564,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         choices.Add(ConvertSchemaSequence(x, optional, array));
                         break;
                     case XmlSchemaAny:
-                        // TODO
                         throw new NotImplementedException();
                 }
             }
@@ -865,7 +862,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddAnyAttribute(item.AnyAttribute, builder);
         }
 
-        private void AddUnhandledAttributes(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
+        private static void AddUnhandledAttributes(XmlSchemaAnnotated item, JsonSchemaBuilder builder)
         {
             if (item.UnhandledAttributes != null && item.UnhandledAttributes.Length > 0)
             {
@@ -874,7 +871,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void AddUnhandledEnumAttributes(XmlSchemaSimpleTypeRestriction item, JsonSchemaBuilder builder)
+        private static void AddUnhandledEnumAttributes(XmlSchemaSimpleTypeRestriction item, JsonSchemaBuilder builder)
         {
             var namedKeyValuePairsList = new List<NamedKeyValuePairs>();
 
@@ -894,7 +891,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void AddAnyAttribute(XmlSchemaAnyAttribute anyAttribute, JsonSchemaBuilder builder)
+        private static void AddAnyAttribute(XmlSchemaAnyAttribute anyAttribute, JsonSchemaBuilder builder)
         {
             if (anyAttribute == null)
             {
@@ -1111,7 +1108,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return $"#/$defs/{name}";
         }
 
-        private void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, bool nillable, JsonSchemaBuilder builder)
+        private static void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, bool nillable, JsonSchemaBuilder builder)
         {
             array = array || maxOccurs > 1;
 
