@@ -1,5 +1,5 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { AddCircleOutline } from '@material-ui/icons';
+import { AiOutlinePlus } from 'react-icons/ai';
 import * as React from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
@@ -61,7 +61,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   return (
     <>
       <TopToolbarButton
-        startIcon={<AddCircleOutline />}
+        startIcon={<AiOutlinePlus />}
         onClick={onCreateClick}
         hideText={true}
       >

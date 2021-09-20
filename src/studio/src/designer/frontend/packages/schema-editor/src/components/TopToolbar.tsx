@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core';
-import { ArchiveOutlined } from '@material-ui/icons';
-import * as React from 'react'
+import { AiOutlineSave } from 'react-icons/ai';
+import * as React from 'react';
 import { ILanguage } from '../types';
 import { getTranslation } from '../utils';
 import TopToolbarButton from './TopToolbarButton';
@@ -30,7 +30,7 @@ export default function TopToolbar({ Toolbar, saveAction, language }: TopToolbar
       <TopToolbarButton
         onClick={saveAction || (() => undefined)}
         disabled={!saveAction}
-        startIcon={<ArchiveOutlined />}
+        startIcon={<AiOutlineSave />}
       >
         {getTranslation('save_data_model', language)}
       </TopToolbarButton>
