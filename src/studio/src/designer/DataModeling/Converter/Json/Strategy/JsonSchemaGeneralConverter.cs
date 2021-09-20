@@ -656,7 +656,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return XmlQualifiedName.Empty;
         }
 
-        private IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> keywords)
+        private static IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> keywords)
         {
             return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties ?? new List<NamedKeyValuePairs>();
         }
@@ -1222,7 +1222,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return new XmlQualifiedName(pointer.Segments[1].Value);
         }
 
-        private XmlQualifiedName GetTypeNameFromArray(JsonSchema schema, WorkList<IJsonSchemaKeyword> keywords)
+        private static XmlQualifiedName GetTypeNameFromArray(JsonSchema schema, WorkList<IJsonSchemaKeyword> keywords)
         {
             if (schema.TryGetKeyword<TypeKeyword>(out TypeKeyword typeKeyword))
             {

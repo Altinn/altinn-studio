@@ -638,7 +638,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return _schema.FollowReference(pointer);
         }
 
-        private bool IsPlainRestrictionSchema(JsonSchema schema)
+        private static bool IsPlainRestrictionSchema(JsonSchema schema)
         {
             return IsPlainRestrictionSchema(schema.AsWorkList());
         }

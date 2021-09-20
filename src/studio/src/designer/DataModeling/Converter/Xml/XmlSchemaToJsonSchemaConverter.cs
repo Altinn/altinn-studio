@@ -137,7 +137,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return normalizer.Normalize(builder);
         }
 
-        private void AddAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
+        private static void AddAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
         {
             if (annotation.Parent is XmlSchema)
             {
@@ -646,7 +646,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void AddRestrictionFacets(ICollection<XmlSchemaFacet> facets, JsonSchemaBuilder builder)
+        private static void AddRestrictionFacets(ICollection<XmlSchemaFacet> facets, JsonSchemaBuilder builder)
         {
             if (facets.Count > 0)
             {
