@@ -191,7 +191,7 @@ namespace Designer.Tests.Utils
             }
         }
 
-        public static void CleanUpReplacedRepositories(string org, string repository, string developer)
+        public static async Task CleanUpReplacedRepositories(string org, string repository, string developer)
         {
             string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
 
@@ -201,7 +201,7 @@ namespace Designer.Tests.Utils
                 {
                     // move data and delete copied folder
                     string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
-                    CopyDirectory(subDir, originalPath, true);
+                    await CopyDirectory(subDir, originalPath, true);
                     Directory.Delete(subDir, true);
                 }
             }
