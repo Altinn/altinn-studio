@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
 using Json.Schema;
@@ -19,7 +20,7 @@ namespace DataModeling.Tests
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            JsonSchemaToXmlSchemaConverter_old converter = new JsonSchemaToXmlSchemaConverter_old();
+            JsonSchemaToXmlSchemaConverter converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
             JsonSchema jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(schemaPath);
             XmlSchema expected = ResourceHelpers.LoadXmlSchemaTestData(expectedPath);
