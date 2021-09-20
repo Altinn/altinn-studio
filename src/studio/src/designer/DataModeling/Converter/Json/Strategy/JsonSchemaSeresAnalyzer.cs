@@ -170,7 +170,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
+        private static bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
         {
             if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
             {
@@ -188,7 +188,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
+        private static bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
         {
             if (HasTypeKeywordWithNullAndOtherTypes(schema))
             {
@@ -445,7 +445,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return hasValueProperty;
         }
 
-        private List<(string propertyName, JsonSchema propertySchema)> FindSimpleContentProperties(JsonSchema schema)
+        private static List<(string propertyName, JsonSchema propertySchema)> FindSimpleContentProperties(JsonSchema schema)
         {
             var properties = new List<(string propertyName, JsonSchema propertySchema)>();
 
@@ -505,7 +505,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidSimpleType(JsonSchema schema)
+        private static bool IsValidSimpleType(JsonSchema schema)
         {
             if (!schema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
@@ -537,7 +537,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private bool IsValidAttribute(JsonSchema schema)
+        private static bool IsValidAttribute(JsonSchema schema)
         {
             if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
             {
@@ -547,7 +547,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidUnhandledAttribute(JsonSchema schema)
+        private static bool IsValidUnhandledAttribute(JsonSchema schema)
         {
             if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
             {
@@ -557,7 +557,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidUnhandledEnumAttribute(JsonSchema schema)
+        private static bool IsValidUnhandledEnumAttribute(JsonSchema schema)
         {
             if (schema.Keywords.HasKeyword<XsdUnhandledEnumAttributesKeyword>())
             {
@@ -643,7 +643,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return IsPlainRestrictionSchema(schema.AsWorkList());
         }
 
-        private bool IsPlainRestrictionSchema(WorkList<IJsonSchemaKeyword> keywords)
+        private static bool IsPlainRestrictionSchema(WorkList<IJsonSchemaKeyword> keywords)
         {
             var keywordsValidated = 0;
 

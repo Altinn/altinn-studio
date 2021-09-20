@@ -661,7 +661,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties ?? new List<NamedKeyValuePairs>();
         }
 
-        private IEnumerable<XmlSchemaFacet> GetRestrictionFacets(WorkList<IJsonSchemaKeyword> keywords, XmlQualifiedName type)
+        private static IEnumerable<XmlSchemaFacet> GetRestrictionFacets(WorkList<IJsonSchemaKeyword> keywords, XmlQualifiedName type)
         {
             var facets = new List<XmlSchemaFacet>();
 
@@ -762,7 +762,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return facets;
         }
         
-        private XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
+        private static XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
         {
             // This is the case of nillable, so we remove the Null type to be left with the actual type.
             var type = typeKeyword.Type;
@@ -1089,7 +1089,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             throw new NotImplementedException();
         }
 
-        private void HandleAnyAttributeKeyword(XmlSchemaComplexType complexType, WorkList<IJsonSchemaKeyword> keywords)
+        private static void HandleAnyAttributeKeyword(XmlSchemaComplexType complexType, WorkList<IJsonSchemaKeyword> keywords)
         {
             if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
             {
@@ -1106,7 +1106,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             complexType.AnyAttribute = xmlSchemaAnyAttribute;
         }
 
-        private void HandleAnyAttributeKeyword(XmlSchemaComplexContentExtension complexContentExtension, WorkList<IJsonSchemaKeyword> keywords)
+        private static void HandleAnyAttributeKeyword(XmlSchemaComplexContentExtension complexContentExtension, WorkList<IJsonSchemaKeyword> keywords)
         {
             if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
             {
@@ -1236,7 +1236,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return new XmlQualifiedName();
         }
 
-        private void SetName(XmlSchemaObject item, string name)
+        private static void SetName(XmlSchemaObject item, string name)
         {
             switch (item)
             {
@@ -1261,7 +1261,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void SetRequired(XmlSchemaObject item, bool isRequired)
+        private static void SetRequired(XmlSchemaObject item, bool isRequired)
         {
             var isOptional = !isRequired;
             switch (item)
@@ -1283,7 +1283,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void SetFixed(XmlSchemaObject item, ConstKeyword constKeyword)
+        private static void SetFixed(XmlSchemaObject item, ConstKeyword constKeyword)
         {
             if (constKeyword is null)
             {
@@ -1298,7 +1298,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void SetDefault(XmlSchemaObject item, DefaultKeyword defaultKeyword)
+        private static void SetDefault(XmlSchemaObject item, DefaultKeyword defaultKeyword)
         {
             if (defaultKeyword is null)
             {
