@@ -4,7 +4,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Models;
@@ -266,112 +268,26 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         private List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
+            ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");
+            instantiatePolicy.Actions = new List<ResourceAction>();
+            instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
+            instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
+
+            ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "FormFilling");
+            formFillingPolicy.Actions = new List<ResourceAction>();
+            formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
+            formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
+
+            ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", endEvent: "Signing");
+            signingPolicy.Actions = new List<ResourceAction>();
+            signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
+            signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
+            signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Sign", new string[] { "DAGL", "PRIV", "PRIV2" }));
+
             List<ResourcePolicy> policies = new List<ResourcePolicy>();
-            policies.Add(new ResourcePolicy
-            {
-                Resource = new List<AttributeMatch>
-                {
-                    new AttributeMatch { Id = "urn:altinn:org", Value = "SKD" },
-                    new AttributeMatch { Id = "urn:altinn:app", Value = "TaxReport" },
-                    new AttributeMatch { Id = "urn:altinn:event", Value = "Instansiate" }
-                },
-
-                Actions = new List<ResourceAction>
-                {
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Read" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    },
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Write" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    }
-                }
-            });
-
-            policies.Add(new ResourcePolicy
-            {
-                Resource = new List<AttributeMatch>
-                {
-                    new AttributeMatch { Id = "urn:altinn:org", Value = "SKD" },
-                    new AttributeMatch { Id = "urn:altinn:app", Value = "TaxReport" },
-                    new AttributeMatch { Id = "urn:altinn:task", Value = "FormFilling" }
-                },
-
-                Actions = new List<ResourceAction>
-                {
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Read" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    },
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Write" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    }
-                }
-            });
-
-            policies.Add(new ResourcePolicy
-            {
-                Resource = new List<AttributeMatch>
-                {
-                    new AttributeMatch { Id = "urn:altinn:org", Value = "SKD" },
-                    new AttributeMatch { Id = "urn:altinn:app", Value = "TaxReport" },
-                    new AttributeMatch { Id = "urn:altinn:task", Value = "Signing" }
-                },
-
-                Actions = new List<ResourceAction>
-                {
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Read" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    },
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Write" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "REGNA" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" }
-                        }
-                    },
-                    new ResourceAction
-                    {
-                        Match = new AttributeMatch { Id = "urn:oasis:names:tc:xacml:1.0:action:action-id", Value = "Sign" },
-                        RoleGrants = new List<RoleGrant>
-                        {
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "DAGL" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "PRIV" },
-                            new RoleGrant { IsDelegable = true, RoleTypeCode = "PRIV2" }
-                        }
-                    }
-                }
-            });
+            policies.Add(instantiatePolicy);
+            policies.Add(formFillingPolicy);
+            policies.Add(signingPolicy);
 
             return policies;
         }

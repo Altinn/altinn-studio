@@ -6,6 +6,19 @@ namespace Altinn.Platform.Authorization.Models
     public class LocalizedText
     {
         /// <summary>
+        /// Sets localizedtext on all languages
+        /// </summary>
+        /// <param name="nb">Norwegian Bokmaal text</param>
+        /// <param name="nn">Norwegian Nynorsk text</param>
+        /// <param name="en">English text</param>
+        public LocalizedText(string nb, string nn, string en)
+        {
+            NB = nb;
+            NN = nn;
+            EN = en;
+        }
+
+        /// <summary>
         /// Gets or sets Norwegian Bokmaal translation for the text resource.
         /// </summary>
         public string NB { get; set; }

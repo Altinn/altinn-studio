@@ -9,6 +9,11 @@ namespace Altinn.Platform.Authorization.Models
     public class ResourcePolicy
     {
         /// <summary>
+        /// Gets or sets a description of the resource policy.
+        /// </summary>
+        public LocalizedText Description { get; set; }
+
+        /// <summary>
         /// Gets or sets a title for the resource policy to be used for displaying the resource in AltinnII.
         /// </summary>
         public LocalizedText Title { get; set; }

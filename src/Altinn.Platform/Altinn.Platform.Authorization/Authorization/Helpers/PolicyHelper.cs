@@ -86,8 +86,7 @@ namespace Altinn.Platform.Authorization.Helpers
                             {
                                 if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
                                 {
-                                    resourceKey += xacmlMatch.AttributeDesignator.AttributeId;
-                                    resourceKey += xacmlMatch.AttributeValue.Value;
+                                    resourceKey += $"{xacmlMatch.AttributeDesignator.AttributeId}{xacmlMatch.AttributeValue.Value}";
                                     resourceMatches.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
                                 }
                             }
@@ -98,14 +97,24 @@ namespace Altinn.Platform.Authorization.Helpers
 
                                 if (!resourcePolicies.ContainsKey(resourceKey))
                                 {
-                                    // ResourcePolicy newResourcePolicy = new ResourcePolicy { Resource = resourceMatches };
-                                    resourcePolicies.Add(resourceKey, new ResourcePolicy { Resource = resourceMatches });
+                                    string title = string.Join("/", resourceMatches.Select(rm => rm.Value));
+                                    ResourcePolicy newPolicy = new ResourcePolicy
+                                    {
+                                        Resource = resourceMatches,
+                                        Title = new LocalizedText(title, title, title),
+                                    };
+
+                                    if (policy.Description != null)
+                                    {
+                                        newPolicy.Description = new LocalizedText(rule.Description, rule.Description, rule.Description);
+                                    }
+
+                                    resourcePolicies.Add(resourceKey, newPolicy);
                                 }
                             }
                         }
                     }
 
-                    // finn alle subjects/roles
                     foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
                     {
                         foreach (XacmlAllOf allOf in anyOf.AllOf)
@@ -121,7 +130,6 @@ namespace Altinn.Platform.Authorization.Helpers
                         }
                     }
 
-                    // finn alle actions
                     foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
                     {
                         foreach (XacmlAllOf allOf in anyOf.AllOf)
@@ -134,7 +142,12 @@ namespace Altinn.Platform.Authorization.Helpers
                                 {
                                     actionAttributeMatch.Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString;
                                     actionAttributeMatch.Value = xacmlMatch.AttributeValue.Value;
-                                    ResourceAction resourceAction = new ResourceAction { Match = actionAttributeMatch, RoleGrants = new List<RoleGrant>() };
+                                    ResourceAction resourceAction = new ResourceAction
+                                    {
+                                        Match = actionAttributeMatch,
+                                        RoleGrants = new List<RoleGrant>(),
+                                        Title = new LocalizedText(xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value)
+                                    };
                                     resourceAction.RoleGrants.AddRange(roles);
                                     if (!actions.Contains(resourceAction))
                                     {
@@ -145,7 +158,6 @@ namespace Altinn.Platform.Authorization.Helpers
                         }
                     }
 
-                    // ferdig med å hente ut subjects, actions og resources i en rule
                     foreach (string policyKey in policyKeys)
                     {
                         ResourcePolicy resourcePolicy = resourcePolicies.GetValueOrDefault(policyKey);
