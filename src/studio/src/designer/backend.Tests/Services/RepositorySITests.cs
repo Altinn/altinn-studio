@@ -26,10 +26,11 @@ using Microsoft.Extensions.Options;
 using Moq;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
-    public sealed class RepositorySITests : IDisposable
+    public class RepositorySITests : IDisposable
     {
         public void Dispose()
         {
@@ -43,7 +44,7 @@ namespace Designer.Tests.Services
             TestDataHelper.CleanUpLocalBranches("ttd", "apps-test-clone", "testUser");
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser").Wait();
+            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
             GC.SuppressFinalize(this);
         }
 
@@ -149,7 +150,7 @@ namespace Designer.Tests.Services
 
             PrepareRemoteTestData(org, sourceRepository);
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+            TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
 
             RepositorySI sut = GetServiceForTest(developer);
 
