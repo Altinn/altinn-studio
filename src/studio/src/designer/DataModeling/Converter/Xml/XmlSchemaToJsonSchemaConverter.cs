@@ -746,44 +746,44 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void HandleComplexContentRestriction(XmlSchemaComplexContentRestriction item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexContentRestriction(XmlSchemaComplexContentRestriction complexContentRestriction, bool optional, bool array, JsonSchemaBuilder builder)
         {
-            HandleAnnotation(item, builder);
+            HandleAnnotation(complexContentRestriction, builder);
 
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+            steps.Add(b => HandleType(complexContentRestriction.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
-            HandleParticle(item.Particle, optional, array, steps);
+            HandleParticle(complexContentRestriction.Particle, optional, array, steps);
 
-            AddAttributes(item.Attributes, optional, array, steps, properties);
+            AddAttributes(complexContentRestriction.Attributes, optional, array, steps, properties);
 
             properties.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
 
-            AddAnyAttribute(item.AnyAttribute, builder);
+            AddAnyAttribute(complexContentRestriction.AnyAttribute, builder);
         }
 
-        private void HandleComplexContentExtension(XmlSchemaComplexContentExtension item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexContentExtension(XmlSchemaComplexContentExtension complexConentExtension, bool optional, bool array, JsonSchemaBuilder builder)
         {
-            HandleAnnotation(item, builder);
+            HandleAnnotation(complexConentExtension, builder);
 
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder properties = new PropertiesBuilder();
 
-            steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+            steps.Add(b => HandleType(complexConentExtension.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
 
-            HandleParticle(item.Particle, optional, array, steps);
+            HandleParticle(complexConentExtension.Particle, optional, array, steps);
 
-            AddAttributes(item.Attributes, optional, array, steps, properties);
+            AddAttributes(complexConentExtension.Attributes, optional, array, steps, properties);
             
             properties.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
 
-            AddAnyAttribute(item.AnyAttribute, builder);
+            AddAnyAttribute(complexConentExtension.AnyAttribute, builder);
         }
 
         private void HandleParticle(XmlSchemaParticle particle, bool optional, bool array, StepsBuilder steps)
