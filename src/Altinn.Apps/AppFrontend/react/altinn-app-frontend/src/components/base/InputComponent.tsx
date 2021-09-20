@@ -104,13 +104,15 @@ export function InputComponent(props: IInputProps) {
       onChange={onDataChanged}
       readOnly={readOnly}
       required={required}
+      fullWidth={true}
       disableUnderline={true}
-      className={classNames('form-control',
-        { 'validation-error': !isValid, disabled: readOnly })}
       value={value}
       aria-describedby={`description-${props.id}`}
       inputComponent={formatting?.number ? NumberFormatCustom : BasicInputComponent}
-      inputProps={{ formatting }}
+      inputProps={{
+        formatting,
+        className: classNames('form-control', { 'validation-error': !isValid, disabled: readOnly }),
+      }}
     />
   );
 }
