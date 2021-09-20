@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2016-12-14T13:28:58.147+01:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/altinn/test/basic" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="altinn-test" />
+      <xsd:attribute name="modellnavn" fixed="melding-modell" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:element name="melding" type="person" />
+
+  <xsd:simpleType name="ageType">
+    <xsd:restriction base="xsd:int" />
+  </xsd:simpleType>
+
+  <xsd:simpleType name="limitedAgeType">
+    <xsd:restriction base="ageType">
+      <xsd:minInclusive value="0" />
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="genderType">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+
+  <xsd:simpleType name="limitedGenderType">
+    <xsd:restriction base="genderType">
+      <xsd:enumeration value="male" />
+      <xsd:enumeration value="female" />
+      <xsd:enumeration value="unknown" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="person">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="gender" type="genderType" />
+        <xsd:attribute name="age" type="xsd:int" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="limitedPerson">
+    <xsd:simpleContent>
+      <xsd:restriction base="person">
+        <xsd:maxLength value="50" />
+        <xsd:attribute name="gender" type="limitedGenderType" />
+        <xsd:attribute name="age" type="limitedAgeType" />
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="limitedPerson-inline">
+    <xsd:simpleContent>
+      <xsd:restriction base="person">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:token">
+            <xsd:maxLength value="50" />
+          </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:attribute name="gender">
+          <xsd:simpleType>
+            <xsd:restriction base="genderType">
+              <xsd:enumeration value="male" />
+              <xsd:enumeration value="female" />
+              <xsd:enumeration value="unknown" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+        <xsd:attribute name="age">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:int">
+              <xsd:minInclusive value="0" />
+              <xsd:maxInclusive value="100" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="limitedPerson-inline-2">
+    <xsd:simpleContent>
+      <xsd:restriction base="person">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:token">
+            <xsd:maxLength value="50" />
+          </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:attribute name="gender">
+          <xsd:simpleType>
+            <xsd:restriction base="genderType">
+              <xsd:enumeration value="male" />
+              <xsd:enumeration value="female" />
+              <xsd:enumeration value="unknown" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+        <xsd:attribute name="age">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:int">
+              <xsd:minInclusive value="0" />
+              <xsd:maxInclusive value="100" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+</xsd:schema>

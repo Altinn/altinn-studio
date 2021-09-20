@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="e1" minOccurs="0" maxOccurs="unbounded" type="xsd:string" />
+          <xsd:element name="e2" minOccurs="0" maxOccurs="unbounded" type="xsd:string" />
+        </xsd:sequence>
+        <xsd:element minOccurs="0" name="e3" type="xsd:boolean" />
+        <xsd:choice>
+          <xsd:element name="e4" minOccurs="0" maxOccurs="unbounded" type="xsd:string" />
+          <xsd:element name="e5" minOccurs="0" maxOccurs="2" type="xsd:string" />
+        </xsd:choice>
+        <xsd:sequence minOccurs="0">
+          <xsd:element name="e6" minOccurs="2" maxOccurs="2" type="xsd:boolean" />
+          <xsd:sequence maxOccurs="100">
+            <xsd:element name="e7" minOccurs="2" maxOccurs="2" type="xsd:boolean" />
+            <xsd:sequence maxOccurs="unbounded">
+              <xsd:element name="e8" minOccurs="0" type="xsd:boolean" />
+              <xsd:element name="e9" minOccurs="0" maxOccurs="1" type="xsd:boolean" />
+            </xsd:sequence>
+          </xsd:sequence>
+        </xsd:sequence>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
