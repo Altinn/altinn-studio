@@ -3,6 +3,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv, { Options } from 'ajv';
+import * as AjvCore from 'ajv/dist/core';
 import Ajv2020 from 'ajv/dist/2020';
 import dot from 'dot-object';
 import addFormats from 'ajv-formats';
@@ -45,7 +46,7 @@ export function createValidator(schema: any): ISchemaValidator {
     unicodeRegExp: false,
     code: { es5: true },
   };
-  let ajv: Ajv | Ajv2020;
+  let ajv: AjvCore.default;
   let rootElementPath;
   if (schema.$schema?.includes('2020-12')) {
     // we have to use a different ajv-instance for 2020-12 draft
