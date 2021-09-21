@@ -1,9 +1,10 @@
-﻿using Json.Schema;
+using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
     /// <summary>
-    /// Placeholder
+    /// Class for analyzing a Json Schema with regards to how various constructs should
+    /// be serialized to XSD.
     /// </summary>
     public interface IJsonSchemaAnalyzer
     {
