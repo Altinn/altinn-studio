@@ -37,7 +37,7 @@ namespace DataModeling.Tests.Json
             var normalizedSchema = normalizer.Normalize(schema);
             var json = JsonSerializer.Serialize(normalizedSchema, new JsonSerializerOptions { WriteIndented = true });
 
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var results = analyzer.AnalyzeSchema(schema);
 
@@ -51,7 +51,7 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var normalizer = new JsonSchemaNormalizer();
             var normalizedSchema = normalizer.Normalize(schema);
@@ -72,7 +72,7 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var results = analyzer.AnalyzeSchema(schema);
 
@@ -90,7 +90,7 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var results = analyzer.AnalyzeSchema(schema);
 
@@ -106,7 +106,7 @@ namespace DataModeling.Tests.Json
             _testOutputHelper.WriteLine($"{testCase}");
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var results = analyzer.AnalyzeSchema(schema);
 

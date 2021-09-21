@@ -11,12 +11,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     /// <summary>
     /// Placeholder
     /// </summary>
-    public class JsonSchemaSeresAnalyzer : JsonSchemaAnalyzer, IJsonSchemaAnalyzer
+    public class SeresJsonSchemaAnalyzer : JsonSchemaAnalyzer, IJsonSchemaAnalyzer
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonSchemaSeresAnalyzer"/> class.
+        /// Initializes a new instance of the <see cref="SeresJsonSchemaAnalyzer"/> class.
         /// </summary>
-        public JsonSchemaSeresAnalyzer() : base()
+        public SeresJsonSchemaAnalyzer() : base()
         {
         }
 

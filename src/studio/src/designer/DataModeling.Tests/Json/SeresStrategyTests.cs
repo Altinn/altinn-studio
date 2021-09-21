@@ -18,7 +18,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
 
@@ -35,7 +35,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
 
@@ -49,7 +49,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
 
@@ -92,7 +92,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
 
@@ -112,7 +112,7 @@ namespace DataModeling.Tests.Json
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
 

@@ -1,23 +1,20 @@
-using System.Xml.Schema;
-using Json.Schema;
-
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
     /// <summary>
     /// Placeholder
     /// </summary>
-    public class JsonSchemaToXmlSchemaConverterOrStrategy : IJsonSchemaToXmlSchemaConverterStrategy
+    public class SeresJsonSchemaConverterStrategy : IJsonSchemaConverterStrategy
     {
         /// <inheritdoc />
         public IJsonSchemaAnalyzer GetAnalyzer()
         {
-            throw new System.NotImplementedException();
+            return new SeresJsonSchemaAnalyzer();
         }
 
         /// <inheritdoc />
         public IJsonSchemaConverter GetConverter()
         {
-            throw new System.NotImplementedException();
+            return new GeneralJsonSchemaConverter();
         }
     }
 }

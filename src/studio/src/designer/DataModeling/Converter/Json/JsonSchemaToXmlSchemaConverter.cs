@@ -19,7 +19,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private readonly IJsonSchemaNormalizer _normalizer;
 
         private JsonSchema _jsonSchema;
-        private IJsonSchemaToXmlSchemaConverterStrategy _strategy;
+        private IJsonSchemaConverterStrategy _strategy;
         private XmlSchema _xmlSchema;
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// Select converting strategy based on simple analysis of schema information, will chose one of SERES, OR og General strategies
         /// </summary>
         /// <returns></returns>
-        private IJsonSchemaToXmlSchemaConverterStrategy SelectStrategy()
+        private IJsonSchemaConverterStrategy SelectStrategy()
         {
             if (_jsonSchema.TryGetKeyword(out XsdNamespacesKeyword namespaces))
             {
@@ -67,12 +67,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                 {
                     if (ns.Equals(KnownXmlNamespaces.SERES, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return new JsonSchemaToXmlSchemaConverterSeresStrategy();
+                        return new SeresJsonSchemaConverterStrategy();
                     }
 
                     if (ns.Equals(KnownXmlNamespaces.OR, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return new JsonSchemaToXmlSchemaConverterOrStrategy();
+                        return new OrJsonSchemaConverterStrategy();
                     }
                 }
             }
@@ -86,12 +86,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                     if (generatorScriptName.ValueKind == JsonValueKind.String &&
                         generatorScriptName.ValueEquals("SERES_XSD_GEN"))
                     {
-                        return new JsonSchemaToXmlSchemaConverterSeresStrategy();
+                        return new SeresJsonSchemaConverterStrategy();
                     }
                 }
             }
 
-            return new JsonSchemaToXmlSchemaConverterGeneralStrategy();
+            return new GeneralJsonSchemaConverterStrategy();
         }
 
         /// <summary>

@@ -4,12 +4,12 @@ using Json.Schema;
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
     /// <inheritdoc/>
-    public class JsonSchemaGeneralAnalyzer : JsonSchemaAnalyzer, IJsonSchemaAnalyzer
+    public class GeneralJsonSchemaAnalyzer : JsonSchemaAnalyzer, IJsonSchemaAnalyzer
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonSchemaGeneralAnalyzer"/> class.
+        /// Initializes a new instance of the <see cref="GeneralJsonSchemaAnalyzer"/> class.
         /// </summary>
-        public JsonSchemaGeneralAnalyzer() : base()
+        public GeneralJsonSchemaAnalyzer() : base()
         {
         }
 

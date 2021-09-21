@@ -3,7 +3,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     /// <summary>
     /// Placeholder
     /// </summary>
-    public interface IJsonSchemaToXmlSchemaConverterStrategy
+    public interface IJsonSchemaConverterStrategy
     {
         /// <summary>
         /// Returns the JSON Schema analyzer used by this strategy
