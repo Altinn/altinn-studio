@@ -26,7 +26,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model\JsonSchema\Seres\SeresWithAnyAttribute.json", @"Model\XmlSchema\Seres\SeresWithAnyAttribute.xsd")]
         [InlineData(@"Model\JsonSchema\Seres\SeresWithSpecifiedAndAnyAttributes.json", @"Model\XmlSchema\Seres\SeresWithSpecifiedAndAnyAttributes.xsd")]
         [InlineData(@"Model\JsonSchema\Seres\SeresComplexContentExtension.json", @"Model\XmlSchema\Seres\SeresComplexContentExtension.xsd")]
-        [InlineData(@"Model\JsonSchema\SimpleContentExtensionPlain.json", @"Model\XmlSchema\SimpleContentExtensionPlain.xsd")]
+        [InlineData(@"Model\JsonSchema\SimpleContentExtensionPlain.json", @"Model\XmlSchema\General\SimpleContentExtensionPlain.xsd")]
         [InlineData(@"Model\JsonSchema\Seres\SeresBuiltinTypes.json", @"Model\XmlSchema\Seres\SeresBuiltinTypes.xsd")]
         [InlineData(@"Model\JsonSchema\Seres\SeresComplexType.json", @"Model\XmlSchema\Seres\SeresComplexType.xsd")]
         [InlineData(@"Model\JsonSchema\Seres\SeresArray.json", @"Model\XmlSchema\Seres\SeresArray.xsd")]
