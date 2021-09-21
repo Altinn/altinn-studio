@@ -19,6 +19,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private readonly IJsonSchemaNormalizer _normalizer;
 
         private JsonSchema _jsonSchema;
+        private Uri _schemaUri;
         private IJsonSchemaConverterStrategy _strategy;
         private XmlSchema _xmlSchema;
 
@@ -50,6 +51,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         public XmlSchema Convert(JsonSchema schema, Uri schemaUri)
         {
             _jsonSchema = _normalizer.Normalize(schema);
+            _schemaUri = schemaUri;
             _strategy = SelectStrategy();
             ConvertUsingStrategy();
             return _xmlSchema;
@@ -102,7 +104,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
             var analyzer = _strategy.GetAnalyzer();
             var converter = _strategy.GetConverter();
 
-            JsonSchemaXsdMetadata result = analyzer.AnalyzeSchema(_jsonSchema);
+            JsonSchemaXsdMetadata result = analyzer.AnalyzeSchema(_jsonSchema, _schemaUri);
             _xmlSchema = converter.Convert(_jsonSchema, result);
         }
     }

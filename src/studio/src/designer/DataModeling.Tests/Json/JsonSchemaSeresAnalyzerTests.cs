@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -39,7 +40,7 @@ namespace DataModeling.Tests.Json
 
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var results = analyzer.AnalyzeSchema(schema);
+            var results = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexType);
         }
@@ -57,7 +58,7 @@ namespace DataModeling.Tests.Json
             var normalizedSchema = normalizer.Normalize(schema);
             var json = JsonSerializer.Serialize(normalizedSchema, new JsonSerializerOptions { WriteIndented = true });
 
-            var results = analyzer.AnalyzeSchema(schema);
+            var results = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContent);
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContentExtension);
@@ -74,7 +75,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var results = analyzer.AnalyzeSchema(schema);
+            var results = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContent);
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContentExtension);
@@ -92,7 +93,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var results = analyzer.AnalyzeSchema(schema);
+            var results = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.SimpleType);
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Attribute);
@@ -108,7 +109,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var results = analyzer.AnalyzeSchema(schema);
+            var results = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
 
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Nillable);
         }

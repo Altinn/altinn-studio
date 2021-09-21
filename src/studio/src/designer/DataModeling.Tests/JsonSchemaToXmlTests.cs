@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -17,6 +18,13 @@ namespace DataModeling.Tests
 
         private static async Task TestFiles(string schemaPath, string expectedPath)
         {
+            var uri = "melding";
+
+            await TestFiles(schemaPath, expectedPath, uri);
+        }
+
+        private static async Task TestFiles(string schemaPath, string expectedPath, string uri)
+        {
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -26,7 +34,8 @@ namespace DataModeling.Tests
             XmlSchema expected = ResourceHelpers.LoadXmlSchemaTestData(expectedPath);
 
             // Act
-            XmlSchema actual = converter.Convert(jsonSchema);
+            var schemaUri = new Uri(uri, UriKind.RelativeOrAbsolute);
+            XmlSchema actual = converter.Convert(jsonSchema, schemaUri);
 
             StringBuilder xmlStringBuilder = new StringBuilder();
             await using (XmlWriter xmlWriter = XmlWriter.Create(xmlStringBuilder, new XmlWriterSettings
@@ -60,10 +69,10 @@ namespace DataModeling.Tests
             await TestFiles("Model/JsonSchema/AltinnAnnotation.json", "Model/XmlSchema/AltinnAnnotation.xsd");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task Any()
         {
-            await TestFiles("Model/JsonSchema/Any.json", "Model/XmlSchema/Any.xsd");
+            await TestFiles("Model/JsonSchema/General/Any.json", "Model/XmlSchema/General/Any.xsd", "Root");
         }
 
         [Fact(Skip = "Needs analyzing")]

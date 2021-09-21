@@ -1,3 +1,5 @@
+using System;
+using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
 
@@ -14,14 +16,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         }
 
         /// <inheritdoc/>
-        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
+        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
         {
             JsonSchema = schema;
-            Metadata = new JsonSchemaXsdMetadata();
+            Metadata = new JsonSchemaXsdMetadata
+            {
+                MessageName = UrlHelper.GetName(uri.ToString()),
+                MessageTypeName = string.Empty
+            };
 
-            Metadata.MessageName = string.Empty;
-            Metadata.MessageTypeName = string.Empty;
-            
             DetermineRootModel(JsonSchema);
             AnalyzeSchema(JsonPointer.Parse("#"), JsonSchema);
 

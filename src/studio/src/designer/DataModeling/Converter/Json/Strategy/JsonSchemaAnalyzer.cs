@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -29,7 +30,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         protected JsonSchemaXsdMetadata Metadata { get; set; }
 
         /// <inheritdoc/>
-        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema);
+        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri);
 
         /// <summary>
         /// Determines the type of root model the provided schema has.

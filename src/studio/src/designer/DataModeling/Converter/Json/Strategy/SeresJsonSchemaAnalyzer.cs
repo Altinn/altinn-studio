@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
@@ -21,8 +20,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         }
 
         /// <inheritdoc />
-        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
-        {
+        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
+        {           
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata();
 

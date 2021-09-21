@@ -24,6 +24,10 @@
     </AdditionalFiles>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
