@@ -2,7 +2,7 @@ namespace Altinn.Platform.Authorization.Models
 {
     /// <summary>
     /// This model describes a role which a particular action is given to.
-    /// example: OrderedMap { "RoleTypeCode": "DAGL", "IsDelegable": true }
+    /// example: RoleGrant { "RoleTypeCode": "DAGL", "IsDelegable": true }
     /// </summary>
     public class RoleGrant
     {
