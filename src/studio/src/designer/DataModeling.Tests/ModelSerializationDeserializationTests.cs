@@ -15,9 +15,9 @@ namespace DataModeling.Tests
     {
         private readonly ITestOutputHelper _testOutputHelper;
 
-        private const string SERESBASIC_XML_RESOURCE = "DataModeling.Tests._TestData.Model.Xml.SeresBasic.xml";
+        private const string SERESBASIC_XML_RESOURCE = "DataModeling.Tests._TestData.Model.Xml.Seres.SeresBasic.xml";
         private const string SERESBASIC_XSD_RESOURCE = "DataModeling.Tests._TestData.Model.XmlSchema.Seres.SeresBasicSchema.xsd";
-        private const string SERESBASIC_JSON_RESOURCE = "DataModeling.Tests._TestData.Model.Json.SeresBasic.json";
+        private const string SERESBASIC_JSON_RESOURCE = "DataModeling.Tests._TestData.Model.Json.Seres.SeresBasic.json";
         private const string SERESBASIC_JSON_SCHEMA_RESOURCE = "DataModeling.Tests._TestData.Model.JsonSchema.Seres.SeresBasicSchema.json";
 
         public ModelSerializationDeserializationTests(ITestOutputHelper testOutputHelper)
