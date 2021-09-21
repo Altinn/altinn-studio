@@ -250,18 +250,35 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetResourcePoliciesFromXacmlPolicies_TC05()
         {
             // Arrange
-            string org = "SKD";
-            string app = "TaxReport2";
-            List<ResourcePolicy> expectedResourcePolicies = GetResourcePoliciesForSKDTaxReport();
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDTaxReport2Request.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   OrgApp = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id =XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
+                      new AttributeMatch { Id =XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" },
+                   },
+                   ResourcePolicies = GetResourcePoliciesForSKDTaxReport()
+               }
+            };
+
+            // List<ResourcePolicy> expectedResourcePolicies = GetResourcePoliciesForSKDTaxReport();
 
             // Act
-            HttpResponseMessage response = await _client.GetAsync($"authorization/api/v1/resourcepolicies/{org}/{app}");
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
-            List<ResourcePolicy> actualResourcePolicies = JsonConvert.DeserializeObject<List<ResourcePolicy>>(responseContent);
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // List<ResourcePolicy> actualResourcePolicies = JsonConvert.DeserializeObject<List<ResourcePolicy>>(responseContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertEqual(expectedResourcePolicies, actualResourcePolicies);
+            AssertionUtil.AssertEqual(expectedResourcePolicyResponses, actualResourcePolicyResponses);
         }
 
         private List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()

@@ -1,0 +1,14 @@
+"Resource": [
+	{
+		"Attribute": [
+		  {
+			"AttributeId": "urn:altinn:org",
+			"Value": "SKD"
+		  },
+		  {
+			"AttributeId": "urn:altinn:app",
+			"Value": "TaxReport2"
+		  },	  
+		]
+	}
+]

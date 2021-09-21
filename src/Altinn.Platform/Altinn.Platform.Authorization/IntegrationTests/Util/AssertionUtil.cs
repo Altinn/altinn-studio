@@ -64,6 +64,38 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         }
 
         /// <summary>
+        /// Assert that two lists of <see cref="ResourcePolicyResponse"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertEqual(List<ResourcePolicyResponse> expected, List<ResourcePolicyResponse> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.NotNull(actual);
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        public static void AssertEqual(ResourcePolicyResponse expected, ResourcePolicyResponse actual)
+        {
+            AssertEqual(expected.ResourcePolicies, actual.ResourcePolicies);
+            AssertEqual(expected.OrgApp, actual.OrgApp);
+            if (expected.ErrorResponse != null && actual.ErrorResponse != null)
+            {
+                Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
+            }
+        }
+
+        /// <summary>
         /// Assert that two lists of <see cref="ResourcePolicy"/> have the same property values.
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
@@ -123,32 +125,45 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Gets a list of role codes which might give access to an app
+        /// Gets a list of resource policies for the list of org/apps
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="orgAppList">The list of org/apps</param>
+        /// <returns>A list resourcePolicyResponses</returns>
         [AllowAnonymous]
-        [HttpGet("/authorization/api/v1/resourcepolicies/{org}/{app}")]
-        public async Task<ActionResult> GetResourcePolicies(string org, string app)
+        [HttpPost("/authorization/api/v1/resourcepolicies")]
+        public async Task<ActionResult> GetResourcePolicies(List<List<AttributeMatch>> orgAppList)
         {
-            if (string.IsNullOrWhiteSpace(org))
+            List<ResourcePolicyResponse> resourcePolicyResponses = new List<ResourcePolicyResponse>();
+            foreach (var attributeMatches in orgAppList)
             {
-                return BadRequest("Organisation must be defined in the path");
+                ResourcePolicyResponse response = new ResourcePolicyResponse { OrgApp = attributeMatches };
+                resourcePolicyResponses.Add(response);
+                string org = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
+                string app = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
+                if (string.IsNullOrWhiteSpace(org))
+                {
+                    response.ErrorResponse = "Organisation must be defined in the path";
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(app))
+                {
+                    response.ErrorResponse = "App must be defined in the path";
+                    continue;
+                }
+
+                XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
+
+                if (policy == null)
+                {
+                    response.ErrorResponse = $"No valid policy found for org '{org}' and app '{app}'";
+                    continue;
+                }
+
+                response.ResourcePolicies = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy);
             }
 
-            if (string.IsNullOrWhiteSpace(app))
-            {
-                return BadRequest("App must be defined in the path");
-            }
-
-            XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
-
-            if (policy == null)
-            {
-                return NotFound($"No valid policy found for org '{org}' and app '{app}'");
-            }
-
-            return Ok(PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy));
+            return Ok(resourcePolicyResponses);
         }
     }
 }
