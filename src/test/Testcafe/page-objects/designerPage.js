@@ -1,4 +1,4 @@
-import { Selector } from 'testcafe';
+import { Selector, RequestLogger } from 'testcafe';
 const environment = process.env.ENV.toLowerCase();
 
 export default class DesignerPage {
@@ -193,5 +193,25 @@ export default class DesignerPage {
       lastBuildVersion = Math.floor(Math.random() * 8000 + 1000);
     }
     return lastBuildVersion;
+  }
+
+  async deleteLocalAppChanges(t, appName) {
+    const resetRepo = RequestLogger(/.*designerapi\/Repository\/ResetLocalRepository.*/);
+    await t
+      .expect(this.deleteLocalChanges.exists)
+      .ok()
+      .click(this.deleteLocalChanges)
+      .expect(this.deleteAppRepoName.exists)
+      .ok()
+      .typeText(this.deleteAppRepoName, appName, {
+        replace: true,
+      })
+      .addRequestHooks(resetRepo)
+      .expect(this.confirmDeleteLocalChanges.exists)
+      .ok()
+      .click(this.confirmDeleteLocalChanges)
+      .expect(resetRepo.contains((r) => r.response.statusCode === 200))
+      .ok()
+      .wait(10000);
   }
 }

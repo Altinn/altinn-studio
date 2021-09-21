@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "info": {
+    "XSLT-skriptnavn": "SERES_XSD_GEN",
+    "XSD-generatorversjon": "2.0.17",
+    "XSLT-prosessor": "SAXON versjon 9.1.0.7",
+    "generert": "2016-12-14T13:28:58.147+01:00",
+    "navneromprefix": "http://seres.no/xsd",
+    "namespace": "http://seres.no/xsd/altinn/test/basic",
+    "meldingsnavn": "melding",
+    "domenenavn": "altinn-test",
+    "modellnavn": "melding-modell",
+    "metamodellversjon": "1.2",
+    "guid": "true",
+    "orid": "false",
+    "nillable": "true",
+    "tillat-gjenbruk": "true",
+    "elementtype": "true",
+    "forvaltningsdata": "true",
+    "forvaltningsdata-navnerom": "http://seres.no/xsd/forvaltningsdata",
+    "saernorske-bokstaver-i-navn": "false",
+    "ft_guid_som_attributt": "false",
+    "sem-ref": "false",
+    "kodebibliotek": "false",
+    "spraak": "",
+    "XSD-variant": "Altinn 1.3.1"
+  },
+  "properties": {
+    "SeresValue": {
+      "$ref": "#/$defs/SeresType"
+    },
+    "t1": {
+      "$ref": "#/$defs/stringMinMaxLengthRestrictions"
+    },
+    "t2": {
+      "$ref": "#/$defs/stringLengthRestrictions"
+    },
+    "t3": {
+      "$ref": "#/$defs/stringEnumRestrictions"
+    },
+    "t4": {
+      "$ref": "#/$defs/stringPatternRestrictions"
+    },
+    "n1": {
+      "$ref": "#/$defs/numberRestrictions"
+    },
+    "n2": {
+      "$ref": "#/$defs/numberRestrictions2"
+    },
+    "f1": {
+      "$ref": "#/$defs/numberRestrictionsFractional0"
+    },
+    "f2": {
+      "$ref": "#/$defs/numberRestrictionsFractional1"
+    },
+    "f3": {
+      "$ref": "#/$defs/numberRestrictionsFractional2"
+    },
+    "f4": {
+      "$ref": "#/$defs/numberRestrictionsFractional3"
+    },
+    "f5": {
+      "$ref": "#/$defs/numberRestrictionsFractional4"
+    },
+    "f6": {
+      "$ref": "#/$defs/numberRestrictionsFractional5"
+    },
+    "c0": {
+      "$ref": "#/$defs/complexStructure"
+    }
+  },
+  "required": [
+    "SeresValue",
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "n1",
+    "n2",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6"
+  ],
+  "$defs": {
+    "SeresType": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "@xsdUnhandledEnumAttributes": {
+            "frontend": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/frontend/784952"
+            },
+            "backend": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/backend/784951"
+            },
+            "other": {
+              "seres:elementtype": "Datakodeelement",
+              "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeelement/other/784950"
+            }
+          },
+          "enum": [
+            "frontend",
+            "backend",
+            "other"
+          ]
+        }
+      ],
+      "@xsdUnhandledAttributes": {
+        "seres:elementtype": "Datakodeliste",
+        "seres:guid": "http://seres.no/guid/Kursdomene/Datakodeliste/GeekType/784953"
+      }
+    },
+    "simpleString": {
+      "type": "string",
+      "@xsdType": "string"
+    },
+    "stringMinMaxLengthRestrictions": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "maxLength": 20,
+          "minLength": 5
+        }
+      ]
+    },
+    "stringLengthRestrictions": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/simpleString"
+        },
+        {
+          "maxLength": 10,
+          "minLength": 10
+        }
+      ]
+    },
+    "stringEnumRestrictions": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "v1",
+            "v2"
+          ]
+        }
+      ]
+    },
+    "stringPatternRestrictions": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "pattern": "^\\d\\.\\d\\.\\d$"
+        }
+      ]
+    },
+    "numberRestrictions": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "maxLength": 10,
+          "maximum": 100,
+          "minimum": -100
+        }
+      ]
+    },
+    "numberRestrictions2": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "maxLength": 10,
+          "exclusiveMaximum": 100,
+          "exclusiveMinimum": -100
+        }
+      ]
+    },
+    "numberRestrictionsFractional0": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 1
+        }
+      ]
+    },
+    "numberRestrictionsFractional1": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.1
+        }
+      ]
+    },
+    "numberRestrictionsFractional2": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "numberRestrictionsFractional3": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.001
+        }
+      ]
+    },
+    "numberRestrictionsFractional4": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.0001
+        }
+      ]
+    },
+    "numberRestrictionsFractional5": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.00001
+        }
+      ]
+    },
+    "complexStructure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stringLengthRestrictions"
+        },
+        {
+          "pattern": "^\\d+$"
+        }
+      ]
+    }
+  }
+}
