@@ -166,7 +166,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
-        public Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        public Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
         {
             throw new NotImplementedException();
         }

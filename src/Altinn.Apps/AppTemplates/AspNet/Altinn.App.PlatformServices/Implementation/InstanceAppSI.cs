@@ -92,9 +92,9 @@ namespace Altinn.App.Services.Implementation
 
         /// <inheritdoc />
         /// Get instances of an instance owner.
-        public async Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        public async Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
         {
-            string apiUrl = $"instances/{instanceOwnerPartyId}";
+            string apiUrl = $"instances?instanceOwner.partyId={instanceOwnerPartyId}&status.isArchived=false";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);

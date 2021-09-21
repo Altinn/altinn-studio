@@ -23,7 +23,7 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the instance list of a given instance owner.
         /// </summary>
-        Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
+        Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId);
 
         /// <summary>
         /// Updates the process model of the instance and returns the updated instance.

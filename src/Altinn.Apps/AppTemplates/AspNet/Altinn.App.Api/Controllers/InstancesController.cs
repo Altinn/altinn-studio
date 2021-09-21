@@ -422,6 +422,25 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("{instanceOwnerPartyId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<List<Instance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
+        {
+            // hva er fornuftig autorisasjon her? Skal hnte metadata om flere instanser. Men Kanskje i ulike state? autoriasjon i storage, hva skal vi h a her? 
+            EnforcementResult result = await AuthorizeAction(org, app, instanceOwnerPartyId, null, "read");
+
+            List<Instance> activeInstances = await _instanceService.GetActiveInstances(instanceOwnerPartyId);
+
+            foreach (var item in activeInstances)
+            {
+                // map to the simple instance Object.
+            }
+
+            return activeInstances;
+        }
+
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
             _logger.LogError($"{message}: {exception}");

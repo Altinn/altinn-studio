@@ -51,7 +51,7 @@ namespace App.IntegrationTests.Mocks.Services
             throw new ServiceException(HttpStatusCode.Conflict, "CONFLICT");
         }
 
-        public Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        public Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
         {
             throw new NotImplementedException();
         }
