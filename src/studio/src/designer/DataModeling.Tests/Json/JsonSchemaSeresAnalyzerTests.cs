@@ -25,8 +25,8 @@ namespace DataModeling.Tests.Json
         [Theory]
         [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema.json", "#/$defs/melding-modell", "Schema has properties")]
         [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema.json", "#/oneOf/[0]", "Schema has $ref keyword which in turn has properties")]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#", "Schema has allOf keyword which in turn has a decendant with properties.")]
-        [InlineData(@"Model\JsonSchema\ComplexSchema.json", "#", "Nested $ref. Schema has a $ref keyword which points to a type which also has a $ref keyword which in turn points to a type which has properties.")]
+        [InlineData(@"Model\JsonSchema\General\ComplexContentExtension.json", "#", "Schema has allOf keyword which in turn has a decendant with properties.")]
+        [InlineData(@"Model\JsonSchema\General\ComplexSchema.json", "#", "Nested $ref. Schema has a $ref keyword which points to a type which also has a $ref keyword which in turn points to a type which has properties.")]
         public async Task IsValidComplexType_ComplexType_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
@@ -45,7 +45,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension.json", "#", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
+        [InlineData(@"Model\JsonSchema\General\ComplexContentExtension.json", "#", "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type.")]
         public async Task IsValidComplexContentExtension_ComplexContentExtention_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
@@ -66,7 +66,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\ComplexContentExtension_negative.json", "#/properties/Root/allOf/[0]", "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)")]
+        [InlineData(@"Model\JsonSchema\General\ComplexContentExtension_negative.json", "#/properties/Root/allOf/[0]", "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)")]
         public async Task IsValidComplexContentExtension_NotComplexContentExtention_ShouldReturnFalse(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
@@ -99,8 +99,8 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\NillableAttribute.json", "#/$defs/main/properties/refered", "Schema (refered) has a oneOf with one refered type and one null schema.")]
-        [InlineData(@"Model\JsonSchema\NillableAttribute.json", "#/$defs/main/properties/nilstring", "Schema (nillstring) has a multiple Json value types allowed, including null.")]
+        [InlineData(@"Model\JsonSchema\General\NillableAttribute.json", "#/$defs/main/properties/refered", "Schema (refered) has a oneOf with one refered type and one null schema.")]
+        [InlineData(@"Model\JsonSchema\General\NillableAttribute.json", "#/$defs/main/properties/nilstring", "Schema (nillstring) has a multiple Json value types allowed, including null.")]
         public async Task IsValidNillableAttribute_NillableAttribute_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");

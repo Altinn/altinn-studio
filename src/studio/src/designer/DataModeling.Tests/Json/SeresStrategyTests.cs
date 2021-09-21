@@ -29,7 +29,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\SimpleContentExtension.json")]
+        [InlineData(@"Model\JsonSchema\General\SimpleContentExtension.json")]
         public async Task Analyze_SimpleContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
