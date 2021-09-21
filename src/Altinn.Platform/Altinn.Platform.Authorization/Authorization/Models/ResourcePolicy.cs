@@ -19,7 +19,7 @@ namespace Altinn.Platform.Authorization.Models
         public LocalizedText Title { get; set; }
 
         /// <summary>
-        /// Gets or sets the ctions associcated with this particular resource including which roles have been granted access to it
+        /// Gets or sets the actions associcated with this particular resource including which roles have been granted access to it
         /// </summary>
         public List<ResourceAction> Actions { get; set; }
 
