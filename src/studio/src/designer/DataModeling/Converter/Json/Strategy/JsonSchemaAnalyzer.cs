@@ -623,21 +623,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 type &= ~SchemaValueType.Null;
             }
 
-            switch (type)
+            return type switch
             {
-                case SchemaValueType.Object:
-                case SchemaValueType.Null:
-                    return false;
-                case SchemaValueType.Array:
-                    return false;
-                case SchemaValueType.Boolean:
-                case SchemaValueType.String:
-                case SchemaValueType.Number:
-                case SchemaValueType.Integer:
-                    return true;
-                default:
-                    return false;
-            }
+                SchemaValueType.Object or SchemaValueType.Null => false,
+                SchemaValueType.Array => false,
+                SchemaValueType.Boolean or SchemaValueType.String or SchemaValueType.Number or SchemaValueType.Integer => true,
+                _ => false,
+            };
         }
 
         /// <summary>
