@@ -15,7 +15,7 @@
     #efefef 2px,
     #fff 3px,
     #fff 5px
-  );
+  ) !important;
 }
 input:hover:not(.disabled) {
   border-color: #0062ba !important;
