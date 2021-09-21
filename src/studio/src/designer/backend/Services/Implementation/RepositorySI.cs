@@ -371,6 +371,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
         }
 
+#nullable enable
         /// <summary>
         /// Get content of resource file
         /// </summary>
@@ -378,18 +379,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
-        public string GetLanguageResource(string org, string app, string id)
+        public TextResource? GetLanguageResource(string org, string app, string id)
         {
             string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
-            string filedata = null;
 
             if (File.Exists(filename))
             {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                string filedata = File.ReadAllText(filename, Encoding.UTF8);
+                return JsonConvert.DeserializeObject<TextResource>(filedata);
             }
 
-            return filedata;
+            return null;
         }
+#nullable restore
 
         /// <summary>
         /// Returns the app texts
@@ -814,8 +816,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             foreach (TextResource textResource in textResourcesList)
             {
-                var currentResourceString = GetLanguageResource(org, app, textResource.Language);
-                TextResource currentTextResource = JsonConvert.DeserializeObject<TextResource>(currentResourceString);
+                var currentTextResource = GetLanguageResource(org, app, textResource.Language);
                 var duplicateResources = textResource.Resources.FindAll(resource => currentTextResource.Resources.Find(r => r.Id == resource.Id) != null);
                 if (duplicateResources.Count == 0)
                 {

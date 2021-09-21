@@ -156,7 +156,7 @@ $(document).ready(function () {
                     disable_array_reorder: true,
                     required_by_default: true,
                     schema: _schema,
-                    startval: (a2[0] == "" ? defaultJson : JSON.parse(a2[0]))
+                    startval: a2[0] ? a2[0]: defaultJson
                 });
             });
 
@@ -177,7 +177,7 @@ $(document).ready(function () {
                             disable_array_reorder: true,
                             required_by_default: true,
                             schema: _schema,
-                            startval: (data == "" ? defaultJson : JSON.parse(data))
+                            startval: data ? data:  defaultJson
                         });
 
                         // Search when switching tabs

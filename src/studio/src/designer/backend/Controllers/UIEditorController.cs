@@ -93,7 +93,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetTextResources(string org, string app, string id)
         {
             var result = _repository.GetLanguageResource(org, app, id);
-            return Content(result);
+            return Json(result, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore});
         }
 
         /// <summary>

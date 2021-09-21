@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -163,14 +164,13 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult GetResource(string org, string app, string id)
         {
             id = id.Split('-')[0];
-            string resourceJson = _repository.GetLanguageResource(org, app, id);
-            if (string.IsNullOrWhiteSpace(resourceJson))
+            var resource = _repository.GetLanguageResource(org, app, id);
+            if (resource == null)
             {
-                resourceJson = string.Empty;
+                return Json(string.Empty);
             }
 
-            JsonResult result = new JsonResult(resourceJson);
-            return result;
+            return Json(resource, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore});
         }
 
         /// <summary>

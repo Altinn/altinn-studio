@@ -60,6 +60,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>The fileContent</returns>
         string GetFileByRelativePath(string org, string app, string fileName);
 
+#nullable enable
         /// <summary>
         /// Get content of resource file
         /// </summary>
@@ -67,7 +68,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
-        string GetLanguageResource(string org, string app, string id);
+        TextResource? GetLanguageResource(string org, string app, string id);
+#nullable restore
 
         /// <summary>
         /// Update text resource
