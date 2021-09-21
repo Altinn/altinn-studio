@@ -11,7 +11,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
     {
         public static ResourceAction GetResourceActionModel(string action, IEnumerable<string> roles)
         {
-            ResourceAction resourceAction = new ResourceAction // legg til Title
+            ResourceAction resourceAction = new ResourceAction
             {
                 Match = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = action },
                 RoleGrants = new List<RoleGrant>(),
