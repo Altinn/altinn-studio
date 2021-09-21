@@ -514,9 +514,9 @@ namespace Altinn.Platform.Storage.Repository
             try
             {
                 Instance instance = await Client
-             .ReadDocumentAsync<Instance>(
-                 uri,
-                 new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
+                .ReadDocumentAsync<Instance>(
+                uri,
+                new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
                 await PostProcess(instance);
                 return instance;
