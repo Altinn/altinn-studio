@@ -86,16 +86,6 @@ namespace Altinn.Platform.Authorization.Controllers
             }
         }
 
-        /// <summary>
-        /// Test method. Should be deleted?
-        /// </summary>
-        /// <returns>test string</returns>
-        [HttpGet]
-        public string Get()
-        {
-            return "test string";
-        }
-
         private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)
         {
             if (decisionRequest.MultiRequests == null || decisionRequest.MultiRequests.RequestReference == null
