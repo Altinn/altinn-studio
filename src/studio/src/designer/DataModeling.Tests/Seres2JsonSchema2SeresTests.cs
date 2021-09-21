@@ -28,7 +28,7 @@ namespace DataModeling.Tests
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml")]
-        [InlineData("Model/XmlSchema/SeresNillable.xsd", "")]
+        [InlineData("Model/XmlSchema/Seres/SeresNillable.xsd", "")]
         [InlineData("Seres/schema_3473_201512_forms_3123_37927.xsd", "")]
         [InlineData("Seres/schema_4008_180226_forms_4186_37199.xsd", "")]
         [InlineData("Seres/schema_3919_2_forms_4623_39043.xsd", "")]

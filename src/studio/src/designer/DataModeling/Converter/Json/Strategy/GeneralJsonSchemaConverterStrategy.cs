@@ -1,6 +1,3 @@
-using System.Xml.Schema;
-using Json.Schema;
-
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
     /// <summary>
@@ -11,13 +8,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <inheritdoc />
         public IJsonSchemaAnalyzer GetAnalyzer()
         {
-            throw new System.NotImplementedException();
+            return new GeneralJsonSchemaAnalyzer();
         }
 
         /// <inheritdoc />
         public IJsonSchemaConverter GetConverter()
         {
-            throw new System.NotImplementedException();
+            return new GeneralJsonSchemaConverter();
         }
     }
 }
