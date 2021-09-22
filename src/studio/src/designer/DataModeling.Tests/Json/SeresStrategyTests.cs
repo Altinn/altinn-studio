@@ -21,7 +21,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.ComplexType);
@@ -38,7 +38,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(new[] { CompatibleXsdType.ComplexType, CompatibleXsdType.SimpleContentExtension });
         }
@@ -52,7 +52,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/properties/t1")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/properties/t2")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
@@ -95,7 +95,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/ageType")).Should().Contain(CompatibleXsdType.SimpleType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedAgeType")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
@@ -115,7 +115,7 @@ namespace DataModeling.Tests.Json
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema, new Uri(string.Empty));
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Contain(CompatibleXsdType.ComplexContentExtension);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(CompatibleXsdType.ComplexType);

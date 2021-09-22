@@ -12,7 +12,7 @@ namespace DataModeling.Tests.Json
     public class JsonSchemaNormalizerTests
     {
         [Theory]
-        [InlineData(@"Model\JsonSchema\General\AltinnAnnotation.json")]
+        [InlineData(@"Model\JsonSchema\AltinnAnnotation.json")]
         [InlineData(@"Model\JsonSchema\General\Any.json")]
         [InlineData(@"Model\JsonSchema\General\Attributes.json")]
         [InlineData(@"Model\JsonSchema\General\BuiltinTypes.json")]

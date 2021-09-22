@@ -57,37 +57,37 @@ namespace DataModeling.Tests
             XmlSchemaAssertions.IsEquivalentTo(expected, actual);
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "XsdStructureKeyword not supported. We default to sequence, and currently dont' support all.")]
         public async Task SimpleAll()
         {
-            await TestFiles("Model/JsonSchema/SimpleAll.json", "Model/XmlSchema/SimpleAll.xsd");
-        }
-
-        [Fact(Skip = "Needs analyzing")]
-        public async Task AltinnAnnotation()
-        {
-            await TestFiles("Model/JsonSchema/AltinnAnnotation.json", "Model/XmlSchema/AltinnAnnotation.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleAll.json", "Model/XmlSchema/General/SimpleAll.xsd", "Root");
         }
 
         [Fact]
+        public async Task AltinnAnnotation()
+        {
+            await TestFiles("Model/JsonSchema/AltinnAnnotation.json", "Model/XmlSchema/AltinnAnnotation.xsd", string.Empty);
+        }
+
+        [Fact(Skip = "Missing support for Any (element). AnyAttribute is implemented.")]
         public async Task Any()
         {
             await TestFiles("Model/JsonSchema/General/Any.json", "Model/XmlSchema/General/Any.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Unhandled attributes ends up on schema, not on the root element.")]
         public async Task Attributes()
         {
-            await TestFiles("Model/JsonSchema/Attributes.json", "Model/XmlSchema/Attributes.xsd");
+            await TestFiles("Model/JsonSchema/General/Attributes.json", "Model/XmlSchema/General/Attributes.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task BuiltinTypes()
         {
-            await TestFiles("Model/JsonSchema/BuiltinTypes.json", "Model/XmlSchema/BuiltinTypes.xsd");
+            await TestFiles("Model/JsonSchema/General/BuiltinTypes.json", "Model/XmlSchema/General/BuiltinTypes.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Choice not supported for now, and probably won't be because of unecessary complexity.")]
         public async Task SimpleChoice()
         {
             await TestFiles("Model/JsonSchema/SimpleChoice.json", "Model/XmlSchema/SimpleChoice.xsd");

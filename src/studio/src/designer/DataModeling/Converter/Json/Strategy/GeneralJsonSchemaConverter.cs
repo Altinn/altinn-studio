@@ -35,9 +35,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             _xsd = new XmlSchema();
             _namespaces = new Dictionary<string, string>();
 
-            HandleSchemaAttributes();
-            HandleSchemaUnhandledAttributes();
+            HandleSchemaAttributes();   
             HandleNamespaces();
+            HandleSchemaUnhandledAttributes();
 
             var keywords = _schema.AsWorkList();
 
