@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,6 +14,52 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
     /// </summary>
     public static class AssertionUtil
     {
+        /// <summary>
+        /// 123
+        /// </summary>
+        /// <typeparam name="T">123 T</typeparam>
+        /// <param name="expected">123 expected</param>
+        /// <param name="actual">123 actual</param>
+        /// <param name="assertMethod">123 assertMethod</param>
+        public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<T, T> assertMethod)
+        {
+            Assert.Equal(expected.Count, actual.Count);
+
+            Dictionary<int, T> expectedDict = new Dictionary<int, T>();
+            Dictionary<int, T> actualDict = new Dictionary<int, T>();
+
+            int i = 1;
+            foreach (T ex in expected)
+            {
+                expectedDict.Add(i, ex);
+                i++;
+            }
+
+            i = 1;
+            foreach (T ac in actual)
+            {
+                actualDict.Add(i, ac);
+                i++;
+            }
+
+            foreach (int key in expectedDict.Keys)
+            {
+                assertMethod(expectedDict[key], actualDict[key]);
+            }
+        }
+
+        /// <summary>
+        /// 123
+        /// </summary>
+        /// <typeparam name="T">123 T</typeparam>
+        /// <param name="expected">123 expected</param>
+        /// <param name="actual">123 actual</param>
+        /// <param name="assertMethod">123 assertMethod</param>
+        public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<ICollection<T>, ICollection<T>> assertMethod)
+        {
+            AssertCollections(expected, actual, assertMethod);
+        }
+
         /// <summary>
         /// Assert that two <see cref="XacmlContextResponse"/> have the same property values.
         /// </summary>
@@ -64,56 +111,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         }
 
         /// <summary>
-        /// Assert that two lists of <see cref="ResourcePolicyResponse"/> have the same property values.
+        /// Assert that two <see cref="ResourcePolicyResponse"/> have the same property.
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
         /// <param name="actual">The instance to verify.</param>
-        public static void AssertEqual(List<ResourcePolicyResponse> expected, List<ResourcePolicyResponse> actual)
+        public static void AssertResourcePolicyResponseEqual(ResourcePolicyResponse expected, ResourcePolicyResponse actual)
         {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.NotNull(actual);
-
-            Assert.Equal(expected.Count, actual.Count);
-            for (int i = 0; i < expected.Count; i++)
-            {
-                AssertEqual(expected[i], actual[i]);
-            }
-        }
-
-        public static void AssertEqual(ResourcePolicyResponse expected, ResourcePolicyResponse actual)
-        {
-            AssertEqual(expected.ResourcePolicies, actual.ResourcePolicies);
-            AssertEqual(expected.OrgApp, actual.OrgApp);
+            AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
+            AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
-            }
-        }
-
-        /// <summary>
-        /// Assert that two lists of <see cref="ResourcePolicy"/> have the same property values.
-        /// </summary>
-        /// <param name="expected">An instance with the expected values.</param>
-        /// <param name="actual">The instance to verify.</param>
-        public static void AssertEqual(List<ResourcePolicy> expected, List<ResourcePolicy> actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.NotNull(actual);
-
-            Assert.Equal(expected.Count, actual.Count);
-            for (int i = 0; i < expected.Count; i++)
-            {
-                AssertEqual(expected[i], actual[i]);
             }
         }
 
@@ -142,7 +150,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static void AssertEqual(List<XacmlJsonCategory> expected, List<XacmlJsonCategory> actual)
         {
-            if(expected == null)
+            if (expected == null)
             {
                 Assert.Null(actual);
                 return;
@@ -312,103 +320,45 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.DataType, actual.DataType);
         }
 
-        public static void AssertEqual(ResourcePolicy expected, ResourcePolicy actual)
+        private static void AssertResourcePolicyEqual(ResourcePolicy expected, ResourcePolicy actual)
         {
-            AssertEqual(expected.Title, actual.Title);
-            AssertEqual(expected.Actions, actual.Actions);
-            AssertEqual(expected.Resource, actual.Resource);
+            AssertLocalizedTextEqual(expected.Title, actual.Title);
+            AssertCollections(expected.Actions, actual.Actions, AssertResourceActionEqual);
+            AssertCollections(expected.Resource, actual.Resource, AssertAttributeMatchEqual);
             if (expected.Description != null && actual.Description != null)
             {
-                AssertEqual(expected.Description, actual.Description);
+                AssertLocalizedTextEqual(expected.Description, actual.Description);
             }
         }
 
-        public static void AssertEqual(LocalizedText expected, LocalizedText actual)
+        private static void AssertLocalizedTextEqual(LocalizedText expected, LocalizedText actual)
         {
             Assert.Equal(expected.NB, actual.NB);
             Assert.Equal(expected.NN, actual.NN);
             Assert.Equal(expected.EN, actual.EN);
         }
 
-        private static void AssertEqual(List<ResourceAction> expected, List<ResourceAction> actual)
+        private static void AssertResourceActionEqual(ResourceAction expected, ResourceAction actual)
         {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.Count, actual.Count);
-            for (int i = 0; i < expected.Count; i++)
-            {
-                AssertEqual(expected[i], actual[i]);
-            }
-        }
-
-        private static void AssertEqual(ResourceAction expected, ResourceAction actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.NotNull(actual);
-            AssertEqual(expected.Title, actual.Title);
-            AssertEqual(expected.Match, actual.Match);
-            AssertEqual(expected.RoleGrants, actual.RoleGrants);
+            AssertLocalizedTextEqual(expected.Title, actual.Title);
+            AssertAttributeMatchEqual(expected.Match, actual.Match);
+            AssertCollections(expected.RoleGrants, actual.RoleGrants, AssertRoleGrantEqual);
 
             if (expected.Description != null && actual.Description != null)
             {
-                AssertEqual(expected.Description, actual.Description);
+                AssertLocalizedTextEqual(expected.Description, actual.Description);
             }
 
         }
 
-        private static void AssertEqual(List<RoleGrant> expected, List<RoleGrant> actual)
+        private static void AssertRoleGrantEqual(RoleGrant expected, RoleGrant actual)
         {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.Count, actual.Count);
-            for (int i = 0; i < expected.Count; i++)
-            {
-                AssertEqual(expected[i], actual[i]);
-            }
-        }
-
-        private static void AssertEqual(RoleGrant expected, RoleGrant actual)
-        {
-            Assert.NotNull(actual);
-            Assert.NotNull(expected);
-
             Assert.Equal(expected.IsDelegable, actual.IsDelegable);
             Assert.Equal(expected.RoleTypeCode, actual.RoleTypeCode);
         }
 
-        private static void AssertEqual(List<AttributeMatch> expected, List<AttributeMatch> actual)
+        private static void AssertAttributeMatchEqual(AttributeMatch expected, AttributeMatch actual)
         {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-                return;
-            }
-
-            Assert.Equal(expected.Count, actual.Count);
-            for (int i = 0; i < expected.Count; i++)
-            {
-                AssertEqual(expected[i], actual[i]);
-            }
-        }
-
-        private static void AssertEqual(AttributeMatch expected, AttributeMatch actual)
-        {
-            Assert.NotNull(actual);
-            Assert.NotNull(expected);
-
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Value, actual.Value);
         }

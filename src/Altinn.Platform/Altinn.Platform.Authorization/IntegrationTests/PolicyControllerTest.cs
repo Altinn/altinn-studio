@@ -260,8 +260,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                {
                    OrgApp = new List<AttributeMatch>
                    {
-                      new AttributeMatch { Id =XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
-                      new AttributeMatch { Id =XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" },
+                      new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
+                      new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" },
                    },
                    ResourcePolicies = GetResourcePoliciesForSKDTaxReport()
                }
@@ -274,7 +274,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertEqual(expectedResourcePolicyResponses, actualResourcePolicyResponses);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
         }
 
         private List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
