@@ -467,7 +467,7 @@ export function validateComponentFormData(
         getSchemaPartOldGenerator(error.schemaPath, schema, rootElementPath) :
         getSchemaPart(error.schemaPath, schema);
       let errorMessage;
-      if (fieldSchema.errorMessage) {
+      if (fieldSchema?.errorMessage) {
         errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
       } else {
         errorMessage = getParsedLanguageFromKey(
