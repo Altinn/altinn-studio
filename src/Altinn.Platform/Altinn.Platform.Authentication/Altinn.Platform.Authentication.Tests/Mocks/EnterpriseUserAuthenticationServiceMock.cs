@@ -34,14 +34,6 @@ namespace Altinn.Platform.Authentication.Tests.Mocks
             
             if (credentials.UserName == "Test" && credentials.Password == "Testesen")
             {
-                string credentialsJson = JsonSerializer.Serialize(credentials);
-                var request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(_settings.BridgeAuthnApiEndpoint + "enterpriseuser"),
-                    Content = new StringContent(credentialsJson.ToString(), Encoding.UTF8, "application/json")
-                };
-
                 result.StatusCode = HttpStatusCode.TooManyRequests;
                 RetryConditionHeaderValue retryAfter = new RetryConditionHeaderValue(DateTime.Now);
                 result.Headers.RetryAfter = retryAfter;
