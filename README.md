@@ -56,7 +56,7 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 
 #### Develop or run Apps
 
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites)  
+First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).  
 _If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  

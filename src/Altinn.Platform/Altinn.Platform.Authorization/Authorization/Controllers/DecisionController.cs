@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+
 using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
@@ -12,9 +13,11 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Services.Interface;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -68,19 +71,19 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
-                XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
-                return CreateResponse(xacmlContextResponse);
-            }
-        }
 
-        /// <summary>
-        /// Test method. Should be deleted?
-        /// </summary>
-        /// <returns>test string</returns>
-        [HttpGet]
-        public string Get()
-        {
-            return "test string";
+                XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
+
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
+                    return Ok(jsonResult);
+                }
+                else
+                {
+                    return CreateResponse(xacmlContextResponse);
+                }
+            }
         }
 
         private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)
