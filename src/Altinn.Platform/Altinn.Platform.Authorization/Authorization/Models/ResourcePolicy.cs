@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Altinn.Platform.Authorization.Models
 {
     /// <summary>
-    /// This model describes the actions that can be performed for a particular resource within an app policy
+    /// This model describes the actions that can be performed for a particular resource
     /// </summary>
     public class ResourcePolicy
     {
