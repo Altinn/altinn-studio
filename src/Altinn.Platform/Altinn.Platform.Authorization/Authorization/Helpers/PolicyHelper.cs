@@ -50,7 +50,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// Gets the entire policy as a list of ResourcePolicy. 
         /// </summary>
         /// <param name="policy">The policy</param>
-        /// <returns>list of ResourcePolicy</returns>
+        /// <returns>List of resource policies</returns>
         public static List<ResourcePolicy> GetResourcePoliciesFromXacmlPolicy(XacmlPolicy policy)
         {
             Dictionary<string, ResourcePolicy> resourcePolicies = new Dictionary<string, ResourcePolicy>();
