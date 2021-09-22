@@ -47,30 +47,9 @@ export function ImageComponent(props: IImageProps) {
     imgSrc = props.image.src.nn;
   }
 
-  let showImg;
   const imgType = imgSrc.slice(-3);
-  if (imgType.toLowerCase() === 'svg') {
-    showImg =
-      <object
-        type='image/svg+xml'
-        id={props.id}
-        data={imgSrc}
-        width={width}
-      >
-        <img
-          src={imgSrc}
-          alt={altText}
-        />
-      </object>;
-  } else {
-    showImg =
-      <img
-        id={props.id}
-        src={imgSrc}
-        alt={altText}
-        width={width}
-      />;
-  }
+  const renderSvg = imgType.toLowerCase() === 'svg';
+
   return (
     <Grid
       container
@@ -78,7 +57,29 @@ export function ImageComponent(props: IImageProps) {
       justify={align}
     >
       <Grid item={true}>
-        {showImg}
+        {renderSvg ?
+          (
+            <object
+              type='image/svg+xml'
+              id={props.id}
+              data={imgSrc}
+              width={width}
+            >
+              <img
+                src={imgSrc}
+                alt={altText}
+              />
+            </object>
+          )
+          : (
+            <img
+              id={props.id}
+              src={imgSrc}
+              alt={altText}
+              width={width}
+            />
+          )
+        }
       </Grid>
       {props.textResourceBindings?.help &&
       <Grid item={true} className={classes.spacing}>
