@@ -9,11 +9,8 @@ const mui = new Common();
 const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
-  before(() => {
-    cy.navigateToTask4();
-  });
-
   it('Receipt page displays links and attachments', () => {
+    cy.navigateToTask4();
     cy.intercept('GET', '**/orgs/altinn-orgs.json').as('getAltinnOrgs');
     cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
     cy.wait('@getAltinnOrgs');

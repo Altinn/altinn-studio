@@ -28,7 +28,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href={null}
+            href="/ui/Reportee/ChangeReporteeAndRedirect?goTo=/ui/messagebox&R=123456"
           >
             instantiate.inbox
           </a>
@@ -37,7 +37,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href={null}
+            href="/skjemaoversikt"
           >
             instantiate.all_forms
           </a>
@@ -46,7 +46,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href={null}
+            href="/ui/Reportee/ChangeReporteeAndRedirect?goTo=/ui/profile&R=123456"
           >
             instantiate.profile
           </a>

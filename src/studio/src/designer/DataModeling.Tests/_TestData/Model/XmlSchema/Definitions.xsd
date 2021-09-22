@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root" type="main" />
+  
+  <xsd:complexType name="main">
+    <xsd:sequence>
+      <xsd:group ref="g1" />
+    </xsd:sequence>
+    <xsd:attributeGroup ref="ag1" />
+    <xsd:attribute ref="a1" />
+    <xsd:attributeGroup ref="ag2" />
+  </xsd:complexType>
+
+  <xsd:simpleType name="st1">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+
+  <xsd:group name="g1">
+    <xsd:sequence>
+      <xsd:element ref="e1" />
+    </xsd:sequence>
+  </xsd:group>
+
+  <xsd:element name="e1" type="xsd:string" />
+
+  <xsd:attribute name="a1" type="st1" />
+
+  <xsd:attributeGroup name="ag1">
+    <xsd:attribute name="ag1_1" type="xsd:string" />
+    <xsd:attribute name="ag1_2" type="xsd:string" />
+  </xsd:attributeGroup>
+
+  <xsd:attributeGroup name="ag2">
+    <xsd:attribute name="ag2_1" type="xsd:string" />
+    <xsd:attribute name="ag2_2" type="xsd:string" />
+  </xsd:attributeGroup>
+</xsd:schema>

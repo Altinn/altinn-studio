@@ -131,7 +131,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -402,7 +402,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
@@ -673,7 +673,7 @@ exports[`Should match snapshot 1`] = `
       <p
         class="makeStyles-header-2"
       >
-        Type
+        type
       </p>
       <div
         class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"

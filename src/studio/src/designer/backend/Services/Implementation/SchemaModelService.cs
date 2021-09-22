@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -15,6 +17,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -28,16 +31,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="loggerFactory">Factory class that knows how to create an instance of <see cref="ILogger"/>.</param>
-        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILoggerFactory loggerFactory)
+        /// <param name="serviceRepositorySettings">Settings for the ServiceRepository. Service is the old name on Apps. This settings class contains alot, only use the parts related to SchemaModels to make it easier to separate out later.</param>
+        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILoggerFactory loggerFactory, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
+            _serviceRepositorySettings = serviceRepositorySettings;
         }
 
         /// <inheritdoc/>
@@ -79,7 +85,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
             {
                 await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
-
+                
                 JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
 
                 var jsonContent = SerializeJson(jsonSchema);
@@ -120,6 +126,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
             }
+        }
+
+        /// <summary>
+        /// Returns a resolvable uri to the location of the schema.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="schemaName">The logical name of the schema ie. filename without extention.</param>
+        /// <returns></returns>
+        public Uri GetSchemaUri(string org, string repository, string schemaName)
+        {
+            var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
+            baseUrl = baseUrl.TrimEnd("/".ToCharArray());
+
+            var schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{schemaName}.schema.json");
+
+            return schemaUri;
         }
 
         private async Task UpdateAllAppModelFiles(string org, string repository, string developer, string relativeFilePath, string jsonContent)

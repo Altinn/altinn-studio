@@ -8,11 +8,10 @@ import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { mapInstanceAttachments } from 'altinn-shared/utils';
+import { mapInstanceAttachments, getTextResourceByKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
-import { getTextResource } from 'src/utils/formComponentUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { get } from '../../../utils/networking';
@@ -156,7 +155,7 @@ const Confirm = (props: IConfirmProps) => {
       <>
         <AltinnReceipt
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
-          body={getTextFromAppOrDefault('confirm.body', textResources, language, [getTextResource('ServiceName', textResources)])}
+          body={getTextFromAppOrDefault('confirm.body', textResources, language, [getTextResourceByKey('ServiceName', textResources)])}
           collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
           hideCollapsibleCount={true}
           instanceMetaDataObject={instanceMetaObject}
