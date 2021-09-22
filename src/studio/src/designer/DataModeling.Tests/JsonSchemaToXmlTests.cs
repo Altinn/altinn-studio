@@ -165,40 +165,40 @@ namespace DataModeling.Tests
             await TestFiles("Model/JsonSchema/General/NestedSequence.json", "Model/XmlSchema/General/NestedSequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedSequences()
         {
-            await TestFiles("Model/JsonSchema/NestedSequences.json", "Model/XmlSchema/NestedSequences.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedSequences.json", "Model/XmlSchema/General/NestedSequences.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedWithOptionalSequence()
         {
-            await TestFiles("Model/JsonSchema/NestedWithOptionalSequence.json", "Model/XmlSchema/NestedWithOptionalSequence.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedWithOptionalSequence.json", "Model/XmlSchema/General/NestedWithOptionalSequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedWithArraySequence()
         {
-            await TestFiles("Model/JsonSchema/NestedWithArraySequence.json", "Model/XmlSchema/NestedWithArraySequence.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedWithArraySequence.json", "Model/XmlSchema/General/NestedWithArraySequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleContentExtension()
         {
-            await TestFiles("Model/JsonSchema/SimpleContentExtension.json", "Model/XmlSchema/SimpleContentExtension.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleContentExtension.json", "Model/XmlSchema/General/SimpleContentExtension.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleContentRestriction()
         {
-            await TestFiles("Model/JsonSchema/SimpleContentRestriction.json", "Model/XmlSchema/SimpleContentRestriction.fromJson.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleContentRestriction.json", "Model/XmlSchema/General/SimpleContentRestriction.fromJson.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "We currently don't support xsd:list #6891")]
         public async Task SimpleTypeList()
         {
-            await TestFiles("Model/JsonSchema/SimpleTypeList.json", "Model/XmlSchema/SimpleTypeList.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleTypeList.json", "Model/XmlSchema/General/SimpleTypeList.xsd", "Root");
         }
     }
 }
