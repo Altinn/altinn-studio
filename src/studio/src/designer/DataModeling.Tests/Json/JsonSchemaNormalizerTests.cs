@@ -53,14 +53,14 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\General\normalize-root.json", @"Model\JsonSchema\General\normalize-root-expected.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-root-ref.json", @"Model\JsonSchema\General\normalize-root-ref.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-content.json", @"Model\JsonSchema\General\normalize-content-expected.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-content-ref.json", @"Model\JsonSchema\General\normalize-content-ref-expected.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-content-common-keywords.json", @"Model\JsonSchema\General\normalize-content-common-keywords.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-content-no-common-keywords.json", @"Model\JsonSchema\General\normalize-content-no-common-keywords-expected.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-collection.json", @"Model\JsonSchema\General\normalize-collection-expected.json")]
-        [InlineData(@"Model\JsonSchema\General\normalize-keyed-collection.json", @"Model\JsonSchema\General\normalize-keyed-collection-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-root.json", @"Model\JsonSchema\Normalizer\normalize-root-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-root-ref.json", @"Model\JsonSchema\Normalizer\normalize-root-ref.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-content.json", @"Model\JsonSchema\Normalizer\normalize-content-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-content-ref.json", @"Model\JsonSchema\Normalizer\normalize-content-ref-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-content-common-keywords.json", @"Model\JsonSchema\Normalizer\normalize-content-common-keywords.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-content-no-common-keywords.json", @"Model\JsonSchema\Normalizer\normalize-content-no-common-keywords-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-collection.json", @"Model\JsonSchema\Normalizer\normalize-collection-expected.json")]
+        [InlineData(@"Model\JsonSchema\Normalizer\normalize-keyed-collection.json", @"Model\JsonSchema\Normalizer\normalize-keyed-collection-expected.json")]
         public async Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(string jsonSchemaTestdata, string expectedNormalizedSchemaTestdata)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
