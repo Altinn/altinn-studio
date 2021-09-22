@@ -6,10 +6,12 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.EFormidlingClient.Models;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -43,22 +45,30 @@ namespace Altinn.Common.EFormidlingClient
 
         /// <inheritdoc/>
         public async Task<bool> SendMessage(string id)
-        {         
+        {
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
-           
+
             try
             {
-                await _client.PostAsync($"messages/out/{id}", null);
+                HttpResponseMessage res = await _client.PostAsync($"messages/out/{id}", null);
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    string contentString = await res.Content.ReadAsStringAsync();
+                    _logger.LogError($"// EformidlingClient // SendMessage // {contentString}");
+                    return false;
+                }
+
                 return true;
             }
             catch (HttpRequestException e)
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
-            }    
+            }
         }
 
         /// <inheritdoc/>
@@ -214,7 +224,7 @@ namespace Altinn.Common.EFormidlingClient
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"statuses?messageId={id}");            
+                HttpResponseMessage response = await _client.GetAsync($"statuses?messageId={id}");
                 responseBody = await response.Content.ReadAsStringAsync();
                 Statuses status = JsonSerializer.Deserialize<Statuses>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -225,7 +235,7 @@ namespace Altinn.Common.EFormidlingClient
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
-            }       
+            }
         }
 
         /// <inheritdoc/>
@@ -253,17 +263,17 @@ namespace Altinn.Common.EFormidlingClient
                 FileName = filename
             };
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-          
+
             HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent);
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                
+
             if (response.Content == null)
-                {
-                    response.Content = new StringContent(string.Empty);
-                }
+            {
+                response.Content = new StringContent(string.Empty);
+            }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-      
+
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -272,12 +282,12 @@ namespace Altinn.Common.EFormidlingClient
             {
                 _logger.LogError($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
                 throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
-            }       
+            }
         }
 
         /// <inheritdoc/>
         public async Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd)
-        {   
+        {
             if (sbd == null)
             {
                 throw new ArgumentNullException(nameof(sbd));
@@ -315,7 +325,7 @@ namespace Altinn.Common.EFormidlingClient
 
         /// <inheritdoc/>
         public async Task<bool> SubscribeeFormidling(CreateSubscription subscription)
-        {         
+        {
             if (subscription == null)
             {
                 throw new ArgumentNullException(nameof(subscription));

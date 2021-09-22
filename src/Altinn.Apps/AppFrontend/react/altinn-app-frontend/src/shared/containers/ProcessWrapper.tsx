@@ -138,7 +138,7 @@ export default (props) => {
           </>
         ) : (
           <div style={{ marginTop: '2.5rem' }}>
-            <AltinnContentLoader width={680} height={700}>
+            <AltinnContentLoader width='100%' height={700}>
               <AltinnContentIconFormData/>
             </AltinnContentLoader>
           </div>
