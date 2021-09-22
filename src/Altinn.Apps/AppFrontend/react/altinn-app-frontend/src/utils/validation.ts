@@ -438,7 +438,7 @@ export function validateComponentFormData(
   );
   const data = {};
   dot.str(dataModelField, formData, data);
-  const valid = validator.validate(`schema${rootElementPath}`, data);
+  const valid = (!formData || formData === '') || validator.validate(`schema${rootElementPath}`, data);
   const validationResult: IValidationResult = {
     validations: {
       [layoutId]: {
