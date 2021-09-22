@@ -267,14 +267,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                }
             };
 
-            // List<ResourcePolicy> expectedResourcePolicies = GetResourcePoliciesForSKDTaxReport();
-
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
-
-            // List<ResourcePolicy> actualResourcePolicies = JsonConvert.DeserializeObject<List<ResourcePolicy>>(responseContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
