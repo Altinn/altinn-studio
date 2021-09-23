@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Text.Json;
-using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json;
