@@ -72,31 +72,36 @@ namespace Altinn.Platform.Authorization.Helpers
                             resourcePolicy.Description = new LocalizedText(rule.Description, rule.Description, rule.Description);
                         }
 
-                        if (resourcePolicy.Actions == null)
-                        {
-                            resourcePolicy.Actions = new List<ResourceAction>();
-                            resourcePolicy.Actions.AddRange(actions);
-                        }
-                        else
-                        {
-                            foreach (ResourceAction resourceAction in actions)
-                            {
-                                if (!resourcePolicy.Actions.Any(action => action.Match.Value == resourceAction.Match.Value && action.Match.Id == resourceAction.Match.Id))
-                                {
-                                    resourcePolicy.Actions.Add(resourceAction);
-                                }
-                                else
-                                {
-                                    ResourceAction existingAction = resourcePolicy.Actions.First(action => action.Match.Value == resourceAction.Match.Value && action.Match.Id == resourceAction.Match.Id);
-                                    existingAction.RoleGrants.AddRange(resourceAction.RoleGrants.Where(roleGrant => !existingAction.RoleGrants.Any(existingRoleGrant => existingRoleGrant.RoleTypeCode == roleGrant.RoleTypeCode)));
-                                }
-                            }
-                        }
+                        AddActionsToResourcePolicy(actions, resourcePolicy);
                     }
                 }
             }
 
             return resourcePolicies.Values.ToList();
+        }
+
+        private static void AddActionsToResourcePolicy(List<ResourceAction> actions, ResourcePolicy resourcePolicy)
+        {
+            if (resourcePolicy.Actions == null)
+            {
+                resourcePolicy.Actions = new List<ResourceAction>();
+                resourcePolicy.Actions.AddRange(actions);
+            }
+            else
+            {
+                foreach (ResourceAction resourceAction in actions)
+                {
+                    if (!resourcePolicy.Actions.Any(action => action.Match.Value == resourceAction.Match.Value && action.Match.Id == resourceAction.Match.Id))
+                    {
+                        resourcePolicy.Actions.Add(resourceAction);
+                    }
+                    else
+                    {
+                        ResourceAction existingAction = resourcePolicy.Actions.First(action => action.Match.Value == resourceAction.Match.Value && action.Match.Id == resourceAction.Match.Id);
+                        existingAction.RoleGrants.AddRange(resourceAction.RoleGrants.Where(roleGrant => !existingAction.RoleGrants.Any(existingRoleGrant => existingRoleGrant.RoleTypeCode == roleGrant.RoleTypeCode)));
+                    }
+                }
+            }
         }
 
         private static List<ResourceAction> GetActionsFromRule(XacmlRule rule, List<RoleGrant> roles)
