@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
@@ -111,7 +112,6 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
-                    string actionKey = string.Empty;
                     AttributeMatch actionAttributeMatch = new AttributeMatch();
                     foreach (XacmlMatch xacmlMatch in allOf.Matches)
                     {
@@ -161,6 +161,7 @@ namespace Altinn.Platform.Authorization.Helpers
         private static List<string> GetResourcePoliciesFromRule(Dictionary<string, ResourcePolicy> resourcePolicies, XacmlRule rule)
         {
             List<string> policyKeys = new List<string>();
+            StringBuilder bld = new StringBuilder();
             foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
@@ -171,31 +172,38 @@ namespace Altinn.Platform.Authorization.Helpers
                     {
                         if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
                         {
-                            resourceKey += $"{xacmlMatch.AttributeDesignator.AttributeId}{xacmlMatch.AttributeValue.Value}";
+                            bld.Append(xacmlMatch.AttributeDesignator.AttributeId);
+                            bld.Append(xacmlMatch.AttributeValue.Value);
+                            resourceKey += bld.ToString();
                             resourceMatches.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(resourceKey))
-                    {
-                        policyKeys.Add(resourceKey);
-
-                        if (!resourcePolicies.ContainsKey(resourceKey))
-                        {
-                            string title = string.Join("/", resourceMatches.Select(rm => rm.Value));
-                            ResourcePolicy newPolicy = new ResourcePolicy
-                            {
-                                Resource = resourceMatches,
-                                Title = new LocalizedText(title, title, title),
-                            };
-
-                            resourcePolicies.Add(resourceKey, newPolicy);
-                        }
-                    }
+                    CreateUniqueResourcePolicy(resourceKey, policyKeys, resourcePolicies, resourceMatches);
                 }
             }
 
             return policyKeys;
+        }
+
+        private static void CreateUniqueResourcePolicy(string resourceKey, List<string> policyKeys, Dictionary<string, ResourcePolicy> resourcePolicies, List<AttributeMatch> resourceMatches)
+        {
+            if (!string.IsNullOrEmpty(resourceKey))
+            {
+                policyKeys.Add(resourceKey);
+
+                if (!resourcePolicies.ContainsKey(resourceKey))
+                {
+                    string title = string.Join("/", resourceMatches.Select(rm => rm.Value));
+                    ResourcePolicy newPolicy = new ResourcePolicy
+                    {
+                        Resource = resourceMatches,
+                        Title = new LocalizedText(title, title, title),
+                    };
+
+                    resourcePolicies.Add(resourceKey, newPolicy);
+                }
+            }
         }
     }
 }

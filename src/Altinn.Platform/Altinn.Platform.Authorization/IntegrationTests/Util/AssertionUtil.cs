@@ -336,7 +336,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 AssertLocalizedTextEqual(expected.Description, actual.Description);
             }
-
         }
 
         private static void AssertRoleGrantEqual(RoleGrant expected, RoleGrant actual)

@@ -277,7 +277,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
         }
 
-        private List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
+        private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");
             instantiatePolicy.Actions = new List<ResourceAction>();
