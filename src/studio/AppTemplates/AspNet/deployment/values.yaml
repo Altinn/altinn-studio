@@ -1,53 +1,52 @@
-deployment:
-  replicaCount: 1
+replicaCount: 1
 
-  image:
-    # Set "repository" name of your image for manual Helm install and upgrade.
-    repository:
-    tag: latest
-    pullPolicy: Always
-    pullSecrets:
-      # Change this to the name of your pull secret
-      - name: acr-secret
+image:
+  # Set "repository" name of your image for manual Helm install and upgrade.
+  repository:
+  tag: latest
+  pullPolicy: Always
+  pullSecrets:
+    # Change this to the name of your pull secret
+    - name: acr-secret
 
-  service:
-    name: deployment
-    type: ClusterIP
-    externalPort: 80
-    # If your application is running on another port, change only the internal port.
-    internalPort: 5005
+service:
+  name: deployment
+  type: ClusterIP
+  externalPort: 80
+  # If your application is running on another port, change only the internal port.
+  internalPort: 5005
 
-  linkerd:
-      enabled: true
+linkerd:
+    enabled: true
 
-  ingressRoute:
-    name: Will be inserted during deploy
-    entryPoints:
-      - http
-      - https
-    routes:
-      - match: Will be inserted during deploy
-        kind: Rule
-        services:
-          - name: Will be inserted during deploy
-            port: 80
-        middlewares:
-          - name: hsts-header
-    tls:
-      options:
-        name: tls-options
-      secretName: ssl-cert
+ingressRoute:
+  name: Will be inserted during deploy
+  entryPoints:
+    - http
+    - https
+  routes:
+    - match: Will be inserted during deploy
+      kind: Rule
+      services:
+        - name: Will be inserted during deploy
+          port: 80
+      middlewares:
+        - name: hsts-header
+  tls:
+    options:
+      name: tls-options
+    secretName: ssl-cert
 
-  volumeMounts:
-    - name: datakeys
-      mountPath: /mnt/keys
-    - name: accesstoken
-      mountPath: "/accesstoken"
+volumeMounts:
+  - name: datakeys
+    mountPath: /mnt/keys
+  - name: accesstoken
+    mountPath: "/accesstoken"
 
-  volumes:
-    - name : datakeys
-      persistentVolumeClaim:
-        claimName: keys
-    - name: accesstoken
-      secret:
-        secretName: accesstoken
+volumes:
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys
+  - name: accesstoken
+    secret:
+      secretName: accesstoken

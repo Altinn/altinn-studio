@@ -3,8 +3,3 @@ description: A Helm chart for Kubernetes
 # name can only be lowercase. It is used in the templats.
 name: deployment
 version: 1.1.0
-
-dependencies:
-- name: deployment
-  repository: https://charts.altinn.studio/
-  version: 1.1.0
