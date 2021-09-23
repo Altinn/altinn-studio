@@ -19,7 +19,7 @@
     "generert": "2015-05-06T09:50:22.327+02:00",
     "navneromprefix": "http://seres.no/xsd",
     "namespace": "http://seres.no/xsd/StatistiskSentralbyrå/RA-0678_M/2015",
-    "meldingsnavn": "melding",
+    "meldingsnavn": "Root",
     "domenenavn": "StatistiskSentralbyrå",
     "modellnavn": "RA-0678_M",
     "metamodellversjon": "1.2",

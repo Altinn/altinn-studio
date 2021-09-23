@@ -4,8 +4,7 @@
   "type": "object",
   "@xsdNamespaces": {
     "xsd": "http://www.w3.org/2001/XMLSchema",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    "test": "http://test.com/altinn/unittest"
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
   },
   "@xsdSchemaAttributes": {
     "AttributeFormDefault": "Unqualified",
@@ -14,33 +13,28 @@
     "FinalDefault": "None"
   },
   "properties": {
-    "a1": {
+    "e1": {
       "type": "string",
-      "@xsdType": "string",
-      "@xsdAttribute": true
+      "@xsdType": "string"
     },
-    "a2": {
+    "e2": {
       "type": "string",
-      "@xsdType": "string",
-      "default": "def",
-      "@xsdAttribute": true
+      "@xsdType": "string"
     },
-    "a3": {
+    "e3": {
       "type": "string",
-      "@xsdType": "string",
-      "const": "fix",
-      "@xsdAttribute": true
+      "@xsdType": "string"
     },
-    "a4": {
+    "e4": {
       "type": "string",
-      "@xsdType": "string",
-      "@xsdAttribute": true
+      "@xsdType": "string"
     }
   },
   "required": [
-    "a4"
+    "e1",
+    "e2",
+    "e3",
+    "e4"
   ],
-  "@xsdUnhandledAttributes": {
-    "test:unhandled": "Unhandled attribute"
-  }
+  "@xsdStructure": "all"
 }

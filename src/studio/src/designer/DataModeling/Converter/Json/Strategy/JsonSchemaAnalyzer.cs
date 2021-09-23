@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
@@ -8,50 +8,37 @@ using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
-    /// <summary>
-    /// Placeholder
-    /// </summary>
-    public class JsonSchemaSeresAnalyzer : IJsonSchemaAnalyzer
+    /// <inheritdoc/>
+    public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
     {
-        private JsonSchema _schema;
-        private JsonSchemaXsdMetadata _metadata;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSchemaAnalyzer"/> bseclass.
+        /// </summary>
+        protected JsonSchemaAnalyzer()
+        {
+            Metadata = new JsonSchemaXsdMetadata();
+        }
+        
+        /// <summary>
+        /// Json Schema to be analyzed
+        /// </summary>
+        protected JsonSchema JsonSchema { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonSchemaSeresAnalyzer"/> class.
+        /// The results av the analyzis process.
         /// </summary>
-        public JsonSchemaSeresAnalyzer()
+        protected JsonSchemaXsdMetadata Metadata { get; set; }
+
+        /// <inheritdoc/>
+        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri);
+
+        /// <summary>
+        /// Determines the type of root model the provided schema has.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        protected void DetermineRootModel(JsonSchema schema)
         {
-            _metadata = new JsonSchemaXsdMetadata();
-        }
-
-        /// <inheritdoc />
-        public JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
-        {
-            _schema = schema;
-            _metadata = new JsonSchemaXsdMetadata();
-
-            if (_schema.TryGetKeyword(out InfoKeyword info))
-            {
-                var messageNameElement = info.Value.GetProperty("meldingsnavn");
-                var messageTypeNameElement = info.Value.GetProperty("modellnavn");
-
-                _metadata.MessageName = messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
-                _metadata.MessageTypeName = messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
-            }
-            else
-            {
-                _metadata.MessageName = "melding";
-            }
-
-            DetermineRootModel(_schema);
-            AnalyzeSchema(JsonPointer.Parse("#"), _schema);
-
-            return _metadata;
-        }
-
-        private void DetermineRootModel(JsonSchema schema)
-        {
-            _metadata.HasInlineRoot = true;
+            Metadata.HasInlineRoot = true;
 
             var allOf = schema.GetKeyword<AllOfKeyword>();
             var anyOf = schema.GetKeyword<AnyOfKeyword>();
@@ -60,30 +47,30 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (allOf != null && anyOf == null && oneOf == null)
             {
                 // Only "allOf"
-                _metadata.HasInlineRoot = !(allOf.Schemas.Count == 1 && IsRefSchema(allOf.Schemas[0]));
+                Metadata.HasInlineRoot = !(allOf.Schemas.Count == 1 && IsRefSchema(allOf.Schemas[0]));
             }
             else if (allOf == null && anyOf != null && oneOf == null)
             {
                 // Only "anyOf"
-                _metadata.HasInlineRoot = !(anyOf.Schemas.Count == 1 && IsRefSchema(anyOf.Schemas[0]));
+                Metadata.HasInlineRoot = !(anyOf.Schemas.Count == 1 && IsRefSchema(anyOf.Schemas[0]));
             }
             else if (allOf == null && anyOf == null && oneOf != null)
             {
                 // Only "oneOf"
-                _metadata.HasInlineRoot = !(oneOf.Schemas.Count == 1 && IsRefSchema(oneOf.Schemas[0]));
+                Metadata.HasInlineRoot = !(oneOf.Schemas.Count == 1 && IsRefSchema(oneOf.Schemas[0]));
             }
         }
 
-        private static bool IsRefSchema(JsonSchema schema)
+        /// <summary>
+        /// Primary method to call for analyzing a Json Schema.
+        /// </summary>
+        /// <param name="path">The path to start analyzing. Normally this should be the root path when calling this method ie. '#'</param>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        protected void AnalyzeSchema(JsonPointer path, JsonSchema schema)
         {
-            return schema.HasKeyword<RefKeyword>();
-        }
-
-        private void AnalyzeSchema(JsonPointer path, JsonSchema schema)
-        {
-            if (IsValidNillableElement(schema, out var valueSchema))
+            if (TryParseAsNillableElement(schema, out var valueSchema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.Nillable);
                 if (valueSchema != null)
                 {
                     AnalyzeSchema(path, valueSchema);
@@ -91,9 +78,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
-            if (IsArray(schema, out var itemSchema))
+            if (TryParseAsArray(schema, out var itemSchema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.Array);
                 AnalyzeSchema(path, itemSchema);
                 return;
             }
@@ -104,44 +91,44 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (IsValidSimpleType(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
 
                 if (IsValidAttribute(schema))
                 {
-                    _metadata.AddCompatibleTypes(path, CompatibleXsdType.Attribute);
+                    Metadata.AddCompatibleTypes(path, CompatibleXsdType.Attribute);
                 }
 
                 if (IsValidUnhandledAttribute(schema))
                 {
-                    _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+                    Metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
                 }
             }
 
             if (IsValidSimpleTypeRestriction(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleTypeRestriction);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleType);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleTypeRestriction);
             }
 
             if (IsValidComplexType(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexType);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexType);
             }
 
             if (IsValidSimpleContentExtension(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentExtension);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentExtension);
             }
 
             if (IsValidSimpleContentRestriction(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.SimpleContentRestriction);
             }
 
             if (IsValidComplexContentExtension(path, schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContent);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.ComplexContentExtension);
             }
 
             if (schema.Keywords != null)
@@ -155,53 +142,142 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (IsValidUnhandledAttribute(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledAttribute);
             }
 
             if (IsValidUnhandledEnumAttribute(schema))
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledEnumAttribute);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.UnhandledEnumAttribute);
             }
 
             // Add "unknown" if no other was added on this path
-            if (_metadata.GetCompatibleTypes(path).Count == 0)
+            if (Metadata.GetCompatibleTypes(path).Count == 0)
             {
-                _metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
+                Metadata.AddCompatibleTypes(path, CompatibleXsdType.Unknown);
             }
         }
 
-        private static bool IsArray(JsonSchema schema, out JsonSchema itemsSchema)
+        /// <summary>
+        /// Recursively analyzes all schemas for the provided keyword.
+        /// </summary>
+        /// <param name="path"><see cref="JsonPointer"/> representing the actual path to the keyword being provided.</param>
+        /// <param name="keyword">The keyword to be analyzed.</param>
+        protected void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
+        {
+            switch (keyword)
+            {
+                case AllOfKeyword item:
+                    for (var i = 0; i < item.Schemas.Count; i++)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
+                    }
+
+                    break;
+                case AnyOfKeyword item:
+                    for (var i = 0; i < item.Schemas.Count; i++)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
+                    }
+
+                    break;
+                case OneOfKeyword item:
+                    for (var i = 0; i < item.Schemas.Count; i++)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
+                    }
+
+                    break;
+                case DefinitionsKeyword item:
+                    foreach (var (name, definition) in item.Definitions)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
+                    }
+
+                    break;
+                case DefsKeyword item:
+                    foreach (var (name, definition) in item.Definitions)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
+                    }
+
+                    break;
+                case PropertiesKeyword item:
+                    foreach (var (name, definition) in item.Properties)
+                    {
+                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
+                    }
+
+                    break;
+
+                case ISchemaContainer schemaContainer:
+                    AnalyzeSchema(path, schemaContainer.Schema);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Determines if a schema is a reference schema or not.
+        /// A reference schema is a schema that has the $ref keyword.
+        /// For further reference see https://json-schema.org/understanding-json-schema/structuring.html#ref
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns></returns>
+        protected static bool IsRefSchema(JsonSchema schema)
+        {
+            return schema.HasKeyword<RefKeyword>();
+        }
+
+        /// <summary>
+        /// Tries to parse a schema to verify if it an array and returns the item schema if it is.
+        /// For furter reference see https://json-schema.org/understanding-json-schema/reference/array.html
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <param name="itemsSchema">If the schema is an array this will return schema for the items in the array; otherwise, null.</param>
+        /// <returns>True if the schema is an array; otherwise, false</returns>
+        protected static bool TryParseAsArray(JsonSchema schema, out JsonSchema itemsSchema)
         {
             if (schema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
             {
                 var itemsKeyword = schema.GetKeyword<ItemsKeyword>();
                 if (itemsKeyword == null)
                 {
-                    throw new JsonSchemaConvertException("schema must have an \"items\" keyword when \"type\" is set to array");
+                    throw new JsonSchemaConvertException("Schema must have an \"items\" keyword when \"type\" is set to array");
                 }
 
                 itemsSchema = itemsKeyword.SingleSchema;
                 return true;
             }
-
+            
             itemsSchema = null;
             return false;
         }
 
-        private static bool IsValidNillableElement(JsonSchema schema, out JsonSchema valueSchema)
+        /// <summary>
+        /// Tries to parse a schema to verify if it should be represented as a nillable element in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <param name="valueSchema">If the schema</param>
+        /// <returns>True if it should be represented as a nillable element; otherwise, false.</returns>
+        private static bool TryParseAsNillableElement(JsonSchema schema, out JsonSchema valueSchema)
         {
+            // If the type keyword has null in combination with other types, it should be represented
+            // as a nillable element.
             if (HasTypeKeywordWithNullAndOtherTypes(schema))
             {
                 valueSchema = null;
                 return true;
             }
 
+            // If it doesn't have a oneOf, or the oneOf only has one sub-schema, it's not a candidate for
+            // a nillable element.
             if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)
             {
                 valueSchema = null;
                 return false;
             }
 
+            // If we have 2 or more sub-schema's, but none of them with a type keyword, it's not
+            // a candidate for a nillable element.
             var subSchemas = oneOfKeyword.GetSubschemas().ToList();
             var typeKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<TypeKeyword>());
 
@@ -211,6 +287,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
+            // If we have 2 or more sub-schema's and one of them has a valid type of null, it should
+            // be represented as a nillable element in the XSD.
             if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
             {
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
@@ -222,17 +300,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
+        /// <summary>
+        /// Determines if a schema has a type keyword with null as it's value in combination with other types.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if the type keyword has Null type in combination with other types; otherwise, false.</returns>
+        protected static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
         {
             return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle) && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null) && typeKeywordSingle.Type > SchemaValueType.Null;
         }
 
         /// <summary>
-        /// Returns true if the schema should be serialized as a XSD ComplexType.
+        /// Determines if the schema should be represented as a ComplexType in the XSD.
         /// </summary>
-        /// <param name="schema">Schema to analyze</param>
-        /// <returns></returns>
-        private bool IsValidComplexType(JsonSchema schema)
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a ComplexType in the XSD; otherwise, false.</returns>
+        protected bool IsValidComplexType(JsonSchema schema)
         {
             schema = FollowReferencesIfAny(schema);
 
@@ -280,7 +363,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return false;
         }
 
-        private bool IsValidSimpleContentExtension(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a SimpleContentExtension in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a SimpleContentExtension in the XSD; otherwise, false.</returns>
+        protected bool IsValidSimpleContentExtension(JsonSchema schema)
         {
             // Exclude schemas with groupings
             if (schema.HasAnyOfKeywords(
@@ -326,18 +414,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // All other properties must be attributes
             var attributePropertiesCount = properties.Properties.Values.Count(prop =>
+            {
+                var typeSchema = prop;
+
+                // follow any $ref keywords to validate against the actual subschema
+                while (typeSchema.TryGetKeyword(out RefKeyword reference))
                 {
-                    var typeSchema = prop;
+                    typeSchema = FollowReference(reference);
+                }
 
-                    // follow any $ref keywords to validate against the actual subschema
-                    while (typeSchema.TryGetKeyword(out RefKeyword reference))
-                    {
-                        typeSchema = FollowReference(reference);
-                    }
-
-                    return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema) &&
-                           prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
-                });
+                return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema) &&
+                       prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
+            });
 
             if (attributePropertiesCount != (properties.Properties.Count - 1))
             {
@@ -347,7 +435,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return true;
         }
 
-        private bool IsValidSimpleContentRestriction(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a SimpleContentRestriction in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a SimpleContentRestriction in the XSD; otherwise, false.</returns>
+        protected bool IsValidSimpleContentRestriction(JsonSchema schema)
         {
             if (!HasSingleAllOf(schema))
             {
@@ -465,9 +558,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return properties;
         }
 
-        private bool IsValidComplexContentExtension(JsonPointer path, JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a ComplexContentExtension in the XSD.
+        /// </summary>
+        /// <param name="path">A Json Pointer representing the path to the schema being passed in ie. these should match.</param>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a SimpleContentExtension in the XSD; otherwise, false.</returns>
+        protected bool IsValidComplexContentExtension(JsonPointer path, JsonSchema schema)
         {
-            if (_metadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleContentRestriction))
+            if (Metadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleContentRestriction))
             {
                 return false;
             }
@@ -482,7 +581,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
 
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                
+
                 if (refKeywordSubSchema != null)
                 {
                     var isComplexType = IsValidComplexType(refKeywordSubSchema);
@@ -496,16 +595,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     // it cannot be serialized as a SimpleContentExtension or SimpleContentRestriction.
                     var refKeyword = refKeywordSubSchema.GetKeyword<RefKeyword>();
                     var refKeywordPath = JsonPointer.Parse(refKeyword.Reference.ToString());
-                    _metadata.AddIncompatibleTypes(refKeywordPath, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
+                    Metadata.AddIncompatibleTypes(refKeywordPath, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
 
                     return true;
-                }                
+                }
             }
 
             return false;
         }
 
-        private static bool IsValidSimpleType(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a SimpleType in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a SimpleType in the XSD; otherwise, false.</returns>
+        protected static bool IsValidSimpleType(JsonSchema schema)
         {
             if (!schema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
@@ -520,54 +624,31 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 type &= ~SchemaValueType.Null;
             }
 
-            switch (type)
+            return type switch
             {
-                case SchemaValueType.Object:
-                case SchemaValueType.Null:
-                    return false;
-                case SchemaValueType.Array:
-                    return false;
-                case SchemaValueType.Boolean:
-                case SchemaValueType.String:
-                case SchemaValueType.Number:
-                case SchemaValueType.Integer:
-                    return true;
-                default:
-                    return false;
-            }
+                SchemaValueType.Object or SchemaValueType.Null => false,
+                SchemaValueType.Array => false,
+                SchemaValueType.Boolean or SchemaValueType.String or SchemaValueType.Number or SchemaValueType.Integer => true,
+                _ => false,
+            };
         }
 
-        private static bool IsValidAttribute(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema is a valid SimpleType or SimpleTypeRestriction.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it is a SimpleType or SimpleTypeRestriction; otherwise, false.</returns>
+        protected bool IsValidSimpleTypeOrSimpleTypeRestriction(JsonSchema schema)
         {
-            if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
-            {
-                return true;
-            }
-
-            return false;
+            return IsValidSimpleType(schema) || IsValidSimpleTypeRestriction(schema);
         }
 
-        private static bool IsValidUnhandledAttribute(JsonSchema schema)
-        {
-            if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsValidUnhandledEnumAttribute(JsonSchema schema)
-        {
-            if (schema.Keywords.HasKeyword<XsdUnhandledEnumAttributesKeyword>())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool IsValidSimpleTypeRestriction(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a SimpleTypeRestriction in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a SimpleTypeRestriction in the XSD; otherwise, false.</returns>
+        protected bool IsValidSimpleTypeRestriction(JsonSchema schema)
         {
             if (!HasSingleAllOf(schema))
             {
@@ -622,7 +703,68 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return hasBaseType && (hasRestrictions || allOf.Schemas.Count == 1);
         }
 
-        private JsonSchema FollowReferencesIfAny(JsonSchema schema)
+        /// <summary>
+        /// Determines if the schema should be represented as a attribute in the XSD.
+        /// Json Schemas doesn't have the concept of attributes, everything is a property.
+        /// This check is based on the existence of a custom keyword, @xsdAttribute, to
+        /// instruct the converter to treat this as an attribute in the XSD.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a Attribute in the XSD; otherwise, false.</returns>
+        protected static bool IsValidAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdAttributeKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the schema should be represented as a unhandled
+        /// attributes in the XSD ie. attributes that's unknown to the XSD schema
+        /// namespace.
+        /// This check is based on the existence of a custom keyword, @xsdUnhandledAttributes, to
+        /// instruct the converter to treat this as a collection of unhandled attributes.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a collection of UnhandledAttributes; otherwise, false.</returns>
+        protected static bool IsValidUnhandledAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledAttributesKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the schema should be represented as a unhandled
+        /// attributes on the enum values them selves. Json Schema does not have a sub-schema
+        /// on enum values, so this custom keyword, @xsdUnhandledEnumAttribute is placed on the paren element as a collection
+        /// specifiying which enum value the key/value pairs belong to.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it should be represented as a collection of UnhandledAttributes; otherwise, false.</returns>
+        private static bool IsValidUnhandledEnumAttribute(JsonSchema schema)
+        {
+            if (schema.Keywords.HasKeyword<XsdUnhandledEnumAttributesKeyword>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Will recursively follow a schemas reference based on the ref keyword
+        /// to the last schema, and return this.
+        /// </summary>
+        /// <param name="schema">The initial Json Schema to follow reference.</param>
+        /// <returns><see cref="JsonSchema"/> for the last referenced schema.</returns>
+        protected JsonSchema FollowReferencesIfAny(JsonSchema schema)
         {
             while (schema.TryGetKeyword(out RefKeyword reference))
             {
@@ -632,17 +774,35 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return schema;
         }
 
-        private JsonSchema FollowReference(RefKeyword refKeyword)
+        /// <summary>
+        /// Will recursively follow a the provided ref keyword
+        /// to the last schema, and return this.
+        /// </summary>
+        /// <param name="refKeyword">The initial ref keyword to follow.</param>
+        /// <returns><see cref="JsonSchema"/> for the last referenced schema.</returns>
+        protected JsonSchema FollowReference(RefKeyword refKeyword)
         {
             var pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
-            return _schema.FollowReference(pointer);
+            return JsonSchema.FollowReference(pointer);
         }
 
-        private static bool IsPlainRestrictionSchema(JsonSchema schema)
+        /// <summary>
+        /// Determines if the provided schema is a plain restriction schema ie.
+        /// it's only has keywords for restricting simple data types.
+        /// </summary>
+        /// <param name="schema">The Json Schema to analyze.</param>
+        /// <returns>True if it is a plain restriction schema; otherwise, false.</returns>
+        protected static bool IsPlainRestrictionSchema(JsonSchema schema)
         {
             return IsPlainRestrictionSchema(schema.AsWorkList());
         }
 
+        /// <summary>
+        /// Determines if the provided keywords is representing a plain restriction schema ie.
+        /// it's only has keywords for restricting simple data types.
+        /// </summary>
+        /// <param name="keywords">The set of keywords to analyze.</param>
+        /// <returns>True if it is a plain restriction schema; otherwise, false.</returns>
         private static bool IsPlainRestrictionSchema(WorkList<IJsonSchemaKeyword> keywords)
         {
             var keywordsValidated = 0;
@@ -681,11 +841,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return keywordsValidated > 0;
         }
 
-        private bool IsValidSimpleTypeOrSimpleTypeRestriction(JsonSchema schema)
-        {
-            return IsValidSimpleType(schema) || IsValidSimpleTypeRestriction(schema);
-        }
-
+        /// <summary>
+        /// Determines if the schema has a single allOf keyword.
+        /// </summary>
+        /// <param name="schema">The schema to be analyzed.</param>
+        /// <returns>True if it has a single allOf keyword; otherwise, false.</returns>
         private static bool HasSingleAllOf(JsonSchema schema)
         {
             if (schema.Keywords == null)
@@ -724,59 +884,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             return true;
-        }
-
-        private void AnalyzeKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
-        {
-            switch (keyword)
-            {
-                case AllOfKeyword item:
-                    for (var i = 0; i < item.Schemas.Count; i++)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
-                    }
-
-                    break;
-                case AnyOfKeyword item:
-                    for (var i = 0; i < item.Schemas.Count; i++)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
-                    }
-
-                    break;
-                case OneOfKeyword item:
-                    for (var i = 0; i < item.Schemas.Count; i++)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/[{i}]")), item.Schemas[i]);
-                    }
-
-                    break;
-                case DefinitionsKeyword item:
-                    foreach (var (name, definition) in item.Definitions)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
-                    }
-
-                    break;
-                case DefsKeyword item:
-                    foreach (var (name, definition) in item.Definitions)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
-                    }
-
-                    break;
-                case PropertiesKeyword item:
-                    foreach (var (name, definition) in item.Properties)
-                    {
-                        AnalyzeSchema(path.Combine(JsonPointer.Parse($"/{name}")), definition);
-                    }
-
-                    break;
-
-                case ISchemaContainer schemaContainer:
-                    AnalyzeSchema(path, schemaContainer.Schema);
-                    break;
-            }
         }
     }
 }

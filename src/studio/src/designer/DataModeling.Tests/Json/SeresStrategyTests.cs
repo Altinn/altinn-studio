@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -12,15 +13,15 @@ namespace DataModeling.Tests.Json
     public class SeresStrategyTests
     {
         [Theory]
-        [InlineData(@"Model\JsonSchema\SeresBasicSchema.json")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema.json")]
         public async Task Analyze_Seres_Converted_JsonSchema(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.ComplexType);
@@ -29,29 +30,29 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\SimpleContentExtension.json")]
+        [InlineData(@"Model\JsonSchema\General\SimpleContentExtension.json")]
         public async Task Analyze_SimpleContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(new[] { CompatibleXsdType.ComplexType, CompatibleXsdType.SimpleContentExtension });
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\SeresSimpleTypeRestrictions.json")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleTypeRestrictions.json")]
         public async Task Analyze_SimpleType_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/properties/t1")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/properties/t2")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
@@ -86,15 +87,15 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\SeresSimpleContentRestriction.json")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleContentRestriction.json")]
         public async Task Analyze_SimpleContent_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/ageType")).Should().Contain(CompatibleXsdType.SimpleType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedAgeType")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
@@ -106,15 +107,15 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\SeresComplexContentExtension.json")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresComplexContentExtension.json")]
         public async Task Analyze_ComplexContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = await ResourceHelpers.LoadJsonSchemaTestData(path);
-            var analyzer = new JsonSchemaSeresAnalyzer();
+            var analyzer = new SeresJsonSchemaAnalyzer();
 
-            var metadata = analyzer.AnalyzeSchema(schema);
+            var metadata = analyzer.AnalyzeSchema(schema, new Uri("dummy", UriKind.Relative));
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#")).Should().Contain(CompatibleXsdType.ComplexContentExtension);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(CompatibleXsdType.ComplexType);
