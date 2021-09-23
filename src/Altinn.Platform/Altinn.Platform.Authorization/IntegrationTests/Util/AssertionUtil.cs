@@ -15,12 +15,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
     public static class AssertionUtil
     {
         /// <summary>
-        /// 123
+        /// Asserts that two collections of objects have the same property values in the same positions.
         /// </summary>
-        /// <typeparam name="T">123 T</typeparam>
-        /// <param name="expected">123 expected</param>
-        /// <param name="actual">123 actual</param>
-        /// <param name="assertMethod">123 assertMethod</param>
+        /// <typeparam name="T">The Type</typeparam>
+        /// <param name="expected">A collection of expected instances</param>
+        /// <param name="actual">The collection of actual instances</param>
+        /// <param name="assertMethod">The assertion method to be used</param>
         public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<T, T> assertMethod)
         {
             Assert.Equal(expected.Count, actual.Count);
@@ -46,18 +46,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 assertMethod(expectedDict[key], actualDict[key]);
             }
-        }
-
-        /// <summary>
-        /// 123
-        /// </summary>
-        /// <typeparam name="T">123 T</typeparam>
-        /// <param name="expected">123 expected</param>
-        /// <param name="actual">123 actual</param>
-        /// <param name="assertMethod">123 assertMethod</param>
-        public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<ICollection<T>, ICollection<T>> assertMethod)
-        {
-            AssertCollections(expected, actual, assertMethod);
         }
 
         /// <summary>
