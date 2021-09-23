@@ -21,6 +21,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata
             {
+                SchemaOrigin = "Standard",
                 MessageName = UrlHelper.GetName(uri.ToString()),
                 MessageTypeName = string.Empty
             };

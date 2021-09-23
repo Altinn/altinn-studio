@@ -21,9 +21,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         /// <inheritdoc />
         public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
-        {           
+        {
             JsonSchema = schema;
-            Metadata = new JsonSchemaXsdMetadata();
+            Metadata = new JsonSchemaXsdMetadata()
+            {
+                SchemaOrigin = "Seres"
+            };
 
             if (JsonSchema.TryGetKeyword(out InfoKeyword info))
             {
