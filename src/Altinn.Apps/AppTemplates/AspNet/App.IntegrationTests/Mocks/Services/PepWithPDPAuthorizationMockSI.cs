@@ -147,7 +147,7 @@ namespace App.IntegrationTests.Mocks.Services
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
@@ -155,7 +155,7 @@ namespace App.IntegrationTests.Mocks.Services
             }
         }
 
-        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        private static XacmlAttribute GetAttribute(string attributeId, string attributeValue)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
             if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
@@ -199,7 +199,7 @@ namespace App.IntegrationTests.Mocks.Services
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -239,17 +239,7 @@ namespace App.IntegrationTests.Mocks.Services
             return resourceAttributes;
         }
 
-        private XacmlAttribute GetPartyAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
-
-            // When Party attribute is missing from input it is good to return it so PEP can get this information
-            attribute.IncludeInResult = true;
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwner.PartyId));
-            return attribute;
-        }
-
-        private XacmlAttribute GetRoleAttribute(List<Role> roles)
+        private static XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(AltinnRoleAttributeId), false);
             foreach (Role role in roles)
@@ -275,18 +265,18 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(roles);
         }
 
-        private string GetRolesPath(int userId, int resourcePartyId)
+        private static string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\authorization\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
-        private async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
+        private Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            return ParsePolicy("policy.xml", GetPolicyPath(request));
+            return Task.FromResult(ParsePolicy("policy.xml", GetPolicyPath(request)));
         }
 
-        private string GetPolicyPath(XacmlContextRequest request)
+        private static string GetPolicyPath(XacmlContextRequest request)
         {
             string org = string.Empty;
             string app = string.Empty;
@@ -333,7 +323,7 @@ namespace App.IntegrationTests.Mocks.Services
             return policy;
         }
 
-        private string GetAltinnAppsPolicyPath(string org, string app)
+        private static string GetAltinnAppsPolicyPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\" + org + @"\" + app + @"\config\authorization\");

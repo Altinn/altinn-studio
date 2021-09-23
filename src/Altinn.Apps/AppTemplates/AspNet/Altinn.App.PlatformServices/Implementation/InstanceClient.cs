@@ -25,9 +25,9 @@ using Newtonsoft.Json;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the instance service that talks to platform storage.
+    /// A client for handling actions on instances in Altinn Platform.
     /// </summary>
-    public class InstanceAppSI : IInstance
+    public class InstanceClient : IInstance
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -35,16 +35,16 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
+        /// Initializes a new instance of the <see cref="InstanceClient"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="httpClient">A HttpClient that can be used to perform HTTP requests against the platform.</param>
         /// <param name="settings">The application settings.</param>
-        public InstanceAppSI(
+        public InstanceClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<InstanceAppSI> logger,
+            ILogger<InstanceClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
@@ -101,7 +101,7 @@ namespace Altinn.App.Services.Implementation
             {
                 foreach (string value in queryParameter.Value)
                 {
-                    apiUrl.Append($"&{queryParameter.Key}={queryParameter.Value}");
+                    apiUrl.Append($"&{queryParameter.Key}={value}");
                 }
             }
 

@@ -9,6 +9,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
@@ -30,9 +31,9 @@ using Newtonsoft.Json;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the data handling service.
+    /// A client for handling actions on data in Altinn Platform.
     /// </summary>
-    public class DataAppSI : IData
+    public class DataClient : IData
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
@@ -41,16 +42,16 @@ namespace Altinn.App.Services.Implementation
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Initializes a new data of the <see cref="DataAppSI"/> class.
+        /// Initializes a new data of the <see cref="DataClient"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The current app settings.</param>
         /// <param name="httpClient">A HttpClient from the built in HttpClient factory.</param>
-        public DataAppSI(
+        public DataClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<DataAppSI> logger,
+            ILogger<DataClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient)
