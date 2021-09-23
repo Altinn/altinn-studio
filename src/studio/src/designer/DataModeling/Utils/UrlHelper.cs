@@ -21,7 +21,7 @@ namespace Altinn.Studio.DataModeling.Utils
 
             // dummyBase is just to make sure we have an absolute uri to work on
             // as the uri.LocalPath property doesn't work on relative url's.
-            string dummyBase = "http://dummybase";
+            string dummyBase = "https://dummybase";
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
                 uri = new Uri(new Uri(dummyBase), url);
