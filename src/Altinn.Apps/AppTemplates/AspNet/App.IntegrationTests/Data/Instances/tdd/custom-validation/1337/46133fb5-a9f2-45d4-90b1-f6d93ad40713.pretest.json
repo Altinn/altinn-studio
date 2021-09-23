@@ -1,1 +1,34 @@
-{"id":"1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713","instanceOwner":{"partyId":"1337"},"appId":"tdd/custom-validation","org":"tdd","dueBefore":"2019-07-05T00:00:00Z","visibleAfter":"2019-06-05T00:00:00Z","process":{"currentTask":{"elementId":"Task_1","validated":{"timestamp":"2020-03-12T12:10:50.1613878+01:00","canCompleteTask":false}}},"status":{},"data":[{"id":"4b9b5802-861b-4ca3-b757-e6bd5f582bf9","dataType":"default","contentType":"application/xml","size":0,"locked":false}],"created":"2019-07-31T09:57:23.4729995Z","lastChanged":"2019-07-31T09:57:23.4729995Z"}
+{
+  "id": "1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713",
+  "instanceOwner": { "partyId": "1337" },
+  "appId": "tdd/custom-validation",
+  "org": "tdd",
+  "dueBefore": "2019-07-05T00:00:00Z",
+  "visibleAfter": "2019-06-05T00:00:00Z",
+  "process": {
+    "currentTask": {
+      "elementId": "Task_1",
+      "validated": {
+        "timestamp": "2020-03-12T12:10:50.1613878+01:00",
+        "canCompleteTask": false
+      }
+    }
+  },
+  "data": [
+    {
+      "id": "4b9b5802-861b-4ca3-b757-e6bd5f582bf9",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    }
+  ],
+  "created": "2019-07-31T09:57:23.4729995Z",
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "lastChanged": "2019-07-31T09:57:23.4729995Z"
+}

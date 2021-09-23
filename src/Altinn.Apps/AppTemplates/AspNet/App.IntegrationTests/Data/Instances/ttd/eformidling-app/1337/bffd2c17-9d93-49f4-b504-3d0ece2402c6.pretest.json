@@ -1,5 +1,5 @@
 {
-  "id": "1337/bffd2c17-9d93-49f4-b504-3d0ece2402c6",
+  "id": "1337/bffd2c17-9d93-49f4-b504-3d0ece2402c7",
   "instanceOwner": {
     "partyId": "1337",
     "personNumber": "12345678901"
@@ -7,15 +7,17 @@
   "appId": "ttd/eformidling-app",
   "org": "ttd",
   "process": {
-    "started": "2019-12-11T09:34:35.5471442Z",
+    "started": "2020-06-18T12:59:49.8024653Z",
     "startEvent": "StartEvent_1",
-    "currentTask": {
-      "flow": 2,
-      "started": "2019-12-11T09:34:37.6872728Z",
-      "elementId": "Task_1",
-      "name": "Utfylling",
-      "altinnTaskType": "data"
-    }
+    "ended": "2020-06-18T13:00:27.5079752Z",
+    "endEvent": "EndEvent_1"
+  },
+  "status": {
+    "isArchived": true,
+    "archived": "2020-06-18T13:00:27.5079752Z",
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
   },
   "data": [
   ]
