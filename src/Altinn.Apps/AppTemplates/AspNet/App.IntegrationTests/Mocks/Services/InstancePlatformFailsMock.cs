@@ -8,6 +8,8 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
+using Microsoft.Extensions.Primitives;
+
 namespace App.IntegrationTests.Mocks.Services
 {
     public class InstancePlatformFailsMock : IInstance
@@ -84,6 +86,11 @@ namespace App.IntegrationTests.Mocks.Services
         public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             throw new NotImplementedException();
-        }        
+        }
+
+        public Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

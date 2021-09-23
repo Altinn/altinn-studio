@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
+using Altinn.App.Api.Mappers;
+using Altinn.App.Api.Models;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
@@ -24,6 +26,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -32,6 +35,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
@@ -49,15 +53,17 @@ namespace Altinn.App.Api.Controllers
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> _logger;
+
         private readonly IInstance _instanceService;
         private readonly IData _dataService;
+        private readonly IRegister _registerService;
+        private readonly IEvents _eventsService;
+        private readonly IProfile _profileService;
 
         private readonly IAppResources _appResourcesService;
-        private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
-        private readonly IEvents _eventsService;
         private readonly IPrefill _prefillService;
 
         private readonly AppSettings _appSettings;
@@ -78,7 +84,8 @@ namespace Altinn.App.Api.Controllers
             IPDP pdp,
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
-            IPrefill prefillService)
+            IPrefill prefillService,
+            IProfile profileService)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -91,6 +98,7 @@ namespace Altinn.App.Api.Controllers
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
+            _profileService = profileService;
         }
 
         /// <summary>
@@ -422,23 +430,52 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves all active instances that fulfull the org, app, and instanceOwnerParty Id combination.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <returns>A list of light weight instance objects that contains instanceId, lastChanged and lastChangedBy (full name).</returns>
         [Authorize]
-        [HttpGet("{instanceOwnerPartyId:int}")]
+        [HttpGet("{instanceOwnerPartyId:int}/active")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
-        public async Task<ActionResult<List<Instance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
+        public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            // hva er fornuftig autorisasjon her? Skal hnte metadata om flere instanser. Men Kanskje i ulike state? autoriasjon i storage, hva skal vi h a her? 
-            EnforcementResult result = await AuthorizeAction(org, app, instanceOwnerPartyId, null, "read");
-
-            List<Instance> activeInstances = await _instanceService.GetActiveInstances(instanceOwnerPartyId);
-
-            foreach (var item in activeInstances)
+            Dictionary<string, StringValues> queryParams = new ()
             {
-                // map to the simple instance Object.
+                { "appId", $"{org}/{app}"},
+                { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
+                { "status.isArchived", "false" }
+            };
+
+            List<Instance> activeInstances = await _instanceService.GetInstances(queryParams);
+
+            if (!activeInstances.Any())
+            {
+                return Ok(new List<SimpleInstance>());
             }
 
-            return activeInstances;
+            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).ToList();
+
+            Dictionary<string, string> userAndOrgLookup = new Dictionary<string, string>();
+
+            foreach (string userOrOrgId in userAndOrgIds)
+            {
+                if (userOrOrgId.Length == 9)
+                {
+                    Organization organization = await _registerService.ER.GetOrganization(userOrOrgId);
+                    userAndOrgLookup.Add(userOrOrgId, organization.Name);
+                }
+                else
+                {
+                    UserProfile user = await _profileService.GetUserProfile(int.Parse(userOrOrgId));
+                    userAndOrgLookup.Add(userOrOrgId, user.Party.Name);
+                }
+            }
+
+            return SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup);
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)

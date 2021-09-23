@@ -12,11 +12,13 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
@@ -91,24 +93,28 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        /// Get instances of an instance owner.
-        public async Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
+        public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            string apiUrl = $"instances?instanceOwner.partyId={instanceOwnerPartyId}&status.isArchived=false";
+            StringBuilder apiUrl = new ($"instances?");
+
+            foreach (var queryParameter in queryParams)
+            {
+                foreach (string value in queryParameter.Value)
+                {
+                    apiUrl.Append($"&{queryParameter.Key}={queryParameter.Value}");
+                }
+            }
+
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl.ToString());
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
                 List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
 
                 return instances;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            }          
             else
             {
                 _logger.LogError("Unable to fetch instances");
@@ -162,7 +168,7 @@ namespace Altinn.App.Services.Implementation
             _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
             throw await PlatformHttpException.CreateAsync(response);
         }
-        
+
         /// <inheritdoc/>
         public async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
         {
@@ -270,6 +276,6 @@ namespace Altinn.App.Services.Implementation
             }
 
             throw await PlatformHttpException.CreateAsync(response);
-        }        
+        }
     }
 }
