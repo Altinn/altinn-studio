@@ -161,11 +161,11 @@ namespace Altinn.Platform.Authorization.Helpers
         private static List<string> GetResourcePoliciesFromRule(Dictionary<string, ResourcePolicy> resourcePolicies, XacmlRule rule)
         {
             List<string> policyKeys = new List<string>();
-            StringBuilder bld = new StringBuilder();
             foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
+                    StringBuilder bld = new StringBuilder();
                     string resourceKey = string.Empty;
                     List<AttributeMatch> resourceMatches = new List<AttributeMatch>();
                     foreach (XacmlMatch xacmlMatch in allOf.Matches)
