@@ -445,7 +445,7 @@ namespace Altinn.App.Api.Controllers
         {
             Dictionary<string, StringValues> queryParams = new ()
             {
-                { "appId", $"{org}/{app}"},
+                { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
                 { "status.isArchived", "false" }
             };

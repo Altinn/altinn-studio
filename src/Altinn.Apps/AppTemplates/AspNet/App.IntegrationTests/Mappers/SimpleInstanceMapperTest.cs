@@ -105,7 +105,6 @@ namespace App.IntegrationTestsRef.Mappers
             Assert.Equal(2, actualList.Count);
             Assert.Equal(expectedLastChangedBy1, actual1.LastChangedBy);
             Assert.Equal(expectedLastChangedBy2, actual2.LastChangedBy);
-
         }
     }
 }
