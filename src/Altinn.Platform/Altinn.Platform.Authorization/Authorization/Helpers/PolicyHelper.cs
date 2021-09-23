@@ -59,94 +59,19 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 if (rule.Effect.Equals(XacmlEffectType.Permit) && rule.Target != null)
                 {
-                    List<string> policyKeys = new List<string>();
-                    List<RoleGrant> roles = new List<RoleGrant>();
-                    List<ResourceAction> actions = new List<ResourceAction>();
-                    foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
-                    {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
-                        {
-                            string resourceKey = string.Empty;
-                            List<AttributeMatch> resourceMatches = new List<AttributeMatch>();
-                            foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                            {
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                                {
-                                    resourceKey += $"{xacmlMatch.AttributeDesignator.AttributeId}{xacmlMatch.AttributeValue.Value}";
-                                    resourceMatches.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
-                                }
-                            }
-
-                            if (!string.IsNullOrEmpty(resourceKey))
-                            {
-                                policyKeys.Add(resourceKey);
-
-                                if (!resourcePolicies.ContainsKey(resourceKey))
-                                {
-                                    string title = string.Join("/", resourceMatches.Select(rm => rm.Value));
-                                    ResourcePolicy newPolicy = new ResourcePolicy
-                                    {
-                                        Resource = resourceMatches,
-                                        Title = new LocalizedText(title, title, title),
-                                    };
-
-                                    if (policy.Description != null)
-                                    {
-                                        newPolicy.Description = new LocalizedText(rule.Description, rule.Description, rule.Description);
-                                    }
-
-                                    resourcePolicies.Add(resourceKey, newPolicy);
-                                }
-                            }
-                        }
-                    }
-
-                    foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
-                    {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
-                        {
-                            string roleKey = string.Empty;
-                            foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                            {
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
-                                {
-                                    roles.Add(new RoleGrant { RoleTypeCode = xacmlMatch.AttributeValue.Value, IsDelegable = true });
-                                }
-                            }
-                        }
-                    }
-
-                    foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
-                    {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
-                        {
-                            string actionKey = string.Empty;
-                            AttributeMatch actionAttributeMatch = new AttributeMatch();
-                            foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                            {
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
-                                {
-                                    actionAttributeMatch.Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString;
-                                    actionAttributeMatch.Value = xacmlMatch.AttributeValue.Value;
-                                    ResourceAction resourceAction = new ResourceAction
-                                    {
-                                        Match = actionAttributeMatch,
-                                        RoleGrants = new List<RoleGrant>(),
-                                        Title = new LocalizedText(xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value)
-                                    };
-                                    resourceAction.RoleGrants.AddRange(roles);
-                                    if (!actions.Contains(resourceAction))
-                                    {
-                                        actions.Add(resourceAction);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    List<string> policyKeys = GetResourcePoliciesFromRule(resourcePolicies, rule);
+                    List<RoleGrant> roles = GetRolesFromRule(rule);
+                    List<ResourceAction> actions = GetActionsFromRule(rule, roles);
 
                     foreach (string policyKey in policyKeys)
                     {
                         ResourcePolicy resourcePolicy = resourcePolicies.GetValueOrDefault(policyKey);
+
+                        if (policy.Description != null && resourcePolicy.Description == null)
+                        {
+                            resourcePolicy.Description = new LocalizedText(rule.Description, rule.Description, rule.Description);
+                        }
+
                         if (resourcePolicy.Actions == null)
                         {
                             resourcePolicy.Actions = new List<ResourceAction>();
@@ -172,6 +97,100 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return resourcePolicies.Values.ToList();
+        }
+
+        private static List<ResourceAction> GetActionsFromRule(XacmlRule rule, List<RoleGrant> roles)
+        {
+            List<ResourceAction> actions = new List<ResourceAction>();
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    string actionKey = string.Empty;
+                    AttributeMatch actionAttributeMatch = new AttributeMatch();
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+                        {
+                            actionAttributeMatch.Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString;
+                            actionAttributeMatch.Value = xacmlMatch.AttributeValue.Value;
+                            ResourceAction resourceAction = new ResourceAction
+                            {
+                                Match = actionAttributeMatch,
+                                RoleGrants = new List<RoleGrant>(),
+                                Title = new LocalizedText(xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value)
+                            };
+                            resourceAction.RoleGrants.AddRange(roles);
+                            if (!actions.Contains(resourceAction))
+                            {
+                                actions.Add(resourceAction);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return actions;
+        }
+
+        private static List<RoleGrant> GetRolesFromRule(XacmlRule rule)
+        {
+            List<RoleGrant> roles = new List<RoleGrant>();
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
+                        {
+                            roles.Add(new RoleGrant { RoleTypeCode = xacmlMatch.AttributeValue.Value, IsDelegable = true });
+                        }
+                    }
+                }
+            }
+
+            return roles;
+        }
+
+        private static List<string> GetResourcePoliciesFromRule(Dictionary<string, ResourcePolicy> resourcePolicies, XacmlRule rule)
+        {
+            List<string> policyKeys = new List<string>();
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    string resourceKey = string.Empty;
+                    List<AttributeMatch> resourceMatches = new List<AttributeMatch>();
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                        {
+                            resourceKey += $"{xacmlMatch.AttributeDesignator.AttributeId}{xacmlMatch.AttributeValue.Value}";
+                            resourceMatches.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(resourceKey))
+                    {
+                        policyKeys.Add(resourceKey);
+
+                        if (!resourcePolicies.ContainsKey(resourceKey))
+                        {
+                            string title = string.Join("/", resourceMatches.Select(rm => rm.Value));
+                            ResourcePolicy newPolicy = new ResourcePolicy
+                            {
+                                Resource = resourceMatches,
+                                Title = new LocalizedText(title, title, title),
+                            };
+
+                            resourcePolicies.Add(resourceKey, newPolicy);
+                        }
+                    }
+                }
+            }
+
+            return policyKeys;
         }
     }
 }
