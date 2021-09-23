@@ -817,7 +817,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Creates a automatic username based on external identity and prefix.
         /// </summary>
-        private string CreateUserName(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
+        private static string CreateUserName(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
         {
             string hashedIdentity = HashNonce(userAuthenticationModel.ExternalIdentity).Substring(5, 10);
             Regex rgx = new Regex("[^a-zA-Z0-9 -]");

@@ -60,15 +60,15 @@ namespace Altinn.Platform.Authentication.Services
         /// <summary>
         /// Method to create a new user based on identity
         /// </summary>
-        /// <param name="userProfile">The userprofile</param>
+        /// <param name="user">The userprofile</param>
         /// <returns>The created users with userId and partyID</returns>
-        public async Task<UserProfile> CreateUser(UserProfile userProfile)
+        public async Task<UserProfile> CreateUser(UserProfile user)
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create");
-            StringContent requestBody = new StringContent(JsonSerializer.Serialize(userProfile), Encoding.UTF8, "application/json");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
