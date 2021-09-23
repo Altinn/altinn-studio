@@ -1,4 +1,0 @@
-1. The application can be reached at:
-{{- range .Values.ingressRoute.routes }}
-  {{ .match }}
-{{- end }}
