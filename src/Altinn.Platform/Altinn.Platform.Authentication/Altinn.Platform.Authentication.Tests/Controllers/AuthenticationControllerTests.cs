@@ -320,6 +320,48 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateEnterpriseUser_RequestToken_PasswordContainsColon_ReturnsOK()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+            claims.Add(new Claim("iss", "https://ver2.maskinporten.no/"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            client.DefaultRequestHeaders.Add("X-Altinn-EnterpriseUser-Authentication", "VmFsaWRVc2VyMjpWYWxpZDpQYXNzd29yZA==");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateOrganisationWithSOScope_RequestTokenWithValidExternalToken_ReturnsNewToken()
         {
             // Arrange
