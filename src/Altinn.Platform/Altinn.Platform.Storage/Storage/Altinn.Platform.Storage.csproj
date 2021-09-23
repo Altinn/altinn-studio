@@ -24,7 +24,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.2.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.2.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
