@@ -47,7 +47,7 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets the entire policy as a list of ResourcePolicy. 
+        /// Gets the entire policy as a list of <see cref="ResourcePolicy"/>. 
         /// </summary>
         /// <param name="policy">The policy</param>
         /// <returns>List of resource policies</returns>
