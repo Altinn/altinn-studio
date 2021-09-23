@@ -174,7 +174,7 @@ namespace Altinn.Platform.Authorization.Helpers
                         {
                             bld.Append(xacmlMatch.AttributeDesignator.AttributeId);
                             bld.Append(xacmlMatch.AttributeValue.Value);
-                            resourceKey += bld.ToString();
+                            resourceKey = bld.ToString();
                             resourceMatches.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
                         }
                     }
