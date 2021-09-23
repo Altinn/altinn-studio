@@ -16,7 +16,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <summary>
         /// Select converting strategy based on simple analysis of schema information, will chose one of SERES, OR og General strategies
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An implementation of <see cref="IJsonSchemaConverterStrategy"/> to be used when analyzing and/or converting Json Schemas to XSD.</returns>
         public static IJsonSchemaConverterStrategy SelectStrategy(JsonSchema jsonSchema)
         {
             if (jsonSchema.TryGetKeyword(out XsdNamespacesKeyword namespaces))
