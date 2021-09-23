@@ -142,27 +142,22 @@ export function NavigationBar(props: INavigationBar) {
   const triggers = props.triggers || pageTriggers;
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+  const showMenu: boolean = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.showMenu);
 
+  const OnClickNav = (index: string) => {
+    const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
+    const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
+    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
 
+    dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
+  };
 
   const NavBar = () => {
 
-    const [mounted, setMounted] = useState(false);
-
     useEffect(() => {
-      console.log("Mounted")
+      console.log("autosave er: " + showMenu)
     }, [])
-
-    const OnClickNav = (index: string) => {
-
-      const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
-      const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
-      const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
-
-      dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
-
-    };
-
+    
     const pageList = orderedLayoutKeys.map((view) => 
       <li className={ currentView == view ? classes.li2 : classes.li } >
           <a className={ currentView == view ? classes.a2 : classes.a } 
@@ -171,35 +166,31 @@ export function NavigationBar(props: INavigationBar) {
           </a>
       </li>
     );
-  
-    if(!mounted) {
-      pageList.unshift(
-        <li className={ classes.li3 } >
-          <a className={ classes.a2 } 
-              onClick={() => setMounted(!mounted)}>
-                {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
-                <i className={`${classes.i} ${'ai ai-expand'}`} />
-            </a>
-            
-        </li>  
-      );
-    }
+
+    pageList.unshift(
+      <li className={ classes.li3 } >
+        <a className={ classes.a2 } 
+            onClick={() => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu}))}>
+              {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
+              <i className={`${classes.i} ${'ai ai-expand'}`} />
+          </a>
+          
+      </li>  
+    );
 
     const pageListMobile = orderedLayoutKeys.map((view) => 
-    <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
-        <a className={ currentView == view ? classes.a2 : classes.a } 
-            onClick={ () => { OnClickNav(view); } }>
-              {getTextResource(view, textResources)}
-        </a>
-    </li>
-  );
-
-
+      <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
+          <a className={ currentView == view ? classes.a2 : classes.a } 
+              onClick={ currentView == view ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(view) }>
+                {getTextResource(view, textResources)}
+          </a>
+      </li>
+    );
 
     return (
       <div>
         {<ul className={ classes.ul }>{pageList}</ul>}
-        { mounted && <ul className={ classes.ulMounted }>{ mounted ? pageListMobile : null }</ul> }
+        {showMenu && <ul className={ classes.ulMounted }>{pageListMobile}</ul> }
       </div>
     );
   };

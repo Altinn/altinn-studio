@@ -23,6 +23,7 @@ const initialState: ILayoutState = {
     navigationConfig: {},
     layoutOrder: null,
     pageTriggers: [],
+    showMenu: false
   },
   layoutsets: null,
 };
@@ -89,6 +90,10 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    updateMenu: (state, action: PayloadAction<LayoutTypes.IUpdateMenu>) => {
+      const { showMenu } = action.payload;
+      state.uiConfig.showMenu = showMenu;
+    },
     updateFocusFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFocusFulfilled>) => {
       const { focusComponentId } = action.payload;
       state.uiConfig.focus = focusComponentId;
@@ -134,6 +139,7 @@ const actions = {
   fetchLayoutSets: createAction(`${moduleName}/fetchLayoutSets`),
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
+  // updateMenu: createAction<LayoutTypes.IUpdateMenu>(`${moduleName}/updateMenu`),
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
   updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
   updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),

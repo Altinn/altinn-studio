@@ -26,6 +26,10 @@ export interface IUpdateAutoSave {
   autoSave: boolean;
 }
 
+export interface IUpdateMenu {
+  showMenu: boolean;
+}
+
 export interface IUpdateAutoSaveFulfilled {
   autoSave: boolean;
 }
@@ -41,7 +45,6 @@ export interface IUpdateCurrentViewFulfilled {
   newView: string;
   returnToView?: string;
 }
-
 export interface IUpdateFocus {
   currentComponentId: string;
   step?: number;
