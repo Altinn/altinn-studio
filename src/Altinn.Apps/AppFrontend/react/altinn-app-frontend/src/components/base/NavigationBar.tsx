@@ -5,26 +5,21 @@ import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useState, useEffect } from 'react';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
-  ul: {
+  menu: {
     marginBottom: '6px!important',
     listStyleType: 'none',
-    textDecoration: 'none!important' as 'none',
-    paddingLeft: '0px!important' as 'noPadding',
+    textDecoration: 'none!important',
+    paddingLeft: '0px!important',
     position: 'relative'
   },
-  ulMounted: {
-    height: '200px',
-    listStyleType: 'none',
-    textDecoration: 'none!important' as 'none',
-    paddingLeft: '0px!important' as 'noPadding',
-    position: 'relative',
+  menuMobile: {
+    height: '200px'
   },
-  li: {
+  buttons: {
     float: 'left', 
     border: '2px solid #008FD6',
     '&:hover': {
@@ -40,7 +35,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  liMounted: {
+  buttonsMobile: {
     marginBottom: '6px',
     border: '2px solid #008FD6',
     '&:hover': {
@@ -56,7 +51,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  li2: {
+  selectedBtn: {
     float: 'left', 
     border: '2px solid #008FD6',
     '&:hover': {
@@ -70,7 +65,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  li2Mounted: {
+  selectedBtnMobile: {
     marginBottom: '6px',
     border: '2px solid #008FD6',
     '&:hover': {
@@ -84,7 +79,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  li3: {
+  navMobile: {
     border: '2px solid #008FD6',
     '&:hover': {
       border: '3px solid #008FD6'
@@ -97,7 +92,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  a: {
+  btnText: {
     display: 'block', 
     textAlign: "center", 
     padding: '12px', 
@@ -106,7 +101,7 @@ const useStyles = makeStyles({
       borderBottom: "0px solid rgba(0,0,0,0)"
     }
   },
-  a2: {
+  btnTextSelected: {
     display: 'block',   
     textAlign: "center", 
     padding: '12px', 
@@ -117,12 +112,6 @@ const useStyles = makeStyles({
     },
     width: '100%',
     fontSize: '1.5rem'
-  },
-  i: {
-    color: 'white'
-  },
-  hide: {
-    display: 'none'
   }
 });
 
@@ -154,43 +143,42 @@ export function NavigationBar(props: INavigationBar) {
 
   const NavBar = () => {
 
-    useEffect(() => {
-      console.log("autosave er: " + showMenu)
-    }, [])
-    
-    const pageList = orderedLayoutKeys.map((view) => 
-      <li className={ currentView == view ? classes.li2 : classes.li } >
-          <a className={ currentView == view ? classes.a2 : classes.a } 
-              onClick={() => OnClickNav(view)}>
-              {getTextResource(view, textResources)}
+    const pageList = orderedLayoutKeys.map((item) => 
+      <li className={ currentView == item ? classes.selectedBtn : classes.buttons } >
+          <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
+              onClick={() => OnClickNav(item)}>
+              {getTextResource(item, textResources)}
           </a>
       </li>
     );
 
-    pageList.unshift(
-      <li className={ classes.li3 } >
-        <a className={ classes.a2 } 
-            onClick={() => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu}))}>
-              {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
-              <i className={`${classes.i} ${'ai ai-expand'}`} />
-          </a>
-          
-      </li>  
-    );
+    if(!showMenu) {
+      pageList.unshift(
+        <li className={ classes.navMobile } >
+          <a className={ classes.btnTextSelected } 
+              onClick={() => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu}))}>
+                {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
+                <i className={'ai ai-expand'} />
+            </a>
+            
+        </li>  
+      );
+    }
 
-    const pageListMobile = orderedLayoutKeys.map((view) => 
-      <li className={ currentView == view ? classes.li2Mounted : classes.liMounted } >
-          <a className={ currentView == view ? classes.a2 : classes.a } 
-              onClick={ currentView == view ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(view) }>
-                {getTextResource(view, textResources)}
+    const pageListMobile = orderedLayoutKeys.map((item) => 
+      <li className={ currentView == item ? classes.selectedBtnMobile : classes.buttonsMobile } >
+          <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
+              onClick={ currentView == item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }>
+                {getTextResource(item, textResources)}
           </a>
       </li>
     );
 
     return (
       <div>
-        {<ul className={ classes.ul }>{pageList}</ul>}
-        {showMenu && <ul className={ classes.ulMounted }>{pageListMobile}</ul> }
+        {<ul className={ classes.menu }>{pageList}</ul>}
+        {showMenu && <ul className={`${classes.menu} ${classes.menuMobile}`}>{pageListMobile}</ul> }
+        
       </div>
     );
   };
