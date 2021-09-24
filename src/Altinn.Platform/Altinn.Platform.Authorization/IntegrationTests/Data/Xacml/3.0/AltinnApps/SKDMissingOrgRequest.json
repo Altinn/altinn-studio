@@ -1,10 +1,6 @@
 [
   [
     {
-      "id": "urn:altinn:org",
-      "value": "SKD"
-    },
-    {
       "id": "urn:altinn:app",
       "value": "TaxReport2"
     }

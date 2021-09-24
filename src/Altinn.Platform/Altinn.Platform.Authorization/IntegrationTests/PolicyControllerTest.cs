@@ -277,6 +277,109 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
         }
 
+        /// <summary>
+        /// Test case: Try GetResourcePolicies with an invalid list of org/app Attributematches
+        /// Expected: GetResourcepolicies returns a ResoucrcePolicyResponse with a "not found" errormessage
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_InvalidApp_TC06()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDInvalidAppRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   OrgApp = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
+                      new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "InvalidApp" },
+                   },
+                   ErrorResponse = "No valid policy found for org 'SKD' and app 'InvalidApp'"
+               }
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
+        /// <summary>
+        /// Test case: Try GetResourcePolicies without an app Attributematch
+        /// Expected: GetResourcepolicies returns a ResoucrcePolicyResponse with an "app must be defined" errormessage
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_NoApp_TC07()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDMissingAppRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   OrgApp = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" }
+                   },
+                   ErrorResponse = "App must be defined in the path"
+               }
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
+        /// <summary>
+        /// Test case: Try GetResourcePolicies without an org Attributematch
+        /// Expected: GetResourcepolicies returns a ResoucrcePolicyResponse with an "Organisation must be defined" errormessage
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_NoOrg_TC08()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDMissingOrgRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   OrgApp = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" }
+                   },
+                   ErrorResponse = "Organisation must be defined in the path"
+               }
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
         private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");

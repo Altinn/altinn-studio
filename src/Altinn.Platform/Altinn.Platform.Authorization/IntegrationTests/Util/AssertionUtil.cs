@@ -105,7 +105,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         /// <param name="actual">The instance to verify.</param>
         public static void AssertResourcePolicyResponseEqual(ResourcePolicyResponse expected, ResourcePolicyResponse actual)
         {
-            AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
+            if (actual.ResourcePolicies != null || expected.ResourcePolicies != null)
+            {
+                AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
+            }
+            
             AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
