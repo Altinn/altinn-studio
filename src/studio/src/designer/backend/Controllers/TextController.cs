@@ -150,7 +150,14 @@ namespace Altinn.Studio.Designer.Controllers
                         }
 
                         e.Value = edits[language];
+
+                        // Update App title if ServiceName has changed
+                        if (key == "ServiceName")
+                        {
+                            _repository.UpdateAppTitle(org, app, key, edits[language]);
+                        }
                     }
+
                 }
 
                 // Update deletes
