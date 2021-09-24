@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else 
             {              
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent);
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
             } 
         }
 
