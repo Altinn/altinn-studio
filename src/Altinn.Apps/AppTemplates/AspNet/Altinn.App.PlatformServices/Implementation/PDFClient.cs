@@ -3,11 +3,13 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+
 using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
@@ -16,19 +18,19 @@ using Newtonsoft.Json.Linq;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// Represents a service that can initiate PDF generation.
+    /// A client for handling actions on pdf in Altinn Platform.
     /// </summary>
-    public class PDFSI : IPDF
+    public class PDFClient : IPDF
     {
-        private readonly HttpClient _pdfClient;
+        private readonly HttpClient _client;
         private readonly JsonSerializer _camelCaseSerializer;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="PDFSI"/> class
+        /// Creates a new instance of the <see cref="PDFClient"/> class
         /// </summary>
         /// <param name="platformSettings">The platform settingssettings</param>
         /// <param name="httpClient">The http client</param>
-        public PDFSI(
+        public PDFClient(
             IOptions<PlatformSettings> platformSettings,
             HttpClient httpClient)
         {
@@ -40,14 +42,14 @@ namespace Altinn.App.Services.Implementation
 
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiPdfEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
-            _pdfClient = httpClient;
+            _client = httpClient;
         }
 
         /// <inheritdoc/>
         public async Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
             using HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
+            HttpResponseMessage response = await _client.PostAsync("generate", data);
             response.EnsureSuccessStatusCode();
             Stream pdfContent = await response.Content.ReadAsStreamAsync();
             return pdfContent;

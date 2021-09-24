@@ -34,7 +34,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IAppResources _appResourcesService;
         private readonly IPrefill _prefillService;
-        private readonly IRegister _registerService;
+        private readonly IRegister _registerClient;
         private readonly IPDP _pdp;
    
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -52,14 +52,14 @@ namespace Altinn.App.Api.Controllers
             IAltinnApp altinnApp,
             IAppResources appResourcesService,
             IPrefill prefillService,
-            IRegister registerService,
+            IRegister registerClient,
             IPDP pdp)
         {
             _logger = logger;
             _altinnApp = altinnApp;
             _appResourcesService = appResourcesService;
             _prefillService = prefillService;
-            _registerService = registerService;
+            _registerClient = registerClient;
             _pdp = pdp;
         }
 
@@ -226,14 +226,14 @@ namespace Altinn.App.Api.Controllers
             else if (partyValue.StartsWith(PersonPrefix))
             {
                 string ssn = partyValue.Replace(PersonPrefix, string.Empty);
-                party = await _registerService.LookupParty(new PartyLookup { Ssn = ssn });
+                party = await _registerClient.LookupParty(new PartyLookup { Ssn = ssn });
                 owner.PartyId = party.PartyId.ToString();
                 owner.PersonNumber = ssn;
             }
             else if (partyValue.StartsWith(OrgPrefix))
             {
                 string orgno = partyValue.Replace(OrgPrefix, string.Empty);
-                party = await _registerService.LookupParty(new PartyLookup { OrgNo = orgno });
+                party = await _registerClient.LookupParty(new PartyLookup { OrgNo = orgno });
                 owner.PartyId = party.PartyId.ToString();
                 owner.OrganisationNumber = orgno;
             }

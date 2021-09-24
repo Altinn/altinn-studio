@@ -12,20 +12,22 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the instance service that talks to platform storage.
+    /// A client for handling actions on instances in Altinn Platform.
     /// </summary>
-    public class InstanceAppSI : IInstance
+    public class InstanceClient : IInstance
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -33,16 +35,16 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
+        /// Initializes a new instance of the <see cref="InstanceClient"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="httpClient">A HttpClient that can be used to perform HTTP requests against the platform.</param>
         /// <param name="settings">The application settings.</param>
-        public InstanceAppSI(
+        public InstanceClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<InstanceAppSI> logger,
+            ILogger<InstanceClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
@@ -58,9 +60,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceGuid)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -84,31 +86,35 @@ namespace Altinn.App.Services.Implementation
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
-            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            return await GetInstance(app, org, instanceOwnerId, instanceGuid);
+            return await GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
         }
 
         /// <inheritdoc />
-        /// Get instances of an instance owner.
-        public async Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            string apiUrl = $"instances/{instanceOwnerPartyId}";
+            StringBuilder apiUrl = new ($"instances?");
+
+            foreach (var queryParameter in queryParams)
+            {
+                foreach (string value in queryParameter.Value)
+                {
+                    apiUrl.Append($"&{queryParameter.Key}={value}");
+                }
+            }
+
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl.ToString());
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
                 List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
 
                 return instances;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            }          
             else
             {
                 _logger.LogError("Unable to fetch instances");
@@ -162,7 +168,7 @@ namespace Altinn.App.Services.Implementation
             _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
             throw await PlatformHttpException.CreateAsync(response);
         }
-        
+
         /// <inheritdoc/>
         public async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
         {
@@ -270,6 +276,6 @@ namespace Altinn.App.Services.Implementation
             }
 
             throw await PlatformHttpException.CreateAsync(response);
-        }        
+        }
     }
 }

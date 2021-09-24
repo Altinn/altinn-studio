@@ -10,6 +10,10 @@
   "lastChanged": "2019-07-31T09:57:23.4729995Z",
   "dueBefore": "2019-07-05T00:00:00Z",
   "visibleAfter": "2019-06-05T00:00:00Z",
-  "status": {   
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
   }
 }
