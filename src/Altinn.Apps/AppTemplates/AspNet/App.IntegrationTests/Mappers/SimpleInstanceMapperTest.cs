@@ -61,7 +61,7 @@ namespace App.IntegrationTestsRef.Mappers
 
             Assert.Equal(lastChanged, actual.LastChanged);
             Assert.Equal(expectedLastChangedBy, actual.LastChangedBy);
-            Assert.Equal(expectedInstanceId, actual.InstanceId);
+            Assert.Equal(expectedInstanceId, actual.Id);
         }
 
         [Fact]
@@ -95,8 +95,8 @@ namespace App.IntegrationTestsRef.Mappers
                 new List<Instance> { i1, i2 },
                 orgUserLookup);
 
-            SimpleInstance actual1 = actualList.First(si => si.InstanceId.Equals("1337/447ed22d-67a8-42c7-8add-cc35eba304f1"));
-            SimpleInstance actual2 = actualList.First(si => si.InstanceId.Equals("1337/447ed22d-67a8-42c7-8add-cc35eba304g3"));
+            SimpleInstance actual1 = actualList.First(si => si.Id.Equals("1337/447ed22d-67a8-42c7-8add-cc35eba304f1"));
+            SimpleInstance actual2 = actualList.First(si => si.Id.Equals("1337/447ed22d-67a8-42c7-8add-cc35eba304g3"));
 
             // Assert
             string expectedLastChangedBy1 = "Kylie Jenner";
