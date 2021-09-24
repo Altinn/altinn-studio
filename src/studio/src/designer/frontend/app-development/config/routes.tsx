@@ -1,4 +1,5 @@
 import uieditorApp from '../../ux-editor/SubApp';
+import TextEditorApp from '../../packages/text-editor/src/TextEditorApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
@@ -56,6 +57,14 @@ const routes: IRoute[] = [
       shadow: true,
       iframeEndingUrl: 'Text',
     },
+  },
+  {
+    path: '/texts2',
+    exact: true,
+    activeSubHeaderSelection: 'SpråkNy',
+    activeLeftMenuSelection: 'TeksterNy',
+    menu: 'language',
+    subapp: TextEditorApp,
   },
   {
     path: '/about',

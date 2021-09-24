@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#nullable enable
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -62,6 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view with JSON editor</returns>
+        [Obsolete]
         public IActionResult Index(string org, string app)
         {
             IList<string> languages = _repository.GetLanguages(org, app);
@@ -81,10 +83,87 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>List of languages as JSON</returns>
+        [Obsolete]
         public IActionResult GetLanguages(string org, string app)
         {
             List<string> languages = _repository.GetLanguages(org, app);
             return Json(languages);
+        }
+
+        /// <summary>
+        /// Data type for SaveResourcesRequest
+        /// mirrored in frontend/packages/text-editor/src/api.ts
+        /// </summary>
+        public class SaveResourcesRequest
+        {
+            /// <summary>
+            /// Dictionary of the structure Edited[ResourceID][LanguageCode] == ResourceTextInLanguage
+            ///                         and Edited[ResourceID]["id"] == ResourceID
+            /// </summary>
+            public Dictionary<string, Dictionary<string, string>>? Edited { get; set; }
+
+            /// <summary>
+            /// List of ids that is deleleted by this request
+            /// </summary>
+            public List<string>? DeletedIds { get; set; }
+        }
+
+        /// <summary>
+        /// Save text resources
+        /// </summary>
+        /// <param name="requestData">The JSON Data</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Http 200 for success or 500 for failiure</returns>
+        [HttpPost]
+        public IActionResult SaveResources([FromBody] SaveResourcesRequest requestData, string org, string app)
+        {
+            if (
+                requestData == null ||
+                requestData.DeletedIds == null ||
+                requestData.Edited == null)
+            {
+                return BadRequest();
+            }
+
+            var languagesInUpdate = new HashSet<string>(requestData.Edited.Values.SelectMany(r => r.Keys));
+            if (requestData.DeletedIds.Count > 0)
+            {
+                // update all languages if there are deleted keys
+                languagesInUpdate.UnionWith(_repository.GetLanguages(org, app));
+            }
+
+            foreach (var language in languagesInUpdate)
+            {
+                var repoResource = _repository.GetLanguageResource(org, app, language) ?? new TextResource { Language = language, Resources = new List<TextResourceElement>() };
+
+                // Update edits
+                foreach ((var key, var edits) in requestData.Edited)
+                {
+                    if (edits.ContainsKey(language))
+                    {
+                        var e = repoResource.Resources.FirstOrDefault(r => r.Id == key);
+                        if (e == null)
+                        {
+                            e = new TextResourceElement { Id = key };
+                            repoResource.Resources.Add(e);
+                        }
+
+                        e.Value = edits[language];
+                    }
+                }
+
+                // Update deletes
+                repoResource.Resources.RemoveAll(r => requestData.DeletedIds.Contains(r.Id));
+
+                // Order resources by ID (for minimal git diffs)
+                repoResource.Resources = repoResource.Resources.OrderBy(r => r.Id).ToList();
+
+                // Save resource
+                _repository.SaveLanguageResource(org, app, language, JsonConvert.SerializeObject(repoResource, Formatting.Indented));
+            }
+
+            return Content( JsonConvert.SerializeObject(requestData));
         }
 
         /// <summary>
@@ -96,8 +175,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
+        [Obsolete]
         public IActionResult SaveResource([FromBody] dynamic jsonData, string id, string org, string app)
         {
+#nullable disable
             id = id.Split('-')[0];
             JObject json = jsonData;
 
@@ -126,6 +207,7 @@ namespace Altinn.Studio.Designer.Controllers
                 Success = true,
                 Message = "Språk lagret",
             });
+#nullable restore
         }
 
         /// <summary>
@@ -147,6 +229,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>JSON content</returns>
         [HttpGet]
+        [Obsolete]
         public IActionResult GetResourceSchema()
         {
             string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/resource-schema.json");
@@ -174,6 +257,42 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns all text resources for an app
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Resources for the app</returns>
+        [HttpGet]
+        public IActionResult GetResources(string org, string app)
+        {
+            List<string> languages = _repository.GetLanguages(org, app);
+
+            // TODO: see if I can use GetServiceTexts, or if returning texts from global and org is wrong
+            // var serviceTexts = _repository.GetServiceTexts(org, app);
+            var serviceTexts = new Dictionary<string, Dictionary<string, string>>();
+            languages.ForEach(language =>
+            {
+                var resource = _repository.GetLanguageResource(org, app, language);
+                if (resource == null)
+                {
+                    return;
+                }
+
+                resource.Resources.ForEach(element =>
+                {
+                    if (!serviceTexts.ContainsKey(element.Id))
+                    {
+                        serviceTexts[element.Id] = new Dictionary<string, string>();
+                    }
+
+                    serviceTexts[element.Id][language] = element.Value;
+                });
+            });
+
+            return Json(serviceTexts);
+        }
+
+        /// <summary>
         /// Method to retrieve service name from textresources file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -191,11 +310,9 @@ namespace Altinn.Studio.Designer.Controllers
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                if (textResourceObject != null)
-                {
-                    serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
-                }
+                ResourceCollection? textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+                serviceName = textResourceObject?.Resources.FirstOrDefault(r => r.Id == "ServiceName")?.Value ?? string.Empty;
+
             }
 
             watch.Stop();
@@ -219,7 +336,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
 
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+                ResourceCollection? textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
 
                 if (textResourceObject != null)
                 {
