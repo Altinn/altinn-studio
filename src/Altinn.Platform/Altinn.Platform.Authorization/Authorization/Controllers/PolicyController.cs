@@ -130,7 +130,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="orgAppList">The list of org/apps</param>
         /// <returns>A list resourcePolicyResponses</returns>
         [AllowAnonymous]
-        [HttpPost("/authorization/api/v1/resourcepolicies")]
+        [HttpPost("/authorization/api/v1/policies/GetPolicies")]
         public async Task<ActionResult> GetResourcePolicies(List<List<AttributeMatch>> orgAppList)
         {
             List<ResourcePolicyResponse> resourcePolicyResponses = new List<ResourcePolicyResponse>();
