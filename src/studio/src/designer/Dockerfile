@@ -28,7 +28,6 @@ COPY ./src/designer/frontend/app-development/ ./app-development/
 COPY ./src/designer/frontend/ux-editor ./ux-editor/
 COPY ./src/designer/frontend/dashboard/ ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/ ./packages/schema-editor/
-COPY ./src/designer/frontend/packages/text-editor/ ./packages/text-editor/
 
 # Build app-development
 RUN npm run build --prefix /app-development

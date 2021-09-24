@@ -32,8 +32,7 @@
   "include": [
     "./**/*",
     "../shared/**/*",
-    "../ux-editor/**/*",
-    "../packages/text-editor/**/*"
+    "../ux-editor/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -92,7 +92,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         /// <summary>
         /// Data type for SaveResourcesRequest
-        /// mirrored in frontend/packages/text-editor/src/api.ts
+        /// mirrored in frontend/app-development/features/text-editor/api.ts
         /// </summary>
         public class SaveResourcesRequest
         {

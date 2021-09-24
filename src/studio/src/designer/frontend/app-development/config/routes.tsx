@@ -1,5 +1,5 @@
 import uieditorApp from '../../ux-editor/SubApp';
-import TextEditorApp from '../../packages/text-editor/src/TextEditorApp';
+import TextEditorApp from '../features/text-editor/TextEditorApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
