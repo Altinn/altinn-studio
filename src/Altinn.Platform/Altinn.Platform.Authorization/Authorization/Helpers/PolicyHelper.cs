@@ -70,7 +70,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
                         if (policy.Description != null && resourcePolicy.Description == null)
                         {
-                            resourcePolicy.Description = new LocalizedText(rule.Description, rule.Description, rule.Description);
+                            resourcePolicy.Description = new LocalizedText(policy.Description, policy.Description, policy.Description);
                         }
 
                         AddActionsToResourcePolicy(actions, resourcePolicy);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xacml:Policy xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:example:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides">
+	<xacml:Description>Eksempel på en policy</xacml:Description>
   <xacml:Target/>
   <xacml:Rule RuleId="urn:altinn:example:ruleid:1" Effect="Permit">
     <xacml:Description>Eksempel på samleregel som spesifiserer at både REGNA og DAGL m/sikkerhetsnivå; 2, for ressursen; SKD/TaxReport får tilgang til operasjonene; Read og Write både for Event; Signing og Tasks; Instantiate og FormFilling</xacml:Description>

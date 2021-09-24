@@ -317,7 +317,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             AssertLocalizedTextEqual(expected.Title, actual.Title);
             AssertCollections(expected.Actions, actual.Actions, AssertResourceActionEqual);
             AssertCollections(expected.Resource, actual.Resource, AssertAttributeMatchEqual);
-            if (expected.Description != null && actual.Description != null)
+            if (expected.Description != null || actual.Description != null)
             {
                 AssertLocalizedTextEqual(expected.Description, actual.Description);
             }
