@@ -7,7 +7,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Platform.Register.Models;
+using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -16,67 +16,66 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// Represents a service that provides access to information from DSF.
+    /// A client for retrieving profiles from Altinn Platform.
     /// </summary>
-    public class RegisterDSFAppSI : IDSF
+    public class ProfileClient : IProfile
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
+        private readonly IAppResources _appResources;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
-        private readonly IAppResources _appResource;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegisterDSFAppSI"/> class
+        /// Initializes a new instance of the <see cref="ProfileClient"/> class
         /// </summary>
-        /// <param name="platformSettings">The platform settings from loaded configuration.</param>
         /// <param name="logger">the logger</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
-        /// <param name="httpClient">The http client</param>
-        /// <param name="appResource">The app resources service</param>
-        /// <param name="accessTokenGenerator">The platform access token generator</param>
-        public RegisterDSFAppSI(
+        /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
+        /// <param name="appResources">An instance of the AppResources service.</param>
+        /// <param name="accessTokenGenerator">An instance of the AccessTokenGenerator service.</param>
+        public ProfileClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<RegisterDSFAppSI> logger,
+            ILogger<ProfileClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAccessTokenGenerator accessTokenGenerator,
-            IAppResources appResource)
+            IAppResources appResources,
+            IAccessTokenGenerator accessTokenGenerator)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiProfileEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
+            _appResources = appResources;
             _accessTokenGenerator = accessTokenGenerator;
-            _appResource = appResource;
         }
 
-        /// <inheritdoc/>
-        public async Task<Person> GetPerson(string SSN)
+        /// <inheritdoc />
+        public async Task<UserProfile> GetUserProfile(int userId)
         {
-            Person person = null;
+            UserProfile userProfile = null;
 
-            string endpointUrl = $"persons/{SSN}";
-
+            string endpointUrl = $"users/{userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResource.GetApplication().Org, _appResource.GetApplication().Id.Split("/")[1]));
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                person = await response.Content.ReadAsAsync<Person>();
+                userProfile = await response.Content.ReadAsAsync<UserProfile>();
             }
             else
             {
-                _logger.LogError($"Getting person with ssn {SSN} failed with statuscode {response.StatusCode}");
+                _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
             }
 
-            return person;
+            return userProfile;
         }
     }
 }

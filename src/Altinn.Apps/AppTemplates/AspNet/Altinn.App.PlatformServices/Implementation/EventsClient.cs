@@ -22,9 +22,9 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
-    /// Represents an implementation of <see cref="IEvents"/> that acts as a client for the platform Events component.
+    /// A client for handling actions on events in Altinn Platform.
     /// </summary>
-    public class EventsAppSI : IEvents
+    public class EventsClient : IEvents
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -34,7 +34,7 @@ namespace Altinn.App.PlatformServices.Implementation
         private readonly IAppResources _appResources;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventsAppSI"/> class.
+        /// Initializes a new instance of the <see cref="EventsClient"/> class.
         /// </summary>
         /// <param name="platformSettings">The platform settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
@@ -43,7 +43,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <param name="appResources">The app resoure service.</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="generalSettings">The general settings of the application.</param>
-        public EventsAppSI(
+        public EventsClient(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,

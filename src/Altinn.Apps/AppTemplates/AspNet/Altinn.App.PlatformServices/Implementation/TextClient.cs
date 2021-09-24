@@ -18,9 +18,9 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// Represents a service that provide access to text resources.
+    /// A client forretrieving text resources from Altinn Platform.
     /// </summary>
-    public class TextAppSI : IText
+    public class TextClient : IText
     {
         private readonly ILogger _logger;
         private readonly AppSettings _settings;
@@ -30,7 +30,7 @@ namespace Altinn.App.Services.Implementation
         private readonly MemoryCacheEntryOptions cacheEntryOptions;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TextAppSI"/> class.
+        /// Initializes a new instance of the <see cref="TextClient"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
         /// <param name="platformSettings">The platform settings object from configuration.</param>
@@ -38,10 +38,10 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">An object with access to the http context.</param>
         /// <param name="httpClient">A HttpClient provided by the built in HttpClientFactory.</param>
         /// <param name="memoryCache">The built in MemoryCache.</param>
-        public TextAppSI(
+        public TextClient(
             IOptions<AppSettings> settings,
             IOptions<PlatformSettings> platformSettings,
-            ILogger<TextAppSI> logger,
+            ILogger<TextClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IMemoryCache memoryCache)

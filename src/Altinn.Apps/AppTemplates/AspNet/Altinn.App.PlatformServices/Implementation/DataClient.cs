@@ -9,6 +9,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
@@ -30,9 +31,9 @@ using Newtonsoft.Json;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the data handling service.
+    /// A client for handling actions on data in Altinn Platform.
     /// </summary>
-    public class DataAppSI : IData
+    public class DataClient : IData
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
@@ -41,16 +42,16 @@ namespace Altinn.App.Services.Implementation
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Initializes a new data of the <see cref="DataAppSI"/> class.
+        /// Initializes a new data of the <see cref="DataClient"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The current app settings.</param>
         /// <param name="httpClient">A HttpClient from the built in HttpClient factory.</param>
-        public DataAppSI(
+        public DataClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<DataAppSI> logger,
+            ILogger<DataClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient)
@@ -107,9 +108,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public async Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
@@ -133,9 +134,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -155,9 +156,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public async Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
@@ -181,9 +182,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
@@ -240,9 +241,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public async Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
@@ -258,9 +259,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             DataElement dataElement;
@@ -282,7 +283,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -290,12 +291,12 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = new StreamContent(stream);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-            if (!string.IsNullOrEmpty(fileName))
+            if (!string.IsNullOrEmpty(filename))
             {
                 content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
                 {
-                    FileName = fileName,
-                    FileNameStar = fileName
+                    FileName = filename,
+                    FileNameStar = filename
                 };
             }
 
@@ -314,9 +315,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 

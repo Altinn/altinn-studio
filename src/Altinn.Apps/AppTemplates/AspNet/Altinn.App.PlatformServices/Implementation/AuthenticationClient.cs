@@ -2,11 +2,14 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
+
 using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,24 +17,24 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the authentication service.
+    /// A client for authentication actions in Altinn Platform.
     /// </summary>
-    public class AuthenticationAppSI : IAuthentication
+    public class AuthenticationClient : IAuthentication
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthenticationAppSI"/> class
+        /// Initializes a new instance of the <see cref="AuthenticationClient"/> class
         /// </summary>
         /// <param name="platformSettings">The current platform settings.</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
-        public AuthenticationAppSI(
+        public AuthenticationClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<AuthenticationAppSI> logger,
+            ILogger<AuthenticationClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {

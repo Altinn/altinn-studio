@@ -20,12 +20,12 @@ using IRegister = Altinn.App.Services.Interface.IRegister;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the register service, for app development. Calls the platform register service.
+    /// A client for retrieving register data from Altinn Platform.
     /// </summary>
-    public class RegisterAppSI : IRegister
+    public class RegisterClient : IRegister
     {
-        private readonly IDSF _dsf;
-        private readonly IER _er;
+        private readonly IDSF _dsfClient;
+        private readonly IER _erClient;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -34,7 +34,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
+        /// Initializes a new instance of the <see cref="RegisterClient"/> class
         /// </summary>
         /// <param name="platformSettings">The current platform settings.</param>
         /// <param name="dsf">The dsf</param>
@@ -45,19 +45,19 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClient">The http client</param>
         /// <param name="appResources">The app resources service</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
-        public RegisterAppSI(
+        public RegisterClient(
             IOptions<PlatformSettings> platformSettings,
             IDSF dsf,
             IER er,
-            ILogger<RegisterAppSI> logger,
+            ILogger<RegisterClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAppResources appResources,
             IAccessTokenGenerator accessTokenGenerator)
         {
-            _dsf = dsf;
-            _er = er;
+            _dsfClient = dsf;
+            _erClient = er;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
@@ -74,7 +74,7 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         public IDSF DSF
         {
-            get { return _dsf; }
+            get { return _dsfClient; }
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         public IER ER
         {
-            get { return _er; }
+            get { return _erClient; }
         }
 
         /// <inheritdoc/>

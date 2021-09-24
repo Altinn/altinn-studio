@@ -1,17 +1,17 @@
 {
-  "id": "1337/a4d5c456-a154-44da-b5da-8d37640635bd",
+  "id": "1337/bffd2c17-9d93-49f4-b504-3d0ece2402c7",
   "instanceOwner": {
     "partyId": "1337",
-    "personNumber": "01039012345"
+    "personNumber": "12345678901"
   },
-  "appId": "tdd/endring-av-navn",
-  "org": "tdd",
+  "appId": "ttd/eformidling-app",
+  "org": "ttd",
   "process": {
-    "started": "2020-02-06T21:19:22.0230012Z",
+    "started": "2019-12-11T09:34:35.5471442Z",
     "startEvent": "StartEvent_1",
     "currentTask": {
       "flow": 2,
-      "started": "2020-02-06T21:19:22.0427241Z",
+      "started": "2019-12-11T09:34:37.6872728Z",
       "elementId": "Task_1",
       "name": "Utfylling",
       "altinnTaskType": "data"
@@ -23,5 +23,8 @@
     "isHardDeleted": false,
     "readStatus": "Read"
   },
-  "data": []
+  "lastChanged": "2021-09-23T10:19:43",
+  "lastChangedBy": "1337",
+  "data": [
+  ]
 }

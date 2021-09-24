@@ -22,22 +22,22 @@ using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
 {
-    public class TextAppSITest
+    public class TextClientTest
     {
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptions<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
-        private readonly Mock<ILogger<TextAppSI>> logger;
+        private readonly Mock<ILogger<TextClient>> logger;
         private readonly IMemoryCache memoryCache;
 
-        public TextAppSITest()
+        public TextClientTest()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptions<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
-            logger = new Mock<ILogger<TextAppSI>>();
+            logger = new Mock<ILogger<TextClient>>();
 
             var services = new ServiceCollection();
             services.AddMemoryCache();
@@ -61,7 +61,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "texts");
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextAppSI target = new TextAppSI(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
 
             // Act
             await target.GetText("org", "app", "nb");
@@ -81,7 +81,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             InitializeMocks(new HttpResponseMessage(), "texts");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextAppSI target = new TextAppSI(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
 
             // Act
             TextResource actual = await target.GetText("org", "app", "nb");
@@ -103,7 +103,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "texts");
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextAppSI target = new TextAppSI(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
 
             // Act
             TextResource actual = await target.GetText("org", "app", "nb");

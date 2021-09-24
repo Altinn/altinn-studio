@@ -1,19 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
+using Altinn.App.Api.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTests
@@ -413,7 +417,7 @@ namespace App.IntegrationTests
             {
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
-                
+
                 Assert.NotNull(createdInstance);
                 Assert.Single(createdInstance.Data);
                 Assert.Equal("default", createdInstance.Data[0].DataType);
@@ -818,6 +822,100 @@ namespace App.IntegrationTests
             // Assert
             Assert.Null(deletedInstance.Status.HardDeleted);
             Assert.NotNull(deletedInstance.Status.SoftDeleted);
+        }
+
+        [Fact]
+
+        public async Task GetActiveInstances_NoActiveInstances_EmptyListReturnedOk()
+        {
+            // Arrange
+            string org = "tdd";
+            string app = "endring-av-navn";
+            int instanceOwnerPartyId = 1606;
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetToken(1606);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/active";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string json = await response.Content.ReadAsStringAsync();
+            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.False(activeInstances.Any());
+        }
+
+        [Fact]
+
+        public async Task GetActiveInstances_LastChangedByUser_MappedSuccessfullyAndReturneOk()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "eformidling-app";
+            int instanceOwnerPartyId = 1337;
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/active";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string json = await response.Content.ReadAsStringAsync();
+            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+
+            SimpleInstance actual = activeInstances.First();
+
+            // Assert
+            string expectedLastChangedBy = "Sophie Salt";
+            DateTime expectedLastChanged = new DateTime(637679891830000000);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(activeInstances);
+            Assert.Equal(expectedLastChanged, actual.LastChanged);
+            Assert.Equal(expectedLastChangedBy, actual.LastChangedBy);
+        }
+
+        [Fact]
+        public async Task GetActiveInstances_LastChangedByOrg_MappedSuccessfullyAndReturneOk()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "presentationfields-app";
+
+            int instanceOwnerPartyId = 1337;
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetToken(1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/active";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string json = await response.Content.ReadAsStringAsync();
+            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+            SimpleInstance actual = activeInstances.First();
+
+            // Assert
+            string expectedLastChangedBy = "DDG Fitness";
+            DateTime expectedLastChanged = new DateTime(637679891830000000);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(activeInstances);
+            Assert.Equal(expectedLastChanged, actual.LastChanged);
+            Assert.Equal(expectedLastChangedBy, actual.LastChangedBy);
         }
     }
 }

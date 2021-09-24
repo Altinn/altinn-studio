@@ -17,6 +17,14 @@
       "altinnTaskType": "data"
     }
   },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "lastChangedBy": "897069650",
+  "lastChanged": "2021-09-23T10:19:43",
   "presentationTexts": {
     "Title": "Sophie Salt"
   },

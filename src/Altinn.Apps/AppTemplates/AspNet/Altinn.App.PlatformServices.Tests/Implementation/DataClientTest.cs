@@ -24,14 +24,14 @@ using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
 {
-    public class DataAppSITests
+    public class DataClientTest
     {
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
-        private readonly Mock<ILogger<DataAppSI>> logger;
+        private readonly Mock<ILogger<DataClient>> logger;
 
-        public DataAppSITests()
+        public DataClientTest()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             PlatformSettings platformSettings = new () { ApiStorageEndpoint = "http://localhost/" };
@@ -44,7 +44,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             contextAccessor = new Mock<IHttpContextAccessor>();
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
-            logger = new Mock<ILogger<DataAppSI>>();
+            logger = new Mock<ILogger<DataClient>>();
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             });
 
             Mock<IOptions<GeneralSettings>> generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
-            var target = new DataAppSI(
+            var target = new DataClient(
                 platformSettingsOptions.Object,
                 logger.Object,
                 contextAccessor.Object,
@@ -112,7 +112,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             });
 
             Mock<IOptions<GeneralSettings>> generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
-            var target = new DataAppSI(
+            var target = new DataClient(
                 platformSettingsOptions.Object,
                 logger.Object,
                 contextAccessor.Object,
@@ -154,7 +154,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             });
 
             Mock<IOptions<GeneralSettings>> generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
-            var target = new DataAppSI(
+            var target = new DataClient(
                 platformSettingsOptions.Object,
                 logger.Object,
                 contextAccessor.Object,
