@@ -64,7 +64,7 @@ namespace Altinn.Platform.Authentication.Services
         /// <returns>The created users with userId and partyID</returns>
         public async Task<UserProfile> CreateUser(UserProfile user)
         {
-            UserProfile user = null;
+            UserProfile createdProfile = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create");
@@ -74,14 +74,14 @@ namespace Altinn.Platform.Authentication.Services
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
-                user = serializer.ReadObject(stream) as UserProfile;
+                createdProfile = serializer.ReadObject(stream) as UserProfile;
             }
             else
             {
                 _logger.LogError($"Creating user failed {response.StatusCode}");
             }
 
-            return user;
+            return createdProfile;
         }
     }
 }
