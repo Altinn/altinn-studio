@@ -268,7 +268,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
 
@@ -303,7 +303,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
 
@@ -337,7 +337,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
 
@@ -371,7 +371,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/resourcepolicies", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
             string responseContent = await response.Content.ReadAsStringAsync();
             List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
 
